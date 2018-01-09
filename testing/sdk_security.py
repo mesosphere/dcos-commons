@@ -224,7 +224,7 @@ def setup_security(framework_name: str) -> None:
     )
     grant_permissions(
         linux_user='nobody',
-        role_name='slave_public/{}-role'.format(framework_name),
+        role_name='slave_public%252F{}-role'.format(framework_name),
         service_account_name='service-acct'
     )
     grant_permissions(
