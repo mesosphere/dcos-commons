@@ -218,8 +218,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -343,8 +341,6 @@
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/kafka/managing.html">Managing</a></li>
           
           <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
           
@@ -478,6 +474,20 @@
 </div>
 
 <p>If the operation succeeds a <code class="highlighter-rouge">200 OK</code> is returned.</p>
+
+<h2 id="pause-a-node">Pause a Node</h2>
+
+<p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
+
+<p>CLI example</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-elastic debug pod pause &lt;node-id&gt;
+</code></pre>
+</div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/elastic/v1/pod/&lt;node-id&gt;/pause
+</code></pre>
+</div>
 
 <h1 id="configuration-api">Configuration API</h1>
 

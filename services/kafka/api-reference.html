@@ -218,8 +218,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -343,8 +341,6 @@
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/kafka/managing.html">Managing</a></li>
           
           <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
           
@@ -486,6 +482,20 @@
   <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
 <span class="o">]</span>
+</code></pre>
+</div>
+
+<h2 id="pause-a-broker">Pause a Broker</h2>
+
+<p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
+
+<p>CLI example</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-kafka debug pod pause &lt;node-id&gt;
+</code></pre>
+</div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/pause
 </code></pre>
 </div>
 

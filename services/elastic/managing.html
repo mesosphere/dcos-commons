@@ -218,8 +218,6 @@
       
       
       
-      
-      
     </ul>
   </li>
   <li>
@@ -343,8 +341,6 @@
           <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
           
           <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
-          
-          <li><a href="../../services/kafka/managing.html">Managing</a></li>
           
           <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
           
@@ -504,7 +500,7 @@ dcos package install --cli beta-elastic
 <h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
 <p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
 
-<h2 id="node-info">Node Info</h2>
+<h1 id="node-info">Node Info</h1>
 
 <p>Comprehensive information is available about every node.  To list all nodes:</p>
 
@@ -522,7 +518,7 @@ dcos package install --cli beta-elastic
 </code></pre>
 </div>
 
-<h2 id="node-status">Node Status</h2>
+<h1 id="node-status">Node Status</h1>
 <p>Similarly, the status for any node may also be queried.</p>
 
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic --name<span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
@@ -534,6 +530,80 @@ dcos package install --cli beta-elastic
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic pod info data-0
 </code></pre>
 </div>
+
+<h1 id="pause-a-node">Pause a Node</h1>
+
+<p>Pausing a node relaunches it in an idle command state. This allows the operator to debug the contents of the node, possibly making changes to fix problems. While these problems are often fixed by just replacing the node, there may be cases where an in-place repair or other operation is needed.</p>
+
+<p>For example:</p>
+<ul>
+  <li>A node which crashes immediately upon starting may need additional work to be performed.</li>
+  <li>Some services may <em>require</em> that certain repair operations be performed manually when the task itself isn’t running.
+Being able to put the node in an offline but accessible state makes it easier to resolve these situations.</li>
+</ul>
+
+<p>After the node has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.</p>
+
+<p>Here is an example session where an <code class="highlighter-rouge">index-1</code> node is crash looping due to some corrupted data in a persistent volume. The operator pauses the <code class="highlighter-rouge">index-1</code> node, then uses <code class="highlighter-rouge">task exec</code> to repair the index. Following this, the operator starts the node and it resumes normal operation:</p>
+
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-elastic debug pod pause index-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"index-1-agent"</span>,
+    <span class="s2">"index-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+
+<span class="gp">$ </span>dcos beta-elastic pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  │  └─ index-0-node <span class="o">(</span>COMPLETE<span class="o">)</span>
+│  └─ index-1
+│     ├─ index-1-agent <span class="o">(</span>PAUSING<span class="o">)</span>
+│     └─ index-1-node <span class="o">(</span>PAUSING<span class="o">)</span>
+└─ data
+   ├─ data-0
+   │  └─ data-0-node <span class="o">(</span>COMPLETE<span class="o">)</span>
+   └─ data-1
+      └─ data-1-node <span class="o">(</span>COMPLETE<span class="o">)</span>
+
+... repeat <span class="s2">"pod status"</span> <span class="k">until </span>index-1 tasks are PAUSED ...
+
+<span class="gp">$ </span>dcos task <span class="nb">exec</span> --interactive --tty index-1-node /bin/bash
+<span class="gp">index-1-node$ </span>./repair-index <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
+
+<span class="gp">$ </span>dcos beta-elastic debug pod resume index-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"index-1-agent"</span>,
+    <span class="s2">"index-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+
+<span class="gp">$ </span>dcos beta-elastic pod status
+myservice
+├─ index
+│  ├─ index-0
+│  │  ├─ index-0-agent <span class="o">(</span>RUNNING<span class="o">)</span>
+│  │  └─ index-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
+│  └─ index-1
+│     ├─ index-1-agent <span class="o">(</span>STARTING<span class="o">)</span>
+│     └─ index-1-node <span class="o">(</span>STARTING<span class="o">)</span>
+└─ data
+   ├─ data-0
+   │  └─ data-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
+   └─ data-1
+      └─ data-1-node <span class="o">(</span>RUNNING<span class="o">)</span>
+
+... repeat <span class="s2">"pod status"</span> <span class="k">until </span>index-1 tasks are RUNNING ...
+</code></pre>
+</div>
+
+<p>In the above example, all tasks in the node were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a node. For example, <code class="highlighter-rouge">dcos beta-elastic debug pod pause index-1 -t agent</code> will pause only the <code class="highlighter-rouge">agent</code> task within the <code class="highlighter-rouge">index-1</code> node.</p>
 
 <h1 id="upgrading-service-version">Upgrading Service Version</h1>
 
