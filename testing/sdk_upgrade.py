@@ -286,6 +286,8 @@ def _upgrade_or_downgrade(
         sdk_tasks.check_tasks_updated(service_name, '', task_ids)
 
 
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=5000)
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
