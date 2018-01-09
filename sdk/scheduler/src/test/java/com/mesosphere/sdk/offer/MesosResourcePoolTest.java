@@ -4,7 +4,6 @@ import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -12,7 +11,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 
 public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
@@ -108,5 +109,16 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
         Assert.assertFalse(
                 pool.consumeReservableMerged(desiredUnreservedResource.getName(), resourceValue, Constants.ANY_ROLE)
                         .isPresent());
+    }
+
+    @Test
+    public void testConsumeUnreservedWhenNoUnreservedResources() {
+        Resource reservedCpu = ResourceTestUtils.getReservedCpus(1.0, UUID.randomUUID().toString());
+        Offer offer = OfferTestUtils.getOffer(reservedCpu);
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Map<String, Protos.Value> map = pool.getUnreservedMergedPool();
+        Assert.assertTrue(map != null);
+        Assert.assertTrue(map.isEmpty());
     }
 }
