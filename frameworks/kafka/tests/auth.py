@@ -43,7 +43,7 @@ def get_ssl_client_properties(cn: str, has_kerberos: bool) -> list:
     else:
         client_properties = ["security.protocol=SSL", ]
 
-    client_properties.extend(["ssl.truststore.location = {cn}_truststore.jks", format(cn=cn),
+    client_properties.extend(["ssl.truststore.location = {cn}_truststore.jks".format(cn=cn),
                               "ssl.truststore.password = changeit",
                               "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
                               "ssl.keystore.password = changeit", ])
