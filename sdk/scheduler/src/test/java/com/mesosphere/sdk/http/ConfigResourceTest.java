@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.config.StringConfiguration;
-import com.mesosphere.sdk.http.ConfigResource;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;

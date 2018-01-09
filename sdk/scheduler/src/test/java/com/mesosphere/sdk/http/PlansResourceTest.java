@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.http;
 
-import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;

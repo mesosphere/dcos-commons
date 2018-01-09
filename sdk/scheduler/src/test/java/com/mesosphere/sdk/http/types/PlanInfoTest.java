@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.http.types;
 
-import com.mesosphere.sdk.http.types.PhaseInfo;
-import com.mesosphere.sdk.http.types.PlanInfo;
-import com.mesosphere.sdk.http.types.StepInfo;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import org.junit.Before;

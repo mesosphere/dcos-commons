@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.http;
 
-import com.mesosphere.sdk.http.EndpointsResource;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;

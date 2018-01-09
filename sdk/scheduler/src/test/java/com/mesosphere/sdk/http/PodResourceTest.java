@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.http;
 
-import com.mesosphere.sdk.http.PodResource;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;

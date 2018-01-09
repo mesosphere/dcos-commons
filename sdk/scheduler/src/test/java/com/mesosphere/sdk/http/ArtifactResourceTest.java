@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.http;
 
-import com.mesosphere.sdk.http.ArtifactResource;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;

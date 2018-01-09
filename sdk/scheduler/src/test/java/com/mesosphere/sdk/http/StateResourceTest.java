@@ -6,8 +6,6 @@ import com.mesosphere.sdk.storage.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.*;
 
-import com.mesosphere.sdk.http.ResponseUtils;
-import com.mesosphere.sdk.http.StateResource;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;

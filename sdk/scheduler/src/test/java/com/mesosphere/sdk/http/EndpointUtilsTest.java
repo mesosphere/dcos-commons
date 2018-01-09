@@ -3,7 +3,6 @@ package com.mesosphere.sdk.http;
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
-import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 
 /**
