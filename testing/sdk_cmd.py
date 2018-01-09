@@ -9,11 +9,14 @@ import json as jsonlib
 import logging
 import retrying
 import subprocess
+import traceback
 
 import dcos.http
 import shakedown
 
 log = logging.getLogger(__name__)
+
+DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
 
 def request(method, url, retry=True, log_args=True, verify=None, **kwargs):
@@ -28,7 +31,17 @@ def request(method, url, retry=True, log_args=True, verify=None, **kwargs):
         response.raise_for_status()
         return response
     if retry:
-        return shakedown.wait_while_exceptions(lambda: fn())
+        @retrying.retry(
+            wait_fixed=1000,
+            stop_max_delay=60*1000,
+            retry_on_result=lambda res: not res)
+        def retry_fn():
+            try:
+                return fn()
+            except:
+                log.info(traceback.format_exc())
+                return None
+        return retry_fn()
     else:
         return fn()
 
@@ -102,7 +115,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
     fn()
 
 
-def shutdown_agent(agent_ip):
+def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds*1000,

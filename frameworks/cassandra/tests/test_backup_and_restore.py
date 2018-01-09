@@ -1,5 +1,4 @@
 import os
-import tempfile
 import uuid
 
 import pytest
@@ -34,9 +33,8 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=additional_options)
 
-        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in test_jobs:
-            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
+            sdk_jobs.install_job(job)
 
         yield # let the test session execute
     finally:

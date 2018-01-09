@@ -1,5 +1,3 @@
-import tempfile
-
 import pytest
 import sdk_install
 import sdk_jobs
@@ -25,9 +23,8 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in test_jobs:
-            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
+            sdk_jobs.install_job(job)
 
         yield # let the test session execute
     finally:

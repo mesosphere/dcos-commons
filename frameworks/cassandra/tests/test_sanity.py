@@ -1,7 +1,5 @@
-import tempfile
-
 import pytest
-import sdk_cmd as cmd
+import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
@@ -30,9 +28,8 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options={"service": {"name": config.get_foldered_service_name()} })
 
-        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
         for job in test_jobs:
-            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
+            sdk_jobs.install_job(job)
 
         yield  # let the test session execute
     finally:
@@ -63,7 +60,7 @@ def test_mesos_v0_api():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = cmd.svc_cli(
+    endpoints = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, config.get_foldered_service_name(),
         'endpoints native-client', json=True)
     assert endpoints['dns'][0] == sdk_hosts.autoip_host(

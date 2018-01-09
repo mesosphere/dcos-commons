@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
 '''
 import json
 import logging
-import tempfile
 import traceback
 
 import retrying
@@ -17,22 +16,22 @@ import shakedown
 
 log = logging.getLogger(__name__)
 
-CREATE_JOB_ENDPOINT = '/v1/jobs'
-DELETE_JOB_ENDPOINT_TEMPLATE = '/v1/jobs/{}'
-START_JOB_ENDPOINT_TEMPLATE = '/v1/jobs/{}/runs'
-GET_JOB_RUN_ENDPOINT_TEMPLATE = '/v1/jobs/{}/runs/{}'
+CREATE_JOB_ENDPOINT = 'v1/jobs'
+DELETE_JOB_ENDPOINT_TEMPLATE = 'v1/jobs/{}'
+START_JOB_ENDPOINT_TEMPLATE = 'v1/jobs/{}/runs'
+GET_JOB_RUN_ENDPOINT_TEMPLATE = 'v1/jobs/{}/runs/{}'
 
 
 # --- Install/uninstall jobs to the cluster
 
 
-def install_job(job_dict, tmp_dir=None):
+def install_job(job_dict):
     job_name = job_dict['id']
-    log.info('Adding job {}:\n{}'.format(job_name, json.dumps(job_dict)))
 
     # attempt to delete current job, if any:
-    _remove_job_by_name(job_name, retry=False)
+    _remove_job_by_name(job_name)
 
+    log.info('Adding job {}:\n{}'.format(job_name, json.dumps(job_dict)))
     sdk_cmd.request(
         'POST',
         '{}{}'.format(shakedown.dcos_service_url('metronome'), CREATE_JOB_ENDPOINT),
@@ -40,17 +39,17 @@ def install_job(job_dict, tmp_dir=None):
 
 
 def remove_job(job_dict):
-    _remove_job_by_name(job_dict['id'], retry=True)
+    _remove_job_by_name(job_dict['id'])
 
 
-def _remove_job_by_name(job_name, retry):
+def _remove_job_by_name(job_name):
     try:
         sdk_cmd.request(
             'DELETE',
             '{}{}'.format(
                 shakedown.dcos_service_url('metronome'),
                 DELETE_JOB_ENDPOINT_TEMPLATE.format(job_name)),
-            retry=retry)
+            retry=False)
     except:
         log.info('Failed to remove any existing job named {} (this is likely as expected): {}'.format(
             job_name, traceback.format_exc()))
@@ -63,9 +62,8 @@ class InstallJobContext(object):
         self.job_dicts = jobs
 
     def __enter__(self):
-        tmp_dir = tempfile.mkdtemp(prefix='sdk-test')
         for j in self.job_dicts:
-            install_job(j, tmp_dir=tmp_dir)
+            install_job(j)
 
     def __exit__(self, *args):
         for j in self.job_dicts:
