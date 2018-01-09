@@ -48,10 +48,10 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li>Prev&nbsp;Class</li>
-<li><a href="../../../../com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/api/ArtifactResource.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/http/ArtifactResource.html" target="_top">Frames</a></li>
 <li><a href="ArtifactResource.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.api</div>
+<div class="subTitle">com.mesosphere.sdk.http</div>
 <h2 title="Class ArtifactResource" class="title">Class ArtifactResource</h2>
 </div>
 <div class="contentContainer">
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.mesosphere.sdk.api.ArtifactResource</li>
+<li>com.mesosphere.sdk.http.ArtifactResource</li>
 </ul>
 </li>
 </ul>
@@ -128,7 +128,7 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.state.ConfigStore-">ArtifactResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.state.ConfigStore-">ArtifactResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -147,7 +147,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ArtifactResource.html#getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">getTemplate</a></span>(java.lang.String&nbsp;configurationId,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ArtifactResource.html#getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">getTemplate</a></span>(java.lang.String&nbsp;configurationId,
            java.lang.String&nbsp;podType,
            java.lang.String&nbsp;taskName,
            java.lang.String&nbsp;configurationName)</code>
@@ -157,7 +157,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/ArtifactResource.html#getTemplateUrl-java.lang.String-java.util.UUID-java.lang.String-java.lang.String-java.lang.String-">getTemplateUrl</a></span>(java.lang.String&nbsp;serviceName,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ArtifactResource.html#getTemplateUrl-java.lang.String-java.util.UUID-java.lang.String-java.lang.String-java.lang.String-">getTemplateUrl</a></span>(java.lang.String&nbsp;serviceName,
               java.util.UUID&nbsp;configId,
               java.lang.String&nbsp;podType,
               java.lang.String&nbsp;taskName,
@@ -216,7 +216,7 @@ extends java.lang.Object</pre>
                                               java.lang.String&nbsp;taskName,
                                               java.lang.String&nbsp;configName)</pre>
 <div class="block">Returns a valid URL for accessing a config template artifact from a service task.
- Must be kept in sync with <a href="../../../../com/mesosphere/sdk/api/ArtifactResource.html#getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-"><code>getTemplate(String, String, String, String)</code></a>.</div>
+ Must be kept in sync with <a href="../../../../com/mesosphere/sdk/http/ArtifactResource.html#getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-"><code>getTemplate(String, String, String, String)</code></a>.</div>
 </li>
 </ul>
 <a name="getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
@@ -231,7 +231,7 @@ extends java.lang.Object</pre>
                             java.lang.String&nbsp;configurationName)</pre>
 <div class="block">Produces the content of the requested configuration template, or returns an error if that template doesn't exist
  or the data couldn't be read. Configuration templates are versioned against configuration IDs, which (despite the
- similar naming) are not directly related. See also <a href="../../../../com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api"><code>ConfigResource</code></a> for more information on configuration
+ similar naming) are not directly related. See also <a href="../../../../com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http"><code>ConfigResource</code></a> for more information on configuration
  IDs.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -243,7 +243,7 @@ extends java.lang.Object</pre>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an HTTP response containing the content of the requested configuration, or an HTTP error</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api"><code>ConfigResource</code></a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http"><code>ConfigResource</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -275,10 +275,10 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li>Prev&nbsp;Class</li>
-<li><a href="../../../../com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/api/ArtifactResource.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/http/ArtifactResource.html" target="_top">Frames</a></li>
 <li><a href="ArtifactResource.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">

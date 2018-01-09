@@ -47,11 +47,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../../index.html?com/mesosphere/sdk/api/types/GroupedTasks.html" target="_top">Frames</a></li>
+<li><a href="../../../../../index.html?com/mesosphere/sdk/http/types/GroupedTasks.html" target="_top">Frames</a></li>
 <li><a href="GroupedTasks.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.api.types</div>
+<div class="subTitle">com.mesosphere.sdk.http.types</div>
 <h2 title="Class GroupedTasks" class="title">Class GroupedTasks</h2>
 </div>
 <div class="contentContainer">
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.mesosphere.sdk.api.types.GroupedTasks</li>
+<li>com.mesosphere.sdk.http.types.GroupedTasks</li>
 </ul>
 </li>
 </ul>
@@ -129,14 +129,14 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.Integer,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#byPodTypeAndIndex">byPodTypeAndIndex</a></span></code>
+<td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.Integer,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt;&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/types/GroupedTasks.html#byPodTypeAndIndex">byPodTypeAndIndex</a></span></code>
 <div class="block">Mapping of pod type => pod index => to tasks in that pod.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#unknownPod">unknownPod</a></span></code>
+<td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/types/GroupedTasks.html#unknownPod">unknownPod</a></span></code>
 <div class="block">List of tasks for which the pod instance couldn't be determined.</div>
 </td>
 </tr>
@@ -156,15 +156,15 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#create-com.mesosphere.sdk.state.StateStore-">create</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/types/GroupedTasks.html#create-com.mesosphere.sdk.state.StateStore-">create</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Returns a new instance which contains all the tasks/statuses that are currently present in the provided
  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html#getPodInstanceTasks-java.lang.String-">getPodInstanceTasks</a></span>(java.lang.String&nbsp;podInstanceName)</code>&nbsp;</td>
+<td class="colFirst"><code>java.util.Optional&lt;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/types/GroupedTasks.html#getPodInstanceTasks-java.lang.String-">getPodInstanceTasks</a></span>(java.lang.String&nbsp;podInstanceName)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -194,7 +194,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>byPodTypeAndIndex</h4>
-<pre>public final&nbsp;java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.Integer,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;&gt; byPodTypeAndIndex</pre>
+<pre>public final&nbsp;java.util.Map&lt;java.lang.String,java.util.Map&lt;java.lang.Integer,java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt;&gt;&gt; byPodTypeAndIndex</pre>
 <div class="block">Mapping of pod type => pod index => to tasks in that pod.</div>
 </li>
 </ul>
@@ -204,7 +204,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>unknownPod</h4>
-<pre>public final&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt; unknownPod</pre>
+<pre>public final&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt; unknownPod</pre>
 <div class="block">List of tasks for which the pod instance couldn't be determined. Should be empty in practice.</div>
 </li>
 </ul>
@@ -222,7 +222,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>create</h4>
-<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a>&nbsp;create(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a>&nbsp;create(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Returns a new instance which contains all the tasks/statuses that are currently present in the provided
  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </li>
@@ -233,7 +233,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getPodInstanceTasks</h4>
-<pre>public&nbsp;java.util.Optional&lt;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a>&gt;&gt;&nbsp;getPodInstanceTasks(java.lang.String&nbsp;podInstanceName)</pre>
+<pre>public&nbsp;java.util.Optional&lt;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt;&gt;&nbsp;getPodInstanceTasks(java.lang.String&nbsp;podInstanceName)</pre>
 </li>
 </ul>
 </li>
@@ -263,11 +263,11 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../../index.html?com/mesosphere/sdk/api/types/GroupedTasks.html" target="_top">Frames</a></li>
+<li><a href="../../../../../index.html?com/mesosphere/sdk/http/types/GroupedTasks.html" target="_top">Frames</a></li>
 <li><a href="GroupedTasks.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">

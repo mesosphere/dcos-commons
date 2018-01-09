@@ -71,8 +71,6 @@
 <h1 class="title">Hierarchy For All Packages</h1>
 <span class="packageHierarchyLabel">Package Hierarchies:</span>
 <ul class="horizontal">
-<li><a href="com/mesosphere/sdk/api/package-tree.html">com.mesosphere.sdk.api</a>, </li>
-<li><a href="com/mesosphere/sdk/api/types/package-tree.html">com.mesosphere.sdk.api.types</a>, </li>
 <li><a href="com/mesosphere/sdk/config/package-tree.html">com.mesosphere.sdk.config</a>, </li>
 <li><a href="com/mesosphere/sdk/config/validate/package-tree.html">com.mesosphere.sdk.config.validate</a>, </li>
 <li><a href="com/mesosphere/sdk/curator/package-tree.html">com.mesosphere.sdk.curator</a>, </li>
@@ -80,6 +78,8 @@
 <li><a href="com/mesosphere/sdk/dcos/auth/package-tree.html">com.mesosphere.sdk.dcos.auth</a>, </li>
 <li><a href="com/mesosphere/sdk/dcos/clients/package-tree.html">com.mesosphere.sdk.dcos.clients</a>, </li>
 <li><a href="com/mesosphere/sdk/executor/package-tree.html">com.mesosphere.sdk.executor</a>, </li>
+<li><a href="com/mesosphere/sdk/http/package-tree.html">com.mesosphere.sdk.http</a>, </li>
+<li><a href="com/mesosphere/sdk/http/types/package-tree.html">com.mesosphere.sdk.http.types</a>, </li>
 <li><a href="com/mesosphere/sdk/offer/package-tree.html">com.mesosphere.sdk.offer</a>, </li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/package-tree.html">com.mesosphere.sdk.offer.evaluate</a>, </li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/placement/package-tree.html">com.mesosphere.sdk.offer.evaluate.placement</a>, </li>
@@ -165,7 +165,7 @@
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">AllLaunchConstrainer</span></a> (implements com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AndRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AndRule</span></a> (implements com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AnyMatcher</span></a> (implements com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>)</li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ArtifactResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ArtifactResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">ArtifactResource</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AttributeRuleFactory</span></a> (implements com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">AttributeStringUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">AttributeStringUtils.NameValue</span></a></li>
@@ -267,9 +267,9 @@
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/DestroyEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">DestroyEvaluationStage</span></a> (implements com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">DestroyOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UninstallRecommendation.html" title="interface in com.mesosphere.sdk.offer">UninstallRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">DomainCapabilityValidator</span></a> (implements com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;C&gt;)</li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointsResource</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointUtils</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointUtils.VipInfo</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointsResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointsResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointUtils</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointUtils.VipInfo</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">EnvConstants</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">EnvUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">EvaluationOutcome</span></a></li>
@@ -281,8 +281,8 @@
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">ExecutorTaskLabelWriter</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">FailureUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">GoalStateOverride.Status</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">GroupedTasks</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">HealthResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">GroupedTasks</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/HealthResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">HealthResource</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">HostnameRuleFactory</span></a> (implements com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a>)</li>
 <li type="circle">HttpClientBuilder
 <ul>
@@ -331,7 +331,7 @@
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.ReserveEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">OfferEvaluationUtils.ReserveEvaluationOutcome</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">OfferEvaluator</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcome</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">OfferOutcomeResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">OfferOutcomeResource</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcomeTracker</span></a></li>
 <li type="circle">com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue"><span class="typeNameLink">OfferQueue</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferUtils</span></a></li>
@@ -342,10 +342,10 @@
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">PersistentLaunchRecorder</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a>)</li>
 <li type="circle">com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterCache.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">PersisterCache</span></a> (implements com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>)</li>
 <li type="circle">com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">PersisterUtils</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">PhaseInfo</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">PhaseInfo</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PlacementRuleEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">PlacementRuleEvaluationStage</span></a> (implements com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">PlacementUtils</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">PlanInfo</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">PlanInfo</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PlanUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">PodInfoBuilder</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PodInstanceRequirement</span></a></li>
@@ -360,11 +360,11 @@
 </li>
 <li type="circle">com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">PositiveScalarProtoValueValidator</span></a></li>
 <li type="circle">com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/PreReservationCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">PreReservationCannotChange</span></a> (implements com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;C&gt;)</li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">PrettyJsonResource</span></a>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">PrettyJsonResource</span></a>
 <ul>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ConfigResource</span></a>&lt;T&gt;</li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">PlansResource</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">PodResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">ConfigResource</span></a>&lt;T&gt;</li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">PlansResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">PodResource</span></a></li>
 </ul>
 </li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/ProcessBuilderUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">ProcessBuilderUtils</span></a></li>
@@ -399,13 +399,13 @@
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RegionRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">RegionRuleFactory</span></a> (implements com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a>)</li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">ReplacementFailurePolicy</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">ReplacementFailurePolicy.Builder</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/RequestUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">RequestUtils</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">RequestUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ReserveOfferRecommendation</span></a> (implements com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceBuilder</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceCleanerScheduler.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceCleanerScheduler</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">ResourceEvaluationStage</span></a> (implements com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>)</li>
 <li type="circle">com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ResourceUtils</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ResponseUtils</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">ResponseUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ReviveManager.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">ReviveManager</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/RLimitSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">RLimitSpec</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerApiServer.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerApiServer</span></a></li>
@@ -429,10 +429,10 @@
 <li type="circle">com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">ServiceTestResult</span></a></li>
 <li type="circle">com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">ServiceTestResult.TaskConfig</span></a></li>
 <li type="circle">com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">ServiceTestRunner</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">StateResource</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">StateResource</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStore</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreUtils.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStoreUtils</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">StepInfo</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">StepInfo</span></a></li>
 <li type="circle">com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/StorageError.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">StorageError</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/StrategyFactory.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">StrategyFactory</span></a></li>
 <li type="circle">com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">StringConfiguration</span></a> (implements com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a>)</li>
@@ -446,11 +446,11 @@
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/ZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">ZoneRule</span></a></li>
 </ul>
 </li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">StringPropertyDeserializer</span></a> (implements com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types">PropertyDeserializer</a>)</li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">StringPropertyDeserializer</span></a> (implements com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types">PropertyDeserializer</a>)</li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TaskCleaner</span></a></li>
 <li type="circle">com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TaskEnvCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">TaskEnvCannotChange</span></a> (implements com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;C&gt;)</li>
 <li type="circle">com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">TaskEnvRouter</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">TaskInfoAndStatus</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">TaskInfoAndStatus</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TaskKiller</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">TaskLabelReader</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">TaskLabelWriter</span></a></li>
@@ -555,7 +555,7 @@
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Step</span></a> (also extends com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan">Interruptible</a>)</li>
 </ul>
 </li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">EndpointProducer</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><span class="typeNameLink">EndpointProducer</span></a></li>
 <li type="circle">com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ExecutorDriverFactory.html" title="interface in com.mesosphere.sdk.executor"><span class="typeNameLink">ExecutorDriverFactory</span></a></li>
 <li type="circle">com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ExecutorTaskFactory.html" title="interface in com.mesosphere.sdk.executor"><span class="typeNameLink">ExecutorTaskFactory</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.monitor.<a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><span class="typeNameLink">FailureMonitor</span></a></li>
@@ -593,7 +593,7 @@
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PlanScheduler</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">PodInstance</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">PodSpec</span></a></li>
-<li type="circle">com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">PropertyDeserializer</span></a></li>
+<li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types"><span class="typeNameLink">PropertyDeserializer</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">ReadinessCheckSpec</span></a>
 <ul>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">HealthCheckSpec</span></a></li>

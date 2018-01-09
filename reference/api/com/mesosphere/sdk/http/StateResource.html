@@ -47,11 +47,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li>Next&nbsp;Class</li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/api/StateResource.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/http/StateResource.html" target="_top">Frames</a></li>
 <li><a href="StateResource.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.api</div>
+<div class="subTitle">com.mesosphere.sdk.http</div>
 <h2 title="Class StateResource" class="title">Class StateResource</h2>
 </div>
 <div class="contentContainer">
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.mesosphere.sdk.api.StateResource</li>
+<li>com.mesosphere.sdk.http.StateResource</li>
 </ul>
 </li>
 </ul>
@@ -131,23 +131,23 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static java.nio.charset.Charset</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#FILE_ENCODING">FILE_ENCODING</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#FILE_ENCODING">FILE_ENCODING</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#FILE_NAME_PREFIX">FILE_NAME_PREFIX</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#FILE_NAME_PREFIX">FILE_NAME_PREFIX</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#FILE_SIZE">FILE_SIZE</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#FILE_SIZE">FILE_SIZE</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#NO_FILE_ERROR_MESSAGE">NO_FILE_ERROR_MESSAGE</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#NO_FILE_ERROR_MESSAGE">NO_FILE_ERROR_MESSAGE</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#UPLOAD_TOO_BIG_ERROR_MESSAGE">UPLOAD_TOO_BIG_ERROR_MESSAGE</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#UPLOAD_TOO_BIG_ERROR_MESSAGE">UPLOAD_TOO_BIG_ERROR_MESSAGE</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -164,13 +164,13 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-">StateResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-">StateResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Creates a new StateResource which cannot deserialize Properties.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.api.types.PropertyDeserializer-">StateResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-             <a href="../../../../com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types">PropertyDeserializer</a>&nbsp;propertyDeserializer)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">StateResource</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+             <a href="../../../../com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types">PropertyDeserializer</a>&nbsp;propertyDeserializer)</code>
 <div class="block">Creates a new StateResource which can deserialize Properties.</div>
 </td>
 </tr>
@@ -191,77 +191,77 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getFile-com.mesosphere.sdk.state.StateStore-java.lang.String-">getFile</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getFile-com.mesosphere.sdk.state.StateStore-java.lang.String-">getFile</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
        java.lang.String&nbsp;fileName)</code>
 <div class="block">Retrieves the contents of a file based on file name.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getFile-java.lang.String-">getFile</a></span>(java.lang.String&nbsp;fileName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getFile-java.lang.String-">getFile</a></span>(java.lang.String&nbsp;fileName)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>protected static java.util.Collection&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getFileNames-com.mesosphere.sdk.state.StateStore-">getFileNames</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getFileNames-com.mesosphere.sdk.state.StateStore-">getFileNames</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Gets the name of the files that are stored in the state store.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getFiles--">getFiles</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getFiles--">getFiles</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getFrameworkId--">getFrameworkId</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getFrameworkId--">getFrameworkId</a></span>()</code>
 <div class="block">Produces the configured ID of the framework, or returns an error if reading that data failed.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getProperty-java.lang.String-">getProperty</a></span>(java.lang.String&nbsp;key)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getProperty-java.lang.String-">getProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
  exist or the data couldn't be read.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getPropertyKeys--">getPropertyKeys</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getPropertyKeys--">getPropertyKeys</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getTaskIPsToZones-java.lang.String-java.lang.String-">getTaskIPsToZones</a></span>(java.lang.String&nbsp;podType,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getTaskIPsToZones-java.lang.String-java.lang.String-">getTaskIPsToZones</a></span>(java.lang.String&nbsp;podType,
                  java.lang.String&nbsp;ip)</code>
 <div class="block">Returns the Zone information for a given pod type and an IP address.</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getTaskNamesToZones--">getTaskNamesToZones</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getTaskNamesToZones--">getTaskNamesToZones</a></span>()</code>
 <div class="block">Returns the Zone information for all of the tasks of the service.</div>
 </td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#getTaskNameToZone-java.lang.String-">getTaskNameToZone</a></span>(java.lang.String&nbsp;taskName)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#getTaskNameToZone-java.lang.String-">getTaskNameToZone</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns the Zone information for a given task.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#putFile-java.io.InputStream-FormDataContentDisposition-">putFile</a></span>(java.io.InputStream&nbsp;uploadedInputStream,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#putFile-java.io.InputStream-FormDataContentDisposition-">putFile</a></span>(java.io.InputStream&nbsp;uploadedInputStream,
        FormDataContentDisposition&nbsp;fileDetails)</code>
 <div class="block">Endpoint for uploading arbitrary files of size up to 1024 Bytes.</div>
 </td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#refreshCache--">refreshCache</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#refreshCache--">refreshCache</a></span>()</code>
 <div class="block">Refreshes the state store cache to reflect current data on ZK.</div>
 </td>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>protected static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/api/StateResource.html#storeFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">storeFile</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/StateResource.html#storeFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">storeFile</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
          java.lang.String&nbsp;fileName,
          java.io.InputStream&nbsp;uploadedInputStream,
          FormDataContentDisposition&nbsp;fileDetails)</code>
@@ -299,7 +299,7 @@ extends java.lang.Object</pre>
 <pre>protected static final&nbsp;java.lang.String FILE_NAME_PREFIX</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.api.StateResource.FILE_NAME_PREFIX">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.http.StateResource.FILE_NAME_PREFIX">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -321,7 +321,7 @@ extends java.lang.Object</pre>
 <pre>protected static final&nbsp;int FILE_SIZE</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.api.StateResource.FILE_SIZE">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.http.StateResource.FILE_SIZE">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -334,7 +334,7 @@ extends java.lang.Object</pre>
 <pre>protected static final&nbsp;java.lang.String UPLOAD_TOO_BIG_ERROR_MESSAGE</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.api.StateResource.UPLOAD_TOO_BIG_ERROR_MESSAGE">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.http.StateResource.UPLOAD_TOO_BIG_ERROR_MESSAGE">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -347,7 +347,7 @@ extends java.lang.Object</pre>
 <pre>protected static final&nbsp;java.lang.String NO_FILE_ERROR_MESSAGE</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.api.StateResource.NO_FILE_ERROR_MESSAGE">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.http.StateResource.NO_FILE_ERROR_MESSAGE">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -374,14 +374,14 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.api.types.PropertyDeserializer-">
+<a name="StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>StateResource</h4>
 <pre>public&nbsp;StateResource(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                     <a href="../../../../com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types">PropertyDeserializer</a>&nbsp;propertyDeserializer)</pre>
+                     <a href="../../../../com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types">PropertyDeserializer</a>&nbsp;propertyDeserializer)</pre>
 <div class="block">Creates a new StateResource which can deserialize Properties. Callers will be able to view
  the content of individual Properties.</div>
 <dl>
@@ -597,11 +597,11 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li>Next&nbsp;Class</li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/api/StateResource.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/http/StateResource.html" target="_top">Frames</a></li>
 <li><a href="StateResource.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">

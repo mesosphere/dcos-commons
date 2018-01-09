@@ -1,5 +1,3 @@
-com.mesosphere.sdk.api
-com.mesosphere.sdk.api.types
 com.mesosphere.sdk.config
 com.mesosphere.sdk.config.validate
 com.mesosphere.sdk.curator
@@ -7,6 +5,8 @@ com.mesosphere.sdk.dcos
 com.mesosphere.sdk.dcos.auth
 com.mesosphere.sdk.dcos.clients
 com.mesosphere.sdk.executor
+com.mesosphere.sdk.http
+com.mesosphere.sdk.http.types
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.offer.evaluate.placement

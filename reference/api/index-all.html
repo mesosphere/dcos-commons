@@ -177,7 +177,7 @@
 <dd>
 <div class="block">Verifies that the scheduler's plans are all complete -- that there's no pending work.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#alreadyReportedResponse--">alreadyReportedResponse()</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#alreadyReportedResponse--">alreadyReportedResponse()</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a "208 Already reported" response.</div>
 </dd>
@@ -215,11 +215,11 @@
 <div class="block">Returns whether the provided <code>TaskInfo</code>, representing a previously-launched task,
  is in the same provided pod provided in the <a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ArtifactResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/ArtifactResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">ArtifactResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">A read-only API for accessing file artifacts (e.g.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.state.ConfigStore-">ArtifactResource(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api">ArtifactResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ArtifactResource.html#ArtifactResource-com.mesosphere.sdk.state.ConfigStore-">ArtifactResource(ConfigStore&lt;ServiceSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ArtifactResource.html" title="class in com.mesosphere.sdk.http">ArtifactResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#assetConflicts-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">assetConflicts(PodInstanceRequirement, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
 <dd>
@@ -398,7 +398,7 @@
 <div class="block">Returns a <code>ProcessBuilder</code> instance which has been initialized with the provided
  <code>Protos.CommandInfo</code>'s command and environment.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/GroupedTasks.html#byPodTypeAndIndex">byPodTypeAndIndex</a></span> - Variable in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/GroupedTasks.html#byPodTypeAndIndex">byPodTypeAndIndex</a></span> - Variable in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a></dt>
 <dd>
 <div class="block">Mapping of pod type => pod index => to tasks in that pod.</div>
 </dd>
@@ -573,10 +573,6 @@
 <dd>
 <div class="block">Calls #colocateWith(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a> - package com.mesosphere.sdk.api</dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a> - package com.mesosphere.sdk.api.types</dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a> - package com.mesosphere.sdk.config</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a> - package com.mesosphere.sdk.config.validate</dt>
@@ -590,6 +586,10 @@
 <dt><a href="com/mesosphere/sdk/dcos/clients/package-summary.html">com.mesosphere.sdk.dcos.clients</a> - package com.mesosphere.sdk.dcos.clients</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/executor/package-summary.html">com.mesosphere.sdk.executor</a> - package com.mesosphere.sdk.executor</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a> - package com.mesosphere.sdk.http</dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a> - package com.mesosphere.sdk.http.types</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a> - package com.mesosphere.sdk.offer</dt>
 <dd>&nbsp;</dd>
@@ -678,11 +678,11 @@
 <dd>
 <div class="block">Represents an optionally templated configuration file to be written before the task is started.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ConfigResource</span></a>&lt;<a href="com/mesosphere/sdk/api/ConfigResource.html" title="type parameter in ConfigResource">T</a> extends <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;?&gt;&gt; - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">ConfigResource</span></a>&lt;<a href="com/mesosphere/sdk/http/ConfigResource.html" title="type parameter in ConfigResource">T</a> extends <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;?&gt;&gt; - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">A read-only API for accessing active and inactive configurations from persistent storage.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#ConfigResource-T-">ConfigResource(T)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ConfigResource.html#ConfigResource-T-">ConfigResource(T)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http">ConfigResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#configStore">configStore</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
 <dd>&nbsp;</dd>
@@ -766,9 +766,9 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodInstance.html#conflictsWith-com.mesosphere.sdk.specification.PodInstance-">conflictsWith(PodInstance)</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/EndpointProducer.html#constant-java.lang.String-">constant(String)</a></span> - Static method in interface com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types">EndpointProducer</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/EndpointProducer.html#constant-java.lang.String-">constant(String)</a></span> - Static method in interface com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a></dt>
 <dd>
-<div class="block">Creates and returns an <a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><code>EndpointProducer</code></a> which only produces the provided constant value.</div>
+<div class="block">Creates and returns an <a href="com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><code>EndpointProducer</code></a> which only produces the provided constant value.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Constants</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
@@ -796,9 +796,9 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#CONTAINER_PORT">CONTAINER_PORT</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#continueCommand-java.lang.String-java.lang.String-">continueCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#continueCommand-java.lang.String-java.lang.String-">continueCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#continueCommand--">continueCommand()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#continueCommand--">continueCommand()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
@@ -820,13 +820,6 @@
 <dd>
 <div class="block">The name used for cpu resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/GroupedTasks.html#create-com.mesosphere.sdk.state.StateStore-">create(StateStore)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a></dt>
-<dd>
-<div class="block">Returns a new instance which contains all the tasks/statuses that are currently present in the provided
- <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#create-TaskInfo-java.util.Optional-">create(TaskInfo, Optional&lt;TaskStatus&gt;)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.html#create-java.lang.String-com.mesosphere.sdk.dcos.clients.SecretsClient.Payload-">create(String, SecretsClient.Payload)</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a></dt>
 <dd>
 <div class="block">Create a new secret.</div>
@@ -834,6 +827,13 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckHandler.html#create-ExecutorDriver-Protos.TaskInfo-com.mesosphere.sdk.executor.LaunchedTask-Protos.HealthCheck-java.util.concurrent.ScheduledExecutorService-com.mesosphere.sdk.executor.CheckStats-java.lang.String-">create(ExecutorDriver, Protos.TaskInfo, LaunchedTask, Protos.HealthCheck, ScheduledExecutorService, CheckStats, String)</a></span> - Static method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.html" title="class in com.mesosphere.sdk.executor">CheckHandler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#create-ExecutorDriver-Protos.TaskInfo-">create(ExecutorDriver, Protos.TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/GroupedTasks.html#create-com.mesosphere.sdk.state.StateStore-">create(StateStore)</a></span> - Static method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a></dt>
+<dd>
+<div class="block">Returns a new instance which contains all the tasks/statuses that are currently present in the provided
+ <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#create-TaskInfo-java.util.Optional-">create(TaskInfo, Optional&lt;TaskStatus&gt;)</a></span> - Static method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html#create--">create()</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AnyMatcher</a></dt>
 <dd>&nbsp;</dd>
@@ -1458,7 +1458,7 @@
 <dd>
 <div class="block">An Element is a generic component in a tree of elements.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#elementNotFoundResponse--">elementNotFoundResponse()</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#elementNotFoundResponse--">elementNotFoundResponse()</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a "404 Element not found" response.</div>
 </dd>
@@ -1472,24 +1472,24 @@
 <dd>
 <div class="block">Returns an encoded representation of the provided <code>HealthCheck</code>, suitable for storing in a Label.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">EndpointProducer</span></a> - Interface in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><span class="typeNameLink">EndpointProducer</span></a> - Interface in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Interface for an object which returns the String content of an endpoint when requested.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointsResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/EndpointsResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointsResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">A read-only API for accessing information about how to connect to the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointsResource.html#EndpointsResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">EndpointsResource(StateStore, String)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api">EndpointsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointsResource.html#EndpointsResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">EndpointsResource(StateStore, String)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointsResource.html" title="class in com.mesosphere.sdk.http">EndpointsResource</a></dt>
 <dd>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>,
  using the provided <code>serviceName</code> for endpoint paths.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointUtils</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointUtils</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">Utilities relating to the creation and interpretation of endpoints between DC/OS tasks.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">EndpointUtils.VipInfo</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointUtils.VipInfo</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">Simple data container representing information about a task VIP entry.</div>
 </dd>
@@ -1515,14 +1515,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ValueUtils.html#equal-Value-Value-">equal(Value, Value)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer">ValueUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigurationComparator.html#equals-T-T-">equals(T, T)</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config">ConfigurationComparator</a></dt>
 <dd>
 <div class="block">Returns whether the provided configuration objects are equal.</div>
@@ -1534,6 +1526,14 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient.Payload</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AbstractRoundRobinRule</a></dt>
 <dd>&nbsp;</dd>
@@ -1851,11 +1851,11 @@
 <dd>
 <div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s for tasks needing recovery.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#FILE_ENCODING">FILE_ENCODING</a></span> - Static variable in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#FILE_ENCODING">FILE_ENCODING</a></span> - Static variable in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#FILE_NAME_PREFIX">FILE_NAME_PREFIX</a></span> - Static variable in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#FILE_NAME_PREFIX">FILE_NAME_PREFIX</a></span> - Static variable in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#FILE_SIZE">FILE_SIZE</a></span> - Static variable in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#FILE_SIZE">FILE_SIZE</a></span> - Static variable in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#filePath-java.lang.String-">filePath(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
 <dd>
@@ -1906,7 +1906,7 @@
 <dd>
 <div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/RequestUtils.html#filterPodTasks-java.lang.String-java.util.Collection-java.util.Set-">filterPodTasks(String, Collection&lt;TaskInfoAndStatus&gt;, Set&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/RequestUtils.html" title="class in com.mesosphere.sdk.api">RequestUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/RequestUtils.html#filterPodTasks-java.lang.String-java.util.Collection-java.util.Set-">filterPodTasks(String, Collection&lt;TaskInfoAndStatus&gt;, Set&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http">RequestUtils</a></dt>
 <dd>
 <div class="block">Returns a new list which contains only the tasks for a given pod which matched the provided task names.</div>
 </dd>
@@ -1920,17 +1920,17 @@
 <dd>
 <div class="block">Force completes children.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#forceCompleteCommand-java.lang.String-java.lang.String-java.lang.String-">forceCompleteCommand(String, String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#forceCompleteCommand-java.lang.String-java.lang.String-java.lang.String-">forceCompleteCommand(String, String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#forceCompleteCommand-java.lang.String-java.lang.String-">forceCompleteCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#forceCompleteCommand-java.lang.String-java.lang.String-">forceCompleteCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#forPhase-com.mesosphere.sdk.scheduler.plan.Phase-">forPhase(Phase)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#forPhase-com.mesosphere.sdk.scheduler.plan.Phase-">forPhase(Phase)</a></span> - Static method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#forPlan-com.mesosphere.sdk.scheduler.plan.Plan-">forPlan(Plan)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#forPlan-com.mesosphere.sdk.scheduler.plan.Plan-">forPlan(Plan)</a></span> - Static method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#forStep-com.mesosphere.sdk.scheduler.plan.Step-">forStep(Step)</a></span> - Static method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#forStep-com.mesosphere.sdk.scheduler.plan.Step-">forStep(Step)</a></span> - Static method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#FRAMEWORK_HOST_TASKENV">FRAMEWORK_HOST_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
@@ -2202,7 +2202,7 @@
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> provided via <a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>SchedulerBuilder.setConfigStore(ConfigStore)</code></a>, or a reasonable default.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getConfiguration-java.lang.String-">getConfiguration(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ConfigResource.html#getConfiguration-java.lang.String-">getConfiguration(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http">ConfigResource</a></dt>
 <dd>
 <div class="block">Produces the content of the provided configuration ID, or returns an error if that ID doesn't
  exist or the data couldn't be read.</div>
@@ -2223,7 +2223,7 @@
 <dd>
 <div class="block">Returns the name of the field which had the error.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getConfigurationIds--">getConfigurationIds()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ConfigResource.html#getConfigurationIds--">getConfigurationIds()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http">ConfigResource</a></dt>
 <dd>
 <div class="block">Produces an ID listing of all stored configurations.</div>
 </dd>
@@ -2243,7 +2243,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html#getContainerPorts--">getContainerPorts()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html" title="class in com.mesosphere.sdk.specification.yaml">RawNetwork</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PrettyJsonResource.html#getContext-java.lang.Class-">getContext(Class&lt;?&gt;)</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.api.types">PrettyJsonResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html#getContext-java.lang.Class-">getContext(Class&lt;?&gt;)</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types">PrettyJsonResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getCount--">getCount()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -2358,15 +2358,15 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.html#getElements--">getElements()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointsResource.html#getEndpoint-java.lang.String-">getEndpoint(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api">EndpointsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointsResource.html#getEndpoint-java.lang.String-">getEndpoint(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointsResource.html" title="class in com.mesosphere.sdk.http">EndpointsResource</a></dt>
 <dd>
 <div class="block">Produces the content of the specified endpoint.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/EndpointProducer.html#getEndpoint--">getEndpoint()</a></span> - Method in interface com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types">EndpointProducer</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/EndpointProducer.html#getEndpoint--">getEndpoint()</a></span> - Method in interface com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a></dt>
 <dd>
 <div class="block">Returns some endpoint content to be sent in response to an 'endpoints' lookup request.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointsResource.html#getEndpoints--">getEndpoints()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api">EndpointsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointsResource.html#getEndpoints--">getEndpoints()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointsResource.html" title="class in com.mesosphere.sdk.http">EndpointsResource</a></dt>
 <dd>
 <div class="block">Produces a listing of all endpoint names.</div>
 </dd>
@@ -2402,12 +2402,12 @@
 <div class="block">Returns the value of the provided environment variable, or an empty <code>Optional</code> if no matching environment
  variable was found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a></dt>
 <dd>
 <div class="block">Gets a list of zero or more validation errors with the current configuration.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlan.html#getErrors--">getErrors()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlan.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlan</a></dt>
@@ -2448,13 +2448,13 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getField-java.lang.String-">getField(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getFile-java.lang.String-">getFile(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getFile-java.lang.String-">getFile(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getFile-com.mesosphere.sdk.state.StateStore-java.lang.String-">getFile(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getFile-com.mesosphere.sdk.state.StateStore-java.lang.String-">getFile(StateStore, String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Retrieves the contents of a file based on file name.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getFileNames-com.mesosphere.sdk.state.StateStore-">getFileNames(StateStore)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getFileNames-com.mesosphere.sdk.state.StateStore-">getFileNames(StateStore)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Gets the name of the files that are stored in the state store.</div>
 </dd>
@@ -2464,15 +2464,15 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawSecret.html#getFilePath--">getFilePath()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawSecret.html" title="class in com.mesosphere.sdk.specification.yaml">RawSecret</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getFiles--">getFiles()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getFiles--">getFiles()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html#getFirstElement--">getFirstElement()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos">DcosVersion.Elements</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getFrameworkId--">getFrameworkId()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getFrameworkId--">getFrameworkId()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Produces the configured ID of the framework, or returns an error if reading that data failed.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#getFullInfo--">getFullInfo()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#getFullInfo--">getFullInfo()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
@@ -2514,7 +2514,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html#getHard--">getHard()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html" title="class in com.mesosphere.sdk.specification.yaml">RawRLimit</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/HealthResource.html#getHealth--">getHealth()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api">HealthResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/HealthResource.html#getHealth--">getHealth()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/HealthResource.html" title="class in com.mesosphere.sdk.http">HealthResource</a></dt>
 <dd>
 <div class="block">Returns the health of the service as a response code.</div>
 </dd>
@@ -2532,9 +2532,9 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html#getHostPorts--">getHostPorts()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html" title="class in com.mesosphere.sdk.specification.yaml">RawNetwork</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#getId--">getId()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getId--">getId()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#getId--">getId()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#getId--">getId()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getId--">getId()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>&nbsp;</dd>
@@ -2568,7 +2568,7 @@
 <dd>
 <div class="block">The index of this pod instance.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#getInfo--">getInfo()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#getInfo--">getInfo()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#getInstance--">getInstance()</a></span> - Static method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>&nbsp;</dd>
@@ -2728,12 +2728,12 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getMesosScheduler--">getMesosScheduler()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#getMessage--">getMessage()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html#getMessage--">getMessage()</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></dt>
 <dd>
 <div class="block">Returns the provided error message for this error.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#getMessage--">getMessage()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#getMessage--">getMessage()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
 <dd>
 <div class="block">Returns a reasonable user-visible status message.</div>
@@ -2764,11 +2764,11 @@
 <dd>
 <div class="block">Returns the path location where the secret should be mounted into task filesystems.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckStats.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckStats.html" title="class in com.mesosphere.sdk.executor">CheckStats</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html#getName--">getName()</a></span> - Method in enum com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a></dt>
 <dd>&nbsp;</dd>
@@ -2871,7 +2871,7 @@
 <dd>
 <div class="block">Returns the string representations of any <code>Offer</code> <code>Attribute</code>s which were embedded in the task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/OfferOutcomeResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api">OfferOutcomeResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/OfferOutcomeResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http">OfferOutcomeResource</a></dt>
 <dd>
 <div class="block">Renders the current set of offer outcomes as an HTML table.</div>
 </dd>
@@ -2972,7 +2972,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PhaseFactory.html#getPhase-com.mesosphere.sdk.specification.PodSpec-com.mesosphere.sdk.scheduler.plan.strategy.Strategy-">getPhase(PodSpec, Strategy&lt;Step&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PhaseFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan">PhaseFactory</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#getPhases--">getPhases()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#getPhases--">getPhases()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPlan.html#getPhases--">getPhases()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPlan.html" title="class in com.mesosphere.sdk.specification.yaml">RawPlan</a></dt>
 <dd>&nbsp;</dd>
@@ -3045,7 +3045,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#getPlanCoordinator--">getPlanCoordinator()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#getPlanInfo-java.lang.String-">getPlanInfo(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#getPlanInfo-java.lang.String-">getPlanInfo(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block">Returns a full list of the <a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>'s contents (incl all <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s/<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s).</div>
 </dd>
@@ -3071,7 +3071,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPhase.html#getPod--">getPod()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPhase.html" title="class in com.mesosphere.sdk.specification.yaml">RawPhase</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPodInfo-java.lang.String-">getPodInfo(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#getPodInfo-java.lang.String-">getPodInfo(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Produces the full information for a single pod instance.</div>
 </dd>
@@ -3099,7 +3099,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/GroupedTasks.html#getPodInstanceTasks-java.lang.String-">getPodInstanceTasks(String)</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/GroupedTasks.html#getPodInstanceTasks-java.lang.String-">getPodInstanceTasks(String)</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html#getPodName--">getPodName()</a></span> - Method in class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a></dt>
 <dd>&nbsp;</dd>
@@ -3108,7 +3108,7 @@
 <div class="block">Given a list of all tasks and failed tasks, returns a list of tasks (via returned
  <a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--"><code>PodInstanceRequirement.getTasksToLaunch()</code></a>) that should be relaunched.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPods--">getPods()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#getPods--">getPods()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Produces a listing of all pod instance names.</div>
 </dd>
@@ -3123,11 +3123,11 @@
 <div class="block">Returns the <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a> in the provided <a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>
  which matches the provided <code>TaskInfo</code>, or <code>null</code> if no match could be found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPodStatus-java.lang.String-">getPodStatus(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#getPodStatus-java.lang.String-">getPodStatus(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Produces the summary status of a single pod instance.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#getPodStatuses--">getPodStatuses()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#getPodStatuses--">getPodStatuses()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Produces the summary statuses of all pod instances.</div>
 </dd>
@@ -3209,12 +3209,12 @@
 <dd>
 <div class="block">Returns a timer context which may be used to measure the time spent processing offers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getProperty-java.lang.String-">getProperty(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getProperty-java.lang.String-">getProperty(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
  exist or the data couldn't be read.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getPropertyKeys--">getPropertyKeys()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getPropertyKeys--">getPropertyKeys()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getPropertyPath--">getPropertyPath()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
 <dd>&nbsp;</dd>
@@ -3492,13 +3492,13 @@
 <dd>
 <div class="block">Returns the StatsD port.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#getStatus--">getStatus()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>&nbsp;</dd>
@@ -3520,7 +3520,7 @@
 <dd>
 <div class="block">Returns a default name for a <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> given a PodInstance and the tasks to be launched in it.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#getSteps--">getSteps()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getSteps--">getSteps()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPhase.html#getSteps--">getSteps()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPhase.html" title="class in com.mesosphere.sdk.specification.yaml">RawPhase</a></dt>
 <dd>&nbsp;</dd>
@@ -3540,15 +3540,15 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPlan.html#getStrategy--">getStrategy()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPlan.html" title="class in com.mesosphere.sdk.specification.yaml">RawPlan</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#getStrategyName--">getStrategyName()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getStrategyName--">getStrategyName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#getStrategyName--">getStrategyName()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#getStrategyName--">getStrategyName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html#getSubject--">getSubject()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></dt>
 <dd>
 <div class="block">Returns a Subject for service certificate.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getTarget--">getTarget()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ConfigResource.html#getTarget--">getTarget()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http">ConfigResource</a></dt>
 <dd>
 <div class="block">Produces the content of the current target configuration, or returns an error if reading that
  data failed.</div>
@@ -3567,14 +3567,14 @@
 <div class="block">Returns the ID referencing a configuration in a <a href="com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> associated with the
  task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ConfigResource.html#getTargetId--">getTargetId()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ConfigResource.html" title="class in com.mesosphere.sdk.api">ConfigResource</a></dt>
-<dd>
-<div class="block">Produces the ID of the current target configuration, or returns an error if reading that
- data failed.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#getTargetId--">getTargetId()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a></dt>
 <dd>
 <div class="block">Gets the resulting configuration ID which should be used by service tasks.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ConfigResource.html#getTargetId--">getTargetId()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ConfigResource.html" title="class in com.mesosphere.sdk.http">ConfigResource</a></dt>
+<dd>
+<div class="block">Produces the ID of the current target configuration, or returns an error if reading that
+ data failed.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskBuilder-java.lang.String-">getTaskBuilder(String)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
@@ -3606,7 +3606,7 @@
 <dd>
 <div class="block">Gets the IP address associated with the task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getTaskIPsToZones-java.lang.String-java.lang.String-">getTaskIPsToZones(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getTaskIPsToZones-java.lang.String-java.lang.String-">getTaskIPsToZones(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Returns the Zone information for a given pod type and an IP address.</div>
 </dd>
@@ -3631,11 +3631,11 @@
 <dd>
 <div class="block">Returns all the task names for a pod, after filtering based on the passed in list of tasks to launch.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getTaskNamesToZones--">getTaskNamesToZones()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getTaskNamesToZones--">getTaskNamesToZones()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Returns the Zone information for all of the tasks of the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#getTaskNameToZone-java.lang.String-">getTaskNameToZone(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#getTaskNameToZone-java.lang.String-">getTaskNameToZone(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Returns the Zone information for a given task.</div>
 </dd>
@@ -3678,7 +3678,7 @@
 <dd>
 <div class="block">Gets the zone of a task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ArtifactResource.html#getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">getTemplate(String, String, String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api">ArtifactResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ArtifactResource.html#getTemplate-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">getTemplate(String, String, String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ArtifactResource.html" title="class in com.mesosphere.sdk.http">ArtifactResource</a></dt>
 <dd>
 <div class="block">Produces the content of the requested configuration template, or returns an error if that template doesn't exist
  or the data couldn't be read.</div>
@@ -3691,7 +3691,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html#getTemplateContent--">getTemplateContent()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ArtifactResource.html#getTemplateUrl-java.lang.String-java.util.UUID-java.lang.String-java.lang.String-java.lang.String-">getTemplateUrl(String, UUID, String, String, String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ArtifactResource.html" title="class in com.mesosphere.sdk.api">ArtifactResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ArtifactResource.html#getTemplateUrl-java.lang.String-java.util.UUID-java.lang.String-java.lang.String-java.lang.String-">getTemplateUrl(String, UUID, String, String, String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ArtifactResource.html" title="class in com.mesosphere.sdk.http">ArtifactResource</a></dt>
 <dd>
 <div class="block">Returns a valid URL for accessing a config template artifact from a service task.</div>
 </dd>
@@ -3809,7 +3809,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPort.html#getVip--">getVip()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPort.html" title="class in com.mesosphere.sdk.specification.yaml">RawPort</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html#getVipName--">getVipName()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.api">EndpointUtils.VipInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html#getVipName--">getVipName()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.html#getVipName--">getVipName()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -3817,7 +3817,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/VipSpec.html#getVipName--">getVipName()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/VipSpec.html" title="interface in com.mesosphere.sdk.specification">VipSpec</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html#getVipPort--">getVipPort()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.api">EndpointUtils.VipInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html#getVipPort--">getVipPort()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.html#getVipPort--">getVipPort()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -3919,7 +3919,7 @@
 <div class="block">Sets the <code>gracePeriod</code> and returns a reference to this Builder so that the methods can be chained
  together.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">GroupedTasks</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">GroupedTasks</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Utility class for sorting/grouping <code>TaskInfo</code>s and/or their associated <code>TaskStatus</code>es into pods.</div>
 </dd>
@@ -3960,19 +3960,19 @@
 <div class="block">Determines whether the given task has failed, by tracking the time delta between the first observed failure and
  the current time.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient.Payload</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AbstractRoundRobinRule</a></dt>
 <dd>&nbsp;</dd>
@@ -4066,7 +4066,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#hasResourceId-Resource-">hasResourceId(Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#hasStatus--">hasStatus()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#hasStatus--">hasStatus()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#hasTasksWithTLS-com.mesosphere.sdk.specification.ServiceSpec-">hasTasksWithTLS(ServiceSpec)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
@@ -4085,11 +4085,11 @@
 <dd>
 <div class="block">HealthCheck specification.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">HealthResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/HealthResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">HealthResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">A read-only API for checking whether the service is healthy.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/HealthResource.html#HealthResource--">HealthResource()</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api">HealthResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/HealthResource.html#HealthResource--">HealthResource()</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/HealthResource.html" title="class in com.mesosphere.sdk.http">HealthResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#HOST_PORT">HOST_PORT</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
@@ -4106,11 +4106,11 @@
 <dd>
 <div class="block">This class generates <a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>HostnameRule</code></a>s.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#htmlOkResponse-java.lang.String-">htmlOkResponse(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#htmlOkResponse-java.lang.String-">htmlOkResponse(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing the provided html .</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#htmlResponse-java.lang.String-Response.Status-">htmlResponse(String, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#htmlResponse-java.lang.String-Response.Status-">htmlResponse(String, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a response containing the provided html  with the provided status .</div>
 </dd>
@@ -4195,11 +4195,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html#interrupt--">interrupt()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">InterruptibleStrategy</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#interruptCommand-java.lang.String-java.lang.String-">interruptCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#interruptCommand-java.lang.String-java.lang.String-">interruptCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block">Interrupts (Pauses) a plan or if specified a phase within a plan.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#interruptCommand--">interruptCommand()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#interruptCommand--">interruptCommand()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
@@ -4429,31 +4429,31 @@
 <dd>
 <div class="block">Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonOkResponse-JSONArray-">jsonOkResponse(JSONArray)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonOkResponse-JSONArray-">jsonOkResponse(JSONArray)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONArray</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonOkResponse-JSONObject-">jsonOkResponse(JSONObject)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonOkResponse-JSONObject-">jsonOkResponse(JSONObject)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonOkResponse-Message-">jsonOkResponse(Message)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonOkResponse-Message-">jsonOkResponse(Message)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonResponse-JSONArray-Response.Status-">jsonResponse(JSONArray, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-JSONArray-Response.Status-">jsonResponse(JSONArray, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a response containing the provided <code>JSONArray</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonResponse-JSONObject-Response.Status-">jsonResponse(JSONObject, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-JSONObject-Response.Status-">jsonResponse(JSONObject, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonResponse-Message-Response.Status-">jsonResponse(Message, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-Message-Response.Status-">jsonResponse(Message, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#jsonResponseBean-java.lang.Object-Response.Status-">jsonResponseBean(Object, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponseBean-java.lang.Object-Response.Status-">jsonResponseBean(Object, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing the provided JSON <code>String</code>.</div>
 </dd>
@@ -4599,7 +4599,7 @@
 <dd>
 <div class="block">Returns a list of all stored configuration UUIDs, or an empty list if none are found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#listPlans--">listPlans()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#listPlans--">listPlans()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block">Returns list of all configured plans.</div>
 </dd>
@@ -4967,7 +4967,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/GoalStateOverride.html#newStatus-com.mesosphere.sdk.state.GoalStateOverride.Progress-">newStatus(GoalStateOverride.Progress)</a></span> - Method in enum com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#NO_FILE_ERROR_MESSAGE">NO_FILE_ERROR_MESSAGE</a></span> - Static variable in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#NO_FILE_ERROR_MESSAGE">NO_FILE_ERROR_MESSAGE</a></span> - Static variable in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.ConfigException.html#notFound-java.lang.String-">notFound(String)</a></span> - Static method in exception com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.ConfigException.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig.ConfigException</a></dt>
 <dd>&nbsp;</dd>
@@ -5044,11 +5044,11 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#OfferOutcome-java.lang.String-boolean-Protos.Offer-java.lang.String-">OfferOutcome(String, boolean, Protos.Offer, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">OfferOutcomeResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">OfferOutcomeResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">A read-only API for accessing the most recently processed offers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/OfferOutcomeResource.html#OfferOutcomeResource-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-">OfferOutcomeResource(OfferOutcomeTracker)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.api">OfferOutcomeResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/OfferOutcomeResource.html#OfferOutcomeResource-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-">OfferOutcomeResource(OfferOutcomeTracker)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http">OfferOutcomeResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcomeTracker</span></a> - Class in <a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a></dt>
 <dd>
@@ -5146,7 +5146,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html#parse-byte:A-">parse(byte[])</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.ConfigFactory</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/RequestUtils.html#parseJsonList-java.lang.String-">parseJsonList(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/RequestUtils.html" title="class in com.mesosphere.sdk.api">RequestUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/RequestUtils.html#parseJsonList-java.lang.String-">parseJsonList(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http">RequestUtils</a></dt>
 <dd>
 <div class="block">Parses a JSON list payload in the form of a string, returning the corresponding Java list.</div>
 </dd>
@@ -5188,7 +5188,7 @@
 <dd>
 <div class="block">Plans should not assume that a paused task has fulfilled the requirement of its dependencies.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#pausePod-java.lang.String-java.lang.String-">pausePod(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#pausePod-java.lang.String-java.lang.String-">pausePod(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Restarts a pod in a "paused" debug mode.</div>
 </dd>
@@ -5253,7 +5253,7 @@
 <dd>
 <div class="block">A PhaseFactory transforms <a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a>s into <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">PhaseInfo</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">PhaseInfo</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Immutable JSON serialization object for a <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a> which includes child <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s.</div>
 </dd>
@@ -5295,16 +5295,16 @@
 <dd>
 <div class="block">This class provides Utilities for commonly needed Placement rule scenarios.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#plainOkResponse-java.lang.String-">plainOkResponse(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#plainOkResponse-java.lang.String-">plainOkResponse(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a 200 OK response containing the provided plaintext <code>String</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#plainResponse-java.lang.String-Response.Status-">plainResponse(String, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#plainResponse-java.lang.String-Response.Status-">plainResponse(String, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a response containing the provided plaintext <code>String</code> with the
  provided status <code>Response.Status</code>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/ResponseUtils.html#plainResponse-java.lang.String-int-">plainResponse(String, int)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api">ResponseUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#plainResponse-java.lang.String-int-">plainResponse(String, int)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a response containing the provided plaintext <code>String</code> with the
  provided statusCode.</div>
@@ -5332,7 +5332,7 @@
 <dd>
 <div class="block">PlanGenerator generates Plans from a given <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">PlanInfo</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">PlanInfo</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Immutable JSON serialization object for a <a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a> which includes child <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s.</div>
 </dd>
@@ -5346,11 +5346,11 @@
 <dd>
 <div class="block">Interface for Plan schedulers.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">PlansResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">PlansResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">API for management of Plan(s).</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#PlansResource--">PlansResource()</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#PlansResource--">PlansResource()</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PlanUtils</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
@@ -5389,11 +5389,11 @@
 <dd>
 <div class="block">Constructor for <a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission"><code>DecommissionPlanFactory.PodKey</code></a>.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">PodResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">PodResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">A read-only API for accessing information about how to connect to the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-">PodResource(StateStore, String, TaskFailureListener)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#PodResource-com.mesosphere.sdk.state.StateStore-java.lang.String-com.mesosphere.sdk.scheduler.recovery.TaskFailureListener-">PodResource(StateStore, String, TaskFailureListener)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
@@ -5485,11 +5485,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#preReservedRole-java.lang.String-">preReservedRole(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">PrettyJsonResource</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">PrettyJsonResource</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Implements pretty-printed/indented JSON output for API Resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PrettyJsonResource.html#PrettyJsonResource--">PrettyJsonResource()</a></span> - Constructor for class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.api.types">PrettyJsonResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html#PrettyJsonResource--">PrettyJsonResource()</a></span> - Constructor for class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types">PrettyJsonResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html#principal">principal</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></dt>
 <dd>&nbsp;</dd>
@@ -5554,7 +5554,7 @@
 <dd>
 <div class="block">The current state for transitioning to the <a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html#target"><code>GoalStateOverride.Status.target</code></a> in question.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types"><span class="typeNameLink">PropertyDeserializer</span></a> - Interface in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types"><span class="typeNameLink">PropertyDeserializer</span></a> - Interface in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Interface which handles deserializing StateStore Property data for viewing by users.</div>
 </dd>
@@ -5568,7 +5568,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.html#put-K-V-">put(K, V)</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#putFile-java.io.InputStream-FormDataContentDisposition-">putFile(InputStream, FormDataContentDisposition)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#putFile-java.io.InputStream-FormDataContentDisposition-">putFile(InputStream, FormDataContentDisposition)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Endpoint for uploading arbitrary files of size up to 1024 Bytes.</div>
 </dd>
@@ -5785,7 +5785,7 @@
 <dd>
 <div class="block">Refreshes the cache with the underlying persister's data.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#refreshCache--">refreshCache()</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#refreshCache--">refreshCache()</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Refreshes the state store cache to reflect current data on ZK.</div>
 </dd>
@@ -5834,7 +5834,7 @@
 <dd>
 <div class="block">This method removes an offer from the queue based on its OfferID.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#removeSlashes-java.lang.String-">removeSlashes(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#removeSlashes-java.lang.String-">removeSlashes(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">"/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".</div>
 </dd>
@@ -5856,7 +5856,7 @@
 <dd>
 <div class="block">TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#replaceDotsWithDashes-java.lang.String-">replaceDotsWithDashes(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#replaceDotsWithDashes-java.lang.String-">replaceDotsWithDashes(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">"hello.kafka" => "hello-kafka".</div>
 </dd>
@@ -5875,11 +5875,11 @@
 <dd>
 <div class="block"><code>ReplacementFailurePolicy</code> builder static inner class.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#replacePod-java.lang.String-">replacePod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#replacePod-java.lang.String-">replacePod(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Replaces a pod instance with a new instance on a different agent.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/RequestUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">RequestUtils</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">RequestUtils</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">Utilities for handling HTTP requests from clients.</div>
 </dd>
@@ -6000,7 +6000,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#ResourceUtils--">ResourceUtils()</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/ResponseUtils.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">ResponseUtils</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">ResponseUtils</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">Utilities for building RPC responses.</div>
 </dd>
@@ -6014,17 +6014,17 @@
 <dd>
 <div class="block">Restarts children.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#restartCommand-java.lang.String-java.lang.String-java.lang.String-">restartCommand(String, String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#restartCommand-java.lang.String-java.lang.String-java.lang.String-">restartCommand(String, String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#restartCommand-java.lang.String-java.lang.String-">restartCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#restartCommand-java.lang.String-java.lang.String-">restartCommand(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#restartPod-java.lang.String-">restartPod(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#restartPod-java.lang.String-">restartPod(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Restarts a pod instance in-place.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#resumePod-java.lang.String-java.lang.String-">resumePod(String, String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#resumePod-java.lang.String-java.lang.String-">resumePod(String, String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Restarts a pod in a normal state following a prior "pause" command.</div>
 </dd>
@@ -6398,7 +6398,7 @@
  or otherwise uses the default validators returned by
  <a href="com/mesosphere/sdk/config/validate/DefaultConfigValidators.html#getValidators-com.mesosphere.sdk.scheduler.SchedulerConfig-"><code>DefaultConfigValidators.getValidators(SchedulerConfig)</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointsResource.html#setCustomEndpoint-java.lang.String-com.mesosphere.sdk.api.types.EndpointProducer-">setCustomEndpoint(String, EndpointProducer)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointsResource.html" title="class in com.mesosphere.sdk.api">EndpointsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointsResource.html#setCustomEndpoint-java.lang.String-com.mesosphere.sdk.http.types.EndpointProducer-">setCustomEndpoint(String, EndpointProducer)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointsResource.html" title="class in com.mesosphere.sdk.http">EndpointsResource</a></dt>
 <dd>
 <div class="block">Adds the provided custom endpoint key/value entry to this instance.</div>
 </dd>
@@ -6419,9 +6419,9 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setEnableReplacement-boolean-">setEnableReplacement(boolean)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setEndpointProducer-java.lang.String-com.mesosphere.sdk.api.types.EndpointProducer-">setEndpointProducer(String, EndpointProducer)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setEndpointProducer-java.lang.String-com.mesosphere.sdk.http.types.EndpointProducer-">setEndpointProducer(String, EndpointProducer)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></dt>
 <dd>
-<div class="block">Specifies a custom <a href="com/mesosphere/sdk/api/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.api.types"><code>EndpointProducer</code></a> to be added to the /endpoints API.</div>
+<div class="block">Specifies a custom <a href="com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><code>EndpointProducer</code></a> to be added to the /endpoints API.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.Builder.html#setEnv-java.util.Map-">setEnv(Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec.Builder</a></dt>
 <dd>
@@ -6439,7 +6439,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setGracePeriodSecs-int-">setGracePeriodSecs(int)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/HealthResource.html#setHealthyPlanManagers-java.util.Collection-">setHealthyPlanManagers(Collection&lt;PlanManager&gt;)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/HealthResource.html" title="class in com.mesosphere.sdk.api">HealthResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/HealthResource.html#setHealthyPlanManagers-java.util.Collection-">setHealthyPlanManagers(Collection&lt;PlanManager&gt;)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/HealthResource.html" title="class in com.mesosphere.sdk.http">HealthResource</a></dt>
 <dd>
 <div class="block">Assigns the list of plans to be checked for completion when deciding whether the service is healthy.</div>
 </dd>
@@ -6509,7 +6509,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setPlanCustomizer-com.mesosphere.sdk.scheduler.plan.PlanCustomizer-">setPlanCustomizer(PlanCustomizer)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#setPlanManagers-java.util.Collection-">setPlanManagers(Collection&lt;PlanManager&gt;)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#setPlanManagers-java.util.Collection-">setPlanManagers(Collection&lt;PlanManager&gt;)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block">Assigns the list of plans to be managed via this endpoint.</div>
 </dd>
@@ -6624,7 +6624,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html#setTaskId-java.lang.String-">setTaskId(String)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus.Builder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller(TaskKiller)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PodResource.html" title="class in com.mesosphere.sdk.api">PodResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller(TaskKiller)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Configures the <a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
 </dd>
@@ -6731,20 +6731,20 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#start--">start()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#startPlan-java.lang.String-java.util.Map-">startPlan(String, Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#startPlan-java.lang.String-java.util.Map-">startPlan(String, Map&lt;String, String&gt;)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block">Idempotently starts a plan.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api"><span class="typeNameLink">StateResource</span></a> - Class in <a href="com/mesosphere/sdk/api/package-summary.html">com.mesosphere.sdk.api</a></dt>
+<dt><a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">StateResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
  being used.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-">StateResource(StateStore)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-">StateResource(StateStore)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Creates a new StateResource which cannot deserialize Properties.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.api.types.PropertyDeserializer-">StateResource(StateStore, PropertyDeserializer)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">StateResource(StateStore, PropertyDeserializer)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Creates a new StateResource which can deserialize Properties.</div>
 </dd>
@@ -6798,7 +6798,7 @@
 <dd>
 <div class="block">An implementation of this interface should provide <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s based on <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>s.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">StepInfo</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">StepInfo</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Immutable JSON serialization object for a <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>.</div>
 </dd>
@@ -6808,7 +6808,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#stop--">stop()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/PlansResource.html#stopPlan-java.lang.String-">stopPlan(String)</a></span> - Method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/PlansResource.html" title="class in com.mesosphere.sdk.api">PlansResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PlansResource.html#stopPlan-java.lang.String-">stopPlan(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PlansResource.html" title="class in com.mesosphere.sdk.http">PlansResource</a></dt>
 <dd>
 <div class="block">Idempotently stops a plan.</div>
 </dd>
@@ -6830,7 +6830,7 @@
 <dd>
 <div class="block">Updates the schema version to the provided value.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#storeFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">storeFile(StateStore, String, InputStream, FormDataContentDisposition)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#storeFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">storeFile(StateStore, String, InputStream, FormDataContentDisposition)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>
 <div class="block">Stores the file in the state store.</div>
 </dd>
@@ -6897,13 +6897,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html#StringMatcherRule-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.StringMatcher-">StringMatcherRule(String, StringMatcher)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">StringPropertyDeserializer</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">StringPropertyDeserializer</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
-<div class="block">Implementation of <a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types"><code>PropertyDeserializer</code></a> which converts UTF-8 JSON byte arrays to Strings.</div>
+<div class="block">Implementation of <a href="com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types"><code>PropertyDeserializer</code></a> which converts UTF-8 JSON byte arrays to Strings.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html#StringPropertyDeserializer--">StringPropertyDeserializer()</a></span> - Constructor for class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.api.types">StringPropertyDeserializer</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html#StringPropertyDeserializer--">StringPropertyDeserializer()</a></span> - Constructor for class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.http.types">StringPropertyDeserializer</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html#StringPropertyDeserializer-java.nio.charset.Charset-">StringPropertyDeserializer(Charset)</a></span> - Constructor for class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.api.types">StringPropertyDeserializer</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html#StringPropertyDeserializer-java.nio.charset.Charset-">StringPropertyDeserializer(Charset)</a></span> - Constructor for class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.http.types">StringPropertyDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ValueUtils.html#subtract-Value-Value-">subtract(Value, Value)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ValueUtils.html" title="class in com.mesosphere.sdk.offer">ValueUtils</a></dt>
 <dd>&nbsp;</dd>
@@ -7053,7 +7053,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskIdKilled-java.lang.String-">taskIdKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types"><span class="typeNameLink">TaskInfoAndStatus</span></a> - Class in <a href="com/mesosphere/sdk/api/types/package-summary.html">com.mesosphere.sdk.api.types</a></dt>
+<dt><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">TaskInfoAndStatus</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Basic container which holds a <code>TaskInfo</code> and optionally a corresponding <code>TaskStatus</code> if any is
  available.</div>
@@ -7279,21 +7279,21 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html#TLSRequiresServiceAccount-com.mesosphere.sdk.scheduler.SchedulerConfig-">TLSRequiresServiceAccount(SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate">TLSRequiresServiceAccount</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpDomain-java.lang.String-">toAutoIpDomain(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpDomain-java.lang.String-">toAutoIpDomain(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS domain for tasks within the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-">toAutoIpEndpoint(String, String, int)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-">toAutoIpEndpoint(String, String, int)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-">toAutoIpHostname(String, String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-">toAutoIpHostname(String, String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#toBuilder--">toBuilder()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toEndpoint-java.lang.String-int-">toEndpoint(String, int)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toEndpoint-java.lang.String-int-">toEndpoint(String, int)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Concatenates the provided hostname/port in "hostname:port" format.</div>
 </dd>
@@ -7322,12 +7322,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#toJson--">toJson()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html#toJsonString-java.lang.String-byte:A-">toJsonString(String, byte[])</a></span> - Method in interface com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.api.types">PropertyDeserializer</a></dt>
-<dd>
-<div class="block">Returns a valid JSON representation for the data in <code>value</code> for display to an end user.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html#toJsonString-java.lang.String-byte:A-">toJsonString(String, byte[])</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.api.types">StringPropertyDeserializer</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/Configuration.html#toJsonString--">toJsonString()</a></span> - Method in interface com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config">Configuration</a></dt>
 <dd>
 <div class="block">Returns a JSON representation of this Configuration which is suitable for displaying to the
@@ -7338,6 +7332,12 @@
 <div class="block">Returns a JSON representation of the provided value.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.html#toJsonString--">toJsonString()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PropertyDeserializer.html#toJsonString-java.lang.String-byte:A-">toJsonString(String, byte[])</a></span> - Method in interface com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types">PropertyDeserializer</a></dt>
+<dd>
+<div class="block">Returns a valid JSON representation for the data in <code>value</code> for display to an end user.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html#toJsonString-java.lang.String-byte:A-">toJsonString(String, byte[])</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StringPropertyDeserializer.html" title="class in com.mesosphere.sdk.http.types">StringPropertyDeserializer</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#toJsonStringOrEmpty-T-">toJsonStringOrEmpty(T)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
 <dd>
@@ -7393,18 +7393,10 @@
 <dd>
 <div class="block">Returns a protobuf representation of all contained label entries.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toSchedulerApiVipHostname-java.lang.String-">toSchedulerApiVipHostname(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerApiVipHostname-java.lang.String-">toSchedulerApiVipHostname(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PhaseInfo.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PhaseInfo.html" title="class in com.mesosphere.sdk.api.types">PhaseInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/PlanInfo.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/PlanInfo.html" title="class in com.mesosphere.sdk.api.types">PlanInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/StepInfo.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/StepInfo.html" title="class in com.mesosphere.sdk.api.types">StepInfo</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.api.types">TaskInfoAndStatus</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#toString-T-ObjectMapper-">toString(T, ObjectMapper)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
@@ -7422,6 +7414,14 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos">DcosVersion.Elements</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckStats.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckStats.html" title="class in com.mesosphere.sdk.executor">CheckStats</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PlanInfo.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PlanInfo.html" title="class in com.mesosphere.sdk.http.types">PlanInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
@@ -7544,15 +7544,15 @@
 <dd>
 <div class="block">Converts the unique <code>TaskID</code> into a Framework defined task name.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toVipDomain-java.lang.String-">toVipDomain(String)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toVipDomain-java.lang.String-">toVipDomain(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS domain for VIPs within the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toVipEndpoint-java.lang.String-com.mesosphere.sdk.api.EndpointUtils.VipInfo-">toVipEndpoint(String, EndpointUtils.VipInfo)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toVipEndpoint-java.lang.String-com.mesosphere.sdk.http.EndpointUtils.VipInfo-">toVipEndpoint(String, EndpointUtils.VipInfo)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.html#toVipHostname-java.lang.String-com.mesosphere.sdk.api.EndpointUtils.VipInfo-">toVipHostname(String, EndpointUtils.VipInfo)</a></span> - Static method in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.html" title="class in com.mesosphere.sdk.api">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toVipHostname-java.lang.String-com.mesosphere.sdk.http.EndpointUtils.VipInfo-">toVipHostname(String, EndpointUtils.VipInfo)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct L4LB VIP hostname for the provided task running within the provided service.</div>
 </dd>
@@ -7676,7 +7676,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html#UniqueTaskNameValidator--">UniqueTaskNameValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniqueTaskNameValidator</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/types/GroupedTasks.html#unknownPod">unknownPod</a></span> - Variable in class com.mesosphere.sdk.api.types.<a href="com/mesosphere/sdk/api/types/GroupedTasks.html" title="class in com.mesosphere.sdk.api.types">GroupedTasks</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/GroupedTasks.html#unknownPod">unknownPod</a></span> - Variable in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a></dt>
 <dd>
 <div class="block">List of tasks for which the pod instance couldn't be determined.</div>
 </dd>
@@ -7808,7 +7808,7 @@
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares
  their resource-set is launched.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/StateResource.html#UPLOAD_TOO_BIG_ERROR_MESSAGE">UPLOAD_TOO_BIG_ERROR_MESSAGE</a></span> - Static variable in class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/StateResource.html" title="class in com.mesosphere.sdk.api">StateResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#UPLOAD_TOO_BIG_ERROR_MESSAGE">UPLOAD_TOO_BIG_ERROR_MESSAGE</a></span> - Static variable in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#uris-java.util.Collection-">uris(Collection&lt;URI&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
@@ -8046,7 +8046,7 @@ the order they are declared.</div>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#VIP_PROTOCOL">VIP_PROTOCOL</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html#VipInfo-java.lang.String-int-">VipInfo(String, int)</a></span> - Constructor for class com.mesosphere.sdk.api.<a href="com/mesosphere/sdk/api/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.api">EndpointUtils.VipInfo</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html#VipInfo-java.lang.String-int-">VipInfo(String, int)</a></span> - Constructor for class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html#vipName-java.lang.String-">vipName(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec.Builder</a></dt>
 <dd>
