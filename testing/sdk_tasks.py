@@ -185,9 +185,15 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     """
 
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
-        cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
+        full_cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
 
-    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
+        if cmd.startswith("./bootstrap"):
+            # On 1.9 we beed to set LIB_PROCESS_IP for bootstrap
+            full_cmd = "bash -c \"LIBPROCESS_IP=0.0.0.0 {}\"".format(full_cmd)
+    else:
+        full_cmd = cmd
+
+    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=full_cmd)
     rc, stdout, stderr = sdk_cmd.run_raw_cli(exec_cmd)
 
     if return_stderr_in_stdout:
