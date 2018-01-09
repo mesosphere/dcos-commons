@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.api.HealthResource;
-import com.mesosphere.sdk.api.PlansResource;
-import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.http.HealthResource;
+import com.mesosphere.sdk.http.PlansResource;
+import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;

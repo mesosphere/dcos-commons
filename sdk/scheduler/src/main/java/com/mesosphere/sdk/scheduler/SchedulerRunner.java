@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.api.HealthResource;
-import com.mesosphere.sdk.api.PlansResource;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
+import com.mesosphere.sdk.http.HealthResource;
+import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;

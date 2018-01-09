@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
-import com.mesosphere.sdk.api.EndpointUtils;
-import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
