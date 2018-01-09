@@ -26,7 +26,6 @@ def configure_package(configure_security):
 
 
 @pytest.mark.recovery
-@pytest.mark.skip(reason="DCOS-20123")
 def test_partition():
     host = sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-server")
     shakedown.partition_agent(host)
@@ -35,7 +34,6 @@ def test_partition():
 
 
 @pytest.mark.recovery
-@pytest.mark.skip(reason="DCOS-20123")
 def test_partition_master_both_ways():
     shakedown.partition_master()
     shakedown.reconnect_master()
@@ -43,7 +41,6 @@ def test_partition_master_both_ways():
 
 
 @pytest.mark.recovery
-@pytest.mark.skip(reason="DCOS-20123")
 def test_partition_master_incoming():
     shakedown.partition_master(incoming=True, outgoing=False)
     shakedown.reconnect_master()
@@ -51,7 +48,6 @@ def test_partition_master_incoming():
 
 
 @pytest.mark.recovery
-@pytest.mark.skip(reason="DCOS-20123")
 def test_partition_master_outgoing():
     shakedown.partition_master(incoming=False, outgoing=True)
     shakedown.reconnect_master()
@@ -59,7 +55,6 @@ def test_partition_master_outgoing():
 
 
 @pytest.mark.recovery
-@pytest.mark.skip(reason="DCOS-20123")
 def test_all_partition():
     hosts = shakedown.get_service_ips(config.SERVICE_NAME)
     for host in hosts:
@@ -70,7 +65,6 @@ def test_all_partition():
 
 
 @pytest.mark.recovery
-@pytest.mark.skip(reason="DCOS-20123")
 def test_config_update_while_partitioned():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
