@@ -9,8 +9,6 @@ import os
 from typing import List, Tuple
 
 import retrying
-import requests
-import shakedown
 import sdk_cmd
 import sdk_utils
 
@@ -46,41 +44,31 @@ def install_enterprise_cli(force=False):
         raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
 
 
-def grant(dcosurl: str, headers: dict, user: str, acl: str, description: str, action: str="create") -> None:
+def _grant(user: str, acl: str, description: str, action: str="create") -> None:
     log.info('Granting permission to {user} for {acl}/{action} ({description})'.format(
         user=user, acl=acl, action=action, description=description))
 
-    # TODO(kwood): INFINITY-2066 - Use dcos_test_utils instead of raw requests
-
     # Create the ACL
-    create_endpoint = '{dcosurl}/acs/api/v1/acls/{acl}'.format(dcosurl=dcosurl, acl=acl)
-    r = requests.put(create_endpoint, headers=headers, json={'description': description}, verify=False)
+    r = sdk_cmd.cluster_request(
+        'PUT', '/acs/api/v1/acls/{acl}'.format(acl=acl),
+        raise_on_error=False,
+        json={'description': description})
     # 201=created, 409=already exists
     assert r.status_code == 201 or r.status_code == 409, '{} failed {}: {}'.format(
         create_endpoint, r.status_code, r.text)
 
     # Assign the user to the ACL
-    assign_endpoint = '{dcosurl}/acs/api/v1/acls/{acl}/users/{user}/{action}'.format(
-        dcosurl=dcosurl, acl=acl, user=user, action=action)
-    r = requests.put(assign_endpoint, headers=headers, verify=False)
+    r = sdk_cmd.cluster_request(
+        'PUT', '/acs/api/v1/acls/{acl}/users/{user}/{action}'.format(acl=acl, user=user, action=action),
+        raise_on_error=False)
     # 204=success, 409=already exists
     assert r.status_code == 204 or r.status_code == 409, '{} failed {}: {}'.format(
         create_endpoint, r.status_code, r.text)
 
 
-def revoke(dcosurl: str, headers: dict, user: str, acl: str, description: str, action: str="create") -> None:
+def _revoke(dcosurl: str, headers: dict, user: str, acl: str, description: str, action: str="create") -> None:
     # TODO(kwood): INFINITY-2065 - implement security cleanup
     log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
-
-
-def get_dcos_credentials() -> Tuple[str, dict]:
-    dcosurl = sdk_cmd.run_cli('config show core.dcos_url', print_output=False)
-    token = sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False)
-    headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'token={}'.format(token.strip()),
-    }
-    return dcosurl.strip(), headers
 
 
 def get_permissions(service_account_name: str, role: str, linux_user: str) -> List[dict]:
@@ -143,21 +131,19 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
 
 
 def grant_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
-    dcosurl, headers = get_dcos_credentials()
     log.info("Granting permissions to {account}".format(account=service_account_name))
     permissions = get_permissions(service_account_name, role_name, linux_user)
     for permission in permissions:
-        grant(dcosurl, headers, **permission)
+        _grant(dcosurl, headers, **permission)
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
 
 def revoke_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
-    dcosurl, headers = get_dcos_credentials()
-    # log.info("Revoking permissions to {account}".format(account=service_account_nae))
+    log.info("Revoking permissions to {account}".format(account=service_account_nae))
     permissions = get_permissions(service_account_name, role_name, linux_user)
     for permission in permissions:
-        revoke(dcosurl, headers, **permission)
-    # log.info("Permission cleanup completed for {account}".format(account=service_account_name))
+        _revoke(dcosurl, headers, **permission)
+    log.info("Permission cleanup completed for {account}".format(account=service_account_name))
 
 
 def create_service_account(service_account_name: str, service_account_secret: str) -> None:

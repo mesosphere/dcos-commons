@@ -3,15 +3,12 @@ import logging
 import pytest
 import retrying
 
-import sdk_api
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
 import sdk_plan
-import sdk_utils
 import shakedown
-from dcos.http import DCOSHTTPException
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -136,7 +133,7 @@ def test_cni_labels():
         assert v == EXPECTED_NETWORK_LABELS[k], "Value {obs} isn't correct, should be " \
                                                 "{exp}".format(obs=v, exp=EXPECTED_NETWORK_LABELS[k])
 
-    r = sdk_api.get(config.SERVICE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
+    r = sdk_cmd.service_request('GET', config.SERVICE_NAME, "/v1/pod/hello-overlay-vip-0/info").json()
     assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
     try:
         cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
@@ -155,11 +152,7 @@ def test_cni_labels():
 @pytest.mark.dcos_min_version('1.9')
 def test_port_names():
     def check_task_ports(task_name, expected_port_count, expected_port_names):
-        endpoint = "/v1/tasks/info/{}".format(task_name)
-        try:
-            r = sdk_api.get(config.SERVICE_NAME, endpoint).json()
-        except DCOSHTTPException:
-            return False, "Failed to get API endpoint {}".format(endpoint)
+        r = sdk_cmd.service_request('GET', config.SERVICE_NAME, "/v1/tasks/info/{}".format(task_name)).json()
         sdk_networks.check_port_names(r, expected_port_count, expected_port_names)
 
     for task in TASKS_WITH_PORTS:

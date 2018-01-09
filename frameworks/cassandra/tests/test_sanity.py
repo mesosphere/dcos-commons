@@ -14,22 +14,17 @@ from tests import config
 def configure_package(configure_security):
     test_jobs = []
     try:
-        test_jobs = config.get_all_jobs(
-            node_address=config.get_foldered_node_address())
-        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
-            sdk_jobs.remove_job(job)
+            sdk_jobs.install_job(job)
 
-        sdk_install.uninstall(config.PACKAGE_NAME,
-                              config.get_foldered_service_name())
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
             additional_options={"service": {"name": config.get_foldered_service_name()} })
-
-        for job in test_jobs:
-            sdk_jobs.install_job(job)
 
         yield  # let the test session execute
     finally:

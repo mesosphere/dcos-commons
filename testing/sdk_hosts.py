@@ -7,7 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 '''
 import logging
 
-import sdk_tasks
+import sdk_cmd
 import sdk_utils
 
 LOG = logging.getLogger(__name__)

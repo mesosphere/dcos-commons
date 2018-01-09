@@ -1,5 +1,4 @@
 import logging
-import time
 
 import pytest
 import sdk_cmd
@@ -146,8 +145,7 @@ def test_tls_basic_artifacts():
     assert len(sans) == 1
 
     cluster_root_ca_cert = x509.load_pem_x509_certificate(
-        sdk_cmd.request(
-            'get', shakedown.dcos_url_path('/ca/dcos-ca.crt')).content,
+        sdk_cmd.cluster_request('GET', '/ca/dcos-ca.crt').content,
         DEFAULT_BACKEND)
 
     assert root_ca_cert_in_truststore.signature == cluster_root_ca_cert.signature

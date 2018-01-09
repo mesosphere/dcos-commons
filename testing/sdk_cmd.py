@@ -9,8 +9,9 @@ import json as jsonlib
 import logging
 import retrying
 import subprocess
-import traceback
+import urllib.parse
 
+import dcos.errors
 import dcos.http
 import shakedown
 
@@ -19,30 +20,90 @@ log = logging.getLogger(__name__)
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
 
-def request(method, url, retry=True, log_args=True, verify=None, **kwargs):
+def service_request(
+        method,
+        service_name,
+        service_path,
+        retry=True,
+        raise_on_error=True,
+        log_args=True,
+        verify=None,
+        **kwargs):
+    """Used to query a service running on the cluster. See `cluster_request()` for arg meanings.
+    :param service_name: The name of the service, e.g. 'marathon' or 'hello-world'
+    :param service_path: HTTP path to be queried against the service, e.g. '/v2/apps'. Leading slash is optional.
+    """
+    # Sanitize leading slash on service_path before calling urljoin() to avoid this:
+    # 'http://example.com/service/myservice/' + '/v1/rpc' = 'http://example.com/v1/rpc'
+    cluster_path = urllib.parse.urljoin(shakedown.dcos_service_url(service_name), service_path.lstrip('/'))
+    return cluster_request(method, cluster_path, retry, raise_on_error, log_args, verify, **kwargs)
+
+
+def cluster_request(
+        method,
+        cluster_path,
+        retry=True,
+        raise_on_error=True,
+        log_args=True,
+        verify=None,
+        **kwargs):
+    """Queries the provided cluster HTTP path using the provided method, with the following handy features:
+    - The DCOS cluster's URL is automatically applied to the provided path.
+    - Auth headers are automatically added.
+    - If the response code is >=400, optionally retries and/or raises a `requests.exceptions.HTTPError`.
+
+    :param method: Method to use for the query, such as `GET`, `POST`, `DELETE`, or `PUT`.
+    :param cluster_path: HTTP path to be queried on the cluster, e.g. `/marathon/v2/apps`. Leading slash is optional.
+    :param retry: Whether to retry the request automatically if an HTTP error (>=400) is returned.
+    :param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >=400. 
+                           Disabling this effectively implies `retry=False` where HTTP status is concerned.
+    :param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
+    :param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
+    :param kwargs: Additional arguments to requests.request(), such as `json={"example": "content"}` or `params={"example": "param"}`.
+    :rtype: requests.Response
+    """
+
+    url = shakedown.dcos_url_path(cluster_path)
+    cluster_path = '/' + cluster_path.lstrip('/') # consistently include slash prefix for clearer logging below
+
     def fn():
-        response = dcos.http.request(method, url, verify=verify, **kwargs)
-        if log_args:
-            log.info('Got {} for {} {} (args: {})'.format(
-                response.status_code, method.upper(), url, kwargs))
-        else:
-            log.info('Got {} for {} {} ({} args)'.format(
-                response.status_code, method.upper(), url, len(kwargs)))
-        response.raise_for_status()
+        # Underlying dcos.http.request will wrap responses in custom exceptions. This messes with
+        # our ability to handle the situation when an error occurs, so unwrap those exceptions.
+        try:
+            response = dcos.http.request(method, url, verify=verify, **kwargs)
+        except dcos.errors.DCOSHTTPException as e:
+             # DCOSAuthenticationException, DCOSAuthorizationException, DCOSBadRequest, DCOSHTTPException
+            response = e.response
+        except dcos.errors.DCOSUnprocessableException as e:
+            # unlike the the above, this directly extends DCOSHTTPException
+            response = e.response
+        log_msg = 'Got {} for {} {}'.format(response.status_code, method.upper(), cluster_path)
+        if kwargs:
+            # log arg content (or just arg names) if present
+            log_msg += ' (args: {})'.format(kwargs if log_args else kwargs.keys())
+        log.info(log_msg)
+        if not response.ok:
+            # Query failed (>= 400). Before (potentially) throwing, print response payload which may
+            # include additional error details.
+            response_text = response.text
+            if response_text:
+                log.info('Response content ({} bytes):\n{}'.format(len(response_text), response_text))
+            else:
+                log.info('No response content')
+        if raise_on_error:
+            response.raise_for_status()
         return response
+
     if retry:
+        # Use wrapper to implement retry:
         @retrying.retry(
             wait_fixed=1000,
-            stop_max_delay=60*1000,
-            retry_on_result=lambda res: not res)
+            stop_max_delay=60*1000)
         def retry_fn():
-            try:
-                return fn()
-            except:
-                log.info(traceback.format_exc())
-                return None
+            return fn()
         return retry_fn()
     else:
+        # No retry, invoke directly:
         return fn()
 
 
