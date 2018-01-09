@@ -471,6 +471,15 @@
   <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">PLACEMENT_CONSTRAINT</code>: <code class="highlighter-rouge">string</code></li>
 </ul>
 
+<h2 id="regions-and-zones">Regions and Zones</h2>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
+</code></pre>
+</div>
+
+<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
+
 <h2 id="rack-aware-placement">Rack-Aware Placement</h2>
 
 <p>Cassandra’s “rack”-based fault domain support may be enabled by specifying a placement constraint that uses the <code class="highlighter-rouge">@zone</code> key. For example, one could spread Cassandra nodes across a minimum of three different zones/racks by specifying the constraint <code class="highlighter-rouge">@zone:GROUP_BY:3</code>. When a placement constraint specifying <code class="highlighter-rouge">@zone</code> is used, Cassandra nodes will be automatically configured with <code class="highlighter-rouge">rack</code>s that match the names of the zones. If no placement constraint referencing <code class="highlighter-rouge">@zone</code> is configured, all nodes will be configured with a default rack of <code class="highlighter-rouge">rack1</code>.</p>

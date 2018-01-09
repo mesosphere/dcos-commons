@@ -651,6 +651,29 @@ dcos:adminrouter:ops:slave full
 
 <p>For more information about TLS in the SDK see <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#tls">the TLS documentation</a>.</p>
 
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+<h2 id="placement-constraints">Placement Constraints</h2>
+
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a> with this syntax: <code class="highlighter-rouge">field:OPERATOR[:parameter]</code>. For example, if the reference lists <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code>, you should  use <code class="highlighter-rouge">hostname:UNIQUE</code>.</p>
+
+<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+</code></pre>
+</div>
+
+<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
+
+<h3 id="regions-and-zones">Regions and Zones</h3>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
+<div class="highlighter-rouge"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
+</code></pre>
+</div>
+
+<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
+
+<!-- end duplicate block -->
+
 <h3 id="clients">Clients</h3>
 
 <p>Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (<code class="highlighter-rouge">journal</code>, <code class="highlighter-rouge">name</code> and <code class="highlighter-rouge">data</code>) can be configured with different port numbers for TLS connections.</p>
