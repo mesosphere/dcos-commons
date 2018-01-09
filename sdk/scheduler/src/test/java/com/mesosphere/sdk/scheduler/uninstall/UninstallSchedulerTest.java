@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -94,7 +95,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testInitialPlan() throws Exception {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        Plan plan = uninstallScheduler.getPlan();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         // 1 task kill + 3 unique resources + deregister step
         List<Status> expected = Arrays.asList(Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
@@ -106,7 +108,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore.storeTasks(Arrays.asList(TASK_B));
 
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        Plan plan = uninstallScheduler.getPlan();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         // 2 task kills + 4 unique resources + deregister step.
         List<Status> expected = Arrays.asList(
                 Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING,
@@ -121,7 +124,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore.storeStatus(TASK_B.getName(), TASK_B_STATUS_ERROR);
 
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        Plan plan = uninstallScheduler.getPlan();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         // 2 task kills + 3 unique resources (from task A, not task B) + deregister step.
         List<Status> expected = Arrays.asList(
                 Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
@@ -133,10 +137,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         // Initial call to resourceOffers() will return all steps from resource phase as candidates
         // regardless of the offers sent in, and will start the steps.
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
         uninstallScheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
-        Plan plan = uninstallScheduler.getPlan();
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         // 1 task kill + 3 resources + deregister step.
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
@@ -154,10 +159,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testUninstallStepsComplete() throws Exception {
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(RESERVED_RESOURCE_1, RESERVED_RESOURCE_2));
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
         uninstallScheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
-        Plan plan = uninstallScheduler.getPlan();
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
@@ -174,10 +180,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(
                 RESERVED_RESOURCE_1, RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
         uninstallScheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Collections.singletonList(offer));
         uninstallScheduler.awaitOffersProcessed();
-        Plan plan = uninstallScheduler.getPlan();
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
@@ -185,7 +192,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         uninstallScheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer()));
         uninstallScheduler.awaitOffersProcessed();
-        plan = uninstallScheduler.getPlan();
+        plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         Assert.assertTrue(plan.isComplete());
@@ -201,8 +208,10 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockSecretsClient));
         // Returns a simple placeholder plan with status COMPLETE
-        Assert.assertTrue(uninstallScheduler.getPlan().toString(), uninstallScheduler.getPlan().isComplete());
-        Assert.assertTrue(uninstallScheduler.getPlan().getChildren().isEmpty());
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
+        Assert.assertTrue(plan.toString(), plan.isComplete());
+        Assert.assertTrue(plan.getChildren().isEmpty());
         // Doesn't want to register with Mesos:
         Assert.assertFalse(uninstallScheduler.getMesosScheduler().isPresent());
     }
@@ -219,7 +228,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         when(serviceSpecWithTLSTasks.getPods()).thenReturn(Arrays.asList(mockPod));
 
         UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks);
-        Plan plan = uninstallScheduler.getPlan();
+        PlanCoordinator planCoordinator = uninstallScheduler.initialize(mockSchedulerDriver);
+        Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
 
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
 
@@ -253,7 +263,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
-        Assert.assertTrue(uninstallScheduler.getPlan().isComplete());
+        Assert.assertTrue(plan.isComplete());
     }
 
     private static Protos.Offer getOffer() {

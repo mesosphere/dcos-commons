@@ -86,6 +86,7 @@ public class Main {
         Map<String, String> env = new HashMap<>(new TaskEnvRouter().getConfig("ALL"));
         env.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
+        env.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV, EndpointUtils.toSchedulerApiVipHostname(serviceName));
         env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
         env.put(DECODED_AUTH_TO_LOCAL, getHDFSUserAuthMappings(env, AUTH_TO_LOCAL));

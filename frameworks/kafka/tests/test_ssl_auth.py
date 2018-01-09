@@ -51,7 +51,6 @@ def kafka_client():
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -341,13 +340,8 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     token = sdk_cmd.run_cli("config show core.dcos_acs_token")
 
-    cmd = "curl -X POST \
-        -H 'Authorization: token={}' \
-        leader.mesos/ca/api/v2/sign \
-        -d '{}'".format(token, json.dumps(request))
-
     output = sdk_tasks.task_exec(task,
-        "curl -X POST \
+        "curl -L -X POST \
         -H 'Authorization: token={}' \
         leader.mesos/ca/api/v2/sign \
         -d '{}'".format(token, json.dumps(request)))
@@ -370,7 +364,7 @@ def create_keystore_truststore(cn: str, task: str):
     truststore_path = "{}_truststore.jks".format(cn)
 
     log.info("Generating keystore and truststore, task:{}".format(task))
-    output = sdk_tasks.task_exec(task, "curl -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
+    output = sdk_tasks.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
 
     # Convert to a PKCS12 key
     output = sdk_tasks.task_exec(task,

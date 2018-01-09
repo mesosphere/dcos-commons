@@ -10,16 +10,15 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_auth IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
-from retrying import retry
-from subprocess import run
-from tempfile import TemporaryDirectory
+import tempfile
 
 import base64
-import dcos
 import json
 import logging
 import os
-import shakedown
+import uuid
+import requests
+import retrying
 
 import sdk_cmd
 import sdk_hosts
@@ -31,9 +30,7 @@ import sdk_security
 log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = "kdc"
-KERBEROS_IMAGE_NAME = "mesosphere/kdc"
 KERBEROS_KEYTAB_FILE_NAME = "keytab"
-BASE64_ENCODED_KEYTAB_FILE_NAME = "{keytab_name}.base64"
 DCOS_BASE64_PREFIX = "__dcos_base64__"
 LINUX_USER = "core"
 KERBEROS_CONF = "krb5.conf"
@@ -43,8 +40,8 @@ REALM = "LOCAL"
 # resiliency towards possible intermittent network failures.
 
 
-@retry(stop_max_attempt_number=3, wait_fixed=2000)
-def _get_kdc_task() -> dict:
+@retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
+def _get_kdc_task(task_name: str) -> dict:
     """
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
@@ -53,38 +50,38 @@ def _get_kdc_task() -> dict:
     if raw_tasks:
         tasks = json.loads(raw_tasks)
         for task in tasks:
-            if task["name"] == KERBEROS_APP_ID:
+            if task["name"] == task_name:
                 return task
 
     raise RuntimeError("Expecting marathon KDC task but no such task found. Running tasks: {tasks}".format(
         tasks=raw_tasks))
 
 
-@retry(stop_max_attempt_number=2, wait_fixed=1000)
+@retrying.retry(stop_max_attempt_number=2, wait_fixed=1000)
 def _get_host_name(host_id: str) -> str:
     """
     Fetches the host name for the host running the KDC app.
     :param host_id (str): The ID of the host, used to look up the appropriate node.
     :return (str): Name of the host running the KDC app.
     """
-    log.info("Getting host name")
+    log.info("Getting hostname")
     raw_nodes = sdk_cmd.run_cli("node --json")
     if raw_nodes:
         nodes = json.loads(raw_nodes)
         for node in nodes:
             if "id" in node and node["id"] == host_id:
-                log.info("Host name is {host_name}".format(host_name=node["hostname"]))
+                log.info("Host name is %s", node["hostname"])
                 return node["hostname"]
 
     raise RuntimeError("Failed to get name of host running the KDC app: {nodes}")
 
 
-@retry(stop_max_attempt_number=2, wait_fixed=1000)
+@retrying.retry(stop_max_attempt_number=2, wait_fixed=1000)
 def _get_master_public_ip() -> str:
     """
     :return (str): The public IP of the master node in the DC/OS cluster.
     """
-    dcos_url, headers = sdk_security.get_dcos_credentials()
+    dcos_url, _ = sdk_security.get_dcos_credentials()
     cluster_metadata_url = "{cluster_url}/metadata".format(cluster_url=dcos_url)
     response = sdk_cmd.request("GET", cluster_metadata_url, verify=False)
     if not response.ok:
@@ -100,53 +97,63 @@ def _get_master_public_ip() -> str:
     return public_ip
 
 
-def _create_temp_working_dir() -> TemporaryDirectory:
+def _create_temp_working_dir() -> tempfile.TemporaryDirectory:
     """
     Creates a temporary working directory to enable setup of the Kerberos environment.
-    :return (TemporaryDirectory): The TemporaryDirectory object holding the context of the temp dir.
+    :return (tempfile.TemporaryDirectory): The tempfile.TemporaryDirectory object holding the context of the temp dir.
     """
-    tmp_dir = TemporaryDirectory()
+    tmp_dir = tempfile.TemporaryDirectory()
     log.info("Created temp working directory {}".format(tmp_dir.name))
     return tmp_dir
 
 
-#TODO: make this generic and put in sdk_utils.py
-def _copy_file_to_localhost(self):
+# TODO: make this generic and put in sdk_utils.py
+def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_filename: str):
     """
     Copies the keytab that was generated inside the container running the KDC server to the localhost
     so it can be uploaded to the secret store later.
-
-    The keytab will end up in path: <temp_working_dir>/<keytab_file>
     """
-    log.info("Copying {} to the temp working directory".format(self.keytab_file_name))
+    dcos_url, headers = sdk_security.get_dcos_credentials()
+    del headers["Content-Type"]
 
-    keytab_absolute_path = "{mesos_agents_path}/{host_id}/frameworks/{framework_id}/executors/{task_id}/runs/latest/{keytab_file}".format(
-        mesos_agents_path="/var/lib/mesos/slave/slaves",
-        host_id=self.kdc_host_id,
-        framework_id=self.framework_id,
-        task_id=self.task_id,
-        keytab_file=self.keytab_file_name
-    )
     keytab_url = "{cluster_url}/slave/{agent_id}/files/download?path={path}".format(
-        cluster_url=shakedown.dcos_url(),
-        agent_id=self.kdc_host_id,
+        cluster_url=dcos_url,
+        agent_id=host_id,
         path=keytab_absolute_path
     )
-    dest = "{temp_working_dir}/{keytab_file}".format(
-        temp_working_dir=self.temp_working_dir.name, keytab_file=self.keytab_file_name)
 
-    curl_cmd = "curl -k --header '{auth}' {url} > {dest_file}".format(
-        auth="Authorization: token={token}".format(token=shakedown.dcos_acs_token()),
-        url=keytab_url,
-        dest_file=dest
-    )
+    log.info("Downloading keytab %s to %s", keytab_url, output_filename)
+
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=120 * 1000,
+                    retry_on_exception=lambda e: isinstance(e, requests.exceptions.HTTPError),
+                    wrap_exception=True)
+    def get_download_stream(url: str) -> requests.Response:
+        """ Use a streaming call to GET to download the Keytab file """
+        response = requests.get(url, headers=headers, stream=True, verify=False)
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            log.error("Error fetching file from %s", url)
+            log.error("response=%s exception=%s", response, repr(e))
+            raise e
+
+        return response
+
     try:
-        run([curl_cmd], shell=True)
-    except Exception as e:
+        log.info("Downloading keytab from %s", keytab_url)
+        keytab_response = get_download_stream(keytab_url)
+        with open(output_filename, 'wb') as fd:
+            for chunk in keytab_response.iter_content(chunk_size=128):
+                fd.write(chunk)
+    except retrying.RetryError as e:
+        log.error("%s", e)
         raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
 
+    log.info("Downloaded %d bytes from %s to %s", os.stat(output_filename).st_size, keytab_url, output_filename)
 
-def kinit(task_id: str, keytab: str, principal:str):
+
+def kinit(task_id: str, keytab: str, principal: str):
     """
     Performs a kinit command to authenticate the specified principal.
     :param task_id: The task in whose environment the kinit will run.
@@ -154,7 +161,10 @@ def kinit(task_id: str, keytab: str, principal:str):
     :param principal: The name of the principal the user wants to authenticate as.
     """
     kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
-    sdk_tasks.task_exec(task_id, kinit_cmd)
+    log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
+    rc, stdout, stderr = sdk_tasks.task_exec(task_id, kinit_cmd)
+    if rc != 0:
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\nstdout: {}\nstderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
 def kdestroy(task_id: str):
@@ -162,43 +172,63 @@ def kdestroy(task_id: str):
     Performs a kdestroy command to erase an auth session for a principal.
     :param task_id: The task in whose environment the kinit will run.
     """
-    sdk_tasks.task_exec(task_id, "kdestroy")
+    log.info("Erasing auth session:")
+    rc, stdout, stderr = sdk_tasks.task_exec(task_id, "kdestroy")
+    if rc != 0:
+        raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
 
 class KerberosEnvironment:
     def __init__(self):
         """
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
-        This just passes a dictionary to be rendered as a JSON app defefinition to marathon.
+        This just passes a dictionary to be rendered as a JSON app definition to marathon.
         """
-        self.temp_working_dir = _create_temp_working_dir()
-        kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
-            current_file_dir=os.path.dirname(os.path.realpath(__file__)))
-        with open(kdc_app_def_path) as f:
-            kdc_app_def = json.load(f)
+        self._working_dir = None
+        self._temp_working_dir = None
 
-        kdc_app_def["id"] = KERBEROS_APP_ID
-        sdk_marathon.install_app(kdc_app_def)
-        self.kdc_port = int(kdc_app_def["portDefinitions"][0]["port"])
-        self.kdc_host = "{app_name}.{service_name}.{autoip_host_suffix}".format(
-                app_name=KERBEROS_APP_ID, service_name="marathon", autoip_host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-        self.kdc_realm = REALM
-        self.kdc_task = _get_kdc_task()
-        self.framework_id = self.kdc_task["framework_id"]
-        self.task_id = self.kdc_task["id"]
-        self.kdc_host_id = self.kdc_task["slave_id"]
-        self.kdc_host_name = _get_host_name(self.kdc_host_id)
-        self.master_public_ip = _get_master_public_ip()
+        # Application settings
+        self.app_id = KERBEROS_APP_ID
+        self.app_definition = self.load_kdc_app_definition()
+
+        # TODO: Ideally, we should not install this service in the constructor.
+        kdc_task_info = self.install()
+
+        # Running task information
+        self.framework_id = kdc_task_info["framework_id"]
+        self.task_id = kdc_task_info["id"]
+        self.kdc_host_id = kdc_task_info["slave_id"]
+
+        # Kerberos-specific information
         self.principals = []
         self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME
-        self.base64_encoded_keytab_file_name = BASE64_ENCODED_KEYTAB_FILE_NAME.format(keytab_name=self.keytab_file_name)
+        self.kdc_realm = REALM
 
-        # For secret creation/deletion
-        cmd = "package install --yes --cli dcos-enterprise-cli"
-        try:
-            sdk_cmd.run_cli(cmd)
-        except dcos.errors.DCOSException as e:
-            raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
+    def load_kdc_app_definition(self) -> dict:
+        kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
+            current_file_dir=os.path.dirname(os.path.realpath(__file__)))
+        with open(kdc_app_def_path) as fd:
+            kdc_app_def = json.load(fd)
+
+        kdc_app_def["id"] = self.app_id
+
+        return kdc_app_def
+
+    def install(self) -> dict:
+
+        @retrying.retry(wait_exponential_multiplier=1000,
+                        wait_exponential_max=120 * 1000,
+                        retry_on_result=lambda result: not result)
+        def _install_marathon_app(app_definition):
+            success, _ = sdk_marathon.install_app(app_definition)
+            return success
+
+        _install_marathon_app(self.app_definition)
+        log.info("KDC app installed successfully")
+
+        kdc_task_info = _get_kdc_task(self.app_definition["id"])
+
+        return kdc_task_info
 
     def __run_kadmin(self, options: list, cmd: str, args: list):
         """
@@ -215,11 +245,9 @@ class KerberosEnvironment:
             args=' '.join(args)
         )
         log.info("Running kadmin: {}".format(kadmin_cmd))
-        try:
-            sdk_tasks.task_exec(self.task_id, kadmin_cmd)
-        except Exception as e:
-            log.error("Failed to run kadmin: {}".format(repr(e)))
-            raise e
+        rc, stdout, stderr = sdk_tasks.task_exec(self.task_id, kadmin_cmd)
+        if rc != 0:
+            raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
 
     def add_principals(self, principals: list):
         """
@@ -259,29 +287,63 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
+
+    def create_remote_keytab(self, name: str, principals: list=[]) -> str:
+        """
+        Create a remote keytab for the specified list of principals
+        """
+        if not name:
+            name = "{}.keytab".format(str(uuid.uuid4()))
+
+        log.info("Creating keytab: %s", name)
+
+        if not principals:
+            log.info("Using predefined principals")
+            principals = self.principals
+
+        if not principals:
+            log.error("No principals specified not creating keytab")
+            return None
+
+        kadmin_options = ["-l"]
+        kadmin_cmd = "ext"
+        kadmin_args = ["-k", name]
+        kadmin_args.extend(principals)
+
+        self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
+
+        keytab_absolute_path = os.path.join("/var/lib/mesos/slave/slaves", self.kdc_host_id,
+                                            "frameworks", self.framework_id,
+                                            "executors", self.task_id,
+                                            "runs/latest", name)
+        return keytab_absolute_path
+
+    def get_keytab_for_principals(self, principals: list, output_filename: str):
+        """
+        Download a generated keytab for the specified list of principals
+        """
+        remote_keytab_path = self.create_remote_keytab(self.keytab_file_name, principals=principals)
+        _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, output_filename)
+
     def __create_and_fetch_keytab(self):
         """
         Creates the keytab file that holds the info about all the principals that have been
         added to the KDC. It also fetches it locally so that later the keytab can be uploaded to the secret store.
         """
-        log.info("Creating the keytab")
-        kadmin_options = ["-l"]
-        kadmin_cmd = "ext"
-        kadmin_args = ["-k", self.keytab_file_name] + self.principals
-        self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
+        local_keytab_filename = self.get_working_file_path(self.keytab_file_name)
+        self.get_keytab_for_principals(self.principals, local_keytab_filename)
 
-        _copy_file_to_localhost(self)
+        return local_keytab_filename
 
-    def __create_and_upload_secret(self):
+    def __create_and_upload_secret(self, keytab_path: str):
         """
         This method base64 encodes the keytab file and creates a secret with this encoded content so the
         tasks can fetch it.
         """
-        log.info("Creating and uploading the keytab file to the secret store")
+        log.info("Creating and uploading the keytab file %s to the secret store", keytab_path)
 
         try:
-            keytab_path = os.path.join(self.temp_working_dir.name, self.keytab_file_name)
-            base64_encoded_keytab_path = os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
+            base64_encoded_keytab_path = "{}.base64".format(keytab_path)
             with open(keytab_path, "rb") as f:
                 keytab = f.read()
 
@@ -289,22 +351,24 @@ class KerberosEnvironment:
             with open(base64_encoded_keytab_path, "w") as f:
                 f.write(base64_encoding)
 
-            log.info("Finished base64-encoding secret content.")
+            log.info("Finished base64-encoding secret content (%d bytes): %s", len(base64_encoding), base64_encoding)
 
         except Exception as e:
             raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
 
         self.keytab_secret_path = "{}_keytab".format(DCOS_BASE64_PREFIX)
 
-        # TODO: check if a keytab secret of same name already exists
+        sdk_security.install_enterprise_cli()
+        # try to delete any preexisting secret data:
+        sdk_security.delete_secret(self.keytab_secret_path)
+        # create new secret:
         create_secret_cmd = "security secrets create {keytab_secret_path} --value-file {encoded_keytab_path}".format(
             keytab_secret_path=self.keytab_secret_path,
-            encoded_keytab_path=os.path.join(self.temp_working_dir.name, self.base64_encoded_keytab_file_name)
-        )
-        try:
-            sdk_cmd.run_cli(create_secret_cmd)
-        except RuntimeError as e:
-            raise RuntimeError("Failed to create secret for the base64-encoded keytab file: {}".format(repr(e)))
+            encoded_keytab_path=base64_encoded_keytab_path)
+        log.info("Creating secret named %s from file %s: %s", self.keytab_secret_path, base64_encoded_keytab_path, create_secret_cmd)
+        rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
+        if rc != 0:
+            raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(rc, create_secret_cmd, stdout, stderr))
 
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
@@ -313,14 +377,23 @@ class KerberosEnvironment:
         Once the principals have been added, the rest of the environment setup does not ask for more info and can be
         automated, hence this method.
         """
-        self.__create_and_fetch_keytab()
-        self.__create_and_upload_secret()
+        local_keytab_path = self.__create_and_fetch_keytab()
+        self.__create_and_upload_secret(local_keytab_path)
+
+    def get_working_file_path(self, *args):
+        if not self._working_dir:
+            if not self._temp_working_dir:
+                self._temp_working_dir = _create_temp_working_dir()
+            self._working_dir = self._temp_working_dir.name
+
+        working_filepath = os.path.join(self._working_dir, *args)
+        return working_filepath
 
     def get_host(self):
-        return self.kdc_host
+        return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
     def get_port(self):
-        return str(self.kdc_port)
+        return str(self.app_definition["portDefinitions"][0]["port"])
 
     def get_keytab_path(self):
         return self.keytab_secret_path
@@ -329,15 +402,18 @@ class KerberosEnvironment:
         return self.kdc_realm
 
     def get_kdc_address(self):
-        return "{host}:{port}".format(host=self.kdc_host, port=self.kdc_port)
+        return ":".join([self.get_host(), self.get_port()])
 
     def cleanup(self):
+        sdk_security.install_enterprise_cli()
+
         log.info("Removing the marathon KDC app")
-        sdk_marathon.destroy_app(KERBEROS_APP_ID)
+        sdk_marathon.destroy_app(self.app_definition["id"])
 
-        log.info("Deleting temporary working directory")
-        self.temp_working_dir.cleanup()
+        if self._temp_working_dir and isinstance(self._temp_working_dir, tempfile.TemporaryDirectory):
+            log.info("Deleting temporary working directory")
+            self._temp_working_dir.cleanup()
 
-        #TODO: separate secrets handling into another module
+        # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
         sdk_security.delete_secret(self.keytab_secret_path)

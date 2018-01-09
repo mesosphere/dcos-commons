@@ -8,6 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 import logging
 
 import sdk_tasks
+import sdk_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -76,7 +77,7 @@ def resolve_hosts(task_id: str, hosts: list) -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
-    bootstrap_cmd = ['bootstrap',
+    bootstrap_cmd = ['./bootstrap',
                      '-print-env=false',
                      '-template=false',
                      '-install-certs=false',
@@ -98,3 +99,9 @@ def resolve_hosts(task_id: str, hosts: list) -> bool:
                 LOG.error("Could not resolve: %s", host)
 
     return resolved
+
+
+def get_foldered_dns_name(service_name):
+    if sdk_utils.dcos_version_less_than('1.10'):
+        return service_name
+    return sdk_utils.get_foldered_name(service_name).replace("/", "")

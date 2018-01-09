@@ -9,7 +9,7 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import java.util.*;
 
 /**
- * This class validates that the DETECT_ZONES envvar can only support the following transitions.
+ * This class validates that referencing Zones in placement constraints can only support the following transitions.
  *
  * 1. null  --> false
  * 2. true  --> true

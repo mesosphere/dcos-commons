@@ -22,7 +22,7 @@ def get_principals() -> list:
     """
     primaries = ["hdfs", "HTTP"]
     fqdn = "{service_name}.{host_suffix}".format(
-        service_name=config.SERVICE_NAME, host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+        service_name=config.FOLDERED_DNS_NAME, host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
     instances = [
         "name-0-node",
         "name-0-zkfc",
@@ -46,6 +46,9 @@ def get_principals() -> list:
             )
         )
     principals.extend(config.CLIENT_PRINCIPALS.values())
+
+    http_principal = "HTTP/api.{}.marathon.l4lb.thisdcos.directory".format(config.FOLDERED_DNS_NAME)
+    principals.append(http_principal)
     return principals
 
 
@@ -75,6 +78,7 @@ def kerberos(configure_security):
         kerberos_env.finalize()
         service_kerberos_options = {
             "service": {
+                "name": config.FOLDERED_SERVICE_NAME,
                 "security": {
                     "kerberos": {
                         "enabled": True,
@@ -95,7 +99,7 @@ def kerberos(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            config.FOLDERED_SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=service_kerberos_options,
             timeout_seconds=30*60)
@@ -103,7 +107,7 @@ def kerberos(configure_security):
         yield kerberos_env
 
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME)
         if kerberos_env:
             kerberos_env.cleanup()
 
@@ -113,7 +117,7 @@ def kerberos(configure_security):
 @sdk_utils.dcos_ee_only
 @pytest.mark.smoke
 def test_health_of_kerberized_hdfs():
-    config.check_healthy(service_name=config.SERVICE_NAME)
+    config.check_healthy(service_name=config.FOLDERED_SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -125,6 +129,7 @@ def kerberized_hdfs_client(kerberos):
         client_app_def["secrets"]["hdfs_keytab"]["source"] = kerberos.get_keytab_path()
         client_app_def["env"]["REALM"] = kerberos.get_realm()
         client_app_def["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
+        client_app_def["env"]["HDFS_SERVICE_NAME"] = config.FOLDERED_DNS_NAME
         sdk_marathon.install_app(client_app_def)
         yield client_app_def["id"]
 

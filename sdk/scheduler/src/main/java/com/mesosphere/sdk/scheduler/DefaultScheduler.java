@@ -45,7 +45,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private final Collection<Plan> plans;
     private final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
-    private final TaskKiller taskKiller;
     private final OfferAccepter offerAccepter;
 
     private final Collection<Object> resources;
@@ -53,6 +52,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private final PlansResource plansResource;
     private final PodResource podResource;
 
+    private TaskKiller taskKiller;
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
 
@@ -95,7 +95,6 @@ public class DefaultScheduler extends AbstractScheduler {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
-        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
         this.offerAccepter = new OfferAccepter(Arrays.asList(
                 new PersistentLaunchRecorder(stateStore, serviceSpec),
                 Metrics.OperationsCounter.getInstance()));
@@ -113,7 +112,10 @@ public class DefaultScheduler extends AbstractScheduler {
         this.resources.add(this.plansResource);
         this.healthResource = new HealthResource();
         this.resources.add(this.healthResource);
-        this.podResource = new PodResource(stateStore, serviceSpec.getName());
+        this.podResource = new PodResource(
+                stateStore,
+                serviceSpec.getName(),
+                new DefaultTaskFailureListener(stateStore, configStore));
         this.resources.add(this.podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
 
@@ -131,7 +133,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
 
-        taskKiller.setSchedulerDriver(driver);
+        this.taskKiller = new TaskKiller(driver);
 
         PlanManager deploymentPlanManager =
                 DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
@@ -179,7 +181,7 @@ public class DefaultScheduler extends AbstractScheduler {
             stateStore.storeTasks(Arrays.asList(taskInfo));
         }
 
-        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
+        taskIds.forEach(taskID -> taskKiller.killTask(taskID));
 
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
@@ -187,7 +189,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
                 // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
                 // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
-                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+                taskKiller.killTask(taskInfo.getTaskId());
             }
         }
     }

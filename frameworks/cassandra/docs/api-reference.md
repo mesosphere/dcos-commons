@@ -115,6 +115,20 @@ $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra
 
 If the operation succeeds a `200 OK` is returned.
 
+## Pause a Node
+
+The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.
+
+CLI example
+```
+dcos beta-cassandra debug pod pause <node-id>
+```
+
+HTTP Example
+```bash
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod/<node-id>/pause
+```
+
 # Configuration API
 
 The configuration API provides an endpoint to view current and previous configurations of the cluster.

@@ -549,7 +549,7 @@
     </property>
     <property>
         <name>hadoop.http.authentication.kerberos.principal</name>
-        <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/{{FRAMEWORK_NAME}}.marathon.autoip.dcos.thisdcos.directory@{{SECURITY_KERBEROS_REALM}}</value>
+        <value>{{SECURITY_KERBEROS_PRIMARY_HTTP}}/{{SCHEDULER_API_HOSTNAME}}@{{SECURITY_KERBEROS_REALM}}</value>
     </property>
     <property>
         <name>hadoop.http.authentication.kerberos.keytab</name>
