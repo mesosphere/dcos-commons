@@ -147,7 +147,6 @@ def test_cni_labels():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.nick
 @pytest.mark.dcos_min_version('1.9')
 def test_srv_records():
     def get_task_record(task_name, fmk_srv_records):

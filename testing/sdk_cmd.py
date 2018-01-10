@@ -55,7 +55,7 @@ def cluster_request(
     :param method: Method to use for the query, such as `GET`, `POST`, `DELETE`, or `PUT`.
     :param cluster_path: HTTP path to be queried on the cluster, e.g. `/marathon/v2/apps`. Leading slash is optional.
     :param retry: Whether to retry the request automatically if an HTTP error (>=400) is returned.
-    :param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >=400. 
+    :param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >=400.
                            Disabling this effectively implies `retry=False` where HTTP status is concerned.
     :param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
     :param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
@@ -174,6 +174,42 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
 
     # might not be able to connect to the agent on first try so we repeat until we can
     fn()
+
+
+@retrying.retry(stop_max_attempt_number=3,
+                wait_fixed=1000,
+                retry_on_result=lambda result: not result)
+def create_task_text_file(task_name: str, filename: str, lines: list) -> bool:
+    output_cmd = """bash -c \"cat >{output_file} << EOL
+{content}
+EOL\"""".format(output_file=filename, content="\n".join(lines))
+    log.info("Running: %s", output_cmd)
+    rc, stdout, stderr = task_exec(task_name, output_cmd)
+
+    if rc or stderr:
+        log.error("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        return False
+
+    linecount_cmd = "wc -l {output_file}".format(output_file=filename)
+    rc, stdout, stderr = task_exec(task_name, linecount_cmd)
+
+    if rc or stderr:
+        log.error("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        return False
+
+    written_lines = 0
+    try:
+        written_lines = int(stdout.split(" ")[0])
+    except Exception as e:
+        log.error(e)
+
+    expected_lines = len("\n".join(lines).split("\n"))
+    if written_lines != expected_lines:
+        log.error("Number of written lines do not match. stdout=%s expected=%s written=%s",
+                  stdout, expected_lines, written_lines)
+        return False
+
+    return True
 
 
 def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):

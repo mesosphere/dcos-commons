@@ -72,7 +72,7 @@ def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOU
         try:
             task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == task_name])
         except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids for service {}'.format(service_name))
+            log.info('Failed to get task ids for task {}'.format(task_name))
             task_ids = set([])
 
         return len(task_ids) > 0 and (old_task_id not in task_ids or len(task_ids) > 1)
