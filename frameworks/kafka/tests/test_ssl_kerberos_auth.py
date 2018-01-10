@@ -1,21 +1,41 @@
 import logging
-import pytest
 import uuid
+import pytest
 
 import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
+import sdk_security
 import sdk_utils
 
 from tests import auth
 from tests import config
-from tests import topics
 from tests import test_utils
 
 
 log = logging.getLogger(__name__)
+
+
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                reason='Feature only supported in DC/OS EE')
+
+
+@pytest.fixture(scope='module', autouse=True)
+def service_account(configure_security):
+    """
+    Creates service account and yields the name.
+    """
+    name = config.SERVICE_NAME
+    sdk_security.create_service_account(
+        service_account_name=name, service_account_secret=name)
+    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+    sdk_cmd.run_cli(
+        "security org groups add_user superusers {name}".format(name=name))
+    yield name
+    sdk_security.delete_service_account(
+        service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -65,18 +85,17 @@ def kerberos(configure_security, kafka_principals):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos):
+def kafka_server(kerberos, service_account):
     """
     A pytest fixture that installs a Kerberized kafka service.
 
     On teardown, the service is uninstalled.
     """
-
-    super_principal = "super"
-
     service_kerberos_options = {
         "service": {
             "name": config.SERVICE_NAME,
+            "service_account": service_account,
+            "service_account_secret": service_account,
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -86,9 +105,8 @@ def kafka_server(kerberos):
                     },
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
-                "authorization": {
-                    "enabled": True,
-                    "super_users": "User:{}".format(super_principal)
+                "transport_encryption": {
+                    "enabled": True
                 }
             }
         }
@@ -103,8 +121,7 @@ def kafka_server(kerberos):
             additional_options=service_kerberos_options,
             timeout_seconds=30 * 60)
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME,
-                                              "super_principal": super_principal}}
+        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -115,13 +132,14 @@ def kafka_client(kerberos, kafka_server):
     brokers = sdk_cmd.svc_cli(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
-        "endpoint broker", json=True)["dns"]
+        "endpoint broker-tls", json=True)["dns"]
 
     try:
         client_id = "kafka-client"
         client = {
             "id": client_id,
             "mem": 512,
+            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -155,6 +173,11 @@ def kafka_client(kerberos, kafka_server):
         }
 
         sdk_marathon.install_app(client)
+
+        auth.create_tls_artifacts(
+            cn="client",
+            task=client_id)
+
         yield {**client, **{"brokers": list(map(lambda x: x.split(':')[0], brokers))}}
 
     finally:
@@ -164,12 +187,12 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(kafka_client, kafka_server):
+def test_client_can_read_and_write(kafka_client, kafka_server):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
 
-    topic_name = "authz.test"
+    topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
                     "topic create {}".format(topic_name),
                     json=True)
@@ -178,61 +201,28 @@ def test_authz_acls_required(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("authorized", client_id, topic_name, message)
+    assert write_to_topic("client", client_id, topic_name, message)
 
-    log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, message)
+    assert message in read_from_topic("client", client_id, topic_name, 1)
 
-    log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1))
 
-    log.info("Writing and reading: Reading from the topic, as super user")
-    assert message in read_from_topic("super", client_id, topic_name, 1)
+def get_client_properties(cn: str) -> str:
+    client_properties_lines = []
+    client_properties_lines.extend(auth.get_kerberos_client_properties(ssl_enabled=True))
+    client_properties_lines.extend(auth.get_ssl_client_properties(cn, True))
 
-    zookeeper_endpoint = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint zookeeper").strip()
-
-    # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
-    topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
-
-    # Send a second message which should not be authorized
-    second_message = str(uuid.uuid4())
-    log.info("Writing and reading: Writing to the topic, but not super user")
-    assert write_to_topic("authorized", client_id, topic_name, second_message)
-
-    log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, second_message)
-
-    log.info("Writing and reading: Reading from the topic, but not super user")
-    topic_output = read_from_topic("authorized", client_id, topic_name, 3)
-    assert message in topic_output
-    assert second_message in topic_output
-
-    log.info("Writing and reading: Reading from the topic, as super user")
-    topic_output = read_from_topic("super", client_id, topic_name, 3)
-    assert message in topic_output
-    assert second_message in topic_output
-
-    # Check that the unauthorized client can still not read or write from the topic.
-    log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("unauthorized", client_id, topic_name, second_message)
-
-    log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1))
+    return client_properties_lines
 
 
 def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
-                               auth.get_kerberos_client_properties(ssl_enabled=False),
-                               auth.setup_env(cn, task))
+                               get_client_properties(cn),
+                               environment=auth.setup_env(cn, task))
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
+def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
 
     return auth.read_from_topic(cn, task, topic, messages,
-                                auth.get_kerberos_client_properties(ssl_enabled=False),
-                                auth.setup_env(cn, task))
+                                get_client_properties(cn),
+                                environment=auth.setup_env(cn, task))

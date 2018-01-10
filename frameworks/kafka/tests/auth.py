@@ -1,8 +1,9 @@
+import json
 import logging
 import retrying
-import uuid
 
 import sdk_tasks
+import sdk_cmd
 
 LOG = logging.getLogger(__name__)
 
@@ -26,17 +27,37 @@ def is_not_authorized(output: str) -> bool:
     return "AuthorizationException: Not authorized to access" in output
 
 
-def write_client_properties(primary: str, task: str) -> str:
-    output_file = "{primary}-client.properties".format(primary=primary)
-    LOG.info("Generating %s", output_file)
+def get_kerberos_client_properties(ssl_enabled: bool) -> list:
 
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-security.protocol=SASL_PLAINTEXT
-sasl.mechanism=GSSAPI
-sasl.kerberos.service.name=kafka
-EOL\"""".format(output_file=output_file, primary=primary)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    protocol = "SASL_SSL" if ssl_enabled else "SASL_PLAINTEXT"
+
+    return ['security.protocol={protocol}'.format(protocol=protocol),
+            'sasl.mechanism=GSSAPI',
+            'sasl.kerberos.service.name=kafka', ]
+
+
+def get_ssl_client_properties(cn: str, has_kerberos: bool) -> list:
+
+    if has_kerberos:
+        client_properties = []
+    else:
+        client_properties = ["security.protocol=SSL", ]
+
+    client_properties.extend(["ssl.truststore.location = {cn}_truststore.jks".format(cn=cn),
+                              "ssl.truststore.password = changeit",
+                              "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
+                              "ssl.keystore.password = changeit", ])
+
+    return client_properties
+
+
+def write_client_properties(id: str, task: str, lines: list) -> str:
+    """Write a client properties file containing the specified lines"""
+
+    output_file = "{id}-client.properties".format(id=id)
+
+    LOG.info("Generating %s", output_file)
+    output = sdk_tasks.create_text_file(task, output_file, lines)
     LOG.info(output)
 
     return output_file
@@ -48,20 +69,18 @@ def write_jaas_config_file(primary: str, task: str) -> str:
     LOG.info("Generating %s", output_file)
 
     # TODO: use kafka_client keytab path
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-KafkaClient {{
-    com.sun.security.auth.module.Krb5LoginModule required
-    doNotPrompt=true
-    useTicketCache=true
-    principal=\\"{primary}@LOCAL\\"
-    useKeyTab=true
-    serviceName=\\"kafka\\"
-    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"
-client=true;
-}};
-EOL\"""".format(output_file=output_file, primary=primary)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    jaas_file_contents = ['KafkaClient {',
+                          '    com.sun.security.auth.module.Krb5LoginModule required',
+                          '    doNotPrompt=true',
+                          '    useTicketCache=true',
+                          '    principal=\\"{primary}@LOCAL\\"'.format(primary=primary),
+                          '    useKeyTab=true',
+                          '    serviceName=\\"kafka\\"',
+                          '    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"',
+                          '    client=true;',
+                          '};', ]
+
+    output = sdk_tasks.create_text_file(task, output_file, jaas_file_contents)
     LOG.info(output)
 
     return output_file
@@ -73,17 +92,14 @@ def write_krb5_config_file(task: str) -> str:
     LOG.info("Generating %s", output_file)
 
     # TODO: Set realm and kdc properties
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-[libdefaults]
-default_realm = LOCAL
-
-[realms]
-  LOCAL = {{
-    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500
-  }}
-EOL\"""".format(output_file=output_file)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    krb5_file_contents = ['[libdefaults]',
+                          'default_realm = LOCAL',
+                          '',
+                          '[realms]',
+                          '  LOCAL = {',
+                          '    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500',
+                          '  }', ]
+    output = sdk_tasks.create_text_file(task, output_file, krb5_file_contents)
     LOG.info(output)
 
     return output_file
@@ -98,20 +114,25 @@ def setup_env(primary: str, task: str) -> str:
     return env_setup_string
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) -> str:
-    if not cmd:
-        env_str = setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
+def get_bash_command(cmd: str, environment: str) -> str:
+    env_str = "{} && ".format(environment) if environment else ""
 
-        write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
-            --topic {} \
-            --producer.config {} \
-            --broker-list \$KAFKA_BROKER_LIST\"".format(env_str,
-                                                        message,
-                                                        topic,
-                                                        client_properties)
-    else:
-        write_cmd = cmd
+    return "bash -c \"{}{}\"".format(env_str, cmd)
+
+
+def write_to_topic(cn: str, task: str, topic: str, message: str,
+                   client_properties: list=[], environment: str=None) -> bool:
+
+    client_properties_file = write_client_properties(cn, task, client_properties)
+
+    cmd = "echo {message} | kafka-console-producer \
+            --topic {topic} \
+            --producer.config {client_properties_file} \
+            --broker-list \$KAFKA_BROKER_LIST".format(message=message,
+                                                      topic=topic,
+                                                      client_properties_file=client_properties_file)
+
+    write_cmd = get_bash_command(cmd, environment)
 
     def write_failed(output) -> bool:
         LOG.info("Checking write output: %s", output)
@@ -151,20 +172,22 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
     return rc_success and stdout_success and stderr_success
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
-    if not cmd:
-        env_str = setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
-        timeout_ms = 60000
-        read_cmd = "bash -c \"{} && kafka-console-consumer \
-            --topic {} \
-            --consumer.config {} \
+def read_from_topic(cn: str, task: str, topic: str, messages: int,
+                    client_properties: list=[], environment: str=None) -> str:
+
+    client_properties_file = write_client_properties(cn, task, client_properties)
+
+    cmd = "kafka-console-consumer \
+            --topic {topic} \
+            --consumer.config {client_properties_file} \
             --bootstrap-server \$KAFKA_BROKER_LIST \
-            --from-beginning --max-messages {} \
-            --timeout-ms {} \
-            \"".format(env_str, topic, client_properties, messages, timeout_ms)
-    else:
-        read_cmd = cmd
+            --from-beginning --max-messages {messages} \
+            --timeout-ms {timeout_ms}".format(topic=topic,
+                                              client_properties_file=client_properties_file,
+                                              messages=messages,
+                                              timeout_ms=60000)
+
+    read_cmd = get_bash_command(cmd, environment)
 
     def read_failed(output) -> bool:
         LOG.info("Checking read output: %s", output)
@@ -195,3 +218,79 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None
 
     assert output[0] is 0
     return " ".join(str(o) for o in output)
+
+
+log = LOG
+
+
+def create_tls_artifacts(cn: str, task: str) -> str:
+    pub_path = "{}_pub.crt".format(cn)
+    priv_path = "{}_priv.key".format(cn)
+    log.info("Generating certificate. cn={}, task={}".format(cn, task))
+
+    output = sdk_tasks.task_exec(task,
+                                 'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr '
+                                 '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
+    log.info(output)
+    assert output[0] is 0
+
+    rc, raw_csr, _ = sdk_tasks.task_exec(task, 'cat request.csr')
+    assert rc is 0
+    request = {
+        "certificate_request": raw_csr
+    }
+
+    token = sdk_cmd.run_cli("config show core.dcos_acs_token")
+
+    output = sdk_tasks.task_exec(task,
+                                 "curl -L -X POST "
+                                 "-H 'Authorization: token={}' "
+                                 "leader.mesos/ca/api/v2/sign "
+                                 "-d '{}'".format(token, json.dumps(request)))
+    log.info(output)
+    assert output[0] is 0
+
+    # Write the public cert to the client
+    certificate = json.loads(output[1])["result"]["certificate"]
+    output = sdk_tasks.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    log.info(output)
+    assert output[0] is 0
+
+    create_keystore_truststore(cn, task)
+    return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
+
+
+def create_keystore_truststore(cn: str, task: str):
+    pub_path = "{}_pub.crt".format(cn)
+    priv_path = "{}_priv.key".format(cn)
+    keystore_path = "{}_keystore.jks".format(cn)
+    truststore_path = "{}_truststore.jks".format(cn)
+
+    log.info("Generating keystore and truststore, task:{}".format(task))
+    output = sdk_tasks.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
+
+    # Convert to a PKCS12 key
+    output = sdk_tasks.task_exec(task,
+                                 'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && '
+                                 'openssl pkcs12 -export -in {} -inkey {} '
+                                 '-out keypair.p12 -name keypair -passout pass:export '
+                                 '-CAfile dcos-ca.crt -caname root"'.format(pub_path, priv_path))
+    log.info(output)
+    assert output[0] is 0
+
+    log.info("Generating certificate: importing into keystore and truststore")
+    # Import into the keystore and truststore
+    output = sdk_tasks.task_exec(task,
+                                 "keytool -importkeystore "
+                                 "-deststorepass changeit -destkeypass changeit -destkeystore {} "
+                                 "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
+                                 "-alias keypair".format(keystore_path))
+    log.info(output)
+    assert output[0] is 0
+
+    output = sdk_tasks.task_exec(task,
+                                 "keytool -import -trustcacerts -noprompt "
+                                 "-file dcos-ca.crt -storepass changeit "
+                                 "-keystore {}".format(truststore_path))
+    log.info(output)
+    assert output[0] is 0
