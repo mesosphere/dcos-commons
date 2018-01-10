@@ -92,6 +92,8 @@ $ dcos package install --options=sample-kafka-custom.json beta-kafka
 
 See [Configuration Options][6] for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.
 
+Alternatively, you can perform a custom installation from the DC/OS web interface. Choose `ADVANCED INSTALLATION` at install time.
+
 # Multiple Kafka cluster installation
 
 Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` be specified for each installation. For example:
@@ -141,30 +143,28 @@ Steps:
 
 <!-- END DUPLICATE BLOCK -->
 
-# Zones
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+## Placement Constraints
 
-Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `[["@zone", "GROUP_BY", "3"]]`.
+Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html). For example, `[["hostname", "UNIQUE"]]` ensures that at most one pod instance is deployed per agent.
 
-<!--
+A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:
+```
+[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
+```
+
+You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
+
+### Regions and Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
+```
+[["@zone", "GROUP_BY", "3"]]
+```
+
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
--->
-## Example
 
-Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
-
-## Balanced Placement for a Single Region
-
-```
-{
-  ...
-  "count": 6,
-  "constraints": [
-    ["@zone", "GROUP_BY", "3"]
-  ]
-}
-```
-
-- Instances will all be evenly divided between zones `a`,`b`,`c`.
+<!-- end duplicate block -->
 
 # Alternate ZooKeeper
 

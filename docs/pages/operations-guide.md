@@ -304,6 +304,8 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 | Secret                               | Service ID                          | Can service access secret? |
 |--------------------------------------|-------------------------------------|----------------------------|
+| `Secret_Path1`		       | `/user`         		     | Yes   			  |
+| `Secret_Path1`		       | `/dev1/user`         		     | Yes   			  |
 | `secret-svc/Secret_Path1`            | `/user`                             | No                         |
 | `secret-svc/Secret_Path1`            | `/user/dev1`                        | No                         |
 | `secret-svc/Secret_Path1`            | `/secret-svc`                       | Yes                        |

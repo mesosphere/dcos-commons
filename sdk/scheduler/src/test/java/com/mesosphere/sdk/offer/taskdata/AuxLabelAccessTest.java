@@ -12,8 +12,8 @@ import org.apache.mesos.Protos.Label;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.mesosphere.sdk.api.EndpointUtils;
-import com.mesosphere.sdk.api.EndpointUtils.VipInfo;
+import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
