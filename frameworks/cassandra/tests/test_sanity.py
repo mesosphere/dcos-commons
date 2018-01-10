@@ -45,6 +45,7 @@ def test_service_health():
 
 
 @pytest.mark.sanity
+@pytest.mark.ben
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(config.get_foldered_service_name())))
