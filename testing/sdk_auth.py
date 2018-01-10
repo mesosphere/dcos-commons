@@ -109,7 +109,7 @@ def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_file
     log.info("Downloading keytab to %s", output_filename)
 
     keytab_response = sdk_cmd.cluster_request(
-        'GET', "/slave/{}/files/download".format(host_id), params={"path", keytab_absolute_path})
+        'GET', "/slave/{}/files/download".format(host_id), params={"path": keytab_absolute_path})
     with open(output_filename, 'wb') as fd:
         for chunk in keytab_response.iter_content(chunk_size=128):
             fd.write(chunk)
