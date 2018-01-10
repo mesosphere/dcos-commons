@@ -15,8 +15,7 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-# starting with one fewer data nodes than the default, see below
-current_expected_task_count = config.DEFAULT_TASK_COUNT - 1
+current_expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -32,10 +31,7 @@ def configure_package(configure_security):
             foldered_name,
             current_expected_task_count,
             additional_options={
-                "service": {"name": foldered_name},
-                # default is 2 data nodes.
-                # we start with the minimum of 1 because we need enough room to add two more in tests.
-                "data_nodes": {"count": 1} })
+                "service": {"name": foldered_name} })
 
         yield  # let the test session execute
     finally:
@@ -316,11 +312,11 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_bump_all_node_counts():
+def test_bump_node_counts():
+    # bump ingest and coordinator, but NOT data, which is bumped in the following test.
+    # we want to avoid adding two data nodes because the cluster sometimes won't have enough room for it
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     marathon_config = sdk_marathon.get_config(foldered_name)
-    data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
-    marathon_config['env']['DATA_NODE_COUNT'] = str(data_nodes + 1)
     ingest_nodes = int(marathon_config['env']['INGEST_NODE_COUNT'])
     marathon_config['env']['INGEST_NODE_COUNT'] = str(ingest_nodes + 1)
     coordinator_nodes = int(marathon_config['env']['COORDINATOR_NODE_COUNT'])
@@ -328,7 +324,7 @@ def test_bump_all_node_counts():
     sdk_marathon.update_app(foldered_name, marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
-    current_expected_task_count += 3
+    current_expected_task_count += 2
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
 
 
