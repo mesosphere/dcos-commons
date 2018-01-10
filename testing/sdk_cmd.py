@@ -35,7 +35,7 @@ def service_request(
     """
     # Sanitize leading slash on service_path before calling urljoin() to avoid this:
     # 'http://example.com/service/myservice/' + '/v1/rpc' = 'http://example.com/v1/rpc'
-    cluster_path = urllib.parse.urljoin(shakedown.dcos_service_url(service_name), service_path.lstrip('/'))
+    cluster_path = urllib.parse.urljoin('/service/{}/'.format(service_name), service_path.lstrip('/'))
     return cluster_request(method, cluster_path, retry, raise_on_error, log_args, verify, **kwargs)
 
 
