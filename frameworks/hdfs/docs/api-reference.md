@@ -1,7 +1,10 @@
 ---
-post_title: API Reference
-menu_order: 70
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: API Reference
+menuWeight: 70
+
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
