@@ -1,7 +1,10 @@
 ---
-post_title: Kerberos
-menu_order: 22
-enterprise: 'yes'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Kerberos
+menuWeight: 22
+
 ---
 
 # Setting up Apache Kafka with Kerberos
