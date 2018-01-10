@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
