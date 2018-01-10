@@ -134,9 +134,7 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 {
   ...
   "count": 6,
-  "constraints": [
-    ["@zone", "GROUP_BY", "3"]
-  ]
+  "constraints": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
 }
 ```
 
