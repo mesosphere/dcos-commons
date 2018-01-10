@@ -60,7 +60,7 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 ```
 {
   ...
-  "instances": 6,
+  "count": 6,
   "constraints": [
     ["@zone", "GROUP_BY", "3"]
   ]
