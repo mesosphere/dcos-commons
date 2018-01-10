@@ -1,8 +1,9 @@
 ---
-post_title: Managing
-menu_order: 60
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pugnnavigationTitle: 
+title: Managing
+menuWeight: 60
+excerpt:
+enterprise: false
 ---
 
 # Updating Configuration
