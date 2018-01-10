@@ -29,7 +29,6 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.config_update
-@pytest.mark.ben
 def test_bump_hello_cpus():
     def close_enough(val0, val1):
         epsilon = 0.00001

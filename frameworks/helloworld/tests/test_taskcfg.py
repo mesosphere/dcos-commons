@@ -15,7 +15,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME)
         options = sdk_install.get_package_options({ "service": { "spec_file": "examples/taskcfg.yml" } })
         # don't wait for install to complete successfully:
-        shakedown.install_package(config.PACKAGE_NAME, options_json=options)
+        sdk_install.install(config.PACKAGE_NAME, additional_options=options)
 
         yield # let the test session execute
     finally:
@@ -23,6 +23,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
+@pytest.mark.ben
 def test_deploy():
     wait_time = 30
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
