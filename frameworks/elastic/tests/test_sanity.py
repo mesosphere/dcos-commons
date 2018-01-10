@@ -15,7 +15,8 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-current_expected_task_count = config.DEFAULT_TASK_COUNT
+# starting with one fewer data nodes than the default, see below
+current_expected_task_count = config.DEFAULT_TASK_COUNT - 1
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -31,7 +32,10 @@ def configure_package(configure_security):
             foldered_name,
             current_expected_task_count,
             additional_options={
-                "service": {"name": foldered_name} })
+                "service": {"name": foldered_name},
+                # default is 2 data nodes.
+                # we start with the minimum of 1 because we need enough room to add two more in tests.
+                "data_nodes": {"count": 1} })
 
         yield  # let the test session execute
     finally:
@@ -312,7 +316,7 @@ def test_unchanged_scheduler_restarts_without_restarting_tasks():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_bump_node_counts():
+def test_bump_all_node_counts():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     marathon_config = sdk_marathon.get_config(foldered_name)
     data_nodes = int(marathon_config['env']['DATA_NODE_COUNT'])
@@ -330,7 +334,7 @@ def test_bump_node_counts():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_adding_data_nodes_only_restarts_masters():
+def test_adding_data_node_only_restarts_masters():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
     initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")

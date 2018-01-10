@@ -134,19 +134,22 @@ def pytest_runtest_makereport(item, call):
         log.info('Test {} failed in {} phase.'.format(item.name, rep.when))
 
         try:
-            log.info('Dumping logs for {} tasks launched in this suite since last failure: {}'.format(
+            log.info('Fetching logs for {} tasks launched in this suite since last failure: {}'.format(
                 len(new_task_ids), new_task_ids))
             dump_task_logs(item, new_task_ids)
         except Exception:
             log.exception('Task log collection failed!')
         try:
+            log.info('Fetching mesos state')
             dump_mesos_state(item)
         except Exception:
             log.exception('Mesos state collection failed!')
         try:
+            log.info('Creating/fetching cluster diagnostics bundle')
             get_diagnostics_bundle(item)
         except Exception:
             log.exception("Diagnostics bundle creation failed")
+        log.info('Post-failure collection complete')
 
 
 def pytest_runtest_teardown(item):

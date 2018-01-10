@@ -4,7 +4,6 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
-import functools
 import json
 import logging
 import re
@@ -12,7 +11,6 @@ import retrying
 import shakedown
 import tempfile
 
-import sdk_api
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -47,9 +45,11 @@ def test_upgrade(
 
     universe_version = ""
     try:
-        # Move the Universe repo to the top of the repo list
+        # Move the Universe repo to the top of the repo list so that we can first install the release version.
         shakedown.remove_package_repo('Universe')
-        _add_repo('Universe', universe_url, test_version, 0, package_name)
+        assert shakedown.add_package_repo('Universe', universe_url, 0)
+        # Wait for package version to not be test_version
+        _wait_for_new_default_version(package_name, test_version)
 
         universe_version = _get_pkg_version(package_name)
 
@@ -63,9 +63,11 @@ def test_upgrade(
             wait_for_deployment=wait_for_deployment)
     finally:
         if universe_version:
-            # Return the Universe repo back to the bottom of the repo list
+            # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
             shakedown.remove_package_repo('Universe')
-            _add_last_repo('Universe', universe_url, universe_version, package_name)
+            assert shakedown.add_package_repo('Universe', universe_url)
+            # Wait for package version to not be universe_version
+            _wait_for_new_default_version(package_name, universe_version)
 
     log.info('Upgrading {}: {} => {}'.format(package_name, universe_version, test_version))
     _upgrade_or_downgrade(
@@ -93,7 +95,7 @@ def soak_upgrade_downgrade(
         wait_for_deployment=True):
     sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
     version = 'stub-universe'
-    print('Upgrading to test version: {} {}'.format(package_name, version))
+    log.info('Upgrading to test version: {} {}'.format(package_name, version))
     _upgrade_or_downgrade(
         package_name,
         version,
@@ -105,7 +107,7 @@ def soak_upgrade_downgrade(
 
     # Default Universe is at --index=0
     version = _get_pkg_version(package_name)
-    print('Downgrading to Universe version: {} {}'.format(package_name, version))
+    log.info('Downgrading to Universe version: {} {}'.format(package_name, version))
     _upgrade_or_downgrade(
         package_name,
         version,
@@ -126,16 +128,17 @@ def _get_universe_url():
 
 
 
-@retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=30000,
+@retrying.retry(stop_max_attempt_number=15,
+                wait_fixed=10000,
                 retry_on_result=lambda result: result is None)
 def get_config(package_name, service_name):
     """Return the active config for the current service.
-    This is retried 5 times, waiting 30s between retries."""
+    This is retried 15 times, waiting 10s between retries."""
 
     try:
-        target_config = sdk_cmd.svc_cli(package_name, service_name,
-                                        'config target', json=True)
+        # Refrain from dumping the full ServiceSpec to stdout
+        target_config = sdk_cmd.svc_cli(
+            package_name, service_name, 'config target', json=True, print_output=False)
     except Exception as e:
         log.error("Could not determine target config: %s", str(e))
         return None
@@ -201,50 +204,18 @@ def _upgrade_or_downgrade(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
-# Retry the decorated function several times in the event of exception_class. Raise the exception
-# normally if the number of retries is exceeded.
-def _retry(retries=3, exception_class=Exception):
-    def decorator(fn):
-        @functools.wraps(fn)
-        def wrapper(*args, **kwargs):
-            exception = None
-            for i in range(retries):
-                try:
-                    result = fn(*args, **kwargs)
-                except exception_class as e:
-                    exception = e
-                    continue
 
-                return result
-
-            raise exception
-        return wrapper
-
-    return decorator
-
-@_retry(exception_class=AttributeError)
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=1000,
+                retry_on_result=lambda result: result is None)
 def _get_pkg_version(package_name):
-    return re.search(
+    result = re.search(
         r'"version": "(\S+)"',
-        sdk_cmd.run_cli('package describe {}'.format(package_name), print_output=False)).group(1)
-
-# Default repo is the one at index=0.
-def _add_repo(repo_name, repo_url, prev_version, index, default_repo_package_name):
-    assert shakedown.add_package_repo(
-        repo_name,
-        repo_url,
-        index)
-    # Make sure the new default repo packages are available
-    _wait_for_new_default_version(prev_version, default_repo_package_name)
+        sdk_cmd.run_cli('package describe {}'.format(package_name), print_output=False))
+    return None if result is None else result.group(1)
 
 
-def _add_last_repo(repo_name, repo_url, prev_version, default_repo_package_name):
-    assert shakedown.add_package_repo(
-        repo_name,
-        repo_url)
-    # Make sure the new default repo packages are available
-    _wait_for_new_default_version(prev_version, default_repo_package_name)
-
-
-def _wait_for_new_default_version(prev_version, default_repo_package_name):
-    shakedown.wait_for(lambda: _get_pkg_version(default_repo_package_name) != prev_version, noisy=True)
+def _wait_for_new_default_version(package_name, prev_version):
+    log.info('Waiting for repo change to take effect: {} default version != {}'.format(
+        package_name, prev_version))
+    shakedown.wait_for(lambda: _get_pkg_version(package_name) != prev_version, noisy=True)
