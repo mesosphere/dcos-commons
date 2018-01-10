@@ -56,6 +56,7 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
           mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
           {{#SECURITY_KERBEROS_ENABLED}}
+          base64 -i hdfs.keytab
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
@@ -178,6 +179,7 @@ pods:
           cmd: >
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
             {{#SECURITY_KERBEROS_ENABLED}}
+            base64 -i hdfs.keytab
             export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
             KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM &&
             {{/SECURITY_KERBEROS_ENABLED}}
@@ -291,6 +293,7 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
           mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
           {{#SECURITY_KERBEROS_ENABLED}}
+          base64 -i hdfs.keytab
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST &&
@@ -376,6 +379,7 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
           mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
           {{#SECURITY_KERBEROS_ENABLED}}
+          base64 -i hdfs.keytab
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
