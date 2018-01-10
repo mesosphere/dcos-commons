@@ -22,14 +22,15 @@ _libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos
 
 _docs_root = "https://docs.mesosphere.com"
 
-_command_json_filename = 'command.json'
 _config_json_filename = 'config.json'
 _marathon_json_filename = 'marathon.json.mustache'
 _package_json_filename = 'package.json'
 _resource_json_filename = 'resource.json'
 _expected_package_filenames = [
-    _command_json_filename, _config_json_filename, _marathon_json_filename,
-    _package_json_filename, _resource_json_filename
+    _config_json_filename,
+    _marathon_json_filename,
+    _package_json_filename,
+    _resource_json_filename
 ]
 
 
