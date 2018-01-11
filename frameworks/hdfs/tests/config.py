@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import retrying
 import shakedown
@@ -9,6 +10,8 @@ import sdk_hosts
 import sdk_plan
 import sdk_tasks
 import sdk_utils
+
+log = logging.getLogger(__name__)
 
 PACKAGE_NAME = 'beta-hdfs'
 SERVICE_NAME = 'hdfs'
@@ -97,7 +100,7 @@ def get_active_name_node(service_name):
 @retrying.retry(
     wait_fixed=1000,
     stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
-    retry_on_result=lambda res: not res[0])
+    retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
     rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
     if not rc:
@@ -122,6 +125,7 @@ def run_hdfs_command(service_name, command):
         retry_on_result=lambda res: not res[0])
     def fn():
         rc, output = shakedown.run_command_on_master(full_command)
+        log.info('Command output ({} bytes, success={}):\n{}'.format(len(output), rc, output))
         return rc, output
     return fn()
 
