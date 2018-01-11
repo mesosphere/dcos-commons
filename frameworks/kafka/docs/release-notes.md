@@ -7,6 +7,17 @@ menuWeight: 120
 
 ---
 
+## Version 2.1.1-1.0.0-beta
+
+## NOTICE
+
+This is a beta release of the DC/OS Apache Kafka framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Bug Fixes
+- Scheduler health check now passes during service uninstall.
+- Fixed a regression in replacing failed pods on failed agents.
+- Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.
+
 ## Version 3.0.0-1.0.0-beta
 
 ## NOTICE
