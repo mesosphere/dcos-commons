@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.api.*;
-import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.http.*;
+import com.mesosphere.sdk.http.types.EndpointProducer;
+import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;

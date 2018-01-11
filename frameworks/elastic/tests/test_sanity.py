@@ -195,7 +195,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
     log.info("\n***** Set/verify X-Pack enabled in elasticsearch. Requires parallel upgrade strategy for full restart.")
-    config.enable_xpack(service_name=foldered_name)
+    config.set_xpack(True, service_name=foldered_name)
     config.verify_commercial_api_status(True, service_name=foldered_name)
     config.verify_xpack_license(service_name=foldered_name)
 
@@ -226,7 +226,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
     log.info("\n***** Disable X-Pack in elasticsearch.")
-    config.disable_xpack(service_name=foldered_name)
+    config.set_xpack(False, service_name=foldered_name)
     log.info("\n***** Verify we can still read what we wrote when X-Pack was enabled.")
     config.verify_commercial_api_status(False, service_name=foldered_name)
     doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 2, service_name=foldered_name)

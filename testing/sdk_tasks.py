@@ -184,3 +184,39 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
         return rc, stdout + "\n" + stderr
 
     return rc, stdout, stderr
+
+
+@retrying.retry(stop_max_attempt_number=3,
+                wait_fixed=1000,
+                retry_on_result=lambda result: not result)
+def create_text_file(task_name: str, filename: str, lines: list) -> bool:
+    output_cmd = """bash -c \"cat >{output_file} << EOL
+{content}
+EOL\"""".format(output_file=filename, content="\n".join(lines))
+    log.info("Running: %s", output_cmd)
+    rc, stdout, stderr = task_exec(task_name, output_cmd)
+
+    if rc or stderr:
+        log.error("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        return False
+
+    linecount_cmd = "wc -l {output_file}".format(output_file=filename)
+    rc, stdout, stderr = task_exec(task_name, linecount_cmd)
+
+    if rc or stderr:
+        log.error("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        return False
+
+    written_lines = 0
+    try:
+        written_lines = int(stdout.split(" ")[0])
+    except Exception as e:
+        log.error(e)
+
+    expected_lines = len("\n".join(lines).split("\n"))
+    if written_lines != expected_lines:
+        log.error("Number of written lines do not match. stdout=%s expected=%s written=%s",
+                  stdout, expected_lines, written_lines)
+        return False
+
+    return True
