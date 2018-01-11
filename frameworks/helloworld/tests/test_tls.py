@@ -300,7 +300,7 @@ def _export_cert_from_task_keystore(
 
     args_str = ' '.join(args)
 
-    _, cert_bytes, _ = sdk_cmd.task_exec(
+    cert_bytes = sdk_cmd.task_exec(
         task, _keystore_export_command(keystore_path, alias, args_str))[1].encode('ascii')
 
     return x509.load_pem_x509_certificate(

@@ -23,8 +23,6 @@ DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc n
 TEST_CONTENT_SMALL = "This is some test data"
 # use long-read alignments to human chromosome 1 as large file input (11GB)
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
