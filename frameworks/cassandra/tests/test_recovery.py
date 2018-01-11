@@ -1,16 +1,12 @@
 import logging
 import retrying
-import tempfile
-import time
 
 import pytest
-import sdk_cmd as cmd
+import sdk_cmd
 import sdk_install
-import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -36,7 +32,7 @@ def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
 
     # start replace and wait for it to finish
-    cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
@@ -57,7 +53,7 @@ def test_node_replace_replaces_node():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     # start replace and wait for it to finish
-    cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
@@ -69,6 +65,7 @@ def test_shutdown_host():
     scheduler_ip = shakedown.get_service_ips('marathon', config.SERVICE_NAME).pop()
     log.info('marathon ip = {}'.format(scheduler_ip))
 
+    # avoid also killing the system that the scheduler is on.
     node_ip = None
     pod_name = None
     for pod_id in range(0, config.DEFAULT_TASK_COUNT):
@@ -83,27 +80,10 @@ def test_shutdown_host():
     old_agent = get_pod_agent(pod_name)
     log.info('pod name = {}, node_ip = {}, agent = {}'.format(pod_name, node_ip, old_agent))
 
-    task_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
-
     # instead of partitioning or reconnecting, we shut down the host permanently
-    status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown -h +1')
-    log.info('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
+    sdk_cmd.shutdown_agent(node_ip)
 
-    assert status is True
-
-    log.info('Waiting for the agent to become unresponsive')
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=300*1000, # 5 minutes
-        retry_on_result=lambda res: res)
-    def wait_for_unresponsive_agent():
-        status, stdout = shakedown.run_command_on_agent(node_ip, 'ls')
-        log.info('ls: stdout: {}'.format(stdout))
-        return status
-
-    wait_for_unresponsive_agent()
-
-    cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_name))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
@@ -117,12 +97,12 @@ def test_shutdown_host():
 
 
 def get_pod_agent(pod_name):
-    stdout = cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
     return stdout[0]['info']['slaveId']['value']
 
 
 def get_pod_host(pod_name):
-    stdout = cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
     labels = stdout[0]['info']['labels']['labels']
     for i in range(0, len(labels)):
         if labels[i]['key'] == 'offer_hostname':

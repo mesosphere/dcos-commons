@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import retrying
 import shakedown
@@ -10,6 +11,8 @@ import sdk_plan
 import sdk_tasks
 import sdk_utils
 
+log = logging.getLogger(__name__)
+
 PACKAGE_NAME = 'beta-hdfs'
 SERVICE_NAME = 'hdfs'
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
@@ -20,8 +23,6 @@ DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc n
 TEST_CONTENT_SMALL = "This is some test data"
 # use long-read alignments to human chromosome 1 as large file input (11GB)
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
@@ -116,8 +117,15 @@ def run_hdfs_command(service_name, command):
         cmd=command
     )
 
-    rc, output = shakedown.run_command_on_master(full_command)
-    return rc, output
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+        retry_on_result=lambda res: not res[0])
+    def fn():
+        rc, output = shakedown.run_command_on_master(full_command)
+        log.info('Command output ({} bytes, success={}):\n{}'.format(len(output), rc, output))
+        return rc, output
+    return fn()
 
 
 def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):
