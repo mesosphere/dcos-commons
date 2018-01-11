@@ -87,8 +87,9 @@ type sectionElement struct {
 }
 
 type partialElement struct {
-	name string
-	prov PartialProvider
+	name   string
+	indent string
+	prov   PartialProvider
 }
 
 // Template represents a compilde mustache template
@@ -98,7 +99,6 @@ type Template struct {
 	ctag     string
 	p        int
 	curline  int
-	dir      string
 	elems    []interface{}
 	forceRaw bool
 	partial  PartialProvider
@@ -311,19 +311,11 @@ func (tmpl *Template) readTag(mayStandalone bool) (*tagReadingResult, error) {
 	}, nil
 }
 
-func (tmpl *Template) parsePartial(name string) (*partialElement, error) {
-	var prov PartialProvider
-	if tmpl.partial == nil {
-		prov = &FileProvider{
-			Paths: []string{tmpl.dir, " "},
-		}
-	} else {
-		prov = tmpl.partial
-	}
-
+func (tmpl *Template) parsePartial(name, indent string) (*partialElement, error) {
 	return &partialElement{
-		name: name,
-		prov: prov,
+		name:   name,
+		indent: indent,
+		prov:   tmpl.partial,
 	}, nil
 }
 
@@ -372,7 +364,7 @@ func (tmpl *Template) parseSection(section *sectionElement) error {
 			return nil
 		case '>':
 			name := strings.TrimSpace(tag[1:])
-			partial, err := tmpl.parsePartial(name)
+			partial, err := tmpl.parsePartial(name, textResult.padding)
 			if err != nil {
 				return err
 			}
@@ -390,8 +382,12 @@ func (tmpl *Template) parseSection(section *sectionElement) error {
 		case '{':
 			if tag[len(tag)-1] == '}' {
 				//use a raw tag
-				section.elems = append(section.elems, &varElement{tag[1 : len(tag)-1], true})
+				name := strings.TrimSpace(tag[1 : len(tag)-1])
+				section.elems = append(section.elems, &varElement{name, true})
 			}
+		case '&':
+			name := strings.TrimSpace(tag[1:])
+			section.elems = append(section.elems, &varElement{name, true})
 		default:
 			section.elems = append(section.elems, &varElement{tag, tmpl.forceRaw})
 		}
@@ -440,7 +436,7 @@ func (tmpl *Template) parse() error {
 			return parseError{tmpl.curline, "unmatched close tag"}
 		case '>':
 			name := strings.TrimSpace(tag[1:])
-			partial, err := tmpl.parsePartial(name)
+			partial, err := tmpl.parsePartial(name, textResult.padding)
 			if err != nil {
 				return err
 			}
@@ -458,8 +454,12 @@ func (tmpl *Template) parse() error {
 		case '{':
 			//use a raw tag
 			if tag[len(tag)-1] == '}' {
-				tmpl.elems = append(tmpl.elems, &varElement{tag[1 : len(tag)-1], true})
+				name := strings.TrimSpace(tag[1 : len(tag)-1])
+				tmpl.elems = append(tmpl.elems, &varElement{name, true})
 			}
+		case '&':
+			name := strings.TrimSpace(tag[1:])
+			tmpl.elems = append(tmpl.elems, &varElement{name, true})
 		default:
 			tmpl.elems = append(tmpl.elems, &varElement{tag, tmpl.forceRaw})
 		}
@@ -546,7 +546,7 @@ func isEmpty(v reflect.Value) bool {
 	case reflect.Slice:
 		return val.Len() == 0
 	case reflect.String:
-		return len(strings.TrimSpace(val.String())) == 0 || strings.ToLower(val.String()) == "false"
+		return len(strings.TrimSpace(val.String())) == 0
 	}
 
 	return false
@@ -638,7 +638,7 @@ func renderElement(element interface{}, contextChain []interface{}, buf io.Write
 			return err
 		}
 	case *partialElement:
-		partial, err := elem.prov.Get(elem.name)
+		partial, err := getPartials(elem.prov, elem.name, elem.indent)
 		if err != nil {
 			return err
 		}
@@ -711,7 +711,12 @@ func ParseString(data string) (*Template, error) {
 }
 
 func ParseStringRaw(data string, forceRaw bool) (*Template, error) {
-	return ParseStringPartialsRaw(data, nil, forceRaw)
+	cwd := os.Getenv("CWD")
+	partials := &FileProvider{
+		Paths: []string{cwd, " "},
+	}
+
+	return ParseStringPartialsRaw(data, partials, forceRaw)
 }
 
 // ParseStringPartials compiles a mustache template string, retrieving any
@@ -723,16 +728,7 @@ func ParseStringPartials(data string, partials PartialProvider) (*Template, erro
 }
 
 func ParseStringPartialsRaw(data string, partials PartialProvider, forceRaw bool) (*Template, error) {
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
-	return ParseStringPartialsRawInDir(data, cwd, partials, forceRaw)
-}
-
-func ParseStringPartialsRawInDir(data string, dir string, partials PartialProvider, forceRaw bool) (*Template, error) {
-	tmpl := Template{data, "{{", "}}", 0, 1, dir, []interface{}{}, forceRaw, partials}
+	tmpl := Template{data, "{{", "}}", 0, 1, []interface{}{}, forceRaw, partials}
 	err := tmpl.parse()
 
 	if err != nil {
@@ -746,7 +742,12 @@ func ParseStringPartialsRawInDir(data string, dir string, partials PartialProvid
 // resulting output can be used to efficiently render the template multiple
 // times with different data sources.
 func ParseFile(filename string) (*Template, error) {
-	return ParseFilePartials(filename, nil)
+	dirname, _ := path.Split(filename)
+	partials := &FileProvider{
+		Paths: []string{dirname, " "},
+	}
+
+	return ParseFilePartials(filename, partials)
 }
 
 // ParseFilePartials loads a mustache template string from a file, retrieving any
@@ -763,9 +764,7 @@ func ParseFilePartialsRaw(filename string, forceRaw bool, partials PartialProvid
 		return nil, err
 	}
 
-	dirname, _ := path.Split(filename)
-
-	tmpl := Template{string(data), "{{", "}}", 0, 1, dirname, []interface{}{}, forceRaw, partials}
+	tmpl := Template{string(data), "{{", "}}", 0, 1, []interface{}{}, forceRaw, partials}
 	err = tmpl.parse()
 
 	if err != nil {
