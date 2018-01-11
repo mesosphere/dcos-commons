@@ -128,7 +128,7 @@ def test_tls_basic_artifacts():
     assert task_id
 
     # Load end-entity certificate from keystore and root CA cert from truststore
-    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
+    stdout = sdk_cmd.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
     end_entity_cert = x509.load_pem_x509_certificate(stdout, DEFAULT_BACKEND)
 
     root_ca_cert_in_truststore = _export_cert_from_task_keystore(
@@ -172,7 +172,7 @@ def test_java_keystore():
             config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
-    _, output, _ = sdk_cmd.task_exec(task_id, curl, return_stderr_in_stdout=True)
+    _, output = sdk_cmd.task_exec(task_id, curl, return_stderr_in_stdout=True)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
