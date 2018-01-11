@@ -12,7 +12,6 @@ import retrying
 import shakedown
 import tempfile
 
-import sdk_api
 import sdk_cmd
 import sdk_install
 import sdk_marathon

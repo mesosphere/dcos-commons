@@ -1,8 +1,25 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Release Notes
+menuWeight: 120
+
 ---
+
+## Version 2.1.1-3.0.15-beta
+
+## NOTICE
+
+This is a beta release of the DC/OS Apache Cassandra framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Updates
+- The Cassandra tasks no longer run inside a docker container. This removes the requirement that on Centos based distributions the service must be run as root.
+
+### Bug Fixes
+- Scheduler health check now passes during service uninstall.
+- Fixed a regression in replacing failed pods on failed agents.
+- Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.
 
 ## Version 3.0.0-3.0.15-beta
 

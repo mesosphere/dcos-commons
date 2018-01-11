@@ -17,7 +17,6 @@ import json
 import logging
 import os
 import uuid
-import requests
 import retrying
 
 import sdk_cmd
@@ -81,16 +80,10 @@ def _get_master_public_ip() -> str:
     """
     :return (str): The public IP of the master node in the DC/OS cluster.
     """
-    dcos_url, _ = sdk_security.get_dcos_credentials()
-    cluster_metadata_url = "{cluster_url}/metadata".format(cluster_url=dcos_url)
-    response = sdk_cmd.request("GET", cluster_metadata_url, verify=False)
-    if not response.ok:
-        raise RuntimeError("Unable to get the master node's public IP address: {err}".format(err=repr(response)))
-
-    response = response.json()
+    response = sdk_cmd.cluster_request("GET", "/metadata", verify=False).json()
     if "PUBLIC_IPV4" not in response:
         raise KeyError("Cluster metadata does not include master's public ip: {response}".format(
-            response=repr(response)))
+            response=response))
 
     public_ip = response["PUBLIC_IPV4"]
     log.info("Master public ip is {public_ip}".format(public_ip=public_ip))
@@ -113,44 +106,15 @@ def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_file
     Copies the keytab that was generated inside the container running the KDC server to the localhost
     so it can be uploaded to the secret store later.
     """
-    dcos_url, headers = sdk_security.get_dcos_credentials()
-    del headers["Content-Type"]
+    log.info("Downloading keytab to %s", output_filename)
 
-    keytab_url = "{cluster_url}/slave/{agent_id}/files/download?path={path}".format(
-        cluster_url=dcos_url,
-        agent_id=host_id,
-        path=keytab_absolute_path
-    )
+    keytab_response = sdk_cmd.cluster_request(
+        'GET', "/slave/{}/files/download".format(host_id), params={"path": keytab_absolute_path})
+    with open(output_filename, 'wb') as fd:
+        for chunk in keytab_response.iter_content(chunk_size=128):
+            fd.write(chunk)
 
-    log.info("Downloading keytab %s to %s", keytab_url, output_filename)
-
-    @retrying.retry(wait_exponential_multiplier=1000,
-                    wait_exponential_max=120 * 1000,
-                    retry_on_exception=lambda e: isinstance(e, requests.exceptions.HTTPError),
-                    wrap_exception=True)
-    def get_download_stream(url: str) -> requests.Response:
-        """ Use a streaming call to GET to download the Keytab file """
-        response = requests.get(url, headers=headers, stream=True, verify=False)
-        try:
-            response.raise_for_status()
-        except requests.exceptions.HTTPError as e:
-            log.error("Error fetching file from %s", url)
-            log.error("response=%s exception=%s", response, repr(e))
-            raise e
-
-        return response
-
-    try:
-        log.info("Downloading keytab from %s", keytab_url)
-        keytab_response = get_download_stream(keytab_url)
-        with open(output_filename, 'wb') as fd:
-            for chunk in keytab_response.iter_content(chunk_size=128):
-                fd.write(chunk)
-    except retrying.RetryError as e:
-        log.error("%s", e)
-        raise RuntimeError("Failed to download the keytab file: {}".format(repr(e)))
-
-    log.info("Downloaded %d bytes from %s to %s", os.stat(output_filename).st_size, keytab_url, output_filename)
+    log.info("Downloaded %d bytes to %s", os.stat(output_filename).st_size, output_filename)
 
 
 def kinit(task_id: str, keytab: str, principal: str):
@@ -162,7 +126,7 @@ def kinit(task_id: str, keytab: str, principal: str):
     """
     kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
-    rc, stdout, stderr = sdk_tasks.task_exec(task_id, kinit_cmd)
+    rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
     if rc != 0:
         raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\nstdout: {}\nstderr: {}".format(rc, keytab, principal, stdout, stderr))
 
@@ -173,7 +137,7 @@ def kdestroy(task_id: str):
     :param task_id: The task in whose environment the kinit will run.
     """
     log.info("Erasing auth session:")
-    rc, stdout, stderr = sdk_tasks.task_exec(task_id, "kdestroy")
+    rc, stdout, stderr = sdk_cmd.task_exec(task_id, "kdestroy")
     if rc != 0:
         raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
@@ -245,7 +209,7 @@ class KerberosEnvironment:
             args=' '.join(args)
         )
         log.info("Running kadmin: {}".format(kadmin_cmd))
-        rc, stdout, stderr = sdk_tasks.task_exec(self.task_id, kadmin_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
             raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
 

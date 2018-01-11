@@ -9,7 +9,6 @@ import logging
 
 import dcos.errors
 import retrying
-import sdk_cmd
 import sdk_plan
 import shakedown
 
@@ -73,7 +72,7 @@ def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOU
         try:
             task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == task_name])
         except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids for service {}'.format(service_name))
+            log.info('Failed to get task ids for task {}'.format(task_name))
             task_ids = set([])
 
         return len(task_ids) > 0 and (old_task_id not in task_ids or len(task_ids) > 1)
@@ -147,76 +146,3 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(sorted(old_task_ids), sorted(task_ids))
     log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
     assert set(old_task_ids).issubset(set(task_ids)), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
-
-
-def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
-        retry_on_result=lambda res: not res)
-    def fn():
-        command = (
-            "sudo kill -9 "
-            "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
-            "cut -d ' ' -f 1)".format(pattern))
-        if agent_host is None:
-            exit_status, _ = shakedown.run_command_on_master(command)
-        else:
-            exit_status, _ = shakedown.run_command_on_agent(agent_host, command)
-
-        return exit_status
-
-    # might not be able to connect to the agent on first try so we repeat until we can
-    fn()
-
-
-def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
-    """
-    Invokes the given command on the task via `dcos task exec`.
-    :param task_name: Name of task to run command on.
-    :param cmd: The command to execute.
-    :return: a tuple consisting of the task exec's return code, stdout, and stderr
-    """
-    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
-    rc, stdout, stderr = sdk_cmd.run_raw_cli(exec_cmd)
-
-    if return_stderr_in_stdout:
-        return rc, stdout + "\n" + stderr
-
-    return rc, stdout, stderr
-
-
-@retrying.retry(stop_max_attempt_number=3,
-                wait_fixed=1000,
-                retry_on_result=lambda result: not result)
-def create_text_file(task_name: str, filename: str, lines: list) -> bool:
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-{content}
-EOL\"""".format(output_file=filename, content="\n".join(lines))
-    log.info("Running: %s", output_cmd)
-    rc, stdout, stderr = task_exec(task_name, output_cmd)
-
-    if rc or stderr:
-        log.error("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
-        return False
-
-    linecount_cmd = "wc -l {output_file}".format(output_file=filename)
-    rc, stdout, stderr = task_exec(task_name, linecount_cmd)
-
-    if rc or stderr:
-        log.error("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
-        return False
-
-    written_lines = 0
-    try:
-        written_lines = int(stdout.split(" ")[0])
-    except Exception as e:
-        log.error(e)
-
-    expected_lines = len("\n".join(lines).split("\n"))
-    if written_lines != expected_lines:
-        log.error("Number of written lines do not match. stdout=%s expected=%s written=%s",
-                  stdout, expected_lines, written_lines)
-        return False
-
-    return True
