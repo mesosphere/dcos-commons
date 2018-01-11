@@ -1,16 +1,14 @@
+# NOTE: THIS FILE IS INTENTIONALLY NAMED TO BE RUN LAST. SEE test_shutdown_host().
+
 import logging
 import retrying
-import tempfile
-import time
 
 import pytest
 import sdk_cmd as cmd
 import sdk_install
-import sdk_jobs
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -62,9 +60,11 @@ def test_node_replace_replaces_node():
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
 
+# @@@@@@@
+# WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
+# @@@@@@@
 @pytest.mark.sanity
 @pytest.mark.recovery
-@pytest.mark.shutdown_node
 def test_shutdown_host():
     scheduler_ip = shakedown.get_service_ips('marathon', config.SERVICE_NAME).pop()
     log.info('marathon ip = {}'.format(scheduler_ip))
