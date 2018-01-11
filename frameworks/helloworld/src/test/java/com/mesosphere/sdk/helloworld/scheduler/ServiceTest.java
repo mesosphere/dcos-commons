@@ -540,6 +540,14 @@ public class ServiceTest {
         }
     }
 
+    /**
+     * Validates the default service spec.
+     */
+    @Test
+    public void testDefaultSpec() throws Exception {
+        new ServiceTestRunner().run();
+    }
+
     private static Map<String, String> toMap(String... keyVals) {
         Map<String, String> map = new HashMap<>();
         if (keyVals.length % 2 != 0) {

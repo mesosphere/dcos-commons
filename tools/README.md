@@ -231,7 +231,8 @@ $ ./release_builder.py \
 Example:
 
 ```
-$ GITHUB_TOKEN=yourGithubAuthToken \
+$ GITHUB_USER=yourGithubUsername \
+GITHUB_TOKEN=yourGithubAuthToken \
 AWS_ACCESS_KEY_ID=yourAwsKeyId \
 AWS_SECRET_ACCESS_KEY=yourAwsKeySecret \
 MIN_DCOS_RELEASE_VERSION=1.7 \

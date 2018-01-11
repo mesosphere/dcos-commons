@@ -1,7 +1,6 @@
 import os
 import uuid
 
-import dcos.http
 import pytest
 import shakedown
 
@@ -19,8 +18,7 @@ def dcos_ca_bundle():
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
-    url = shakedown.dcos_url_path('ca/dcos-ca.crt')
-    resp = dcos.http.request('get', url)
+    resp = sdk_cmd.cluster_request('GET', '/ca/dcos-ca.crt')
     cert = resp.content.decode('ascii')
     assert cert is not None
     return cert
