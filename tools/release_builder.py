@@ -108,8 +108,14 @@ class UniverseReleaseBuilder(object):
         # avoid uploading a bunch of stuff to prod just to error out later:
         if 'GITHUB_TOKEN' not in os.environ:
             raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
-        encoded_tok = base64.encodestring(os.environ['GITHUB_TOKEN'].encode('utf-8'))
-        self._github_token = encoded_tok.decode('utf-8').rstrip('\n')
+        self._github_token = os.environ['GITHUB_TOKEN']
+        encoded_tok = base64.encodestring(self._github_token.encode('utf-8'))
+        self._enc_github_token = encoded_tok.decode('utf-8').rstrip('\n')
+
+        if 'GITHUB_USER' in os.environ:
+            self._github_user = os.environ['GITHUB_USER']
+        else:
+            self._github_user = "mesosphere-ci"
 
         logger.info('''###
 Source URL:      {}
@@ -309,7 +315,7 @@ Artifact output: {}
         # check out the repo, create a new local branch:
         ret = os.system(' && '.join([
             'cd {}'.format(scratchdir),
-            'git clone --depth 1 --branch {} git@github.com:{} universe'.format(self._release_branch, self._release_universe_repo),
+            'git clone --depth 1 --branch {} https://{}:{}@github.com/{} universe'.format(self._release_branch, self._github_user, self._github_token, self._release_universe_repo),
             'cd universe',
             'git config --local user.email jenkins@mesosphere.com',
             'git config --local user.name release_builder.py',
@@ -413,7 +419,7 @@ Artifact output: {}
         headers = {
             'User-Agent': 'release_builder.py',
             'Content-Type': 'application/json',
-            'Authorization': 'Basic {}'.format(self._github_token)}
+            'Authorization': 'Basic {}'.format(self._enc_github_token)}
         with open(commitmsg_path) as commitmsg_file:
             payload = {
                 'title': self._pr_title,
