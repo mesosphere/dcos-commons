@@ -1,7 +1,7 @@
 ---
 layout: layout.pug
 navigationTitle: 
-title: Version 1.0.8-5.2.2
+title:
 menuWeight: 10
 excerpt:
 
