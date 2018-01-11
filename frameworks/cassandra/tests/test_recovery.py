@@ -87,13 +87,12 @@ def test_shutdown_host():
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
-    # TODO: re-enable these checks afer this is resolved.  https://jira.mesosphere.com/browse/DCOS-20123
-    # log.info('Checking correct number of tasks are running')
-    # sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    log.info('Checking correct number of tasks are running')
+    sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
-    # log.info('Checking the replaced pod is on a new agent')
-    # new_agent = get_pod_agent(pod_name)
-    # assert old_agent != new_agent
+    log.info('Checking the replaced pod is on a new agent')
+    new_agent = get_pod_agent(pod_name)
+    assert old_agent != new_agent
 
 
 def get_pod_agent(pod_name):
