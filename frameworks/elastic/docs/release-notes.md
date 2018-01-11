@@ -1,8 +1,26 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Release Notes
+menuWeight: 120
+
 ---
+
+## Version 2.1.1-5.6.5
+
+## NOTICE
+
+This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Updates
+- Elastic updated to version 5.6.5.
+- Kibana updated to version 5.6.5.
+
+### Bug Fixes
+- Scheduler health check now passes during service uninstall.
+- Fixed a regression in replacing failed pods on failed agents.
+- Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.
 
 ## Version 3.0.0-5.6.4-beta
 

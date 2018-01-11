@@ -4,10 +4,10 @@ import pytest
 import itertools
 
 import sdk_auth
+import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_tasks
 import sdk_utils
 from tests import config
 
@@ -146,11 +146,12 @@ def kerberized_hdfs_client(kerberos):
 def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
     sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["hdfs"])
 
-    write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, config.TEST_FILE_1_NAME))
-    sdk_tasks.task_exec(kerberized_hdfs_client, write_cmd)
+    test_filename = "test_auth_write_read" # must be unique among tests in this suite
+    write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
+    sdk_cmd.task_exec(kerberized_hdfs_client, write_cmd)
 
-    read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(config.TEST_FILE_1_NAME))
-    _, stdout, _ = sdk_tasks.task_exec(kerberized_hdfs_client, read_cmd)
+    read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(test_filename))
+    _, stdout, _ = sdk_cmd.task_exec(kerberized_hdfs_client, read_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
 
 
@@ -165,43 +166,45 @@ def test_users_have_appropriate_permissions(kerberized_hdfs_client):
 
     log.info("Creating directory for alice")
     make_user_directory_cmd = config.hdfs_command("mkdir -p /users/alice")
-    sdk_tasks.task_exec(kerberized_hdfs_client, make_user_directory_cmd)
+    sdk_cmd.task_exec(kerberized_hdfs_client, make_user_directory_cmd)
 
     change_ownership_cmd = config.hdfs_command("chown alice:users /users/alice")
-    sdk_tasks.task_exec(kerberized_hdfs_client, change_ownership_cmd)
+    sdk_cmd.task_exec(kerberized_hdfs_client, change_ownership_cmd)
 
     change_permissions_cmd = config.hdfs_command("chmod 700 /users/alice")
-    sdk_tasks.task_exec(kerberized_hdfs_client, change_permissions_cmd)
+    sdk_cmd.task_exec(kerberized_hdfs_client, change_permissions_cmd)
+
+    test_filename = "test_user_permissions" # must be unique among tests in this suite
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(kerberized_hdfs_client)
     sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["alice"])
     write_access_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(
         config.TEST_CONTENT_SMALL,
-        "/users/alice/{}".format(config.TEST_FILE_1_NAME)))
+        "/users/alice/{}".format(test_filename)))
     log.info("Alice can write: {}".format(write_access_cmd))
-    rc, stdout, _ = sdk_tasks.task_exec(kerberized_hdfs_client, write_access_cmd)
+    rc, stdout, _ = sdk_cmd.task_exec(kerberized_hdfs_client, write_access_cmd)
     assert stdout == '' and rc == 0
 
-    read_access_cmd = config.hdfs_read_command("/users/alice/{}".format(config.TEST_FILE_1_NAME))
+    read_access_cmd = config.hdfs_read_command("/users/alice/{}".format(test_filename))
     log.info("Alice can read: {}".format(read_access_cmd))
-    _, stdout, _ = sdk_tasks.task_exec(kerberized_hdfs_client, read_access_cmd)
+    _, stdout, _ = sdk_cmd.task_exec(kerberized_hdfs_client, read_access_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
 
     ls_cmd = config.hdfs_command("ls /users/alice")
-    _, stdout, _ = sdk_tasks.task_exec(kerberized_hdfs_client, ls_cmd)
-    assert "/users/alice/{}".format(config.TEST_FILE_1_NAME) in stdout
+    _, stdout, _ = sdk_cmd.task_exec(kerberized_hdfs_client, ls_cmd)
+    assert "/users/alice/{}".format(test_filename) in stdout
 
     # bob doesn't have read/write access to alice's directory
     sdk_auth.kdestroy(kerberized_hdfs_client)
     sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["bob"])
 
     log.info("Bob tries to wrtie to alice's directory: {}".format(write_access_cmd))
-    _, _, stderr = sdk_tasks.task_exec(kerberized_hdfs_client, write_access_cmd)
+    _, _, stderr = sdk_cmd.task_exec(kerberized_hdfs_client, write_access_cmd)
     log.info("Bob can't write to alice's directory: {}".format(write_access_cmd))
     assert "put: Permission denied: user=bob" in stderr
 
     log.info("Bob tries to read from alice's directory: {}".format(read_access_cmd))
-    _, _, stderr = sdk_tasks.task_exec(kerberized_hdfs_client, read_access_cmd)
+    _, _, stderr = sdk_cmd.task_exec(kerberized_hdfs_client, read_access_cmd)
     log.info("Bob can't read from alice's directory: {}".format(read_access_cmd))
     assert "cat: Permission denied: user=bob" in stderr

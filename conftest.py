@@ -14,7 +14,6 @@ import sys
 import time
 
 import pytest
-import requests
 import sdk_cmd
 import sdk_security
 import sdk_utils
@@ -270,10 +269,9 @@ def dump_task_logs(item: pytest.Item, task_ids: list):
 
 
 def dump_mesos_state(item: pytest.Item):
-    dcosurl, headers = sdk_security.get_dcos_credentials()
     for name in ['state.json', 'slaves']:
-        r = requests.get('{}/mesos/{}'.format(dcosurl, name), headers=headers, verify=False)
-        if r.status_code == 200:
+        r = sdk_cmd.cluster_request('GET', '/mesos/{}'.format(name), verify=False, raise_on_error=False)
+        if r.ok:
             if name.endswith('.json'):
                 name = name[:-len('.json')] # avoid duplicate '.json'
             with open(setup_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:

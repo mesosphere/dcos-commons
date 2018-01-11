@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 
 def _get_config_once(app_name):
-    return sdk_cmd.request('get', api_url('apps/{}'.format(app_name)), retry=False, log_args=False)
+    return sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name)), retry=False)
 
 
 def app_exists(app_name):
@@ -37,12 +37,11 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout*1000,
-        retry_on_result=lambda res: not res)
+        stop_max_delay=timeout*1000)
     def wait_for_response():
-        return _get_config_once(app_name)
+        return _get_config_once(app_name).json()['app']
 
-    config = wait_for_response().json()['app']
+    config = wait_for_response()
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
@@ -117,9 +116,8 @@ def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_dep
         log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):
             log.info("  {}={}".format(k, config["env"][k]))
-    response = sdk_cmd.request('put', api_url('apps/{}'.format(app_name)), log_args=False, json=config)
-
-    assert response.ok, "Marathon configuration update failed for {} with config {}".format(app_name, config)
+    # throws on failure:
+    sdk_cmd.cluster_request('PUT', _api_url('apps/{}'.format(app_name)), log_args=False, json=config)
 
     if wait_for_completed_deployment:
         log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
@@ -132,18 +130,13 @@ def destroy_app(app_name):
 
 def restart_app(app_name):
     log.info("Restarting {}...".format(app_name))
-    response = sdk_cmd.request('post', api_url('apps/{}/restart'.format(app_name)))
-    log.info(response)
-    assert response.ok
+    # throws on failure:
+    sdk_cmd.cluster_request('POST', _api_url('apps/{}/restart'.format(app_name)))
     log.info("Restarted {}.".format(app_name))
 
 
-def api_url(basename):
-    return '{}/v2/{}'.format(shakedown.dcos_service_url('marathon'), basename)
-
-
-def api_url_with_param(basename, path_param):
-    return '{}/{}'.format(api_url(basename), path_param)
+def _api_url(path):
+    return '/marathon/v2/{}'.format(path)
 
 
 def get_scheduler_host(service_name):

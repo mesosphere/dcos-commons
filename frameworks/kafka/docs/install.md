@@ -1,7 +1,10 @@
 ---
-post_title: Install and Customize
-menu_order: 20
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Install and Customize
+menuWeight: 20
+
 ---
 
 Kafka is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.

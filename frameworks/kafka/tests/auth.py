@@ -2,7 +2,6 @@ import json
 import logging
 import retrying
 
-import sdk_tasks
 import sdk_cmd
 
 LOG = logging.getLogger(__name__)
@@ -18,7 +17,7 @@ def wait_for_brokers(client: str, brokers: list):
                      '-template=false',
                      '-install-certs=false',
                      '-resolve-hosts', ','.join(brokers)]
-    bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
+    bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
     assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
 
@@ -57,7 +56,7 @@ def write_client_properties(id: str, task: str, lines: list) -> str:
     output_file = "{id}-client.properties".format(id=id)
 
     LOG.info("Generating %s", output_file)
-    output = sdk_tasks.create_text_file(task, output_file, lines)
+    output = sdk_cmd.create_task_text_file(task, output_file, lines)
     LOG.info(output)
 
     return output_file
@@ -80,7 +79,7 @@ def write_jaas_config_file(primary: str, task: str) -> str:
                           '    client=true;',
                           '};', ]
 
-    output = sdk_tasks.create_text_file(task, output_file, jaas_file_contents)
+    output = sdk_cmd.create_task_text_file(task, output_file, jaas_file_contents)
     LOG.info(output)
 
     return output_file
@@ -99,7 +98,8 @@ def write_krb5_config_file(task: str) -> str:
                           '  LOCAL = {',
                           '    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500',
                           '  }', ]
-    output = sdk_tasks.create_text_file(task, output_file, krb5_file_contents)
+
+    output = sdk_cmd.create_task_text_file(task, output_file, krb5_file_contents)
     LOG.info(output)
 
     return output_file
@@ -158,7 +158,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str,
                     retry_on_result=write_failed)
     def write_wrapper():
         LOG.info("Running: %s", write_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, write_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(task, write_cmd)
         LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
 
         return rc, stdout, stderr
@@ -209,7 +209,7 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int,
                     retry_on_result=read_failed)
     def read_wrapper():
         LOG.info("Running: %s", read_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, read_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(task, read_cmd)
         LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
 
         return rc, stdout, stderr
@@ -228,13 +228,14 @@ def create_tls_artifacts(cn: str, task: str) -> str:
     priv_path = "{}_priv.key".format(cn)
     log.info("Generating certificate. cn={}, task={}".format(cn, task))
 
-    output = sdk_tasks.task_exec(task,
-                                 'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr '
-                                 '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
+    output = sdk_cmd.task_exec(
+        task,
+        'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr '
+        '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
     log.info(output)
     assert output[0] is 0
 
-    rc, raw_csr, _ = sdk_tasks.task_exec(task, 'cat request.csr')
+    rc, raw_csr, _ = sdk_cmd.task_exec(task, 'cat request.csr')
     assert rc is 0
     request = {
         "certificate_request": raw_csr
@@ -242,17 +243,18 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     token = sdk_cmd.run_cli("config show core.dcos_acs_token")
 
-    output = sdk_tasks.task_exec(task,
-                                 "curl -L -X POST "
-                                 "-H 'Authorization: token={}' "
-                                 "leader.mesos/ca/api/v2/sign "
-                                 "-d '{}'".format(token, json.dumps(request)))
+    output = sdk_cmd.task_exec(
+        task,
+        "curl -L -X POST "
+        "-H 'Authorization: token={}' "
+        "leader.mesos/ca/api/v2/sign "
+        "-d '{}'".format(token, json.dumps(request)))
     log.info(output)
     assert output[0] is 0
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_tasks.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    output = sdk_cmd.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
     log.info(output)
     assert output[0] is 0
 
@@ -267,30 +269,33 @@ def create_keystore_truststore(cn: str, task: str):
     truststore_path = "{}_truststore.jks".format(cn)
 
     log.info("Generating keystore and truststore, task:{}".format(task))
-    output = sdk_tasks.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
+    output = sdk_cmd.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
 
     # Convert to a PKCS12 key
-    output = sdk_tasks.task_exec(task,
-                                 'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && '
-                                 'openssl pkcs12 -export -in {} -inkey {} '
-                                 '-out keypair.p12 -name keypair -passout pass:export '
-                                 '-CAfile dcos-ca.crt -caname root"'.format(pub_path, priv_path))
+    output = sdk_cmd.task_exec(
+        task,
+        'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && '
+        'openssl pkcs12 -export -in {} -inkey {} '
+        '-out keypair.p12 -name keypair -passout pass:export '
+        '-CAfile dcos-ca.crt -caname root"'.format(pub_path, priv_path))
     log.info(output)
     assert output[0] is 0
 
     log.info("Generating certificate: importing into keystore and truststore")
     # Import into the keystore and truststore
-    output = sdk_tasks.task_exec(task,
-                                 "keytool -importkeystore "
-                                 "-deststorepass changeit -destkeypass changeit -destkeystore {} "
-                                 "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
-                                 "-alias keypair".format(keystore_path))
+    output = sdk_cmd.task_exec(
+        task,
+        "keytool -importkeystore "
+        "-deststorepass changeit -destkeypass changeit -destkeystore {} "
+        "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
+        "-alias keypair".format(keystore_path))
     log.info(output)
     assert output[0] is 0
 
-    output = sdk_tasks.task_exec(task,
-                                 "keytool -import -trustcacerts -noprompt "
-                                 "-file dcos-ca.crt -storepass changeit "
-                                 "-keystore {}".format(truststore_path))
+    output = sdk_cmd.task_exec(
+        task,
+        "keytool -import -trustcacerts -noprompt "
+        "-file dcos-ca.crt -storepass changeit "
+        "-keystore {}".format(truststore_path))
     log.info(output)
     assert output[0] is 0
