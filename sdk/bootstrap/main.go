@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/alexkappa/mustache"
+	"github.com/cbroglie/mustache"
 	"github.com/aryann/difflib"
 	"github.com/dcos/dcos-cni/pkg/mesos"
 )
@@ -212,23 +212,18 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 }
 
 func renderTemplate(origContent string, outPath string, envMap map[string]string, source string) {
-	instance := mustache.New()
-	err := instance.ParseString(origContent)
-	if err != nil {
-		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, outPath, err)
-	}
-
-	// Env preprocessing: map "false", "False", etc to an empty string, which is treated as 'falsy' by the underlying library.
-	varMap := make(map[string]string)
+	// Env preprocessing: map "false", "False", etc to a false bool, so that it's treated as 'falsy'.
+	varMap := make(map[string]interface{})
 	for k, v := range envMap {
-		if strings.TrimSpace(strings.ToLower(v)) == "false" {
-			varMap[k] = ""
+		if strings.ToLower(v) == "false" {
+			// Pass a bool. We want falsy blocks to be rendered, but we also want 'false' to be passed through for values.
+			varMap[k] = false
 		} else {
 			varMap[k] = v
 		}
 	}
 
-	newContent, err := instance.RenderString(varMap)
+	newContent, err := mustache.Render(origContent, varMap)
 	if err != nil {
 		log.Fatalf("Failed to render template from %s at '%s': %s", source, outPath, err)
 	}

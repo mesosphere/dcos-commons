@@ -27,16 +27,16 @@
 			"revisionTime": "2015-10-22T06:55:26Z"
 		},
 		{
-			"checksumSHA1": "18Opmf9COdHp/JsdG3WGZQIGdHg=",
-			"path": "github.com/alexkappa/mustache",
-			"revision": "069f6bf777567ad749b9d0a41bcc836f1b799a99",
-			"revisionTime": "2017-08-03T21:43:46Z"
-		},
-		{
 			"checksumSHA1": "ulFwBsxjpyu+bk44+LKDl8AKQiA=",
 			"path": "github.com/aryann/difflib",
 			"revision": "e206f873d14a916d3d26c40ab667bca123f365a3",
 			"revisionTime": "2017-07-10T04:42:30Z"
+		},
+		{
+			"checksumSHA1": "XbAKLei0JOeeB5Z3RFn4XFPBqF8=",
+			"path": "github.com/cbroglie/mustache",
+			"revision": "6b01858ec889c7240e02d553d42c238afbb62eac",
+			"revisionTime": "2017-11-28T09:32:48Z"
 		},
 		{
 			"checksumSHA1": "Kh/msV2XTuYy0UB63hhoKcKfkyY=",
@@ -87,12 +87,6 @@
 			"revisionTime": "2017-09-18T16:34:26Z"
 		},
 		{
-			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
-			"path": "github.com/davecgh/go-spew/spew",
-			"revision": "ecdeabc65495df2dec95d7c4a4c3e021903035e5",
-			"revisionTime": "2017-10-02T20:02:53Z"
-		},
-		{
 			"checksumSHA1": "9s2sMrRoswjKgf8jn5pwPVp3rdM=",
 			"path": "github.com/dcos/dcos-cni",
 			"revision": "9fbcca53fabbd1d143b265cfd788c0455d421e05",
@@ -130,30 +124,6 @@
 			"revisionTime": "2017-06-28T01:26:37Z"
 		},
 		{
-			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
-			"path": "github.com/pmezard/go-difflib/difflib",
-			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
-			"revisionTime": "2016-01-10T10:55:54Z"
-		},
-		{
-			"checksumSHA1": "mGbTYZ8dHVTiPTTJu3ktp+84pPI=",
-			"path": "github.com/stretchr/testify/assert",
-			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
-			"revisionTime": "2017-08-14T20:04:35Z"
-		},
-		{
-			"checksumSHA1": "7vs6dSc1PPGBKyzb/SCIyeMJPLQ=",
-			"path": "github.com/stretchr/testify/require",
-			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
-			"revisionTime": "2017-08-14T20:04:35Z"
-		},
-		{
-			"checksumSHA1": "uefllr2OtKBGo/kQSAPbW3w6p0A=",
-			"path": "github.com/stretchr/testify/suite",
-			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
-			"revisionTime": "2017-08-14T20:04:35Z"
-		},
-		{
 			"checksumSHA1": "DSXZnN+OjzFCR1qoAo49MAfaVgI=",
 			"path": "github.com/vishvananda/netlink",
 			"revision": "933b978eae8c18daa1077a0eb7186b689cd9f82d",
@@ -182,7 +152,37 @@
 			"path": "gopkg.in/yaml.v2",
 			"revision": "3b4ad1db5b2a649883ff3782f5f9f6fb52be71af",
 			"revisionTime": "2017-07-13T20:15:20Z"
+		},
+		{
+			"checksumSHA1": "mrz/kicZiUaHxkyfvC/DyQcr8Do=",
+			"path": "github.com/davecgh/go-spew/spew",
+			"revision": "ecdeabc65495df2dec95d7c4a4c3e021903035e5",
+			"revisionTime": "2017-10-02T20:02:53Z"
+		},
+		{
+			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
+			"path": "github.com/pmezard/go-difflib/difflib",
+			"revision": "792786c7400a136282c1664665ae0a8db921c6c2",
+			"revisionTime": "2016-01-10T10:55:54Z"
+		},
+		{
+			"checksumSHA1": "mGbTYZ8dHVTiPTTJu3ktp+84pPI=",
+			"path": "github.com/stretchr/testify/assert",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"revisionTime": "2017-08-14T20:04:35Z"
+		},
+		{
+			"checksumSHA1": "7vs6dSc1PPGBKyzb/SCIyeMJPLQ=",
+			"path": "github.com/stretchr/testify/require",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"revisionTime": "2017-08-14T20:04:35Z"
+		},
+		{
+			"checksumSHA1": "uefllr2OtKBGo/kQSAPbW3w6p0A=",
+			"path": "github.com/stretchr/testify/suite",
+			"revision": "2aa2c176b9dab406a6970f6a55f513e8a8c8b18f",
+			"revisionTime": "2017-08-14T20:04:35Z"
 		}
 	],
-	"rootPath": "github.com/mesosphere/dcos-commons/sdk/bootstrap"
+	"rootPath": "github.com/mesosphere/dcos-commons/cli"
 }
