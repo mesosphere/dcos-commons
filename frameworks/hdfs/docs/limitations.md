@@ -1,7 +1,10 @@
 ---
-post_title: Limitations
-menu_order: 100
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Limitations
+menuWeight: 100
+
 ---
 
 ## Out-of-band configuration

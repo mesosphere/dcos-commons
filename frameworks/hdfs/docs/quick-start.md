@@ -1,7 +1,10 @@
 ---
-post_title: Quickstart
-menu_order: 40
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Quickstart
+menuWeight: 40
+
 ---
 
 This tutorial will get you up and running in minutes with HDFS. You will install and configure the DC/OS HDFS package and retrieve the core-site.xml and hdfs-site.xml files. These XML files are used to configure client nodes of the HDFS cluster.

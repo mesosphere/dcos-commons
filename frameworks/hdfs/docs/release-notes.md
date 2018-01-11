@@ -1,7 +1,10 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Release Notes
+menuWeight: 120
+
 ---
 
 ## Verion 3.0.0-2.6.0-cdh5.11.0-beta
