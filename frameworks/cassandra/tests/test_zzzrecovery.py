@@ -1,7 +1,6 @@
 # NOTE: THIS FILE IS INTENTIONALLY NAMED TO BE RUN LAST. SEE test_shutdown_host().
 
 import logging
-import retrying
 
 import pytest
 import sdk_cmd
@@ -69,6 +68,9 @@ def test_shutdown_host():
     scheduler_ip = shakedown.get_service_ips('marathon', config.SERVICE_NAME).pop()
     log.info('marathon ip = {}'.format(scheduler_ip))
 
+    # print a dump of current tasks in the cluster (and what agents they're on)
+    sdk_cmd.run_cli('dcos task')
+
     # avoid also killing the system that the scheduler is on.
     node_ip = None
     pod_name = None
@@ -89,10 +91,17 @@ def test_shutdown_host():
 
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+
+    # now that repair has started, do another dump of current cluster tasks (and what agents they're on)
+    sdk_cmd.run_cli('dcos task')
+
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     log.info('Checking correct number of tasks are running')
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+
+    # one last task dump for good measure.
+    sdk_cmd.run_cli('dcos task')
 
     log.info('Checking the replaced pod is on a new agent')
     new_agent = get_pod_agent(pod_name)
