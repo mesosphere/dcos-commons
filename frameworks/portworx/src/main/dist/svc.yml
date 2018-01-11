@@ -62,12 +62,11 @@ pods:
                 docker run --entrypoint /runc-entry-point.sh \
                    --rm -i --privileged=true \
                    -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                   {{{PORTWORX_IMAGE_NAME}}} --debug
+                   {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
 
                 echo "[Unit]
                     Description=Portworx Container
-                    Wants=docker.service
-                    After=docker.service
+                    Before=docker.service
                     StartLimitIntervalSec=3600
                     StartLimitInterval=3600
                     StartLimitBurst=10000
@@ -107,13 +106,13 @@ pods:
         goal: FINISHED
         resource-set: px-restart-resources
         cmd: >
+             docker pull {{{PORTWORX_IMAGE_NAME}}} &&
+             systemctl stop portworx &&
              docker run --entrypoint /runc-entry-point.sh \
                 --rm -i --privileged=true \
                 -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
-
-             systemctl daemon-reload && systemctl restart portworx
-
+                {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade &&
+             systemctl daemon-reload && systemctl restart portworx &&
              while ! /opt/pwx/bin/pxctl -j status | grep status | grep STATUS_OK; do /opt/pwx/bin/pxctl status; sleep 5 ; done
 
   etcd-cluster:
