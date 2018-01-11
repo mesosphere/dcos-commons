@@ -1,6 +1,25 @@
-<h2 id="version-300-564-beta">Version 3.0.0-5.6.4-beta</h2>
+<h2 id="version-211-565">Version 2.1.1-5.6.5</h2>
 
 <h2 id="notice">NOTICE</h2>
+
+<p>This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
+
+<h3 id="updates">Updates</h3>
+<ul>
+  <li>Elastic updated to version 5.6.5.</li>
+  <li>Kibana updated to version 5.6.5.</li>
+</ul>
+
+<h3 id="bug-fixes">Bug Fixes</h3>
+<ul>
+  <li>Scheduler health check now passes during service uninstall.</li>
+  <li>Fixed a regression in replacing failed pods on failed agents.</li>
+  <li>Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.</li>
+</ul>
+
+<h2 id="version-300-564-beta">Version 3.0.0-5.6.4-beta</h2>
+
+<h2 id="notice-1">NOTICE</h2>
 
 <p>This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
 
@@ -10,7 +29,7 @@
   <li>Support for <code class="highlighter-rouge">Zone</code> placement constraints in DC/OS 1.11 (beta versions of DC/OS 1.11 coming soon).</li>
 </ul>
 
-<h3 id="updates">Updates</h3>
+<h3 id="updates-1">Updates</h3>
 <ul>
   <li>Major improvements to the stability and performance of service orchestration.</li>
   <li>The service now uses Elastic v5.6.4.</li>
@@ -37,7 +56,7 @@
   <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.30.0">dcos-commons 0.30.0</a>.</li>
 </ul>
 
-<h3 id="bug-fixes">Bug Fixes</h3>
+<h3 id="bug-fixes-1">Bug Fixes</h3>
 <ul>
   <li>Numerous fixes and enhancements to service reliability.</li>
 </ul>
@@ -67,7 +86,7 @@
   <li>Kibana’s cpu and memory are now configurable</li>
 </ul>
 
-<h3 id="bug-fixes-1">Bug Fixes</h3>
+<h3 id="bug-fixes-2">Bug Fixes</h3>
 <ul>
   <li>Stop downloading Statsd zip file twice</li>
 </ul>
