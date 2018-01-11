@@ -107,7 +107,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
 
     log.info("\n***** Test kibana with X-Pack disabled...")
-    sdk_install.install(config.KIBANA_PACKAGE_NAME, 1, additional_options={
+    sdk_install.install(config.KIBANA_PACKAGE_NAME, 0, additional_options={
         "kibana": {
             "elasticsearch_url": "http://" + sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200)
         }})
@@ -131,7 +131,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     log.info("\n***** Test kibana with X-Pack enabled...")
     log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
     log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
-    sdk_install.install(config.KIBANA_PACKAGE_NAME, 1, additional_options={
+    sdk_install.install(config.KIBANA_PACKAGE_NAME, 0, additional_options={
         "kibana": {
             "elasticsearch_url": "http://" + sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200),
             "xpack_enabled": True
