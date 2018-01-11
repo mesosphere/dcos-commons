@@ -107,11 +107,10 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.verify_commercial_api_status(False, service_name=FOLDERED_SERVICE_NAME)
 
     log.info("\n***** Test kibana with X-Pack disabled...")
-    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
+    sdk_install.install(config.KIBANA_PACKAGE_NAME, 1, additional_options={
         "kibana": {
             "elasticsearch_url": "http://" + sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200)
         }})
-    shakedown.deployment_wait(app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
     config.check_kibana_adminrouter_integration("service/{}/".format(config.KIBANA_PACKAGE_NAME))
     log.info("Uninstall kibana with X-Pack disabled")
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
@@ -130,14 +129,13 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         service_name=FOLDERED_SERVICE_NAME)
 
     log.info("\n***** Test kibana with X-Pack enabled...")
-    shakedown.install_package(config.KIBANA_PACKAGE_NAME, options_json={
+    log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
+    log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
+    sdk_install.install(config.KIBANA_PACKAGE_NAME, 1, additional_options={
         "kibana": {
             "elasticsearch_url": "http://" + sdk_hosts.vip_host(FOLDERED_SERVICE_NAME, "coordinator", 9200),
             "xpack_enabled": True
         }})
-    log.info("\n***** Installing Kibana w/X-Pack can take as much as 15 minutes for Marathon deployment ")
-    log.info("to complete due to a configured HTTP health check. (typical: 12 minutes)")
-    shakedown.deployment_wait(app_id="/{}".format(config.KIBANA_PACKAGE_NAME), timeout=config.DEFAULT_KIBANA_TIMEOUT)
     config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
     log.info("\n***** Uninstall kibana with X-Pack enabled")
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME)
