@@ -6,10 +6,10 @@ SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 '''
 import json
 import logging
-import re
 import retrying
 import shakedown
 import tempfile
+import traceback
 
 import sdk_cmd
 import sdk_install
@@ -43,15 +43,14 @@ def test_upgrade(
 
     universe_url = _get_universe_url()
 
-    universe_version = ""
+    universe_version = None
     try:
         # Move the Universe repo to the top of the repo list so that we can first install the release version.
         shakedown.remove_package_repo('Universe')
         assert shakedown.add_package_repo('Universe', universe_url, 0)
-        # Wait for package version to not be test_version
-        _wait_for_new_default_version(package_name, test_version)
-
-        universe_version = _get_pkg_version(package_name)
+        log.info('Waiting for Universe release version of {} to appear: version != {}'.format(
+            package_name, test_version))
+        universe_version = _wait_for_new_package_version(package_name, test_version)
 
         log.info('Installing Universe version: {}={}'.format(package_name, universe_version))
         sdk_install.install(
@@ -66,8 +65,9 @@ def test_upgrade(
             # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
             shakedown.remove_package_repo('Universe')
             assert shakedown.add_package_repo('Universe', universe_url)
-            # Wait for package version to not be universe_version
-            _wait_for_new_default_version(package_name, universe_version)
+            log.info('Waiting for test build version of {} to appear: version != {}'.format(
+                package_name, universe_version))
+            _wait_for_new_package_version(package_name, universe_version)
 
     log.info('Upgrading {}: {} => {}'.format(package_name, universe_version, test_version))
     _upgrade_or_downgrade(
@@ -205,17 +205,30 @@ def _upgrade_or_downgrade(
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
 
-@retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=1000,
-                retry_on_result=lambda result: result is None)
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=10*1000,
+    retry_on_result=lambda result: result is None)
 def _get_pkg_version(package_name):
-    result = re.search(
-        r'"version": "(\S+)"',
-        sdk_cmd.run_cli('package describe {}'.format(package_name), print_output=False))
-    return None if result is None else result.group(1)
+    cmd = 'package describe {}'.format(package_name)
+    # Only log stdout/stderr if there's actually an error.
+    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd, print_output=False)
+    if rc != 0:
+        log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
+        return None
+    try:
+        return json.loads(stdout)['package']['version']
+    except:
+        log.warning('Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
+        log.warning(traceback.format_exc())
+        return None
 
 
-def _wait_for_new_default_version(package_name, prev_version):
-    log.info('Waiting for repo change to take effect: {} default version != {}'.format(
-        package_name, prev_version))
-    shakedown.wait_for(lambda: _get_pkg_version(package_name) != prev_version, noisy=True)
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=60*1000,
+    retry_on_result=lambda result: result is None)
+def _wait_for_new_package_version(package_name, prev_version):
+    cur_version = _get_pkg_version(package_name)
+    log.info('Current version of {} is: {}'.format(package_name, cur_version))
+    return cur_version if cur_version != prev_version else None

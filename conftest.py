@@ -4,12 +4,13 @@ integration tests
 Note: pytest must be invoked with this file in the working directory
 E.G. py.test frameworks/<your-frameworks>/tests
 """
+import json
 import logging
 import os
 import os.path
 import re
+import retrying
 import shutil
-import subprocess
 import sys
 import time
 
@@ -284,31 +285,31 @@ def dump_mesos_state(item: pytest.Item):
 
 
 def get_diagnostics_bundle(item: pytest.Item):
-    result = subprocess.run(
-        ['dcos', 'node', 'diagnostics', 'create', 'all'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-    )
-    if result.returncode:
-        errmessage = result.stderr.decode()
-        log.error("Couldn't create diagnostics bundle: {}".format(errmessage))
+    rc, _, _ = sdk_cmd.run_raw_cli('node diagnostics create all')
+    if rc:
+        log.error('Diagnostics bundle creation failed.')
+        return
 
-    bundle_file = None
-    while bundle_file is None:
-        status = subprocess.run(
-            ['dcos', 'node', 'diagnostics', '--status'], stdout=subprocess.PIPE, stderr=subprocess.PIPE
-        )
-        progress = [
-            l.strip() for l in status.stdout.decode().split('\n') if 'job_progress_percentage' in l
-        ][0]
+    @retrying.retry(
+        wait_fixed=5000,
+        stop_max_delay=10*60*1000,
+        retry_on_result=lambda result: result is None)
+    def wait_for_bundle_file():
+        rc, stdout, stderr = sdk_cmd.run_raw_cli('node diagnostics --status --json')
+        if rc:
+            return None
 
-        if progress.endswith('100'):
-            bundle_file = [
-                l.strip().split('/')[-1] for l in status.stdout.decode().split('\n')
-                if 'last_bundle_dir' in l
-            ][0]
+        # e.g. { "some-ip": { stuff we want } }
+        status = next(iter(json.loads(stdout).values()))
+        if status['job_progress_percentage'] != 100:
+            return None
 
-    original_cwd = os.getcwd()
-    try:
-        os.chdir(setup_artifact_path(item, '').rstrip('/'))
-        subprocess.run(['dcos', 'node', 'diagnostics', 'download', bundle_file])
-    finally:
-        os.chdir(original_cwd)
+        # e.g. "/var/lib/dcos/dcos-diagnostics/diag-bundles/bundle-2018-01-11-1515698691.zip"
+        return os.path.basename(status['last_bundle_dir'])
+
+    bundle_filename = wait_for_bundle_file()
+    if bundle_filename:
+        sdk_cmd.run_cli('node diagnostics download {} --location={}'.format(
+            bundle_filename, setup_artifact_path(item, bundle_filename)))
+    else:
+        log.error('Diagnostics bundle didnt finish in time, giving up.')
