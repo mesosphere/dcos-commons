@@ -1,0 +1,27 @@
+box: golang:1.8
+build:
+  steps:
+    - wercker/setup-go-workspace:
+        package-dir: github.com/alexkappa/exp
+    - script:
+        name: update submodules
+        code: |
+          git submodule update --init --recursive
+    - script:
+        name: go build
+        code: |
+          go build
+    - script:
+        name: go test
+        code: |
+          go test -coverprofile=coverage.out
+    - script:
+        name: install node
+        code: |
+          apt update -y
+          apt install -y node npm
+          npm install codeclimate-test-reporter
+    - script:
+        name: send coverage report
+        code: |
+          CODECLIMATE_REPO_TOKEN=$CODECLIMATE_REPO_TOKEN nodejs node_modules/.bin/codeclimate-test-reporter < coverage.out
