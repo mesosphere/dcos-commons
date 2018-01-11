@@ -6,7 +6,7 @@
       "hdfs-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.11.0.tar.gz",
       "hdfs-bin-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hdfs-bin.tar.gz",
       "hdfs-jre-tar-gz": "{{jre-jce-unlimited-url}}",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/0.31.2/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/hdfs-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip",
       "zone-resolver-sh": "http://downloads.mesosphere.com/hdfs/assets/zone-resolver.sh"

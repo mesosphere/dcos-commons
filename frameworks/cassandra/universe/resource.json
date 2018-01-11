@@ -8,7 +8,7 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
       "cassandra-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-3.0.15-bin-dcos.tar.gz",
-      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/0.31.2/bootstrap.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },
