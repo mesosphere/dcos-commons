@@ -311,8 +311,6 @@ class KerberosEnvironment:
         # Grep exits 0 if there were matches
         if result.returncode == 0:
             log.info("There were some matches when checking the keytab for ^ZX: %s", result.stdout)
-            # Clean up the bad keytab.
-            sdk_tasks.task_exec(self.kdc_host_id)
             raise Exception("The keytab is bad :(. We're going to retry generating this keytab. What fun.")
 
         log.info("This keytab is great, and does not contain any weird ZX lines.")
