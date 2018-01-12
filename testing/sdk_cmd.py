@@ -6,6 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import json as jsonlib
+import os
 import logging
 import retrying
 import subprocess
@@ -14,6 +15,8 @@ import urllib.parse
 import dcos.errors
 import dcos.http
 import shakedown
+import sdk_utils
+
 
 log = logging.getLogger(__name__)
 
@@ -59,12 +62,13 @@ def cluster_request(
                            Disabling this effectively implies `retry=False` where HTTP status is concerned.
     :param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
     :param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
-    :param kwargs: Additional arguments to requests.request(), such as `json={"example": "content"}` or `params={"example": "param"}`.
+    :param kwargs: Additional arguments to requests.request(), such as `json={"example": "content"}`
+                   or `params={"example": "param"}`.
     :rtype: requests.Response
     """
 
     url = shakedown.dcos_url_path(cluster_path)
-    cluster_path = '/' + cluster_path.lstrip('/') # consistently include slash prefix for clearer logging below
+    cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
 
     def fn():
         # Underlying dcos.http.request will wrap responses in custom exceptions. This messes with
@@ -72,7 +76,7 @@ def cluster_request(
         try:
             response = dcos.http.request(method, url, verify=verify, **kwargs)
         except dcos.errors.DCOSHTTPException as e:
-             # DCOSAuthenticationException, DCOSAuthorizationException, DCOSBadRequest, DCOSHTTPException
+            # DCOSAuthenticationException, DCOSAuthorizationException, DCOSBadRequest, DCOSHTTPException
             response = e.response
         except dcos.errors.DCOSUnprocessableException as e:
             # unlike the the above, this directly extends DCOSHTTPException
@@ -114,7 +118,7 @@ def svc_cli(package_name, service_name, service_cmd, json=False, print_output=Tr
         return run_cli(full_cmd, print_output=print_output, return_stderr_in_stdout=return_stderr_in_stdout)
     else:
         # TODO(elezar): We shouldn't use json=True and return_stderr_in_stdout=True together
-        # assert not return_stderr_in_stdout, json=True and return_stderr_in_stdout=True together should not be used together
+        # assert not return_stderr_in_stdout, json=True and return_stderr_in_stdout=True should not be used together
         return get_json_output(full_cmd, print_output=print_output)
 
 
@@ -225,9 +229,10 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     fn()
 
     log.info('Waiting for agent {} to appear unresponsive'.format(agent_ip))
+
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=300*1000, # 5 minutes
+        stop_max_delay=300*1000,  # 5 minutes
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
         status, stdout = shakedown.run_command_on_agent(agent_ip, 'ls')
@@ -244,7 +249,17 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
-    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=cmd)
+
+    if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
+        full_cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
+
+        if cmd.startswith("./bootstrap"):
+            # On 1.9 we need to set LIB_PROCESS_IP for bootstrap
+            full_cmd = "bash -c \"LIBPROCESS_IP=0.0.0.0 {}\"".format(full_cmd)
+    else:
+        full_cmd = cmd
+
+    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=full_cmd)
     rc, stdout, stderr = run_raw_cli(exec_cmd)
 
     if return_stderr_in_stdout:
@@ -266,3 +281,41 @@ def get_json_output(cmd, print_output=True):
         raise e
 
     return json_stdout
+
+
+def get_task_sandbox_path(task_name: str) -> str:
+    task_info = get_task_info(task_name)
+
+    if task_info:
+
+        executor_path = task_info["executor_id"]
+        if not executor_path:
+            executor_path = task_info["id"]
+        # Assume the latest run:
+        return os.path.join("/var/lib/mesos/slave/slaves", task_info["slave_id"],
+                            "frameworks", task_info["framework_id"],
+                            "executors", executor_path,
+                            "runs/latest")
+
+    return ""
+
+
+@retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
+def get_task_info(task_name: str) -> dict:
+    """
+    :return (dict): Get the task information for the specified task
+    """
+    log.info("Getting task information")
+    raw_tasks = run_cli("task {task_name} --json".format(task_name=task_name))
+    if raw_tasks:
+        tasks = jsonlib.loads(raw_tasks)
+        for task in tasks:
+            if task["name"] == task_name:
+                log.info("Matched on 'name'")
+                return task
+            if task.get("id", None) == task_name:
+                log.info("Matched on 'id'")
+                return task
+
+    log.error("Task %s not found.\nFound: %s", task_name, raw_tasks)
+    return {}
