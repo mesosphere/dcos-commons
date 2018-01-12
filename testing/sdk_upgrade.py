@@ -217,7 +217,13 @@ def _get_pkg_version(package_name):
         log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         return None
     try:
-        return json.loads(stdout)['package']['version']
+        describe = json.loads(stdout)
+        # New location (either 1.10+ or 1.11+):
+        version = describe.get('package', {}).get('version', None)
+        if version is None:
+            # Old location (until 1.9 or until 1.10):
+            version = describe['version']
+        return version
     except:
         log.warning('Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         log.warning(traceback.format_exc())
