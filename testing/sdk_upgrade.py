@@ -287,7 +287,7 @@ def _upgrade_or_downgrade(
 
 
 @retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=5000)
+                wait_fixed=30000)
 def _get_pkg_version(package_name):
     return re.search(
         r'"version": "(\S+)"',
