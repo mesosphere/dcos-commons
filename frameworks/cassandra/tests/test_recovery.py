@@ -1,3 +1,4 @@
+import json
 import logging
 import retrying
 import tempfile
@@ -69,25 +70,28 @@ def test_shutdown_host():
     scheduler_ip = shakedown.get_service_ips('marathon', config.SERVICE_NAME).pop()
     log.info('marathon ip = {}'.format(scheduler_ip))
 
-    node_ip = None
-    pod_name = None
+    pods = {}
     for pod_id in range(0, config.DEFAULT_TASK_COUNT):
         pod_name = 'node-{}'.format(pod_id)
         pod_host = get_pod_host(pod_name)
-        if pod_host != scheduler_ip:
-            node_ip = pod_host
+        pod_agent = get_pod_agent(pod_name)
+        pod = {'name': pod_name, 'host': pod_host, 'agent': pod_agent}
+        pods[pod_name] = pod
+
+    log.info(json.dumps(pods))
+
+    replace_pod = None
+    for key, value in pods.items():
+        if value['host'] != scheduler_ip:
+            replace_pod = value
+            log.info('found node avoiding scheduler: {}'.format(key))
             break
 
-    assert node_ip is not None, 'Could not find a node to shut down'
-
-    old_agent = get_pod_agent(pod_name)
-    log.info('pod name = {}, node_ip = {}, agent = {}'.format(pod_name, node_ip, old_agent))
-
-    task_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+    assert replace_pod is not None, 'Could not find a node to shut down'
 
     # instead of partitioning or reconnecting, we shut down the host permanently
-    status, stdout = shakedown.run_command_on_agent(node_ip, 'sudo shutdown -h +1')
-    log.info('shutdown agent {}: [{}] {}'.format(node_ip, status, stdout))
+    status, stdout = shakedown.run_command_on_agent(replace_pod['host'], 'sudo shutdown -h +1')
+    log.info('shutdown agent {}: [{}] {}'.format(replace_pod['host'], status, stdout))
 
     assert status is True
 
@@ -97,13 +101,13 @@ def test_shutdown_host():
         stop_max_delay=300*1000, # 5 minutes
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
-        status, stdout = shakedown.run_command_on_agent(node_ip, 'ls')
+        status, stdout = shakedown.run_command_on_agent(replace_pod['host'], 'ls')
         log.info('ls: stdout: {}'.format(stdout))
         return status
 
     wait_for_unresponsive_agent()
 
-    cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_name))
+    cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod['name']))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
