@@ -225,8 +225,11 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
         ok, stdout = shakedown.run_command_on_agent(agent_ip, 'sudo shutdown -h +1')
         log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(agent_ip, ok, stdout))
         return ok
-    # might not be able to connect to the agent on first try so we repeat until we can
+    # Might not be able to connect to the agent on first try so we repeat until we can
     fn()
+
+    # We use a manual check to detect that the host is down. Mesos takes ~5-20 minutes to detect a
+    # dead agent, so relying on Mesos to tell us this isn't really feasible for a test.
 
     log.info('Waiting for agent {} to appear unresponsive'.format(agent_ip))
     log.info('Paramiko errors below are expected.')
