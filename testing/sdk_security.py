@@ -66,7 +66,7 @@ def _grant(user: str, acl: str, description: str, action: str="create") -> None:
         create_endpoint, r.status_code, r.text)
 
 
-def _revoke(dcosurl: str, headers: dict, user: str, acl: str, description: str, action: str="create") -> None:
+def _revoke(user: str, acl: str, description: str, action: str="create") -> None:
     # TODO(kwood): INFINITY-2065 - implement security cleanup
     log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
 
@@ -134,15 +134,15 @@ def grant_permissions(linux_user: str, role_name: str, service_account_name: str
     log.info("Granting permissions to {account}".format(account=service_account_name))
     permissions = get_permissions(service_account_name, role_name, linux_user)
     for permission in permissions:
-        _grant(dcosurl, headers, **permission)
+        _grant(**permission)
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
 
 def revoke_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
-    log.info("Revoking permissions to {account}".format(account=service_account_nae))
+    log.info("Revoking permissions to {account}".format(account=service_account_name))
     permissions = get_permissions(service_account_name, role_name, linux_user)
     for permission in permissions:
-        _revoke(dcosurl, headers, **permission)
+        _revoke(**permission)
     log.info("Permission cleanup completed for {account}".format(account=service_account_name))
 
 
