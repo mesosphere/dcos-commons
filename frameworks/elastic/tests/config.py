@@ -17,6 +17,11 @@ SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
 
+# sum of default pod counts, with one task each:
+# - master: 3
+# - data: 2
+# - ingest: 0
+# - coordinator: 1
 DEFAULT_TASK_COUNT = 6
 # TODO: add and use throughout a method to determine expected task count based on options .
 #       the method should provide for use cases:
