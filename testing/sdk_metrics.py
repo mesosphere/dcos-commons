@@ -13,7 +13,6 @@ import logging
 import retrying
 import shakedown
 
-import sdk_api
 import sdk_cmd
 
 log = logging.getLogger(__name__)
@@ -23,15 +22,7 @@ def get_scheduler_metrics(service_name, timeout_seconds=15*60):
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
-        retry_on_result=lambda res: not res)
-    def fn():
-        output = sdk_api.get(service_name, '/v1/metrics')
-        output.raise_for_status()
-        return output.json()
-    return fn()
+    return sdk_cmd.service_request('GET', service_name, '/v1/metrics').json()
 
 
 def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
@@ -110,12 +101,8 @@ def get_metrics(package_name, service_name, task_name):
 
     # Not related to functionality but consuming this
     # endpoint to verify downstream integrity
-    containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
-    containers_response = sdk_cmd.request("GET", containers_url, retry=False)
-    if containers_response.ok is None:
-        log.info("Unable to fetch containers list")
-        raise Exception(
-            "Unable to fetch containers list: {}".format(containers_url))
+    containers_response = sdk_cmd.cluster_request(
+        "GET", "/system/v1/agent/{}/metrics/v0/containers".format(agent_id), retry=False)
     reported_container_ids = json.loads(containers_response.text)
 
     container_id_reported = False
@@ -127,12 +114,8 @@ def get_metrics(package_name, service_name, task_name):
         raise ValueError("The metrics /container endpoint returned {}, expecting {} to be returned as well".format(
             reported_container_ids, task_container_id))
 
-    app_url = "{}/system/v1/agent/{}/metrics/v0/containers/{}/app".format(
-        shakedown.dcos_url(), agent_id, task_container_id)
-    app_response = sdk_cmd.request("GET", app_url, retry=False)
-    if app_response.ok is None:
-        raise ValueError("Failed to get metrics from container")
-
+    app_response = sdk_cmd.cluster_request(
+        "GET", "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(agent_id, task_container_id), retry=False)
     app_json = json.loads(app_response.text)
     if app_json['dimensions']['executor_id'] == executor_id:
         return app_json['datapoints']

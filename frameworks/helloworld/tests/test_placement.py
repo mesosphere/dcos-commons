@@ -2,7 +2,6 @@ import json
 import logging
 
 import pytest
-import sdk_api
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -56,7 +55,7 @@ def test_region_zone_injection():
 
 
 def fault_domain_vars_are_present(pod_instance):
-    info = sdk_api.get(config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
+    info = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
     variables = info['command']['environment']['variables']
     region = next((var for var in variables if var['name'] == 'REGION'), ['NO_REGION'])
     zone = next((var for var in variables if var['name'] == 'ZONE'), ['NO_ZONE'])
