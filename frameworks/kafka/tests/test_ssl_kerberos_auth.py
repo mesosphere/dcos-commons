@@ -187,7 +187,7 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server):
+def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
@@ -201,9 +201,9 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    assert write_to_topic("client", client_id, topic_name, message)
+    assert write_to_topic("client", client_id, topic_name, message, kerberos)
 
-    assert message in read_from_topic("client", client_id, topic_name, 1)
+    assert message in read_from_topic("client", client_id, topic_name, 1, kerberos)
 
 
 def get_client_properties(cn: str) -> str:
@@ -214,15 +214,15 @@ def get_client_properties(cn: str) -> str:
     return client_properties_lines
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
+def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                get_client_properties(cn),
-                               environment=auth.setup_env(cn, task))
+                               environment=auth.setup_krb5_env(cn, task, krb5))
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
+def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
 
     return auth.read_from_topic(cn, task, topic, messages,
                                 get_client_properties(cn),
-                                environment=auth.setup_env(cn, task))
+                                environment=auth.setup_krb5_env(cn, task, krb5))
