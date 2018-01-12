@@ -217,11 +217,6 @@ class UniversePackageBuilder(object):
             object_pairs_hook=collections.OrderedDict)
         package_json['releaseVersion'] = 0
 
-        command_json = package_files.get(_command_json_filename)
-        if command_json is not None:
-            package_json['command'] = json.loads(
-                command_json, object_pairs_hook=collections.OrderedDict)
-
         config_json = package_files.get(_config_json_filename)
         if config_json is not None:
             package_json['config'] = json.loads(
