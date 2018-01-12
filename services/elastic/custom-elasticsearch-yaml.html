@@ -1,6 +1,6 @@
 <p>Many Elasticsearch options are exposed via the package configuration in <code class="highlighter-rouge">config.json</code>, but there may be times when you need to add something custom to the <code class="highlighter-rouge">elasticsearch.yml</code> file. For instance, if you have written a custom plugin that requires special configuration, you must specify this block of YAML for the Elastic service to use.</p>
 
-<p>Add your custom YAML at install time. In the DC/OS UI, click <strong>Configure</strong>. In the left navigation bar, click <code class="highlighter-rouge">elasticsearch</code> and find the field for specifying custom elasticsearch YAML. You must base64 encode your block of YAML and enter this string into the field.</p>
+<p>Add your custom YAML when installing or updating the Elastic service. In the DC/OS UI, click <strong>Configure</strong>. In the left navigation bar, click <code class="highlighter-rouge">elasticsearch</code> and find the field for specifying custom elasticsearch YAML. You must base64 encode your block of YAML and enter this string into the field.</p>
 
 <p>You can do this base64 encoding as part of your automated workflow, or you can do it manually with an <a href="https://www.base64encode.org">online converter</a>.</p>
 
