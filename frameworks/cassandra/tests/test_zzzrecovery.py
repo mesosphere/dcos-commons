@@ -66,7 +66,7 @@ def test_node_replace_replaces_node():
 @pytest.mark.sanity
 def test_shutdown_host():
     # Print a dump of current tasks in the cluster (and what agents they're on)
-    sdk_cmd.run_cli('dcos task')
+    sdk_cmd.run_cli('task')
 
     replace_pod = get_pod_to_replace()
     assert replace_pod is not None, 'Could not find a node to shut down'
@@ -79,17 +79,17 @@ def test_shutdown_host():
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
 
     # Another dump of current cluster tasks, now that repair has started.
-    sdk_cmd.run_cli('dcos task')
+    sdk_cmd.run_cli('task')
 
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
     # One last task dump for good measure.
-    sdk_cmd.run_cli('dcos task')
+    sdk_cmd.run_cli('task')
 
     new_agent = get_pod_agent(replace_pod['name'])
-    log.info('Checking that the original pod has moved to a new agent. '
-             'old_pod={}, new_agent={}'.format(replace_pod, new_agent))
+    log.info('Checking that the original pod has moved to a new agent:\n'
+             'old_pod={}\nnew_agent={}'.format(replace_pod, new_agent))
     assert replace_pod['agent'] != new_agent
 
 
@@ -110,7 +110,7 @@ def get_pod_to_replace():
             'name': pod_name,
             'host': get_pod_host(pod_name),
             'agent': get_pod_agent(pod_name)}
-    log.info('Pods:\n{}'.format(pprint.pprint(pods)))
+    log.info('Pods:\n{}'.format(pprint.pformat(pods)))
 
     replace_pod = None
     for key, value in pods.items():
