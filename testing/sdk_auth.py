@@ -272,7 +272,7 @@ class KerberosEnvironment:
             return None
 
         log.info("Deleting any previous keytab just in case (kadmin will append to it)")
-        sdk_tasks.task_exec(self.task_id, "rm {}".format(name))
+        sdk_cmd.task_exec(self.task_id, "rm {}".format(name))
 
         kadmin_options = ["-l"]
         kadmin_cmd = "ext"
@@ -286,6 +286,7 @@ class KerberosEnvironment:
                                             "executors", self.task_id,
                                             "runs/latest", name)
         return keytab_absolute_path
+
 
     @retrying.retry(stop_max_attempt_number=6, wait_fixed=60000)
     def get_keytab_for_principals(self, principals: list, output_filename: str):
