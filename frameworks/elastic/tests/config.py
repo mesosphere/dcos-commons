@@ -1,6 +1,5 @@
 import json
 import logging
-from functools import wraps
 
 import retrying
 import shakedown
@@ -18,6 +17,11 @@ SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
 
+# sum of default pod counts, with one task each:
+# - master: 3
+# - data: 2
+# - ingest: 0
+# - coordinator: 1
 DEFAULT_TASK_COUNT = 6
 # TODO: add and use throughout a method to determine expected task count based on options .
 #       the method should provide for use cases:
@@ -230,7 +234,7 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
     if json_data:
         curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
     task_name = "master-0-node"
-    exit_code, stdout, stderr = sdk_tasks.task_exec(task_name, curl_cmd)
+    exit_code, stdout, stderr = sdk_cmd.task_exec(task_name, curl_cmd)
 
     def build_errmsg(msg):
         return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)

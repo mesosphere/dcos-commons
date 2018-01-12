@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 
@@ -39,7 +38,7 @@ public class TaskCleaner {
     }
 
     private void killUnexpectedTask(Protos.TaskStatus taskStatus) {
-        if (TaskUtils.isTerminal(taskStatus)) {
+        if (!shouldBeKilled(taskStatus)) {
             return;
         }
 
@@ -49,6 +48,19 @@ public class TaskCleaner {
 
         if (!expectedTaskIds.contains(taskStatus.getTaskId())) {
             taskKiller.killTask(taskStatus.getTaskId());
+        }
+    }
+
+    private boolean shouldBeKilled(Protos.TaskStatus taskStatus) {
+        switch (taskStatus.getState()) {
+            case TASK_RUNNING:
+            case TASK_STAGING:
+            case TASK_STARTING:
+                return true;
+            default:
+                // Being extra careful here.  If you're not sure how to handle a status, err
+                // on the side of not killing it.
+                return false;
         }
     }
 }

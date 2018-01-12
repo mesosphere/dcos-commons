@@ -16,6 +16,11 @@ pods:
           path: "hello-container-path"
           type: ROOT
           size: {{HELLO_DISK}}
+        readiness-check:
+          cmd: grep -s hello-$POD_INSTANCE_INDEX hello-container-path/*
+          interval: 5
+          delay: 0
+          timeout: 10
   world:
     count: {{WORLD_COUNT}}
     placement: '{{{WORLD_PLACEMENT}}}'

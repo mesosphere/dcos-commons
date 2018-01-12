@@ -1,7 +1,7 @@
-import sdk_tasks
+import sdk_cmd
 
 def cmd(pod_name, command):
-    return sdk_tasks.task_exec(
+    return sdk_cmd.task_exec(
         '{}-server'.format(pod_name),
         "bash -c 'JAVA_HOME=$(ls -d jre*/) apache-cassandra-*/bin/nodetool {}'".format(command))
 

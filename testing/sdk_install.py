@@ -14,7 +14,7 @@ import dcos.errors
 import dcos.marathon
 import dcos.packagemanager
 import dcos.subcommand
-from retrying import retry
+import retrying
 import shakedown
 
 import sdk_cmd
@@ -27,7 +27,8 @@ log = logging.getLogger(__name__)
 TIMEOUT_SECONDS = 15 * 60
 
 
-@retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
+@retrying.retry(stop_max_attempt_number=3,
+                retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
 def _retried_install_impl(
         package_name,
         service_name,
@@ -120,7 +121,9 @@ def install(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
 
-@retry(stop_max_attempt_number=5, wait_fixed=5000, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=5000,
+                retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
 def uninstall(
         package_name,
         service_name,

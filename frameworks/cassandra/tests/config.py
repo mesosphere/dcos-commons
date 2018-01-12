@@ -73,6 +73,7 @@ def _get_test_job(name, commands, node_address, node_port, restart_policy='ON_FA
             'docker': {'image': 'cassandra:3.0.13'},
             'cpus': 1,
             'mem': 512,
+            'disk': 100,
             'user': 'nobody',
             'restart': {'policy': restart_policy}
         }
