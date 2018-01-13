@@ -256,7 +256,8 @@ def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: 
             return  # Reached a log index that doesn't exist, exit early
         try:
             content = get_task_log_for_id(task_id, filename)
-        except ConnectionError:
+        except ConnectionError as e:
+            log.error(str(e))
             content = ''
 
         if not content:
