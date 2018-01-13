@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -33,9 +36,6 @@ public class CosmosRenderer {
         RESOURCE_TEMPLATE_PARAMS.put("jre-url", "https://test-url/jre.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("jre-jce-unlimited-url", "https://test-url/jre-jce-unlimited.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("libmesos-bundle-url", "https://test-url/libmesos-bundle.tgz");
-        RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli-darwin", "THIS_IS_A_SHA256");
-        RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli-linux", "THIS_IS_A_SHA256");
-        RESOURCE_TEMPLATE_PARAMS.put("sha256:dcos-service-cli.exe", "THIS_IS_A_SHA256");
     }
 
     /**
@@ -81,9 +81,16 @@ public class CosmosRenderer {
         Map<String, String> resourceParams = new HashMap<>();
         resourceParams.putAll(customBuildTemplateParams);
         resourceParams.putAll(RESOURCE_TEMPLATE_PARAMS);
+        List<TemplateUtils.MissingValue> missingResourceParams = new ArrayList<>();
+        JSONObject resourceJson = new JSONObject(TemplateUtils.renderMustache(
+                "universe/resource.json", readFile("universe/resource.json"), resourceParams, missingResourceParams));
+        // For resource.json, use custom template validation to be permissive of missing "sha256:..." params.
+        // Developers may customize sha256 params to specify a manifest URL when using the default CLI.
+        missingResourceParams = missingResourceParams.stream()
+                .filter(val -> !val.name.startsWith("sha256:"))
+                .collect(Collectors.toList());
         // IF THIS FAILS IN YOUR TEST: Missing something in customBuildTemplateParams? Bad resource.json syntax?
-        JSONObject resourceJson = new JSONObject(TemplateUtils.renderMustacheThrowIfMissing(
-                "universe/resource.json", readFile("universe/resource.json"), resourceParams));
+        TemplateUtils.validateMissingValues("universe/resource.json", resourceParams, missingResourceParams);
         flattenTree("resource", resourceJson, marathonParams);
 
         // Override any of the above with the caller's manually-configured settings, and with the tooling settings.

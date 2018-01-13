@@ -11,11 +11,10 @@ import logging
 import os.path
 import traceback
 
-import dcos
 import retrying
-import sdk_api
+
+import sdk_cmd
 import sdk_utils
-import shakedown
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
@@ -24,40 +23,37 @@ log = logging.getLogger(__name__)
 
 
 def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "deploy", timeout_seconds)
+    return get_plan(service_name, 'deploy', timeout_seconds)
 
 
 def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "recovery", timeout_seconds)
+    return get_plan(service_name, 'recovery', timeout_seconds)
 
 
 def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
-        retry_on_result=lambda res: not res)
-    def wait_for_plans():
-        output = sdk_api.get(service_name, '/v1/plans')
-        return output.json()
-
-    return wait_for_plans()
+    return sdk_cmd.service_request('GET', service_name, '/v1/plans').json()
 
 
 def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS):
+    # We need to DIY error handling/retry because the query will return 417 if the plan has errors.
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
-        retry_on_result=lambda res: not res)
+        stop_max_delay=timeout_seconds*1000)
     def wait_for_plan():
-        output = sdk_api.get(service_name, '/v1/plans/{}'.format(plan))
-        return output.json()
+        response = sdk_cmd.service_request(
+            'GET', service_name, '/v1/plans/{}'.format(plan),
+            raise_on_error=False)
+        if response.status_code == 417:
+            return response # avoid throwing, return plan with errors
+        response.raise_for_status()
+        return response
 
-    return wait_for_plan()
+    return wait_for_plan().json()
 
 
 def start_plan(service_name, plan, parameters=None):
-    return dcos.http.post(
-        "{}/v1/plans/{}/start".format(shakedown.dcos_service_url(service_name), plan),
+    sdk_cmd.service_request(
+        'POST', service_name, '/v1/plans/{}/start'.format(plan),
         json=parameters if parameters is not None else {})
 
 
@@ -118,7 +114,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
-        log.info('Waiting for {} plan to have {} status:\nFound:\n{}'.format(
+        log.info('Waiting for {} plan to have {} status:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
         if plan and plan['status'] in statuses:
             return plan

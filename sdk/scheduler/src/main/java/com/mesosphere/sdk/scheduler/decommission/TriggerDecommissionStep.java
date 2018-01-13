@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.decommission;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallStep;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -35,7 +34,7 @@ public class TriggerDecommissionStep extends UninstallStep {
         LOGGER.info("Marking task for decommissioning: {}", taskInfo.getName());
         setStatus(Status.IN_PROGRESS);
         stateStore.storeGoalOverrideStatus(taskInfo.getName(), DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+        taskKiller.killTask(taskInfo.getTaskId());
         setStatus(Status.COMPLETE);
         return getPodInstanceRequirement();
     }

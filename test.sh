@@ -19,14 +19,15 @@ pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
-aws_credentials_path="${HOME}/.aws"
+aws_credentials_file="${HOME}/.aws/credentials"
 aws_profile="default"
 DCOS_ENTERPRISE=true
-interactive=
+interactive=false
+headless=false
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--headless] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
@@ -35,10 +36,11 @@ function usage()
     echo "-p PATH to cluster SSH key [default ${ssh_path}]"
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "--interactive start a docker container in interactive mode"
+    echo "--headless leave STDIN available (mutually exclusive with --interactive)"
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
-    echo "--aws|a PATH where aws credentials file can be found [default ${aws_credentials_path}]"
-    echo "        (AWS credentials must exist in this file)"
+    echo "--aws|a PATH to an AWS credentials file [default ${aws_credentials_file}]"
+    echo "        (AWS credentials must be present in this file)"
     echo "Azure tests will run if these variables are set:"
     echo "      \$AZURE_CLIENT_ID"
     echo "      \$AZURE_CLIENT_SECRET"
@@ -101,8 +103,11 @@ case $key in
     -i|--interactive)
     interactive="true"
     ;;
+    --headless)
+    headless="true"
+    ;;
     -a|--aws)
-    aws_credentials_path="$2"
+    aws_credentials_file="$2"
     shift # past argument
     ;;
     --aws-profile)
@@ -127,15 +132,14 @@ if [ ! -f "$ssh_path" ]; then
 fi
 
 
-if [ ! -f "${aws_credentials_path}/credentials" ]; then
-    echo "The required AWS credentials file ${aws_credentials_path}/credentials was not found"
+if [ ! -f "${aws_credentials_file}" ]; then
+    echo "The required AWS credentials file ${aws_credentials_file} was not found"
     echo "Try running 'maws' to log in"
     exit 1
 else
-    CREDENTIALS_FILE=${aws_credentials_path}/credentials
-    PROFILES=$( grep -oE "^\[\S+\]" $CREDENTIALS_FILE )
-    if [ $( echo "$PROFILES" | grep [${aws_profile}]) != "[${aws_profile}]" ]; then
-        echo "The specified profile (${aws_profile}) was not found in the file $CREDENTIALS_FILE"
+    PROFILES=$( grep -oE "^\[\S+\]" $aws_credentials_file )
+    if [ "$( echo "$PROFILES" | grep "\[${aws_profile}\]" )" != "[${aws_profile}]" ]; then
+        echo "The specified profile (${aws_profile}) was not found in the file $aws_credentials_file"
 
         if [ $( echo "$PROFILES" | wc -l ) == "1" ]; then
             PROFILES="${PROFILES/#[/}"
@@ -152,8 +156,23 @@ else
 fi
 
 echo "interactive=$interactive"
+echo "headless=$headless"
 echo "security=$security"
-if [ -z $interactive ]; then
+
+# Some automation contexts (e.g. Jenkins) will be unhappy
+# if STDIN is not available. The --headless command accomodates
+# such contexts.
+if [ "$headless" = true ]; then
+    if [ "$interactive" = true ]; then
+        echo "Both --headless and -i|--interactive cannot be used at the same time."
+        exit 1
+    fi
+    DOCKER_INTERACTIVE_FLAGS=""
+else
+    DOCKER_INTERACTIVE_FLAGS="-i"
+fi
+
+if [ "$interactive" = false ]; then
     if [ -z "$CLUSTER_URL" ]; then
         echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
         exit 1
@@ -201,7 +220,7 @@ fi
 
 
 docker run --rm \
-    -v ${aws_credentials_path}:/root/.aws:ro \
+    -v ${aws_credentials_file}:/root/.aws/credentials:ro \
     -e AWS_PROFILE="${aws_profile}" \
     -e DCOS_ENTERPRISE="$DCOS_ENTERPRISE" \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
@@ -217,6 +236,6 @@ docker run --rm \
     -v $ssh_path:/ssh/key \
     -w /build \
     -t \
-    -i \
+    $DOCKER_INTERACTIVE_FLAGS \
     mesosphere/dcos-commons:latest \
     $DOCKER_COMMAND

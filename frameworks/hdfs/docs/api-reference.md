@@ -1,7 +1,10 @@
 ---
-post_title: API Reference
-menu_order: 70
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: API Reference
+menuWeight: 70
+
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
@@ -750,6 +753,20 @@ $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/p
 ```
 
 If the operation succeeds a `200 OK` is returned.
+
+## Pause a Node
+
+The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.
+
+CLI example
+```
+dcos beta-hdfs debug pod pause <node-id>
+```
+
+HTTP Example
+```bash
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/hdfs/v1/pod/<node-id>/pause
+```
 
 # Configuration API
 

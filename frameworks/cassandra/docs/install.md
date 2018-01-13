@@ -1,8 +1,10 @@
 ---
-post_title: Installing and Customizing
-menu_order: 20
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+title: Installing and Customizing
+menuWeight: 20
+excerpt:
+
 ---
 
 The default DC/OS Apache Cassandra installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depending on the context of the deployment.

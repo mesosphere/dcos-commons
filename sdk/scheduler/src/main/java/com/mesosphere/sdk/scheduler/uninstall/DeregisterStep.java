@@ -12,24 +12,17 @@ import java.util.Optional;
  */
 public class DeregisterStep extends UninstallStep {
 
-    private SchedulerDriver schedulerDriver;
+    private SchedulerDriver driver;
     private StateStore stateStore;
 
     /**
      * Creates a new instance with initial {@code status}. The {@link SchedulerDriver} must be
      * set separately.
      */
-    DeregisterStep(StateStore stateStore) {
+    DeregisterStep(StateStore stateStore, SchedulerDriver driver) {
         super("deregister", Status.PENDING);
         this.stateStore = stateStore;
-    }
-
-    /**
-     *
-     * @param schedulerDriver Must be set before call to {@link #start()}
-     */
-    void setSchedulerDriver(SchedulerDriver schedulerDriver) {
-        this.schedulerDriver = schedulerDriver;
+        this.driver = driver;
     }
 
     @Override
@@ -40,7 +33,7 @@ public class DeregisterStep extends UninstallStep {
         // Unregisters the framework in addition to stopping the SchedulerDriver thread:
         // Calling with failover == false causes Mesos to teardown the framework.
         // This call will cause DefaultService's schedulerDriver.run() call to return DRIVER_STOPPED.
-        schedulerDriver.stop(false);
+        driver.stop(false);
         logger.info("Deleting service root path for framework...");
         stateStore.clearAllData();
         logger.info("### UNINSTALL IS COMPLETE! ###");

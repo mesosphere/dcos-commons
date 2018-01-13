@@ -1,8 +1,10 @@
 ---
-post_title: Node Settings
-menu_order: 27
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+title: Node Settings
+menuWeight: 27
+excerpt:
+
 ---
 
 Adjust the following settings to customize the amount of resources allocated to each  node. DC/OS Apache Cassandra's [system requirements](http://cassandra.apache.org/doc/latest/operating/hardware.html) must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.
@@ -89,6 +91,15 @@ Placement constraints allow you to customize where Apache Cassandra nodes are de
 
 *   **In DC/OS CLI options.json**: `placement_constraint`: string (default: `""`)
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
+
+## Regions and Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
+```
+[["@zone", "GROUP_BY", "3"]]
+```
+
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
 ## Rack-Aware Placement
 

@@ -1,7 +1,10 @@
 ---
-post_title: API Reference
-menu_order: 70
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: API Reference
+menuWeight: 70
+
 ---
 
 The DC/OS Apache Cassandra Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Apache Cassandra Service is deployed.
@@ -114,6 +117,20 @@ $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra
 ```
 
 If the operation succeeds a `200 OK` is returned.
+
+## Pause a Node
+
+The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.
+
+CLI example
+```
+dcos beta-cassandra debug pod pause <node-id>
+```
+
+HTTP Example
+```bash
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/cassandra/v1/pod/<node-id>/pause
+```
 
 # Configuration API
 

@@ -15,10 +15,8 @@ import (
 	"strings"
 	"time"
 
-	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
 	"github.com/aryann/difflib"
-	"github.com/gabrielhartmann/mustache"
-
+	"github.com/cbroglie/mustache"
 	"github.com/dcos/dcos-cni/pkg/mesos"
 )
 
@@ -216,11 +214,11 @@ func verifySelfResolution(podIP string, resolveTimeout time.Duration) {
 	taskHost, err := parseTaskHost()
 	if err != nil {
 		printEnv()
-		log.Printf("Missing required envvars to build task DNS address. " +
+		log.Fatalf("Missing required envvars to build task DNS address. " +
 			"Ensure that TASK_NAME and FRAMEWORK_HOST are both set or " +
 			"disable self resolution with --self-resolve=false")
 	}
-	log.Printf("Verifying that %s resolves to %s", taskHost, podIP)
+	log.Printf("Waiting for %s to resolve to %s", taskHost, podIP)
 
 	var timer *time.Timer
 	if resolveTimeout == 0 {
@@ -294,15 +292,20 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 }
 
 func renderTemplate(origContent string, outPath string, envMap map[string]string, source string) {
-	dirpath, _ := path.Split(outPath)
-	template, err := mustache.ParseStringPartialsRawInDir(origContent, dirpath, nil, false)
-	if err != nil {
-		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, outPath, err)
+	// Env preprocessing: map "false", "False", etc to a false bool, so that it's treated as 'falsy'.
+	varMap := make(map[string]interface{})
+	for k, v := range envMap {
+		if strings.ToLower(v) == "false" {
+			// Pass a bool. We want falsy blocks to be rendered, but we also want 'false' to be passed through for values.
+			varMap[k] = false
+		} else {
+			varMap[k] = v
+		}
 	}
 
-	newContent, err := template.Render(envMap)
+	newContent, err := mustache.Render(origContent, varMap)
 	if err != nil {
-		log.Fatalf("Failed to render template from %s to '%s': %s", source, outPath, err)
+		log.Fatalf("Failed to render template from %s at '%s': %s", source, outPath, err)
 	}
 
 	// Print a nice debuggable diff of the changes before they're written.
@@ -441,14 +444,16 @@ func main() {
 		log.Fatalf("Cannot find the container's IP address: %s", err)
 	}
 
-	err = os.Setenv("LIBPROCESS_IP", podIP)
-	err = os.Setenv("MESOS_CONTAINER_IP", podIP)
+	err = os.Setenv("LIBPROCESS_IP", pod_ip)
 	if err != nil {
 		log.Fatalf("Failed to SET new LIBPROCESS_IP: %s", err)
 	}
+	err = os.Setenv("MESOS_CONTAINER_IP", pod_ip)
+	if err != nil {
+		log.Fatalf("Failed to SET new MESOS_CONTAINER_IP: %s", err)
+	}
 
 	if args.getTaskIP {
-		log.Printf("Printing new task IP: %s", podIP)
 		fmt.Printf("%s", podIP)
 		os.Exit(0)
 	}
@@ -477,6 +482,5 @@ func main() {
 		installDCOSCertIntoJRE()
 	}
 
-	log.Printf("Local IP --> %s", podIP)
 	log.Printf("SDK Bootstrap successful.")
 }

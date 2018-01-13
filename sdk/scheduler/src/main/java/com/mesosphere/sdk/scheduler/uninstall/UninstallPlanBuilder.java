@@ -19,9 +19,8 @@ import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.DefaultTaskKiller;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -30,7 +29,6 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -47,11 +45,6 @@ class UninstallPlanBuilder {
     private static final String TLS_CLEANUP_PHASE = "tls-cleanup";
     private static final String DEREGISTER_PHASE = "deregister-service";
 
-    private final TaskKiller taskKiller;
-
-    private final List<Step> taskKillSteps;
-    private final List<Step> resourceSteps;
-    private final Optional<DeregisterStep> deregisterStep;
     private final Plan plan;
 
     UninstallPlanBuilder(
@@ -59,18 +52,13 @@ class UninstallPlanBuilder {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
+            SchedulerDriver driver,
             Optional<SecretsClient> customSecretsClientForTests) {
-        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
         if (!stateStore.fetchFrameworkId().isPresent()) {
             LOGGER.info("Framework ID is unset. Clearing state data and using an empty completed plan.");
             stateStore.clearAllData();
-
-            // Fill values with stubs, and use an empty COMPLETE plan:
-            taskKillSteps = Collections.emptyList();
-            resourceSteps = Collections.emptyList();
-            deregisterStep = Optional.empty();
             plan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
             return;
         }
@@ -78,9 +66,10 @@ class UninstallPlanBuilder {
         List<Phase> phases = new ArrayList<>();
 
         // First, we kill all the tasks, so that we may release their reserved resources.
-        taskKillSteps = stateStore.fetchTasks().stream()
+        TaskKiller taskKiller = new TaskKiller(driver);
+        List<Step> taskKillSteps = stateStore.fetchTasks().stream()
                 .map(Protos.TaskInfo::getTaskId)
-                .map(taskID -> new TaskKillStep(taskID))
+                .map(taskID -> new TaskKillStep(taskID, taskKiller))
                 .collect(Collectors.toList());
         phases.add(new DefaultPhase(TASK_KILL_PHASE, taskKillSteps, new ParallelStrategy<>(), Collections.emptyList()));
 
@@ -105,11 +94,12 @@ class UninstallPlanBuilder {
                         && taskIdsInErrorState.contains(taskInfo.getTaskId())))
                 .collect(Collectors.toList());
 
-        resourceSteps = ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasksNotFailedAndErrored)).stream()
-                .map(resourceId -> new ResourceCleanupStep(
-                        resourceId,
-                        resourceId.startsWith(Constants.TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING))
-                .collect(Collectors.toList());
+        List<Step> resourceSteps =
+                ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasksNotFailedAndErrored)).stream()
+                        .map(resourceId -> new ResourceCleanupStep(
+                                resourceId,
+                                resourceId.startsWith(Constants.TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING))
+                        .collect(Collectors.toList());
         LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
                 tasksNotFailedAndErrored.size(), allTasks.size(),
                 resourceSteps.stream().filter(step -> step.isComplete()).count(),
@@ -144,10 +134,9 @@ class UninstallPlanBuilder {
 
         // Finally, we unregister the framework from Mesos.
         // We don't have access to the SchedulerDriver yet. That will be set via setSchedulerDriver() below.
-        deregisterStep = Optional.of(new DeregisterStep(stateStore));
         phases.add(new DefaultPhase(
                 DEREGISTER_PHASE,
-                Collections.singletonList(deregisterStep.get()),
+                Collections.singletonList(new DeregisterStep(stateStore, driver)),
                 new SerialStrategy<>(),
                 Collections.emptyList()));
 
@@ -157,29 +146,7 @@ class UninstallPlanBuilder {
     /**
      * Returns the plan to be used for uninstalling the service.
      */
-    Plan getPlan() {
+    Plan build() {
         return plan;
-    }
-
-    /**
-     * Returns the resource unreservation steps for all tasks in the service. Some steps may be already marked as
-     * {@link Status#COMPLETE} when unreservation has already been performed. An empty list may be returned if no known
-     * resources need to be unreserved.
-     */
-    Collection<Step> getResourceSteps() {
-        return resourceSteps;
-    }
-
-    /**
-     * Passes the provided {@link SchedulerDriver} to underlying plan elements.
-     */
-    void registered(SchedulerDriver schedulerDriver) {
-        if (deregisterStep.isPresent()) {
-            deregisterStep.get().setSchedulerDriver(schedulerDriver);
-        }
-        taskKiller.setSchedulerDriver(schedulerDriver);
-        for (Step taskKillStep : taskKillSteps) {
-            ((TaskKillStep) taskKillStep).setTaskKiller(taskKiller);
-        }
     }
 }

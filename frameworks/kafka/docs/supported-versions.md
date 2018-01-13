@@ -1,7 +1,10 @@
 ---
-post_title: Supported Versions
-menu_order: 110
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Supported Versions
+menuWeight: 110
+
 ---
 
 # Support

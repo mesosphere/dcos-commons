@@ -2,7 +2,6 @@ import json
 import logging
 
 import pytest
-import sdk_api
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -46,6 +45,7 @@ def _escape_placement_for_1_9(options: dict) -> dict:
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_region_zone_injection():
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
     assert fault_domain_vars_are_present('hello-0')
@@ -55,7 +55,7 @@ def test_region_zone_injection():
 
 
 def fault_domain_vars_are_present(pod_instance):
-    info = sdk_api.get(config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
+    info = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
     variables = info['command']['environment']['variables']
     region = next((var for var in variables if var['name'] == 'REGION'), ['NO_REGION'])
     zone = next((var for var in variables if var['name'] == 'ZONE'), ['NO_ZONE'])
@@ -66,6 +66,7 @@ def fault_domain_vars_are_present(pod_instance):
 @pytest.mark.dcos_min_version('1.9')
 @pytest.mark.smoke
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_rack_not_found():
     options = _escape_placement_for_1_9({
         "service": {
@@ -114,6 +115,7 @@ def test_rack_not_found():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_unique_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
@@ -132,6 +134,7 @@ def test_unique_zone_fails():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_max_per_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
@@ -150,6 +153,7 @@ def test_max_per_zone_fails():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_max_per_zone_succeeds():
     options = _escape_placement_for_1_9({
         "service": {
@@ -168,6 +172,7 @@ def test_max_per_zone_succeeds():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_group_by_zone_succeeds():
     options = _escape_placement_for_1_9({
         "service": {
@@ -185,6 +190,7 @@ def test_group_by_zone_succeeds():
 
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.sanity
+@sdk_utils.dcos_ee_only
 def test_group_by_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
@@ -250,8 +256,8 @@ def fail_placement(options):
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_hostname_unique():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
         "service": {
             "spec_file": "examples/marathon_constraint.yml"
@@ -271,13 +277,14 @@ def test_hostname_unique():
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
     sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_max_per_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
@@ -300,7 +307,6 @@ def test_max_per_hostname():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_rr_by_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
@@ -323,7 +329,6 @@ def test_rr_by_hostname():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     some_agent = shakedown.get_private_agents().pop()
@@ -387,7 +392,6 @@ def ensure_max_count_per_agent(hello_count, world_count):
     assert_max_count(world_agent_counts, world_count)
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_not_applied_with_other_changes():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
@@ -406,7 +410,6 @@ def test_updated_placement_constraints_not_applied_with_other_changes():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_no_task_change():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
@@ -416,7 +419,6 @@ def test_updated_placement_constraints_no_task_change():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_restarted_tasks_dont_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
@@ -428,7 +430,6 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_updated_placement_constraints_replaced_tasks_do_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 

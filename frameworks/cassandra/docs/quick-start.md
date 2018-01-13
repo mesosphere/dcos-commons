@@ -1,8 +1,10 @@
 ---
-post_title: Quick Start
-menu_order: 40
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+title: Quick Start
+menuWeight: 40
+excerpt:
+
 ---
 
 1. Install DC/OS on your cluster. See [the documentation](https://docs.mesosphere.com/latest/administration/installing/) for instructions.

@@ -1,7 +1,10 @@
 ---
-post_title: API Reference
-menu_order: 70
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: API Reference
+menuWeight: 70
+
 ---
 
 
@@ -125,6 +128,20 @@ $ curl -X PUT -H "Authorization: token=$auth_token" "$dcos_url/service/kafka/v1/
   "pod": "kafka-1",
   "tasks": ["kafka-1-broker"]
 ]
+```
+
+## Pause a Broker
+
+The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.
+
+CLI example
+```
+dcos beta-kafka debug pod pause <node-id>
+```
+
+HTTP Example
+```bash
+$ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/kafka/v1/pod/<node-id>/pause
 ```
 
 # Topic Operations

@@ -1,8 +1,7 @@
-import dcos
 import pytest
+import sdk_cmd
 import sdk_install
 import sdk_plan
-import shakedown
 from tests import config
 
 
@@ -25,10 +24,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_task_dns_prefix_points_to_all_tasks():
-    pod_info = dcos.http.get(
-        shakedown.dcos_service_url(config.SERVICE_NAME) +
-        "/v1/pod/{}/info".format("hello-0")).json()
-
+    pod_info = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/pod/hello-0/info').json()
     # Assert that DiscoveryInfo is correctly set on tasks.
     assert(all(p["info"]["discovery"]["name"] == "hello-0" for p in pod_info))
     # Assert that the hello-0.hello-world.mesos DNS entry points to the right IP.
