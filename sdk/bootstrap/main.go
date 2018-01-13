@@ -444,11 +444,11 @@ func main() {
 		log.Fatalf("Cannot find the container's IP address: %s", err)
 	}
 
-	err = os.Setenv("LIBPROCESS_IP", pod_ip)
+	err = os.Setenv("LIBPROCESS_IP", podIP)
 	if err != nil {
 		log.Fatalf("Failed to SET new LIBPROCESS_IP: %s", err)
 	}
-	err = os.Setenv("MESOS_CONTAINER_IP", pod_ip)
+	err = os.Setenv("MESOS_CONTAINER_IP", podIP)
 	if err != nil {
 		log.Fatalf("Failed to SET new MESOS_CONTAINER_IP: %s", err)
 	}
