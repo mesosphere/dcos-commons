@@ -18,6 +18,16 @@ Afterwards, you can set the update strategy back to `serial` for future updates.
 
 You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don't wish to purchase a license, you can disable it without losing access to your data.
 
+## License Installation
+
+When the cluster starts up for the first time with X-Pack enabled, it will automatically generate a free 
+[Basic license](https://www.elastic.co/subscriptions) for you. 
+
+## License Management
+
+To update the license key for Basic/Gold/Platinum/Enterprise subscriptions, simply use the 
+[License API](https://www.elastic.co/guide/en/x-pack/6.1/installing-license.html).
+
 ## License Expiration
 
 If you uninstall the X-Pack plugin via the service configuration or you let your license expire, remember these two important points:
