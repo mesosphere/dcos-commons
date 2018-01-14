@@ -53,7 +53,10 @@ xpack.security.transport.ssl.enabled: true
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+
+{{#XPACK_ENABLED}}
 xpack.license.self_generated.type: basic
+{{/XPACK_ENABLED}}
 
 {{#SCRIPT_ALLOWED_CONTEXTS}}
 script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}
