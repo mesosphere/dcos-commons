@@ -95,7 +95,7 @@ NATIVE_SHA1SUM=$(shasum $NATIVE_FILENAME | awk '{print $1}')
 
 set_platform_filename() {
     # if only one platform is being built, don't append a suffix:
-    if [ "$(echo $PLATFORMS | wc -w)" == "1" ]; then
+    if [ $(echo $PLATFORMS | wc -w) == "1" ]; then
         PLATFORM_FILENAME=${EXE_BASE_NAME}
         return
     fi

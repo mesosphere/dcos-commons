@@ -35,6 +35,13 @@ public class TaskCleanerTest {
     }
 
     @Test
+    public void ignoreTaskLost() {
+        Protos.TaskStatus taskLost = TestConstants.TASK_STATUS.toBuilder().setState(Protos.TaskState.TASK_LOST).build();
+        taskCleaner.statusUpdate(taskLost);
+        verify(taskKiller, never()).killTask(any());
+    }
+
+    @Test
     public void killTaskEmptyStateStore() {
         taskCleaner.statusUpdate(getNonTerminalStatus());
         verify(taskKiller, times(1)).killTask(any());

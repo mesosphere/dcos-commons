@@ -245,7 +245,7 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     output = sdk_cmd.task_exec(
         task,
-        "curl -L -X POST "
+        "curl --insecure -L -X POST "
         "-H 'Authorization: token={}' "
         "leader.mesos/ca/api/v2/sign "
         "-d '{}'".format(token, json.dumps(request)))
