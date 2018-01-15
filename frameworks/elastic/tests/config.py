@@ -166,17 +166,16 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
         return "No handler found" in response
 
 
-# Returns true if X-Pack Graph endpoint is active. It can be unavailable due
-# to using a basic X-Pack license.
+# The graph endpoint response looks something like:
+# {
+#   "took": 200,
+#   "timed_out": false,
+#   "failures": [],
+#   "vertices": [],
+#   "connections": []
+# }
 def is_graph_endpoint_active(response):
-    if response["error"]:
-        # Using a "basic" X-Pack license doesn't give access to the graph
-        # features, even though its API endpoint is exposed.
-        # https://www.elastic.co/guide/en/elasticsearch/reference/master/license-settings.html
-        return "current license is non-compliant for [graph]" == sdk_utils.get_in(
-            ["error", "reason"], response)
-    else:
-        return response["failures"] == []
+    return isinstance(response["vertices"], list) and isinstance(response["connections"], list)
 
 
 def set_xpack(is_enabled, service_name=SERVICE_NAME):
