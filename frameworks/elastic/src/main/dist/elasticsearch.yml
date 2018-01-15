@@ -55,7 +55,7 @@ xpack.security.http.ssl.client_authentication: none
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
 {{#XPACK_ENABLED}}
-xpack.license.self_generated.type: basic
+xpack.ml.enabled: false
 {{/XPACK_ENABLED}}
 
 {{#SCRIPT_ALLOWED_CONTEXTS}}
