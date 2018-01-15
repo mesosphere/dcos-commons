@@ -3,19 +3,18 @@ import logging
 import pytest
 import uuid
 
-import sdk_auth
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_utils
 
+from tests import active_directory
 from tests import auth
 from tests import config
 from tests import test_utils
 
 
-pytestmark = pytest.mark.skipif('TESTING_ACTIVE_DIRECTORY_SERVER' not in os.environ,
+pytestmark = pytest.mark.skipif(not active_directory.is_active_directory_enabled(),
                                 reason="This test requires TESTING_ACTIVE_DIRECTORY_SERVER to be set")
 
 
@@ -25,33 +24,11 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def kerberos(configure_security):
     try:
-        class ActiveDirectoryKerberos:
-
-            def __init__(self):
-                self.ad_server = os.environ.get('TESTING_ACTIVE_DIRECTORY_SERVER')
-
-            def get_host(self):
-                return self.ad_server
-
-            @staticmethod
-            def get_port():
-                return 88
-
-            @staticmethod
-            def get_realm():
-                return "AD.MESOSPHERE.COM"
-
-            @staticmethod
-            def get_keytab_path():
-                return "__dcos_base64__kafka_ad_keytab"
-
-            def get_kdc_address(self):
-                return ":".join(str(s) for s in [self.get_host(), self.get_port()])
-
-        yield ActiveDirectoryKerberos()
+        kerberos_env = active_directory.ActiveDirectoryKerberos()
+        yield kerberos_env
 
     finally:
-        pass
+        kerberos_env.cleanup()
 
 
 @pytest.fixture(scope='module', autouse=True)
