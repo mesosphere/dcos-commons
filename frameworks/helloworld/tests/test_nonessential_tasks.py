@@ -39,7 +39,7 @@ def test_kill_essential():
     old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
     assert len(old_ids) == 2
 
-    sdk_tasks.kill_task_with_pattern(
+    sdk_cmd.kill_task_with_pattern(
         'shared-volume/essential', # hardcoded in cmd, see yml
         sdk_hosts.system_host(config.SERVICE_NAME, 'hello-0-essential'))
 
@@ -60,7 +60,7 @@ def test_kill_nonessential():
     old_nonessential_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0-nonessential')
     assert len(old_nonessential_ids) == 1
 
-    sdk_tasks.kill_task_with_pattern(
+    sdk_cmd.kill_task_with_pattern(
         'shared-volume/nonessential', # hardcoded in cmd, see yml
         sdk_hosts.system_host(config.SERVICE_NAME, 'hello-0-nonessential'))
 
@@ -96,7 +96,7 @@ def verify_shared_executor(pod_name, expected_files=['essential', 'nonessential'
     if delete_files:
         if sdk_utils.dcos_version_less_than("1.10"):
             # 1.9 just uses the host filesystem in 'task exec', so figure out the absolute volume path manually
-            expected_file_path = sdk_tasks.task_exec(
+            expected_file_path = sdk_cmd.task_exec(
                 task_names[0],
                 'find /var/lib/mesos/slave/volumes -iname ' + filenames[0])[1].strip()
             # volume dir is parent of the expected file path.
@@ -104,4 +104,4 @@ def verify_shared_executor(pod_name, expected_files=['essential', 'nonessential'
         else:
             # 1.10+ works correctly: path is relative to sandbox
             volume_dir = 'shared-volume/'
-        sdk_tasks.task_exec(task_names[0], 'rm ' + ' '.join([os.path.join(volume_dir, name) for name in filenames]))
+        sdk_cmd.task_exec(task_names[0], 'rm ' + ' '.join([os.path.join(volume_dir, name) for name in filenames]))

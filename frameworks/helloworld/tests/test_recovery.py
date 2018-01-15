@@ -1,10 +1,8 @@
 import pytest
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -25,7 +23,7 @@ def configure_package(configure_security):
 def test_kill_hello_node():
     config.check_running()
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
-    sdk_tasks.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
+    sdk_cmd.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
 
     config.check_running()
@@ -209,26 +207,26 @@ def test_pod_replace():
 
 @pytest.mark.recovery
 def test_scheduler_died():
-    sdk_tasks.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.SERVICE_NAME))
+    sdk_cmd.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.SERVICE_NAME))
     config.check_running()
 
 
 @pytest.mark.recovery
 def test_all_executors_killed():
     for host in shakedown.get_service_ips(config.SERVICE_NAME):
-        sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', host)
+        sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', host)
     config.check_running()
 
 
 @pytest.mark.recovery
 def test_master_killed():
-    sdk_tasks.kill_task_with_pattern('mesos-master')
+    sdk_cmd.kill_task_with_pattern('mesos-master')
     config.check_running()
 
 
 @pytest.mark.recovery
 def test_zk_killed():
-    sdk_tasks.kill_task_with_pattern('zookeeper')
+    sdk_cmd.kill_task_with_pattern('zookeeper')
     config.check_running()
 
 
@@ -237,7 +235,7 @@ def test_config_update_then_kill_task_in_node():
     # kill 1 of 2 world tasks
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     config.bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
+    sdk_cmd.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -248,7 +246,7 @@ def test_config_update_then_kill_all_task_in_node():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     hosts = shakedown.get_service_ips(config.SERVICE_NAME)
     config.bump_world_cpus()
-    [sdk_tasks.kill_task_with_pattern('world', h) for h in hosts]
+    [sdk_cmd.kill_task_with_pattern('world', h) for h in hosts]
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -258,7 +256,7 @@ def test_config_update_then_scheduler_died():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     host = sdk_marathon.get_scheduler_host(config.SERVICE_NAME)
     config.bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('helloworld.scheduler.Main', host)
+    sdk_cmd.kill_task_with_pattern('helloworld.scheduler.Main', host)
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -267,7 +265,7 @@ def test_config_update_then_scheduler_died():
 def test_config_update_then_executor_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     config.bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
+    sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -277,7 +275,7 @@ def test_config_updates_then_all_executors_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     hosts = shakedown.get_service_ips(config.SERVICE_NAME)
     config.bump_world_cpus()
-    [sdk_tasks.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
+    [sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -286,7 +284,7 @@ def test_config_updates_then_all_executors_killed():
 def test_config_update_then_master_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     config.bump_world_cpus()
-    sdk_tasks.kill_task_with_pattern('mesos-master')
+    sdk_cmd.kill_task_with_pattern('mesos-master')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -295,6 +293,6 @@ def test_config_update_then_master_killed():
 def test_config_update_then_zk_killed():
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
     config.bump_hello_cpus()
-    sdk_tasks.kill_task_with_pattern('zookeeper')
+    sdk_cmd.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
     config.check_running()

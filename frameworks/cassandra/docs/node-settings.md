@@ -1,8 +1,10 @@
 ---
-post_title: Node Settings
-menu_order: 27
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+title: Node Settings
+menuWeight: 27
+excerpt:
+
 ---
 
 Adjust the following settings to customize the amount of resources allocated to each  node. DC/OS Apache Cassandra's [system requirements](http://cassandra.apache.org/doc/latest/operating/hardware.html) must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.

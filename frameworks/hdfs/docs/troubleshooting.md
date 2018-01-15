@@ -1,7 +1,10 @@
 ---
-post_title: Troubleshooting
-menu_order: 90
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Troubleshooting
+menuWeight: 90
+
 ---
 
 # Replacing a Permanently Failed Node

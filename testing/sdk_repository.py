@@ -10,7 +10,6 @@ import os
 import random
 import string
 
-import shakedown
 import sdk_cmd
 
 log = logging.getLogger(__name__)
@@ -20,12 +19,8 @@ def add_universe_repos():
     log.info('Adding universe repos')
 
     # prepare needed universe repositories
-    stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL', "")
+    stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL', '').split(',')
 
-    return add_stub_universe_urls(stub_universe_urls.split(","))
-
-
-def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     stub_urls = {}
 
     if not stub_universe_urls:
@@ -33,10 +28,9 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
 
     log.info('Adding stub URLs: {}'.format(stub_universe_urls))
     for url in stub_universe_urls:
-        log.info('url: {}'.format(url))
         package_name = 'testpkg-'
-        package_name += ''.join(random.choice(string.ascii_lowercase +
-                                              string.digits) for _ in range(8))
+        package_name += ''.join(
+            random.choice(string.ascii_lowercase + string.digits) for _ in range(8))
         stub_urls[package_name] = url
 
     # clean up any duplicate repositories
@@ -62,13 +56,13 @@ def remove_universe_repos(stub_urls):
     # clear out the added universe repositores at testing end
     for name, url in stub_urls.items():
         log.info('Removing stub URL: {}'.format(url))
-        out, err, rc = shakedown.run_dcos_command('package repo remove {}'.format(name))
-        if err:
-            if err.endswith('is not present in the list'):
+        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo remove {}'.format(name))
+        if rc != 0 or stderr:
+            if stderr.endswith('is not present in the list'):
                 # tried to remove something that wasn't there, move on.
                 pass
             else:
-                raise 'Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(out, err)
+                raise Exception('Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(stdout, stderr))
 
     log.info('Finished removing universe repos')
 

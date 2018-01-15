@@ -1,8 +1,3 @@
-import urllib
-
-import dcos
-import dcos.config
-import dcos.http
 import pytest
 import retrying
 import sdk_cmd

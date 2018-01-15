@@ -1,7 +1,10 @@
 ---
-post_title: Connecting Clients
-menu_order: 50
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Connecting Clients
+menuWeight: 50
+
 ---
 
 # Supported Client Libraries
