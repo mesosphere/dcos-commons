@@ -1,0 +1,13 @@
+./uninstall.md
+./managing.md
+./release-notes.md
+./limitations.md
+./troubleshooting.md
+./quick-start.md
+./install.md
+./supported-versions.md
+./connecting-clients.md
+./index.md
+./upgrade.md
+./reformat-metadata.sh
+./api-reference.md
