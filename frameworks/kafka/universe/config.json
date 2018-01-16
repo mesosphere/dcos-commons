@@ -118,13 +118,11 @@
                       "properties": {
                         "hostname": {
                           "type": "string",
-                          "description": "The name or address of a host running a KDC for the realm.",
-                          "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                          "description": "The name or address of a host running a KDC for the realm."
                         },
                         "port": {
                           "type": "integer",
-                          "description": "The port of the host running a KDC for that realm.",
-                          "default": 2500
+                          "description": "The port of the host running a KDC for that realm."
                         }
                       }
                     },
@@ -135,13 +133,11 @@
                     },
                     "realm": {
                       "type": "string",
-                      "description": "The Kerberos realm used to render the principal of Kafka tasks.",
-                      "default": "LOCAL"
+                      "description": "The Kerberos realm used to render the principal of Kafka tasks."
                     },
                     "keytab_secret": {
                       "type": "string",
-                      "description": "The name of the DC/OS secret storing the keytab",
-                      "default": "__dcos_base64__kafka_keytab"
+                      "description": "The name of the DC/OS secret storing the keytab"
                     }
                   }
                 },
@@ -171,7 +167,7 @@
                       "default": false
                     },
                     "super_users": {
-                      "description": "Semi-colon delimited list of principals. For Kerberos principals, these will be of the form User:<Kerberos-Primary>. For TLS, they will be of the form: CN=host1.example.com,OU=,O=Confluent,L=London,ST=London,C=GB",
+                      "description": "Semi-colon delimited list of principals. For Kerberos principals, these will be of the form User:<Kerberos-Primary>. For TLS, they will be of the form User:<CN of TLS cert> (for the TLS cert CN=test-user,OU=,O=Confluent,L=London,ST=London,C=GB, the user would be test-user)",
                       "type": "string",
                       "default": ""
                     },
