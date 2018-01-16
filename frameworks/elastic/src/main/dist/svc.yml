@@ -58,6 +58,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
@@ -125,6 +126,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
@@ -192,6 +194,7 @@ pods:
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
@@ -259,6 +262,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
