@@ -1,9 +1,10 @@
 ---
-post_title: Supported Versions
-nav_title: Supported Versions
-menu_order: 110
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+title: Supported Versions
+navigationTitle: Supported Versions
+menuWeight: 110
+excerpt:
+
 ---
 
 <a name="package-versioning-scheme"></a>

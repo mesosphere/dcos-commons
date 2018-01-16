@@ -1,9 +1,10 @@
 ---
-post_title: Service Settings
-nav_title: Service Settings
-menu_order: 21
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+title: Service Settings
+navigationTitle: Service Settings
+menuWeight: 21
+excerpt:
+
 ---
 
 # Service Name
