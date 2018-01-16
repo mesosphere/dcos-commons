@@ -1,5 +1,9 @@
 ---
-post_title: Kafka
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
+post_title: 
 menu_order: 10
 enterprise: 'no'
 ---
