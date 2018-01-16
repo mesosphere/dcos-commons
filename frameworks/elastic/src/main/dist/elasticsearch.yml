@@ -54,6 +54,8 @@ xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
+# FIXME: Temporarily disabling X-Pack ML module because it looks like our task containers are missing a few system
+# libraries, which breaks the ES init process.
 {{#XPACK_ENABLED}}
 xpack.ml.enabled: false
 {{/XPACK_ENABLED}}
