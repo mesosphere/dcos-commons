@@ -18,6 +18,7 @@ import logging
 import os
 import uuid
 import retrying
+import subprocess
 
 import sdk_cmd
 import sdk_hosts
@@ -208,6 +209,7 @@ class KerberosEnvironment:
             cmd=cmd,
             args=' '.join(args)
         )
+
         log.info("Running kadmin: {}".format(kadmin_cmd))
         rc, stdout, stderr = sdk_cmd.task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
@@ -269,6 +271,9 @@ class KerberosEnvironment:
             log.error("No principals specified not creating keytab")
             return None
 
+        log.info("Deleting any previous keytab just in case (kadmin will append to it)")
+        sdk_cmd.task_exec(self.task_id, "rm {}".format(name))
+
         kadmin_options = ["-l"]
         kadmin_cmd = "ext"
         kadmin_args = ["-k", name]
@@ -282,12 +287,34 @@ class KerberosEnvironment:
                                             "runs/latest", name)
         return keytab_absolute_path
 
+
+    @retrying.retry(stop_max_attempt_number=6, wait_fixed=60000)
     def get_keytab_for_principals(self, principals: list, output_filename: str):
         """
         Download a generated keytab for the specified list of principals
         """
         remote_keytab_path = self.create_remote_keytab(self.keytab_file_name, principals=principals)
         _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, output_filename)
+
+        # In a fun twist, at least in the HDFS tests, we sometimes wind up with a _bad_ keytab. I know, right?
+        # We can validate if it is good or bad by checking it for a certain pattern. That pattern, is when
+        # strings is run against it (remember, strings will show any 4+ consecutive ASCII characters by default)
+        # that some lines will start with ZX.
+        #
+        # See HDFS-493 if you'd like to learn more. Personally, I'd like to forget about this.
+        command = "strings {} | grep ^ZX".format(output_filename)
+        result = subprocess.run(command,
+               shell=True,
+               stdout=subprocess.PIPE,
+               stderr=subprocess.PIPE)
+
+        # Grep exits 0 if there were matches
+        if result.returncode == 0:
+            log.info("There were some matches when checking the keytab for ^ZX: %s", result.stdout)
+            raise Exception("The keytab is bad :(. We're going to retry generating this keytab. What fun.")
+
+        log.info("This keytab is great, and does not contain any weird ZX lines.")
+
 
     def __create_and_fetch_keytab(self):
         """
