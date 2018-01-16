@@ -1,7 +1,10 @@
 ---
-post_title: X-Pack
-menu_order: 21
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: X-Pack
+menuWeight: 21
+
 ---
 
 # Elastic X-Pack

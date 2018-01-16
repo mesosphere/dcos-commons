@@ -1,4 +1,8 @@
 ---
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
 post_title: Uninstall
 menu_order: 30
 enterprise: 'no'

@@ -1,4 +1,8 @@
 ---
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
 post_title: Managing
 menu_order: 60
 enterprise: 'no'

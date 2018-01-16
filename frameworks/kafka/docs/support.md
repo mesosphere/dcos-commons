@@ -1,4 +1,8 @@
 ---
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
 post_title: Supported Versions
 menu_order: 110
 enterprise: 'no'

@@ -1,9 +1,10 @@
 ---
-post_title: Troubleshooting
-nav_title: Troubleshooting
-menu_order: 90
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+title: Troubleshooting
+navigationTitle: Troubleshooting
+menuWeight: 90
+excerpt:
+
 ---
 
 # Accessing Logs

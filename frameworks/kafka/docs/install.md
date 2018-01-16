@@ -1,4 +1,8 @@
 ---
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
 post_title: Install and Customize
 menu_order: 20
 enterprise: 'no'
