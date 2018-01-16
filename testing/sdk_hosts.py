@@ -82,6 +82,7 @@ def resolve_hosts(task_id: str, hosts: list) -> bool:
         '-print-env=false',
         '-template=false',
         '-install-certs=false',
+        '-self-resolve=false',
         '-resolve-hosts', ','.join(hosts)]
     LOG.info("Running bootstrap to wait for DNS resolution of %s\n\t%s", hosts, bootstrap_cmd)
     return_code, bootstrap_stdout, bootstrap_stderr = sdk_cmd.task_exec(task_id, ' '.join(bootstrap_cmd))
