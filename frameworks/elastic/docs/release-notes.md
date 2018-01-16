@@ -7,6 +7,12 @@ menuWeight: 120
 
 ---
 
+## Version 2.1.1-5.6.5
+
+### Improvements
+- Elastic updated to version 5.6.5
+- Kibana updated to version 5.6.5
+
 ## Version 2.1.0-5.6.2
 
 ### New Features
