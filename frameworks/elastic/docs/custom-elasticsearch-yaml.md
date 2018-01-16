@@ -1,7 +1,10 @@
 ---
-post_title: Custom elasticsearch.yml
-menu_order: 22
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Custom elasticsearch.yml
+menuWeight: 22
+
 ---
 
 # Custom YAML
