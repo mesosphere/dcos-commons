@@ -41,6 +41,7 @@ class UniverseReleaseBuilder(object):
         self._beta_release = beta_release.lower() == 'true'
         self._release_universe_repo=os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
         self._release_branch=os.environ.get('RELEASE_BRANCH', 'version-3.x')
+        self._push_release_universe_repo=os.environ.get('PUSH_RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
 
         name_match = re.match('.+/stub-universe-(.+).(zip|json)$', stub_universe_url)
         if not name_match:
@@ -402,6 +403,11 @@ Artifact output: {}
         if self._dry_run:
             # ensure the debug goes to stderr...:
             cmds.append('git show -q HEAD 1>&2')
+        elif self._push_release_universe_repo != self._release_universe_repo:
+            cmds.extend([
+                'git remote add pushrepo https://github.com/{}.git'.format(self._push_release_universe_repo),
+                'git push pushrepo {}'.format(branch)
+            ])
         else:
             cmds.append('git push origin {}'.format(branch))
         ret = os.system(' && '.join(cmds))
@@ -420,10 +426,14 @@ Artifact output: {}
             'User-Agent': 'release_builder.py',
             'Content-Type': 'application/json',
             'Authorization': 'Basic {}'.format(self._enc_github_token)}
+        pr_head = branch
+        if self._push_release_universe_repo != self._release_universe_repo:
+            user, repo = self._push_release_universe_repo.split('/', 1)
+            pr_head = user + ":" + branch
         with open(commitmsg_path) as commitmsg_file:
             payload = {
                 'title': self._pr_title,
-                'head': branch,
+                'head': pr_head,
                 'base': self._release_branch,
                 'body': commitmsg_file.read()}
         conn = http.client.HTTPSConnection('api.github.com')
