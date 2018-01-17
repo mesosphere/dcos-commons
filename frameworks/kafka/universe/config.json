@@ -629,7 +629,7 @@
             "type": "string",
             "title": "log.message.format.version",
             "description": "Specify which version of the log message format will be used, which must align with inter.broker.protocol.version. This is a new setting as of 0.10.0.0, and should be left at 0.9.0 until clients are updated to 0.10.0.x. Similarly it should be left at 0.10.0 until all clients are updated to 0.11.0. This is typically bumped *serially* one broker at a time, *after* all inter-protocol versions are updated. Clients on earlier versions may see a performance penalty if this is increased before they've upgraded. See the latest Kafka documentation for details.",
-            "default": "0.11.0"
+            "default": "1.0"
           },
           "log_cleaner_backoff_ms": {
             "title": "log.cleaner.backoff.ms",
