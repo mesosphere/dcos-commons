@@ -117,6 +117,7 @@ def kerberos(configure_security):
 @sdk_utils.dcos_ee_only
 @pytest.mark.smoke
 @pytest.mark.sanity
+@pytest.mark.skip(reason="HDFS-493")
 def test_health_of_kerberized_hdfs():
     config.check_healthy(service_name=config.FOLDERED_SERVICE_NAME)
 
@@ -142,6 +143,7 @@ def kerberized_hdfs_client(kerberos):
 @sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
+@pytest.mark.skip(reason="HDFS-493")
 def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
     sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["hdfs"])
 
@@ -158,6 +160,7 @@ def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
 @sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
+@pytest.mark.skip(reason="HDFS-493")
 def test_users_have_appropriate_permissions(kerberized_hdfs_client):
     # "hdfs" is a superuser
     sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["hdfs"])
