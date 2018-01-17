@@ -173,99 +173,7 @@ Artifact output: {}
         return pkgdir
 
 
-    def _get_and_update_artifact_urls(self, package_json):
-        '''Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
-        Returns the original urls.
-        '''
-        # we expect the artifacts to share the same directory prefix as the stub universe file itself:
-        original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
-        log.info('Replacing artifact prefix {} with {}'.format(
-            original_artifact_prefix, self._http_directory_url))
-        # find all URLs in resource.json which match the directory of the stub universe file.
-        # update those URLs to point to the new artifact path.
-        orig_content = json.dumps(package_json['resource'], indent=2)
-        original_artifact_urls = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
-        new_content = orig_content.replace(original_artifact_prefix, self._http_directory_url)
-        package_json['resource'] = json.loads(new_content, object_pairs_hook=collections.OrderedDict)
-
-        if self._release_docker_image:
-            # Find the current docker image name in resource.json, update it to the new name:
-            try:
-                docker_dict = package_json['resource']['assets']['container']['docker']
-                assert len(docker_dict) == 1
-                orig_docker_image = list(docker_dict.values())[0]
-                docker_dict[list(docker_dict.keys())[0]] = self._release_docker_image
-            except KeyError:
-                raise Exception('Release to docker specified, but no docker image found in resource.json')
-
-            # Download/reupload docker image to target name:
-            log.info('Downloading docker image {}'.format(orig_docker_image))
-            self._run_cmd('docker pull {}'.format(orig_docker_image))
-            self._run_cmd('docker tag {} {}'.format(orig_docker_image, self._release_docker_image))
-            if self._dry_run:
-                log.info('[DRY RUN] Uploading docker image {}'.format(self._release_docker_image))
-            else:
-                log.info('Uploading docker image {}'.format(self._release_docker_image))
-                self._run_cmd('docker push {}'.format(self._release_docker_image))
-
-        log.info('Updated resource.json:')
-        log.info('\n'.join(difflib.unified_diff(
-            orig_content.split('\n'),
-            json.dumps(package_json['resource'], indent=2).split('\n'),
-            lineterm='')))
-
-        return original_artifact_urls
-
-
-    def _copy_artifacts_s3(self, scratchdir, original_artifact_urls):
-        # Before we do anything else, verify that the upload directory doesn't already exist, to
-        # avoid automatically stomping on a previous release. If you *want* to overwrite an existing
-        # upload, you must manually delete the destination yourself, or set force=True when running
-        # this tool.
-
-        # NOTE: trailing slash needed to avoid false positives between e.g. '1.2.3' vs '1.2.3-beta'
-        cmd = 'aws s3 ls --recursive {}/ 1>&2'.format(self._uploader.get_s3_directory())
-        ret = self._run_cmd(cmd, False, 1)
-        if ret == 0:
-            if self._force_upload:
-                log.info('Destination {} exists but force upload is configured, proceeding...'.format(
-                    self._uploader.get_s3_directory()))
-            else:
-                raise Exception('Release artifact destination already exists. ' +
-                                'Refusing to continue until destination has been manually removed:\n' +
-                                'Do this: aws s3 rm --dryrun --recursive {}'.format(self._uploader.get_s3_directory()))
-        elif ret > 256:
-            raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
-        else:
-            log.info('Destination {} doesnt exist, proceeding...'.format(self._uploader.get_s3_directory()))
-
-        for i in range(len(original_artifact_urls)):
-            progress = '[{}/{}] '.format(i + 1, len(original_artifact_urls))
-            src_url = original_artifact_urls[i]
-            filename = src_url.split('/')[-1]
-
-            local_path = os.path.join(scratchdir, filename)
-
-            # download the artifact (dev s3, via http)
-            if self._dry_run:
-                # create stub file to make 'aws s3 cp --dryrun' happy:
-                log.info('[DRY RUN] {}Downloading {} to {}'.format(progress, src_url, local_path))
-                with open(local_path, 'w') as stub:
-                    stub.write('stub')
-            else:
-                # download the artifact (http url referenced in package)
-                log.info('{}Downloading {} to {}'.format(progress, src_url, local_path))
-                urllib.request.URLopener().retrieve(src_url, local_path)
-
-            # re-upload the artifact (prod s3, via awscli)
-            log.info('{}Uploading {} to new location'.format(progress, local_path))
-            self._uploader.upload(local_path)
-
-            # delete the local temp copy
-            os.unlink(local_path)
-
-
-    def _update_package_json(self, package_json):
+    def _update_package_dot_json(self, package_json):
         '''Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
         '''
@@ -324,6 +232,109 @@ Artifact output: {}
             '\n'.join(marathon_lines).encode('utf-8')).decode()
 
 
+    def _update_resource_json(self, package_json):
+        '''Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
+        Returns the original urls.
+        '''
+        # we expect the artifacts to share the same directory prefix as the stub universe file itself:
+        original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
+        log.info('Replacing artifact prefix {} with {}'.format(
+            original_artifact_prefix, self._http_directory_url))
+        # find all URLs in resource.json which match the directory of the stub universe file.
+        # update those URLs to point to the new artifact path.
+        orig_content = json.dumps(package_json['resource'], indent=2)
+        original_artifact_urls = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
+        new_content = orig_content.replace(original_artifact_prefix, self._http_directory_url)
+        package_json['resource'] = json.loads(new_content, object_pairs_hook=collections.OrderedDict)
+
+        if self._release_docker_image:
+            # Find the current docker image name in resource.json, update it to the new name:
+            try:
+                docker_dict = package_json['resource']['assets']['container']['docker']
+                assert len(docker_dict) == 1
+                orig_docker_image = list(docker_dict.values())[0]
+                docker_dict[list(docker_dict.keys())[0]] = self._release_docker_image
+            except KeyError:
+                raise Exception('Release to docker specified, but no docker image found in resource.json')
+
+            # Download/reupload docker image to target name:
+            log.info('Downloading docker image {}'.format(orig_docker_image))
+            self._run_cmd('docker pull {}'.format(orig_docker_image))
+            self._run_cmd('docker tag {} {}'.format(orig_docker_image, self._release_docker_image))
+            if self._dry_run:
+                log.info('[DRY RUN] Uploading docker image {}'.format(self._release_docker_image))
+            else:
+                log.info('Uploading docker image {}'.format(self._release_docker_image))
+                self._run_cmd('docker push {}'.format(self._release_docker_image))
+
+        log.info('Updated resource.json:')
+        log.info('\n'.join(difflib.unified_diff(
+            orig_content.split('\n'),
+            json.dumps(package_json['resource'], indent=2).split('\n'),
+            lineterm='')))
+
+        return original_artifact_urls
+
+
+    def _update_package_get_artifacts(self, package_json):
+        '''Updates the provided package JSON representation.
+
+        Returns the list of original artifact URLs that were built with the package,
+        and which would need to be reuploaded in a move or release.
+        '''
+        self._update_package_dot_json(package_json)
+        self._update_marathon_json(package_json)
+        return self._update_resource_json(package_json)
+
+
+    def _copy_artifacts_s3(self, scratchdir, original_artifact_urls):
+        # Before we do anything else, verify that the upload directory doesn't already exist, to
+        # avoid automatically stomping on a previous release. If you *want* to overwrite an existing
+        # upload, you must manually delete the destination yourself, or set force=True when running
+        # this tool.
+
+        # NOTE: trailing slash needed to avoid false positives between e.g. '1.2.3' vs '1.2.3-beta'
+        cmd = 'aws s3 ls --recursive {}/ 1>&2'.format(self._uploader.get_s3_directory())
+        ret = self._run_cmd(cmd, False, 1)
+        if ret == 0:
+            if self._force_upload:
+                log.info('Destination {} exists but force upload is configured, proceeding...'.format(
+                    self._uploader.get_s3_directory()))
+            else:
+                raise Exception('Release artifact destination already exists. ' +
+                                'Refusing to continue until destination has been manually removed:\n' +
+                                'Do this: aws s3 rm --dryrun --recursive {}'.format(self._uploader.get_s3_directory()))
+        elif ret > 256:
+            raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
+        else:
+            log.info('Destination {} doesnt exist, proceeding...'.format(self._uploader.get_s3_directory()))
+
+        for i in range(len(original_artifact_urls)):
+            progress = '[{}/{}] '.format(i + 1, len(original_artifact_urls))
+            src_url = original_artifact_urls[i]
+            filename = src_url.split('/')[-1]
+
+            local_path = os.path.join(scratchdir, filename)
+
+            # download the artifact (dev s3, via http)
+            if self._dry_run:
+                # create stub file to make 'aws s3 cp --dryrun' happy:
+                log.info('[DRY RUN] {}Downloading {} to {}'.format(progress, src_url, local_path))
+                with open(local_path, 'w') as stub:
+                    stub.write('stub')
+            else:
+                # download the artifact (http url referenced in package)
+                log.info('{}Downloading {} to {}'.format(progress, src_url, local_path))
+                urllib.request.URLopener().retrieve(src_url, local_path)
+
+            # re-upload the artifact (prod s3, via awscli)
+            log.info('{}Uploading {} to new location'.format(progress, local_path))
+            self._uploader.upload(local_path)
+
+            # delete the local temp copy
+            os.unlink(local_path)
+
+
     def move_package(self):
         '''Updates package, puts artifacts in target location, and uploads updated stub-universe.json to target location.'''
         # Download stub universe:
@@ -332,7 +343,7 @@ Artifact output: {}
         package_json = stub_universe_json['packages'][0]
 
         # Update stub universe:
-        original_artifact_urls = self._get_and_update_artifact_urls(package_json)
+        original_artifact_urls = self._update_package_get_artifacts(package_json)
 
         # Copy artifacts to new S3 location:
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
@@ -370,9 +381,7 @@ Artifact output: {}
         package_json = stub_universe_json['packages'][0]
 
         # Update stub universe:
-        self._update_package_json(package_json)
-        self._update_marathon_json(package_json)
-        original_artifact_urls = self._get_and_update_artifact_urls(package_json)
+        original_artifact_urls = self._update_package_get_artifacts(package_json)
 
         # Copy artifacts to new S3 location:
         self._copy_artifacts_s3(scratchdir, original_artifact_urls)
