@@ -23,7 +23,7 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 
 Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for **all** the Kafka principals has been created as a file `keytab`, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the `security` command):
 ```bash
-$ base64 -w keytab > keytab.base64
+$ base64 -w0 keytab > keytab.base64
 $ dcos security secrets create  __dcos_base64__keytab --value-file keytab.base64
 ```
 
@@ -123,9 +123,9 @@ $ ktpass.exe /in brokers-1.keytab /princ kafka/kafka-2-broker.kafka.autoip.dcos.
 ```
 Here it is assumed that the domain `example.com` exists and that the domain users `kafka-0-broker`, `kafka-1-broker`, and `kafka-2-broker` have been created (using the `net user` command, for example).
 
-The generated file `kafka-brokers.keytab` can no be base64-encoded and added to the DC/OS secret store as above:
+The generated file `kafka-brokers.keytab` can now be base64-encoded and added to the DC/OS secret store as above:
 ```bash
-$ base64 -w kafka-brokers.keytab > keytab.base64
+$ base64 -w0 kafka-brokers.keytab > keytab.base64
 $ dcos security secrets create  __dcos_base64__ad_keytab --value-file keytab.base64
 ```
 
