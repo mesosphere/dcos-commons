@@ -65,9 +65,6 @@ def test_node_replace_replaces_node():
 # @@@@@@@
 @pytest.mark.sanity
 def test_shutdown_host():
-    # Print a dump of current tasks in the cluster (and what agents they're on)
-    sdk_cmd.run_cli('task')
-
     replace_pod = get_pod_to_replace()
     assert replace_pod is not None, 'Could not find a node to shut down'
 
@@ -100,6 +97,9 @@ def get_pod_to_replace():
     for Mesos to decide that the agent is dead. This is also why we perform a manual 'ls' check to
     verify the host is down, rather than waiting for Mesos to tell us.
     '''
+    # Print a dump of current tasks in the cluster (and what agents they're on)
+    cli_tasks = sdk_tasks.get_summary()
+
     scheduler_ip = shakedown.get_service_ips('marathon', config.SERVICE_NAME).pop()
     log.info('Scheduler IP: {}'.format(scheduler_ip))
 

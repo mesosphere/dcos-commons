@@ -6,11 +6,11 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import logging
+import retrying
 
 import shakedown
-
 import dcos.errors
-import retrying
+import sdk_cmd
 import sdk_plan
 
 
@@ -54,6 +54,46 @@ def get_task_ids(service_name, task_prefix):
     tasks = shakedown.get_service_tasks(service_name)
     matching_tasks = [t for t in tasks if t['name'].startswith(task_prefix)]
     return [t['id'] for t in matching_tasks]
+
+
+def get_summary(completed=True):
+    '''Returns a summary of task information as returned by the DC/OS CLI.
+    This may be used instead of invoking 'dcos task [--all]' directly.
+
+    Return value is a list of dicts. Each dict looks like this:
+    {
+      'name': 'task-name',
+      'host': 'task-host',
+      'user': 'nobody',
+      'id': 'task-name__UUID',
+      'agent': 'UUID-S#'
+    }
+    '''
+
+    # Note: We COULD use --json, but there appears to be some fancy handling done by the non-json
+    # version, particularly around the running user. Just grab the non-"--json" version of things.
+    if completed:
+        cmd = 'task --all'
+    else:
+        cmd = 'task'
+    tasks = sdk_cmd.run_cli(cmd, print_output=False)
+    output = []
+    for task_str in tasks[1:]:  # First line is the header line
+        task = task_str.split()
+        if len(task) < 6:
+            log.warning('Skipping task entry: {}'.format(task))
+            continue
+        # Example:
+        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4
+        output.append({
+            'name': task[0],
+            'host': task[1],
+            'user': task[2],
+            # skip state setting (e.g. 'R')
+            'id': task[4],
+            'agent': task[5]
+        })
+    return output
 
 
 def get_completed_task_id(task_name):
