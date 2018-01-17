@@ -55,10 +55,13 @@ def test_mesos_v0_api():
 def test_bump_hello_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+
     hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
     log.info('hello ids: ' + str(hello_ids))
 
     updated_cpus = config.bump_hello_cpus(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
 
     sdk_tasks.check_tasks_updated(foldered_name, 'hello', hello_ids)
     config.check_running(foldered_name)
@@ -75,11 +78,13 @@ def test_bump_hello_cpus():
 def test_bump_world_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
 
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
     log.info('world ids: ' + str(original_world_ids))
 
     updated_cpus = config.bump_world_cpus(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
 
     sdk_tasks.check_tasks_updated(foldered_name, 'world', original_world_ids)
     config.check_running(foldered_name)
@@ -96,6 +101,7 @@ def test_bump_world_cpus():
 def test_increase_decrease_world_nodes():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
 
     original_hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
@@ -104,6 +110,7 @@ def test_increase_decrease_world_nodes():
     # add 2 world nodes
     sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', 2)
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
     config.check_running(foldered_name)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
 
