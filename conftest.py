@@ -236,12 +236,14 @@ def get_task_files_for_id(task_id: str) -> dict:
         return {}
 
 
+@retrying.retry(stop_max_attempt_number=3)
 def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000) -> str:
     log.info('Fetching {} from {}'.format(task_file, task_id))
     rc, stdout, stderr = sdk_cmd.run_raw_cli('task log {} --all --lines {} {}'.format(task_id, lines, task_file), print_output=False)
     if rc != 0:
         if not stderr.startswith('No files exist. Exiting.'):
-            log.error('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, stderr))
+            raise ConnectionError('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, stderr))
+
         return ''
     return stdout
 
@@ -252,7 +254,12 @@ def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: 
     for filename in rotated_filenames:
         if filename not in task_file_timestamps:
             return  # Reached a log index that doesn't exist, exit early
-        content = get_task_log_for_id(task_id, filename)
+        try:
+            content = get_task_log_for_id(task_id, filename)
+        except ConnectionError as e:
+            log.error(str(e))
+            content = ''
+
         if not content:
             log.error('Unable to fetch content of {} from task {}, giving up'.format(filename, task_id))
             return

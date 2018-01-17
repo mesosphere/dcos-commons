@@ -7,6 +7,11 @@ menuWeight: 120
 
 ---
 
+## Version 2.0.4-1.0.0
+
+## Updates
+- Upgraded to Kafka v1.0.0. **Note:** Protocol and log version defaults are set to 0.11.0. After upgrading to this version, they may be set to 1.0.0.
+
 ## Version 2.1.1-1.0.0-beta
 
 ## NOTICE

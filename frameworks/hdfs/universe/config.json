@@ -82,25 +82,21 @@
                   "properties": {
                     "hostname": {
                       "type": "string",
-                      "description": "The name or address of a host running a KDC for the realm.",
-                      "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                      "description": "The name or address of a host running a KDC for the realm."
                     },
                     "port": {
                       "type": "integer",
-                      "description": "The port of the host running a KDC for that realm.",
-                      "default": 2500
+                      "description": "The port of the host running a KDC for that realm."
                     }
                   }
                 },
                 "realm": {
                   "type": "string",
-                  "description": "The Kerberos realm used to render the principal of HDFS tasks.",
-                  "default": "LOCAL"
+                  "description": "The Kerberos realm used to render the principal of HDFS tasks."
                 },
                 "keytab_secret": {
                   "type": "string",
-                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
-                  "default": "__dcos_base64__hdfs_keytab"
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."
                 }
               }
             },
