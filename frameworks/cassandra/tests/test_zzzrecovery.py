@@ -123,13 +123,19 @@ def get_pod_to_replace():
 
 def get_pod_agent(pod_name):
     stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
-    return stdout[0]['info']['slaveId']['value']
+    return get_server_info(pod_name)['info']['slaveId']['value']
 
 
 def get_pod_host(pod_name):
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
-    labels = stdout[0]['info']['labels']['labels']
+    labels = get_server_info(pod_name)['info']['labels']['labels']
     for i in range(0, len(labels)):
         if labels[i]['key'] == 'offer_hostname':
             return labels[i]['value']
     return None
+
+
+def get_server_info(pod_name):
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), print_output=False, json=True)
+    for task in stdout:
+        if 'server' in task['info']['name']:
+            return task
