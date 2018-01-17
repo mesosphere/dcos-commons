@@ -14,7 +14,10 @@
 import logging
 import os
 import os.path
+import random
+import string
 import sys
+import time
 
 import universe
 
@@ -49,7 +52,33 @@ class AWSPublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
-        self._uploader = universe.S3Uploader(self._pkg_name, self._dry_run)
+        s3_bucket = os.environ.get('S3_BUCKET')
+        if not s3_bucket:
+            s3_bucket = 'infinity-artifacts'
+        logger.info('Using artifact bucket: {}'.format(s3_bucket))
+
+        s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
+        dir_name = '{}-{}'.format(
+            time.strftime("%Y%m%d-%H%M%S"),
+            ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
+
+        # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
+        s3_directory_url = os.environ.get(
+            'S3_URL',
+            's3://{}/{}/{}/{}'.format(
+                s3_bucket,
+                s3_dir_path,
+                package_name,
+                dir_name))
+        self._uploader = universe.S3Uploader(self._pkg_name, s3_directory_url, self._dry_run)
+
+        self._http_directory_url = os.environ.get(
+            'ARTIFACT_DIR',
+            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
+                s3_bucket,
+                s3_dir_path,
+                package_name,
+                dir_name))
 
 
     def _spam_universe_url(self, universe_url):
@@ -75,13 +104,14 @@ class AWSPublisher(object):
         package_manager = universe.PackageManager()
         builder = universe.UniversePackageBuilder(
             package_info, package_manager,
-            self._input_dir_path, self._uploader.get_http_directory(), self._artifact_paths)
+            self._input_dir_path, self._http_directory_url, self._artifact_paths)
         universe_path = builder.build_package()
 
         # upload universe package definition first and get its URL
-        universe_url = self._universe_url_prefix + self._uploader.upload(
+        self._uploader.upload(
             universe_path,
             content_type='application/vnd.dcos.universe.repo+json;charset=utf-8')
+        universe_url = self._universe_url_prefix + self._http_directory_url + '/' + os.path.basename(universe_path)
         logger.info('---')
         logger.info('STUB UNIVERSE: {}'.format(universe_url))
         logger.info('---')

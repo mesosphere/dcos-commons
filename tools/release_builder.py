@@ -26,7 +26,6 @@ class UniverseReleaseBuilder(object):
             self,
             package_version,
             stub_universe_url,
-            commit_desc='',
             http_release_server=os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
             s3_release_bucket=os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
             release_docker_image=os.environ.get('RELEASE_DOCKER_IMAGE'),
@@ -84,19 +83,22 @@ class UniverseReleaseBuilder(object):
                 artifact_package_name = artifact_package_name[len('beta-'):]
             release_dir_path = artifact_package_name + '/assets'
 
-        self._release_artifact_http_dir = '{}/{}/{}'.format(
-            http_release_server, release_dir_path, self._pkg_version)
-        self._release_artifact_s3_dir = 's3://{}/{}/{}'.format(
+        s3_directory_url = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
-        self._release_docker_image = release_docker_image or None
+        self._uploader = universe.S3Uploader(self._pkg_name, s3_directory_url, self._dry_run)
+        self._pkg_manager = universe.PackageManager()
 
+        self._http_directory_url = '{}/{}/{}'.format(
+            http_release_server, release_dir_path, self._pkg_version)
+
+        self._release_docker_image = release_docker_image or None
 
         log.info('''###
 Source URL:      {}
 Package name:    {}
 Package version: {}
 Artifact output: {}
-###'''.format(self._stub_universe_url, self._pkg_name, self._pkg_version, self._release_artifact_http_dir))
+###'''.format(self._stub_universe_url, self._pkg_name, self._pkg_version, self._http_directory_url))
 
 
     def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
@@ -111,18 +113,23 @@ Artifact output: {}
             return ret
 
 
-    def _fetch_and_unpack_stub_universe(self, scratchdir): # TODO move into package_builder.py?
-        '''Downloads a stub-universe.json URL and unpacks the content into a temporary directory.
-        Returns the directory where the resulting files were unpacked.
-        '''
+    def _fetch_stub_universe(self):
         _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
         if not stub_universe_extension == '.json':
             raise Exception('Expected .json extension for stub universe: {}'.format(
                 self._stub_universe_url))
 
-        with urllib.request.urlopen(self._stub_universe_url) as stub_universe_file:
-            stub_universe_json = json.load(stub_universe_file, object_pairs_hook=collections.OrderedDict)
+        with urllib.request.urlopen(self._stub_universe_url) as response:
+            stub_universe_json = json.loads(
+                response.read().decode(response.info().get_param('charset') or 'utf-8'),
+                object_pairs_hook=collections.OrderedDict)
+        return stub_universe_json
 
+
+    def _unpack_stub_universe(self, stub_universe_json, scratchdir):
+        '''Downloads a stub-universe.json URL and unpacks the content into a temporary directory.
+        Returns the directory where the resulting files were unpacked.
+        '''
         # put package files into a subdir of scratchdir: avoids conflicts with reuse of scratchdir elsewhere
         pkgdir = os.path.join(scratchdir, 'stub-universe-{}'.format(self._pkg_name))
         os.makedirs(pkgdir)
@@ -166,40 +173,47 @@ Artifact output: {}
         return pkgdir
 
 
-    def _pack_and_upload_stub_universe(self, pkgdir):
-        '''Builds a new stub-universe.json from the (updated) contents of pkgdir.
-        '''
-        builder = universe.UniversePackageBuilder(
-            universe.Package(self._pkg_name, self._pkg_version), # TODO WRONG needs to be a Version object()
-            universe.PackageManager(),
-            pkgdir,
-            "NONE", # replacement for "{{artifact-dir}}", but there shouldn't be any.
-            []) # replacements for "{{sha256:<name>}}", but there shouldn't be any.
-        package_path = builder.build_package()
-        if not package_path:
-            raise Exception('Unable to (re)build package from {}'.format(pkgdir))
-        self._upload_artifact_s3(package_path)
-
-
-    def _get_and_update_artifact_urls(self, pkgdir):
+    def _get_and_update_artifact_urls(self, package_json):
         '''Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
         Returns the original urls.
         '''
         # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
         log.info('Replacing artifact prefix {} with {}'.format(
-            original_artifact_prefix, self._release_artifact_http_dir))
-        original_artifact_urls = []
+            original_artifact_prefix, self._http_directory_url))
         # find all URLs in resource.json which match the directory of the stub universe file.
         # update those URLs to point to the new artifact path.
-        resource_path = os.path.join(pkgdir, 'resource.json')
-        with open(resource_path, 'r') as orig_file:
-            orig_content = orig_file.read()
-            found = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
-            original_artifact_urls += found
-            new_content = orig_content.replace(original_artifact_prefix, self._release_artifact_http_dir)
-        with open(resource_path, 'w') as new_file:
-            new_file.write(new_content)
+        orig_content = json.dumps(package_json['resource'], indent=2)
+        original_artifact_urls = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
+        new_content = orig_content.replace(original_artifact_prefix, self._http_directory_url)
+        package_json['resource'] = json.loads(new_content, object_pairs_hook=collections.OrderedDict)
+
+        if self._release_docker_image:
+            # Find the current docker image name in resource.json, update it to the new name:
+            try:
+                docker_dict = package_json['resource']['assets']['container']['docker']
+                assert len(docker_dict) == 1
+                orig_docker_image = list(docker_dict.values())[0]
+                docker_dict[list(docker_dict.keys())[0]] = self._release_docker_image
+            except KeyError:
+                raise Exception('Release to docker specified, but no docker image found in resource.json')
+
+            # Download/reupload docker image to target name:
+            log.info('Downloading docker image {}'.format(orig_docker_image))
+            self._run_cmd('docker pull {}'.format(orig_docker_image))
+            self._run_cmd('docker tag {} {}'.format(orig_docker_image, self._release_docker_image))
+            if self._dry_run:
+                log.info('[DRY RUN] Uploading docker image {}'.format(self._release_docker_image))
+            else:
+                log.info('Uploading docker image {}'.format(self._release_docker_image))
+                self._run_cmd('docker push {}'.format(self._release_docker_image))
+
+        log.info('Updated resource.json:')
+        log.info('\n'.join(difflib.unified_diff(
+            orig_content.split('\n'),
+            json.dumps(package_json['resource'], indent=2).split('\n'),
+            lineterm='')))
+
         return original_artifact_urls
 
 
@@ -210,19 +224,20 @@ Artifact output: {}
         # this tool.
 
         # NOTE: trailing slash needed to avoid false positives between e.g. '1.2.3' vs '1.2.3-beta'
-        cmd = 'aws s3 ls --recursive {}/ 1>&2'.format(self._release_artifact_s3_dir)
+        cmd = 'aws s3 ls --recursive {}/ 1>&2'.format(self._uploader.get_s3_directory())
         ret = self._run_cmd(cmd, False, 1)
         if ret == 0:
             if self._force_upload:
-                log.info('Destination {} exists but force upload is configured, proceeding...'.format(self._release_artifact_s3_dir))
+                log.info('Destination {} exists but force upload is configured, proceeding...'.format(
+                    self._uploader.get_s3_directory()))
             else:
                 raise Exception('Release artifact destination already exists. ' +
                                 'Refusing to continue until destination has been manually removed:\n' +
-                                'Do this: aws s3 rm --dryrun --recursive {}'.format(self._release_artifact_s3_dir))
+                                'Do this: aws s3 rm --dryrun --recursive {}'.format(self._uploader.get_s3_directory()))
         elif ret > 256:
             raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
         else:
-            log.info('Destination {} doesnt exist, proceeding...'.format(self._release_artifact_s3_dir))
+            log.info('Destination {} doesnt exist, proceeding...'.format(self._uploader.get_s3_directory()))
 
         for i in range(len(original_artifact_urls)):
             progress = '[{}/{}] '.format(i + 1, len(original_artifact_urls))
@@ -243,69 +258,17 @@ Artifact output: {}
                 urllib.request.URLopener().retrieve(src_url, local_path)
 
             # re-upload the artifact (prod s3, via awscli)
-            self._upload_artifact_s3(local_path, progress)
+            log.info('{}Uploading {} to new location'.format(progress, local_path))
+            self._uploader.upload(local_path)
 
             # delete the local temp copy
             os.unlink(local_path)
 
 
-    def _upload_artifact_s3(self, local_path, progress=""):
-        dest_s3_url = '{}/{}'.format(self._release_artifact_s3_dir, os.path.basename(local_path))
-        if self._dry_run:
-            log.info('[DRY RUN] {}Uploading {} to {}'.format(progress, local_path, dest_s3_url))
-            ret = os.system('aws s3 cp --dryrun --acl public-read {} {} 1>&2'.format(
-                local_path, dest_s3_url))
-        else:
-            log.info('{}Uploading {} to {}'.format(progress, local_path, dest_s3_url))
-            ret = os.system('aws s3 cp --acl public-read {} {} 1>&2'.format(
-                local_path, dest_s3_url))
-        if ret != 0:
-            raise Exception(
-                'Failed to upload {} to {}. '.format(local_path, dest_s3_url) +
-                'Partial output directory may need to be cleared manually before retrying. Exiting early.')
-
-
-    def _copy_docker_image(self, pkgdir):
-        '''Downloads the temporary version of a docker image and re-uploads it against a new name.
-        Mainly used for Spark releases.
-        '''
-        if not self._release_docker_image:
-            return # nothing to do
-
-        # Find the current docker image name in resource.json:
-        resource_path = os.path.join(pkgdir, 'resource.json')
-        with open(resource_path) as orig_file:
-            resource_json = json.load(orig_file, object_pairs_hook=collections.OrderedDict)
-            try:
-                docker_dict = resource_json['assets']['container']['docker']
-                assert len(docker_dict) == 1
-                orig_docker_image = list(docker_dict.values())[0]
-                docker_dict[list(docker_dict.keys())[0]] = self._release_docker_image
-            except KeyError:
-                raise Exception('Release to docker specified, but no docker image found in resource.json')
-
-        # Download/reupload docker image to target location:
-        log.info('Downloading docker image {}'.format(orig_docker_image))
-        self._run_cmd('docker pull {}'.format(orig_docker_image))
-        self._run_cmd('docker tag {} {}'.format(orig_docker_image, self._release_docker_image))
-        if self._dry_run:
-            log.info('[DRY RUN] Uploading docker image {}'.format(self._release_docker_image))
-        else:
-            log.info('Uploading docker image {}'.format(self._release_docker_image))
-            self._run_cmd('docker push {}'.format(self._release_docker_image))
-
-        # Rewrite resource.json to reflect new location:
-        with open(resource_path, 'w') as f:
-            json.dump(resource_json, f, indent=4, sort_keys=True)
-
-
-    def _update_package_json(self, pkgdir):
+    def _update_package_json(self, package_json):
         '''Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
         '''
-        package_file_name = os.path.join(pkgdir, 'package.json')
-        with open(package_file_name) as f:
-            package_json = json.load(f, object_pairs_hook=collections.OrderedDict)
         orig_package_json = package_json.copy()
 
         # For beta releases, always clear 'selected'
@@ -319,7 +282,7 @@ Artifact output: {}
         # Update package's upgradesFrom/downgradesTo to reflect any package name changes
         # due to enabling or disabling a beta bit.
         if self._stub_universe_pkg_name != self._pkg_name:
-            last_release = universe.PackageManager().get_latest(self._pkg_name)
+            last_release = self._pkg_manager.get_latest(self._pkg_name)
             if last_release is None:
                 # nothing to upgrade from
                 package_json['upgradesFrom'] = []
@@ -330,23 +293,18 @@ Artifact output: {}
                 package_json['downgradesTo'] = [last_release_version]
 
         log.info('Updated package.json:')
-        log.info('\n'.join(difflib.ndiff(
-            json.dumps(orig_package_json, indent=4).split('\n'),
-            json.dumps(package_json, indent=4).split('\n'))))
-
-        # Update package.json with changes:
-        with open(package_file_name, 'w') as f:
-            json.dump(package_json, f, indent=4)
-            f.write('\n')
+        log.info('\n'.join(difflib.unified_diff(
+            json.dumps(orig_package_json, indent=2).split('\n'),
+            json.dumps(package_json, indent=2).split('\n'),
+            lineterm='')))
 
 
-    def _update_marathon_json(self, pkgdir):
+    def _update_marathon_json(self, package_json):
         '''Updates the marathon.json definition to contain the desired name and version strings.
         '''
         # note: the file isn't valid JSON, so we edit the raw content instead
-        marathon_file_name = os.path.join(pkgdir, 'marathon.json.mustache')
-        with open(marathon_file_name) as f:
-            orig_marathon_lines = f.readlines()
+        marathon_encoded = package_json.get('marathon', {}).get('v2AppMustacheTemplate')
+        orig_marathon_lines = base64.standard_b64decode(marathon_encoded).decode().split('\n')
 
         marathon_lines = []
         for line in orig_marathon_lines:
@@ -359,56 +317,73 @@ Artifact output: {}
             marathon_lines.append(line)
 
         log.info('Updated marathon.json.mustache:')
-        log.info(''.join(difflib.ndiff(orig_marathon_lines, marathon_lines)))
+        log.info('\n'.join(difflib.unified_diff(orig_marathon_lines, marathon_lines, lineterm='')))
 
-        # Update marathon.json.mustache with changes:
-        with open(marathon_file_name, 'w') as f:
-            f.writelines(marathon_lines)
-
-
-    def _copy_package(self):
-        '''1. Updates the package metadata to reflect any changes
-        2. Copies artifacts to destination path (e.g. prod bucket)
-        3. (optional) Reuploads docker image to destination tag
-        '''
-        # Download stub universe:
-        scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
-        pkgdir = self._fetch_and_unpack_stub_universe(scratchdir)
-
-        # Update stub universe:
-        self._update_package_json(pkgdir)
-        self._update_marathon_json(pkgdir)
-        original_artifact_urls = self._get_and_update_artifact_urls(pkgdir)
-
-        # Copy artifacts to new S3 location:
-        self._copy_artifacts_s3(scratchdir, original_artifact_urls)
-
-        # Copy docker image to new label, if applicable:
-        self._copy_docker_image(pkgdir)
-
-        return (scratchdir, pkgdir)
+        # Update parent package object with changes:
+        package_json['marathon']['v2AppMustacheTemplate'] = base64.standard_b64encode(
+            '\n'.join(marathon_lines).encode('utf-8')).decode()
 
 
     def move_package(self):
         '''Updates package, puts artifacts in target location, and uploads updated stub-universe.json to target location.'''
-        scratchdir, pkgdir = self._copy_package()
-        return self._pack_and_upload_stub_universe(pkgdir)
+        # Download stub universe:
+        scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
+        stub_universe_json = self._fetch_stub_universe()
+        package_json = stub_universe_json['packages'][0]
+
+        # Update stub universe:
+        original_artifact_urls = self._get_and_update_artifact_urls(package_json)
+
+        # Copy artifacts to new S3 location:
+        self._copy_artifacts_s3(scratchdir, original_artifact_urls)
+
+        # Upload updated stub-universe to new S3 location:
+        stub_universe_filename = os.path.basename(self._stub_universe_url)
+        updated_stub_universe_path = os.path.join(scratchdir, stub_universe_filename)
+        with open(updated_stub_universe_path, 'w') as stub_universe_file:
+            json.dump(package_json, stub_universe_file, indent=2)
+        self._uploader.upload(updated_stub_universe_path)
+        return os.path.join(self._http_directory_url, stub_universe_filename)
 
 
-    def release_package(self):
+    def release_package(self, commit_desc=''):
         '''Updates package, puts artifacts in target location, and creates Universe PR.'''
 
-        # complain early about any missing envvars...
-        # avoid uploading a bunch of stuff to prod just to error out later:
-        publisher = universe.UniversePackagePublisher()
+        # automatically include source universe URL in commit description:
+        if commit_desc:
+            commit_desc = '{}\n\nSource URL: {}'.format(commit_desc.rstrip('\n'), self._stub_universe_url)
+        else:
+            commit_desc = 'Source URL: {}'.format(self._stub_universe_url)
 
-        scratchdir, pkgdir = self._copy_package()
+        # Create the publisher now to complain early about any missing envvars,
+        # and avoid uploading a bunch of stuff to prod just to error out later:
+        publisher = universe.UniversePackagePublisher(
+            self._pkg_name,
+            self._pkg_version,
+            commit_desc,
+            self._dry_run)
+
+        scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
+
+        # Download stub universe:
+        stub_universe_json = self._fetch_stub_universe()
+        package_json = stub_universe_json['packages'][0]
+
+        # Update stub universe:
+        self._update_package_json(package_json)
+        self._update_marathon_json(package_json)
+        original_artifact_urls = self._get_and_update_artifact_urls(package_json)
+
+        # Copy artifacts to new S3 location:
+        self._copy_artifacts_s3(scratchdir, original_artifact_urls)
+
+        pkgdir = self._unpack_stub_universe(stub_universe_json, scratchdir)
         try:
             return publisher.publish(scratchdir, pkgdir)
         except:
             log.error(
                 'Failed to create PR. '
-                'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self._release_artifact_s3_dir))
+                'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self._uploader.get_s3_directory()))
             raise
 
 
@@ -417,13 +392,17 @@ def print_help(argv):
     log.info('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.json'.format(argv[0]))
     log.info('Required credentials in env:')
     log.info('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
-    log.info('- Github (Personal Access Token): GITHUB_TOKEN')
+    log.info('- Github (Personal Access Token): GITHUB_TOKEN (only required for release)')
     log.info('Optional params in env:')
     log.info('- BETA: true/false')
     log.info('- DRY_RUN: true/false')
+    log.info('- FORCE_ARTIFACT_UPLOAD: true/false')
+    log.info('- HTTP_RELEASE_SERVER: https://downloads.mesosphere.com')
+    log.info('- S3_RELEASE_BUCKET: downloads.mesosphere.io')
+    log.info('- RELEASE_DIR_PATH: <package-name>/assets')
     log.info('Required CLI programs:')
-    log.info('- git')
     log.info('- aws')
+    log.info('- git (for release)')
 
 
 def main(argv):
@@ -438,22 +417,30 @@ def main(argv):
     # commit comment, if any:
     commit_desc = ' '.join(argv[4:])
 
-    builder = UniverseReleaseBuilder(package_version, stub_universe_url, commit_desc)
-    response = builder.release_package()
-    if not response:
+    builder = UniverseReleaseBuilder(package_version, stub_universe_url)
+    if operation == 'release':
+        response = builder.release_package(commit_desc)
+        if not response:
+            # print the PR location as stdout for use upstream (the rest is all stderr):
+            print('[DRY RUN] The pull request URL would appear here.')
+            return 0
+        if response.status < 200 or response.status >= 300:
+            log.error('Got {} response to PR creation request:'.format(response.status))
+            log.error('Response:')
+            log.error(pprint.pformat(response.read()))
+            log.error('You will need to manually create the PR against the branch that was pushed above.')
+            return -1
+        log.info('---')
+        log.info('Created pull request for version {} (PTAL):'.format(package_version))
         # print the PR location as stdout for use upstream (the rest is all stderr):
-        print('[DRY RUN] The pull request URL would appear here.')
-        return 0
-    if response.status < 200 or response.status >= 300:
-        log.error('Got {} response to PR creation request:'.format(response.status))
-        log.error('Response:')
-        log.error(pprint.pformat(response.read()))
-        log.error('You will need to manually create the PR against the branch that was pushed above.')
-        return -1
-    log.info('---')
-    log.info('Created pull request for version {} (PTAL):'.format(package_version))
-    # print the PR location as stdout for use upstream (the rest is all stderr):
-    print(json.loads(response.read().decode('utf-8'))['html_url'])
+        response_content = response.read().decode(response.info().get_param('charset') or 'utf-8')
+        print(json.loads(response_content)['html_url'])
+    elif operation == 'move':
+        new_stub_url = builder.move_package()
+        print('Package moved to: {}'.format(new_stub_url))
+    else:
+        print_help(argv)
+        return 1
     return 0
 
 

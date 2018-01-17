@@ -19,11 +19,7 @@ class UniversePackagePublisher(object):
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._pr_title = 'Release {} {} (automated commit)\n\n'.format(self._pkg_name, self._pkg_version)
-        # automatically include source universe URL in commit description:
-        if commit_desc:
-            self._commit_desc = '{}\n\nSource URL: {}'.format(commit_desc.rstrip('\n'), self._stub_universe_url)
-        else:
-            self._commit_desc = 'Source URL: {}'.format(self._stub_universe_url)
+        self._commit_desc = commit_desc
         self._dry_run = dry_run
 
         # Optional configuration via envvars:
@@ -58,8 +54,8 @@ class UniversePackagePublisher(object):
             universe_repo,
             'repo',
             'packages',
-            self._pkg.get_name()[0].upper(),
-            self._pkg.get_name())
+            self._pkg_name[0].upper(),
+            self._pkg_name)
 
         # find the prior release number:
         lastnum = -1
