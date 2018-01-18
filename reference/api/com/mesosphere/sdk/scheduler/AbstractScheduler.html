@@ -221,7 +221,7 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>protected abstract java.util.Collection&lt;java.lang.Object&gt;</code></td>
+<td class="colFirst"><code>abstract java.util.Collection&lt;java.lang.Object&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">getResources</a></span>()</code>
 <div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.</div>
 </td>
@@ -448,7 +448,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getResources</h4>
-<pre>protected abstract&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
+<pre>public abstract&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
 <div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.
  This may be called before <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#initialize-SchedulerDriver-"><code>initialize(SchedulerDriver)</code></a> has been called.</div>
 </li>

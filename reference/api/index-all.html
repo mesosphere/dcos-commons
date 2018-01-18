@@ -3337,6 +3337,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ResourceSet.html#getResources--">getResources()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ClusterState.html#getResources--">getResources()</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#getResourceSet--">getResourceSet()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/TaskSpec.html#getResourceSet--">getResourceSet()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></dt>
@@ -4993,6 +4995,10 @@
 <dd>
 <div class="block">This method enqueues an Offer from Mesos if there is capacity.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#offer-Protos.Offer-">offer(Protos.Offer)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
+<dd>
+<div class="block">Sends the provided offer to the scheduler.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_ATTRIBUTES_LABEL">OFFER_ATTRIBUTES_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Storage of the original Offer's attributes (in a string representation), for use in placement constraints.</div>
@@ -5754,6 +5760,10 @@
 <div class="block">Implementations of this interface allow the overriding of behavior in the <a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a>
  with a custom implementation that addresses applicaiton specific failure recovery mechanisms.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#recoveryStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">recoveryStepStatus(String, String, Status)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the indicated recovery phase.step has the expected status.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#recoveryType-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">recoveryType(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryType</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a></dt>
@@ -5878,6 +5888,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#replacePod-java.lang.String-">replacePod(String)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
 <dd>
 <div class="block">Replaces a pod instance with a new instance on a different agent.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#replacePod-java.lang.String-">replacePod(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
+<dd>
+<div class="block">Initiates the replacement of a pod through a call to <a href="com/mesosphere/sdk/http/PodResource.html#replacePod-java.lang.String-"><code>PodResource.replacePod(String)</code></a>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">RequestUtils</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
@@ -6570,6 +6584,11 @@
 <dd>
 <div class="block">Assigns a <a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryPlanOverriderFactory</code></a> to be used for generating the recovery plan manager.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ServiceTestRunner.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">setRecoveryManagerFactory(RecoveryPlanOverriderFactory)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></dt>
+<dd>
+<div class="block">Allows the specification of custom recovery logic just as in
+ <a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-"><code>SchedulerBuilder.setRecoveryManagerFactory(RecoveryPlanOverriderFactory)</code></a>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setRegion-Protos.DomainInfo.FaultDomain.RegionInfo-">setRegion(Protos.DomainInfo.FaultDomain.RegionInfo)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.RegionInfo</code>.</div>
@@ -6801,6 +6820,10 @@
 <dt><a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">StepInfo</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Immutable JSON serialization object for a <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#stepStatus-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">stepStatus(String, String, String, Status)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the indicated plan.phase.step has the expected status.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ExecutorTask.html#stop--">stop()</a></span> - Method in interface com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ExecutorTask.html" title="interface in com.mesosphere.sdk.executor">ExecutorTask</a></dt>
 <dd>&nbsp;</dd>
