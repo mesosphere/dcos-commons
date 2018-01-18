@@ -50,7 +50,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `placement`
 
-    Any additional constraints to be applied when deciding where to deploy this pod. This field supports all [Marathon placement operators](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, when the reference lists `[["hostname", "UNIQUE"]]`, you should use `hostname:UNIQUE`. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.
+    Any additional constraints to be applied when deciding where to deploy this pod. This field supports all [Marathon placement operators](http://mesosphere.github.io/marathon/docs/constraints.html). For example, `[["hostname", "UNIQUE"]]` ensures that at most one pod instance is deployed per agent. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.
 
   * `count`
 
