@@ -93,17 +93,23 @@ pods:
         readiness-check:
           cmd: >
             if [ ! -d journal-data/hdfs ]; then
+              echo "Journal data directory doesn't exist. Exiting early." &&
               exit 0
-            else
-              curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
-              export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              if [ -f journal-data/hdfs/current/VERSION ] && [ ! -f journal-data/uploadedVersionFile ]; then
-                curl -X PUT -F 'file=@journal-data/hdfs/current/VERSION' $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION &&
-                touch journal-data/uploadedVersionFile
-              fi &&
-              [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
             fi
+            curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
+            echo "Fetched JMX data:" &&
+            cat tmpJmx.json &&
+            export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+            export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
+            echo "Lagging TX: $LAGGING_TX_COUNT (want {{JOURNAL_LAGGING_TX_COUNT}}), Written TX: $WRITTEN_TX_COUNT (want >0)" &&
+            VERSION_FILE=journal-data/hdfs/current/VERSION &&
+            if [ -f $VERSION_FILE ] && [ ! -f journal-data/uploadedVersionFile ]; then
+              echo "Uploading $VERSION_FILE to Scheduler:" &&
+              cat $VERSION_FILE &&
+              curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION &&
+              touch journal-data/uploadedVersionFile
+            fi &&
+            [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
           delay: 30
           interval: 5
           timeout: 15
