@@ -8,12 +8,12 @@ kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 </code></pre>
 </div>
-<p>(assuming a service name of <code class="highlighter-rouge">kafka</code>)</p>
+<p>(assuming a service name of <code class="highlighter-rouge">kafka</code> and a <code class="highlighter-rouge">LOCAL</code> realm)</p>
 
 <h2 id="create-the-keytab-secret">Create the keytab secret</h2>
 
 <p>Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for <strong>all</strong> the Kafka principals has been created as a file <code class="highlighter-rouge">keytab</code>, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the <code class="highlighter-rouge">security</code> command):</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w keytab &gt; keytab.base64
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w0 keytab &gt; keytab.base64
 <span class="gp">$ </span>dcos security secrets create  __dcos_base64__keytab --value-file keytab.base64
 </code></pre>
 </div>
@@ -33,6 +33,7 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
                     </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
                     </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="w">
                 </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"LOCAL"</span><span class="p">,</span><span class="w">
                 </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__keytab"</span><span class="w">
             </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
@@ -83,6 +84,7 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
                     </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kdc.marathon.autoip.dcos.thisdcos.directory"</span><span class="p">,</span><span class="w">
                     </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">2500</span><span class="w">
                 </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"LOCAL"</span><span class="p">,</span><span class="w">
                 </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__keytab"</span><span class="w">
             </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
@@ -99,3 +101,42 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install kafka --options<span class="o">=</span>kerberos-zookeeper-options.json
 </code></pre>
 </div>
+
+<h2 id="active-directory">Active Directory</h2>
+
+<p>Kerberized Apache Kafka also supports Active Directory as a KDC. Here the generation of principals and the relevant keytab should be adapted for the tools made available by the Active Directory installation.</p>
+
+<p>As an example, the <code class="highlighter-rouge">ktpass</code> utility can be used to generate the keytab for the Apache Kafka brokers as follows:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>ktpass.exe                      /princ kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-0-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-0.keytab
+<span class="gp">$ </span>ktpass.exe /in brokers-0.keytab /princ kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-1-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-1.keytab
+<span class="gp">$ </span>ktpass.exe /in brokers-1.keytab /princ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-2-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out kafka-brokers.keytab
+</code></pre>
+</div>
+<p>Here it is assumed that the domain <code class="highlighter-rouge">example.com</code> exists and that the domain users <code class="highlighter-rouge">kafka-0-broker</code>, <code class="highlighter-rouge">kafka-1-broker</code>, and <code class="highlighter-rouge">kafka-2-broker</code> have been created (using the <code class="highlighter-rouge">net user</code> command, for example).</p>
+
+<p>The generated file <code class="highlighter-rouge">kafka-brokers.keytab</code> can now be base64-encoded and added to the DC/OS secret store as above:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w0 kafka-brokers.keytab &gt; keytab.base64
+<span class="gp">$ </span>dcos security secrets create  __dcos_base64__ad_keytab --value-file keytab.base64
+</code></pre>
+</div>
+
+<p>Kerberized Apache Kafka can then be deployed using the following configuration options:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"active-directory-dns.example.com"</span><span class="p">,</span><span class="w">
+                    </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">88</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EXAMPLE.COM"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__ad_keytab"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+<p>This assumes that the Active Directory server is reachable from the DC/OS cluster at <code class="highlighter-rouge">active-directory-dns.example.com</code> and is accepting connections on port <code class="highlighter-rouge">88</code>. Note also the change in Kerberos realm and the DC/OS secret path used for the keytab.</p>

@@ -49,7 +49,7 @@ becomes <code class="highlighter-rouge">myfolderhdfs</code>. For example:</p>
 <h2 id="create-the-keytab-secret">Create the keytab secret</h2>
 
 <p>Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for <strong>all</strong> the HDFS principals has been created as a file <code class="highlighter-rouge">keytab</code>, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the <code class="highlighter-rouge">security</code> command):</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w keytab &gt; keytab.base64
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w0 keytab &gt; keytab.base64
 <span class="gp">$ </span>dcos security secrets create  __dcos_base64__keytab --value-file keytab.base64
 </code></pre>
 </div>
@@ -84,3 +84,60 @@ becomes <code class="highlighter-rouge">myfolderhdfs</code>. For example:</p>
 <div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos package install hdfs --options<span class="o">=</span>kerberos-options.json
 </code></pre>
 </div>
+
+<h2 id="active-directory">Active Directory</h2>
+
+<p>Kerberized Apache HDFS also supports Active Directory as a KDC. Here the generation of principals and the relevant keytab should be adapted for the tools made available by the Active Directory installation.</p>
+
+<p>As an example, the <code class="highlighter-rouge">ktpass</code> utility can be used to generate the keytab for the Apache HDFS principals as follows:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code>ktpass.exe                    /princ hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-00.keytab
+ktpass.exe /in hdfs-00.keytab /princ HTTP/name-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-01.keytab
+ktpass.exe /in hdfs-01.keytab /princ hdfs/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-0-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-02.keytab
+ktpass.exe /in hdfs-02.keytab /princ HTTP/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-0-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-03.keytab
+ktpass.exe /in hdfs-03.keytab /princ hdfs/name-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-04.keytab
+ktpass.exe /in hdfs-04.keytab /princ HTTP/name-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-05.keytab
+ktpass.exe /in hdfs-05.keytab /princ hdfs/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-1-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-06.keytab
+ktpass.exe /in hdfs-06.keytab /princ HTTP/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-1-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-07.keytab
+ktpass.exe /in hdfs-07.keytab /princ hdfs/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-08.keytab
+ktpass.exe /in hdfs-08.keytab /princ HTTP/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-09.keytab
+ktpass.exe /in hdfs-09.keytab /princ hdfs/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-10.keytab
+ktpass.exe /in hdfs-10.keytab /princ HTTP/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-11.keytab
+ktpass.exe /in hdfs-11.keytab /princ hdfs/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-12.keytab
+ktpass.exe /in hdfs-12.keytab /princ HTTP/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-13.keytab
+ktpass.exe /in hdfs-13.keytab /princ hdfs/data-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-14.keytab
+ktpass.exe /in hdfs-14.keytab /princ HTTP/data-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-15.keytab
+ktpass.exe /in hdfs-15.keytab /princ hdfs/data-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-16.keytab
+ktpass.exe /in hdfs-16.keytab /princ HTTP/data-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-17.keytab
+ktpass.exe /in hdfs-17.keytab /princ hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-18.keytab
+ktpass.exe /in hdfs-18.keytab /princ HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-19.keytab
+ktpass.exe /in hdfs-19.keytab /princ HTTP/api.hdfs.l4lb.thisdcos.directory@EXAMPLE.COM /mapuser http-api@example.com /ptype KRB5_NT_PRINCIPAL +rndPass                              /out hdfs.keytab
+</code></pre>
+</div>
+<p>Here it is assumed that the domain <code class="highlighter-rouge">example.com</code> exists and that the domain users (<code class="highlighter-rouge">name-0-node</code>, <code class="highlighter-rouge">http-name-0-node</code> etc.) have been created (using the <code class="highlighter-rouge">net user</code> command, for example).</p>
+
+<p>The generated file <code class="highlighter-rouge">hdfs.keytab</code> can now be base64-encoded and added to the DC/OS secret store as above:</p>
+<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>base64 -w0 hdfs.keytab &gt; keytab.base64
+<span class="gp">$ </span>dcos security secrets create  __dcos_base64__ad_keytab --value-file keytab.base64
+</code></pre>
+</div>
+
+<p>Kerberized Apache HDFS can then be deployed using the following configuration options:</p>
+<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="nt">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="nt">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
+        </span><span class="nt">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="nt">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="nt">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="nt">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"active-directory-dns.example.com"</span><span class="p">,</span><span class="w">
+                    </span><span class="nt">"port"</span><span class="p">:</span><span class="w"> </span><span class="mi">88</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="nt">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EXAMPLE.COM"</span><span class="p">,</span><span class="w">
+                </span><span class="nt">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"__dcos_base64__ad_keytab"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+<p>This assumes that the Active Directory server is reachable from the DC/OS cluster at <code class="highlighter-rouge">active-directory-dns.example.com</code> and is accepting connections on port <code class="highlighter-rouge">88</code>. Note also the change in Kerberos realm and the DC/OS secret path used for the keytab.</p>
