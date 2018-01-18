@@ -142,6 +142,11 @@
                       "type": "string",
                       "description": "The name of the DC/OS secret storing the keytab",
                       "default": "__dcos_base64__kafka_keytab"
+                    },
+                    "debug": {
+                      "type": "boolean",
+                      "description": "Turn debug Kerberos logging on or off to assist in diagnosing issues with Kerberos authentication.",
+                      "default": false
                     }
                   }
                 },

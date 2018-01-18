@@ -87,6 +87,9 @@
     "TASKCFG_ALL_SECURITY_KERBEROS_ENABLED_FOR_ZOOKEEPER": "{{service.security.kerberos.enabled_for_zookeeper}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY": "{{service.security.kerberos.primary}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
+    {{#service.security.kerberos.debug}}
+    "TASKCFG_ALL_SECURITY_KERBEROS_DEBUG": "{{service.security.kerberos.debug}}",
+    {{/service.security.kerberos.debug}}
     "TASKCFG_ALL_SECURITY_KERBEROS_KDC_HOSTNAME": "{{service.security.kerberos.kdc.hostname}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_KDC_PORT": "{{service.security.kerberos.kdc.port}}",
     {{/service.security.kerberos.enabled}}
