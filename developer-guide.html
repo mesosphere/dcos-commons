@@ -2299,7 +2299,7 @@ The SDK supports having pods join virtual neworks (including the <code class="hi
 
 <h3 id="placement-rules">Placement Rules</h3>
 
-<p>Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all <a href="https://mesosphere.github.io/marathon/docs/constraints.html">Marathon-style placement operators</a>, using either of the following formats: <code class="highlighter-rouge">["field", "operator"[, "parameter"]]</code>, or <code class="highlighter-rouge">field:operator[:parameter]</code>. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using <a href="#placement-rules">PlacementRules in Java</a>.</p>
+<p>Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all <a href="https://mesosphere.github.io/marathon/docs/constraints.html">Marathon-style placement operators</a>, using the following format: <code class="highlighter-rouge">["field", "operator"[, "parameter"]]</code>. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using <a href="#placement-rules">PlacementRules in Java</a>.</p>
 
 <p>We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:</p>
 
@@ -2317,7 +2317,7 @@ The SDK supports having pods join virtual neworks (including the <code class="hi
 </code></pre>
 </div>
 
-<p>In this example your configuration would expose a <code class="highlighter-rouge">HELLO_PLACEMENT</code> configuration setting with some default value. You may then provide a default value for that setting, such as <code class="highlighter-rouge">"hostname:UNIQUE"</code> to ensure that no two hello instances are on the same agent at a time, or <code class="highlighter-rouge">“rack_id:LIKE:rack-foo-.*”</code> to ensure that hello instances are only placed on agents with a <code class="highlighter-rouge">rack_id</code> that starts with <code class="highlighter-rouge">“rack-foo-”</code>. Multiple placement rules may be ANDed together by separating them with a comma, e.g. <code class="highlighter-rouge">“hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”</code>.</p>
+<p>In this example your configuration would expose a <code class="highlighter-rouge">HELLO_PLACEMENT</code> configuration setting with some default value. You may then provide a default value for that setting, such as <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> to ensure that no two hello instances are on the same agent at a time, or <code class="highlighter-rouge">[["rack_id", "LIKE", "rack-foo-.*"]]</code> to ensure that hello instances are only placed on agents with a <code class="highlighter-rouge">rack_id</code> that starts with <code class="highlighter-rouge">"rack-foo-"</code>. Multiple placement rules may be ANDed together by separating them with a comma, e.g. <code class="highlighter-rouge">[["hostname", "UNIQUE"], ["rack_id", "LIKE", "rack-foo-.*"]]</code>.</p>
 
 <h3 id="resource-sets">Resource Sets</h3>
 

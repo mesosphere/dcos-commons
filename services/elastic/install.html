@@ -120,6 +120,31 @@ dcos:adminrouter:ops:slave full
 </div>
 <p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
 
+<h2 id="zones">Zones</h2>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint <code class="highlighter-rouge">[["@zone", "GROUP_BY", "3"]]</code>.</p>
+
+<!--
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+-->
+<h2 id="example">Example</h2>
+
+<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
+
+<h2 id="balanced-placement-for-a-single-region">Balanced Placement for a Single Region</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="err">...</span><span class="w">
+  </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"constraints"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[[\"@zone\", \"GROUP_BY\", \"3\"]]"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</li>
+</ul>
+
 <h2 id="tls">TLS</h2>
 
 <p>The Elastic service can be launched with TLS encryption. Enabling TLS will switch all internal communication between Elastic nodes to encrypted connections.</p>

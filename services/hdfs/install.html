@@ -84,7 +84,7 @@ See the Configuration section for a list of fields that can be customized via a 
 
 <!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
-<h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
+<h1 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h1>
 
 <p>In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/hdfs</code> and <code class="highlighter-rouge">production/hdfs</code>.</p>
 
@@ -117,7 +117,7 @@ dcos:adminrouter:ops:slave full
   <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
 </ul>
 
-<h3 id="interacting-with-your-foldered-service">Interacting with your foldered service</h3>
+<h2 id="interacting-with-your-foldered-service">Interacting with your foldered service</h2>
 
 <ul>
   <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
@@ -125,6 +125,31 @@ dcos:adminrouter:ops:slave full
 </ul>
 
 <!-- END DUPLICATE BLOCK -->
+
+<h1 id="zones">Zones</h1>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint <code class="highlighter-rouge">[["@zone", "GROUP_BY", "3"]]</code>.</p>
+
+<!--
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+-->
+<h2 id="example">Example</h2>
+
+<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
+
+<h2 id="balanced-placement-for-a-single-region">Balanced Placement for a Single Region</h2>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="err">...</span><span class="w">
+  </span><span class="nt">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w">
+  </span><span class="nt">"constraints"</span><span class="p">:</span><span class="w"> </span><span class="s2">"[[\"@zone\", \"GROUP_BY\", \"3\"]]"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre>
+</div>
+
+<ul>
+  <li>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</li>
+</ul>
 
 <h1 id="colocation">Colocation</h1>
 

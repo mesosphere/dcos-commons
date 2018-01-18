@@ -122,7 +122,7 @@ dcos package install beta-kafka --cli
     <p>Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
 
     <div class="highlighter-rouge"><pre class="highlight"><code>    ```
-    dcos:adminrouter:service:marathon full				
+    dcos:adminrouter:service:marathon full
     dcos:service:marathon:marathon:services:/testing full
     dcos:adminrouter:ops:mesos full
     dcos:adminrouter:ops:slave full
@@ -156,10 +156,10 @@ dcos package install beta-kafka --cli
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 <h2 id="placement-constraints">Placement Constraints</h2>
 
-<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a> with this syntax: <code class="highlighter-rouge">field:OPERATOR[:parameter]</code>. For example, if the reference lists <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code>, you should  use <code class="highlighter-rouge">hostname:UNIQUE</code>.</p>
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent.</p>
 
 <p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+<div class="highlighter-rouge"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
 </code></pre>
 </div>
 

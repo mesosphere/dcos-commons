@@ -520,7 +520,7 @@ dcos package install --cli beta-cassandra
 <p>Let’s say we have the following deployment of our nodes</p>
 
 <ul>
-  <li>Placement constraint of: <code class="highlighter-rouge">hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84</code></li>
+  <li>Placement constraint of: <code class="highlighter-rouge">[["hostname", "LIKE", "10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84"]]</code></li>
   <li>Tasks:
     <div class="highlighter-rouge"><pre class="highlight"><code>10.0.10.3: node-0
 10.0.10.8: node-1
@@ -538,7 +538,7 @@ dcos package install --cli beta-cassandra
   <li>
     <p>Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing <code class="highlighter-rouge">PLACEMENT_CONSTRAINT</code>:</p>
 
-    <div class="highlighter-rouge"><pre class="highlight"><code> hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+    <div class="highlighter-rouge"><pre class="highlight"><code> [["hostname", "LIKE", "10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123"]]
 </code></pre>
     </div>
   </li>
