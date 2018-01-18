@@ -137,7 +137,7 @@
                     },
                     "keytab_secret": {
                       "type": "string",
-                      "description": "The name of the DC/OS secret storing the keytab",
+                      "description": "The name of the DC/OS secret storing the keytab"
                     },
                     "debug": {
                       "type": "boolean",
