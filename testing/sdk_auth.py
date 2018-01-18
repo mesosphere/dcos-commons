@@ -393,7 +393,7 @@ class KerberosEnvironment:
         return self.kdc_realm
 
     def get_kdc_address(self):
-        return ":".join([self.get_host(), self.get_port()])
+        return ":".join(str(p) for p in [self.get_host(), self.get_port()])
 
     def cleanup(self):
         sdk_security.install_enterprise_cli()

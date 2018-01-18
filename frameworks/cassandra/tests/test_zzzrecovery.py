@@ -1,7 +1,6 @@
 # NOTE: THIS FILE IS INTENTIONALLY NAMED TO BE RUN LAST. SEE test_shutdown_host().
 
 import logging
-import pprint
 import pytest
 import re
 
@@ -10,11 +9,9 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import shakedown
 from tests import config
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
-SERVER_NAME_PATTERN = re.compile('^node-[0-9]+-server$')
 
 log = logging.getLogger(__name__)
 
@@ -69,7 +66,8 @@ def test_node_replace_replaces_node():
 # @@@@@@@
 @pytest.mark.sanity
 def test_shutdown_host():
-    replace_task = sdk_tasks.get_task_avoiding_scheduler(config.SERVICE_NAME, SERVER_NAME_PATTERN)
+    replace_task = sdk_tasks.get_task_avoiding_scheduler(
+        config.SERVICE_NAME, re.compile('^node-[0-9]+-server$'))
     assert replace_task is not None, 'Could not find a node to shut down'
     replace_pod_name = replace_task.name[:-len('-server')]
 

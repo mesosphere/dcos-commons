@@ -97,6 +97,11 @@
                 "keytab_secret": {
                   "type": "string",
                   "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."
+                },
+                "debug": {
+                  "type": "boolean",
+                  "description": "Turn debug Kerberos logging on or off to assist in diagnosing issues with Kerberos authentication.",
+                  "default": false
                 }
               }
             },

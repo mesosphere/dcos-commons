@@ -28,8 +28,8 @@ def _escape_placement_for_1_9(options: dict) -> dict:
     # 1.9 requires `\"` to be escaped to `\\\"`
     # when submitting placement constraints
     log.info(options)
-    if not sdk_utils.dcos_version_less_than("1.10"):
-        log.info("DC/OS version > 1.10")
+    if sdk_utils.dcos_version_at_least("1.10"):
+        log.info("DC/OS version >= 1.10")
         return options
 
     def escape_section_placement(section: str, options: dict) -> dict:

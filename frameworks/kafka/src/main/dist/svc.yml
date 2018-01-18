@@ -73,9 +73,12 @@ pods:
           set -e
 
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
-        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
-          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS"
-        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+      {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf $KAFKA_OPTS"
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export KAFKA_OPTS="-Dsun.security.krb5.debug=true $KAFKA_OPTS"
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+      {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
           ./setup-helper

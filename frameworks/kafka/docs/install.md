@@ -125,7 +125,7 @@ Steps:
 	 Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
 
            ```
-		   dcos:adminrouter:service:marathon full				
+		   dcos:adminrouter:service:marathon full
 		   dcos:service:marathon:marathon:services:/testing full
 		   dcos:adminrouter:ops:mesos full
 		   dcos:adminrouter:ops:slave full
@@ -149,11 +149,11 @@ Steps:
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 ## Placement Constraints
 
-Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
+Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html). For example, `[["hostname", "UNIQUE"]]` ensures that at most one pod instance is deployed per agent.
 
 A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:
 ```
-hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
 ```
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
