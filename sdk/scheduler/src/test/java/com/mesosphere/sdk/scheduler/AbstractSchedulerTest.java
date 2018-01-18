@@ -179,7 +179,7 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        protected Collection<Object> getResources() {
+        public Collection<Object> getResources() {
             return Collections.emptyList();
         }
 
