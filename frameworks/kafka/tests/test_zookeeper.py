@@ -40,12 +40,9 @@ def configure_zookeeper(configure_security):
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_zookeeper):
     try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        zookeeper_framework_host = "{}.data-servicesconfluent-zookeeper.autoip.dcos.thisdcos.directory:1140".format(ZK_SERVICE_NAME)
+        zookeeper_framework_host = "{}.autoip.dcos.thisdcos.directory:1140".format(ZK_SERVICE_NAME)
 
         config.install(
             config.PACKAGE_NAME,
@@ -59,15 +56,25 @@ def configure_package(configure_zookeeper):
 
         # wait for brokers to finish registering before starting tests
         test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-                                      service_name=foldered_name)
+                                      service_name=config.SERVICE_NAME)
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.zookeeper
 @pytest.mark.ben
 def test_zookeeper_reresolution():
-    pass
+    # Replace every zookeeper node, this will ensure Kafka has to re-resolve to stay up.
+    # Note, I'm doing a replace and not a restart, because right now, restarts are not reliable. Wheeee.abs
+    # Actually, replaces might not be either. Fuckity fuck.
+    def replace_zookeeper_node(id: int):
+        sdk_cmd.svc_cli(ZK_PACKAGE, ZK_SERVICE_NAME, "pod replace zookeeper-{}".format(id))
+
+        sdk_plan.wait_for_in_progress_recovery(ZK_SERVICE_NAME)
+        sdk_plan.wait_for_completed_recovery(ZK_SERVICE_NAME)
+
+    for id in range(0, 3):
+        replace_zookeeper_node(id)
