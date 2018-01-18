@@ -1,6 +1,6 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Kerberos
 menuWeight: 22
@@ -17,13 +17,13 @@ kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 ```
-(assuming a service name of `kafka`)
+(assuming a service name of `kafka` and a `LOCAL` realm)
 
 ## Create the keytab secret
 
 Once the principals have been created, a keytab file must be generated and uploaded to the DC/OS secret store as a base-64-encoded value. Assuming the keytab for **all** the Kafka principals has been created as a file `keytab`, this can be added to the secret store as follows (note that the DC/OS Enterprise CLI needs to be installed to gain access to the `security` command):
 ```bash
-$ base64 -w keytab > keytab.base64
+$ base64 -w0 keytab > keytab.base64
 $ dcos security secrets create  __dcos_base64__keytab --value-file keytab.base64
 ```
 
@@ -43,6 +43,7 @@ Create the following `kerberos-options.json` file:
                     "hostname": "kdc.marathon.autoip.dcos.thisdcos.directory",
                     "port": 2500
                 },
+                "realm": "LOCAL",
                 "keytab_secret": "__dcos_base64__keytab"
             }
         }
@@ -93,6 +94,7 @@ Create a `kerberos-zookeeper-options.json` file with the following contents:
                     "hostname": "kdc.marathon.autoip.dcos.thisdcos.directory",
                     "port": 2500
                 },
+                "realm": "LOCAL",
                 "keytab_secret": "__dcos_base64__keytab"
             }
         }
@@ -108,3 +110,42 @@ Kerberized Kafka can then be deployed as follows:
 ```bash
 $ dcos package install kafka --options=kerberos-zookeeper-options.json
 ```
+
+## Active Directory
+
+Kerberized Apache Kafka also supports Active Directory as a KDC. Here the generation of principals and the relevant keytab should be adapted for the tools made available by the Active Directory installation.
+
+As an example, the `ktpass` utility can be used to generate the keytab for the Apache Kafka brokers as follows:
+```bash
+$ ktpass.exe                      /princ kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-0-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-0.keytab
+$ ktpass.exe /in brokers-0.keytab /princ kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-1-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-1.keytab
+$ ktpass.exe /in brokers-1.keytab /princ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-2-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out kafka-brokers.keytab
+```
+Here it is assumed that the domain `example.com` exists and that the domain users `kafka-0-broker`, `kafka-1-broker`, and `kafka-2-broker` have been created (using the `net user` command, for example).
+
+The generated file `kafka-brokers.keytab` can now be base64-encoded and added to the DC/OS secret store as above:
+```bash
+$ base64 -w0 kafka-brokers.keytab > keytab.base64
+$ dcos security secrets create  __dcos_base64__ad_keytab --value-file keytab.base64
+```
+
+Kerberized Apache Kafka can then be deployed using the following configuration options:
+```json
+{
+    "service": {
+        "name": "kafka",
+        "security": {
+            "kerberos": {
+                "enabled": true,
+                "kdc": {
+                    "hostname": "active-directory-dns.example.com",
+                    "port": 88
+                },
+                "realm": "EXAMPLE.COM",
+                "keytab_secret": "__dcos_base64__ad_keytab"
+            }
+        }
+    }
+}
+```
+This assumes that the Active Directory server is reachable from the DC/OS cluster at `active-directory-dns.example.com` and is accepting connections on port `88`. Note also the change in Kerberos realm and the DC/OS secret path used for the keytab.

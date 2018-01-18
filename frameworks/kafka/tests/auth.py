@@ -62,7 +62,7 @@ def write_client_properties(id: str, task: str, lines: list) -> str:
     return output_file
 
 
-def write_jaas_config_file(primary: str, task: str) -> str:
+def write_jaas_config_file(primary: str, task: str, krb5: object) -> str:
     output_file = "{primary}-client-jaas.config".format(primary=primary)
 
     LOG.info("Generating %s", output_file)
@@ -72,7 +72,7 @@ def write_jaas_config_file(primary: str, task: str) -> str:
                           '    com.sun.security.auth.module.Krb5LoginModule required',
                           '    doNotPrompt=true',
                           '    useTicketCache=true',
-                          '    principal=\\"{primary}@LOCAL\\"'.format(primary=primary),
+                          '    principal=\\"{primary}@{realm}\\"'.format(primary=primary, realm=krb5.get_realm()),
                           '    useKeyTab=true',
                           '    serviceName=\\"kafka\\"',
                           '    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"',
@@ -85,19 +85,24 @@ def write_jaas_config_file(primary: str, task: str) -> str:
     return output_file
 
 
-def write_krb5_config_file(task: str) -> str:
+def write_krb5_config_file(task: str, krb5: object) -> str:
     output_file = "krb5.config"
 
     LOG.info("Generating %s", output_file)
 
-    # TODO: Set realm and kdc properties
-    krb5_file_contents = ['[libdefaults]',
-                          'default_realm = LOCAL',
-                          '',
-                          '[realms]',
-                          '  LOCAL = {',
-                          '    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500',
-                          '  }', ]
+    try:
+        # TODO: Set realm and kdc properties
+        krb5_file_contents = ['[libdefaults]',
+                              'default_realm = {}'.format(krb5.get_realm()),
+                              '',
+                              '[realms]',
+                              '  {realm} = {{'.format(realm=krb5.get_realm()),
+                              '    kdc = {}'.format(krb5.get_kdc_address()),
+                              '  }', ]
+        log.info("%s", krb5_file_contents)
+    except Exception as e:
+        log.error("%s", e)
+        raise(e)
 
     output = sdk_cmd.create_task_text_file(task, output_file, krb5_file_contents)
     LOG.info(output)
@@ -105,11 +110,11 @@ def write_krb5_config_file(task: str) -> str:
     return output_file
 
 
-def setup_env(primary: str, task: str) -> str:
+def setup_krb5_env(primary: str, task: str, krb5: object) -> str:
     env_setup_string = "export KAFKA_OPTS=\\\"" \
                        "-Djava.security.auth.login.config={} " \
                        "-Djava.security.krb5.conf={}" \
-                       "\\\"".format(write_jaas_config_file(primary, task), write_krb5_config_file(task))
+                       "\\\"".format(write_jaas_config_file(primary, task, krb5), write_krb5_config_file(task, krb5))
     LOG.info("Setting environment to %s", env_setup_string)
     return env_setup_string
 

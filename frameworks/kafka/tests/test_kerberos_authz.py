@@ -165,7 +165,7 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(kafka_client, kafka_server):
+def test_authz_acls_required(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
@@ -180,16 +180,16 @@ def test_authz_acls_required(kafka_client, kafka_server):
     message = str(uuid.uuid4())
 
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("authorized", client_id, topic_name, message)
+    assert not write_to_topic("authorized", client_id, topic_name, message, kerberos)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, message)
+    assert write_to_topic("super", client_id, topic_name, message, kerberos)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1))
+    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1, kerberos))
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    assert message in read_from_topic("super", client_id, topic_name, 1)
+    assert message in read_from_topic("super", client_id, topic_name, 1, kerberos)
 
     zookeeper_endpoint = sdk_cmd.svc_cli(
         kafka_server["package_name"],
@@ -202,38 +202,38 @@ def test_authz_acls_required(kafka_client, kafka_server):
     # Send a second message which should not be authorized
     second_message = str(uuid.uuid4())
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert write_to_topic("authorized", client_id, topic_name, second_message)
+    assert write_to_topic("authorized", client_id, topic_name, second_message, kerberos)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, second_message)
+    assert write_to_topic("super", client_id, topic_name, second_message, kerberos)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    topic_output = read_from_topic("authorized", client_id, topic_name, 3)
+    topic_output = read_from_topic("authorized", client_id, topic_name, 3, kerberos)
     assert message in topic_output
     assert second_message in topic_output
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    topic_output = read_from_topic("super", client_id, topic_name, 3)
+    topic_output = read_from_topic("super", client_id, topic_name, 3, kerberos)
     assert message in topic_output
     assert second_message in topic_output
 
     # Check that the unauthorized client can still not read or write from the topic.
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("unauthorized", client_id, topic_name, second_message)
+    assert not write_to_topic("unauthorized", client_id, topic_name, second_message, kerberos)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1))
+    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1, kerberos))
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
+def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                auth.get_kerberos_client_properties(ssl_enabled=False),
-                               auth.setup_env(cn, task))
+                               auth.setup_krb5_env(cn, task, krb5))
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
+def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
 
     return auth.read_from_topic(cn, task, topic, messages,
                                 auth.get_kerberos_client_properties(ssl_enabled=False),
-                                auth.setup_env(cn, task))
+                                auth.setup_krb5_env(cn, task, krb5))

@@ -1,101 +1,43 @@
+"""
+This module tests the interaction of Kafka with Zookeeper with authentication enabled
+"""
 import logging
 import uuid
 import pytest
 
-import sdk_auth
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_security
 import sdk_utils
 
+from tests import active_directory
 from tests import auth
 from tests import config
 from tests import test_utils
 
 
+pytestmark = pytest.mark.skipif(not active_directory.is_active_directory_enabled(),
+                                reason="This test requires TESTING_ACTIVE_DIRECTORY_SERVER to be set")
+
+
 log = logging.getLogger(__name__)
 
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                                reason='Feature only supported in DC/OS EE')
-
-
 @pytest.fixture(scope='module', autouse=True)
-def service_account(configure_security):
-    """
-    Creates service account and yields the name.
-    """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
-
-
-@pytest.fixture(scope='module', autouse=True)
-def kafka_principals():
-    fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
-                                                 host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    brokers = [
-        "kafka-0-broker",
-        "kafka-1-broker",
-        "kafka-2-broker",
-    ]
-
-    principals = []
-    for b in brokers:
-        principals.append("kafka/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=fqdn,
-            realm=sdk_auth.REALM))
-
-    clients = [
-        "client",
-        "authorized",
-        "unauthorized",
-        "super"
-    ]
-    for c in clients:
-        principals.append("{client}@{realm}".format(client=c, realm=sdk_auth.REALM))
-
-    yield principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals):
+def kerberos(configure_security):
     try:
-        principals = []
-        principals.extend(kafka_principals)
-
-        kerberos_env = sdk_auth.KerberosEnvironment()
-        kerberos_env.add_principals(principals)
-        kerberos_env.finalize()
-
+        kerberos_env = active_directory.ActiveDirectoryKerberos()
         yield kerberos_env
 
     finally:
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos, service_account):
-    """
-    A pytest fixture that installs a Kerberized kafka service.
-
-    On teardown, the service is uninstalled.
-    """
+@pytest.fixture(scope='module')
+def zookeeper_server(kerberos):
     service_kerberos_options = {
         "service": {
-            "name": config.SERVICE_NAME,
-            "service_account": service_account,
-            "service_account_secret": service_account,
+            "name": "kafka-zookeeper",
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -103,13 +45,54 @@ def kafka_server(kerberos, service_account):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
-                    "realm": sdk_auth.REALM,
+                    "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
-                },
-                "transport_encryption": {
-                    "enabled": True
                 }
             }
+        }
+    }
+
+    try:
+        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_install.install(
+            "beta-kafka-zookeeper",
+            "kafka-zookeeper",
+            6,
+            additional_options=service_kerberos_options,
+            timeout_seconds=30 * 60)
+
+        yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
+
+    finally:
+        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+
+
+@pytest.fixture(scope='module', autouse=True)
+def kafka_server(kerberos, zookeeper_server):
+
+    # Get the zookeeper DNS values
+    zookeeper_dns = sdk_cmd.svc_cli(zookeeper_server["package_name"],
+                                    zookeeper_server["service"]["name"],
+                                    "endpoint clientport", json=True)["dns"]
+
+    service_kerberos_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "security": {
+                "kerberos": {
+                    "enabled": True,
+                    "enabled_for_zookeeper": True,
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
+                    "realm": kerberos.get_realm(),
+                    "keytab_secret": kerberos.get_keytab_path(),
+                }
+            }
+        },
+        "kafka": {
+            "kafka_zookeeper_uri": ",".join(zookeeper_dns)
         }
     }
 
@@ -133,14 +116,13 @@ def kafka_client(kerberos, kafka_server):
     brokers = sdk_cmd.svc_cli(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
-        "endpoint broker-tls", json=True)["dns"]
+        "endpoint broker", json=True)["dns"]
 
     try:
         client_id = "kafka-client"
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -174,11 +156,6 @@ def kafka_client(kerberos, kafka_server):
         }
 
         sdk_marathon.install_app(client)
-
-        auth.create_tls_artifacts(
-            cn="client",
-            task=client_id)
-
         yield {**client, **{"brokers": list(map(lambda x: x.split(':')[0], brokers))}}
 
     finally:
@@ -207,23 +184,15 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     assert message in read_from_topic("client", client_id, topic_name, 1, kerberos)
 
 
-def get_client_properties(cn: str) -> str:
-    client_properties_lines = []
-    client_properties_lines.extend(auth.get_kerberos_client_properties(ssl_enabled=True))
-    client_properties_lines.extend(auth.get_ssl_client_properties(cn, True))
-
-    return client_properties_lines
-
-
 def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
-                               get_client_properties(cn),
-                               environment=auth.setup_krb5_env(cn, task, krb5))
+                               auth.get_kerberos_client_properties(ssl_enabled=False),
+                               auth.setup_krb5_env(cn, task, krb5))
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
+def read_from_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> str:
 
-    return auth.read_from_topic(cn, task, topic, messages,
-                                get_client_properties(cn),
-                                environment=auth.setup_krb5_env(cn, task, krb5))
+    return auth.read_from_topic(cn, task, topic, message,
+                                auth.get_kerberos_client_properties(ssl_enabled=False),
+                                auth.setup_krb5_env(cn, task, krb5))
