@@ -138,6 +138,11 @@
                     "keytab_secret": {
                       "type": "string",
                       "description": "The name of the DC/OS secret storing the keytab"
+                    },
+                    "debug": {
+                      "type": "boolean",
+                      "description": "Turn debug Kerberos logging on or off to assist in diagnosing issues with Kerberos authentication.",
+                      "default": false
                     }
                   }
                 },
