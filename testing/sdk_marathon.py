@@ -122,7 +122,7 @@ def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_dep
         query_string = "?force=true"
 
     # throws on failure:
-    sdk_cmd.request('put', api_url('apps/{}{}'.format(app_name, query_string)), log_args=False, json=config)
+    sdk_cmd.cluster_request('PUT', _api_url('apps/{}{}'.format(app_name, query_string)), log_args=False, json=config)
 
     if wait_for_completed_deployment:
         log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
