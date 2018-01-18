@@ -186,7 +186,7 @@ public abstract class AbstractScheduler {
      * Returns a list of API resources to be served by the scheduler to the local cluster.
      * This may be called before {@link #initialize(SchedulerDriver)} has been called.
      */
-    protected abstract Collection<Object> getResources();
+    public abstract Collection<Object> getResources();
 
     /**
      * Performs any additional Scheduler initialization after registration has completed. The provided

@@ -58,6 +58,10 @@ public class ClusterState {
         return scheduler.getPlans();
     }
 
+    public Collection<Object> getResources() {
+        return scheduler.getResources();
+    }
+
     /**
      * Adds the provided offer to the list of sent offers.
      */
