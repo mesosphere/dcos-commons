@@ -83,8 +83,8 @@ def cluster_request(
             response = e.response
         log_msg = 'Got {} for {} {}'.format(response.status_code, method.upper(), cluster_path)
         if kwargs:
-            # log arg content (or just arg names) if present
-            log_msg += ' (args: {})'.format(kwargs if log_args else kwargs.keys())
+            # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
+            log_msg += ' (args: {})'.format(kwargs if log_args else [e for e in kwargs.keys()])
         log.info(log_msg)
         if not response.ok:
             # Query failed (>= 400). Before (potentially) throwing, print response payload which may

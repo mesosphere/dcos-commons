@@ -25,7 +25,7 @@ def configure_package(configure_security):
 
 
 def _escape_placement_for_1_9(options: dict) -> dict:
-    # 1.9 requires `\"` to be escped to `\\\"`
+    # 1.9 requires `\"` to be escaped to `\\\"`
     # when submitting placement constraints
     log.info(options)
     if not sdk_utils.dcos_version_less_than("1.10"):
@@ -489,10 +489,9 @@ def get_task_host(task_name):
         raise Exception("offer_hostname label is not present!: {}".format(task_info))
 
     # Validation: Check that label matches summary returned by CLI
-    cli_tasks = sdk_tasks.get_summary(with_completed=False)
-    for task in cli_tasks:
-        if task['name'] == task_name:
-            if task['host'] == host:
+    for task in sdk_tasks.get_summary():
+        if task.name == task_name:
+            if task.host == host:
                 # OK!
                 return host
             else:

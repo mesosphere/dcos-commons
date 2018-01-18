@@ -113,7 +113,8 @@ def pytest_runtest_makereport(item, call):
     if rep.failed:
         # Fetch all logs from tasks created since the last failure, or since the start of the suite.
         global testlogs_ignored_task_ids
-        new_task_ids = [task['id'] for task in sdk_tasks.get_summary() if task['id'] not in testlogs_ignored_task_ids]
+        new_task_ids = [task.id for task in sdk_tasks.get_summary(with_completed=True)
+                        if task.id not in testlogs_ignored_task_ids]
         testlogs_ignored_task_ids = testlogs_ignored_task_ids.union(new_task_ids)
         # Enforce limit on how many tasks we will fetch logs from, to avoid unbounded log fetching.
         if len(new_task_ids) > testlogs_task_id_limit:
@@ -171,7 +172,8 @@ def pytest_runtest_setup(item):
         # 1 Store all the task ids which already exist as of this point.
         testlogs_current_test_suite = test_suite
         global testlogs_ignored_task_ids
-        testlogs_ignored_task_ids = testlogs_ignored_task_ids.union([task['id'] for task in sdk_tasks.get_summary()])
+        testlogs_ignored_task_ids = testlogs_ignored_task_ids.union([
+            task.id for task in sdk_tasks.get_summary(with_completed=True)])
         log.info('Entering new test suite {}: {} preexisting tasks will be ignored on test failure.'.format(
             test_suite, len(testlogs_ignored_task_ids)))
         # 2 Reset the test index.
