@@ -1,9 +1,18 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
+import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.testing.*;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.After;
@@ -11,20 +20,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.scheduler.plan.Phase;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testing.ClusterState;
-import com.mesosphere.sdk.testing.Expect;
-import com.mesosphere.sdk.testing.Send;
-import com.mesosphere.sdk.testing.ServiceTestResult;
-import com.mesosphere.sdk.testing.ServiceTestRunner;
-import com.mesosphere.sdk.testing.SimulationTick;
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Tests for the hello world service and its example yml files.
@@ -323,6 +321,121 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         new ServiceTestRunner().setOptions("world.count", "0").setState(result).run(ticks);
+    }
+
+    @Test
+    public void transientToCustomPermanentFailureTransition() throws Exception {
+        Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
+                .setId(Protos.OfferID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME)
+                .addResources(
+                        Protos.Resource.newBuilder()
+                        .setName("mem")
+                        .setType(Protos.Value.Type.SCALAR)
+                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
+                .build();
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod then 2 world pods.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        // Send another offer before hello-0 is finished:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Now world-0 will deploy:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.launchedTasks("world-0-server"));
+
+        // With world-0's readiness check passing, world-1 still won't launch due to a hostname placement constraint:
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
+
+        // world-1 will finally launch if the offered hostname is different:
+        ticks.add(Send.offerBuilder("world").setHostname("host-foo").build());
+        ticks.add(Expect.launchedTasks("world-1-server"));
+        ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
+
+        // *** Complete initial deployment. ***
+        ticks.add(Expect.allPlansComplete());
+
+        // Kill hello-0 to trigger transient recovery
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+        // Send an unused offer to trigger an evaluation of the recovery plan
+        ticks.add(Send.offer(unacceptableOffer));
+        // Expect default transient recovery triggered
+        ticks.add(Expect.recoveryStepStatus("hello-0:[server]", "hello-0:[server]", Status.PREPARED));
+
+        // Now trigger custom permanent replacement of that pod
+        ticks.add(Send.replacePod("hello-0"));
+        // Send an unused offer to trigger an evaluation of the recovery plan
+        ticks.add(Send.offer(unacceptableOffer));
+
+        // Custom expectation not relevant to other tests
+        Expect expectSingleRecoveryPhase = new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+                Plan recoveryPlan = state.getPlans().stream()
+                        .filter(plan -> plan.getName().equals("recovery"))
+                        .findAny().get();
+
+                Assert.assertEquals(1, recoveryPlan.getChildren().size());
+            }
+
+            @Override
+            public String getDescription() {
+                return "Single recovery phase";
+            }
+        };
+
+        ticks.add(expectSingleRecoveryPhase);
+        ticks.add(Expect.recoveryStepStatus("custom-hello-recovery", "hello-0", Status.PREPARED));
+
+        // Complete recovery
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Expect.allPlansComplete());
+
+        new ServiceTestRunner()
+                .setRecoveryManagerFactory(new RecoveryPlanOverriderFactory() {
+                    @Override
+                    public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
+                        return new RecoveryPlanOverrider() {
+                            @Override
+                            public Optional<Phase> override(PodInstanceRequirement podInstanceRequirement) {
+                                if (podInstanceRequirement.getPodInstance().getPod().getType().equals("hello") &&
+                                        podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+                                    Phase phase = new DefaultPhase(
+                                            "custom-hello-recovery",
+                                            Arrays.asList(
+                                                    new DefaultRecoveryStep(
+                                                            podInstanceRequirement.getPodInstance().getName(),
+                                                            podInstanceRequirement,
+                                                            new UnconstrainedLaunchConstrainer(),
+                                                            stateStore)),
+                                            new SerialStrategy<>(),
+                                            Collections.emptyList());
+
+                                    return Optional.of(phase);
+                                }
+
+                                return Optional.empty();
+                            }
+                        };
+                    }
+                })
+                .run(ticks);
     }
 
     private static class StepCount {
