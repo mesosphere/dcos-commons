@@ -324,6 +324,50 @@ public class ServiceTest {
     }
 
     @Test
+    public void schedulerRestartWithoutReadinessCheck() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod then 2 world pods.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        // Send another offer before hello-0 is finished:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Now world-0 will deploy:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.launchedTasks("world-0-server"));
+
+        // world-0 has a readiness check, so the scheduler is waiting for that:
+        // Send a status update without a readiness check
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.STARTED));
+
+
+        ServiceTestResult result = new ServiceTestRunner().run(ticks);
+
+        // Start a new scheduler:
+        ticks.clear();
+
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+
+        // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.PENDING));
+
+        ServiceTestResult restarted = new ServiceTestRunner().setState(result).run(ticks);
+    }
+
+
+    @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
         Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(UUID.randomUUID().toString()))
@@ -332,9 +376,9 @@ public class ServiceTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addResources(
                         Protos.Resource.newBuilder()
-                        .setName("mem")
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
+                                .setName("mem")
+                                .setType(Protos.Value.Type.SCALAR)
+                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
                 .build();
 
         Collection<SimulationTick> ticks = new ArrayList<>();
@@ -561,7 +605,7 @@ public class ServiceTest {
             expectedSteps.put(String.format("kill-%s-server", stepCount.phaseName),
                     stepCount.statusOfStepIndex(expectedSteps.size()));
             for (String resourceId :
-                ResourceUtils.getResourceIds(ResourceUtils.getAllResources(state.getLastLaunchedPod(stepCount.phaseName)))) {
+                    ResourceUtils.getResourceIds(ResourceUtils.getAllResources(state.getLastLaunchedPod(stepCount.phaseName)))) {
                 expectedSteps.put(String.format("unreserve-%s", resourceId),
                         stepCount.statusOfStepIndex(expectedSteps.size()));
             }
