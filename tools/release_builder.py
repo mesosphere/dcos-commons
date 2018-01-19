@@ -350,7 +350,7 @@ Artifact output: {}
         stub_universe_filename = os.path.basename(self._stub_universe_url)
         updated_stub_universe_path = os.path.join(scratchdir, stub_universe_filename)
         with open(updated_stub_universe_path, 'w') as stub_universe_file:
-            json.dump(package_json, stub_universe_file, indent=2)
+            json.dump({'packages': [package_json]}, stub_universe_file, indent=2)
         self._uploader.upload(
             updated_stub_universe_path,
             content_type='application/vnd.dcos.universe.repo+json;charset=utf-8')
