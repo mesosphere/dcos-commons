@@ -37,17 +37,28 @@ def extract_uris(file_name):
 
 def validate_uris_in(file_name):
     uris = extract_uris(file_name)
+    # A FQDN is a valid cluster internal FQDN if it contains one of the listed exceptions
+    exceptions = [
+        ".thisdcos",
+        ".mesos:",
+        "$MESOS_CONTAINER_IP",
+        "{{FRAMEWORK_HOST}}",
+    ]
 
     bad_uri = False
+
     for uri in uris:
-        # A FQDN is a valid cluster internal FQDN if it:
-        #   - contains .mesos:<####>
-        #   - contains .thisdcos
-        #   - contains $MESOS_CONTAINER_IP
-        if not (".thisdcos" in uri or ".mesos:" in uri or "$MESOS_CONTAINER_IP" in uri):
-            print("Found a bad URI:", uri, "in:", file_name,
+        # Assume the URI is bad
+        bad_uri = True
+
+        # Are any of the exceptions present?
+        for exception in exceptions:
+            if exception in uri:
+                bad_uri = False
+                break
+
+        print("Found a bad URI:", uri, "in:", file_name,
                   "Export URIs to resource.json to allow packaging for airgapped clusters.")
-            bad_uri = True
 
     return not bad_uri
 
