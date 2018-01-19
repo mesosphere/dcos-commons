@@ -13,6 +13,7 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_repository
+import sdk_security
 import sdk_utils
 
 from tests import auth
@@ -121,14 +122,27 @@ def zookeeper_server(kerberos):
         }
     }
 
+    zk_account = "kafka-zookeeper-service-account"
+    zk_secret = "kakfa-zookeeper-secret"
+
+    if sdk_utils.is_strict_mode():
+        service_kerberos_options = sdk_install.merge_dictionaries({
+            'service': {
+                'service_account': zk_account,
+                'service_account_secret': zk_secret,
+            }
+        }, service_kerberos_options)
+
     try:
         sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_security.setup_security("kafka-zookeeper", zk_account, zk_secret)
         sdk_install.install(
             "beta-kafka-zookeeper",
             "kafka-zookeeper",
             6,
             additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+            insert_strict_options=False)
 
         yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
 
