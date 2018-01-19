@@ -21,7 +21,7 @@ ZK_SERVICE_NAME = "kafka-zookeeper"
 def configure_zookeeper(configure_security):
     try:
         sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
-
+        # TODO once Gabriel merges his work, I can use it to setup ZK security here
         sdk_install.install(package_name=ZK_PACKAGE,
                         expected_running_tasks=6,
                         service_name=ZK_SERVICE_NAME,
@@ -43,7 +43,6 @@ def configure_package(configure_zookeeper):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
         zookeeper_framework_host = "{}.autoip.dcos.thisdcos.directory:1140".format(ZK_SERVICE_NAME)
-
         config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
@@ -67,9 +66,7 @@ def configure_package(configure_zookeeper):
 @pytest.mark.zookeeper
 @pytest.mark.ben
 def test_zookeeper_reresolution():
-    # Replace every zookeeper node, this will ensure Kafka has to re-resolve to stay up.
-    # Note, I'm doing a replace and not a restart, because right now, restarts are not reliable. Wheeee.abs
-    # Actually, replaces might not be either. Fuckity fuck.
+
     def replace_zookeeper_node(id: int):
         sdk_cmd.svc_cli(ZK_PACKAGE, ZK_SERVICE_NAME, "pod replace zookeeper-{}".format(id))
 
