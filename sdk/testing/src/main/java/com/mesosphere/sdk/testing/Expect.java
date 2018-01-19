@@ -77,26 +77,35 @@ public interface Expect extends SimulationTick {
                 Collection<String> launchedTaskNames = new ArrayList<>();
                 // A single acceptOffers() call may contain multiple LAUNCH/LAUNCH_GROUP operations.
                 // We want to ensure they're all counted as a unit when tallying the pod.
+                Protos.ExecutorInfo launchedExecutor = null;
                 Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
                 for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
                     if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                        // Old-style launch with custom executor
-                        launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
+                        // Old-style launch with custom executor in each TaskInfo
+                        Collection<Protos.TaskInfo> taskInfos = operation.getLaunch().getTaskInfosList();
+                        launchedExecutor = taskInfos.iterator().next().getExecutor();
+
+                        launchedTaskNames.addAll(taskInfos.stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
-                        launchedTaskInfos.addAll(operation.getLaunch().getTaskInfosList().stream()
+                        launchedTaskInfos.addAll(taskInfos.stream()
                                 .map(task -> TaskPackingUtils.unpack(task))
                                 .collect(Collectors.toList()));
                     } else if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH_GROUP)) {
-                        // New-style launch with default executor
-                        launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
+                        // New-style launch with default executor in parent LaunchGroup
+                        launchedExecutor = operation.getLaunchGroup().getExecutor();
+
+                        Collection<Protos.TaskInfo> taskInfos =
+                                operation.getLaunchGroup().getTaskGroup().getTasksList();
+
+                        launchedTaskNames.addAll(taskInfos.stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
-                        launchedTaskInfos.addAll(operation.getLaunchGroup().getTaskGroup().getTasksList());
+                        launchedTaskInfos.addAll(taskInfos);
                     }
                 }
-                if (!launchedTaskInfos.isEmpty()) {
-                    state.addLaunchedPod(launchedTaskInfos);
+                if (launchedExecutor != null) {
+                    state.addLaunchedPod(new LaunchedPod(launchedExecutor, launchedTaskInfos));
                 }
                 Assert.assertTrue(
                         String.format("Expected launched tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
@@ -132,11 +141,12 @@ public interface Expect extends SimulationTick {
                 verify(mockDriver, atLeastOnce())
                         .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
                 Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
-                Collection<String> expectedResourceIds = taskNames.stream()
-                        .map(taskName ->
-                                ResourceUtils.getResourceIds(state.getLastLaunchedTask(taskName).getResourcesList()))
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                Collection<String> expectedResourceIds = new ArrayList<>();
+                for (String taskName : taskNames) {
+                    LaunchedTask task = state.getLastLaunchedTask(taskName);
+                    expectedResourceIds.addAll(ResourceUtils.getResourceIds(task.getTask().getResourcesList()));
+                    expectedResourceIds.addAll(ResourceUtils.getResourceIds(task.getExecutor().getResourcesList()));
+                }
                 Assert.assertFalse(String.format("Expected some resource ids for tasks: %s, got none", taskNames),
                         expectedResourceIds.isEmpty());
                 Collection<String> unreservedResourceIds = new ArrayList<>();

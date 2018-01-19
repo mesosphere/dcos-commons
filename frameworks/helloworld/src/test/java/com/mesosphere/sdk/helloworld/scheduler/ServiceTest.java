@@ -270,7 +270,7 @@ public class ServiceTest {
 
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 6, 0, 0), new StepCount("world-0", 6, 0, 0))));
+                new StepCount("world-1", 9, 0, 0), new StepCount("world-0", 9, 0, 0))));
 
         // Need to send an offer to trigger the implicit reconciliation.
         ticks.add(Send.offerBuilder("hello").build());
@@ -279,19 +279,19 @@ public class ServiceTest {
 
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 5, 0, 1), new StepCount("world-0", 6, 0, 0))));
+                new StepCount("world-1", 8, 0, 1), new StepCount("world-0", 9, 0, 0))));
         ticks.add(Expect.taskNameKilled("world-1-server"));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 4, 1, 1), new StepCount("world-0", 6, 0, 0))));
+                new StepCount("world-1", 7, 1, 1), new StepCount("world-0", 9, 0, 0))));
 
         // Offer world-1 resources and check that world-1 resources are wiped:
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
         ticks.add(Expect.unreservedTasks("world-1-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 1, 0, 5), new StepCount("world-0", 6, 0, 0))));
+                new StepCount("world-1", 1, 0, 8), new StepCount("world-0", 9, 0, 0))));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-1-server"));
 
         // Turn the crank with an arbitrary offer to finish erasing world-1:
@@ -300,13 +300,13 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
         ticks.add(Expect.knownTasks(result.getPersister(), "hello-0-server", "world-0-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 6, 0, 0))));
+                new StepCount("world-1", 0, 0, 9), new StepCount("world-0", 9, 0, 0))));
 
         // Now let's proceed with decommissioning world-0. This time a single offer with the correct resources results
         // in both killing/flagging the task, and clearing its resources:
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 1, 0, 5))));
+                new StepCount("world-1", 0, 0, 9), new StepCount("world-0", 1, 0, 8))));
         ticks.add(Expect.taskNameKilled("world-0-server"));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
@@ -316,7 +316,7 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
         ticks.add(Expect.knownTasks(result.getPersister(), "hello-0-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 0, 0, 6), new StepCount("world-0", 0, 0, 6))));
+                new StepCount("world-1", 0, 0, 9), new StepCount("world-0", 0, 0, 9))));
 
         ticks.add(Expect.allPlansComplete());
 
@@ -550,18 +550,22 @@ public class ServiceTest {
                     .collect(Collectors.toMap(Phase::getName, p -> p));
             Assert.assertEquals(stepCounts.size(), phases.size());
             for (StepCount stepCount : stepCounts) {
-                Assert.assertEquals(getStepStatuses(state, stepCount),
+                Assert.assertEquals(getExpectedStepStatuses(state, stepCount),
                         phases.get(stepCount.phaseName).getChildren().stream()
                                 .collect(Collectors.toMap(Step::getName, Step::getStatus)));
             }
         }
 
-        private static Map<String, Status> getStepStatuses(ClusterState state, StepCount stepCount) {
+        private static Map<String, Status> getExpectedStepStatuses(ClusterState state, StepCount stepCount) {
             Map<String, Status> expectedSteps = new HashMap<>();
             expectedSteps.put(String.format("kill-%s-server", stepCount.phaseName),
                     stepCount.statusOfStepIndex(expectedSteps.size()));
-            for (String resourceId :
-                ResourceUtils.getResourceIds(ResourceUtils.getAllResources(state.getLastLaunchedPod(stepCount.phaseName)))) {
+            LaunchedPod pod = state.getLastLaunchedPod(stepCount.phaseName);
+
+            Collection<String> resourceIds = new ArrayList<>();
+            resourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(pod.getTasks())));
+            resourceIds.addAll(ResourceUtils.getResourceIds(pod.getExecutor().getResourcesList()));
+            for (String resourceId : resourceIds) {
                 expectedSteps.put(String.format("unreserve-%s", resourceId),
                         stepCount.statusOfStepIndex(expectedSteps.size()));
             }
