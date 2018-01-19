@@ -76,6 +76,28 @@ class UniversePackagePublisher(object):
         this_dir = os.path.join(repo_pkg_base, str(lastnum + 1))
         shutil.copytree(pkgdir, this_dir)
 
+        # create a user-friendly diff for use in the commit message:
+        result_lines = self._compute_changes(last_dir, this_dir, lastnum)
+        commitmsg_path = os.path.join(scratchdir, 'commitmsg.txt')
+        with open(commitmsg_path, 'w') as commitmsg_file:
+            commitmsg_file.write(self._pr_title)
+            commitmsg_file.writelines(result_lines)
+        # commit the change and push the branch:
+        cmds = ['cd {}'.format(os.path.join(scratchdir, 'universe')),
+                'git add .',
+                'git commit -q -F {}'.format(commitmsg_path)]
+        if self._dry_run:
+            # ensure the debug goes to stderr...:
+            cmds.append('git show -q HEAD 1>&2')
+        else:
+            cmds.append('git push origin {}'.format(branch))
+        ret = os.system(' && '.join(cmds))
+        if ret != 0:
+            raise Exception('Failed to push git branch {} to Universe.'.format(branch))
+        return (branch, commitmsg_path)
+
+
+    def _compute_changes(self, last_dir, this_dir, lastnum):
         if os.path.exists(last_dir):
             last_dir_files = set(os.listdir(last_dir))
             this_dir_files = set(os.listdir(this_dir))
@@ -101,38 +123,25 @@ class UniversePackagePublisher(object):
             removed_files = {}
             added_files = os.listdir(this_dir)
 
-        # create a user-friendly diff for use in the commit message:
-        resultlines = [
+        result_lines = [
             'Changes since revision {}:\n'.format(lastnum),
             '{} files added: [{}]\n'.format(len(added_files), ', '.join(added_files)),
             '{} files removed: [{}]\n'.format(len(removed_files), ', '.join(removed_files)),
             '{} files changed:\n\n'.format(len(filediffs))]
         if self._commit_desc:
-            resultlines.insert(0, 'Description:\n{}\n\n'.format(self._commit_desc))
+            result_lines.insert(0, 'Description:\n{}\n\n'.format(self._commit_desc))
+
         # surround diff description with quotes to ensure formatting is preserved:
-        resultlines.append('```\n')
+        result_lines.append('```\n')
+
         filediff_names = list(filediffs.keys())
         filediff_names.sort()
         for filename in filediff_names:
-            resultlines.append(filediffs[filename])
-        resultlines.append('```\n')
-        commitmsg_path = os.path.join(scratchdir, 'commitmsg.txt')
-        with open(commitmsg_path, 'w') as commitmsg_file:
-            commitmsg_file.write(self._pr_title)
-            commitmsg_file.writelines(resultlines)
-        # commit the change and push the branch:
-        cmds = ['cd {}'.format(os.path.join(scratchdir, 'universe')),
-                'git add .',
-                'git commit -q -F {}'.format(commitmsg_path)]
-        if self._dry_run:
-            # ensure the debug goes to stderr...:
-            cmds.append('git show -q HEAD 1>&2')
-        else:
-            cmds.append('git push origin {}'.format(branch))
-        ret = os.system(' && '.join(cmds))
-        if ret != 0:
-            raise Exception('Failed to push git branch {} to Universe.'.format(branch))
-        return (branch, commitmsg_path)
+            result_lines.append(filediffs[filename])
+
+        result_lines.append('```\n')
+
+        return result_lines
 
 
     def _create_universe_pr(self, branch, commitmsg_path):

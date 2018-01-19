@@ -173,7 +173,7 @@ Artifact output: {}
         return pkgdir
 
 
-    def _update_package_dot_json(self, package_json):
+    def _update_package_json(self, package_json):
         '''Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
         '''
@@ -189,7 +189,9 @@ Artifact output: {}
         package_json['version'] = self._pkg_version
         # Update package's upgradesFrom/downgradesTo to reflect any package name changes
         # due to enabling or disabling a beta bit.
-        if self._stub_universe_pkg_name != self._pkg_name:
+        if self._stub_universe_pkg_name != self._pkg_name and \
+            (package_json.get('upgradesFrom', ['*']) != ['*'] or
+             package_json.get('downgradesTo', ['*']) != ['*']):
             last_release = self._pkg_manager.get_latest(self._pkg_name)
             if last_release is None:
                 # nothing to upgrade from
@@ -261,11 +263,7 @@ Artifact output: {}
             log.info('Downloading docker image {}'.format(orig_docker_image))
             self._run_cmd('docker pull {}'.format(orig_docker_image))
             self._run_cmd('docker tag {} {}'.format(orig_docker_image, self._release_docker_image))
-            if self._dry_run:
-                log.info('[DRY RUN] Uploading docker image {}'.format(self._release_docker_image))
-            else:
-                log.info('Uploading docker image {}'.format(self._release_docker_image))
-                self._run_cmd('docker push {}'.format(self._release_docker_image))
+            self._run_cmd('docker push {}'.format(self._release_docker_image))
 
         log.info('Updated resource.json:')
         log.info('\n'.join(difflib.unified_diff(
@@ -282,7 +280,7 @@ Artifact output: {}
         Returns the list of original artifact URLs that were built with the package,
         and which would need to be reuploaded in a move or release.
         '''
-        self._update_package_dot_json(package_json)
+        self._update_package_json(package_json)
         self._update_marathon_json(package_json)
         return self._update_resource_json(package_json)
 

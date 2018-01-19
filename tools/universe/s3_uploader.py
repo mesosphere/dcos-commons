@@ -3,6 +3,7 @@
 import logging
 import os
 import os.path
+import subprocess
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -11,9 +12,7 @@ class S3Uploader(object):
 
     def __init__(self, package_name, s3_directory, dry_run=False):
         # check if aws cli tools are installed
-        cmd = "aws --version"
-        ret = os.system(cmd)
-        if not ret == 0:
+        if not subprocess.run("aws --version".split()).returncode == 0:
             raise Exception('Required "aws" command is not installed.')
 
         self._s3_directory = s3_directory

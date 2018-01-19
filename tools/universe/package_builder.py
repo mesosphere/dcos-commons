@@ -208,7 +208,7 @@ class UniversePackageBuilder(object):
             logger.info('  {{%s}} => %s' % (key, template_mapping[key]))
         logger.info('Resulting diff:')
         logger.info('\n'.join(
-            difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
+            difflib.unified_diff(orig_content.split('\n'), new_content.split('\n'), lineterm='')))
         return new_content
 
     def _generate_packages_dict(self, package_files):
