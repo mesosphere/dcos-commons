@@ -12,7 +12,7 @@ import sdk_tasks
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'beta-elastic'
+PACKAGE_NAME = 'elastic'
 SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'

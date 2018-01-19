@@ -12,7 +12,7 @@ import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'beta-cassandra'
+PACKAGE_NAME = 'cassandra'
 
 SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or 'cassandra'
 
