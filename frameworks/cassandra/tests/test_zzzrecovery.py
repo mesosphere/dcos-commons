@@ -84,9 +84,11 @@ def test_shutdown_host():
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
+    # Find the new version of the task. Note that the old one may still be present/'running' as
+    # Mesos might not have acknowledged the agent's death.
     new_task = [
         task for task in sdk_tasks.get_summary()
-        if task.name == replace_task.name][0]
+        if task.name == replace_task.name and task.id != replace_task.id][0]
     log.info('Checking that the original pod has moved to a new agent:\n'
              'old={}\nnew={}'.format(replace_task, new_task))
     assert replace_task.agent != new_task.agent
