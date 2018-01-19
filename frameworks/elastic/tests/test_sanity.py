@@ -26,7 +26,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(FOLDERED_SERVICE_NAME, package_name=config.PACKAGE_NAME)
 
         sdk_upgrade.test_upgrade(
-            "beta-{}".format(config.PACKAGE_NAME),
+            config.PACKAGE_NAME,
             config.PACKAGE_NAME,
             config.DEFAULT_TASK_COUNT,
             service_name=FOLDERED_SERVICE_NAME,

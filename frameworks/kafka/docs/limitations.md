@@ -1,4 +1,8 @@
 ---
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
 post_title: Limitations
 menu_order: 100
 enterprise: 'no'

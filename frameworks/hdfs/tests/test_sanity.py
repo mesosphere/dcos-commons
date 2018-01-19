@@ -32,7 +32,7 @@ def configure_package(configure_security):
                 timeout_seconds=30*60)
         else:
             sdk_upgrade.test_upgrade(
-                "beta-{}".format(config.PACKAGE_NAME),
+                config.PACKAGE_NAME,
                 config.PACKAGE_NAME,
                 config.DEFAULT_TASK_COUNT,
                 service_name=config.FOLDERED_SERVICE_NAME,

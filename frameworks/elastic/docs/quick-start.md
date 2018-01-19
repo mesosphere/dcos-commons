@@ -1,7 +1,10 @@
 ---
-post_title: Quick Start
-menu_order: 40
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Quick Start
+menuWeight: 40
+
 ---
 
 1. Perform a default installation by following the instructions in the Install and Customize section of this topic.

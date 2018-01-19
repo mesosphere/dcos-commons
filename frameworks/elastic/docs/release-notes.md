@@ -1,8 +1,17 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle: 
+excerpt:
+title: Release Notes
+menuWeight: 120
+
 ---
+
+## Version 2.1.1-5.6.5
+
+### Improvements
+- Elastic updated to version 5.6.5
+- Kibana updated to version 5.6.5
 
 ## Version 2.1.0-5.6.2
 

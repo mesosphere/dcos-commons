@@ -1,8 +1,17 @@
 ---
+layout: layout.pug
+navigationTitle: 
+menuWeight: 0
+excerpt:
 post_title: Release Notes
 menu_order: 120
 enterprise: 'no'
 ---
+
+# Version 2.0.4-1.0.0
+
+## Updates
+- Upgraded to Kafka v1.0.0. **Note:** Protocol and log version defaults are set to 0.11.0. After upgrading to this version, they may be set to 1.0.0.
 
 # Version 2.0.3-0.11.0
 

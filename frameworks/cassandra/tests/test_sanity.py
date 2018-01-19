@@ -20,7 +20,7 @@ def configure_package(configure_security):
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         sdk_install.uninstall(config.get_foldered_service_name(), package_name=config.PACKAGE_NAME)
         sdk_upgrade.test_upgrade(
-            "beta-{}".format(config.PACKAGE_NAME),
+            config.PACKAGE_NAME,
             config.PACKAGE_NAME,
             config.DEFAULT_TASK_COUNT,
             service_name=config.get_foldered_service_name(),
@@ -45,6 +45,7 @@ def test_service_health():
 
 
 @pytest.mark.sanity
+@pytest.mark.ben
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = json.loads(cmd.run_cli('cassandra --name={} endpoints node'.format(config.get_foldered_service_name())))
