@@ -136,7 +136,7 @@ Placement constraints may be updated after initial deployment using the followin
 
 Let's say we have the following deployment of our nodes
 
-- Placement constraint of: `hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84`
+- Placement constraint of: `[["hostname", "LIKE", "10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84"]]`
 - Tasks:
 ```
 10.0.10.3: node-0
@@ -151,7 +151,7 @@ Let's say we have the following deployment of our nodes
 1. Remove the decommissioned IP and add a new IP to the placement rule whitelist by editing `PLACEMENT_CONSTRAINT`:
 
 	```
-	hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+	[["hostname", "LIKE", "10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123"]]
 	```
 1. Redeploy `node-1` from the decommissioned node to somewhere within the new whitelist: `dcos beta-cassandra pod replace node-1`
 1. Wait for `node-1` to be up and healthy before continuing with any other replacement operations.

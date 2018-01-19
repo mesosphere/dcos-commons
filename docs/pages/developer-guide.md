@@ -1670,7 +1670,7 @@ The SDK supports having pods join virtual neworks (including the `dcos` overlay 
 
 ### Placement Rules
 
-Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using either of the following formats: `["field", "operator"[, "parameter"]]`, or `field:operator[:parameter]`. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#placement-rules).
+Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using the following format: `["field", "operator"[, "parameter"]]`. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#placement-rules).
 
 We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:
 
@@ -1689,7 +1689,7 @@ pods:
 ```
 
 
-In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `"hostname:UNIQUE"` to ensure that no two hello instances are on the same agent at a time, or `“rack_id:LIKE:rack-foo-.*”` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `“rack-foo-”`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `“hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”`.
+In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `[["hostname", "UNIQUE"]]` to ensure that no two hello instances are on the same agent at a time, or `[["rack_id", "LIKE", "rack-foo-.*"]]` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `"rack-foo-"`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `[["hostname", "UNIQUE"], ["rack_id", "LIKE", "rack-foo-.*"]]`.
 
 ### Resource Sets
 

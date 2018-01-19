@@ -88,7 +88,7 @@ Use the `--name` argument after install time to specify which HDFS instance to q
 
 <!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
-## Integration with DC/OS access controls
+# Integration with DC/OS access controls
 
 In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/hdfs` and `production/hdfs`.
 
@@ -113,12 +113,35 @@ Steps:
 - Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
 - DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
 
-### Interacting with your foldered service
+## Interacting with your foldered service
 
 - Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
 - To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/hdfs/v1/endpoints`.
 
 <!-- END DUPLICATE BLOCK -->
+
+# Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `[["@zone", "GROUP_BY", "3"]]`.
+
+<!--
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+-->
+## Example
+
+Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
+
+## Balanced Placement for a Single Region
+
+```
+{
+  ...
+  "count": 6,
+  "constraints": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+}
+```
+
+- Instances will all be evenly divided between zones `a`,`b`,`c`.
 
 # Colocation
 

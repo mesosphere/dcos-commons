@@ -7,6 +7,11 @@ menuWeight: 120
 
 ---
 
+## Version 2.0.4-2.6.0-cdh5.11.0
+
+### Bug Fixes
+- Placement constraints are now exposed.
+
 ## Version 2.1.1-2.6.0-cdh5.11.0-beta
 
 ## NOTICE

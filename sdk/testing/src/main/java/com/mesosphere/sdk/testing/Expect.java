@@ -1,21 +1,14 @@
 package com.mesosphere.sdk.testing;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.Persister;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
@@ -24,11 +17,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.Persister;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 
 /**
@@ -299,6 +292,46 @@ public interface Expect extends SimulationTick {
             @Override
             public String getDescription() {
                 return "All plans complete";
+            }
+        };
+    }
+
+    /**
+     * Verifies that the indicated recovery phase.step has the expected status.
+     */
+    public static Expect recoveryStepStatus(String phaseName, String stepName, Status expectedStatus) {
+        return stepStatus(DefaultRecoveryPlanManager.DEFAULT_RECOVERY_PLAN_NAME, phaseName, stepName, expectedStatus);
+    }
+
+    /**
+     * Verifies that the indicated plan.phase.step has the expected status.
+     */
+    public static Expect stepStatus(
+            String planName,
+            String phaseName,
+            String stepName,
+            Status expectedStatus) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                Plan recoveryPlan = state.getPlans().stream()
+                        .filter(plan -> plan.getName().equals(planName))
+                        .findAny().get();
+
+                Phase phase = recoveryPlan.getChildren().stream()
+                        .filter(p -> p.getName().equals(phaseName))
+                        .findAny().get();
+
+                Step step = phase.getChildren().stream()
+                        .filter(s -> s.getName().equals(stepName))
+                        .findAny().get();
+
+                Assert.assertEquals(expectedStatus, step.getStatus());
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("For Phase: %s, Step: %s, Status is %s", phaseName, stepName, expectedStatus);
             }
         };
     }
