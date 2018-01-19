@@ -92,15 +92,14 @@ def test_pod_pause_resume():
     config.check_running()
 
     # check agent didn't move, and that the command has changed:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)
-    assert len(jsonobj) == 1
-    assert old_agent == jsonobj[0]['info']['slaveId']['value']
-    cmd = jsonobj[0]['info']['command']['value']
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)[0]['info']
+    assert old_agent == jsonobj['slaveId']['value']
+    cmd = jsonobj['command']['value']
     assert 'This task is PAUSED' in cmd
 
     if sdk_utils.dcos_version_at_least('1.10'):
         # validate readiness check (default executor)
-        readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+        readiness_check = jsonobj['check']['command']['command']['value']
         assert 'exit 1' == readiness_check
 
     # check PAUSED state in plan and in pod status:
@@ -275,10 +274,6 @@ def test_config_update_then_zk_killed():
 def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
-    # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
-    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True, print_output=False)
-    # old_agent = jsonobj[0]['info']['slaveId']['value']
-
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
@@ -287,11 +282,6 @@ def test_pod_replace():
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
     config.check_running()
-
-    # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
-    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True, print_output=False)
-    # new_agent = jsonobj[0]['info']['slaveId']['value']
-    # assert old_agent != new_agent
 
 
 # @@@@@@@

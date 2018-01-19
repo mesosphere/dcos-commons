@@ -8,8 +8,10 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 import json as jsonlib
 import os
 import logging
+import paramiko
 import retrying
 import subprocess
+import traceback
 import urllib.parse
 
 import dcos.errors
@@ -236,12 +238,16 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=300*1000,  # 5 minutes
+        stop_max_delay=5*60*1000,
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
-        ok, stdout = shakedown.run_command_on_agent(agent_ip, 'ls')
-        log.info('Wait for agent shutdown: ok={}, stdout="{}"'.format(ok, stdout))
-        return ok
+        try:
+            ok, stdout = shakedown.run_command_on_agent(agent_ip, 'ls')
+            log.info('Wait for agent shutdown: ok={}, stdout="{}"'.format(ok, stdout))
+            return ok
+        except paramiko.SSHException:  # on DC/OS 1.9, we get this instead of ok=False
+            log.info(traceback.format_exc())
+            return False  # this exception should mean the node is down, all done!
 
     wait_for_unresponsive_agent()
 
