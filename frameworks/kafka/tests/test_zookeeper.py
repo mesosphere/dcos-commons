@@ -33,18 +33,31 @@ def install_zookeeper_stub():
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_zookeeper(configure_security, install_zookeeper_stub):
+    service_options = {
+        "service": {
+            "virtual_network_enabled": True
+        }
+    }
+
+    zk_account = "test-zookeeper-service-account"
+    zk_secret = "test-zookeeper-secret"
+
+    if sdk_utils.is_strict_mode():
+        service_options = sdk_install.merge_dictionaries({
+            'service': {
+                'service_account': zk_account,
+                'service_account_secret': zk_secret,
+            }
+        }, service_options)
+
     try:
         sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
-        # TODO once Gabriel merges his work, I can use it to setup ZK security here
+        sdk_security.setup_security("kafka-zookeeper", zk_account, zk_secret)
         sdk_install.install(package_name=ZK_PACKAGE,
                         expected_running_tasks=6,
                         service_name=ZK_SERVICE_NAME,
                         wait_for_deployment=True,
-                        additional_options={
-                            "service": {
-                                "virtual_network_enabled": True
-                            }
-                        })
+                        additional_options=service_options)
 
         yield
     finally:
