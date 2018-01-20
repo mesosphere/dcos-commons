@@ -17,6 +17,8 @@ import urllib.request
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
+# Prefix to be included at the start of stub universe URLs.
+# Points to a translator service which automatically converts the package definition to match the requesting cluster's version.
 universe_converter_url_prefix = 'https://universe-converter.mesosphere.com/transform?url='
 
 
@@ -372,7 +374,8 @@ Artifact output: {}
             self._pkg_name,
             self._pkg_version,
             commit_desc,
-            self._dry_run)
+            self._beta_release,
+            dry_run=self._dry_run)
 
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
 
@@ -404,6 +407,7 @@ def print_help(argv):
     log.info('- Github (Personal Access Token): GITHUB_TOKEN (only required for release)')
     log.info('Optional params in env:')
     log.info('- BETA: true/false')
+    log.info('- RELEASE_INDEX: a specific Universe package index, for hotfixes (else autodetected)')
     log.info('- DRY_RUN: true/false')
     log.info('- FORCE_ARTIFACT_UPLOAD: true/false')
     log.info('- HTTP_RELEASE_SERVER: https://downloads.mesosphere.com')
