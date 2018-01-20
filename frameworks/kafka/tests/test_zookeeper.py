@@ -8,6 +8,7 @@ import sdk_metrics
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
+import sdk_security
 import sdk_utils
 import shakedown
 from tests import config, test_utils
