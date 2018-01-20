@@ -92,7 +92,6 @@ def configure_package(configure_zookeeper):
 
 @pytest.mark.sanity
 @pytest.mark.zookeeper
-@pytest.mark.ben
 def test_zookeeper_reresolution():
 
     def restart_zookeeper_node(id: int):
