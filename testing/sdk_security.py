@@ -200,23 +200,23 @@ def delete_secret(secret: str) -> None:
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
 
 
-def setup_security(framework_name: str) -> None:
+def setup_security(framework_name: str, service_account: str = 'service-acct', service_account_secret: str = 'secret') -> None:
     log.info('Setting up strict-mode security')
-    create_service_account(service_account_name='service-acct', service_account_secret='secret')
+    create_service_account(service_account_name=service_account, service_account_secret=service_account_secret)
     grant_permissions(
         linux_user='nobody',
         role_name='{}-role'.format(framework_name),
-        service_account_name='service-acct'
+        service_account_name=service_account
     )
     grant_permissions(
         linux_user='nobody',
         role_name='slave_public%252F{}-role'.format(framework_name),
-        service_account_name='service-acct'
+        service_account_name=service_account
     )
     grant_permissions(
         linux_user='nobody',
         role_name='test__integration__{}-role'.format(framework_name),
-        service_account_name='service-acct'
+        service_account_name=service_account
     )
     log.info('Finished setting up strict-mode security')
 

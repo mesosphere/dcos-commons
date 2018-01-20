@@ -117,6 +117,7 @@ def kerberos(configure_security):
 @sdk_utils.dcos_ee_only
 @pytest.mark.smoke
 @pytest.mark.sanity
+@pytest.mark.skip(reason="HDFS-493")
 def test_health_of_kerberized_hdfs():
     config.check_healthy(service_name=config.FOLDERED_SERVICE_NAME)
 

@@ -13,6 +13,7 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_repository
+import sdk_security
 import sdk_utils
 
 from tests import auth
@@ -110,22 +111,38 @@ def zookeeper_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
+                    "realm": sdk_auth.REALM,
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
         }
     }
 
+    zk_account = "kafka-zookeeper-service-account"
+    zk_secret = "kakfa-zookeeper-secret"
+
+    if sdk_utils.is_strict_mode():
+        service_kerberos_options = sdk_install.merge_dictionaries({
+            'service': {
+                'service_account': zk_account,
+                'service_account_secret': zk_secret,
+            }
+        }, service_kerberos_options)
+
     try:
         sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_security.setup_security("kafka-zookeeper", zk_account, zk_secret)
         sdk_install.install(
             "beta-kafka-zookeeper",
             "kafka-zookeeper",
             6,
             additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+            insert_strict_options=False)
 
         yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
 
@@ -152,6 +169,7 @@ def kafka_server(kerberos, zookeeper_server):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
+                    "realm": sdk_auth.REALM,
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
@@ -231,7 +249,7 @@ def kafka_client(kerberos, kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.zookeeper
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server):
+def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
@@ -245,20 +263,20 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    assert write_to_topic("client", client_id, topic_name, message)
+    assert write_to_topic("client", client_id, topic_name, message, kerberos)
 
-    assert message in read_from_topic("client", client_id, topic_name, 1)
+    assert message in read_from_topic("client", client_id, topic_name, 1, kerberos)
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
+def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                auth.get_kerberos_client_properties(ssl_enabled=False),
-                               auth.setup_env(cn, task))
+                               auth.setup_krb5_env(cn, task, krb5))
 
 
-def read_from_topic(cn: str, task: str, topic: str, message: str) -> str:
+def read_from_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> str:
 
     return auth.read_from_topic(cn, task, topic, message,
                                 auth.get_kerberos_client_properties(ssl_enabled=False),
-                                auth.setup_env(cn, task))
+                                auth.setup_krb5_env(cn, task, krb5))

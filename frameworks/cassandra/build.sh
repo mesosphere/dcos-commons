@@ -14,7 +14,7 @@ ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
 
 # Build package with our scheduler.zip and the local SDK artifacts we built:
 $REPO_ROOT_DIR/tools/build_package.sh \
-    beta-cassandra \
+    cassandra \
     $FRAMEWORK_DIR \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
     -a "$REPO_ROOT_DIR/sdk/executor/build/distributions/executor.zip" \

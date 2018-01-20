@@ -13,7 +13,7 @@ import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'beta-hdfs'
+PACKAGE_NAME = 'hdfs'
 SERVICE_NAME = 'hdfs'
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 FOLDERED_DNS_NAME = sdk_hosts.get_foldered_dns_name(SERVICE_NAME)

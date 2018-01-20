@@ -116,6 +116,29 @@ Elastic supports deployment on virtual networks on DC/OS (including the `dcos` o
 ```
 As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.
 
+## Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint `[["@zone", "GROUP_BY", "3"]]`.
+
+<!--
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+-->
+## Example
+
+Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
+
+## Balanced Placement for a Single Region
+
+```
+{
+  ...
+  "count": 6,
+  "constraints": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+}
+```
+
+- Instances will all be evenly divided between zones `a`,`b`,`c`.
+
 ## TLS
 
 The Elastic service can be launched with TLS encryption. Enabling TLS will switch all internal communication between Elastic nodes to encrypted connections.

@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.testing;
 
+import com.mesosphere.sdk.http.PodResource;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+
+import java.util.Arrays;
 
 /**
  * A type of {@link SimulationTick} that performs an operation against the scheduler.
@@ -38,6 +41,45 @@ public interface Send extends SimulationTick {
 
     public static SendTaskStatus.Builder taskStatus(String taskName, Protos.TaskState taskState) {
         return new SendTaskStatus.Builder(taskName, taskState);
+    }
+
+    /**
+     * Initiates the replacement of a pod through a call to {@link PodResource#replacePod(String)}.
+     */
+    public static Send replacePod(String podName) {
+        return new Send() {
+            @Override
+            public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
+                PodResource r = (PodResource) state.getResources().stream()
+                        .filter(resource -> resource instanceof PodResource)
+                        .findAny().get();
+
+                r.replacePod(podName);
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Replace pod: %s", podName);
+            }
+        };
+    }
+
+    /**
+     * Sends the provided offer to the scheduler.
+     */
+    public static Send offer(Protos.Offer offer) {
+        return new Send() {
+            @Override
+            public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
+                state.addSentOffer(offer);
+                scheduler.resourceOffers(mockDriver, Arrays.asList(offer));
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Send offer: %s", offer);
+            }
+        };
     }
 
     /**

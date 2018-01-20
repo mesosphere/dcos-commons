@@ -1,39 +1,26 @@
 package com.mesosphere.sdk.testing;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
-import java.util.StringJoiner;
-
-import org.apache.mesos.SchedulerDriver;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.specification.ConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.ResourceSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import org.apache.mesos.SchedulerDriver;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.*;
 
 /**
  * Exercises the service's packaging and Service Specification YAML file by building a Scheduler object against it, then
@@ -65,6 +52,7 @@ public class ServiceTestRunner {
     private final Map<String, String> buildTemplateParams = new HashMap<>();
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
+    private RecoveryPlanOverriderFactory recoveryManagerFactory;
 
     /**
      * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
@@ -242,6 +230,15 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Allows the specification of custom recovery logic just as in
+     * {@link com.mesosphere.sdk.scheduler.SchedulerBuilder#setRecoveryManagerFactory(RecoveryPlanOverriderFactory)}.
+     */
+    public ServiceTestRunner setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryManagerFactory) {
+        this.recoveryManagerFactory = recoveryManagerFactory;
+        return this;
+    }
+
+    /**
      * Exercises the service's packaging and resulting Service Specification YAML file without running any simulation
      * afterwards.
      *
@@ -298,6 +295,7 @@ public class ServiceTestRunner {
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)
+                .setRecoveryManagerFactory(recoveryManagerFactory)
                 .build()
                 .disableThreading()
                 .disableApiServer();

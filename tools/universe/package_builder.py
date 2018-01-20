@@ -22,14 +22,15 @@ _libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos
 
 _docs_root = "https://docs.mesosphere.com"
 
-_command_json_filename = 'command.json'
 _config_json_filename = 'config.json'
 _marathon_json_filename = 'marathon.json.mustache'
 _package_json_filename = 'package.json'
 _resource_json_filename = 'resource.json'
 _expected_package_filenames = [
-    _command_json_filename, _config_json_filename, _marathon_json_filename,
-    _package_json_filename, _resource_json_filename
+    _config_json_filename,
+    _marathon_json_filename,
+    _package_json_filename,
+    _resource_json_filename
 ]
 
 
@@ -207,7 +208,7 @@ class UniversePackageBuilder(object):
             logger.info('  {{%s}} => %s' % (key, template_mapping[key]))
         logger.info('Resulting diff:')
         logger.info('\n'.join(
-            difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
+            difflib.unified_diff(orig_content.split('\n'), new_content.split('\n'), lineterm='')))
         return new_content
 
     def _generate_packages_dict(self, package_files):
@@ -215,11 +216,6 @@ class UniversePackageBuilder(object):
             package_files[_package_json_filename],
             object_pairs_hook=collections.OrderedDict)
         package_json['releaseVersion'] = 0
-
-        command_json = package_files.get(_command_json_filename)
-        if command_json is not None:
-            package_json['command'] = json.loads(
-                command_json, object_pairs_hook=collections.OrderedDict)
 
         config_json = package_files.get(_config_json_filename)
         if config_json is not None:

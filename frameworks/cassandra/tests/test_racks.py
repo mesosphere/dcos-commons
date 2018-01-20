@@ -33,7 +33,7 @@ def test_rack():
                 "name": config.get_foldered_service_name()
             },
             "nodes": {
-                "placement_constraint": "@zone:GROUP_BY:1"
+                "placement_constraint": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
             }
         })
 
