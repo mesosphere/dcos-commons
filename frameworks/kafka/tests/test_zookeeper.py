@@ -13,12 +13,26 @@ import shakedown
 from tests import config, test_utils
 
 
-ZK_PACKAGE = "beta-kafka-zookeeper"
+ZK_PACKAGE = "kafka-zookeeper"
 ZK_SERVICE_NAME = "kafka-zookeeper"
 
 
+# NOTE: This can be removed after we publish a zookeeper that
+# has at least through sha a0d96b28769e4cb871b3e2424f4c6b889f5a06dd
 @pytest.fixture(scope='module', autouse=True)
-def configure_zookeeper(configure_security):
+def install_zookeeper_stub():
+    zk_url = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/assets/sha-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd/stub-universe-kafka-zookeeper.json"
+    try:
+        sdk_cmd.run_cli('package repo add --index=0 {} {}'.format("zk-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd", zk_url))
+
+        yield
+    finally:
+        sdk_cmd.run_cli('package repo remove {}'.format("zk-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd"))
+
+
+
+@pytest.fixture(scope='module', autouse=True)
+def configure_zookeeper(configure_security, install_zookeeper_stub):
     try:
         sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
         # TODO once Gabriel merges his work, I can use it to setup ZK security here
@@ -67,11 +81,20 @@ def configure_package(configure_zookeeper):
 @pytest.mark.ben
 def test_zookeeper_reresolution():
 
-    def replace_zookeeper_node(id: int):
-        sdk_cmd.svc_cli(ZK_PACKAGE, ZK_SERVICE_NAME, "pod replace zookeeper-{}".format(id))
+    def restart_zookeeper_node(id: int):
+        sdk_cmd.svc_cli(ZK_PACKAGE, ZK_SERVICE_NAME, "pod restart zookeeper-{}".format(id))
 
         sdk_plan.wait_for_in_progress_recovery(ZK_SERVICE_NAME)
         sdk_plan.wait_for_completed_recovery(ZK_SERVICE_NAME)
 
+    # Restart each zookeeper node, so that each one receives a new IP address
+    # (it's on a virtual network). This will force Kafka to re-resolve ZK nodes.
     for id in range(0, 3):
-        replace_zookeeper_node(id)
+        restart_zookeeper_node(id)
+
+    # Now, verify that Kafka remains happy
+    rc, stdout, stderr = sdk_cmd.run_raw_cli("task log kafka-0-broker --lines 15")
+    if rc or not stdout:
+        raise Exception("No task logs for kafka-0-broker")
+
+    assert "java.net.NoRouteToHostException: No route to host" not in stdout
