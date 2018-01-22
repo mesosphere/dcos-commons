@@ -63,6 +63,8 @@ class UniversePackagePublisher(object):
         else:
             # Iterate over the directory contents and find the largest integer
             for filename in os.listdir(repo_pkg_base):
+                if not os.path.isdir(os.path.join(repo_pkg_base, filename)):
+                    continue
                 try:
                     filenum = int(filename)
                 except ValueError:
