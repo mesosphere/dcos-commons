@@ -38,44 +38,12 @@ class AWSPublisher(object):
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
 
-        self._aws_region = os.environ.get('AWS_UPLOAD_REGION', '')
         self._universe_url_prefix = os.environ.get(
             'UNIVERSE_URL_PREFIX',
             'https://universe-converter.mesosphere.com/transform?url=')
-        s3_bucket = os.environ.get('S3_BUCKET')
-        if not s3_bucket:
-            s3_bucket = 'infinity-artifacts'
-        logger.info('Using artifact bucket: {}'.format(s3_bucket))
-        s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
-        dir_name = '{}-{}'.format(
-            time.strftime("%Y%m%d-%H%M%S"),
-            ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
-
-        # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
-        self._s3_directory = os.environ.get(
-            'S3_URL',
-            's3://{}/{}/{}/{}'.format(
-                s3_bucket,
-                s3_dir_path,
-                self._pkg_name,
-                dir_name))
-
-        self._http_directory = os.environ.get(
-            'ARTIFACT_DIR',
-            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
-                s3_bucket,
-                s3_dir_path,
-                self._pkg_name,
-                dir_name))
 
         if not os.path.isdir(input_dir_path):
             raise Exception('Provided package path is not a directory: {}'.format(input_dir_path))
-
-        # check if aws cli tools are installed
-        cmd = "aws --version"
-        ret = os.system(cmd)
-        if not ret == 0:
-            raise Exception('Required AWS cli tools not installed.')
 
         self._artifact_paths = []
         for artifact_path in artifact_paths:
@@ -84,26 +52,33 @@ class AWSPublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
+        s3_bucket = os.environ.get('S3_BUCKET')
+        if not s3_bucket:
+            s3_bucket = 'infinity-artifacts'
+        logger.info('Using artifact bucket: {}'.format(s3_bucket))
 
-    def _upload_artifact(self, filepath, content_type=None):
-        filename = os.path.basename(filepath)
-        cmdlist = ['aws s3']
-        if self._aws_region:
-            cmdlist.append('--region={}'.format(self._aws_region))
-        cmdlist.append('cp --acl public-read')
-        if content_type:
-            cmdlist.append('--content-type "{}"'.format(content_type))
-        cmdlist.append('{} {}/{} 1>&2'.format(filepath, self._s3_directory, filename))
-        cmd = ' '.join(cmdlist)
-        if self._dry_run:
-            logger.info('[DRY RUN] {}'.format(cmd))
-            ret = 0
-        else:
-            logger.info(cmd)
-            ret = os.system(cmd)
-        if not ret == 0:
-            raise Exception('Failed to upload {} to S3'.format(filename))
-        return '{}/{}'.format(self._http_directory, filename)
+        s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
+        dir_name = '{}-{}'.format(
+            time.strftime("%Y%m%d-%H%M%S"),
+            ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
+
+        # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
+        s3_directory_url = os.environ.get(
+            'S3_URL',
+            's3://{}/{}/{}/{}'.format(
+                s3_bucket,
+                s3_dir_path,
+                package_name,
+                dir_name))
+        self._uploader = universe.S3Uploader(self._pkg_name, s3_directory_url, self._dry_run)
+
+        self._http_directory_url = os.environ.get(
+            'ARTIFACT_DIR',
+            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
+                s3_bucket,
+                s3_dir_path,
+                package_name,
+                dir_name))
 
 
     def _spam_universe_url(self, universe_url):
@@ -112,7 +87,7 @@ class AWSPublisher(object):
         if jenkins_workspace_path:
             properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
-            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
+            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._uploader.get_s3_directory()))
             properties_file.flush()
             properties_file.close()
         # write URL to provided text file path:
@@ -129,20 +104,21 @@ class AWSPublisher(object):
         package_manager = universe.PackageManager()
         builder = universe.UniversePackageBuilder(
             package_info, package_manager,
-            self._input_dir_path, self._http_directory, self._artifact_paths)
+            self._input_dir_path, self._http_directory_url, self._artifact_paths)
         universe_path = builder.build_package()
 
         # upload universe package definition first and get its URL
-        universe_url = self._universe_url_prefix + self._upload_artifact(
+        self._uploader.upload(
             universe_path,
             content_type='application/vnd.dcos.universe.repo+json;charset=utf-8')
+        universe_url = self._universe_url_prefix + self._http_directory_url + '/' + os.path.basename(universe_path)
         logger.info('---')
         logger.info('STUB UNIVERSE: {}'.format(universe_url))
         logger.info('---')
         logger.info('Uploading {} artifacts:'.format(len(self._artifact_paths)))
 
         for path in self._artifact_paths:
-            self._upload_artifact(path)
+            self._uploader.upload(path)
 
         self._spam_universe_url(universe_url)
 

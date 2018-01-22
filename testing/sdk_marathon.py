@@ -111,13 +111,16 @@ def install_app(app_definition: dict) -> (bool, str):
         return install_app_from_file(app_name, app_def_path)
 
 
-def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True):
+def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True):
     if "env" in config:
         log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
         for k in sorted(config["env"]):
             log.info("  {}={}".format(k, config["env"][k]))
+
+    query_string = "?force=true" if force else ""
+
     # throws on failure:
-    sdk_cmd.cluster_request('PUT', _api_url('apps/{}'.format(app_name)), log_args=False, json=config)
+    sdk_cmd.cluster_request('PUT', _api_url('apps/{}{}'.format(app_name, query_string)), log_args=False, json=config)
 
     if wait_for_completed_deployment:
         log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
