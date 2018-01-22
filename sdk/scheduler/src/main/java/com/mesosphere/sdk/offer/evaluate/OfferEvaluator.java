@@ -193,34 +193,40 @@ public class OfferEvaluator {
             evaluationPipeline.add(new ExecutorEvaluationStage(Optional.empty()));
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
         } else {
-            Optional<Protos.ExecutorInfo> executorInfo = getExecutorInfo(thisPodTasks.values());
-            String executorIdString = executorInfo.get().getExecutorId().getValue();
+            Protos.ExecutorInfo executorInfo = getExecutorInfo(thisPodTasks.values());
+
+            // An empty ExecutorID indicates we should use a new Executor, otherwise we should attempt to launch
+            // tasks on an already running Executor.
+            String executorIdString = executorInfo.getExecutorId().getValue();
             Optional<Protos.ExecutorID> executorID = executorIdString.isEmpty() ?
                     Optional.empty() :
-                    Optional.of(executorInfo.get().getExecutorId());
+                    Optional.of(executorInfo.getExecutorId());
+
             evaluationPipeline.add(new ExecutorEvaluationStage(executorID));
             evaluationPipeline.addAll(getExistingEvaluationPipeline(
-                    podInstanceRequirement, thisPodTasks, allTasks, executorInfo.get(), tlsStageBuilder));
+                    podInstanceRequirement, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
         }
 
         return evaluationPipeline;
     }
 
-    private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
+    private Protos.ExecutorInfo getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
         for (Protos.TaskInfo taskInfo : taskInfos) {
             if (taskHasReusableExecutor(taskInfo)) {
                 logger.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
-                return Optional.of(taskInfo.getExecutor());
+                return taskInfo.getExecutor();
             }
         }
 
+        // We set an empty ExecutorID to indicate that we are launching a new Executor, NOT reusing a currently running
+        // one.
         Protos.ExecutorInfo executorInfo = taskInfos.stream().findFirst().get()
                 .getExecutor().toBuilder()
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
                 .build();
         logger.info("Using old executor: {}", TextFormat.shortDebugString(executorInfo));
 
-        return Optional.of(executorInfo);
+        return executorInfo;
     }
 
     private boolean taskHasReusableExecutor(Protos.TaskInfo taskInfo) {
