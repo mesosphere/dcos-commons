@@ -288,6 +288,7 @@ def test_pod_replace():
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
 @pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.10') # INFINITY-3010: on 1.9, we end up getting an offer on the dead agent
 def test_shutdown_host():
     replace_task = sdk_tasks.get_task_avoiding_scheduler(
         config.SERVICE_NAME, re.compile('^(hello|world)-[0-9]+-server$'))
