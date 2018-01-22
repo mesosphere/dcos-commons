@@ -1,5 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.google.common.collect.ImmutableList;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -9,6 +12,7 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -16,6 +20,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 
 /**
  * This class tests the {@link DefaultStepFactory} class.
@@ -49,6 +57,83 @@ public class DefaultStepFactoryTest {
         Step step = stepFactory.getStep(podInstance, tasksToLaunch);
         Assert.assertEquals(Status.ERROR, step.getStatus());
     }
+
+    @Test
+    public void testInitialStateDependsOnReadinessCheck() throws Exception {
+
+        PodInstance podInstance = getPodInstanceWithASingleTask();
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+        UUID configId = UUID.randomUUID();
+
+        configStore.setTargetConfig(configId);
+
+        String taskName = podInstance.getName() + '-' + tasksToLaunch.get(0);
+        stateStore.storeTasks(ImmutableList.of(
+                Protos.TaskInfo.newBuilder()
+                        .setName(taskName)
+                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setSlaveId(Protos.SlaveID.newBuilder()
+                                .setValue("proto-field-required")
+                        )
+                        .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                                .setTargetConfiguration(configId)
+                                .setReadinessCheck(Protos.HealthCheck.newBuilder().build())
+                                .toProto())
+                        .build()));
+
+
+        Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_RUNNING)
+                        .setTaskId(taskInfo.getTaskId())
+                        .setLabels(Protos.Labels.newBuilder().addLabels(Protos.Label.newBuilder().setKey("readiness_check_passed").setValue("false").build()).build())
+                        .build());
+
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(false));
+
+        final Step step = stepFactory.getStep(podInstance, tasksToLaunch);
+
+        assertThat(step.isComplete(), is(false));
+        assertThat(step.isPending(), is(true));
+
+    }
+
+
+    private PodInstance getPodInstanceWithASingleTask() throws Exception {
+        TaskSpec taskSpec0 =
+                TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
+        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
+                .type(TestConstants.POD_TYPE)
+                .count(1)
+                .tasks(Arrays.asList(taskSpec0))
+                .build();
+
+        ServiceSpec serviceSpec =
+                DefaultServiceSpec.newBuilder()
+                        .name(TestConstants.SERVICE_NAME)
+                        .role(TestConstants.ROLE)
+                        .principal(TestConstants.PRINCIPAL)
+                        .zookeeperConnection("foo.bar.com")
+                        .pods(Arrays.asList(podSpec))
+                        .build();
+
+        Persister persister = new MemPersister();
+        stateStore = new StateStore(persister);
+        configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+
+        UUID configId = configStore.store(serviceSpec);
+        configStore.setTargetConfig(configId);
+
+        stepFactory = new DefaultStepFactory(configStore, stateStore);
+
+        return new DefaultPodInstance(podSpec, 0);
+    }
+
 
     private PodInstance getPodInstanceWithSameResourceSets() throws Exception {
         TaskSpec taskSpec0 =
