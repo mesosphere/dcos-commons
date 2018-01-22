@@ -10,6 +10,7 @@ import sdk_tasks
 import sdk_upgrade
 import sdk_security
 import sdk_utils
+import sdk_repository
 import shakedown
 from tests import config, test_utils
 
@@ -22,14 +23,13 @@ ZK_SERVICE_NAME = "kafka-zookeeper"
 # has at least through sha a0d96b28769e4cb871b3e2424f4c6b889f5a06dd
 @pytest.fixture(scope='module', autouse=True)
 def install_zookeeper_stub():
-    zk_url = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/assets/sha-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd/stub-universe-kafka-zookeeper.json"
     try:
-        sdk_cmd.run_cli('package repo add --index=0 {} {}'.format("zk-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd", zk_url))
+        zk_url = "https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts.s3.amazonaws.com/permanent/kafka-zookeeper/assets/sha-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd/stub-universe-kafka-zookeeper.json"
 
+        stub_urls = sdk_repository.add_stub_universe_urls([zk_url, ])
         yield
     finally:
-        sdk_cmd.run_cli('package repo remove {}'.format("zk-a0d96b28769e4cb871b3e2424f4c6b889f5a06dd"))
-
+        sdk_repository.remove_universe_repos(stub_urls)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -53,12 +53,14 @@ def configure_zookeeper(configure_security, install_zookeeper_stub):
 
     try:
         sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
-        sdk_security.setup_security("kafka-zookeeper", zk_account, zk_secret)
-        sdk_install.install(package_name=ZK_PACKAGE,
-                        expected_running_tasks=6,
-                        service_name=ZK_SERVICE_NAME,
-                        wait_for_deployment=True,
-                        additional_options=service_options)
+        sdk_security.setup_security(ZK_SERVICE_NAME, zk_account, zk_secret)
+        sdk_install.install(
+            ZK_PACKAGE,
+            ZK_SERVICE_NAME,
+            6,
+            additional_options=service_options,
+            timeout_seconds=30 * 60,
+            insert_strict_options=False)
 
         yield
     finally:
@@ -106,8 +108,13 @@ def test_zookeeper_reresolution():
         restart_zookeeper_node(id)
 
     # Now, verify that Kafka remains happy
-    rc, stdout, stderr = sdk_cmd.run_raw_cli("task log kafka-0-broker --lines 15")
-    if rc or not stdout:
-        raise Exception("No task logs for kafka-0-broker")
+    def check_broker(id: int):
+        rc, stdout, stderr = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 15".format(id))
 
-    assert "java.net.NoRouteToHostException: No route to host" not in stdout
+        if rc or not stdout:
+            raise Exception("No task logs for kafka-{}-broker".format(id))
+
+        assert "java.net.NoRouteToHostException: No route to host" not in stdout
+
+    for id in range(0, 3):
+        check_broker(id)
