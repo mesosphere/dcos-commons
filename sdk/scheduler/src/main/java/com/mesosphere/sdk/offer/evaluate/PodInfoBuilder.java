@@ -183,6 +183,7 @@ public class PodInfoBuilder {
 
         Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
         reservationBuilder
+                .setType(Protos.Resource.ReservationInfo.Type.DYNAMIC)
                 .setPrincipal(volumeSpec.getPrincipal())
                 .setRole(volumeSpec.getRole());
         AuxLabelAccess.setResourceId(reservationBuilder, resourceId);

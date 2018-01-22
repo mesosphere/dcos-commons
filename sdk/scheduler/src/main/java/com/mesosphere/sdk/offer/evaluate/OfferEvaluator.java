@@ -64,27 +64,9 @@ public class OfferEvaluator {
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
-        boolean noTasksRunning = thisPodTasks.values().stream()
-                .map(taskInfo -> taskInfo.getName())
-                .map(taskName -> stateStore.fetchStatus(taskName))
-                .filter(Optional::isPresent)
-                .map(taskStatus -> taskStatus.get())
-                .noneMatch(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING));
-
-        Optional<Protos.ExecutorInfo> executorInfo = Optional.empty();
-        if (!thisPodTasks.isEmpty()) {
-            Protos.ExecutorInfo.Builder execInfoBuilder =
-                    thisPodTasks.values().stream().findFirst().get().getExecutor().toBuilder();
-            if (noTasksRunning) {
-                execInfoBuilder.setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
-            }
-
-            executorInfo = Optional.of(execInfoBuilder.build());
-        }
-
         for (int i = 0; i < offers.size(); ++i) {
             List<OfferEvaluationStage> evaluationStages =
-                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
+                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
 
             Protos.Offer offer = offers.get(i);
 
@@ -168,8 +150,7 @@ public class OfferEvaluator {
     public List<OfferEvaluationStage> getEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Collection<Protos.TaskInfo> allTasks,
-            Map<String, Protos.TaskInfo> thisPodTasks,
-            Optional<Protos.ExecutorInfo> executorInfo) throws IOException {
+            Map<String, Protos.TaskInfo> thisPodTasks) throws IOException {
 
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
@@ -212,7 +193,12 @@ public class OfferEvaluator {
             evaluationPipeline.add(new ExecutorEvaluationStage(Optional.empty()));
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
         } else {
-            evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
+            Optional<Protos.ExecutorInfo> executorInfo = getExecutorInfo(thisPodTasks.values());
+            String executorIdString = executorInfo.get().getExecutorId().getValue();
+            Optional<Protos.ExecutorID> executorID = executorIdString.isEmpty() ?
+                    Optional.empty() :
+                    Optional.of(executorInfo.get().getExecutorId());
+            evaluationPipeline.add(new ExecutorEvaluationStage(executorID));
             evaluationPipeline.addAll(getExistingEvaluationPipeline(
                     podInstanceRequirement, thisPodTasks, allTasks, executorInfo.get(), tlsStageBuilder));
         }
@@ -223,12 +209,18 @@ public class OfferEvaluator {
     private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
         for (Protos.TaskInfo taskInfo : taskInfos) {
             if (taskHasReusableExecutor(taskInfo)) {
-                logger.info("Using existing executor: {}", taskInfo.getExecutor().getExecutorId().getValue());
+                logger.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
                 return Optional.of(taskInfo.getExecutor());
             }
         }
 
-        return Optional.empty();
+        Protos.ExecutorInfo executorInfo = taskInfos.stream().findFirst().get()
+                .getExecutor().toBuilder()
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
+                .build();
+        logger.info("Using old executor: {}", TextFormat.shortDebugString(executorInfo));
+
+        return Optional.of(executorInfo);
     }
 
     private boolean taskHasReusableExecutor(Protos.TaskInfo taskInfo) {

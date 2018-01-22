@@ -58,8 +58,11 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo as well as whatever task is being launched.
             podInfoBuilder.setExecutorVolume(volumeSpec);
-            mesosResource = new MesosResource(
-                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get()));
+
+            Resource volume =
+                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get());
+            podInfoBuilder.getExecutorBuilder().get().addResources(volume);
+            mesosResource = new MesosResource(volume);
 
             return pass(
                     this,

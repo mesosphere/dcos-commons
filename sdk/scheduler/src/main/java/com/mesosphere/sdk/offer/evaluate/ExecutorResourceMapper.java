@@ -11,10 +11,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -78,11 +75,18 @@ public class ExecutorResourceMapper {
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
-        remainingResourceSpecs.addAll(volumeSpecs);
 
+        // When using a NEW executor add the appropriate evaluation stages.  If the executor ID is NOT empty then the
+        // executor is already running.  Therefore you can't expect cpu, mem or disk resources to be offered as the
+        // executor is already running and consuming those resources.
         if (useDefaultExecutor && executorInfo.getExecutorId().getValue().isEmpty()) {
             remainingResourceSpecs.addAll(resourceSpecs);
         }
+
+        // Always add volumes for evaluation.  The VolumeEvaluationStage is smart enough to pass even when resources are
+        // not offered because the executor is already running.  It must be added always to make sure that the volume
+        // protobuf is constructed and added appropriately.
+        remainingResourceSpecs.addAll(volumeSpecs);
 
         List<ResourceLabels> matchingResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
@@ -102,6 +106,7 @@ public class ExecutorResourceMapper {
                 }
                 matchingResources.add(matchingResource.get());
             } else {
+                LOGGER.warn("Failed to find match for resource: {}", TextFormat.shortDebugString(resource));
                 if (resource.hasDisk()) {
                     orphanedResources.add(resource);
                 }
@@ -116,6 +121,7 @@ public class ExecutorResourceMapper {
         }
 
         if (!matchingResources.isEmpty()) {
+            LOGGER.info("Matching executor resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(resourceLabels));
             }
