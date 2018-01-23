@@ -27,9 +27,9 @@ public class SendOffer implements Send {
      * Default executors have an additional overhead of 0.1 CPU, 32MB RAM, and 256MB disk.
      */
     private static final List<Protos.Resource> DEFAULT_EXECUTOR_RESOURCES = Arrays.asList(
-            toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, scalar(0.1), false),
-            toUnreservedResource(Constants.MEMORY_RESOURCE_TYPE, scalar(32.0), false),
-            toUnreservedResource(Constants.DISK_RESOURCE_TYPE, scalar(256.0), false));
+            toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_CPUS), false),
+            toUnreservedResource(Constants.MEMORY_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_MEMORY), false),
+            toUnreservedResource(Constants.DISK_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_DISK), false));
 
     private final String podType;
     private final Optional<String> podToReuse;
@@ -150,6 +150,8 @@ public class SendOffer implements Send {
         }
 
         // In addition to the resources required by the tasks, add some resources for the Default Executor overhead.
+        // Note that if custom executors are being exercised, these marginal resources are not used and are effectively
+        // just ignored.
         if (!podToReuse.isPresent()) {
             offerBuilder.addAllResources(DEFAULT_EXECUTOR_RESOURCES);
         }

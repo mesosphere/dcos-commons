@@ -19,6 +19,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -39,7 +41,7 @@ public class ServiceTest {
      */
     @Test
     public void testDefaultDeployment() throws Exception {
-        runDefaultDeployment();
+        runDefaultDeployment(true);
     }
 
     /**
@@ -203,7 +205,7 @@ public class ServiceTest {
     @Test
     public void testHelloDecommissionNotAllowed() throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
-        ServiceTestResult result = runDefaultDeployment();
+        ServiceTestResult result = runDefaultDeployment(true);
         Assert.assertEquals(
                 new TreeSet<>(Arrays.asList("hello-0-server", "world-0-server", "world-1-server")),
                 result.getPersister().getChildren("/Tasks"));
@@ -239,16 +241,28 @@ public class ServiceTest {
             }
         });
 
-        new ServiceTestRunner().setOptions("hello.count", "0").setState(result).run(ticks);
+        new ServiceTestRunner()
+                .setOptions("hello.count", "0")
+                .setState(result)
+                .run(ticks);
+    }
+
+    @Test
+    public void testWorldDecommissionDefaultExecutor() throws Exception {
+        testWorldDecommission(true);
+    }
+
+    @Test
+    public void testWorldDecommissionCustomExecutor() throws Exception {
+        testWorldDecommission(false);
     }
 
     /**
      * Tests scheduler behavior when the number of {@code world} pods is reduced.
      */
-    @Test
-    public void testWorldDecommission() throws Exception {
+    private void testWorldDecommission(boolean useDefaultExecutor) throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
-        ServiceTestResult result = runDefaultDeployment();
+        ServiceTestResult result = runDefaultDeployment(useDefaultExecutor);
         Assert.assertEquals(
                 new TreeSet<>(Arrays.asList("hello-0-server", "world-0-server", "world-1-server")),
                 result.getPersister().getChildren("/Tasks"));
@@ -268,9 +282,12 @@ public class ServiceTest {
         // - a recovery plan that's COMPLETE
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
+        // When default executor is being used, three additional resources need to be unreserved.
+        int stepCount = useDefaultExecutor ? 9 : 6;
+
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 9, 0, 0), new StepCount("world-0", 9, 0, 0))));
+                new StepCount("world-1", stepCount, 0, 0), new StepCount("world-0", stepCount, 0, 0))));
 
         // Need to send an offer to trigger the implicit reconciliation.
         ticks.add(Send.offerBuilder("hello").build());
@@ -279,19 +296,19 @@ public class ServiceTest {
 
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 8, 0, 1), new StepCount("world-0", 9, 0, 0))));
+                new StepCount("world-1", stepCount - 1, 0, 1), new StepCount("world-0", stepCount, 0, 0))));
         ticks.add(Expect.taskNameKilled("world-1-server"));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 7, 1, 1), new StepCount("world-0", 9, 0, 0))));
+                new StepCount("world-1", stepCount - 2, 1, 1), new StepCount("world-0", stepCount, 0, 0))));
 
         // Offer world-1 resources and check that world-1 resources are wiped:
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
         ticks.add(Expect.unreservedTasks("world-1-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 1, 0, 8), new StepCount("world-0", 9, 0, 0))));
+                new StepCount("world-1", 1, 0, stepCount - 1), new StepCount("world-0", stepCount, 0, 0)))); // FAIL
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-1-server"));
 
         // Turn the crank with an arbitrary offer to finish erasing world-1:
@@ -300,13 +317,13 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
         ticks.add(Expect.knownTasks(result.getPersister(), "hello-0-server", "world-0-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 0, 0, 9), new StepCount("world-0", 9, 0, 0))));
+                new StepCount("world-1", 0, 0, stepCount), new StepCount("world-0", stepCount, 0, 0))));
 
         // Now let's proceed with decommissioning world-0. This time a single offer with the correct resources results
         // in both killing/flagging the task, and clearing its resources:
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 0, 0, 9), new StepCount("world-0", 1, 0, 8))));
+                new StepCount("world-1", 0, 0, stepCount), new StepCount("world-0", 1, 0, stepCount - 1))));
         ticks.add(Expect.taskNameKilled("world-0-server"));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
@@ -316,11 +333,17 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
         ticks.add(Expect.knownTasks(result.getPersister(), "hello-0-server"));
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
-                new StepCount("world-1", 0, 0, 9), new StepCount("world-0", 0, 0, 9))));
+                new StepCount("world-1", 0, 0, stepCount), new StepCount("world-0", 0, 0, stepCount))));
 
         ticks.add(Expect.allPlansComplete());
 
-        new ServiceTestRunner().setOptions("world.count", "0").setState(result).run(ticks);
+        ServiceTestRunner runner = new ServiceTestRunner()
+                .setOptions("world.count", "0")
+                .setState(result);
+        if (!useDefaultExecutor) {
+            runner.setUseCustomExecutor();
+        }
+        runner.run(ticks);
     }
 
     @Test
@@ -463,7 +486,8 @@ public class ServiceTest {
 
         @Override
         public String toString() {
-            return String.format("phase=%s,completed=%d", phaseName, completedCount);
+            return String.format("phase=%s[pending=%d,prepared=%d,completed=%d]",
+                    phaseName, pendingCount, preparedCount, completedCount);
         }
     }
 
@@ -544,15 +568,23 @@ public class ServiceTest {
                 expectedPlanStatus = Status.IN_PROGRESS;
             }
             Assert.assertEquals(expectedPlanStatus, plan.getStatus());
-            Assert.assertEquals(Arrays.asList("world-1", "world-0"),
+            Assert.assertEquals(stepCounts.stream().map(s -> s.phaseName).collect(Collectors.toList()),
                     plan.getChildren().stream().map(Phase::getName).collect(Collectors.toList()));
             phases = plan.getChildren().stream()
                     .collect(Collectors.toMap(Phase::getName, p -> p));
             Assert.assertEquals(stepCounts.size(), phases.size());
             for (StepCount stepCount : stepCounts) {
-                Assert.assertEquals(getExpectedStepStatuses(state, stepCount),
-                        phases.get(stepCount.phaseName).getChildren().stream()
-                                .collect(Collectors.toMap(Step::getName, Step::getStatus)));
+                Phase phase = phases.get(stepCount.phaseName);
+                Map<String, Status> stepStatuses = phase.getChildren().stream()
+                        .collect(Collectors.toMap(Step::getName, Step::getStatus));
+                Assert.assertEquals(
+                        String.format("Number of steps doesn't match expectation in %s: %s", stepCount, stepStatuses),
+                        stepCount.pendingCount + stepCount.preparedCount + stepCount.completedCount,
+                        phase.getChildren().size());
+                Assert.assertEquals(
+                        String.format("Step statuses don't match expectation in %s", stepCount),
+                        getExpectedStepStatuses(state, stepCount),
+                        stepStatuses);
             }
         }
 
@@ -578,7 +610,7 @@ public class ServiceTest {
     /**
      * Runs a default hello world deployment and returns the persisted state that resulted.
      */
-    private ServiceTestResult runDefaultDeployment() throws Exception {
+    private ServiceTestResult runDefaultDeployment(boolean useDefaultExecutor) throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
@@ -621,7 +653,12 @@ public class ServiceTest {
 
         ticks.add(Expect.allPlansComplete());
 
-        return new ServiceTestRunner().run(ticks);
+        ServiceTestRunner runner = new ServiceTestRunner();
+        if (!useDefaultExecutor) {
+            runner.setUseCustomExecutor();
+        }
+
+        return runner.run(ticks);
     }
 
     /**

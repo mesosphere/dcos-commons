@@ -81,18 +81,21 @@ public interface Expect extends SimulationTick {
                 Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
                 for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
                     if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                        // Old-style launch with custom executor in each TaskInfo
+                        // Old-style custom executor launch: each TaskInfo gets a nested copy of the ExecutorInfo. Grab
+                        // the first one we can find, as they should all be identical.
                         Collection<Protos.TaskInfo> taskInfos = operation.getLaunch().getTaskInfosList();
                         launchedExecutor = taskInfos.iterator().next().getExecutor();
 
                         launchedTaskNames.addAll(taskInfos.stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
+                        // Old-style custom executor launches also use packed TaskInfos. Unpack them.
                         launchedTaskInfos.addAll(taskInfos.stream()
                                 .map(task -> TaskPackingUtils.unpack(task))
                                 .collect(Collectors.toList()));
                     } else if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH_GROUP)) {
-                        // New-style launch with default executor in parent LaunchGroup
+                        // New-style default executor launch: TaskInfos lack the ExecutorInfo. Instead, the ExecutorInfo
+                        // is in the parent LaunchGroup operation.
                         launchedExecutor = operation.getLaunchGroup().getExecutor();
 
                         Collection<Protos.TaskInfo> taskInfos =
@@ -101,6 +104,7 @@ public interface Expect extends SimulationTick {
                         launchedTaskNames.addAll(taskInfos.stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
+                        // New-style default executor launches no longer need to pack TaskInfos, so don't unpack.
                         launchedTaskInfos.addAll(taskInfos);
                     }
                 }
