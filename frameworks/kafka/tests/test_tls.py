@@ -24,8 +24,8 @@ def service_account(configure_security):
         sdk_security.create_service_account(
             service_account_name=name, service_account_secret=name)
         # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        # sdk_cmd.run_cli(
-        #     "security org groups add_user superusers {name}".format(name=name))
+        sdk_cmd.run_cli(
+            "security org groups add_user superusers {name}".format(name=name))
         yield name
     finally:
         sdk_security.delete_service_account(
@@ -54,9 +54,6 @@ def kafka_service_tls(service_account):
         )
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-        # Wait for service health check to pass
-        shakedown.service_healthy(config.SERVICE_NAME)
 
         yield service_account
     finally:
