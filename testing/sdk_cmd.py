@@ -233,8 +233,7 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     # We use a manual check to detect that the host is down. Mesos takes ~5-20 minutes to detect a
     # dead agent, so relying on Mesos to tell us this isn't really feasible for a test.
 
-    log.info('Waiting for agent {} to appear unresponsive'.format(agent_ip))
-    log.info('Paramiko errors below are expected.')
+    log.info('Waiting for agent {} to appear inactive in /mesos/slaves'.format(agent_ip))
 
     @retrying.retry(
         wait_fixed=1000,
@@ -242,16 +241,25 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
         try:
-            ok, stdout = shakedown.run_command_on_agent(agent_ip, 'ls')
-            log.info('Wait for agent shutdown: ok={}, stdout="{}"'.format(ok, stdout))
-            return ok
-        except paramiko.SSHException:  # on DC/OS 1.9, we get this instead of ok=False
+            response = cluster_request('GET', '/mesos/slaves', retry=False).json()
+            agent_statuses = {}
+            for agent in response['slaves']:
+                agent_statuses[agent['hostname']] = agent['active']
+            log.info('Wait for {}=False: {}'.format(agent_ip, agent_statuses))
+            # If no agents were found, try again
+            if len(agent_statuses) == 0:
+                return True
+            # If other agents are listed, but not OUR agent, assume that OUR agent is now inactive.
+            # (Shouldn't happen, but just in case...)
+            return agent_statuses.get(agent_ip, False)
+        except:
             log.info(traceback.format_exc())
-            return False  # this exception should mean the node is down, all done!
+            # Try again. Wait for the ip to be definitively inactive.
+            return True
 
     wait_for_unresponsive_agent()
 
-    log.info('Paramiko errors above are expected.')
+    log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
 
 
 def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
