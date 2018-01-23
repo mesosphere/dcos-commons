@@ -377,39 +377,37 @@ public class OfferEvaluator {
         List<ResourceSpec> resources = new ArrayList<>();
 
         resources.add(DefaultResourceSpec.newBuilder()
-                .name("cpus")
+                .name(Constants.CPUS_RESOURCE_TYPE)
                 .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(0.1))
-                        .build())
+                .value(scalar(Constants.DEFAULT_EXECUTOR_CPUS))
                 .build());
 
         resources.add(DefaultResourceSpec.newBuilder()
-                .name("mem")
+                .name(Constants.MEMORY_RESOURCE_TYPE)
                 .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(32.0))
-                        .build())
+                .value(scalar(Constants.DEFAULT_EXECUTOR_MEMORY))
                 .build());
 
         resources.add(DefaultResourceSpec.newBuilder()
-                .name("disk")
+                .name(Constants.DISK_RESOURCE_TYPE)
                 .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(256.0))
-                        .build())
+                .value(scalar(Constants.DEFAULT_EXECUTOR_DISK))
                 .build());
 
         return resources;
+    }
+
+    private static Protos.Value scalar(double val) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.SCALAR);
+        builder.getScalarBuilder().setValue(val);
+        return builder.build();
     }
 
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(

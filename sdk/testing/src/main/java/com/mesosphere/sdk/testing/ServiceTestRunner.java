@@ -53,6 +53,7 @@ public class ServiceTestRunner {
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
+    private boolean supportsDefaultExecutor = true;
 
     /**
      * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
@@ -239,6 +240,16 @@ public class ServiceTestRunner {
     }
 
     /**
+     * Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
+     *
+     * Individual services shouldn't need to use this, it's more for testing of the SDK itself.
+     */
+    public ServiceTestRunner setUseCustomExecutor() {
+        this.supportsDefaultExecutor = false;
+        return this;
+    }
+
+    /**
      * Exercises the service's packaging and resulting Service Specification YAML file without running any simulation
      * afterwards.
      *
@@ -275,6 +286,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(supportsDefaultExecutor);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         Map<String, String> schedulerEnvironment =
