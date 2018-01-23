@@ -59,6 +59,10 @@ def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
 
+def dcos_version_at_least(version):
+    return not dcos_version_less_than(version)
+
+
 def set_test_index(index):
     '''Assigns the index to use for a test within a given test suite.
     Should start at 1 for the first test in the suite.'''

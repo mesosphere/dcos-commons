@@ -17,6 +17,7 @@ import time
 import pytest
 import sdk_cmd
 import sdk_security
+import sdk_tasks
 import sdk_utils
 import teamcity
 
@@ -94,18 +95,6 @@ testlogs_ignored_task_ids = set([])
 testlogs_test_index = 0
 
 
-def get_task_ids():
-    """ This function uses dcos task WITHOUT the JSON options because
-    that can return the wrong user for schedulers
-    """
-    tasks = sdk_cmd.run_cli('task --all', print_output=False).split('\n')
-    for task_str in tasks[1:]:  # First line is the header line
-        task = task_str.split()
-        if len(task) < 5:
-            continue
-        yield task[4]
-
-
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     '''Hook to run after every test, before any other post-test hooks.
@@ -124,7 +113,8 @@ def pytest_runtest_makereport(item, call):
     if rep.failed:
         # Fetch all logs from tasks created since the last failure, or since the start of the suite.
         global testlogs_ignored_task_ids
-        new_task_ids = [id for id in get_task_ids() if id not in testlogs_ignored_task_ids]
+        new_task_ids = [task.id for task in sdk_tasks.get_summary(with_completed=True)
+                        if task.id not in testlogs_ignored_task_ids]
         testlogs_ignored_task_ids = testlogs_ignored_task_ids.union(new_task_ids)
         # Enforce limit on how many tasks we will fetch logs from, to avoid unbounded log fetching.
         if len(new_task_ids) > testlogs_task_id_limit:
@@ -182,7 +172,8 @@ def pytest_runtest_setup(item):
         # 1 Store all the task ids which already exist as of this point.
         testlogs_current_test_suite = test_suite
         global testlogs_ignored_task_ids
-        testlogs_ignored_task_ids = testlogs_ignored_task_ids.union(get_task_ids())
+        testlogs_ignored_task_ids = testlogs_ignored_task_ids.union([
+            task.id for task in sdk_tasks.get_summary(with_completed=True)])
         log.info('Entering new test suite {}: {} preexisting tasks will be ignored on test failure.'.format(
             test_suite, len(testlogs_ignored_task_ids)))
         # 2 Reset the test index.
