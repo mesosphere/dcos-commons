@@ -167,19 +167,46 @@ public class PodInfoBuilder {
     }
 
     public static Protos.Resource getExistingExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar());
+            VolumeSpec volumeSpec, String resourceId, String persistenceId, boolean useDefaultExecutor) {
+        Protos.Resource.Builder builder;
+        if (useDefaultExecutor) {
+            builder = getExistingDefaultExecutorVolume(volumeSpec, resourceId, persistenceId);
+        } else {
+            builder = getExistingCustomExecutorVolume(volumeSpec, resourceId, persistenceId);
+        }
 
-        Protos.Resource.DiskInfo.Builder diskInfoBuilder = resourceBuilder.getDiskBuilder();
+        Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
         diskInfoBuilder.getPersistenceBuilder()
                 .setId(persistenceId)
                 .setPrincipal(volumeSpec.getPrincipal());
         diskInfoBuilder.getVolumeBuilder()
                 .setContainerPath(volumeSpec.getContainerPath())
                 .setMode(Protos.Volume.Mode.RW);
+
+        return builder.build();
+    }
+
+    private static Protos.Resource.Builder getExistingCustomExecutorVolume(
+            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
+        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
+                .setName("disk")
+                .setType(Protos.Value.Type.SCALAR)
+                .setScalar(volumeSpec.getValue().getScalar())
+                .setRole(volumeSpec.getRole());
+
+        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.getReservationBuilder();
+        reservationBuilder.setPrincipal(volumeSpec.getPrincipal());
+        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+
+        return resourceBuilder;
+    }
+
+    private static Protos.Resource.Builder getExistingDefaultExecutorVolume(
+            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
+        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
+                .setName("disk")
+                .setType(Protos.Value.Type.SCALAR)
+                .setScalar(volumeSpec.getValue().getScalar());
 
         Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
         reservationBuilder
@@ -188,7 +215,7 @@ public class PodInfoBuilder {
                 .setRole(volumeSpec.getRole());
         AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
 
-        return resourceBuilder.build();
+        return resourceBuilder;
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {

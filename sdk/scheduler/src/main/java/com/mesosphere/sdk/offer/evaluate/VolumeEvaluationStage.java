@@ -58,8 +58,11 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             // add it to the ExecutorInfo.
             podInfoBuilder.setExecutorVolume(volumeSpec);
 
-            Resource volume =
-                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get());
+            Resource volume = PodInfoBuilder.getExistingExecutorVolume(
+                    volumeSpec,
+                    resourceId.get(),
+                    persistenceId.get(),
+                    useDefaultExecutor);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
             return pass(
