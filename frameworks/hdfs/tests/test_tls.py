@@ -49,8 +49,8 @@ def hdfs_service_tls(service_account):
                         }
                     }
                 }
-            }
-        )
+            },
+            timeout_seconds=30 * 60)
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
