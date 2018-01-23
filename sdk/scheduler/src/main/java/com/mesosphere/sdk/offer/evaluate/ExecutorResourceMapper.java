@@ -75,18 +75,10 @@ public class ExecutorResourceMapper {
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
-
-        // When using a NEW executor add the appropriate evaluation stages.  If the executor ID is NOT empty then the
-        // executor is already running.  Therefore you can't expect cpu, mem or disk resources to be offered as the
-        // executor is already running and consuming those resources.
-        if (useDefaultExecutor && executorInfo.getExecutorId().getValue().isEmpty()) {
+        remainingResourceSpecs.addAll(volumeSpecs);
+        if (useDefaultExecutor) {
             remainingResourceSpecs.addAll(resourceSpecs);
         }
-
-        // Always add volumes for evaluation.  The VolumeEvaluationStage is smart enough to pass even when resources are
-        // not offered because the executor is already running.  It must be added always to make sure that the volume
-        // protobuf is constructed and added appropriately.
-        remainingResourceSpecs.addAll(volumeSpecs);
 
         List<ResourceLabels> matchingResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
@@ -128,7 +120,7 @@ public class ExecutorResourceMapper {
         }
 
         if (!remainingResourceSpecs.isEmpty()) {
-            LOGGER.info("Missing volumes not found in executor: {}", remainingResourceSpecs);
+            LOGGER.info("Missing resources not found in executor: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
                 stages.add(newCreateEvaluationStage(missingResource));
             }

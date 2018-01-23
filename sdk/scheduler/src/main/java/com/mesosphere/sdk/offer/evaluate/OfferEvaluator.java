@@ -160,8 +160,9 @@ public class OfferEvaluator {
                 .filter(resourceId -> !resourceId.isEmpty())
                 .count() == 0;
 
-        boolean allTasksFailed = thisPodTasks.values().stream()
-                .allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
+        boolean allTasksFailed =
+                thisPodTasks.size() > 0 &&
+                thisPodTasks.values().stream().allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
 
         final String description;
         final boolean shouldGetNewRequirement;
