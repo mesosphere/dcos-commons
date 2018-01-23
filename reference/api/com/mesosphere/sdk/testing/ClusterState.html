@@ -130,7 +130,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addLaunchedPod-java.util.Collection-">addLaunchedPod</a></span>(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;pod)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addLaunchedPod-com.mesosphere.sdk.testing.LaunchedPod-">addLaunchedPod</a></span>(<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;pod)</code>
 <div class="block">Adds the provided pod to the list of launched pods.</div>
 </td>
 </tr>
@@ -146,19 +146,19 @@ extends java.lang.Object</pre>
       <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;scheduler)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod--">getLastLaunchedPod</a></span>()</code>
 <div class="block">Returns the last pod to be launched, regardless of the pod's name.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod-java.lang.String-">getLastLaunchedPod</a></span>(java.lang.String&nbsp;podName)</code>
 <div class="block">Returns the last pod to be launched with the specified name.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>Protos.TaskInfo</code></td>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedTask.html" title="class in com.mesosphere.sdk.testing">LaunchedTask</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedTask-java.lang.String-">getLastLaunchedTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns the last task launched with the specified name.</div>
 </td>
@@ -295,13 +295,13 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="addLaunchedPod-java.util.Collection-">
+<a name="addLaunchedPod-com.mesosphere.sdk.testing.LaunchedPod-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>addLaunchedPod</h4>
-<pre>public&nbsp;void&nbsp;addLaunchedPod(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;pod)</pre>
+<pre>public&nbsp;void&nbsp;addLaunchedPod(<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;pod)</pre>
 <div class="block">Adds the provided pod to the list of launched pods.</div>
 </li>
 </ul>
@@ -311,11 +311,11 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getLastLaunchedPod</h4>
-<pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;getLastLaunchedPod()</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;getLastLaunchedPod()</pre>
 <div class="block">Returns the last pod to be launched, regardless of the pod's name.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the last pod added to <a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addLaunchedPod-java.util.Collection-"><code>addLaunchedPod(Collection)</code></a></dd>
+<dd>the last pod added to <code>#addLaunchedPod(Collection)</code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalStateException</code> - if no pods had been launched</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
@@ -329,7 +329,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getLastLaunchedPod</h4>
-<pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;getLastLaunchedPod(java.lang.String&nbsp;podName)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;getLastLaunchedPod(java.lang.String&nbsp;podName)</pre>
 <div class="block">Returns the last pod to be launched with the specified name.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -349,7 +349,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getLastLaunchedTask</h4>
-<pre>public&nbsp;Protos.TaskInfo&nbsp;getLastLaunchedTask(java.lang.String&nbsp;taskName)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/LaunchedTask.html" title="class in com.mesosphere.sdk.testing">LaunchedTask</a>&nbsp;getLastLaunchedTask(java.lang.String&nbsp;taskName)</pre>
 <div class="block">Returns the last task launched with the specified name.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

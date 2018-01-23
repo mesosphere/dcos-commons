@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -256,6 +256,12 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setState-com.mesosphere.sdk.testing.ServiceTestResult-">setState</a></span>(<a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a>&nbsp;serviceTestResult)</code>
 <div class="block">Configures the test with the provided state from a prior run.</div>
+</td>
+</tr>
+<tr id="i15" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setUseCustomExecutor--">setUseCustomExecutor</a></span>()</code>
+<div class="block">Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.</div>
 </td>
 </tr>
 </table>
@@ -530,6 +536,18 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;setRecoveryManagerFactory(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&nbsp;recoveryManagerFactory)</pre>
 <div class="block">Allows the specification of custom recovery logic just as in
  <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-"><code>SchedulerBuilder.setRecoveryManagerFactory(RecoveryPlanOverriderFactory)</code></a>.</div>
+</li>
+</ul>
+<a name="setUseCustomExecutor--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setUseCustomExecutor</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;setUseCustomExecutor()</pre>
+<div class="block">Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
+
+ Individual services shouldn't need to use this, it's more for testing of the SDK itself.</div>
 </li>
 </ul>
 <a name="run--">
