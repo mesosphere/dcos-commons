@@ -47,12 +47,9 @@ def wait_for_broker_dns(package_name: str, service_name: str):
     broker_dns = list(map(lambda x: x.split(':')[0], brokers["dns"]))
 
     def get_scheduler_task_id(service_name: str) -> str:
-        raw_tasks = sdk_cmd.run_cli("task --json", )
-        if raw_tasks:
-            tasks = json.loads(raw_tasks)
-            for task in tasks:
-                if task["name"] == service_name:
-                    return task["id"]
+        for task in sdk_tasks.get_summary():
+            if task.name == service_name:
+                return task.id
 
     scheduler_task_id = get_scheduler_task_id(service_name)
     log.info("Scheduler task ID: %s", scheduler_task_id)

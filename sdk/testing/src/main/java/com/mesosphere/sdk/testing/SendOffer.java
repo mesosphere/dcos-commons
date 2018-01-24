@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.testing;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -9,6 +10,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -20,6 +22,14 @@ import com.mesosphere.sdk.testutils.TestConstants;
  * test.
  */
 public class SendOffer implements Send {
+
+    /**
+     * Default executors have an additional overhead of 0.1 CPU, 32MB RAM, and 256MB disk.
+     */
+    private static final List<Protos.Resource> DEFAULT_EXECUTOR_RESOURCES = Arrays.asList(
+            toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_CPUS), false),
+            toUnreservedResource(Constants.MEMORY_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_MEMORY), false),
+            toUnreservedResource(Constants.DISK_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_DISK), false));
 
     private final String podType;
     private final Optional<String> podToReuse;
@@ -120,15 +130,14 @@ public class SendOffer implements Send {
         // Include task-level resources (note: resources are not merged, e.g. 1.5cpu+1.0 cpu instead of 2.5cpu):
         for (TaskSpec taskSpec : podSpec.getTasks()) {
             if (podToReuse.isPresent()) {
-                // Copy resources from prior pod launch:
-                for (Protos.TaskInfo task : state.getLastLaunchedPod(podToReuse.get())) {
+                // Copy executor id and resources from prior pod launch:
+                LaunchedPod pod = state.getLastLaunchedPod(podToReuse.get());
+                offerBuilder
+                        .addExecutorIds(pod.getExecutor().getExecutorId())
+                        .addAllResources(pod.getExecutor().getResourcesList());
+                for (Protos.TaskInfo task : pod.getTasks()) {
                     offerBuilder.addAllResources(task.getResourcesList());
                 }
-                // Copy executor id(s) from prior pod launch, if tasks are marked as running:
-                offerBuilder.addAllExecutorIds(state.getLastLaunchedPod(podToReuse.get()).stream()
-                        .map(taskInfo -> taskInfo.getExecutor().getExecutorId())
-                        .distinct()
-                        .collect(Collectors.toList()));
             } else {
                 // Create new unreserved resources:
                 for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
@@ -139,35 +148,57 @@ public class SendOffer implements Send {
                 }
             }
         }
+
+        // In addition to the resources required by the tasks, add some resources for the Default Executor overhead.
+        // Note that if custom executors are being exercised, these marginal resources are not used and are effectively
+        // just ignored.
+        if (!podToReuse.isPresent()) {
+            offerBuilder.addAllResources(DEFAULT_EXECUTOR_RESOURCES);
+        }
+
         return offerBuilder.build();
     }
 
-    @SuppressWarnings("deprecation") // for Resource.setRole()
     private static Protos.Resource toUnreservedResource(ResourceSpec resourceSpec) {
+        boolean isMountDisk = resourceSpec instanceof VolumeSpec &&
+                ((VolumeSpec) resourceSpec).getType() == VolumeSpec.Type.MOUNT;
+        return toUnreservedResource(resourceSpec.getName(), resourceSpec.getValue(), isMountDisk);
+    }
+
+    @SuppressWarnings("deprecation") // for Resource.setRole()
+    private static Protos.Resource toUnreservedResource(String resourceName, Protos.Value value, boolean isMountDisk) {
         Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
                 .setRole("*")
-                .setName(resourceSpec.getName())
-                .setType(resourceSpec.getValue().getType());
-        switch (resourceSpec.getValue().getType()) {
+                .setName(resourceName)
+                .setType(value.getType());
+
+        switch (value.getType()) {
             case SCALAR:
-                resourceBuilder.setScalar(resourceSpec.getValue().getScalar());
+                resourceBuilder.setScalar(value.getScalar());
                 break;
             case RANGES:
-                resourceBuilder.setRanges(resourceSpec.getValue().getRanges());
+                resourceBuilder.setRanges(value.getRanges());
                 break;
             case SET:
-                resourceBuilder.setSet(resourceSpec.getValue().getSet());
+                resourceBuilder.setSet(value.getSet());
                 break;
             default:
-                throw new IllegalArgumentException("Unsupported value type: " + resourceSpec.getValue());
+                throw new IllegalArgumentException("Unsupported value type: " + value);
         }
 
-        if (resourceSpec instanceof VolumeSpec &&
-                ((VolumeSpec) resourceSpec).getType() == VolumeSpec.Type.MOUNT) {
+        if (isMountDisk) {
             resourceBuilder.getDiskBuilder().getSourceBuilder()
                     .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT)
                     .getMountBuilder().setRoot(TestConstants.MOUNT_ROOT);
         }
+
         return resourceBuilder.build();
+    }
+
+    private static Protos.Value scalar(double val) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.SCALAR);
+        builder.getScalarBuilder().setValue(val);
+        return builder.build();
     }
 }

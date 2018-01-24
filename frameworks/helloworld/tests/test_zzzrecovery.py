@@ -1,10 +1,19 @@
+# NOTE: THIS FILE IS INTENTIONALLY NAMED TO BE RUN LAST. SEE test_shutdown_host().
+
+import logging
 import pytest
+import re
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_plan
 import sdk_tasks
+import sdk_utils
 import shakedown
 from tests import config
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -13,13 +22,12 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
-        yield  # let the test session execute
+        yield # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_kill_hello_node():
     config.check_running()
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
@@ -30,12 +38,11 @@ def test_kill_hello_node():
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_pod_restart():
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
 
     # get current agent id:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)
     old_agent = jsonobj[0]['info']['slaveId']['value']
 
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart hello-0', json=True)
@@ -48,28 +55,18 @@ def test_pod_restart():
     config.check_running()
 
     # check agent didn't move:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)
     new_agent = jsonobj[0]['info']['slaveId']['value']
     assert old_agent == new_agent
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
-@pytest.mark.dcos_min_version('1.10')
-def test_pod_pause_resume():
-    pod_pause_resume_internal()
-
-@pytest.mark.sanity
-@pytest.mark.recovery
 @pytest.mark.dcos_min_version('1.9')
 def test_pod_pause_resume():
-    pod_pause_resume_internal(False)
-
-def pod_pause_resume_internal(validateReadinessCheck=True):
     '''Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state'''
 
     # get current agent id:
-    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)[0]['info']
+    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)[0]['info']
     old_agent = taskinfo['slaveId']['value']
     old_cmd = taskinfo['command']['value']
 
@@ -95,14 +92,14 @@ def pod_pause_resume_internal(validateReadinessCheck=True):
     config.check_running()
 
     # check agent didn't move, and that the command has changed:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)
-    assert len(jsonobj) == 1
-    assert old_agent == jsonobj[0]['info']['slaveId']['value']
-    cmd = jsonobj[0]['info']['command']['value']
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)[0]['info']
+    assert old_agent == jsonobj['slaveId']['value']
+    cmd = jsonobj['command']['value']
     assert 'This task is PAUSED' in cmd
 
-    if validateReadinessCheck:
-        readiness_check = jsonobj[0]['info']['check']['command']['command']['value']
+    if sdk_utils.dcos_version_at_least('1.10'):
+        # validate readiness check (default executor)
+        readiness_check = jsonobj['check']['command']['command']['value']
         assert 'exit 1' == readiness_check
 
     # check PAUSED state in plan and in pod status:
@@ -127,7 +124,7 @@ def pod_pause_resume_internal(validateReadinessCheck=True):
     config.check_running()
 
     # check again that the agent didn't move:
-    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True)[0]['info']
+    taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True, print_output=False)[0]['info']
     assert old_agent == taskinfo['slaveId']['value']
     assert old_cmd == taskinfo['command']['value']
 
@@ -144,7 +141,6 @@ def pod_pause_resume_internal(validateReadinessCheck=True):
 
 
 @pytest.mark.sanity
-@pytest.mark.recovery
 @pytest.mark.dcos_min_version('1.9')
 def test_pods_restart_graceful_shutdown():
     options = {
@@ -179,30 +175,6 @@ def test_pods_restart_graceful_shutdown():
             clean_msg = s
 
     assert clean_msg is not None
-
-
-@pytest.mark.sanity
-@pytest.mark.recovery
-def test_pod_replace():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
-
-    # get current agent id (TODO: uncomment if/when agent is guaranteed to change in a replace operation):
-    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
-    # old_agent = jsonobj[0]['info']['slaveId']['value']
-
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
-    assert len(jsonobj) == 2
-    assert jsonobj['pod'] == 'world-0'
-    assert len(jsonobj['tasks']) == 1
-    assert jsonobj['tasks'][0] == 'world-0-server'
-
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
-    config.check_running()
-
-    # check agent moved (TODO: uncomment if/when agent is guaranteed to change (may randomly move back to old agent))
-    # jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info world-0', json=True)
-    # new_agent = jsonobj[0]['info']['slaveId']['value']
-    # assert old_agent != new_agent
 
 
 @pytest.mark.recovery
@@ -296,3 +268,50 @@ def test_config_update_then_zk_killed():
     sdk_cmd.kill_task_with_pattern('zookeeper')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
     config.check_running()
+
+
+@pytest.mark.sanity
+def test_pod_replace():
+    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
+
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
+    assert len(jsonobj) == 2
+    assert jsonobj['pod'] == 'world-0'
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0] == 'world-0-server'
+
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
+    config.check_running()
+
+
+# @@@@@@@
+# WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
+# @@@@@@@
+@pytest.mark.sanity
+def test_shutdown_host():
+    replace_task = sdk_tasks.get_task_avoiding_scheduler(
+        config.SERVICE_NAME, re.compile('^(hello|world)-[0-9]+-server$'))
+    assert replace_task is not None, 'Could not find a node to shut down'
+    replace_pod_name = replace_task.name[:-len('-server')]
+
+    # Instead of partitioning or reconnecting, we shut down the host permanently
+    sdk_cmd.shutdown_agent(replace_task.host)
+
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'pod replace {}'.format(replace_pod_name))
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+
+    # Print another dump of current cluster tasks, now that repair has started.
+    sdk_tasks.get_summary()
+
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
+    sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+
+    # Find the new version of the task. Note that the old one may still be present/'running' as
+    # Mesos might not have acknowledged the agent's death.
+    new_task = [
+        task for task in sdk_tasks.get_summary()
+        if task.name == replace_task.name and task.id != replace_task.id][0]
+    log.info('Checking that the original pod has moved to a new agent:\n'
+             'old={}\nnew={}'.format(replace_task, new_task))
+    assert replace_task.agent != new_task.agent

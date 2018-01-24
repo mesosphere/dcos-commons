@@ -22,6 +22,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.dcos_min_version('1.11')
+@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_rack():
     sdk_install.install(
