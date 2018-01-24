@@ -39,14 +39,10 @@ def get_service_principals(service_name: str, realm: str) -> list:
         "data-1-node",
         "data-2-node",
     ]
+    instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
 
-    principals = []
-    for (primary, task) in itertools.product(primaries, tasks):
-        instance = sdk_hosts.autoip_host(service_name, task)
-        principals.append(kerberos.genererate_principal(primary, instance, realm))
-
-    for primary in USERS:
-        principals.append(kerberos.genererate_principal(primary, realm=realm, instance=None))
+    principals = kerberos.generate_principal_list(primaries, instances, realm)
+    principals.extend(kerberos.generate_principal_list(USERS, [None, ], realm))
 
     http_instance = "api.{}.marathon.l4lb.thisdcos.directory".format(service_name)
     http_principal = kerberos.genererate_principal("HTTP", http_instance, realm)

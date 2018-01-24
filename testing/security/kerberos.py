@@ -1,6 +1,7 @@
 """
 A set of Kerberos utilities
 """
+import itertools
 import logging
 
 import sdk_cmd
@@ -19,6 +20,14 @@ def genererate_principal(primary: str, instance: str, realm: str) -> str:
         principal = primary
 
     return "{}@{}".format(principal, realm.upper())
+
+
+def generate_principal_list(primaries: list, instances: list, realm: str) -> list:
+    principals = []
+    for (primary, instance) in itertools.product(primaries, instances):
+        principals.append(genererate_principal(primary, instance, realm))
+
+    return principals
 
 
 def write_krb5_config_file(task: str, filename: str, krb5: object) -> str:

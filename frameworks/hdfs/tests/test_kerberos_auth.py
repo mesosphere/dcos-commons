@@ -21,8 +21,10 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 @pytest.fixture(scope='module', autouse=True)
 def kerberos(configure_security):
     try:
-        principals = auth.get_service_principals(config.FOLDERED_SERVICE_NAME, kerberos.get_realm())
         kerberos_env = sdk_auth.KerberosEnvironment()
+
+        principals = auth.get_service_principals(config.FOLDERED_SERVICE_NAME,
+                                                 kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
         service_kerberos_options = {

@@ -2,11 +2,40 @@ import logging
 import retrying
 
 import sdk_cmd
+import sdk_hosts
 
 from security import kerberos
 
 
 LOG = logging.getLogger(__name__)
+
+
+USERS = [
+        "client",
+        "authorized",
+        "unauthorized",
+        "super"
+]
+
+
+def get_service_principals(service_name: str, realm: str) -> list:
+    """
+    Sets up the appropriate principals needed for a kerberized deployment of HDFS.
+    :return: A list of said principals
+    """
+    primaries = ["kafka", ]
+
+    tasks = [
+        "kafka-0-broker",
+        "kafka-1-broker",
+        "kafka-2-broker",
+    ]
+    instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
+
+    principals = kerberos.generate_principal_list(primaries, instances, realm)
+    principals.extend(kerberos.generate_principal_list(USERS, [None, ], realm))
+
+    return principals
 
 
 def wait_for_brokers(client: str, brokers: list):

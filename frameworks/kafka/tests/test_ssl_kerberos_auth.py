@@ -43,42 +43,12 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_principals():
-    fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
-                                                 host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    brokers = [
-        "kafka-0-broker",
-        "kafka-1-broker",
-        "kafka-2-broker",
-    ]
-
-    principals = []
-    for b in brokers:
-        principals.append("kafka/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=fqdn,
-            realm=sdk_auth.REALM))
-
-    clients = [
-        "client",
-        "authorized",
-        "unauthorized",
-        "super"
-    ]
-    for c in clients:
-        principals.append("{client}@{realm}".format(client=c, realm=sdk_auth.REALM))
-
-    yield principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals):
+def kerberos(configure_security):
     try:
-        principals = []
-        principals.extend(kafka_principals)
-
         kerberos_env = sdk_auth.KerberosEnvironment()
+
+        principals = auth.get_service_principals(config.SERVICE_NAME,
+                                                 kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
