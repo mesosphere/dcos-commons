@@ -10,8 +10,8 @@ import sdk_marathon
 import sdk_security
 import sdk_utils
 
+from security import kerberos as krb5
 from security import transport_encryption
-
 
 from tests import auth
 from tests import config
@@ -145,7 +145,7 @@ def hdfs_client(kerberos, hdfs_server):
 
         sdk_marathon.install_app(client)
 
-        auth.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
+        krb5.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
         dcos_ca_bundle = transport_encryption.fetch_dcos_ca_bundle(client_id)
 
         yield {**client, **{"dcos_ca_bundle": dcos_ca_bundle}}

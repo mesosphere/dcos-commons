@@ -1,8 +1,10 @@
-import json
 import logging
 import retrying
 
 import sdk_cmd
+
+from security import kerberos
+
 
 LOG = logging.getLogger(__name__)
 
@@ -85,36 +87,12 @@ def write_jaas_config_file(primary: str, task: str, krb5: object) -> str:
     return output_file
 
 
-def write_krb5_config_file(task: str, krb5: object) -> str:
-    output_file = "krb5.config"
-
-    LOG.info("Generating %s", output_file)
-
-    try:
-        # TODO: Set realm and kdc properties
-        krb5_file_contents = ['[libdefaults]',
-                              'default_realm = {}'.format(krb5.get_realm()),
-                              '',
-                              '[realms]',
-                              '  {realm} = {{'.format(realm=krb5.get_realm()),
-                              '    kdc = {}'.format(krb5.get_kdc_address()),
-                              '  }', ]
-        log.info("%s", krb5_file_contents)
-    except Exception as e:
-        log.error("%s", e)
-        raise(e)
-
-    output = sdk_cmd.create_task_text_file(task, output_file, krb5_file_contents)
-    LOG.info(output)
-
-    return output_file
-
-
 def setup_krb5_env(primary: str, task: str, krb5: object) -> str:
     env_setup_string = "export KAFKA_OPTS=\\\"" \
                        "-Djava.security.auth.login.config={} " \
                        "-Djava.security.krb5.conf={}" \
-                       "\\\"".format(write_jaas_config_file(primary, task, krb5), write_krb5_config_file(task, krb5))
+                       "\\\"".format(write_jaas_config_file(primary, task, krb5),
+                                     kerberos.write_krb5_config_file(task, "krb5.config", krb5))
     LOG.info("Setting environment to %s", env_setup_string)
     return env_setup_string
 

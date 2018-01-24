@@ -1,4 +1,3 @@
-import base64
 import os
 import logging
 import pytest
@@ -8,6 +7,10 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_utils
+
+
+from security import kerberos as krb5
+
 
 from tests import config
 from tests import auth
@@ -148,7 +151,7 @@ def hdfs_client(kerberos, hdfs_server):
 
         sdk_marathon.install_app(client)
 
-        auth.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
+        krb5.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
 
         yield client
 
