@@ -1713,7 +1713,7 @@
 <div class="block">This class evaluates an ensuring that the offered Executor ID matches the needed ID
  and setting the executor ID for a newly-launching pod.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html#ExecutorEvaluationStage-java.util.Optional-">ExecutorEvaluationStage(Optional&lt;Protos.ExecutorInfo&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html#ExecutorEvaluationStage-java.util.Optional-">ExecutorEvaluationStage(Optional&lt;Protos.ExecutorID&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorEvaluationStage</a></dt>
 <dd>
 <div class="block">Instantiate with an expected <code>org.apache.mesos.Protos.ExecutorID</code> to check for in offers.</div>
 </dd>
@@ -2440,7 +2440,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.ReserveEvaluationOutcome.html#getEvaluationOutcome--">getEvaluationOutcome()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.ReserveEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils.ReserveEvaluationOutcome</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-java.util.Optional-">getEvaluationPipeline(PodInstanceRequirement, Collection&lt;Protos.TaskInfo&gt;, Map&lt;String, Protos.TaskInfo&gt;, Optional&lt;Protos.ExecutorInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-">getEvaluationPipeline(PodInstanceRequirement, Collection&lt;Protos.TaskInfo&gt;, Map&lt;String, Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html#getEvaluationStages--">getEvaluationStages()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorResourceMapper</a></dt>
 <dd>&nbsp;</dd>
@@ -2460,7 +2460,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getExecutorURI--">getExecutorURI()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.lang.String-java.lang.String-">getExistingExecutorVolume(VolumeSpec, String, String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.lang.String-java.lang.String-boolean-">getExistingExecutorVolume(VolumeSpec, String, String, boolean)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getField-java.lang.String-">getField(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>&nbsp;</dd>
@@ -4385,6 +4385,8 @@
 <dd>
 <div class="block">Status is in one of the running states.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#isRunningExecutor-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Offer-">isRunningExecutor(PodInfoBuilder, Protos.Offer)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">isSamePodInstance(TaskInfo, PodInstance)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the

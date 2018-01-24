@@ -173,9 +173,10 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static Protos.Resource</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.lang.String-java.lang.String-">getExistingExecutorVolume</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.lang.String-java.lang.String-boolean-">getExistingExecutorVolume</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
                          java.lang.String&nbsp;resourceId,
-                         java.lang.String&nbsp;persistenceId)</code>&nbsp;</td>
+                         java.lang.String&nbsp;persistenceId,
+                         boolean&nbsp;useDefaultExecutor)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>int</code></td>
@@ -387,7 +388,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;setExecutorVolume(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec)</pre>
 </li>
 </ul>
-<a name="getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.lang.String-java.lang.String-">
+<a name="getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.lang.String-java.lang.String-boolean-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -395,7 +396,8 @@ extends java.lang.Object</pre>
 <h4>getExistingExecutorVolume</h4>
 <pre>public static&nbsp;Protos.Resource&nbsp;getExistingExecutorVolume(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
                                                         java.lang.String&nbsp;resourceId,
-                                                        java.lang.String&nbsp;persistenceId)</pre>
+                                                        java.lang.String&nbsp;persistenceId,
+                                                        boolean&nbsp;useDefaultExecutor)</pre>
 </li>
 </ul>
 <a name="getTaskEnvironment-java.lang.String-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">

@@ -159,10 +159,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-java.util.Optional-">getEvaluationPipeline</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-">getEvaluationPipeline</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
                      java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allTasks,
-                     java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks,
-                     java.util.Optional&lt;Protos.ExecutorInfo&gt;&nbsp;executorInfo)</code>&nbsp;</td>
+                     java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>(package private) java.util.UUID</code></td>
@@ -236,7 +235,7 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-java.util.Optional-">
+<a name="getEvaluationPipeline-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -244,8 +243,7 @@ extends java.lang.Object</pre>
 <h4>getEvaluationPipeline</h4>
 <pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a>&gt;&nbsp;getEvaluationPipeline(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
                                                                   java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allTasks,
-                                                                  java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks,
-                                                                  java.util.Optional&lt;Protos.ExecutorInfo&gt;&nbsp;executorInfo)
+                                                                  java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasks)
                                                            throws java.io.IOException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>

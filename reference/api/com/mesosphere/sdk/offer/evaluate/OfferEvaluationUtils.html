@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -159,6 +159,11 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#getRole-com.mesosphere.sdk.specification.PodSpec-">getRole</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#isRunningExecutor-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Offer-">isRunningExecutor</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
+                 Protos.Offer&nbsp;offer)</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>(package private) static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-java.util.Optional-">setProtos</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
          Protos.Resource&nbsp;resource,
@@ -210,12 +215,22 @@ extends java.lang.Object</pre>
 <a name="setProtos-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Resource-java.util.Optional-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>setProtos</h4>
 <pre>static&nbsp;void&nbsp;setProtos(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
                       Protos.Resource&nbsp;resource,
                       java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName)</pre>
+</li>
+</ul>
+<a name="isRunningExecutor-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Offer-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>isRunningExecutor</h4>
+<pre>public static&nbsp;boolean&nbsp;isRunningExecutor(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
+                                        Protos.Offer&nbsp;offer)</pre>
 </li>
 </ul>
 </li>
