@@ -1,6 +1,6 @@
 ---
-post_title: API Reference
-menu_order: 70
+title: API Reference
+menuWeight: 70
 enterprise: 'no'
 ---
 

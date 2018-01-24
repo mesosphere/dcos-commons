@@ -1,6 +1,6 @@
 ---
-post_title: Version _PACKAGEVERSION_-_SERVICEVERSION_
-menu_order: 10
+title: Version _PACKAGEVERSION_-_SERVICEVERSION_
+menuWeight: 10
 post_excerpt: ""
 enterprise: 'no'
 ---

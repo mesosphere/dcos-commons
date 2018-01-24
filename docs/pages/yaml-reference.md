@@ -1,7 +1,8 @@
 ---
 title: YAML Reference
+menuWeight: 2
 stylesheet: yaml-reference.css
-redirect_from: "/yaml-reference"
+redirect_from: "/reference/yaml-reference.html"
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->

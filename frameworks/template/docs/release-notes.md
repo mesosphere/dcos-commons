@@ -1,6 +1,6 @@
 ---
-post_title: Release Notes
-menu_order: 120
+title: Release Notes
+menuWeight: 120
 enterprise: 'no'
 ---
 

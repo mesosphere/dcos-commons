@@ -1,6 +1,6 @@
 ---
 layout: layout.pug
-navigationTitle: Operations Guide for SDK-based Services
+navigationTitle: Troubleshooting
 title:
 menuWeight: 30
 excerpt:
@@ -8,7 +8,7 @@ excerpt:
 
 This section goes over some common pitfalls and how to fix them.
 
-# Tasks not deploying / Resource starvation
+## Tasks not deploying / Resource starvation
 
 When the Scheduler is performing offer evaluation, it will log its decisions about offers it has received. This can be useful in the common case of determining why a task is failing to deploy.
 
@@ -94,19 +94,19 @@ We're seeing that none of the remaining agents in the cluster have room to fit o
 
 This is a good example of the kind of diagnosis you can perform by skimming the SDK Scheduler logs.
 
-# Accidentially deleted Marathon task but not service
+## Accidentially deleted Marathon task but not service
 
 A common user mistake is to remove the Scheduler task from Marathon, which doesn't do anything to uninstall the service tasks themselves. If you do this, you have two options:
 
-## Uninstall the rest of the service
+### Uninstall the rest of the service
 
 If you really wanted to uninstall the service, you just need to complete the normal `package uninstall` steps described under [Uninstall](#uninstall).
 
-## Recover the Scheduler
+### Recover the Scheduler
 
 If you want to bring the Scheduler back, you can do a `dcos package install` using the options that you had configured before. This will re-install a new Scheduler that should match the previous one (assuming you got your options right), and it will resume where it left off. To ensure that you don't forget the options your services are configured with, we recommend keeping a copy of your service's `options.json` in source control so that you can easily recover it later. See also [Initial configuration](#initial-service-configuration).
 
-# 'Framework has been removed'
+## 'Framework has been removed'
 
 Long story short, you forgot to run `janitor.py` the last time you ran the service. See [Uninstall](#uninstall) for steps on doing that. In case you're curious, here's what happened:
 
@@ -114,7 +114,7 @@ Long story short, you forgot to run `janitor.py` the last time you ran the servi
 1. Later on, you tried to reinstall the service. The Scheduler came up and found an entry in ZooKeeper with the previous framework ID, which would have been cleaned up by `janitor.py`. The Scheduler tried to re-register using that framework ID.
 1. Mesos returned an error because it knows that framework ID is no longer valid. Hence the confusing 'Framework has been removed' error.
 
-# Stuck deployments
+## Stuck deployments
 
 You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it's failing to come back, and, for whatever reason, we don't have the time or the inclination to `pod replace` it and wait for it to come back.
 
@@ -210,7 +210,7 @@ This example shows how steps in the deployment Plan (or any other Plan) can be m
 
 **Note:** The `dcos plan` commands will also accept UUID `id` values instead of the `name` values for the `phase` and `step` arguments. Providing UUIDs avoids the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn't the same one we were expecting (but which had the same name).
 
-## Deleting a task in ZooKeeper to forcibly wipe that task
+### Deleting a task in ZooKeeper to forcibly wipe that task
 
 If the scheduler is still failing after `pod replace <name>` to clear a task, a last resort is to use [Exhibitor](#ZooKeeperexhibitor) to delete the offending task from the Scheduler's ZooKeeper state, and then to restart the Scheduler task in Marathon so that it picks up the change. After the Scheduler restarts, it will do the following:
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
@@ -218,7 +218,7 @@ If the scheduler is still failing after `pod replace <name>` to clear a task, a 
 
 **Note:** This operation can easily lead to a completely broken service. __Do this at your own risk.__ [Break glass in case of emergency](img/ops-guide-exhibitor-delete-task.png)
 
-## OOMed task
+### OOMed task
 
 Your tasks can be killed from an OOM if you didn't give them sufficient resources. This will manifest as sudden `Killed` messages in [Task logs](#task-logs), sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:
 - Check [Scheduler logs](#scheduler-logs) (or `dcos <svcname> pod status <podname>)` to see TaskStatus updates from mesos for a given failed pod.

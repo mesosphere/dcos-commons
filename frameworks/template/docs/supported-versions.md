@@ -1,6 +1,6 @@
 ---
-post_title: Supported Versions
-menu_order: 110
+title: Supported Versions
+menuWeight: 110
 post_excerpt: ""
 enterprise: 'no'
 ---

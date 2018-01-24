@@ -1,6 +1,6 @@
 ---
-post_title: Limitations
-menu_order: 100
+title: Limitations
+menuWeight: 100
 enterprise: 'no'
 ---
 

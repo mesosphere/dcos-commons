@@ -1,12 +1,9 @@
 ---
 title: SDK Developer Guide
-menu_order: 1
+menuWeight: 1
 redirect_from: "/dev-guide/developer-guide"
+toc: true
 ---
-
-<!-- Generate TOC. Both of the following lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
-* LOOKING FOR THE DEVELOPER GUIDE? [GO HERE](https://mesosphere.github.io/dcos-commons/developer-guide.html). (THIS LINE IS A STUB FOR RENDERING THE TOC AUTOMATICALLY)
-{:toc}
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 

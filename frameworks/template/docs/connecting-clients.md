@@ -1,6 +1,6 @@
 ---
-post_title: Connecting Clients
-menu_order: 50
+title: Connecting Clients
+menuWeight: 50
 post_excerpt: ""
 enterprise: 'no'
 ---

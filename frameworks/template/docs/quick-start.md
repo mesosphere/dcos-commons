@@ -1,6 +1,6 @@
 ---
-post_title: Quick Start
-menu_order: 40
+title: Quick Start
+menuWeight: 40
 post_excerpt: ""
 enterprise: 'no'
 ---

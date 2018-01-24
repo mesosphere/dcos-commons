@@ -1,6 +1,6 @@
 ---
-post_title: Managing
-menu_order: 60
+title: Managing
+menuWeight: 60
 post_excerpt: ""
 enterprise: 'no'
 ---
