@@ -14,7 +14,7 @@ When the Scheduler is performing offer evaluation, it will log its decisions abo
 
 In this example we have a newly-deployed `dse` Scheduler that isn't deploying the third `dsenode` task that we requested. This can often happen if our cluster doesn't have any machines with enough room to run the task.
 
-In recent versions of the scheduler, an endpoint at `/v1/debug/offers` will display an HTML table containing a summary of recently-evaluated offers. This table's contents are currently very similar to what can be found in logs, but in a slightly more accessible format. Alternately, we can look at the Scheduler's logs in `stdout` (or `stderr` in older SDK versions).
+In recent versions of the Scheduler, a Scheduler endpoint at `http://yourcluster.com/service/<servicename>/v1/debug/offers` will display an HTML table containing a summary of recently-evaluated offers. This table's contents are currently very similar to what can be found in logs, but in a slightly more accessible format. Alternately, we can look at the Scheduler's logs in `stdout` (or `stderr` in older SDK versions).
 
 When looking at either the Offers debug endpoint, or at the Scheduler logs directly, we find several examples of offers that were insufficient to deploy the remaining node. It's important to remember that _offers will regularly be rejected_ due to not meeting the needs of a deployed task and that this is _completely normal_. What we're looking for is a common theme across those rejections that would indicate what we're missing.
 
