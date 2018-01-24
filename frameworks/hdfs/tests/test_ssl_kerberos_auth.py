@@ -4,6 +4,7 @@ import pytest
 
 import sdk_auth
 import sdk_cmd
+import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_security
@@ -108,7 +109,7 @@ def hdfs_client(kerberos, hdfs_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "nvaziri/hdfs-client:dev",
+                    "image": "elezar/hdfs-client:dev",
                     "forcePullImage": True
                 },
                 "volumes": [
@@ -140,14 +141,51 @@ def hdfs_client(kerberos, hdfs_server):
         sdk_marathon.install_app(client)
 
         auth.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
-        auth.create_tls_artifacts(
-            cn="client",
-            task=client_id)
+        dcos_ca_bundle = auth.fetch_dcos_ca_bundle(client_id)
 
-        yield client
+        yield {**client, **{"dcos_ca_bundle": dcos_ca_bundle}}
 
     finally:
         sdk_marathon.destroy_app(client_id)
+
+
+# TODO(elezar) Is there a better way to determine this?
+DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
+DEFAULT_NAME_NODE_TLS_PORT = 9003
+DEFAULT_DATA_NODE_TLS_PORT = 9006
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.parametrize("node_type,port", [
+    ('journal', DEFAULT_JOURNAL_NODE_TLS_PORT),
+    ('name', DEFAULT_NAME_NODE_TLS_PORT),
+    ('data', DEFAULT_DATA_NODE_TLS_PORT),
+])
+def test_verify_https_ports(hdfs_client, node_type, port):
+    """
+    Verify that HTTPS port is open name, journal and data node types.
+    """
+
+    task_id = "{}-0-node".format(node_type)
+    host = sdk_hosts.autoip_host(
+        config.SERVICE_NAME, task_id, port)
+
+    cmd = ["curl", "-v",
+           "--cacert", hdfs_client["dcos_ca_bundle"],
+           "https://{host}".format(host=host), ]
+
+    rc, stdout, stderr = sdk_cmd.task_exec(hdfs_client["id"], " ".join(cmd))
+    assert not rc
+
+    assert "SSL connection using TLS1.2 / ECDHE_RSA_AES_128_GCM_SHA256" in stderr
+    assert "server certificate verification OK" in stderr
+    assert "common name: {}.{} (matched)".format(task_id, config.SERVICE_NAME) in stderr
+
+    # In the Kerberos case we expect a 401 error
+    assert "401 Authentication required" in stdout
 
 
 @pytest.mark.dcos_min_version('1.10')
