@@ -50,6 +50,10 @@ To prevent accidental data loss, the service does not support reducing the numbe
 
 To prevent accidental data loss from reallocation, the service does not support changing volume requirements after initial deployment.
 
+## Backup/Restore
+
+The service does not support performing backup and restore with authentication/authorization enabled in this or previous versions.
+
 ## Best-effort installation
 
 If your cluster doesn't have enough resources to deploy the service as requested, the initial deployment will not complete until either those resources are available or until you reinstall the service with corrected resource requirements. Similarly, scale-outs following initial deployment will not complete if the cluster doesn't have the needed available resources to complete the scale-out.
