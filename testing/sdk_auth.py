@@ -395,6 +395,15 @@ class KerberosEnvironment:
     def get_kdc_address(self):
         return ":".join(str(p) for p in [self.get_host(), self.get_port()])
 
+    def get_principal(self, primary: str, instance: str=None) -> str:
+
+        if instance:
+            principal = "{}/{}".format(primary, instance)
+        else:
+            principal = primary
+
+        return "{}@{}".format(principal, self.get_realm())
+
     def cleanup(self):
         sdk_security.install_enterprise_cli()
 

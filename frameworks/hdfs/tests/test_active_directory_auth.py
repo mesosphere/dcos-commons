@@ -10,6 +10,7 @@ import sdk_marathon
 import sdk_utils
 
 from tests import config
+from tests import auth
 
 
 ACTIVE_DIRECTORY_ENVVAR = 'TESTING_ACTIVE_DIRECTORY_SERVER'
@@ -24,30 +25,6 @@ pytestmark = pytest.mark.skipif(not is_active_directory_enabled(),
 
 
 log = logging.getLogger(__name__)
-
-
-USERS = [
-    "hdfs",
-    "alice",
-    "bob",
-]
-
-
-def get_principal_to_user_mapping() -> str:
-    """
-    Kerberized HDFS maps the primary component of a principal to local users, so
-    we need to create an appropriate mapping to test authorization functionality.
-    :return: A base64-encoded string of principal->user mappings
-    """
-    rules = [
-        "RULE:[2:$1@$0](^hdfs@.*$)s/.*/hdfs/",
-        "RULE:[1:$1@$0](^nobody@.*$)s/.*/nobody/"
-    ]
-
-    for user in USERS:
-        rules.append("RULE:[1:$1@$0](^{user}@.*$)s/.*/{user}/".format(user=user))
-
-    return base64.b64encode('\n'.join(rules).encode("utf-8")).decode("utf-8")
 
 
 class ActiveDirectoryKerberos(sdk_auth.KerberosEnvironment):
@@ -111,7 +88,7 @@ def hdfs_server(kerberos):
             }
         },
         "hdfs": {
-            "security_auth_to_local": get_principal_to_user_mapping()
+            "security_auth_to_local": auth.get_principal_to_user_mapping()
         }
     }
 
@@ -171,35 +148,12 @@ def hdfs_client(kerberos, hdfs_server):
 
         sdk_marathon.install_app(client)
 
-        write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
+        auth.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
 
         yield client
 
     finally:
         sdk_marathon.destroy_app(client_id)
-
-
-def write_krb5_config_file(task: str, filename: str, krb5: object) -> str:
-    """
-    Generate a Kerberos config file.
-    TODO(elezar): This duplicates functionality in frameworks/kafka/tests/auth.py
-    """
-    output_file = filename
-
-    log.info("Generating %s", output_file)
-    krb5_file_contents = ['[libdefaults]',
-                          'default_realm = {}'.format(krb5.get_realm()),
-                          '',
-                          '[realms]',
-                          '  {realm} = {{'.format(realm=krb5.get_realm()),
-                          '    kdc = {}'.format(krb5.get_kdc_address()),
-                          '  }', ]
-    log.info("%s", krb5_file_contents)
-
-    output = sdk_cmd.create_task_text_file(task, output_file, krb5_file_contents)
-    log.info(output)
-
-    return output_file
 
 
 @pytest.mark.dcos_min_version('1.10')
