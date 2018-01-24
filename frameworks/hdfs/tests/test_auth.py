@@ -14,6 +14,10 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                reason='Feature only supported in DC/OS EE')
+
+
 @pytest.fixture(scope='module', autouse=True)
 def kerberos(configure_security):
     try:
@@ -90,7 +94,7 @@ def kerberized_hdfs_client(kerberos):
 @pytest.mark.sanity
 @pytest.mark.skip(reason="HDFS-493")
 def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
-    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["hdfs"])
+    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
 
     test_filename = "test_auth_write_read"  # must be unique among tests in this suite
     write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
@@ -108,7 +112,7 @@ def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
 @pytest.mark.skip(reason="HDFS-493")
 def test_users_have_appropriate_permissions(kerberized_hdfs_client):
     # "hdfs" is a superuser
-    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["hdfs"])
+    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
 
     log.info("Creating directory for alice")
     make_user_directory_cmd = config.hdfs_command("mkdir -p /users/alice")
@@ -124,7 +128,7 @@ def test_users_have_appropriate_permissions(kerberized_hdfs_client):
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(kerberized_hdfs_client)
-    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["alice"])
+    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=kerberos.get_principal("alice"))
     write_access_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(
         config.TEST_CONTENT_SMALL,
         "/users/alice/{}".format(test_filename)))
@@ -143,7 +147,7 @@ def test_users_have_appropriate_permissions(kerberized_hdfs_client):
 
     # bob doesn't have read/write access to alice's directory
     sdk_auth.kdestroy(kerberized_hdfs_client)
-    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["bob"])
+    sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=kerberos.get_principal("bob"))
 
     log.info("Bob tries to wrtie to alice's directory: {}".format(write_access_cmd))
     _, _, stderr = sdk_cmd.task_exec(kerberized_hdfs_client, write_access_cmd)
