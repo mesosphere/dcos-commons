@@ -9,25 +9,39 @@
 {% case pageurltokens.size %}
   {% when 4 %}
     {% assign rootdir = "../.." %}
+    {% assign sectiontitle = pageurltokens[2] %}
   {% when 3 %}
     {% assign rootdir = ".." %}
+    {% assign sectiontitle = pageurltokens[1] %}
   {% else %}
     {% assign rootdir = "." %}
 {% endcase %}
+{% if sectiontitle == "hdfs" %}
+  {% assign sectiontitle = "HDFS" %}
+{% elsif sectiontitle == "ops-guide" %}
+  {% assign sectiontitle = "Operations Guide" %}
+{% elsif sectiontitle %}
+  {% capture sectiontitle %}{{ sectiontitle | capitalize }}{% endcapture %}
+{% endif %}
 
 {% comment %}
   Determine the title to use.
-  Service docs use 'post_title' while common docs use 'title'.
+  Some docs use 'navigationTitle' while others use 'title'.
 {% endcomment %}
 {% if page.title %}
-  {% capture title %}{{ page.title }}{% endcapture %}
-{% else if page.post_title %}
-  {% if pageurltokens[2] == "hdfs" %}
-    {% capture title %}HDFS: {{ page.post_title }}{% endcapture %}
+  {% if sectiontitle and sectiontitle != blank %}
+    {% capture title %}{{ sectiontitle }}: {{ page.title }}{% endcapture %}
   {% else %}
-    {% capture title %}{{ pageurltokens[2] | capitalize }}: {{ page.post_title }}{% endcapture %}
+    {% capture title %}{{ page.title }}{% endcapture %}
+  {% endif %}
+{% elsif page.navigationTitle %}
+  {% if sectiontitle and sectiontitle != blank %}
+    {% capture title %}{{ sectiontitle }}: {{ page.navigationTitle }}{% endcapture %}
+  {% else %}
+    {% capture title %}{{ page.navigationTitle }}{% endcapture %}
   {% endif %}
 {% else %}
+  {% comment %}Worst case, just fall back to using the URL in the title.{% endcomment %}
   {% capture title %}DC/OS SDK: {{ page.url }}{% endcapture %}
 {% endif %}
 
@@ -49,7 +63,7 @@
 .dropdown span:after { content: " +"; }
 
 /* toc style: remove extra margin between elements */
-#markdown-toc ul { margin: 0; }
+.section-nav ul { margin: 0; }
 </style>
 </head>
 
@@ -68,43 +82,33 @@
   <li>
     <span>Documentation</span>
     <ul>
-      {% comment %}List all the non-tutorials, skipping the front page, ordered by menu_order if any.{% endcomment %}
-      {% assign sorted_pages = site.pages | sort:"menu_order" %}
+      {% comment %}List all the non-tutorials, skipping the front page, ordered by menuWeight if any.{% endcomment %}
+      {% assign sorted_pages = site.pages | sort:"menuWeight" %}
       {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}
       {% if urltokens.size < 3 and p.url != "/" and p.title != nil %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}
       {% endfor %}
+      <li><a href="{{ rootdir }}/reference/api">Javadoc Reference</a></li>
+      <li><a href="{{ rootdir }}/reference/swagger-api">REST APIs</a></li>
     </ul>
   </li>
   <li>
     <span>Tutorials</span>
     <ul>
-      {% comment %}List only the tutorials, ordered by menu_order if any.{% endcomment %}
-      {% assign sorted_pages = site.pages | sort:"menu_order" %}
+      {% comment %}List only the tutorials, ordered by menuWeight if any.{% endcomment %}
+      {% assign sorted_pages = site.pages | sort:"menuWeight" %}
       {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "tutorials" %}
       <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}{% endfor %}
     </ul>
   </li>
   <li>
-    <span>Reference</span>
-    <ul>
-      {% comment %}List all the reference pages.{% endcomment %}
-      {% assign sorted_pages = site.pages | sort:"menu_order" %}
-      {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "reference" %}
-      <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
-      {% endif %}{% endfor %}
-      <li><a href="{{ rootdir }}/reference/api">Javadoc Reference</a></li>
-      <li><a href="{{ rootdir }}/reference/swagger-api">REST APIs</a></li>
-    </ul>
-  </li>
-  <li>
     <span>Services</span>
     <ul>
       {% comment %}Iterate over the following services:{% endcomment %}
-      {% assign services = "elastic,hdfs,kafka" | split: "," %}
-      {% assign sorted_pages = site.pages | sort:"menu_order" %}
+      {% assign services = "cassandra,elastic,hdfs,kafka" | split: "," %}
+      {% assign sorted_pages = site.pages | sort:"menuWeight" %}
       {% for service in services %}
       <li>
         {% if service == "hdfs" %}
@@ -113,9 +117,13 @@
         <span>{{ service | capitalize }}</span>
         {% endif %}
         <ul>
-          {% comment %}List the pages for this service, ordered by menu_order if any:{% endcomment %}
+          {% comment %}List the pages for this service, ordered by menuWeight if any:{% endcomment %}
           {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size == 4 and urltokens[1] == "services" and urltokens[2] == service %}
-          <li><a href="{{ rootdir }}{{ p.url }}">{{ p.post_title }}</a></li>
+          {% if p.navigationTitle %}
+          <li><a href="{{ rootdir }}{{ p.url }}">{{ p.navigationTitle }}</a></li>
+          {% else %}
+          <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
+          {% endif %}
           {% endif %}{% endfor %}
         </ul>
       </li>
@@ -127,7 +135,8 @@
 </ul>
 <h1>{{ title }}</h1>
 <div id="content">
-{{ content }}
+{% comment %}Enables table of contents for files with 'toc: true' in their metadata{% endcomment %}
+{{ content | toc }}
 </div>
 </div>
 </body>

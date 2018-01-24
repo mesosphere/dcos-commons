@@ -2076,3 +2076,5 @@ You can use this request to troubleshoot: if you think HDFS should be receiving 
 ```bash
 $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/hdfs/v1/state/properties/suppressed"
 ```
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

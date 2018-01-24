@@ -1,6 +1,6 @@
 ---
-post_title: Install and Customize
-menu_order: 20
+title: Install and Customize
+menuWeight: 20
 enterprise: 'no'
 ---
 

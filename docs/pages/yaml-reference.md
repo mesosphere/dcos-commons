@@ -1,7 +1,8 @@
 ---
 title: YAML Reference
+menuWeight: 2
 stylesheet: yaml-reference.css
-redirect_from: "/yaml-reference"
+redirect_from: "/reference/yaml-reference.html"
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
@@ -490,3 +491,5 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
     * `steps`
 
       This section allows specifying non-default behavior for completing Steps. It may be used for e.g. defining custom init operations to be performed in the `deploy` plan, or for defining entirely custom plans for things like Backup and Restore. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on specifying custom steps.
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

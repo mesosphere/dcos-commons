@@ -6,7 +6,7 @@ menuWeight: 0
 excerpt:
 ---
 
-#Components
+## Components
 
 The following components work together to deploy and maintain the service.
 
@@ -36,7 +36,7 @@ The following components work together to deploy and maintain the service.
 
 For further discussion of DC/OS components, see the [architecture documentation](https://docs.mesosphere.com/1.9/overview/architecture/components/).
 
-# Deployment
+## Deployment
 
 Internally, the SDK treats "Deployment" as moving from one state to another state. By this definition, "Deployment" applies to many scenarios:
 
@@ -45,11 +45,11 @@ Internally, the SDK treats "Deployment" as moving from one state to another stat
 
 In this section, we'll describe how these scenarios are handled by the Scheduler.
 
-## Initial Install
+### Initial Install
 
 This is the flow for deploying a new service:
 
-### Steps handled by the DC/OS cluster
+#### Steps handled by the DC/OS cluster
 
 1. The user runs `dcos package install <package-name>` in the DC/OS CLI or clicks `Install` for a given package on the DC/OS Dashboard.
 
@@ -61,7 +61,7 @@ This is the flow for deploying a new service:
 
 1. The service Scheduler is launched. From this point onwards, the SDK handles deployment.
 
-### Steps handled by the Scheduler
+#### Steps handled by the Scheduler
 
 The service Scheduler's `main()` function is run like any other Java application. The Scheduler starts with the following state:
 
@@ -90,16 +90,16 @@ The service Scheduler's `main()` function is run like any other Java application
     1. When the current configuration matches the desired configuration, the Scheduler will tell Mesos to suspend sending new offers, as there's nothing to be done.
     1. The Scheduler idles until it receives an RPC from Mesos notifying it of a task status change, it receives an RPC from an end user against one of its HTTP APIs, or until it is killed by Marathon as the result of a configuration change.
 
-## Reconfiguration
+### Reconfiguration
 
 This is the flow for reconfiguring a DC/OS service either in order to update specific configuration values, or to upgrade it to a new package version.
 
-### Steps handled by the DC/OS cluster
+#### Steps handled by the DC/OS cluster
 
 1. The user edits the Scheduler's environment variables either using the Scheduler CLI's `update` command or via the DC/OS GUI.
 1. The DC/OS package manager instructs Marathon to kill the current Scheduler and launch a new Scheduler with the updated environment variables.
 
-### Steps handled by the Scheduler
+#### Steps handled by the Scheduler
 
 As with initial install above, at this point the Scheduler is re-launched with the same three sources of information it had before:
 - `svc.yml` template.
@@ -121,23 +121,23 @@ Scheduler reconfiguration is slightly different from initial deployment because 
     1. __Change deployment__: The Scheduler produces a `diff` between the current state and some future state, including all of the Mesos calls (reserve, unreserve, launch, destroy, etc.) needed to get there. For example, if the number of tasks has been increased, then the Scheduler will launch the correct number of new tasks. If a task configuration setting has been changed, the Scheduler will deploy that change to the relevant affected tasks by relaunching them. Tasks that aren't affected by the configuration change will be left as-is.
     1. __Custom update logic__: Some services may have defined a [custom `update` Plan](#custom-update-plan) in its `svc.yml`, in cases where different logic is needed for an update/upgrade than is needed for the initial deployment. When a custom `update` plan is defined, the Scheduler will automatically use this Plan, instead of the default `deploy` Plan, when rolling out an update to the service.
 
-## Uninstall
+### Uninstall
 
 This is the flow for uninstalling a DC/OS service.
 
-### Steps handled by the cluster
+#### Steps handled by the cluster
 
 1. The user uses the DC/OS CLI's `dcos package uninstall` command to uninstall the service.
 1. The DC/OS package manager instructs Marathon to kill the current Scheduler and to launch a new Scheduler with the environment variable `SDK_UNINSTALL` set to "true".
 
-### Steps handled by the Scheduler
+#### Steps handled by the Scheduler
 
 When started in uninstall mode, the Scheduler performs the following actions:
 - Any Mesos resource reservations are unreserved.
   - **Warning**: Any data stored in reserved disk resources will be irretrievably lost.
 - Preexisting state in ZooKeeper is deleted.
 
-# Offer Cycle
+## Offer Cycle
 
 The Offer Cycle is a core Mesos concept and often a source of confusion when running services on Mesos.
 
@@ -151,11 +151,11 @@ Schedulers written using the SDK perform the following operations as Offers are 
 
 SDK Schedulers will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task's reservation, and then launching the task against those resources once more.
 
-# Pods
+## Pods
 
 A Task generally maps to a single process within the service. A Pod is a collection of colocated Tasks that share an environment. All Tasks in a Pod will come up and go down together. Therefore, most maintenance operations against the service are at [Pod granularity](#pod-operations) rather than Task granularity.
 
-# Plans
+## Plans
 
 The Scheduler organizes its work into a list of Plans. Every SDK Scheduler has at least a Deployment Plan and a [Recovery Plan](#recovery-plan), but other Plans may also be added for things like custom Backup and Restore operations. The Deployment Plan is in charge of performing an initial deployment of the service. It is also used for rolling out configuration changes to the service (or in more abstract terms, handling the transition needed to get the service from some state to another state), unless the service developer provided a [custom `update` Plan](#custom-update-plan). The Recovery Plan is in charge of relaunching any exited tasks that should always be running.
 
@@ -192,11 +192,11 @@ As you can see, in addition to the default Deployment and Recovery Plans, this S
 
 In short, Plans are the SDK's abstraction for a sequence of tasks to be performed by the Scheduler. By default, these include deploying and maintaining the cluster, but additional maintenance operations may also be fit into this structure.
 
-## Custom Update Plan
+### Custom Update Plan
 
 By default, the service will use the Deployment Plan when rolling out a configuration change or software upgrade, but some services may need custom logic in this scenario, in which case the service developer may have defined a custom plan named `update`.
 
-## Recovery Plan
+### Recovery Plan
 
 The other default Plan is the Recovery Plan, which handles bringing back failed tasks. The Recovery Plan listens for offers that can be used to bring back those tasks and then relaunches tasks against those offers.
 
@@ -204,7 +204,7 @@ The Scheduler learns whether a task has failed by receiving Task Status updates 
 
 When it receives a Task Status update, the Scheduler decides whether a given update indicates a task that needs to be relaunched. When a task must be relaunched, the Scheduler will wait on the Offer cycle.
 
-### Permanent and temporary recovery
+#### Permanent and temporary recovery
 
 There are two types of recovery, permanent and temporary. The difference is mainly whether the task being recovered should stay on the same machine, and the side effects that result from that.
 
@@ -221,7 +221,7 @@ There are two types of recovery, permanent and temporary. The difference is main
 
 Triggering a permanent recovery is a destructive operation, as it discards any prior persistent volumes for the pod being recovered. This is desirable when the operator knows that the previous machine isn't coming back. For safety's sake, permanent recovery is currently not automatically triggered by the SDK itself.
 
-# Persistent Volumes
+## Persistent Volumes
 
 The SDK was created to help simplify the complexity of dealing with persistent volumes. SDK services currently treat volumes as tied to specific agent machines, as one might have in a datacenter with local drives in each system. While EBS or SAN volumes, for instance, can be re-mounted and reused across machines, this isn't yet supported in the SDK.
 
@@ -264,7 +264,7 @@ Agent 3: X B
 
 Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services will support customizing this setting when it is relevant, while others may assume one or the other.
 
-# Virtual networks
+## Virtual networks
 
 The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by using the `networks` keyword in your YAML definition. Refer to [Developers Guide](developer-guide.md) for more information about how to define virtual networks in your service.
 
@@ -274,7 +274,7 @@ When a pod is on a virtual network such as the `dcos`:
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
   * You can also pass labels while invoking CNI plugins. Refer to [Developers Guide](developer.md) for more information about adding CNI labels.
 
-# Secrets
+## Secrets
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
@@ -283,7 +283,7 @@ The content of a secret is copied and made available within the pod. The SDK all
 **Note:** Secrets are available only in Enterprise DC/OS 1.10 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.10/security/secrets/).
 
 
-## Authorization for Secrets
+### Authorization for Secrets
 
 The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. _Only_ services that are under the same namespace can read the content of the secret.
 
@@ -308,7 +308,7 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 **Note:** Absolute paths (paths with a leading slash) to secrets are not supported. The file path for a secret must be relative to the sandbox.
 
-## Binary Secrets
+### Binary Secrets
 
 You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. Your file must be Base64-encoded as specified in RFC 4648.
 
@@ -332,7 +332,7 @@ When you reference the `__dcos_base64__mysecret` secret in your service, the con
 only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
 
 
-# Placement Constraints
+## Placement Constraints
 
 Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
 
@@ -343,7 +343,7 @@ hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
 
-## Regions and Zones
+### Regions and Zones
 
 Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
 ```
@@ -352,7 +352,7 @@ Placement constraints can be applied to zones by referring to the `@zone` key. F
 
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
-## Updating placement constraints
+### Updating placement constraints
 
 Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
 - Update the placement constraint definition at the Scheduler.
@@ -382,7 +382,7 @@ Given the above configuration, let's assume `10.0.10.8` is being decommissioned 
 
 The ability to configure placement constraints is defined on a per-service basis. Some services may offer very granular settings, while others may not offer them at all. You'll need to consult the documentation for the service in question, but in theory they should all understand the same set of [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html).
 
-# Integration with DC/OS access controls
+## Integration with DC/OS access controls
 
 In DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/kafka` and `production/kafka`.
 
@@ -407,7 +407,7 @@ Steps:
 - Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
 - DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
 
-## Interacting with your foldered service
+### Interacting with your foldered service
 
 - Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
 - To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/kafka/v1/endpoints`.

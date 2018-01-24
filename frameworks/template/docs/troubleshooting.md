@@ -1,6 +1,6 @@
 ---
-post_title: Troubleshooting
-menu_order: 90
+title: Troubleshooting
+menuWeight: 90
 enterprise: 'no'
 ---
 
