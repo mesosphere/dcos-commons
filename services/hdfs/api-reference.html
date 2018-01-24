@@ -1,3 +1,525 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>HDFS: API Reference</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../style/Dropdown.css" />
+<script src="../../style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../..">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../..">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="../../operations-guide.html">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="../../yaml-reference.html">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="../../reference/api">Javadoc Reference</a></li>
+      <li><a href="../../reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/service-settings.html">Service Settings</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/cassandra-settings.html">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/node-settings.html">Node Settings</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/quick-start.html">Quick Start</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/disaster-recovery.html">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/custom-elasticsearch-yaml.html">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/kerberos.html">Kerberos</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/kerberos.html">Kerberos</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/ssl-auth.html">SSL Auth</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>HDFS: API Reference</h1>
+<div id="content">
+
 <!--  disable mustache templating in this file: retain templated examples as-is -->
 
 <p>The DC/OS HDFS Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the HDFS Service is deployed.</dcos_url></p>
@@ -12,9 +534,8 @@
 
 <p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
+</code></pre></div></div>
 
 <p>The <code class="highlighter-rouge">curl</code> examples in this document assume that an auth token has been stored in an environment variable named <code class="highlighter-rouge">auth_token</code>.</p>
 
@@ -23,38 +544,33 @@
 <h1 id="plan-api">Plan API</h1>
 <p>The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy
+</code></pre></div></div>
 <h2 id="pause-installation">Pause Installation</h2>
 
 <p>The installation will pause after completing installation of the current node and wait for user input.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/plans/deploy/interrupt
+</code></pre></div></div>
 
 <h2 id="resume-installation">Resume Installation</h2>
 
 <p>The REST API request below will resume installation at the next pending node.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X PUT &lt;dcos_surl&gt;/service/hdfs/v1/plans/deploy/continue
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT &lt;dcos_surl&gt;/service/hdfs/v1/plans/deploy/continue
+</code></pre></div></div>
 
 <h1 id="connection-api">Connection API</h1>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
+</code></pre></div></div>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/endpoints/core-site.xml
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/endpoints/core-site.xml
+</code></pre></div></div>
 
 <p>You will see a response similar to the following:</p>
 
-<div class="language-xml highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
 <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span>
 <span class="nt">&lt;configuration&gt;</span>
     <span class="nt">&lt;property&gt;</span>
@@ -231,10 +747,9 @@
     <span class="nt">&lt;/property&gt;</span>
 
 <span class="nt">&lt;/configuration&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
-<div class="language-xml highlighter-rouge"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
 <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span><span class="nt">&lt;configuration&gt;</span>
     <span class="nt">&lt;property&gt;</span>
         <span class="nt">&lt;name&gt;</span>fs.default.name<span class="nt">&lt;/name&gt;</span>
@@ -270,8 +785,7 @@
     <span class="nt">&lt;/property&gt;</span>
 
 <span class="nt">&lt;/configuration&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 <p>The contents of the responses represent valid hdfs-site.xml and core-site.xml that can be used by clients to connect to the service.</p>
 
 <h1 id="nodes-api">Nodes API</h1>
@@ -283,12 +797,11 @@
 <p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>hdfs pod list
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs pod list
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl  -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod
 <span class="o">[</span>
     <span class="s2">"data-0"</span>,
     <span class="s2">"data-1"</span>,
@@ -301,24 +814,21 @@
     <span class="s2">"zkfc-0"</span>,
     <span class="s2">"zkfc-1"</span>
 <span class="o">]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="node-info">Node Info</h2>
 
 <p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pod/&lt;node-id&gt;/info</code>:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl  -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/info
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/info
+</code></pre></div></div>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs pod info --name<span class="o">=</span>hdfs journal-0
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs pod info <span class="nt">--name</span><span class="o">=</span>hdfs journal-0
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl  -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/journal-0/info
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/journal-0/info
 <span class="o">[{</span>
 	info: <span class="o">{</span>
 		name: <span class="s2">"journal-0-node"</span>,
@@ -417,7 +927,7 @@
 			<span class="o">}</span>,
 			disk: <span class="o">{</span>
 				persistence: <span class="o">{</span>
-					id: <span class="s2">"6bf7fcf1-ccdf-41a3-87ba-459162da1f03"</span>,
+					<span class="nb">id</span>: <span class="s2">"6bf7fcf1-ccdf-41a3-87ba-459162da1f03"</span>,
 					principal: <span class="s2">"hdfs-principal"</span>
 				<span class="o">}</span>,
 				volume: <span class="o">{</span>
@@ -490,7 +1000,7 @@
 				<span class="o">}]</span>,
 				environment: null,
 				shell: null,
-				value: <span class="s2">"export LD_LIBRARY_PATH=</span><span class="nv">$MESOS_SANDBOX</span><span class="s2">/libmesos-bundle/lib:</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2"> &amp;&amp; export MESOS_NATIVE_JAVA_LIBRARY=</span><span class="k">$(</span>ls <span class="nv">$MESOS_SANDBOX</span>/libmesos-bundle/lib/libmesos-<span class="k">*</span>.so<span class="k">)</span><span class="s2"> &amp;&amp; export JAVA_HOME=</span><span class="k">$(</span>ls -d <span class="nv">$MESOS_SANDBOX</span>/jre<span class="k">*</span>/<span class="k">)</span><span class="s2"> &amp;&amp; ./executor/bin/executor"</span>,
+				value: <span class="s2">"export LD_LIBRARY_PATH=</span><span class="nv">$MESOS_SANDBOX</span><span class="s2">/libmesos-bundle/lib:</span><span class="nv">$LD_LIBRARY_PATH</span><span class="s2"> &amp;&amp; export MESOS_NATIVE_JAVA_LIBRARY=</span><span class="k">$(</span><span class="nb">ls</span> <span class="nv">$MESOS_SANDBOX</span>/libmesos-bundle/lib/libmesos-<span class="k">*</span>.so<span class="k">)</span><span class="s2"> &amp;&amp; export JAVA_HOME=</span><span class="k">$(</span><span class="nb">ls</span> <span class="nt">-d</span> <span class="nv">$MESOS_SANDBOX</span>/jre<span class="k">*</span>/<span class="k">)</span><span class="s2"> &amp;&amp; ./executor/bin/executor"</span>,
 				arguments: <span class="o">[]</span>,
 				user: null
 			<span class="o">}</span>,
@@ -700,7 +1210,7 @@
 					ipAddress: <span class="s2">"10.0.1.23"</span>
 				<span class="o">}]</span>,
 				name: null,
-				groups: <span class="o">[]</span>,
+				<span class="nb">groups</span>: <span class="o">[]</span>,
 				labels: null,
 				portMappings: <span class="o">[]</span>
 			<span class="o">}]</span>,
@@ -710,22 +1220,19 @@
 		unreachableTime: null
 	<span class="o">}</span>
 <span class="o">}]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="replace-a-node">Replace a Node</h2>
 
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs --name<span class="o">=</span>hdfs pod replace &lt;node-id&gt;
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs pod replace &lt;node-id&gt;
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/replace
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/replace
+</code></pre></div></div>
 
 <p>If the operation succeeds, a <code class="highlighter-rouge">200 OK</code> is returned.</p>
 
@@ -734,14 +1241,12 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs pod --name<span class="o">=</span>hdfs restart &lt;node-id&gt;
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs pod <span class="nt">--name</span><span class="o">=</span>hdfs restart &lt;node-id&gt;
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/restart
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/restart
+</code></pre></div></div>
 
 <p>If the operation succeeds a <code class="highlighter-rouge">200 OK</code> is returned.</p>
 
@@ -750,14 +1255,12 @@
 <p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
 
 <p>CLI example</p>
-<div class="highlighter-rouge"><pre class="highlight"><code>dcos beta-hdfs debug pod pause &lt;node-id&gt;
-</code></pre>
-</div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-hdfs debug pod pause &lt;node-id&gt;
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -X POST -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/pause
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/pod/&lt;node-id&gt;/pause
+</code></pre></div></div>
 
 <h1 id="configuration-api">Configuration API</h1>
 
@@ -768,12 +1271,11 @@
 <p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs config --name<span class="o">=</span>hdfs target
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs config <span class="nt">--name</span><span class="o">=</span>hdfs target
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/configurations/target
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/configurations/target
 <span class="o">{</span>
 	name: <span class="s2">"hdfs"</span>,
 	role: <span class="s2">"hdfs-role"</span>,
@@ -794,7 +1296,7 @@
 			name: <span class="s2">"node"</span>,
 			goal: <span class="s2">"RUNNING"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"node-resource-set"</span>,
+				<span class="nb">id</span>: <span class="s2">"node-resource-set"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -1004,7 +1506,7 @@
 			name: <span class="s2">"node"</span>,
 			goal: <span class="s2">"RUNNING"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"name-resources"</span>,
+				<span class="nb">id</span>: <span class="s2">"name-resources"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -1163,7 +1665,7 @@
 				<span class="nb">command</span>: <span class="s2">"./hadoop-2.6.0-cdh5.9.1/bin/hdfs haadmin -getServiceState name-</span><span class="nv">$POD_INSTANCE_INDEX</span><span class="s2">-node"</span>,
 				delay: 0,
 				interval: 5,
-				timeout: 60
+				<span class="nb">timeout</span>: 60
 			<span class="o">}</span>,
 			config - files: <span class="o">[{</span>
 				name: <span class="s2">"core-site"</span>,
@@ -1192,7 +1694,7 @@
 			name: <span class="s2">"format"</span>,
 			goal: <span class="s2">"ONCE"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"name-resources"</span>,
+				<span class="nb">id</span>: <span class="s2">"name-resources"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -1371,7 +1873,7 @@
 			name: <span class="s2">"bootstrap"</span>,
 			goal: <span class="s2">"ONCE"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"name-resources"</span>,
+				<span class="nb">id</span>: <span class="s2">"name-resources"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -1578,7 +2080,7 @@
 			name: <span class="s2">"node"</span>,
 			goal: <span class="s2">"RUNNING"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"zkfc-resources"</span>,
+				<span class="nb">id</span>: <span class="s2">"zkfc-resources"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -1679,7 +2181,7 @@
 			name: <span class="s2">"format"</span>,
 			goal: <span class="s2">"ONCE"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"zkfc-resources"</span>,
+				<span class="nb">id</span>: <span class="s2">"zkfc-resources"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -1808,7 +2310,7 @@
 			name: <span class="s2">"node"</span>,
 			goal: <span class="s2">"RUNNING"</span>,
 			resource - <span class="nb">set</span>: <span class="o">{</span>
-				id: <span class="s2">"node-resource-set"</span>,
+				<span class="nb">id</span>: <span class="s2">"node-resource-set"</span>,
 				resource - specifications: <span class="o">[{</span>
 					@type: <span class="s2">"DefaultResourceSpec"</span>,
 					name: <span class="s2">"cpus"</span>,
@@ -2024,46 +2526,48 @@
 		minReplaceDelayMins: 0
 	<span class="o">}</span>
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="list-configs">List Configs</h2>
 
 <p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs config --name<span class="o">=</span>hdfs list
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs config <span class="nt">--name</span><span class="o">=</span>hdfs list
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/configurations
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/configurations
 <span class="o">[</span>
     <span class="s2">"9a8d4308-ab9d-4121-b460-696ec3368ad6"</span>
 <span class="o">]</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h2 id="view-specified-config">View Specified Config</h2>
 
 <p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
 
 <p>CLI Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-hdfs config --name<span class="o">=</span>hdfs show 9a8d4308-ab9d-4121-b460-696ec3368ad6
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs config <span class="nt">--name</span><span class="o">=</span>hdfs show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+</code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/hdfs/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 <span class="o">{</span>
     ... same format as target config above ...
 <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h1 id="service-status-info">Service Status Info</h1>
 <p>Send a GET request to the <code class="highlighter-rouge">/v1/state/properties/suppressed</code> endpoint to learn if HDFS is in a <code class="highlighter-rouge">suppressed</code> state and not receiving offers. If a service does not need offers, Mesos can “suppress” it so that other services are not starved for resources.
 You can use this request to troubleshoot: if you think HDFS should be receiving resource offers, but is not, you can use this API call to see if HDFS is suppressed.</p>
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/hdfs/v1/state/properties/suppressed"</span>
-</code></pre>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/hdfs/v1/state/properties/suppressed"</span>
+</code></pre></div></div>
+
+<!--  disable mustache templating in this file: retain templated examples as-is -->
+
 </div>
+</div>
+</body>
+
+</html>

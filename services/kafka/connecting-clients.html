@@ -1,3 +1,525 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>Kafka: Connecting Clients</title>
+<link rel="stylesheet" type="text/css" media="all" href="../../style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="../../style/Dropdown.css" />
+<script src="../../style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="../..">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="../..">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="../../operations-guide.html">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="../../developer-guide.html">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="../../yaml-reference.html">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="../../faq.html">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="../../glossary.html">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="../../reference/api">Javadoc Reference</a></li>
+      <li><a href="../../reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="../../tutorials/secrets-tutorial.html">Secrets Tutorial</a></li>
+      
+      <li><a href="../../tutorials/kafka-tutorial.html">Kafka Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/service-settings.html">Service Settings</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/cassandra-settings.html">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/node-settings.html">Node Settings</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/quick-start.html">Quick Start</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/disaster-recovery.html">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/cassandra/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/elastic/install.html">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/elastic-x-pack.html">X-Pack</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/custom-elasticsearch-yaml.html">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/quick-start.html">Quick Start</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/disaster-recovery.html">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/elastic/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/hdfs/install.html">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/kerberos.html">Kerberos</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/hdfs/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="../../services/kafka/install.html">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/kerberos.html">Kerberos</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/ssl-auth.html">SSL Auth</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/uninstall.html">Uninstall</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/quick-start.html">Quick Start</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/connecting-clients.html">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/managing.html">Managing</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/api-reference.html">API Reference</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/troubleshooting.html">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/limitations.html">Limitations</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/supported-versions.html">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/release-notes.html">Release Notes</a></li>
+          
+          
+          
+          <li><a href="../../services/kafka/upgrade.html">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: Connecting Clients</h1>
+<div id="content">
+
 <h1 id="supported-client-libraries">Supported Client Libraries</h1>
 
 <ul>
@@ -24,9 +546,8 @@
 
 <p>The following command can be executed from the cli in order to retrieve a set of brokers to connect to.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>dcos beta-kafka --name<span class="o">=</span>&lt;name&gt; endpoints broker
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>&lt;name&gt; endpoints broker
+</code></pre></div></div>
 
 <p><a name="using-the-rest-api"></a></p>
 <h1 id="using-the-rest-api">Using the REST API</h1>
@@ -35,9 +556,8 @@
 
 <p>The following <code class="highlighter-rouge">curl</code> example demonstrates how to retrive connection a set of brokers to connect to using the REST API.</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"</span>
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"</span>
+</code></pre></div></div>
 
 <h2 id="user-token-authentication">User token authentication</h2>
 
@@ -45,19 +565,17 @@
 
 <p>First, we retrieve <code class="highlighter-rouge">uSeR_t0k3n</code> with our user credentials and store the token as an environment variable:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl --data <span class="s1">'{"uid":"username", "password":"password"}'</span> -H <span class="s2">"Content-Type:application/json"</span> <span class="s2">"&lt;dcos_url&gt;/acs/api/v1/auth/login"</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">--data</span> <span class="s1">'{"uid":"username", "password":"password"}'</span> <span class="nt">-H</span> <span class="s2">"Content-Type:application/json"</span> <span class="s2">"&lt;dcos_url&gt;/acs/api/v1/auth/login"</span>
 <span class="o">{</span>
   <span class="s2">"token"</span>: <span class="s2">"uSeR_t0k3n"</span>
 <span class="o">}</span>
-<span class="gp">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
-</code></pre>
-</div>
+<span class="nv">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
+</code></pre></div></div>
 
 <p>Then, use this token to authenticate requests to the Kafka Service:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code><span class="gp">$ </span>curl -H <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"</span>
-</code></pre>
-</div>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"</span>
+</code></pre></div></div>
 
 <p>You do not need the token to access the Kafka brokers themselves.</p>
 
@@ -65,21 +583,20 @@
 
 <p>The response, for both the CLI and the REST API is as below.</p>
 
-<div class="language-json highlighter-rouge"><pre class="highlight"><code><span class="p">{</span><span class="w">
-  </span><span class="nt">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="s2">"10.0.0.49:1025"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"10.0.2.253:1025"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"10.0.1.27:1025"</span><span class="w">
   </span><span class="p">],</span><span class="w">
-  </span><span class="nt">"dns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+  </span><span class="s2">"dns"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
     </span><span class="s2">"kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"</span><span class="w">
   </span><span class="p">],</span><span class="w">
-  </span><span class="nt">"vip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span><span class="w">
+  </span><span class="s2">"vip"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span><span class="w">
 </span><span class="p">}</span><span class="w">
-</span></code></pre>
-</div>
+</span></code></pre></div></div>
 
 <p>This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. <a href="https://docs.mesosphere.com/1.9/networking/">Learn more about load balancing and VIPs in DC/OS</a>.</p>
 
@@ -89,13 +606,12 @@
 
 <h2 id="adding-the-kafka-client-library-to-your-application">Adding the Kafka Client Library to Your Application</h2>
 
-<div class="language-xml highlighter-rouge"><pre class="highlight"><code>    <span class="nt">&lt;dependency&gt;</span>
+<div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="nt">&lt;dependency&gt;</span>
       <span class="nt">&lt;groupId&gt;</span>org.apache.kafka<span class="nt">&lt;/groupId&gt;</span>
       <span class="nt">&lt;artifactId&gt;</span>kafka-clients<span class="nt">&lt;/artifactId&gt;</span>
       <span class="nt">&lt;version&gt;</span>0.9.0.1<span class="nt">&lt;/version&gt;</span>
     <span class="nt">&lt;/dependency&gt;</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>The above is the correct dependency for the Kafka Client Library to use with the DC/OS Kafka service. After adding this dependency to your project, you should have access to the correct binary dependencies to interface with the Kafka Cluster.</p>
 
@@ -103,7 +619,7 @@
 
 <p>The code snippet below demonstrates how to connect a Kafka Producer to the cluster and perform a loop of simple insertions.</p>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code>    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.KafkaProducer</span><span class="o">;</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.KafkaProducer</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.producer.ProducerRecord</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.ByteArraySerializer</span><span class="o">;</span>
 
@@ -129,12 +645,11 @@
       <span class="n">kafkaProducer</span><span class="o">.</span><span class="na">send</span><span class="o">(</span><span class="n">record</span><span class="o">).</span><span class="na">get</span><span class="o">();</span>
       <span class="n">Thread</span><span class="o">.</span><span class="na">sleep</span><span class="o">(</span><span class="mi">1000</span><span class="o">);</span>
     <span class="o">}</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <p>The code snippet below demonstrates how to connect a Kafka Consumer to the cluster and perform a simple retrievals.</p>
 
-<div class="language-java highlighter-rouge"><pre class="highlight"><code>    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.ConsumerRecord</span><span class="o">;</span>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.ConsumerRecord</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.ConsumerRecords</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">org.apache.kafka.clients.consumer.KafkaConsumer</span><span class="o">;</span>
     <span class="kn">import</span> <span class="nn">org.apache.kafka.common.serialization.ByteArrayDeserializer</span><span class="o">;</span>
@@ -162,8 +677,7 @@
       <span class="n">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">String</span><span class="o">.</span><span class="na">format</span><span class="o">(</span><span class="s">"Got %d messages (%d bytes)"</span><span class="o">,</span> <span class="n">records</span><span class="o">.</span><span class="na">count</span><span class="o">(),</span> <span class="n">bytes</span><span class="o">));</span>
     <span class="o">}</span>
     <span class="n">kafkaConsumer</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
-</code></pre>
-</div>
+</code></pre></div></div>
 
 <h1 id="configuring-the-kafka-test-scripts">Configuring the Kafka Test Scripts</h1>
 
@@ -194,3 +708,9 @@ root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:218
     Hello, World.
 </code></pre>
 
+
+</div>
+</div>
+</body>
+
+</html>
