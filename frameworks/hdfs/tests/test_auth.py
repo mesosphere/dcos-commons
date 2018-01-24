@@ -1,11 +1,8 @@
-import base64
 import logging
 import pytest
-import itertools
 
 import sdk_auth
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_utils
@@ -15,23 +12,6 @@ from tests import config
 
 
 log = logging.getLogger(__name__)
-
-
-def get_principal_to_user_mapping() -> str:
-    """
-    Kerberized HDFS maps the primary component of a principal to local users, so
-    we need to create an appropriate mapping to test authorization functionality.
-    :return: A base64-encoded string of principal->user mappings
-    """
-    rules = [
-        "RULE:[2:$1@$0](^hdfs@.*$)s/.*/hdfs/",
-        "RULE:[1:$1@$0](^nobody@.*$)s/.*/nobody/"
-    ]
-
-    for user in config.CLIENT_PRINCIPALS.keys():
-        rules.append("RULE:[1:$1@$0](^{user}@.*$)s/.*/{user}/".format(user=user))
-
-    return base64.b64encode('\n'.join(rules).encode("utf-8")).decode("utf-8")
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -57,7 +37,7 @@ def kerberos(configure_security):
                 }
             },
             "hdfs": {
-                "security_auth_to_local": get_principal_to_user_mapping()
+                "security_auth_to_local": auth.get_principal_to_user_mapping()
             }
         }
 
@@ -112,7 +92,7 @@ def kerberized_hdfs_client(kerberos):
 def test_user_can_auth_and_write_and_read(kerberized_hdfs_client):
     sdk_auth.kinit(kerberized_hdfs_client, keytab=config.KEYTAB, principal=config.CLIENT_PRINCIPALS["hdfs"])
 
-    test_filename = "test_auth_write_read" # must be unique among tests in this suite
+    test_filename = "test_auth_write_read"  # must be unique among tests in this suite
     write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.task_exec(kerberized_hdfs_client, write_cmd)
 
@@ -140,7 +120,7 @@ def test_users_have_appropriate_permissions(kerberized_hdfs_client):
     change_permissions_cmd = config.hdfs_command("chmod 700 /users/alice")
     sdk_cmd.task_exec(kerberized_hdfs_client, change_permissions_cmd)
 
-    test_filename = "test_user_permissions" # must be unique among tests in this suite
+    test_filename = "test_user_permissions"  # must be unique among tests in this suite
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(kerberized_hdfs_client)
