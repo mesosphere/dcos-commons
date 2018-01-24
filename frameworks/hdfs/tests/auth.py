@@ -45,7 +45,7 @@ def get_service_principals(service_name: str, realm: str) -> list:
     principals = []
     for (primary, instance) in itertools.product(primaries, instances):
         principals.append(
-            "{primary}/{instance}.{fqdn}@{REALM}".format(
+            "{primary}/{instance}{fqdn}@{REALM}".format(
                 primary=primary,
                 instance=instance,
                 fqdn=fqdn,
@@ -108,6 +108,19 @@ def write_krb5_config_file(task: str, filename: str, krb5: object) -> str:
     return output_file
 
 
+def fetch_dcos_ca_bundle(task: str) -> str:
+    """Fetch the DC/OS CA bundle from the leading Mesos master"""
+    local_bundle_file = "dcos-ca.crt"
+
+    cmd = ["curl", "-L", "--insecure", "-v",
+           "leader.mesos/ca/dcos-ca.crt",
+           "-o", local_bundle_file]
+
+    sdk_cmd.task_exec(task, " ".join(cmd))
+
+    return local_bundle_file
+
+
 def create_tls_artifacts(cn: str, task: str) -> str:
     # TODO(elezar) Move to testing/security/ssl
     pub_path = "{}_pub.crt".format(cn)
@@ -156,7 +169,7 @@ def create_keystore_truststore(cn: str, task: str):
     truststore_path = "{}_truststore.jks".format(cn)
 
     log.info("Generating keystore and truststore, task:{}".format(task))
-    output = sdk_cmd.task_exec(task, "curl -L -k -v leader.mesos/ca/dcos-ca.crt -o dcos-ca.crt")
+    dcos_ca_bundle = fetch_dcos_ca_bundle(task)
 
     # Convert to a PKCS12 key
     output = sdk_cmd.task_exec(
@@ -164,7 +177,7 @@ def create_keystore_truststore(cn: str, task: str):
         'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && '
         'openssl pkcs12 -export -in {} -inkey {} '
         '-out keypair.p12 -name keypair -passout pass:export '
-        '-CAfile dcos-ca.crt -caname root"'.format(pub_path, priv_path))
+        '-CAfile {} -caname root"'.format(pub_path, priv_path, dcos_ca_bundle))
     log.info(output)
     assert output[0] is 0
 
@@ -182,7 +195,7 @@ def create_keystore_truststore(cn: str, task: str):
     output = sdk_cmd.task_exec(
         task,
         "keytool -import -trustcacerts -noprompt "
-        "-file dcos-ca.crt -storepass changeit "
-        "-keystore {}".format(truststore_path))
+        "-file {} -storepass changeit "
+        "-keystore {}".format(dcos_ca_bundle, truststore_path))
     log.info(output)
     assert output[0] is 0
