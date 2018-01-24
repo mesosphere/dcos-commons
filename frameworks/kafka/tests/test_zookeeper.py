@@ -99,7 +99,7 @@ def test_zookeeper_reresolution():
     def restart_zookeeper_node(id: int):
         sdk_cmd.svc_cli(ZK_PACKAGE, ZK_SERVICE_NAME, "pod restart zookeeper-{}".format(id))
 
-        sdk_plan.wait_for_in_progress_recovery(ZK_SERVICE_NAME)
+        sdk_plan.wait_for_kicked_off_recovery(ZK_SERVICE_NAME)
         sdk_plan.wait_for_completed_recovery(ZK_SERVICE_NAME)
 
     # Restart each zookeeper node, so that each one receives a new IP address
