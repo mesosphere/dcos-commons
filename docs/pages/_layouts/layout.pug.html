@@ -135,6 +135,7 @@
 </ul>
 <h1>{{ title }}</h1>
 <div id="content">
+{% comment %}Enables table of contents for files with 'toc: true' in their metadata{% endcomment %}
 {{ content | toc }}
 </div>
 </div>

@@ -106,3 +106,5 @@ The `server.properties.mustache` should live in the current directory (`dcos-com
 13. Now, install the service via `dcos package install kafka` and visit your dashboard to see Kafka running: http://172.17.0.2/#/services/%2Fkafka/
 
 [0] The mustaching provides support for dynamically updating a service's configuration at runtime.
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

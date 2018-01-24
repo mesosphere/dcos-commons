@@ -280,4 +280,5 @@ $ dcos hello-world pod restart world-0
 $ dcos hello-world pod restart world-1
 ```
 
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->
 

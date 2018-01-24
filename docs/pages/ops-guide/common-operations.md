@@ -633,3 +633,5 @@ to observed failure or due to known required manual preparation that was not per
 ```bash
 dcos kafka plan force-complete deploy
 ```
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

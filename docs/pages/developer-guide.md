@@ -2191,3 +2191,5 @@ The path is relative to the sandbox path if not preceded by a leading "/". The s
 ### Proxy Fallback
 
 Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

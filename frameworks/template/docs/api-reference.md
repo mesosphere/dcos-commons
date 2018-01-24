@@ -218,3 +218,5 @@ You can use this request to troubleshoot: if you think DC/OS _SERVICENAME_ shoul
 ```shell
 curl -H "Authorization: token=$auth_token" "<dcos_url>/service/_PKGNAME_/v1/state/properties/suppressed"
 ```
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

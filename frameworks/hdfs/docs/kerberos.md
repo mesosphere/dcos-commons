@@ -7,7 +7,7 @@ menuWeight: 22
 
 ---
 
-# Setting up Apache Hadoop Distributed File System (HDFS) with Kerberos
+## Setting up Apache Hadoop Distributed File System (HDFS) with Kerberos
 
 The utility tool `kinit` needs to be installed on the agents and be accessible from within the tasks' containers in order for the system to deploy correctly.
 

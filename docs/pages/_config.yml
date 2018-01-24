@@ -6,7 +6,7 @@ defaults:
       layout: "layout.pug"
       stylesheet: "layout.css"
       menuWeight: 999
-gems:
+plugins:
   - jekyll-redirect-from
   - jekyll-toc
 sass:
