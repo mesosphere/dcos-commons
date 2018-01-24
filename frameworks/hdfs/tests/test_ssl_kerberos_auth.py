@@ -195,7 +195,7 @@ def test_verify_https_ports(hdfs_client, node_type, port):
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
 
-    test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4))
+    test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4()))
     write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.task_exec(hdfs_client["id"], write_cmd)
 
@@ -223,7 +223,7 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     change_permissions_cmd = config.hdfs_command("chmod 700 /users/alice")
     sdk_cmd.task_exec(hdfs_client["id"], change_permissions_cmd)
 
-    test_filename = "test_user_permissions-{}".format(str(uuid.uuid4))
+    test_filename = "test_user_permissions-{}".format(str(uuid.uuid4()))
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
