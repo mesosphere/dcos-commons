@@ -9,47 +9,12 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_utils
+
+from tests import auth
 from tests import config
 
 
 log = logging.getLogger(__name__)
-
-
-def get_principals() -> list:
-    """
-    Sets up the appropriate principals needed for a kerberized deployment of HDFS.
-    :return: A list of said principals
-    """
-    primaries = ["hdfs", "HTTP"]
-    fqdn = "{service_name}.{host_suffix}".format(
-        service_name=config.FOLDERED_DNS_NAME, host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-    instances = [
-        "name-0-node",
-        "name-0-zkfc",
-        "name-1-node",
-        "name-1-zkfc",
-        "journal-0-node",
-        "journal-1-node",
-        "journal-2-node",
-        "data-0-node",
-        "data-1-node",
-        "data-2-node",
-    ]
-    principals = []
-    for (primary, instance) in itertools.product(primaries, instances):
-        principals.append(
-            "{primary}/{instance}.{fqdn}@{REALM}".format(
-                primary=primary,
-                instance=instance,
-                fqdn=fqdn,
-                REALM=sdk_auth.REALM
-            )
-        )
-    principals.extend(config.CLIENT_PRINCIPALS.values())
-
-    http_principal = "HTTP/api.{}.marathon.l4lb.thisdcos.directory".format(config.FOLDERED_DNS_NAME)
-    principals.append(http_principal)
-    return principals
 
 
 def get_principal_to_user_mapping() -> str:
@@ -72,7 +37,7 @@ def get_principal_to_user_mapping() -> str:
 @pytest.fixture(scope='module', autouse=True)
 def kerberos(configure_security):
     try:
-        principals = get_principals()
+        principals = auth.get_service_principals(config.FOLDERED_SERVICE_NAME, kerberos.get_realm())
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
@@ -87,7 +52,7 @@ def kerberos(configure_security):
                             "port": int(kerberos_env.get_port())
                         },
                         "keytab_secret": kerberos_env.get_keytab_path(),
-                        "realm": sdk_auth.REALM
+                        "realm": kerberos.get_realm()
                     }
                 }
             },
