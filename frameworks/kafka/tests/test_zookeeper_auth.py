@@ -38,7 +38,7 @@ def get_zookeeper_principals(service_name: str, realm: str) -> list:
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, zookeeper_principals):
+def kerberos(configure_security):
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
