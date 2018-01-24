@@ -10,6 +10,10 @@ import sdk_marathon
 import sdk_security
 import sdk_utils
 
+
+from security import transport_encryption
+
+
 from tests import auth
 from tests import config
 from tests import test_utils
@@ -175,11 +179,12 @@ def kafka_client(kerberos, kafka_server):
 
         sdk_marathon.install_app(client)
 
-        auth.create_tls_artifacts(
+        transport_encryption.create_tls_artifacts(
             cn="client",
             task=client_id)
 
-        yield {**client, **{"brokers": list(map(lambda x: x.split(':')[0], brokers))}}
+        broker_hosts = list(map(lambda x: x.split(':')[0], brokers))
+        yield {**client, **{"brokers": broker_hosts}}
 
     finally:
         sdk_marathon.destroy_app(client_id)

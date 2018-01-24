@@ -76,7 +76,7 @@ def test_healthy(hdfs_service_tls):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_write_and_read_data_over_tls(hdfs_service_tls):
-    test_filename = "test_data_tls" # must be unique among tests in this suite
+    test_filename = "test_data_tls"  # must be unique among tests in this suite
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
 
