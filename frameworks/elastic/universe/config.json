@@ -75,11 +75,6 @@
                   "description": "Enable transport encryption (TLS)",
                   "type": "boolean",
                   "default": false
-                },
-                "allow_plaintext": {
-                  "description": "Allow plaintext alongside encrypted traffic",
-                  "type": "boolean",
-                  "default": false
                 }
               }
             }
