@@ -66,9 +66,12 @@ def test_node_replace_replaces_node():
 # @@@@@@@
 @pytest.mark.sanity
 def test_shutdown_host():
-    replace_task = sdk_tasks.get_task_avoiding_scheduler(
+    candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile('^node-[0-9]+-server$'))
-    assert replace_task is not None, 'Could not find a node to shut down'
+    assert len(candidate_tasks) != 0, 'Could not find a node to shut down'
+    # Just pick the first task from the list. In practice, we should never have two node pods on the same machine.
+    replace_task = candidate_tasks[0]
+
     replace_pod_name = replace_task.name[:-len('-server')]
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
