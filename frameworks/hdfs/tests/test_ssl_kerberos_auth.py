@@ -1,64 +1,53 @@
-import base64
-import os
 import logging
+import uuid
 import pytest
 
 import sdk_auth
 import sdk_cmd
+import sdk_hosts
 import sdk_install
 import sdk_marathon
+import sdk_security
 import sdk_utils
 
-from tests import config
 from tests import auth
-
-
-ACTIVE_DIRECTORY_ENVVAR = 'TESTING_ACTIVE_DIRECTORY_SERVER'
-
-
-def is_active_directory_enabled():
-    return ACTIVE_DIRECTORY_ENVVAR in os.environ
-
-
-pytestmark = pytest.mark.skipif(not is_active_directory_enabled(),
-                                reason="This test requires TESTING_ACTIVE_DIRECTORY_SERVER to be set")
+from tests import config
 
 
 log = logging.getLogger(__name__)
 
 
-class ActiveDirectoryKerberos(sdk_auth.KerberosEnvironment):
+pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                reason='Feature only supported in DC/OS EE')
 
-    def __init__(self, keytab_id):
-        self.keytab_id = keytab_id
-        self.ad_server = os.environ.get(ACTIVE_DIRECTORY_ENVVAR)
 
-    def get_host(self):
-        return self.ad_server
-
-    @staticmethod
-    def get_port():
-        return 88
-
-    @staticmethod
-    def get_realm():
-        return "AD.MESOSPHERE.COM"
-
-    def get_keytab_path(self):
-        return "__dcos_base64__{}_keytab".format(self.keytab_id)
-
-    def get_principal(self, user: str) -> str:
-        return "{}@{}".format(user, self.get_realm())
-
-    @staticmethod
-    def cleanup():
-        pass
+@pytest.fixture(scope='module', autouse=True)
+def service_account(configure_security):
+    """
+    Creates service account and yields the name.
+    """
+    try:
+        name = config.SERVICE_NAME
+        sdk_security.create_service_account(
+            service_account_name=name, service_account_secret=name)
+        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+        sdk_cmd.run_cli(
+            "security org groups add_user superusers {name}".format(name=name))
+        yield name
+    finally:
+        sdk_security.delete_service_account(
+            service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module', autouse=True)
 def kerberos(configure_security):
     try:
-        kerberos_env = ActiveDirectoryKerberos(config.SERVICE_NAME)
+        principals = auth.get_service_principals(config.SERVICE_NAME, sdk_auth.REALM)
+
+        kerberos_env = sdk_auth.KerberosEnvironment()
+        kerberos_env.add_principals(principals)
+        kerberos_env.finalize()
+
         yield kerberos_env
 
     finally:
@@ -66,7 +55,7 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def hdfs_server(kerberos):
+def hdfs_server(kerberos, service_account):
     """
     A pytest fixture that installs a Kerberized HDFS service.
 
@@ -75,6 +64,8 @@ def hdfs_server(kerberos):
     service_kerberos_options = {
         "service": {
             "name": config.SERVICE_NAME,
+            "service_account": service_account,
+            "service_account_secret": service_account,
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -84,6 +75,9 @@ def hdfs_server(kerberos):
                     },
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
+                },
+                "transport_encryption": {
+                    "enabled": True
                 }
             }
         },
@@ -117,7 +111,7 @@ def hdfs_client(kerberos, hdfs_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "nvaziri/hdfs-client:dev",
+                    "image": "elezar/hdfs-client:dev",
                     "forcePullImage": True
                 },
                 "volumes": [
@@ -149,11 +143,51 @@ def hdfs_client(kerberos, hdfs_server):
         sdk_marathon.install_app(client)
 
         auth.write_krb5_config_file(client_id, "/etc/krb5.conf", kerberos)
+        dcos_ca_bundle = auth.fetch_dcos_ca_bundle(client_id)
 
-        yield client
+        yield {**client, **{"dcos_ca_bundle": dcos_ca_bundle}}
 
     finally:
         sdk_marathon.destroy_app(client_id)
+
+
+# TODO(elezar) Is there a better way to determine this?
+DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
+DEFAULT_NAME_NODE_TLS_PORT = 9003
+DEFAULT_DATA_NODE_TLS_PORT = 9006
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.parametrize("node_type,port", [
+    ('journal', DEFAULT_JOURNAL_NODE_TLS_PORT),
+    ('name', DEFAULT_NAME_NODE_TLS_PORT),
+    ('data', DEFAULT_DATA_NODE_TLS_PORT),
+])
+def test_verify_https_ports(hdfs_client, node_type, port):
+    """
+    Verify that HTTPS port is open name, journal and data node types.
+    """
+
+    task_id = "{}-0-node".format(node_type)
+    host = sdk_hosts.autoip_host(
+        config.SERVICE_NAME, task_id, port)
+
+    cmd = ["curl", "-v",
+           "--cacert", hdfs_client["dcos_ca_bundle"],
+           "https://{host}".format(host=host), ]
+
+    rc, stdout, stderr = sdk_cmd.task_exec(hdfs_client["id"], " ".join(cmd))
+    assert not rc
+
+    assert "SSL connection using TLS1.2 / ECDHE_RSA_AES_128_GCM_SHA256" in stderr
+    assert "server certificate verification OK" in stderr
+    assert "common name: {}.{} (matched)".format(task_id, config.SERVICE_NAME) in stderr
+
+    # In the Kerberos case we expect a 401 error
+    assert "401 Authentication required" in stdout
 
 
 @pytest.mark.dcos_min_version('1.10')
@@ -163,7 +197,7 @@ def hdfs_client(kerberos, hdfs_server):
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
 
-    test_filename = "test_auth_write_read"  # must be unique among tests in this suite
+    test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4()))
     write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.task_exec(hdfs_client["id"], write_cmd)
 
@@ -191,7 +225,7 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     change_permissions_cmd = config.hdfs_command("chmod 700 /users/alice")
     sdk_cmd.task_exec(hdfs_client["id"], change_permissions_cmd)
 
-    test_filename = "test_user_permissions"  # must be unique among tests in this suite
+    test_filename = "test_user_permissions-{}".format(str(uuid.uuid4()))
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])

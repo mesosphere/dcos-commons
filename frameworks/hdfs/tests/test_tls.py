@@ -19,22 +19,25 @@ DEFAULT_DATA_NODE_TLS_PORT = 9006
 @pytest.fixture(scope='module')
 def service_account(configure_security):
     """
-    Creates service account with `hdfs` name and yields the name.
+    Creates service account and yields the name.
     """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-     # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+    try:
+        name = config.SERVICE_NAME
+        sdk_security.create_service_account(
+            service_account_name=name, service_account_secret=name)
+        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+        sdk_cmd.run_cli(
+            "security org groups add_user superusers {name}".format(name=name))
+        yield name
+    finally:
+        sdk_security.delete_service_account(
+            service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module')
 def hdfs_service_tls(service_account):
     try:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
@@ -54,18 +57,9 @@ def hdfs_service_tls(service_account):
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-        # Wait for service health check to pass
-        shakedown.service_healthy(config.SERVICE_NAME)
-    except Exception as error:
-        try:
-            sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        except:
-            pass
-        raise error
-
-    yield
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        yield service_account
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.tls
