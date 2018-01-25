@@ -4,6 +4,7 @@ integration tests
 Note: pytest must be invoked with this file in the working directory
 E.G. py.test frameworks/<your-frameworks>/tests
 """
+import collections
 import json
 import logging
 import os
@@ -13,10 +14,10 @@ import retrying
 import shutil
 import sys
 import time
+import traceback
 
 import pytest
 import sdk_cmd
-import sdk_security
 import sdk_tasks
 import sdk_utils
 import teamcity
@@ -125,19 +126,19 @@ def pytest_runtest_makereport(item, call):
 
         try:
             log.info('Fetching logs for {} tasks launched in this suite since last failure: {}'.format(
-                len(new_task_ids), new_task_ids))
-            dump_task_logs(item, new_task_ids)
-        except Exception:
+                len(new_task_ids), ', '.join(new_task_ids)))
+            dump_relevant_task_logs(item, new_task_ids)
+        except:
             log.exception('Task log collection failed!')
         try:
             log.info('Fetching mesos state')
             dump_mesos_state(item)
-        except Exception:
+        except:
             log.exception('Mesos state collection failed!')
         try:
             log.info('Creating/fetching cluster diagnostics bundle')
             get_diagnostics_bundle(item)
-        except Exception:
+        except:
             log.exception("Diagnostics bundle creation failed")
         log.info('Post-failure collection complete')
 
@@ -207,67 +208,128 @@ def setup_artifact_path(item: pytest.Item, artifact_name: str):
     return os.path.join(output_dir, artifact_name)
 
 
-def get_task_files_for_id(task_id: str) -> dict:
-    try:
-        ls_lines = sdk_cmd.run_cli('task ls --long --all {}'.format(task_id)).split('\n')
-        ret = {}
-        for line in ls_lines:
-            match = task_ls_pattern.match(line)
-            if not match:
-                log.warning('Unable to parse line: {}'.format(line))
+class TaskEntry(object):
+    def __init__(self, cluster_task):
+        self.task_id = cluster_task['id']
+        self.executor_id = cluster_task['executor_id']
+        self.agent_id = cluster_task['slave_id']
+
+
+    def __repr__(self):
+        return 'Task[task_id={} executor_id={} agent_id={}]'.format(
+            self.task_id, self.executor_id, self.agent_id)
+
+
+def dump_relevant_task_logs_for_task(item: pytest.Item, agent_id: str, agent_executor_paths: dict, task_entry: TaskEntry):
+    # get directories to be browsed
+    task_browse_paths = []
+    for browse_path in agent_executor_paths.keys():
+        # try executor_id if non-empty, else task_id.
+        # marathon/metronome apps will have an empty executor_id, in which case the task_id should be used.
+        if browse_path.startswith('/frameworks') and \
+           browse_path.endswith('/executors/{}/runs/latest'.format(
+               task_entry.executor_id if task_entry.executor_id else task_entry.task_id)):
+            task_browse_paths.append(browse_path)
+            if task_entry.executor_id:
+                # when executor_id and task_id are (both) present, then also browse task path:
+                #   /frameworks/.../executors/<executor_id>/runs/latest/tasks/<task_id>/
+                task_browse_paths.append(os.path.join(browse_path, 'tasks/{}/'.format(task_entry.task_id)))
+    if not task_browse_paths:
+        # did mesos move their files around?
+        log.warning('Unable to find any paths matching task {} in agent {}:\n  {}'.format(
+            task_entry, agent_id, '\n  '.join(sorted(agent_executor_paths.keys()))))
+        return
+
+    log.info('Searching {} paths for task {}:\n  {}'.format(
+        len(task_browse_paths), task_entry, '\n  '.join(sorted(task_browse_paths))))
+
+    # browse directories, select files to be fetched
+    selected_file_infos = collections.OrderedDict()
+    for task_browse_path in task_browse_paths:
+        file_infos = sdk_cmd.cluster_request(
+            'GET', '/slave/{}/files/browse?path={}'.format(agent_id, task_browse_path)).json()
+        # select files named 'stdout[.##]' and 'stderr[.##]'
+        for file_info in file_infos:
+            if not re.match('^.*/(stdout|stderr)(\.[0-9]+)?$', file_info['path']):
                 continue
-            # match.group(1): "4096  ", match.group(2): "Jul 21 22:07", match.group(3): "jre1.8.0_144  "
-            filename = match.group(3).strip()
-            # build timestamp for use in output filename: 'Jul 21 22:07' => '0721_2207'
-            timestamp = time.strftime('%m%d_%H%M', time.strptime(match.group(2), '%b %d %H:%M'))
-            ret[filename] = timestamp
-        return ret
-    except:
-        log.exception('Failed to get list of files for task: {}'.format(task_id))
-        return {}
+            # Output filename (sort by time):
+            # 180125_225944.world-1-server__4d534510-35d9-4f06-811e-e9a9ffa4d14f.task.stdout
+            # 180126_000225.hello-0-server__15174696-2d3d-48e9-b492-d9a0cc289786.executor.stderr
+            # 180126_002024.hello-world.662e7976-0224-11e8-b2f2-deead5f2b92b.stdout.1
+            if task_entry.executor_id:
+                # file may be from the task, or from the executor
+                source = 'task.' if '/tasks/' in file_info['path'] else 'executor.'
+            else:
+                # there aren't separate task/executor logs, so omit source
+                source = ''
+            out_filename = '{}.{}.{}{}'.format(
+                time.strftime('%y%m%d_%H%M%S', time.gmtime(file_info['mtime'])),
+                task_entry.task_id,
+                source,
+                os.path.basename(file_info['path']))
+            selected_file_infos[setup_artifact_path(item, out_filename)] = file_info
 
+    if not selected_file_infos:
+        log.warning('Unable to find any stdout/stderr files in above paths for task {}'.format(task_entry))
+        return
+    byte_count = sum([f['size'] for f in selected_file_infos.values()])
+    log.info('Downloading {} files ({} bytes) for task {}:{}'.format(
+        len(selected_file_infos),
+        byte_count,
+        task_entry,
+        ''.join(['\n  {} ({} bytes)\n    => {}'.format(
+            file_info['path'], file_info['size'], path) for path, file_info in selected_file_infos.items()])))
 
-@retrying.retry(stop_max_attempt_number=3)
-def get_task_log_for_id(task_id: str,  task_file: str='stdout', lines: int=1000000) -> str:
-    log.info('Fetching {} from {}'.format(task_file, task_id))
-    rc, stdout, stderr = sdk_cmd.run_raw_cli('task log {} --all --lines {} {}'.format(task_id, lines, task_file), print_output=False)
-    if rc != 0:
-        if not stderr.startswith('No files exist. Exiting.'):
-            raise ConnectionError('Failed to get {} task log for task_id={}: {}'.format(task_file, task_id, stderr))
-
-        return ''
-    return stdout
-
-
-def get_rotating_task_logs(task_id: str, task_file_timestamps: dict, task_file: str):
-    rotated_filenames = [task_file, ]
-    rotated_filenames.extend(['{}.{}'.format(task_file, i) for i in range(1, 10)])
-    for filename in rotated_filenames:
-        if filename not in task_file_timestamps:
-            return  # Reached a log index that doesn't exist, exit early
+    # fetch files
+    for out_path, file_info in selected_file_infos.items():
         try:
-            content = get_task_log_for_id(task_id, filename)
-        except ConnectionError as e:
-            log.error(str(e))
-            content = ''
+            stream = sdk_cmd.cluster_request(
+                'GET', '/slave/{}/files/download?path={}'.format(agent_id, file_info['path']), stream=True)
+            with open(out_path, 'wb') as f:
+                for chunk in stream.iter_content(chunk_size=8192):
+                    f.write(chunk)
+        except:
+            log.exception('Failed to get file for task {}: {}'.format(task_entry, file_info))
+    return byte_count
 
-        if not content:
-            log.error('Unable to fetch content of {} from task {}, giving up'.format(filename, task_id))
-            return
-        yield filename, task_file_timestamps[filename], content
+
+def dump_relevant_task_logs_for_agent(item: pytest.Item, agent_id: str, agent_tasks: list):
+    agent_executor_paths = sdk_cmd.cluster_request('GET', '/slave/{}/files/debug'.format(agent_id)).json()
+    task_byte_count = 0
+    for task_entry in agent_tasks:
+        try:
+            task_byte_count += dump_relevant_task_logs_for_task(item, agent_id, agent_executor_paths, task_entry)
+        except:
+            log.exception('Failed to get logs for task {}'.format(task_entry))
+    log.info('Downloaded {} bytes of logs from {} tasks on agent {}'.format(
+        task_byte_count, len(agent_tasks), agent_id))
+
+    # fetch agent log separately due to its totally different fetch semantics vs the task/executor logs
+    if '/slave/log' in agent_executor_paths:
+        out_path = setup_artifact_path(item, 'agent_{}.log'.format(agent_id))
+        stream = sdk_cmd.cluster_request(
+            'GET', '/slave/{}/files/download?path=/slave/log'.format(agent_id), stream=True)
+        with open(out_path, 'wb') as f:
+            for chunk in stream.iter_content(chunk_size=8192):
+                f.write(chunk)
 
 
-def dump_task_logs(item: pytest.Item, task_ids: list):
-    for task_id in task_ids:
-        # Get list of available files:
-        task_file_timestamps = get_task_files_for_id(task_id)
-        for task_file in ('stdout', 'stderr'):
-            for log_filename, log_timestamp, log_content in get_rotating_task_logs(task_id, task_file_timestamps, task_file):
-                # output filename (sort by time): '0104_1709.hello-world.0fe39302-f18b-11e7-a6f9-ae11b3b25138.stdout'
-                out_path = setup_artifact_path(item, '{}.{}.{}'.format(log_timestamp, task_id, log_filename))
-                log.info('=> Writing {} ({} bytes)'.format(out_path, len(log_content)))
-                with open(out_path, 'w') as f:
-                    f.write(log_content)
+def dump_relevant_task_logs(item: pytest.Item, task_ids: list):
+    task_ids_set = set(task_ids)
+    cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
+    matching_tasks_by_agent = {}
+    for cluster_task in cluster_tasks['tasks']:
+        task_entry = TaskEntry(cluster_task)
+        if task_entry.task_id in task_ids_set:
+            agent_tasks = matching_tasks_by_agent.get(task_entry.agent_id, [])
+            agent_tasks.append(task_entry)
+            matching_tasks_by_agent[task_entry.agent_id] = agent_tasks
+
+    for agent_id, agent_tasks in matching_tasks_by_agent.items():
+        try:
+            dump_relevant_task_logs_for_agent(item, agent_id, agent_tasks)
+        except:
+            log.exception('Failed to get logs for agent {}'.format(agent_id))
 
 
 def dump_mesos_state(item: pytest.Item):

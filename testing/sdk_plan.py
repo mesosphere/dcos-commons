@@ -231,7 +231,7 @@ def log_plans_if_failed(framework_name, request):
                     continue
                 out_path = os.path.join(
                     sdk_utils.get_test_log_directory(request.node),
-                    '{}_plan.txt'.format(plan_name))
+                    'plan_{}.json'.format(plan_name))
                 out_content = json.dumps(plan, indent=2)
                 log.info('=> Writing {} ({} bytes)'.format(out_path, len(out_content)))
                 with open(out_path, 'w') as f:
