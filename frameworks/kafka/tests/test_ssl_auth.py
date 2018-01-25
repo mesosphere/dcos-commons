@@ -1,4 +1,3 @@
-import json
 import logging
 import uuid
 
@@ -9,6 +8,8 @@ import sdk_install
 import sdk_marathon
 import sdk_utils
 import sdk_security
+
+from security import transport_encryption
 
 from tests import config
 from tests import auth
@@ -72,8 +73,9 @@ def kafka_client():
         }
 
         sdk_marathon.install_app(client)
-        yield {**client,
-        **{"brokers": list(map(lambda x: x.split(':')[0], brokers))}}
+
+        broker_hosts = list(map(lambda x: x.split(':')[0], brokers))
+        yield {**client, **{"brokers": broker_hosts}}
 
     finally:
         sdk_marathon.destroy_app(client_id)
@@ -83,16 +85,16 @@ def kafka_client():
 def setup_principals(kafka_client):
     client_id = kafka_client["id"]
 
-    auth.create_tls_artifacts(
+    transport_encryption.create_tls_artifacts(
         cn="kafka-tester",
         task=client_id)
-    auth.create_tls_artifacts(
+    transport_encryption.create_tls_artifacts(
         cn="authorized",
         task=client_id)
-    auth.create_tls_artifacts(
+    transport_encryption.create_tls_artifacts(
         cn="unauthorized",
         task=client_id)
-    auth.create_tls_artifacts(
+    transport_encryption.create_tls_artifacts(
         cn="super",
         task=client_id)
 
@@ -129,8 +131,8 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
         auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-            "topic create tls.topic",
-            json=True)
+                        "topic create tls.topic",
+                        json=True)
 
         test_utils.wait_for_topic(config.PACKAGE_NAME, config.SERVICE_NAME, "tls.topic")
 
@@ -184,8 +186,8 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
         auth.wait_for_brokers(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-            "topic create authz.test",
-            json=True)
+                        "topic create authz.test",
+                        json=True)
 
         test_utils.wait_for_topic(config.PACKAGE_NAME, config.SERVICE_NAME, "authz.test")
 
@@ -259,8 +261,8 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
 
         # Create the topic
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-            "topic create authz.test",
-            json=True)
+                        "topic create authz.test",
+                        json=True)
 
         test_utils.wait_for_topic(config.PACKAGE_NAME, config.SERVICE_NAME, "authz.test")
 

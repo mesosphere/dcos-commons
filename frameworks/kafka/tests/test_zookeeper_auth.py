@@ -5,16 +5,15 @@ import logging
 import uuid
 import pytest
 
-import shakedown
-
 import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_repository
 import sdk_security
 import sdk_utils
+
+from security import kerberos as krb5
 
 from tests import auth
 from tests import config
@@ -24,76 +23,30 @@ from tests import test_utils
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_principals():
-    fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
-                                                 host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+def get_zookeeper_principals(service_name: str, realm: str) -> list:
+    primaries = ["zookeeper", ]
 
-    brokers = [
-        "kafka-0-broker",
-        "kafka-1-broker",
-        "kafka-2-broker",
-    ]
-
-    principals = []
-    for b in brokers:
-        principals.append("kafka/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=fqdn,
-            realm=sdk_auth.REALM))
-
-    principals.append("client@{realm}".format(realm=sdk_auth.REALM))
-
-    yield principals
-
-
-def get_node_principals():
-    """Get a list of zookeeper principals for the agent nodes in the cluster"""
-    principals = []
-
-    agent_ips = shakedown.get_private_agents()
-    agent_dashed_ips = list(map(
-        lambda ip: "ip-{dashed_ip}".format(dashed_ip="-".join(ip.split("."))), agent_ips))
-    for b in agent_dashed_ips:
-        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
-            instance=b,
-            # TODO(elezar) we need to infer the region too
-            domain="us-west-2.compute.internal",
-            realm=sdk_auth.REALM))
-
-    return principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def zookeeper_principals():
-    zk_fqdn = "{service_name}.{host_suffix}".format(service_name="kafka-zookeeper",
-                                                    host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    zk_ensemble = [
+    tasks = [
         "zookeeper-0-server",
         "zookeeper-1-server",
         "zookeeper-2-server",
     ]
+    instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
 
-    principals = []
-    for b in zk_ensemble:
-        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=zk_fqdn,
-            realm=sdk_auth.REALM))
-
-    principals.extend(get_node_principals())
-    yield principals
+    principals = krb5.generate_principal_list(primaries, instances, realm)
+    return principals
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals, zookeeper_principals):
+def kerberos(configure_security):
     try:
-        principals = []
-        principals.extend(kafka_principals)
-        principals.extend(zookeeper_principals)
-
         kerberos_env = sdk_auth.KerberosEnvironment()
+
+        principals = auth.get_service_principals(config.SERVICE_NAME,
+                                                 kerberos_env.get_realm())
+        principals.extend(get_zookeeper_principals("kafka-zookeeper",
+                                                   kerberos_env.get_realm()))
+
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
