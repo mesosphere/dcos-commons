@@ -72,7 +72,7 @@ pods:
           # Exit on any error.
           set -e
 
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
       {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf $KAFKA_OPTS"
         {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
