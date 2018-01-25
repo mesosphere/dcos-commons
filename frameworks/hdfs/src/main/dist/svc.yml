@@ -206,7 +206,7 @@ pods:
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME
           interval: 5
           delay: 0
-          timeout: 60
+          timeout: 180
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
