@@ -6,10 +6,11 @@ menuWeight: 10
 excerpt:
 ---
 
+<!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
 This guide has so far focused on describing the components, how they work, and how to interact with them. At this point we'll start looking at how that knowledge can be applied to a running service.
 
-# Initial service configuration
+## Initial service configuration
 
 The DC/OS package format allows packages to define user-visible installation options. To ensure consistent installations, we recommend exporting the options you use into an `options.json` file, which can then be placed in source control and kept up to date with the current state of the cluster. Keeping these configurations around will make it easy to duplicate or reinstall services using identical configurations.
 
@@ -81,17 +82,17 @@ $ dcos package install --options=elastic-prod-options.json elastic
 
 Once we know the configuration is good, it should be added to our source control for tracking.
 
-# Updating service configuration
+## Updating service configuration
 
 Above, we described how a configuration update (including updating the version of the service) is handled. Now we will quickly show the steps to perform such an update.
 
 Configuration updates are performed by updating the process environment of the Scheduler. Once restarted, the Scheduler will observe this change and re-deploy nodes as described in [Reconfiguration](#Reconfiguration).
 
-## Enterprise DC/OS 1.10
+### Enterprise DC/OS 1.10
 
 Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.
 
-### Prerequisites
+#### Prerequisites
 
 + Enterprise DC/OS 1.10 or newer.
 + A DC/OS SDK-based service with a version greater than 2.0.0-x.
@@ -104,11 +105,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
     dcos package install --cli <service-name>
     ```
 
-#### Updating package version
+##### Updating package version
 
 The instructions below show how to safely update one version of a service to the next.
 
-##### Viewing available versions
+###### Viewing available versions
 
 The `update package-versions` command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).
 
@@ -117,7 +118,7 @@ For example, for `dse`, run:
 $ dcos dse update package-versions
 ```
 
-##### Upgrading or downgrading a service
+###### Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
 ```bash
@@ -146,11 +147,11 @@ $ dcos dse update start --options=options.json --replace=true --package-verion="
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
 
-#### Updating configuration
+##### Updating configuration
 
 The instructions below describe how to update the configuration for a running DC/OS service.
 
-##### Preparing configuration
+###### Preparing configuration
 
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example, for `dse`:
 
@@ -164,7 +165,7 @@ If you installed this service with a prior version of DC/OS, this configuration 
 
 <strong>Note:</strong> You need to specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
 
-###### Recreating `options.json` (optional)
+####### Recreating `options.json` (optional)
 
 If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
 
@@ -204,7 +205,7 @@ $ less marathon.json.mustache
 ```
 1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
 
-##### Starting the update
+###### Starting the update
 
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
@@ -216,11 +217,11 @@ You will receive an acknowledgement message and the DC/OS package manager will r
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
 
-#### Advanced update actions
+##### Advanced update actions
 
 The following sections describe advanced commands that be used to interact with an update in progress.
 
-##### Monitoring the update
+###### Monitoring the update
 
 Once the Scheduler has been restarted, it will begin a new deployment plan as individual pods are restarted with the new configuration. Depending on the high availability characteristics of the service being updated, you may experience a service disruption.
 
@@ -232,7 +233,7 @@ $ dcos dse update status
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
 
-##### Pause
+###### Pause
 
 To pause an ongoing update, issue a pause command:
 
@@ -242,7 +243,7 @@ $ dcos dse update pause
 
 You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
 
-##### Resume
+###### Resume
 
 If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
 
@@ -252,7 +253,7 @@ $ dcos dse update resume
 
 You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
 
-##### Force Complete
+###### Force Complete
 
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
@@ -260,7 +261,7 @@ In order to manually "complete" a step (such that the Scheduler stops attempting
 $ dcos dse update force-complete dse-phase dse-0:[node]
 ```
 
-##### Force Restart
+###### Force Restart
 
 Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase, or just for a specific step.
 
@@ -279,7 +280,7 @@ Or for a specific step within a specific phase:
 $ dcos dse update force-restart dse-phase dse-0:[node]
 ```
 
-### Open Source DC/OS, DC/OS 1.9, and Earlier
+#### Open Source DC/OS, DC/OS 1.9, and Earlier
 
 If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
 
@@ -323,7 +324,7 @@ INFO  2017-04-25 20:26:08,343 [main] com.mesosphere.sdk.config.DefaultConfigurat
 
 The steps above apply to any configuration change: the Scheduler is restarted, detects the config change, and then launches and/or restarts any affected tasks to reflect the change. When multiple tasks are affected, the Scheduler will follow the deployment Plan used for those tasks to redeploy them. In practice this typically means that each task will be deployed in a sequential rollout, where task `N+1` is only redeployed after task `N` appears to be healthy and ready after being relaunched with the new configuration. Some services may have defined a custom `update` plan which invokes custom logic for rolling out changes which varies from the initial deployment rollout. The default behavior, when no custom `update` plan was defined, is to use the `deploy` plan.
 
-#### Finding the correct environment variable
+##### Finding the correct environment variable
 
 While DC/OS Enterprise 1.10+ supports changing the configuration using the option schema directly, DC/OS Open and versions 1.9 and earlier require mapping those options to the environment variables that are passed to the Scheduler.
 
@@ -359,11 +360,11 @@ To see where this setting is passed when the Scheduler is first launched, we can
 
 This method can be used mapping any configuration setting (applicable during initial install) to its associated Marathon environment variable (applicable during reconfiguration).
 
-## Uninstall
+### Uninstall
 
 The uninstall flow was simplified for users as of DC/OS 1.10. The steps to uninstall a service therefore depends on the version of DC/OS:
 
-### DC/OS 1.10 and newer
+#### DC/OS 1.10 and newer
 
 If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:
 
@@ -375,7 +376,7 @@ For example, to uninstall a Confluent Kafka instance named `kafka-dev`, run:
 dcos package uninstall --app-id=kafka-dev confluent-kafka
 ```
 
-### Older versions
+#### Older versions
 
 If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:
 
@@ -394,11 +395,11 @@ $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.
     -z dcos-service-$MY_SERVICE_NAME"
 ```
 
-## Pod operations
+### Pod operations
 
 Most operations for maintaining a service will involve interacting with and manipulating its [Pods](#pods).
 
-### Add or Remove a pod
+#### Add or Remove a pod
 
 Adding or removing pod instances within the service is treated as a configuration change, not a command.
 
@@ -406,7 +407,7 @@ In this case, we're increasing a pod count value, as provided by the service's c
 
 For safety reasons, pod instances cannot be removed after they have been deployed by default. However, some services may allow some pods to be removed in cases where doing so is not a problem. To remove pod instances, you would simply decrease the count value, and then instances exceeding that count will be removed automatically in reverse order. For example, if you decreased `dsenode.count` from `4` to `2` and this was allowed by the DSE service, you would see `dsenode-3` be removed followed by `dsenode-2`, leaving only `dsenode-0` and `dsenode-1` still running. If the DSE service doesn't allow the number of instances to be decreased, the Scheduler would instead reject the decrease and show a validation error in its [deploy Plan](#status).
 
-### Restart a pod
+#### Restart a pod
 
 Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
 
@@ -456,7 +457,7 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 
 All tasks within the pod are restarted as a unit. The response lists the names of the two tasks that were members of the pod.
 
-### Replace a pod
+#### Replace a pod
 
 Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if an agent machine has gone down and is never coming back, or if an agent is about to undergo downtime.
 
@@ -486,7 +487,7 @@ $ curl -k -X POST -H "Authorization: token=$(dcos config show core.dcos_acs_toke
 }
 ```
 
-### Pause a pod
+#### Pause a pod
 
 Pausing a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed.
 
@@ -558,18 +559,18 @@ myservice
 
 In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos myservice debug pod pause index-1 -t agent` will pause only the `agent` task within the `index-1` pod.
 
-## Plan Operations
+### Plan Operations
 
 This lists available commands for viewing and manipulating the [Plans](#plans) used by the Scheduler to perform work against the underlying service.
 
-### List
+#### List
 Show all plans for this service.
 
 ```bash
 dcos kakfa plan list
 ```
 
-### Status
+#### Status
 Display the status of the plan with the provided plan name.
 
 ```bash
@@ -579,14 +580,14 @@ dcos kafka plan status deploy
 **Note:** The `--json` flag, though not default, is helpful in extracting phase UUIDs. Using the UUID instead of name for a
 phase is a more ensures that the request, ie to pause or force-complete, is exactly the phase intended.
 
-### Start
+#### Start
 Start the plan with the provided name and any optional plan arguments.
 
 ```bash
 dcos kafka plan start deploy
 ```
 
-### Stop
+#### Stop
 Stop the running plan with the provided name.
 
 ```bash
@@ -597,7 +598,7 @@ Plan Pause differs from Plan Stop in the following ways:
 * Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
 * Pause updates the underlying Phase/Step state. Stop not only updates the underlying state, but also restarts the plan.
 
-### Pause
+#### Pause
 Pause the plan, or a specific phase in that plan with the provided phase name (or UUID).
 
 ```bash
@@ -610,14 +611,14 @@ Plan Pause differs from Plan Stop in the following ways:
 * Pause can be issued for a specific phase or for all phases within a plan. Stop can only be issued for a plan.
 * Pause updates the underlying Phase/Step state. Stop not only updated the underlying state, but also restarts the plan.
 
-### Resume
+#### Resume
 Resume the plan, or a specific phase in that plan, with the provided phase name (or UUID).
 
 ```bash
 dcos kafka plan resume deploy 97e70976-505f-4689-abd2-6286c4499091
 ```
 
-### Force-Restart
+#### Force-Restart
 Restart the plan with the provided name, or a specific phase in the plan, with the provided nam, or a specific step in a
 phase of the plan with the provided step name.
 
@@ -625,10 +626,12 @@ phase of the plan with the provided step name.
 dcos kafka plan force-restart deploy
 ```
 
-### Force-Complete
+#### Force-Complete
 Force complete a specific step in the provided phase. Example uses include the following: Abort a sidecar operation due
 to observed failure or due to known required manual preparation that was not performed.
 
 ```bash
 dcos kafka plan force-complete deploy
 ```
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

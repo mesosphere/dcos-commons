@@ -1,6 +1,6 @@
 ---
-post_title: Upgrade
-menu_order: 130
+title: Upgrade
+menuWeight: 130
 enterprise: 'no'
 ---
 

@@ -197,7 +197,9 @@ public class ResourceBuilder {
         // In the post-resource-refinement world (1.10+), Mesos will expect
         // reserved Resources to have reservations (and ONLY reservations) set.
         Resource.Builder builder =
-                mesosResource == null ? Resource.newBuilder() : mesosResource.getResource().toBuilder();
+                mesosResource == null ?
+                        Resource.newBuilder() :
+                        mesosResource.getResource().toBuilder().clearAllocationInfo();
         builder.setName(resourceName)
                 .setRole(Constants.ANY_ROLE)
                 .setType(value.getType());

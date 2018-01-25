@@ -1,6 +1,6 @@
 ---
-post_title: Uninstall
-menu_order: 30
+title: Uninstall
+menuWeight: 30
 enterprise: 'no'
 ---
 

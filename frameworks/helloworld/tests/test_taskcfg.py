@@ -34,7 +34,7 @@ def test_deploy():
     # sdk_marathon.json.mustache. verify that tasks are failing for 30s before continuing.
     log.info('Checking that tasks are failing to launch for at least {}s'.format(wait_time))
 
-    # we can get brief blips of TASK_RUNNING but they shouldnt last more than 2-3s:
+    # we can get brief blips of TASK_RUNNING but they shouldnt last more than 5-10s:
     consecutive_task_running = 0
 
     @retrying.retry(
@@ -48,7 +48,7 @@ def test_deploy():
         log.info('Task states: {}'.format(states))
         if 'TASK_RUNNING' in states:
             consecutive_task_running += 1
-            assert consecutive_task_running <= 3
+            assert consecutive_task_running <= 10 # in practice, can see as many as 5 in a row
         else:
             consecutive_task_running = 0
         return False

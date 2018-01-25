@@ -8,7 +8,7 @@ excerpt:
 
 DC/OS clusters provide several tools for diagnosing problems with services running in the cluster. In addition, the SDK has its own endpoints that describe what the Scheduler is doing at any given time.
 
-# Logging
+## Logging
 
 The first step to diagnosing a problem is typically to take a look at the logs. Tasks do different things, so it takes some knowledge of the problem being diagnosed to determine which task logs are relevant.
 
@@ -28,7 +28,7 @@ In the above task list there are multiple services installed, resulting in a pre
 
 We then need to decide which framework to select from this list. This depends on what task we want to view:
 
-## Scheduler logs
+### Scheduler logs
 
 If the issue is one of deployment or management, e.g. a service is 'stuck' in initial deployment, or a task that previously went down isn't being brought back at all, then the Scheduler logs will likely be the place to find out why.
 
@@ -42,7 +42,7 @@ Scheduler logs can be found either via the main Mesos frontpage in small cluster
 
 For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of [Tasks not deploying / Resource starvation](#tasks-not-deploying--resource-starvation).
 
-## Task logs
+### Task logs
 
 When the issue being diagnosed has to do with the service tasks, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore, we should pick `<service-name>` from this list to view a list of tasks specific to that service.
 
@@ -56,7 +56,7 @@ Either or both of these lists may be useful depending on the context. Click on t
 
 [<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
 
-## Mesos Agent logs
+### Mesos Agent logs
 
 Occasionally, it can also be useful to examine what a given Mesos agent is doing. The Mesos Agent handles deployment of Mesos tasks to a given physical system in the cluster. One Mesos Agent runs on each system. These logs can be useful for determining if there's a problem at the system level that is causing alerts across multiple services on that system.
 
@@ -66,7 +66,7 @@ In the Agent view, you'll see a list of frameworks with a presence on that Agent
 
 [<img src="img/ops-guide-agent.png" alt="view of tasks running on a given agent" width="400"/>](img/ops-guide-agent.png)
 
-## Logs via the CLI
+### Logs via the CLI
 
 You can also access logs via the [DC/OS CLI](https://dcos.io/docs/latest/usage/cli/install/) using the `dcos task log` command. For example, lets assume the following list of tasks in a cluster:
 
@@ -92,14 +92,14 @@ $ dcos task log --follow broker-0__75 # 'tail -f' the stdout logs from that brok
 $ dcos task log broker-0__75 stderr   # get recent stderr logs from that broker instance
 ```
 
-# Metrics
+## Metrics
 
-## DC/OS >= 1.11
+### DC/OS >= 1.11
 The scheduler's metrics are reported via three different mechanisms: `JSON`, [prometheus](https://prometheus.io/) and [StatsD](https://github.com/etsy/statsd). The StatsD metrics are pushed to the address defined by the environment variables `STATSD_UDP_HOST` and `STATSD_UDP_PORT`. See [DC/OS Metrics documentation](https://dcos.io/docs/1.10/metrics/) for more details.
 
 The JSON representation of the metrics is available at the `/v1/metrics` endpoint`.
 
-###### JSON
+####### JSON
 ```json
 {
 	"version": "3.1.3",
@@ -157,7 +157,7 @@ The JSON representation of the metrics is available at the `/v1/metrics` endpoin
 ```
 
 The Prometheus representation of the metrics is available at the `/v1/metrics/prometheus` endpoint.
-###### Prometheus
+####### Prometheus
 ```
 # HELP declines_long Generated from Dropwizard metric import (metric=declines.long, type=com.codahale.metrics.Counter)
 # TYPE declines_long gauge
@@ -197,21 +197,21 @@ offers_process{quantile="0.999",} 0.396119612
 offers_process_count 244.0
 ```
 
-# Running commands within containers
+## Running commands within containers
 
 An extremely useful tool for diagnosing task state is the ability to run arbitrary commands _within_ the task. The available tools for doing this depend on the version of DC/OS you're using:
 
-## DC/OS >= 1.9
+### DC/OS >= 1.9
 
 DC/OS 1.9 introduced the `task exec` command as a convenient frontend to `nsenter`, which is described below.
 
-### Prerequisites
+#### Prerequisites
 
 - SSH keys for accessing your cluster configured (i.e. via `ssh-add`). SSH is used behind the scenes to get into the cluster.
 
 - A [recent version of the DC/OS CLI](https://dcos.io/docs/latest/usage/cli/install/) with support for the `task exec` command.
 
-### Using `dcos task exec`
+#### Using `dcos task exec`
 
 Once you're set up, running commands is very straightforward. For example, let's assume the list of tasks from the CLI logs section above, where there's two `broker-0` tasks, one named `broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21` and another named `broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237`. Unlike with `task logs`, we can only run `task exec` on one command at a time, so if two tasks match the task filter then we see the following error:
 
@@ -244,7 +244,7 @@ broker-container# exit
 
 While you could technically change the container filesystem using `dcos task exec`, any changes will be destroyed if the container restarts.
 
-## DC/OS <= 1.8
+### DC/OS <= 1.8
 
 DC/OS 1.8 and earlier do not support `dcos task exec`, but `dcos node ssh` and `nsenter` may be used instead to get the same thing, with a little more effort.
 
@@ -289,7 +289,7 @@ broker-container#
 
 Looks like we were successful! Now we can run commands inside this container to verify that it's the one we really want, and then proceed with the diagnosis.
 
-# Querying the Scheduler
+## Querying the Scheduler
 
 The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler's view of its tasks. For a full listing of HTTP endpoints, see the [API reference](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). The Scheduler endpoints most useful to field diagnosis come from three sections:
 
@@ -345,7 +345,7 @@ $ dcos datastax-dse --name=mydse -v pod list
 2017/04/25 15:03:44 Response: 200 OK (-1 bytes)
 ```
 
-# ZooKeeper/Exhibitor
+## ZooKeeper/Exhibitor
 
 **Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZooKeeper directly may cause your service to behave in inconsistent, even incomprehensible ways.**
 
