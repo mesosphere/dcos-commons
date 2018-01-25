@@ -577,43 +577,44 @@
 </code></pre></div></div>
 
 <ol>
-  <li>Save and exit the <code class="highlighter-rouge">svc.yml</code> file. It should look similar to the following:
-```
-name: {{FRAMEWORK_NAME}}
+  <li>Save and exit the <code class="highlighter-rouge">svc.yml</code> file. It should look similar to the following:</li>
+</ol>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>name: {{FRAMEWORK_NAME}}
 scheduler:
   service_account: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
   kafka:
- count: {{NODE_COUNT}}
- placement: ‘{{{NODE_PLACEMENT}}}’
- uris:
-    <ul>
-      <li>“https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz”
- tasks:
-   broker:
-goal: RUNNING
-cmd: “env &amp;&amp; exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties”
-cpus: {{NODE_CPUS}}
-memory: {{NODE_MEM}}
-ports:
-  broker-port:
-    port: 9092
-    advertise: true
-volume:
-  path: “kafka-container-path”
-  type: {{NODE_DISK_TYPE}}
-  size: {{NODE_DISK}}
-env:
-  SLEEP_DURATION: {{SLEEP_DURATION}}
-configs:
-  server-properties:
-    template: server.properties.mustache
-    dest: kafka_2.11-0.10.0.0/config/server.properties
-```
-The <code class="highlighter-rouge">server.properties.mustache</code> should live in the current directory (<code class="highlighter-rouge">dcos-commons/examples/kafka/src/main/dist</code>).</li>
-    </ul>
-  </li>
+    count: {{NODE_COUNT}}
+    placement: '{{{NODE_PLACEMENT}}}'
+    uris:
+      - "https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.0.0.tgz"
+    tasks:
+      broker:
+        goal: RUNNING
+        cmd: "env &amp;&amp; exec $MESOS_SANDBOX/kafka_2.11-0.10.0.0/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.0.0/config/server.properties"
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+        ports:
+          broker-port:
+            port: 9092
+            advertise: true
+        volume:
+          path: "kafka-container-path"
+          type: {{NODE_DISK_TYPE}}
+          size: {{NODE_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        configs:
+          server-properties:
+            template: server.properties.mustache
+            dest: kafka_2.11-0.10.0.0/config/server.properties
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">server.properties.mustache</code> should live in the current directory (<code class="highlighter-rouge">dcos-commons/examples/kafka/src/main/dist</code>).</p>
+
+<ol>
   <li>Download the <code class="highlighter-rouge">server.properties.mustache</code> file mentioned above:
     <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>   curl -O https://raw.githubusercontent.com/mesosphere/dcos-commons/29c38ea81948c8fe550a9d77974f78155c318815/frameworks/kafka/src/main/dist/server.properties.mustache &gt; server.properties.mustache
 </code></pre></div>    </div>
