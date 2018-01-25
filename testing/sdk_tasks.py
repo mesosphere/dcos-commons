@@ -113,8 +113,10 @@ def get_summary(with_completed=False):
     return output
 
 
-def get_task_avoiding_scheduler(service_name, task_name_pattern):
-    '''Avoid also killing the system that the scheduler is on. This is just to speed up testing.
+def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
+    '''Returns a list of tasks which are not located on the Scheduler's machine.
+
+    Avoid also killing the system that the scheduler is on. This is just to speed up testing.
     In practice, the scheduler would eventually get relaunched on a different node by Marathon and
     we'd be able to proceed with repairing the service from there. However, it takes 5-20 minutes
     for Mesos to decide that the agent is dead. This is also why we perform a manual 'ls' check to
@@ -127,13 +129,9 @@ def get_task_avoiding_scheduler(service_name, task_name_pattern):
         task for task in get_summary()
         if task_name_pattern.match(task.name)]
 
-    replace_task = None
-    for task in server_tasks:
-        if task.host != scheduler_ip:
-            replace_task = task
-            log.info('Found task avoiding scheduler at {}: {}'.format(scheduler_ip, task))
-            break
-    return replace_task
+    avoid_tasks = [task for task in server_tasks if task.host != scheduler_ip]
+    log.info('Found tasks avoiding scheduler at {}: {}'.format(scheduler_ip, avoid_tasks))
+    return avoid_tasks
 
 
 def get_completed_task_id(task_name):

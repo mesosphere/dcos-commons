@@ -288,18 +288,28 @@ def test_pod_replace():
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
 @pytest.mark.sanity
-@pytest.mark.skip(reason="INFINITY-3023")
 def test_shutdown_host():
-    replace_task = sdk_tasks.get_task_avoiding_scheduler(
+    candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile('^(hello|world)-[0-9]+-server$'))
-    assert replace_task is not None, 'Could not find a node to shut down'
-    replace_pod_name = replace_task.name[:-len('-server')]
+    assert len(candidate_tasks) != 0, 'Could not find a node to shut down'
+
+    # Pick the host of the first task from the above list, then get ALL tasks which may be located
+    # on that host. We'll need to 'pod replace' all of them.
+    replace_hostname = candidate_tasks[0].host
+    replace_tasks = [
+        task for task in candidate_tasks
+        if task.host == replace_hostname]
+    log.info('Tasks on host {} to be replaced after shutdown: {}'.format(replace_hostname, replace_tasks))
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
-    sdk_cmd.shutdown_agent(replace_task.host)
+    sdk_cmd.shutdown_agent(replace_hostname)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                    'pod replace {}'.format(replace_pod_name))
+    # Get pod name from task name: "hello-0-server" => "hello-0"
+    replace_pods = set([task.name[:-len('-server')] for task in replace_tasks])
+    assert len(replace_pods) == len(replace_tasks), \
+        'Expected one task per pod in tasks to replace: {}'.format(replace_tasks)
+    for pod_name in replace_pods:
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
 
     # Print another dump of current cluster tasks, now that repair has started.
@@ -308,11 +318,14 @@ def test_shutdown_host():
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
-    # Find the new version of the task. Note that the old one may still be present/'running' as
-    # Mesos might not have acknowledged the agent's death.
-    new_task = [
-        task for task in sdk_tasks.get_summary()
-        if task.name == replace_task.name and task.id != replace_task.id][0]
-    log.info('Checking that the original pod has moved to a new agent:\n'
-             'old={}\nnew={}'.format(replace_task, new_task))
-    assert replace_task.agent != new_task.agent
+    # For each task affected by the shutdown, find the new version of it, and check that it moved.
+    # Note that the old version on the dead agent may still be present/'running' as
+    # Mesos might not have fully acknowledged the agent's death.
+    new_tasks = sdk_tasks.get_summary()
+    for replaced_task in replace_tasks:
+        new_task = [
+            task for task in new_tasks
+            if task.name == replaced_task.name and task.id != replaced_task.id][0]
+        log.info('Checking affected task has moved to a new agent:\n'
+                 'old={}\nnew={}'.format(replaced_task, new_task))
+        assert replaced_task.agent != new_task.agent

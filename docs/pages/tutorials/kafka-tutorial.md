@@ -49,6 +49,7 @@ configs:
 ```
 
 9. Save and exit the `svc.yml` file. It should look similar to the following:
+
 ```
 name: {{FRAMEWORK_NAME}}
 scheduler:
@@ -81,6 +82,7 @@ pods:
             template: server.properties.mustache
             dest: kafka_2.11-0.10.0.0/config/server.properties
 ```
+
 The `server.properties.mustache` should live in the current directory (`dcos-commons/examples/kafka/src/main/dist`).
 
 10. Download the `server.properties.mustache` file mentioned above:
