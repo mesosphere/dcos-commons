@@ -205,14 +205,23 @@ font-style: italic;
   <li><a href="#configurationsTargetGet"><code><span class="http-method">get</span> /configurations/target</code></a></li>
   <li><a href="#configurationsTargetidGet"><code><span class="http-method">get</span> /configurations/targetId</code></a></li>
   </ul>
+  <h4><a href="#Debug">Debug</a></h4>
+  <ul>
+  <li><a href="#debugOffers"><code><span class="http-method">get</span> /debug/offers</code></a></li>
+  </ul>
   <h4><a href="#Endpoints">Endpoints</a></h4>
   <ul>
   <li><a href="#endpointsGet"><code><span class="http-method">get</span> /endpoints/{name}</code></a></li>
   <li><a href="#endpointsList"><code><span class="http-method">get</span> /endpoints</code></a></li>
   </ul>
+  <h4><a href="#Health">Health</a></h4>
+  <ul>
+  <li><a href="#healthCheck"><code><span class="http-method">get</span> /health</code></a></li>
+  </ul>
   <h4><a href="#Metrics">Metrics</a></h4>
   <ul>
-  <li><a href="#metrics"><code><span class="http-method">get</span> /metrics</code></a></li>
+  <li><a href="#metricsJson"><code><span class="http-method">get</span> /metrics</code></a></li>
+  <li><a href="#metricsPrometheus"><code><span class="http-method">get</span> /metrics/prometheus</code></a></li>
   </ul>
   <h4><a href="#Plans">Plans</a></h4>
   <ul>
@@ -446,6 +455,37 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Debug">Debug</a></h1>
+  <div class="method"><a name="debugOffers"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /debug/offers</code></pre></div>
+    <div class="method-summary">Returns an HTML table of Mesos Offers that were recently evaluated by the Scheduler. Used for manual debugging by operators (<span class="nickname">debugOffers</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>text/html</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    HTML table listing offer evaluation outcomes.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <h1><a name="Endpoints">Endpoints</a></h1>
   <div class="method"><a name="endpointsGet"/>
     <div class="method-path">
@@ -534,12 +574,49 @@ font-style: italic;
         <a href="#"></a>
   </div> <!-- method -->
   <hr/>
+  <h1><a name="Health">Health</a></h1>
+  <div class="method"><a name="healthCheck"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /health</code></pre></div>
+    <div class="method-summary">Health check endpoint to be used by Marathon to determine Scheduler health based on the status of the &#39;deploy&#39; and/or &#39;recovery&#39; Plans. (<span class="nickname">healthCheck</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>text/plain</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    All monitored Plans are complete.
+        <a href="#"></a>
+    <h4 class="field-label">202</h4>
+    One or more monitored plans is incomplete.
+        <a href="#"></a>
+    <h4 class="field-label">417</h4>
+    One or more monitored plans has an error.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
   <h1><a name="Metrics">Metrics</a></h1>
-  <div class="method"><a name="metrics"/>
+  <div class="method"><a name="metricsJson"/>
     <div class="method-path">
     <a class="up" href="#__Methods">Up</a>
     <pre class="get"><code class="huge"><span class="http-method">get</span> /metrics</code></pre></div>
-    <div class="method-summary">Returns a snapshot of the current scheduler metrics. (<span class="nickname">metrics</span>)</div>
+    <div class="method-summary">Returns a snapshot of the current scheduler metrics in JSON format. (<span class="nickname">metricsJson</span>)</div>
     <div class="method-notes"></div>
 
 
@@ -557,6 +634,36 @@ font-style: italic;
     the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
     <ul>
       <li><code>application/json</code></li>
+    </ul>
+
+    <h3 class="field-label">Responses</h3>
+    <h4 class="field-label">200</h4>
+    The metrics snapshot has been returned.
+        <a href="#"></a>
+  </div> <!-- method -->
+  <hr/>
+  <div class="method"><a name="metricsPrometheus"/>
+    <div class="method-path">
+    <a class="up" href="#__Methods">Up</a>
+    <pre class="get"><code class="huge"><span class="http-method">get</span> /metrics/prometheus</code></pre></div>
+    <div class="method-summary">Returns a snapshot of the current scheduler metrics in Prometheus format. (<span class="nickname">metricsPrometheus</span>)</div>
+    <div class="method-notes"></div>
+
+
+
+
+
+
+
+
+    <!--Todo: process Response Object and its headers, schema, examples -->
+
+
+    <h3 class="field-label">Produces</h3>
+    This API call produces the following media types according to the <span class="header">Accept</span> request header;
+    the media type will be conveyed by the <span class="heaader">Content-Type</span> response header.
+    <ul>
+      <li><code>text/plain</code></li>
     </ul>
 
     <h3 class="field-label">Responses</h3>
