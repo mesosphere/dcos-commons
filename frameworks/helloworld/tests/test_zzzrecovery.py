@@ -304,10 +304,12 @@ def test_shutdown_host():
     # Instead of partitioning or reconnecting, we shut down the host permanently
     sdk_cmd.shutdown_agent(replace_hostname)
 
-    for task in replace_tasks:
-        pod_name = task.name[:-len('-server')]
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                        'pod replace {}'.format(pod_name))
+    # Get pod name from task name: "hello-0-server" => "hello-0"
+    replace_pods = set([task.name[:-len('-server')] for task in replace_tasks])
+    assert len(replace_pods) == len(replace_tasks), \
+        'Expected one task per pod in tasks to replace: {}'.format(replace_tasks)
+    for pod_name in replace_pods:
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
 
     # Print another dump of current cluster tasks, now that repair has started.

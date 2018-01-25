@@ -69,7 +69,10 @@ def test_shutdown_host():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile('^node-[0-9]+-server$'))
     assert len(candidate_tasks) != 0, 'Could not find a node to shut down'
-    # Just pick the first task from the list. In practice, we should never have two node pods on the same machine.
+    # Cassandra nodes should never share a machine
+    assert len(candidate_tasks) == len(set([task.host for task in candidate_tasks])), \
+        'Expected candidate tasks to all be on different hosts: {}'.format(candidate_tasks)
+    # Just pick the first one from the list
     replace_task = candidate_tasks[0]
 
     replace_pod_name = replace_task.name[:-len('-server')]
@@ -77,8 +80,7 @@ def test_shutdown_host():
     # Instead of partitioning or reconnecting, we shut down the host permanently
     sdk_cmd.shutdown_agent(replace_task.host)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                    'pod replace {}'.format(replace_pod_name))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
 
     # Print another dump of current cluster tasks, now that repair has started.
