@@ -8,7 +8,6 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 import json as jsonlib
 import os
 import logging
-import paramiko
 import retrying
 import subprocess
 import traceback
