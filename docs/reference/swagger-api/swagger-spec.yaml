@@ -608,10 +608,47 @@ paths:
     get:
       tags:
       - "metrics"
-      summary: "Returns a snapshot of the current scheduler metrics."
-      operationId: "metrics"
+      summary: "Returns a snapshot of the current scheduler metrics in JSON format."
+      operationId: "metricsJson"
       produces:
       - "application/json"
       responses:
         200:
           description: "The metrics snapshot has been returned."
+  /metrics/prometheus:
+    get:
+      tags:
+      - "metrics"
+      summary: "Returns a snapshot of the current scheduler metrics in Prometheus format."
+      operationId: "metricsPrometheus"
+      produces:
+      - "text/plain"
+      responses:
+        200:
+          description: "The metrics snapshot has been returned."
+  /health:
+    get:
+      tags:
+      - "health"
+      summary: "Health check endpoint to be used by Marathon to determine Scheduler health based on the status of the 'deploy' and/or 'recovery' Plans."
+      operationId: "healthCheck"
+      produces:
+      - "text/plain"
+      responses:
+        200:
+          description: "All monitored Plans are complete."
+        202:
+          description: "One or more monitored plans is incomplete."
+        417:
+          description: "One or more monitored plans has an error."
+  /debug/offers:
+    get:
+      tags:
+      - "debug"
+      summary: "Returns an HTML table of Mesos Offers that were recently evaluated by the Scheduler. Used for manual debugging by operators"
+      operationId: "debugOffers"
+      produces:
+      - "text/html"
+      responses:
+        200:
+          description: "HTML table listing offer evaluation outcomes."
