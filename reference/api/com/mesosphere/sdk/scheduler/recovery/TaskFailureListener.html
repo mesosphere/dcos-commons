@@ -125,7 +125,7 @@ var activeTableTab = "activeTableTab";
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html#tasksFailed-java.util.Collection-">tasksFailed</a></span>(java.util.Collection&lt;TaskID&gt;&nbsp;taskIds)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/TaskFailureListener.html#tasksFailed-java.util.Collection-">tasksFailed</a></span>(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</code>
 <div class="block">Handles task failure notifications.</div>
 </td>
 </tr>
@@ -150,11 +150,11 @@ var activeTableTab = "activeTableTab";
 <ul class="blockListLast">
 <li class="blockList">
 <h4>tasksFailed</h4>
-<pre>void&nbsp;tasksFailed(java.util.Collection&lt;TaskID&gt;&nbsp;taskIds)</pre>
+<pre>void&nbsp;tasksFailed(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</pre>
 <div class="block">Handles task failure notifications.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>taskIds</code> - The IDs of the tasks which have failed</dd>
+<dd><code>taskInfos</code> - The tasks which have failed</dd>
 </dl>
 </li>
 </ul>
