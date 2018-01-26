@@ -19,6 +19,8 @@ During deployment and upgrades, the `serial` strategy does not wait for the Elas
 
 This is an [Elasticsearch limitation](https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html). Since the service's default update strategy is a rolling upgrade (`serial`) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). You must do a full-cluster restart (`parallel` update strategy). Make sure to have backups and plan for some downtime.
 
+Afterwards, you can set the update strategy back to `serial` for future updates.
+
 ## Out-of-band configuration
 
 Out-of-band configuration modifications are not supported. The service's core responsibility is to deploy and maintain the service with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will override those modifications at a later time. For example:
