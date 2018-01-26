@@ -1,6 +1,6 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Limitations
 menuWeight: 100
@@ -13,7 +13,9 @@ The "disk" configuration value is denominated in MB. We recommend you set the co
 
 ## Security
 
-The security features introduced in Apache Kafka 0.9 are not supported at this time.
+### Kerberos
+
+When Kerberos is enabled, the broker vip is disabled as it will not function correctly.
 
 ## Out-of-band configuration
 
