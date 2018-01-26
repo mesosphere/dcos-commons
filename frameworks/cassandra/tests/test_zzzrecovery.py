@@ -50,15 +50,24 @@ def test_node_replace_replaces_node():
 
     # Update the placement constraints so the new node doesn't end up on the same host
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['PLACEMENT_CONSTRAINT'] = '[["hostname", "UNLIKE", "{}"]]'.format(replace_task.host)
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    original_constraint = marathon_config['env']['PLACEMENT_CONSTRAINT']
+    try:
+        marathon_config['env']['PLACEMENT_CONSTRAINT'] = '[["hostname", "UNLIKE", "{}"]]'.format(replace_task.host)
+        sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    # start replace and wait for it to finish
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod_name))
-    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
-    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
+        # start replace and wait for it to finish
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod_name))
+        sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
+
+    finally:
+        # revert to prior placement setting before proceeding with tests: avoid getting stuck.
+        marathon_config['env']['PLACEMENT_CONSTRAINT'] = original_constraint
+        sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
 # @@@@@@@

@@ -38,7 +38,6 @@ def test_rack():
             }
         })
 
-    # dcos task exec node-0-server bash -c 'JAVA_HOME=jre1.8.0_144 apache-cassandra-3.0.14/bin/nodetool status'
     raw_status = nodetool.cmd('node-0', 'status')
     log.info("raw_status: {}".format(raw_status))
     stdout = raw_status[1]

@@ -473,10 +473,10 @@ public class PodResourceTest {
         verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
 
-        List<Protos.TaskID> expectedFailedTaskIds = TASK_INFOS.stream()
+        List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
-                .map(TaskInfo::getTaskId).collect(Collectors.toList());
-        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTaskIds);
+                .collect(Collectors.toList());
+        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTasks);
         verifyNoMoreInteractions(mockTaskFailureListener);
     }
 
@@ -500,10 +500,10 @@ public class PodResourceTest {
         verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
         verifyNoMoreInteractions(mockTaskKiller);
 
-        List<Protos.TaskID> expectedFailedTaskIds = TASK_INFOS.stream()
+        List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
-                .map(TaskInfo::getTaskId).collect(Collectors.toList());
-        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTaskIds);
+                .collect(Collectors.toList());
+        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTasks);
         verifyNoMoreInteractions(mockTaskFailureListener);
     }
 }

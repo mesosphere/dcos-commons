@@ -5,10 +5,25 @@
       "type": "object",
       "description": "DC/OS service configuration properties",
       "properties": {
-        "name" : {
+        "name": {
           "description": "The name of the service instance",
           "type": "string",
           "default": "hdfs"
+        },
+        "user": {
+          "description": "The linux user used to run the scheduler and all executors.",
+          "type": "string",
+          "default": "nobody"
+        },
+        "service_account": {
+          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
+          "type": "string",
+          "default": ""
+        },
+        "service_account_secret": {
+          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "type": "string",
+          "default": ""
         },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
@@ -25,43 +40,47 @@
           "type": "string",
           "default": ""
         },
-        "user": {
-          "type": "string",
-          "description": "The linux user used to run the scheduler and all executors.",
-          "default": "nobody"
-        },
-        "service_account" : {
-          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
-          "type": "string",
-          "default": ""
-        },
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
+          "enum": [
+            "V0",
+            "V1"
+          ],
           "default": "V1"
-        },
-        "service_account_secret": {
-          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-          "type": "string",
-          "default": ""
-        },
-        "deploy_strategy": {
-          "description": "HDFS deployment strategy. [parallel, serial]",
-          "type": "string",
-          "default": "parallel",
-          "enum" : ["parallel", "serial"]
-        },
-        "update_strategy": {
-          "description": "HDFS update strategy. [parallel, serial]",
-          "type": "string",
-          "default": "serial",
-          "enum" : ["parallel", "serial"]
         },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
-          "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
+          "enum": [
+            "OFF",
+            "FATAL",
+            "ERROR",
+            "WARN",
+            "INFO",
+            "DEBUG",
+            "TRACE",
+            "ALL"
+          ],
           "default": "INFO"
+        },
+        "deploy_strategy": {
+          "description": "HDFS deployment strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "parallel"
+        },
+        "update_strategy": {
+          "description": "HDFS update strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "serial"
         },
         "security": {
           "description": "HDFS security settings.",
@@ -76,7 +95,7 @@
                   "type": "boolean",
                   "default": false
                 },
-                "kdc" : {
+                "kdc": {
                   "description": "KDC settings for Kerberos",
                   "type": "object",
                   "properties": {
@@ -126,7 +145,7 @@
       }
     },
     "journal_node": {
-      "description":"HDFS configuration properties.",
+      "description": "HDFS configuration properties.",
       "type": "object",
       "properties": {
         "cpus": {
@@ -589,7 +608,7 @@
       ]
     },
     "zkfc_node": {
-      "description":"HDFS configuration properties.",
+      "description": "HDFS configuration properties.",
       "type": "object",
       "properties": {
         "cpus": {
@@ -608,33 +627,33 @@
         "mem"
       ]
     },
-    "data_node":{
-      "description":"HDFS configuration properties.",
-      "type":"object",
-      "properties":{
-        "count":{
-          "description":"Data node count requirement",
-          "type":"number",
+    "data_node": {
+      "description": "HDFS configuration properties.",
+      "type": "object",
+      "properties": {
+        "count": {
+          "description": "Data node count requirement",
+          "type": "number",
           "default": 3
         },
-        "cpus":{
-          "description":"Data node CPU requirement",
-          "type":"number",
+        "cpus": {
+          "description": "Data node CPU requirement",
+          "type": "number",
           "default": 0.3
         },
-        "mem":{
-          "description":"Data node memory requirement",
-          "type":"number",
+        "mem": {
+          "description": "Data node memory requirement",
+          "type": "number",
           "default": 2048
         },
-        "disk":{
-          "description":"Data node disk size requirement in MB",
-          "type":"number",
+        "disk": {
+          "description": "Data node disk size requirement in MB",
+          "type": "number",
           "default": 5000
         },
-        "disk_type":{
-          "description":"Data node disk type",
-          "type":"string",
+        "disk_type": {
+          "description": "Data node disk type",
+          "type": "string",
           "default": "ROOT"
         },
         "handler_count": {

@@ -6,7 +6,6 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import logging
-import pprint
 import retrying
 
 import shakedown
@@ -91,6 +90,20 @@ class Task(object):
         return 'Task[name={} host={} user={} state_char={} id={} agent={}]'.format(
             self.name, self.host, self.user, self.state_char, self.id, self.agent)
 
+
+def get_status_history(task_name: str) -> list:
+    '''Returns a list of task status values (of the form 'TASK_STARTING', 'TASK_KILLED', etc) for a given task.
+    The returned values are ordered chronologically from first to last.
+    '''
+    cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
+    statuses = []
+    for cluster_task in cluster_tasks['tasks']:
+        if cluster_task['name'] != task_name:
+            continue
+        statuses += cluster_task['statuses']
+    history = [entry['state'] for entry in sorted(statuses, key=lambda x: x['timestamp'])]
+    log.info('Status history for task {}: {}'.format(task_name, ', '.join(history)))
+    return history
 
 
 def get_summary(with_completed=False):
