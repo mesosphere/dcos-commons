@@ -32,9 +32,11 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
             return pass(this, "No executor requirement defined").build();
         }
 
+        String idStr = id.isPresent() ? id.get().getValue() : "";
+
         if (!hasExpectedExecutorId(mesosResourcePool.getOffer())) {
             return fail(this,
-                    "Offer does not contain the needed Executor ID: '%s'", id)
+                    "Offer does not contain the needed Executor ID: '%s'", idStr)
                     .build();
         }
 
@@ -43,7 +45,7 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
             executorBuilder.setExecutorId(id.get());
             return pass(
                     this,
-                    "Offer contains the matching Executor ID: '%s'", id)
+                    "Offer contains the matching Executor ID: '%s'", idStr)
                     .build();
         } else {
             Protos.ExecutorID executorID = CommonIdUtils.toExecutorId(executorBuilder.getName());
