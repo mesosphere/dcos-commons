@@ -38,9 +38,11 @@ pods:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
             advertise: true
+            {{^TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
             vip:
               prefix: broker
               port: 9092
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
@@ -48,17 +50,21 @@ pods:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
             advertise: true
+            {{^TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
             vip:
               prefix: broker
               port: 9092
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
           broker-tls:
             port: {{BROKER_PORT_TLS}}
             env-key: KAFKA_BROKER_PORT_TLS
             advertise: true
+            {{^TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
             vip:
               prefix: broker-tls
               port: 9093
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         volume:
           path: {{BROKER_DISK_PATH}}

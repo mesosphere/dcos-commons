@@ -7,6 +7,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_utils
+import sdk_networks
 
 from tests import auth
 from tests import config
@@ -120,6 +121,14 @@ def kafka_client(kerberos, kafka_server):
 
     finally:
         sdk_marathon.destroy_app(client_id)
+
+
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.sanity
+def test_no_vip(kafka_client, kafka_server, kerberos):
+    endpoints = sdk_networks.get_and_test_endpoints(kafka_server["package_name"], kafka_server["service"]["name"], "broker", 2)
+    assert "vip" not in endpoints
 
 
 @pytest.mark.dcos_min_version('1.10')
