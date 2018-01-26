@@ -300,10 +300,10 @@ public class PodResource extends PrettyJsonResource {
         }
 
         if (recoveryType.equals(RecoveryType.PERMANENT)) {
-            Collection<Protos.TaskID> taskIds = podTasks.get().stream()
-                    .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo().getTaskId())
+            Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
+                    .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo())
                     .collect(Collectors.toList());
-            taskFailureListener.tasksFailed(taskIds);
+            taskFailureListener.tasksFailed(taskInfos);
         }
 
         return killTasks(taskKiller, podInstanceName, podTasks.get(), recoveryType);
