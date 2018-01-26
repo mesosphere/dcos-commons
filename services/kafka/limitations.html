@@ -526,7 +526,9 @@
 
 <h2 id="security">Security</h2>
 
-<p>The security features introduced in Apache Kafka 0.9 are not supported at this time.</p>
+<h3 id="kerberos">Kerberos</h3>
+
+<p>When Kerberos is enabled, the broker VIP is disabled as Kerberized clients will not be able to use it. This is because each Kafka broker uses a specific Kerberos principal and cannot accept connections from a single unified principal which the VIP would require.</p>
 
 <h2 id="out-of-band-configuration">Out-of-band configuration</h2>
 
