@@ -25,6 +25,9 @@ pytestmark = [
 ]
 
 
+MESSAGES = []
+
+
 @pytest.fixture(scope='module', autouse=True)
 def kerberos(configure_security):
     try:
@@ -122,11 +125,11 @@ def kafka_client(kerberos, kafka_server):
 
 def test_default_installation(kafka_client, kafka_server):
     assert check_brokers_are_unchanged(kafka_client, kafka_server)
-    write_success, read_success = client_can_read_and_write("default", 1,
+    write_success, read_success = client_can_read_and_write("default",
                                                             kafka_client, kafka_server, None)
 
     assert write_success, "Write failed"
-    assert read_success, "Read failed"
+    assert read_success, "Read failed: MESSAGES={} read_success={}".format(MESSAGES, read_success)
 
 
 def test_enable_kerberos(kafka_client, kafka_server, kerberos):
@@ -164,10 +167,10 @@ def test_enable_kerberos(kafka_client, kafka_server, kerberos):
 
     # TODO(elezar): The "id" here is currently tied to the principal used. Therefore we need to use "client"
     # for the kerberos test.
-    write_success, read_success = client_can_read_and_write("client", 2, kafka_client, kafka_server, kerberos)
+    write_success, read_success = client_can_read_and_write("client", kafka_client, kafka_server, kerberos)
 
     assert write_success, "Write failed"
-    assert read_success, "Read failed"
+    assert read_success, "Read failed: MESSAGES={} read_success={}".format(MESSAGES, read_success)
 
 
 def test_disable_kerberos(kafka_client, kafka_server):
@@ -196,11 +199,11 @@ def test_disable_kerberos(kafka_client, kafka_server):
         sdk_plan.wait_for_completed_deployment(kafka_server["service"]["name"])
 
     assert check_brokers_are_unchanged(kafka_client, kafka_server)
-    write_success, read_success = client_can_read_and_write("disable_kerberos", 3,
+    write_success, read_success = client_can_read_and_write("disable_kerberos",
                                                             kafka_client, kafka_server, None)
 
     assert write_success, "Write failed"
-    assert read_success, "Read failed"
+    assert read_success, "Read failed: MESSAGES={} read_success={}".format(MESSAGES, read_success)
 
 
 def check_brokers_are_unchanged(kafka_client: dict, kafka_server: dict) -> bool:
@@ -212,7 +215,7 @@ def check_brokers_are_unchanged(kafka_client: dict, kafka_server: dict) -> bool:
     return set(brokers) == set(kafka_client["env"]["KAFKA_BROKER_LIST"].split(","))
 
 
-def client_can_read_and_write(test_id: str, call_count: int,
+def client_can_read_and_write(test_id: str,
                               kafka_client: dict, kafka_server: dict, krb5=None) -> tuple:
     client_id = kafka_client["id"]
 
@@ -228,7 +231,12 @@ def client_can_read_and_write(test_id: str, call_count: int,
     message = str(uuid.uuid4())
 
     write_success = write_to_topic(test_id, client_id, topic_name, message, krb5)
-    read_success = message in read_from_topic(test_id, client_id, topic_name, call_count, krb5)
+    if write_success:
+        MESSAGES.append(message)
+
+    read_messages = read_from_topic(test_id, client_id, topic_name, len(MESSAGES), krb5)
+
+    read_success = map(lambda m: m in read_messages, MESSAGES)
 
     return write_success, read_success
 
