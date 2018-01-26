@@ -194,7 +194,7 @@ public class OfferEvaluator {
             evaluationPipeline.add(new ExecutorEvaluationStage(Optional.empty()));
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
         } else {
-            Protos.ExecutorInfo executorInfo = getExecutorInfo(thisPodTasks.values());
+            Protos.ExecutorInfo executorInfo = getExecutorInfo(podInstanceRequirement, thisPodTasks.values());
 
             // An empty ExecutorID indicates we should use a new Executor, otherwise we should attempt to launch
             // tasks on an already running Executor.
@@ -211,8 +211,18 @@ public class OfferEvaluator {
         return evaluationPipeline;
     }
 
-    private Protos.ExecutorInfo getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
-        for (Protos.TaskInfo taskInfo : taskInfos) {
+    private Protos.ExecutorInfo getExecutorInfo(
+            PodInstanceRequirement podInstanceRequirement,
+            Collection<Protos.TaskInfo> taskInfos) {
+        // Filter which tasks are candidates for executor reuse.  Don't try to reuse your own executor.
+        List<String> taskNames = TaskUtils.getTaskNames(
+                podInstanceRequirement.getPodInstance(),
+                podInstanceRequirement.getTasksToLaunch());
+        Collection<Protos.TaskInfo> executorReuseCandidates = taskInfos.stream()
+                .filter(taskInfo -> !taskNames.contains(taskInfo.getName()))
+                .collect(Collectors.toList());
+
+        for (Protos.TaskInfo taskInfo : executorReuseCandidates) {
             if (taskHasReusableExecutor(taskInfo)) {
                 logger.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
                 return taskInfo.getExecutor();
