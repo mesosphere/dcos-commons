@@ -523,7 +523,7 @@
 <ul class="section-nav">
 <li class="toc-entry toc-h1"><a href="#dcos-component-overview">DC/OS Component Overview</a>
 <ul>
-<li class="toc-entry toc-h2"><a href="#mesos">Mesos</a></li>
+<li class="toc-entry toc-h2"><a href="#apache-mesos">Apache Mesos</a></li>
 <li class="toc-entry toc-h2"><a href="#marathon">Marathon</a></li>
 <li class="toc-entry toc-h2"><a href="#universe">Universe</a></li>
 <li class="toc-entry toc-h2"><a href="#zookeeper">ZooKeeper</a></li>
@@ -683,14 +683,14 @@
 <h1 id="dcos-component-overview">
 <a id="dcos-component-overview" class="anchor" href="#dcos-component-overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>DC/OS Component Overview</h1>
 
-<p>The four major components are Mesos, Marathon, Universe, and ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.</p>
+<p>The four major components are Apache Mesos, Marathon, Universe, and Apache ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.</p>
 
-<h2 id="mesos">
-<a id="mesos" class="anchor" href="#mesos" aria-hidden="true"><span class="octicon octicon-link"></span></a>Mesos</h2>
+<h2 id="apache-mesos">
+<a id="apache-mesos" class="anchor" href="#apache-mesos" aria-hidden="true"><span class="octicon octicon-link"></span></a>Apache Mesos</h2>
 
 <p>DC/OS is modeled on an operating system with Mesos as its kernel. Mesos provides an abstraction to enable consumption of the resources a datacenter provides.  In a typical case, these resources are CPU, memory, disk space, and ports. Tasks are launched in the datacenter and consume particular subsets of resources. The programs that can receive resource offers and launch tasks that consume are called <strong>frameworks</strong>. The component of a framework that receives offers and launches tasks is called the <strong>scheduler</strong>.</p>
 
-<p>Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include <em>staging, running, failed</em>,* *etc.  To learn more about Mesos, consult the  “<a href="https://open.mesosphere.com/advanced-course/">Mesos Advanced Course</a>”.</p>
+<p>Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include <em>staging, running, failed</em>,* *etc.  To learn more about Mesos, consult “<a href="http://mesos.apache.org/">Apache Mesos</a>”.</p>
 
 <h2 id="marathon">
 <a id="marathon" class="anchor" href="#marathon" aria-hidden="true"><span class="octicon octicon-link"></span></a>Marathon</h2>
@@ -713,7 +713,7 @@
 
 <p>Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the state of its tasks. ZooKeeper provides persistent storage for this information.</p>
 
-<p>Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java">ConfigStore</a> and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java">StateStore</a> interfaces are generic and unopinionated about the backing persistent metadata store.</p>
+<p>Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/ConfigStore.java">ConfigStore</a> and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java">StateStore</a> interfaces are generic and unopinionated about the backing persistent metadata store.</p>
 
 <p>They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.</p>
 
@@ -2319,9 +2319,7 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 <h2 id="unit-tests">
 <a id="unit-tests" class="anchor" href="#unit-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>Unit tests</h2>
 
-<p>Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceSpecTest.java">some example unit tests</a>.</p>
-
-<p><strong>Important:</strong> In order to avoid unintentional execution of other framework tests, you must include <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.gradle#L40-L45">a test filter similar to the one defined by the hello-world framework</a>.</p>
+<p>Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceTest.java">some example unit tests</a>.</p>
 
 <p>Unit tests that follow the pattern described above will be automatically run on all pull requests, and test failures will block merges. Unit tests can be manually executed either through standard IDE test integrations or through standard gradle commands.</p>
 
@@ -2342,7 +2340,7 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 <p>You can run integration tests manually using <code class="highlighter-rouge">py.test</code>.  The
 integration tests assume you have a running DC/OS cluster, and have
 installed the
-<a href="https://docs.mesosphere.com/1.8/usage/cli/install/">DC/OS CLI</a>.</p>
+<a href="https://docs.mesosphere.com/latest/cli/install/">DC/OS CLI</a>.</p>
 
 <p>Here’s an example of running the tests for the <code class="highlighter-rouge">helloworld</code> framework:</p>
 
@@ -2448,7 +2446,7 @@ installed the
 
 <p>Each pod runs inside a single container. The <code class="highlighter-rouge">ServiceSpec</code> specifies the following:</p>
 <ul>
-  <li>We can specify the <code class="highlighter-rouge">image</code> that we want to use, for example, a Docker image. The image is run in the Mesos <a href="https://dcos.io/docs/latest/deploying-services/containerizers/ucr/">Universal Container Runtime</a>.</li>
+  <li>We can specify the <code class="highlighter-rouge">image</code> that we want to use, for example, a Docker image. The image is run in the Mesos <a href="https://docs.mesosphere.com/latest/deploying-services/containerizers/ucr/">Universal Container Runtime</a>.</li>
   <li>The <code class="highlighter-rouge">networks</code> field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. One example of a supported virtual network is the <code class="highlighter-rouge">dcos</code> overlay network.</li>
   <li>The <code class="highlighter-rouge">rlimits</code> field allows you to set POSIX resource limits for every task that runs inside the container.</li>
 </ul>
@@ -2481,7 +2479,7 @@ installed the
         <span class="na">memory</span><span class="pi">:</span> <span class="s">256</span>
 </code></pre></div></div>
 
-<p>For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md">the Mesos documentation on rlimits</a>.</p>
+<p>For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/isolators/posix-rlimits.md">the Mesos documentation on rlimits</a>.</p>
 
 <p><strong>Virtual networks</strong>
 The SDK supports having pods join virtual neworks (including the <code class="highlighter-rouge">dcos</code> overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. <strong>Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa</strong>. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
@@ -2637,7 +2635,7 @@ hello
           <span class="pi">-</span> <span class="na">default</span><span class="pi">:</span> <span class="pi">[[</span><span class="nv">initialize</span><span class="pi">],</span> <span class="pi">[</span><span class="nv">server</span><span class="pi">]]</span>
 </code></pre></div></div>
 
-<p>The plan defined above, the instance of the hello pod with index 0 should first have the initialize task run, followed by the server task. Because they refer to the same resource set and their commands print to the same file in the same volume, the sequencing of tasks has a cumulative effect on the container context. For a fully featured practical example of this pattern, <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/hdfs/src/main/dist/hdfs_svc.yml">see the HDFS service here</a>.</p>
+<p>The plan defined above, the instance of the hello pod with index 0 should first have the initialize task run, followed by the server task. Because they refer to the same resource set and their commands print to the same file in the same volume, the sequencing of tasks has a cumulative effect on the container context. For a fully featured practical example of this pattern, <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/hdfs/src/main/dist/svc.yml">see the HDFS service here</a>.</p>
 
 <h3 id="sidecar-plans">
 <a id="sidecar-plans" class="anchor" href="#sidecar-plans" aria-hidden="true"><span class="octicon octicon-link"></span></a>Sidecar Plans</h3>
