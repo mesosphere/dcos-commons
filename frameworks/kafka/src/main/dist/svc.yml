@@ -97,6 +97,10 @@ pods:
           export KAFKA_OPTS="-Dsun.security.krb5.debug=true $KAFKA_OPTS"
         {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
       {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+      {{#TASKCFG_ALL_KEYSTORE_PASSWORD}}
+          $JAVA_HOME/bin/keytool -import -trustcacerts -keystore $MESOS_SANDBOX/keystore.jks -storepass {{TASKCFG_ALL_KEYSTORE_PASSWORD}} -noprompt -file {{TASKCFG_ALL_CLIENT_CERTIFICATE}}
+          export KAFKA_OPTS="-Dcom.sun.management.jmxremote.ssl.need.client.auth=true -Dcom.sun.management.jmxremote.registry.ssl=true -Djavax.net.ssl.keyStore=$MESOS_SANDBOX/keystore.jks -Djavax.net.ssl.keyStorePassword={{TASKCFG_ALL_KEYSTORE_PASSWORD}} -Djavax.net.ssl.trustStore=$MESOS_SANDBOX/truststore.jks -Djavax.net.ssl.trustStorePassword={{TASKCFG_ALL_TRUSTSTORE_PASSWORD}} $KAFKA_OPTS"
+      {{/TASKCFG_ALL_KEYSTORE_PASSWORD}}
 
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
           ./setup-helper
