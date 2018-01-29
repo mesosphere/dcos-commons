@@ -5,6 +5,7 @@ apply plugin: 'java'
 apply plugin: 'application'
 
 repositories {
+    jcenter()
     mavenCentral()
     maven {
         url "http://downloads.mesosphere.com/maven/"
