@@ -528,6 +528,12 @@
 
 <p>During deployment and upgrades, the <code class="highlighter-rouge">serial</code> strategy does not wait for the Elastic service to reach green before proceeding to the next node.</p>
 
+<h2 id="toggling-tls">Toggling TLS</h2>
+
+<p>Toggling TLS requires doing a full-cluster restart. This is an <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html">Elasticsearch limitation</a>. Since the service’s default update strategy is a rolling upgrade (<code class="highlighter-rouge">serial</code>) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). A full-cluster restart is required (using the <code class="highlighter-rouge">parallel</code> update strategy). Make sure to have backups and plan for some downtime.</p>
+
+<p>Afterwards, you should set the update strategy back to <code class="highlighter-rouge">serial</code> for future updates.</p>
+
 <h2 id="out-of-band-configuration">Out-of-band configuration</h2>
 
 <p>Out-of-band configuration modifications are not supported. The service’s core responsibility is to deploy and maintain the service with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will override those modifications at a later time. For example:</p>
@@ -536,7 +542,7 @@
   <li>If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.</li>
 </ul>
 
-<p>ElasticSearch provides two ways of updating settings: persistent (through <code class="highlighter-rouge">elasticsearch.yml</code> file) and transient (through Elastic Settings Update API). The service’s Configuration Options are carried over to the tasks’ elasticsearch.yml file automatically. Out-of-band configuration changes (either via ElasticSearch’s Update API or externally modifying elasticsearch.yml files) will not persist in case of a restart, failure recovery, or upgrade.</p>
+<p>Elasticsearch provides two ways of updating settings: persistent (through <code class="highlighter-rouge">elasticsearch.yml</code> file) and transient (through Elastic Settings Update API). The service’s Configuration Options are carried over to the tasks’ elasticsearch.yml file automatically. Out-of-band configuration changes (either via Elasticsearch’s Update API or externally modifying elasticsearch.yml files) will not persist in case of a restart, failure recovery, or upgrade.</p>
 
 <h2 id="scaling-in">Scaling in</h2>
 
