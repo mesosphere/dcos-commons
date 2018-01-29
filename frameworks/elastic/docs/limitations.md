@@ -15,11 +15,11 @@ The maximum number of deployable nodes is constrained by the DC/OS cluster's res
 
 During deployment and upgrades, the `serial` strategy does not wait for the Elastic service to reach green before proceeding to the next node.
 
-## Toggling TLS requires doing a full-cluster restart
+## Toggling TLS
 
-This is an [Elasticsearch limitation](https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html). Since the service's default update strategy is a rolling upgrade (`serial`) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). You must do a full-cluster restart (`parallel` update strategy). Make sure to have backups and plan for some downtime.
+Toggling TLS requires doing a full-cluster restart. This is an [Elasticsearch limitation](https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html). Since the service's default update strategy is a rolling upgrade (`serial`) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). A full-cluster restart is required (using the `parallel` update strategy). Make sure to have backups and plan for some downtime.
 
-Afterwards, you can set the update strategy back to `serial` for future updates.
+Afterwards, you should set the update strategy back to `serial` for future updates.
 
 ## Out-of-band configuration
 
