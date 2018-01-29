@@ -11,7 +11,7 @@ This developer guide explains how to create a stateful DC/OS service using the D
 
 # DC/OS Component Overview
 
-The four major components are Apache Mesos, Marathon, Universe, and ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
+The four major components are Apache Mesos, Marathon, Universe, and Apache ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
 
 ## Apache Mesos
 
