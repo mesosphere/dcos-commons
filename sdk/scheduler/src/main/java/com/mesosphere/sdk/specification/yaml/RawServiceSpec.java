@@ -23,14 +23,14 @@ import org.slf4j.LoggerFactory;
  * Root of the parsed YAML object model.
  */
 public class RawServiceSpec {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Builder.class);
+    private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     /**
      * Handles rendering of {@link RawServiceSpec}s based on the Scheduler's environment variables.
      */
     public static class Builder {
 
-        private static final Logger LOGGER = LoggerFactory.getLogger(Builder.class);
-        private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
         static {
             // If the user provides duplicate fields (e.g. 'count' twice), throw an error instead of silently dropping
             // data:
