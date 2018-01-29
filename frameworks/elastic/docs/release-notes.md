@@ -7,6 +7,21 @@ menuWeight: 120
 
 ---
 
+## Version 2.1.2-5.6.5
+
+## NOTICE
+
+This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Improvements
+- Before launching tasks, only download X-Pack artifact if `xpack_enabled` is true.
+- Removed unused `service.security.allow_plaintext` configuration property.
+- Moved Elastic and Kibana scheduler health-checks from HTTP to [Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks).
+
+### Documentation
+- Added instructions for configuring placement constraints.
+- Added instructions for pausing nodes.
+
 ## Version 2.1.1-5.6.5
 
 ## NOTICE
