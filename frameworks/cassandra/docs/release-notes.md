@@ -16,6 +16,9 @@ This is a beta release of the DC/OS Apache Cassandra framework. It contains mult
 ### Improvements
 - Remove the dependency on a docker image and allow the service to run as nobody in CentOS distros. [#2067](https://github.com/mesosphere/dcos-commons/pull/2067)
 - Moved scheduler health-checks from HTTP to [Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks).
+- Bump JRE to 1.8u162.
+- Improvements to the pod pause feature.
+- Improve handling of unexpected task statuses.
 
 ### Documentation
 - Added limitation section for backup/restore with authentication enabled. [#2125](https://github.com/mesosphere/dcos-commons/pull/2125)
