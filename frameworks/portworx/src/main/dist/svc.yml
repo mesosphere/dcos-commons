@@ -6,15 +6,7 @@ pods:
     user: {{SERVICE_USER}}
     count: {{NODE_COUNT}}
     resource-sets:
-      px-install-resources:
-        cpus: 0.3
-        memory: 512
-        # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
-        volume:
-          path: temp
-          size: 1
-          type: ROOT
-      px-restart-resources:
+      px-resources:
         cpus: 0.3
         memory: 512
         # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
@@ -26,7 +18,7 @@ pods:
     tasks:
       install:
         goal: FINISHED
-        resource-set: px-install-resources
+        resource-set: px-resources
         cmd: >
 
                 {{#LIGHTHOUSE_ENABLED}}
@@ -104,7 +96,7 @@ pods:
 
       upgrade:
         goal: FINISHED
-        resource-set: px-restart-resources
+        resource-set: px-resources
         cmd: >
              docker pull {{{PORTWORX_IMAGE_NAME}}} &&
              systemctl stop portworx &&
