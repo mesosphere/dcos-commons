@@ -29,7 +29,12 @@ MESSAGES = []
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security):
+def kerberos():
+    """
+    A pytest fixture that installs and configures a KDC used for testing.
+
+    On teardown, the KDC application is removed.
+    """
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
@@ -73,7 +78,11 @@ def kafka_server():
 
 @pytest.fixture(scope='module', autouse=True)
 def kafka_client(kerberos, kafka_server):
+    """
+    A pytest fixture to install a Kerberized Kafka client as a Marathon application.
 
+    On teardown, the client is uninstalled.
+    """
     brokers = sdk_cmd.svc_cli(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
