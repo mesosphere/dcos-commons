@@ -26,6 +26,15 @@ log = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 15 * 60
 
+'''List of services which are currently installed via install().
+Used by post-test diagnostics to retrieve stuff from currently running services.'''
+_installed_service_names = set([])
+
+
+def get_installed_service_names() -> set:
+    '''Returns the a set of service names which had been installed via sdk_install in this session.'''
+    return _installed_service_names
+
 
 @retrying.retry(stop_max_attempt_number=3,
                 retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException))
@@ -120,6 +129,9 @@ def install(
     log.info('Installed package={} service={} after {}'.format(
         package_name, service_name, shakedown.pretty_duration(time.time() - start)))
 
+    global _installed_service_names
+    _installed_service_names.add(service_name)
+
 
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
@@ -145,6 +157,12 @@ def _uninstall(
         service_account=None,
         zk=None):
     start = time.time()
+
+    global _installed_service_names
+    try:
+        _installed_service_names.remove(service_name)
+    except KeyError:
+        pass # allow tests to 'uninstall' up-front
 
     if sdk_utils.dcos_version_less_than('1.10'):
         log.info('Uninstalling/janitoring {}'.format(service_name))

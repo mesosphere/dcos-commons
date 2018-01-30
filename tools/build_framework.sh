@@ -10,14 +10,9 @@ Update your build.sh to use build_package.sh as follows. See dcos-commons/framew
 - If you are using build_go_exe.sh to build a binary across multiple platforms (e.g. to build a custom CLI across linux/darwin/windows), you should instead perform a single build_go_exe.sh invocation with multiple space-separated platforms. See dcos-commons/sdk/cli/build.sh for an example.
 
 Additionally, if your service does not require a custom CLI with additional custom, you can now switch to a default CLI and forego the need to have golang to build your service.
-Update your universe/resource.json's CLI entries as follows (with correct SHA256, SDKVERS and PLATFORM):
+Update your universe/resource.json's CLI entries as follows (with correct SDKVERS and PLATFORM):
         "x86-64": {
-          "contentHash": [
-            {
-              "algo": "sha256",
-              "value": "SHA256: get output of 'curl https://downloads.mesosphere.com/dcos-commons/artifacts/SDKVERS/dcos-service-cli-PLATFORM | sha256sum'"
-            }
-          ],
+          "contentHash": [ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-PLATFORM@https://downloads.mesosphere.com/dcos-commons/artifacts/SDKVERS/SHA256SUMS}}" } ],
           "kind": "executable",
           "url": "https://downloads.mesosphere.com/dcos-commons/artifacts/SDKVERS/dcos-service-cli-PLATFORM"
         }

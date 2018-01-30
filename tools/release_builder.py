@@ -240,6 +240,9 @@ Artifact output: {}
         '''Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
         Returns the original urls.
         '''
+        if 'resource' not in package_json:
+            return []
+
         # we expect the artifacts to share the same directory prefix as the stub universe file itself:
         original_artifact_prefix = '/'.join(self._stub_universe_url.split('/')[:-1])
         log.info('Replacing artifact prefix {} with {}'.format(
