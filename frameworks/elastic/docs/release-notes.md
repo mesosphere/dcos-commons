@@ -17,6 +17,9 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 - Before launching tasks, only download X-Pack artifact if `xpack_enabled` is true.
 - Removed unused `service.security.allow_plaintext` configuration property.
 - Moved Elastic and Kibana scheduler health-checks from HTTP to [Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks).
+- Bump JRE to 1.8u162.
+- Improvements to the pod pause feature.
+- Improve handling of unexpected task statuses.
 
 ### Documentation
 - Added instructions for configuring placement constraints.
