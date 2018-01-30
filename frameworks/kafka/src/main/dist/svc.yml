@@ -102,6 +102,8 @@ pods:
           #
           # Additionally, we include a custom principal builder
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          # Clean up any pre-existing zookeeper library
+          rm $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/zookeeper*.jar
           mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
           mv -v kafka-custom-principal-builder* $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
 
