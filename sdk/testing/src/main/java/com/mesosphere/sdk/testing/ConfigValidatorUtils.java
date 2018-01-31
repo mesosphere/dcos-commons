@@ -12,14 +12,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 /**
- * Created by gabriel on 1/30/18.
+ * This class provides common utilities for testing zone validation with regard to placement rules.
  */
 public class ConfigValidatorUtils {
     private static final String HOST_RULE = "[[\"@hostname\", \"UNIQUE\"]]";
     private static final String MAX_PER_ZONE_RULE = "[[\"@zone\", \"MAX_PER\", \"3\"]]";
     private static final String GROUP_BY_ZONE_RULE = "[[\"@zone\", \"GROUP_BY\", \"3\"]]";
 
-    public static void validateZoneTransition(
+    private static void validateZoneTransition(
             ConfigValidator<ServiceSpec> configValidator,
             ServiceTestRunner testRunner,
             String placementEnvKey,
