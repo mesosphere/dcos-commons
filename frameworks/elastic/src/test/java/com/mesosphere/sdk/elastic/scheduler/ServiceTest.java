@@ -1,17 +1,15 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testing.*;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class ServiceTest {
     private static final String HOST_RULE = "[[\"@hostname\", \"UNIQUE\"]]";
     private static final String MAX_PER_ZONE_RULE = "[[\"@zone\", \"MAX_PER\", \"3\"]]";
     private static final String GROUP_BY_ZONE_RULE = "[[\"@zone\", \"GROUP_BY\", \"3\"]]";
+    private static final ConfigValidator<ServiceSpec> validator = new ElasticZoneValidator();
 
     @Test
     public void testSpec() throws Exception {
@@ -20,60 +18,26 @@ public class ServiceTest {
 
     @Test
     public void rejectRackEnablement() throws Exception {
-        rejectRackEnablement("MASTER_NODE_PLACEMENT");
-        rejectRackEnablement("DATA_NODE_PLACEMENT");
-        rejectRackEnablement("INGEST_NODE_PLACEMENT");
-        rejectRackEnablement("COORDINATOR_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "MASTER_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "INGEST_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "COORDINATOR_NODE_PLACEMENT");
     }
 
     @Test
     public void rejectRackDisablement() throws Exception {
-        rejectRackDisablement("MASTER_NODE_PLACEMENT");
-        rejectRackDisablement("DATA_NODE_PLACEMENT");
-        rejectRackDisablement("INGEST_NODE_PLACEMENT");
-        rejectRackDisablement("COORDINATOR_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "MASTER_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "INGEST_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "COORDINATOR_NODE_PLACEMENT");
     }
 
     @Test
     public void allowRackChanges() throws Exception {
-        allowRackChanges("MASTER_NODE_PLACEMENT");
-        allowRackChanges("DATA_NODE_PLACEMENT");
-        allowRackChanges("INGEST_NODE_PLACEMENT");
-        allowRackChanges("COORDINATOR_NODE_PLACEMENT");
-    }
-
-    private void allowRackChanges(String placementEnvKey) throws Exception {
-        validateZoneTransition(placementEnvKey, MAX_PER_ZONE_RULE, GROUP_BY_ZONE_RULE, Status.IN_PROGRESS);
-    }
-
-    private void rejectRackEnablement(String placementEnvKey) throws Exception {
-        validateZoneTransition(placementEnvKey, HOST_RULE, GROUP_BY_ZONE_RULE, Status.ERROR);
-    }
-
-    private void rejectRackDisablement(String placementEnvKey) throws Exception {
-        validateZoneTransition(placementEnvKey, GROUP_BY_ZONE_RULE, HOST_RULE, Status.ERROR);
-    }
-
-    private void validateZoneTransition(
-            String placementEnvKey,
-            String originalPlacement,
-            String newPlacement,
-            Status expectedStatus) throws Exception {
-
-        ServiceTestResult result = getDefaultRunner()
-                .setSchedulerEnv(placementEnvKey, originalPlacement)
-                .run();
-
-        Collection<SimulationTick> ticks = new ArrayList<>();
-        ticks.add(Send.register());
-        ticks.add(Expect.planStatus(Constants.DEPLOY_PLAN_NAME, expectedStatus));
-
-        getDefaultRunner()
-                .setSchedulerEnv(placementEnvKey, newPlacement)
-                .setCustomValidators(new ElasticZoneValidator())
-                .setState(result)
-                .run(ticks);
-
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "MASTER_NODE_PLACEMENT");
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "INGEST_NODE_PLACEMENT");
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "COORDINATOR_NODE_PLACEMENT");
     }
 
     private ServiceTestRunner getDefaultRunner() {

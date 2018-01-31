@@ -1,21 +1,22 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.testing.ConfigValidatorUtils;
+import com.mesosphere.sdk.testing.ServiceTestResult;
+import com.mesosphere.sdk.testing.ServiceTestRunner;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.mesosphere.sdk.testing.ServiceTestRunner;
-import com.mesosphere.sdk.testing.ServiceTestResult;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ServiceTest {
+    private static final ConfigValidator<ServiceSpec> validator = new CassandraZoneValidator();
 
     @Test
     public void testSpec() throws Exception {
-        new ServiceTestRunner()
-                .setPodEnv("node", getDefaultNodeEnv())
-                .run();
+        new ServiceTestRunner().setPodEnv("node", getDefaultNodeEnv()).run();
     }
 
     @Test
@@ -42,9 +43,30 @@ public class ServiceTest {
                 "client_encryption_options:\n    enabled: true\n    optional: false"));
     }
 
+    @Test
+    public void rejectRackEnablement() throws Exception {
+        ConfigValidatorUtils.rejectRackEnablement(validator, getZoneRunner(), "PLACEMENT_CONSTRAINT");
+    }
+
+    @Test
+    public void rejectRackDisablement() throws Exception {
+        ConfigValidatorUtils.rejectRackDisablement(validator, getZoneRunner(), "PLACEMENT_CONSTRAINT");
+    }
+
+    @Test
+    public void allowRackChanges() throws Exception {
+        ConfigValidatorUtils.allowRackChanges(validator, getZoneRunner(), "PLACEMENT_CONSTRAINT");
+    }
+
     private static Map<String, String> getDefaultNodeEnv() {
         Map<String, String> map = new HashMap<>();
         map.put("LOCAL_SEEDS", "foo,bar"); // would be provided by our Main.java
         return map;
+    }
+
+    private ServiceTestRunner getZoneRunner() {
+        Map<String, String> map = getDefaultNodeEnv();
+        map.put("ZONE", "zone");
+        return new ServiceTestRunner().setPodEnv("node", map);
     }
 }
