@@ -310,6 +310,23 @@ public interface Expect extends SimulationTick {
         };
     }
 
+    public static Expect planStatus(String planName, Status status) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+                Plan plan = state.getPlans().stream()
+                        .filter(p -> p.getName().equals(planName))
+                        .findFirst().get();
+                Assert.assertEquals(status, plan.getStatus());
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Plan %s has status %s", planName, status);
+            }
+        };
+    }
+
     /**
      * Verifies that the indicated recovery phase.step has the expected status.
      */
