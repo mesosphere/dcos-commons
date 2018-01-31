@@ -1,14 +1,9 @@
 package com.mesosphere.sdk.elastic.scheduler;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testing.*;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.Collection;
 
 public class ServiceTest {
     private static final String HOST_RULE = "[[\"@hostname\", \"UNIQUE\"]]";

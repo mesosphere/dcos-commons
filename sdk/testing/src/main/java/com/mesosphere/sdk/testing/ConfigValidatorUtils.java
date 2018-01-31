@@ -2,8 +2,11 @@ package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import org.apache.mesos.SchedulerDriver;
+import org.junit.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +25,7 @@ public class ConfigValidatorUtils {
             String placementEnvKey,
             String originalPlacement,
             String newPlacement,
-            Status expectedStatus) throws Exception {
+            boolean shouldSucceed) throws Exception {
 
         ServiceTestResult result = testRunner
                 .setSchedulerEnv(placementEnvKey, originalPlacement)
@@ -30,7 +33,25 @@ public class ConfigValidatorUtils {
 
         Collection<SimulationTick> ticks = new ArrayList<>();
         ticks.add(Send.register());
-        ticks.add(Expect.planStatus(Constants.DEPLOY_PLAN_NAME, expectedStatus));
+
+        if (shouldSucceed) {
+            ticks.add(new Expect() {
+                @Override
+                public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+                    Plan plan = state.getPlans().stream()
+                            .filter(p -> p.getName().equals(Constants.DEPLOY_PLAN_NAME))
+                            .findFirst().get();
+                    Assert.assertNotEquals(Status.ERROR, plan.getStatus());
+                }
+
+                @Override
+                public String getDescription() {
+                    return "Deploy plan does not have ERROR as status.";
+                }
+            });
+        } else {
+            ticks.add(Expect.planStatus(Constants.DEPLOY_PLAN_NAME, Status.ERROR));
+        }
 
         testRunner
                 .setSchedulerEnv(placementEnvKey, newPlacement)
@@ -49,7 +70,7 @@ public class ConfigValidatorUtils {
                 placementEnvKey,
                 MAX_PER_ZONE_RULE,
                 GROUP_BY_ZONE_RULE,
-                Status.IN_PROGRESS);
+                true);
     }
 
     public static void rejectRackEnablement(
@@ -62,7 +83,7 @@ public class ConfigValidatorUtils {
                 placementEnvKey,
                 HOST_RULE,
                 GROUP_BY_ZONE_RULE,
-                Status.ERROR);
+                false);
     }
 
     public static void rejectRackDisablement(
@@ -75,6 +96,6 @@ public class ConfigValidatorUtils {
                 placementEnvKey,
                 GROUP_BY_ZONE_RULE,
                 HOST_RULE,
-                Status.ERROR);
+                false);
     }
 }
