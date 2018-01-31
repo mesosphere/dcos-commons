@@ -84,11 +84,11 @@ def wait_for_toxic_sidecar():
 def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
     # 2. Restart the scheduler.
-    # 3. Verify that its recovery plan is empty, as a failed ONCE task should
+    # 3. Verify that its recovery plan has not changed, as a failed ONCE task should
     # never trigger recovery
-    recovery_plan = sdk_plan.get_plan(config.SERVICE_NAME, 'recovery')
-    assert(len(recovery_plan['phases']) == 0)
-    log.info(recovery_plan)
+    initial_recovery_plan = sdk_plan.get_plan(config.SERVICE_NAME, 'recovery')
+    assert(initial_recovery_plan['status'] == "COMPLETE")
+    log.info(initial_recovery_plan)
     sdk_plan.start_plan(config.SERVICE_NAME, 'sidecar-toxic')
     wait_for_toxic_sidecar()
 
@@ -96,10 +96,9 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     sdk_marathon.restart_app(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    # Now, verify that its recovery plan is empty.
-    sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'recovery')
-    recovery_plan = sdk_plan.get_plan(config.SERVICE_NAME, 'recovery')
-    assert(len(recovery_plan['phases']) == 0)
+    # Now, verify that its recovery plan hasn't changed.
+    final_recovery_plan = sdk_plan.get_plan(config.SERVICE_NAME, 'recovery')
+    assert(initial_recovery_plan['status'] == final_recovery_plan['status'])
 
 
 def run_plan(plan_name, params=None):
