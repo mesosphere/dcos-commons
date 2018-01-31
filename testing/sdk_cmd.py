@@ -8,7 +8,6 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 import json as jsonlib
 import os
 import logging
-import paramiko
 import retrying
 import subprocess
 import traceback
@@ -33,6 +32,7 @@ def service_request(
         raise_on_error=True,
         log_args=True,
         verify=None,
+        timeout_seconds=60,
         **kwargs):
     """Used to query a service running on the cluster. See `cluster_request()` for arg meanings.
     :param service_name: The name of the service, e.g. 'marathon' or 'hello-world'
@@ -41,7 +41,7 @@ def service_request(
     # Sanitize leading slash on service_path before calling urljoin() to avoid this:
     # 'http://example.com/service/myservice/' + '/v1/rpc' = 'http://example.com/v1/rpc'
     cluster_path = urllib.parse.urljoin('/service/{}/'.format(service_name), service_path.lstrip('/'))
-    return cluster_request(method, cluster_path, retry, raise_on_error, log_args, verify, **kwargs)
+    return cluster_request(method, cluster_path, retry, raise_on_error, log_args, verify, timeout_seconds, **kwargs)
 
 
 def cluster_request(
@@ -51,6 +51,7 @@ def cluster_request(
         raise_on_error=True,
         log_args=True,
         verify=None,
+        timeout_seconds=60,
         **kwargs):
     """Queries the provided cluster HTTP path using the provided method, with the following handy features:
     - The DCOS cluster's URL is automatically applied to the provided path.
@@ -104,7 +105,7 @@ def cluster_request(
         # Use wrapper to implement retry:
         @retrying.retry(
             wait_fixed=1000,
-            stop_max_delay=60*1000)
+            stop_max_delay=timeout_seconds*1000)
         def retry_fn():
             return fn()
         return retry_fn()
