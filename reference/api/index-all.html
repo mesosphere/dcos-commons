@@ -173,6 +173,8 @@
 <dd>
 <div class="block">Sets whether the <a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#count-java.lang.Integer-"><code>DefaultPodSpec.Builder.count(Integer)</code></a> for this pod can ever be decreased in a config update.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html#allowRackChanges-com.mesosphere.sdk.config.validate.ConfigValidator-com.mesosphere.sdk.testing.ServiceTestRunner-java.lang.String-">allowRackChanges(ConfigValidator&lt;ServiceSpec&gt;, ServiceTestRunner, String)</a></span> - Static method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing">ConfigValidatorUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#allPlansComplete--">allPlansComplete()</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
 <div class="block">Verifies that the scheduler's plans are all complete -- that there's no pending work.</div>
@@ -759,6 +761,12 @@
 <div class="block">The <code>ConfigurationValidation</code> interface should be implemented by any class which intends to
  validate a new <code>Configuration</code>, either on its own, or w.r.t.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">ConfigValidatorUtils</span></a> - Class in <a href="com/mesosphere/sdk/testing/package-summary.html">com.mesosphere.sdk.testing</a></dt>
+<dd>
+<div class="block">This class provides common utilities for testing zone validation with regard to placement rules.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html#ConfigValidatorUtils--">ConfigValidatorUtils()</a></span> - Constructor for class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing">ConfigValidatorUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#conflictsWith-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">conflictsWith(PodInstanceRequirement)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a></dt>
 <dd>
 <div class="block">A PodInstanceRequirement conflictsWith with another it if applies to the same pod instance and some
@@ -5863,6 +5871,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#registered-ExecutorDriver-Protos.ExecutorInfo-Protos.FrameworkInfo-Protos.SlaveInfo-">registered(ExecutorDriver, Protos.ExecutorInfo, Protos.FrameworkInfo, Protos.SlaveInfo)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html#REGISTRATION_FAILURE">REGISTRATION_FAILURE</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html#rejectRackDisablement-com.mesosphere.sdk.config.validate.ConfigValidator-com.mesosphere.sdk.testing.ServiceTestRunner-java.lang.String-">rejectRackDisablement(ConfigValidator&lt;ServiceSpec&gt;, ServiceTestRunner, String)</a></span> - Static method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing">ConfigValidatorUtils</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html#rejectRackEnablement-com.mesosphere.sdk.config.validate.ConfigValidator-com.mesosphere.sdk.testing.ServiceTestRunner-java.lang.String-">rejectRackEnablement(ConfigValidator&lt;ServiceSpec&gt;, ServiceTestRunner, String)</a></span> - Static method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing">ConfigValidatorUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html#remaining--">remaining()</a></span> - Method in class com.mesosphere.sdk.reconciliation.<a href="com/mesosphere/sdk/reconciliation/DefaultReconciler.html" title="class in com.mesosphere.sdk.reconciliation">DefaultReconciler</a></dt>
 <dd>
