@@ -43,17 +43,18 @@ def configure_zookeeper(configure_security, install_zookeeper_stub):
     zk_account = "test-zookeeper-service-account"
     zk_secret = "test-zookeeper-secret"
 
-    if sdk_utils.is_strict_mode():
-        service_options = sdk_install.merge_dictionaries({
-            'service': {
-                'service_account': zk_account,
-                'service_account_secret': zk_secret,
-            }
-        }, service_options)
-
     try:
         sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
-        sdk_security.setup_security(ZK_SERVICE_NAME, zk_account, zk_secret)
+        if sdk_utils.is_strict_mode():
+            service_options = sdk_install.merge_dictionaries({
+                'service': {
+                    'service_account': zk_account,
+                    'service_account_secret': zk_secret,
+                }
+            }, service_options)
+
+            sdk_security.setup_security(ZK_SERVICE_NAME, zk_account, zk_secret)
+
         sdk_install.install(
             ZK_PACKAGE,
             ZK_SERVICE_NAME,
@@ -65,6 +66,9 @@ def configure_zookeeper(configure_security, install_zookeeper_stub):
         yield
     finally:
         sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
+        if sdk_utils.is_strict_mode():
+            sdk_security.delete_service_account(
+                service_account_name=zk_account, service_account_secret=zk_secret)
 
 
 @pytest.fixture(scope='module', autouse=True)
