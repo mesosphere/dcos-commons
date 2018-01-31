@@ -56,7 +56,7 @@ public class StateStoreUtils {
             ConfigStore<ServiceSpec> configStore,
             Set<String> launchableTaskNames) throws TaskException {
 
-        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).stream()
+        return fetchTasksNeedingRecovery(stateStore, configStore).stream()
                 .filter(taskInfo -> launchableTaskNames.contains(taskInfo.getName()))
                 .collect(Collectors.toList());
     }

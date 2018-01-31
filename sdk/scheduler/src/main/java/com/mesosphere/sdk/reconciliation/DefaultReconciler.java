@@ -8,6 +8,7 @@ import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

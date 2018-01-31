@@ -10,6 +10,7 @@ import com.mesosphere.sdk.specification.validation.ValidationUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
@@ -17,6 +18,7 @@ import javax.validation.constraints.Size;
 /**
  * This class provides a default implementation of the ResourceSpec interface.
  */
+@JsonTypeName("ResourceSpec")
 public class DefaultResourceSpec implements ResourceSpec {
     @NotNull
     @Size(min = 1)

@@ -1,0 +1,17 @@
+package com.mesosphere.sdk.specification;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.Protos;
+
+import java.util.Optional;
+
+/**
+ * Specification for a task's discovery info, including Mesos-DNS name prefix.
+ */
+public interface DiscoverySpec {
+    @JsonProperty("prefix")
+    Optional<String> getPrefix();
+
+    @JsonProperty("visibility")
+    Optional<Protos.DiscoveryInfo.Visibility> getVisibility();
+}

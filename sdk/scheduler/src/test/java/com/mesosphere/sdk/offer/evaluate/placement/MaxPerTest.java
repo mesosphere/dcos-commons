@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -267,11 +266,11 @@ public class MaxPerTest {
         }
 
         @Override
-        public EvaluationOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
+        public PlacementOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
             if (isAcceptable(offer, podInstance, tasks)) {
-                return EvaluationOutcome.pass(this, "Offer is acceptable").build();
+                return PlacementOutcome.pass(this, "Offer is acceptable").build();
             } else {
-                return EvaluationOutcome.fail(this, "Offer is NOT acceptable").build();
+                return PlacementOutcome.fail(this, "Offer is NOT acceptable").build();
             }
         }
 

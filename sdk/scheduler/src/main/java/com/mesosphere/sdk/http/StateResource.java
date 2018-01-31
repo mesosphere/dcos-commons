@@ -355,7 +355,7 @@ public class StateResource {
 
     /**
      * Gets the zone of a pod given its pod type and the IP address of the pod.
-     * @param stateStore The {@link StateStore} from which to get task info and task status from.
+     * @param stateStore The {@link TaskStore} from which to get task info and task status from.
      * @param podType The type of the pod to get zone information for.
      * @param ipAddress The IP address of the pod to get zone information for.
      * @return A string indicating the zone of the pod.

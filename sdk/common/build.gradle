@@ -74,6 +74,7 @@ publishing {
 }
 
 dependencies {
+    compile project(":api")
     compile "com.google.protobuf:protobuf-java:${protobufVer}"
     compile "commons-collections:commons-collections:${commonsCollectionsVer}"
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'

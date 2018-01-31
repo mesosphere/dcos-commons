@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -16,6 +18,7 @@ import java.util.TreeMap;
 /**
  * Default implementation of {@link CommandSpec}.
  */
+@JsonTypeName("CommandSpec")
 public class DefaultCommandSpec implements CommandSpec {
     @NotNull
     private String value;

@@ -13,7 +13,7 @@ import com.mesosphere.sdk.specification.DefaultTaskSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.TaskStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 
 import org.apache.mesos.Protos;
@@ -30,10 +30,10 @@ import java.util.stream.Collectors;
 public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
     protected final Logger logger = LoggerFactory.getLogger(getClass());
     private static final String RECOVERY_PHASE_NAME = "permanent-node-failure-recovery";
-    private final StateStore stateStore;
+    private final TaskStore stateStore;
     private final Plan replaceNodePlan;
 
-    public CassandraRecoveryPlanOverrider(StateStore stateStore, Plan replaceNodePlan) {
+    public CassandraRecoveryPlanOverrider(TaskStore stateStore, Plan replaceNodePlan) {
         this.stateStore = stateStore;
         this.replaceNodePlan = replaceNodePlan;
     }

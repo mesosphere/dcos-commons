@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
+import com.mesosphere.sdk.specification.DefaultNamedVIPSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
@@ -74,8 +74,8 @@ public class AuxLabelAccessTest {
         assertEquals(321, info.getVipPort());
     }
 
-    private static NamedVIPSpec newVIPSpec(String name, int port, String... networkNames) {
-        NamedVIPSpec mockVIPSpec = Mockito.mock(NamedVIPSpec.class);
+    private static DefaultNamedVIPSpec newVIPSpec(String name, int port, String... networkNames) {
+        DefaultNamedVIPSpec mockVIPSpec = Mockito.mock(DefaultNamedVIPSpec.class);
         Mockito.when(mockVIPSpec.getVipName()).thenReturn(name);
         Mockito.when(mockVIPSpec.getVipPort()).thenReturn(port);
         Mockito.when(mockVIPSpec.getNetworkNames()).thenReturn(Arrays.asList(networkNames));

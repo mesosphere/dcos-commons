@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
@@ -20,6 +21,7 @@ import java.util.*;
 /**
  * Default implementation of {@link PodSpec}.
  */
+@JsonTypeName("PodSpec")
 public class DefaultPodSpec implements PodSpec {
     @NotNull
     @Size(min = 1)

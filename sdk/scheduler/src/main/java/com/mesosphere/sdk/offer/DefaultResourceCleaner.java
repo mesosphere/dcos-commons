@@ -25,7 +25,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
 
     /**
      * Creates a new {@link DefaultResourceCleaner} which retrieves expected resource
-     * information from the provided {@link StateStore}.
+     * information from the provided {@link TaskStore}.
      *
      * @throws StateStoreException
      *             if there's a failure when retrieving resource information
@@ -75,7 +75,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
 
     /**
      * Returns a list of all expected resources, which are extracted from all {@link org.apache.mesos.Protos.TaskInfo}s
-     * produced by the provided {@link StateStore}.
+     * produced by the provided {@link TaskStore}.
      */
     private static Collection<Resource> getExpectedResources(StateStore stateStore) throws StateStoreException {
         return stateStore.fetchTasks().stream()

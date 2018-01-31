@@ -139,13 +139,13 @@ public class DefaultPlanSchedulerTest {
         }
 
         @Override
-        public Optional<PodInstanceRequirement> start() {
+        public void start() {
             super.start();
-            if (podInstanceRequirement == null) {
-                return Optional.empty();
-            } else {
-                return Optional.of(podInstanceRequirement);
-            }
+        }
+
+        @Override
+        public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+            return Optional.ofNullable(podInstanceRequirement);
         }
 
         @Override

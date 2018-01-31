@@ -143,7 +143,7 @@ public class EvaluationOutcome {
     }
 
     /**
-     * Builder for constructor {@link EvaluationOutcome} instances.
+     * Builder for constructing {@link EvaluationOutcome} instances.
      */
     public static class Builder {
         private final Type type;

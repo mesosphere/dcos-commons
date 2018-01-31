@@ -14,6 +14,7 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -64,7 +65,7 @@ public abstract class AbstractScheduler {
     private final ExecutorService offerExecutor = Executors.newSingleThreadExecutor();
 
     /**
-     * Creates a new AbstractScheduler given a {@link StateStore}.
+     * Creates a new AbstractScheduler given a {@link TaskStore}.
      */
     protected AbstractScheduler(
             StateStore stateStore,

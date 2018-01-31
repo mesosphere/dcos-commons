@@ -39,7 +39,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     /**
      * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
-     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
+     * {@link TaskStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
      * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(

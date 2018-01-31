@@ -1,0 +1,48 @@
+dependencies {
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.6.3'
+    compile 'javax.validation:validation-api:2.0.1.Final'
+    compile 'org.apache.commons:commons-lang3:3.4'
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allJava
+}
+
+publishing {
+    repositories {
+        maven {
+            if(project.version.endsWith('-SNAPSHOT')) {
+                url "s3://downloads.mesosphere.io/maven-snapshot/"
+            } else {
+                url "s3://downloads.mesosphere.io/maven/"
+            }
+            credentials(AwsCredentials) {
+                accessKey System.env['AWS_ACCESS_KEY_ID']
+                secretKey System.env['AWS_SECRET_ACCESS_KEY']
+            }
+        }
+        publications {
+            mavenJava(MavenPublication) {
+                groupId project.group
+                artifactId 'api'
+                version project.version
+
+                from components.java
+
+                artifact sourceJar {
+                    classifier "sources"
+                }
+            }
+        }
+    }
+}
+
+check.finalizedBy jacocoTestReport
+jacocoTestReport {
+    reports {
+        xml.enabled false
+        csv.enabled false
+        html.destination "${buildDir}/jacocoHtml"
+    }
+}

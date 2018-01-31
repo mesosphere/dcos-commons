@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -14,6 +15,7 @@ import javax.validation.constraints.Pattern;
 /**
  * This class provides a default implementation of the VolumeSpec interface.
  */
+@JsonTypeName("VolumeSpec")
 public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
 
     private final Type type;

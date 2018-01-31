@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
+import com.mesosphere.sdk.scheduler.plan.DefaultPlanGenerator;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;

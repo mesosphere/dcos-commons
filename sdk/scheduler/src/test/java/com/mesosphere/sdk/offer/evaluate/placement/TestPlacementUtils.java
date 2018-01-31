@@ -12,8 +12,7 @@ import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
 import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.DefaultServiceSpecFactory;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -58,7 +57,7 @@ public class TestPlacementUtils {
     public static final ObjectMapper OBJECT_MAPPER;
     static {
         OBJECT_MAPPER = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        for (Class<?> c : DefaultServiceSpec.ConfigFactory.getDefaultRegisteredSubtypes()) {
+        for (Class<?> c : DefaultServiceSpecFactory.getDefaultPlacementTypes()) {
             OBJECT_MAPPER.registerSubtypes(c);
         }
         OBJECT_MAPPER.registerSubtypes(PassTestRule.class);
@@ -70,8 +69,8 @@ public class TestPlacementUtils {
         public PassTestRule() { }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
+        public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return PlacementOutcome.pass(this, "test pass").build();
         }
 
         @Override
@@ -91,8 +90,8 @@ public class TestPlacementUtils {
         public FailTestRule() { }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.fail(this, "test fail").build();
+        public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return PlacementOutcome.fail(this, "test fail").build();
         }
 
         @Override

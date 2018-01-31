@@ -35,8 +35,8 @@ public class SchemaVersionStore {
      *
      * @see ConfigStore#MIN_SUPPORTED_SCHEMA_VERSION
      * @see ConfigStore#MAX_SUPPORTED_SCHEMA_VERSION
-     * @see StateStore#MIN_SUPPORTED_SCHEMA_VERSION
-     * @see StateStore#MAX_SUPPORTED_SCHEMA_VERSION
+     * @see TaskStore#MIN_SUPPORTED_SCHEMA_VERSION
+     * @see TaskStore#MAX_SUPPORTED_SCHEMA_VERSION
      */
     private static final int CURRENT_SCHEMA_VERSION = 1;
 
@@ -52,7 +52,7 @@ public class SchemaVersionStore {
 
     /**
      * Creates a new version store against the provided Framework Name, as would be provided to
-     * {@link ConfigStore} or {@link StateStore}.
+     * {@link ConfigStore} or {@link TaskStore}.
      */
     SchemaVersionStore(Persister persister) {
         this.persister = persister;

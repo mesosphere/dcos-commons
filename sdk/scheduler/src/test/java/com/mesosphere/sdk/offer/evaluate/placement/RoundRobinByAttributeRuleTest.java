@@ -4,7 +4,6 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -111,7 +110,7 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
         PodInstance req1 = getPodInstance(taskInfo1);
         tasks.add(taskInfo1); // value1:1
         // 2nd task doesn't fit on value1 which already has something, but does fit on value2/value3:
-        EvaluationOutcome outcome = rule.filter(offerWithAttribute("value1"), POD_INSTANCE, tasks);
+        PlacementOutcome outcome = rule.filter(offerWithAttribute("value1"), POD_INSTANCE, tasks);
         assertFalse(outcome.toString(), outcome.isPassing());
         assertTrue(rule.filter(offerWithAttribute("value2"), POD_INSTANCE, tasks).isPassing());
         assertTrue(rule.filter(offerWithAttribute("value3"), POD_INSTANCE, tasks).isPassing());

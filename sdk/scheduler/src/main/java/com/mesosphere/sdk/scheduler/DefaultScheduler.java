@@ -150,12 +150,25 @@ public class DefaultScheduler extends AbstractScheduler {
                                 Capabilities.getInstance().supportsDefaultExecutor()),
                         stateStore,
                         taskKiller);
-        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+        killUnneededTasks(stateStore, taskKiller, getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         healthResource.setHealthyPlanManagers(Arrays.asList(deploymentPlanManager, recoveryPlanManager));
         podResource.setTaskKiller(taskKiller);
         return planCoordinator;
+    }
+
+    private static Set<String> getLaunchableTasks(Collection<Plan> plans) {
+        return plans.stream()
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .flatMap(podInstanceRequirement ->
+                        TaskUtils.getTaskNames(
+                                podInstanceRequirement.getPodInstance(),
+                                podInstanceRequirement.getTasksToLaunch()).stream())
+                .collect(Collectors.toSet());
     }
 
     private static void killUnneededTasks(
@@ -217,7 +230,7 @@ public class DefaultScheduler extends AbstractScheduler {
         return new DefaultRecoveryPlanManager(
                 stateStore,
                 configStore,
-                PlanUtils.getLaunchableTasks(plans),
+                getLaunchableTasks(plans),
                 launchConstrainer,
                 failureMonitor,
                 overrideRecoveryPlanManagers);

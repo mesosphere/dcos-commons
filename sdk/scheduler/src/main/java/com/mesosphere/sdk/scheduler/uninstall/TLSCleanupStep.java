@@ -35,7 +35,7 @@ public class TLSCleanupStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         logger.info("Cleaning up TLS resources in namespace {}...", namespace);
 
         try {
@@ -56,8 +56,6 @@ public class TLSCleanupStep extends AbstractStep {
             logger.error(String.format("Failed to clean up secrets in namespace %s", namespace), e);
             setStatus(Status.ERROR);
         }
-
-        return Optional.empty();
     }
 
     @Override

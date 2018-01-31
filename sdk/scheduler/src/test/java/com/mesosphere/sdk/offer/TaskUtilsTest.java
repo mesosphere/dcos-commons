@@ -239,7 +239,7 @@ public class TaskUtilsTest {
         ResourceSet oldResourceSet = mock(ResourceSet.class);
         ResourceSet newResourceSet = mock(ResourceSet.class);
 
-        ResourceSpec oldVip = new NamedVIPSpec(
+        ResourceSpec oldVip = new DefaultNamedVIPSpec(
                 portValueBuilder.build(),
                 TestConstants.ROLE,
                 TestConstants.PRE_RESERVED_ROLE,
@@ -252,7 +252,7 @@ public class TaskUtilsTest {
                 TestConstants.VIP_PORT,
                 Arrays.asList("network-name"));
 
-        ResourceSpec newVip = new NamedVIPSpec(
+        ResourceSpec newVip = new DefaultNamedVIPSpec(
                 portValueBuilder.build(),
                 TestConstants.ROLE,
                 TestConstants.PRE_RESERVED_ROLE,

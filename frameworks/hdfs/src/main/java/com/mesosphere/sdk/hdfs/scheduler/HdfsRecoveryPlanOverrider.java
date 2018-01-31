@@ -6,7 +6,7 @@ import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
-import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.TaskStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,10 +21,10 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     private static final String PHASE_NAME_TEMPLATE = "permanent-%s-failure-recovery";
     private static final String NN_PHASE_NAME = "name";
     private static final String JN_PHASE_NAME = "journal";
-    private final StateStore stateStore;
+    private final TaskStore stateStore;
     private final Plan replacePlan;
 
-    public HdfsRecoveryPlanOverrider(StateStore stateStore, Plan replacePlan) {
+    public HdfsRecoveryPlanOverrider(TaskStore stateStore, Plan replacePlan) {
         this.stateStore = stateStore;
         this.replacePlan = replacePlan;
     }
@@ -78,10 +78,11 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
         // Bootstrap
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
+        inputBootstrapStep.start();
         PodInstanceRequirement bootstrapPodInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                        inputBootstrapStep.start().get().getPodInstance(),
-                        inputBootstrapStep.start().get().getTasksToLaunch())
+                        inputBootstrapStep.getPodInstanceRequirement().get().getPodInstance(),
+                        inputBootstrapStep.getPodInstanceRequirement().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
         Step bootstrapStep =

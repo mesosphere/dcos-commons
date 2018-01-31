@@ -1,11 +1,8 @@
 package com.mesosphere.sdk.scheduler.decommission;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallStep;
 import com.mesosphere.sdk.state.StateStore;
@@ -26,10 +23,9 @@ public class EraseTaskStateStep extends UninstallStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         LOGGER.info("Deleting remnants of decommissioned task from state store: {}", taskName);
         stateStore.clearTask(taskName);
         setStatus(Status.COMPLETE);
-        return Optional.empty();
     }
 }

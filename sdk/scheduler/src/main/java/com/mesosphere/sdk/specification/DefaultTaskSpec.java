@@ -2,6 +2,9 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -21,10 +24,9 @@ import java.util.Optional;
  *
  * If you add or modify fields you must update the equals method. (technically TaskUtils.areDifferent()).
  */
+@JsonTypeName("TaskSpec")
+@JsonSerialize(as = TaskSpec.class)
 public class DefaultTaskSpec implements TaskSpec {
-    // TODO: paegun using a reflection-based generator test for difference (not equal) or a different method of
-    // determining difference should be explored.
-
     @NotNull
     @Size(min = 1)
     private final String name;
@@ -204,7 +206,6 @@ public class DefaultTaskSpec implements TaskSpec {
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
     }
-
 
     /**
      * {@code DefaultTaskSpec} builder static inner class.

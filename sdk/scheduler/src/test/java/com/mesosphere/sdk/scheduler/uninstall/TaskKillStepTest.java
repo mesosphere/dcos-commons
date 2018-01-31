@@ -10,13 +10,11 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Optional;
-
 public class TaskKillStepTest {
 
     @Mock
     private TaskKiller mockTaskKiller;
-    private Protos.TaskID taskID = Protos.TaskID.newBuilder().setValue("task-1").build();
+    private static final Protos.TaskID taskID = Protos.TaskID.newBuilder().setValue("task-1").build();
 
     @Before
     public void init() {
@@ -26,13 +24,13 @@ public class TaskKillStepTest {
     @Test
     public void testStart() {
         TaskKillStep step = createStep();
-        Assert.assertEquals(Optional.empty(), step.start());
+        Assert.assertEquals(Status.PENDING, step.getStatus());
+        step.start();
         Assert.assertEquals(Status.COMPLETE, step.getStatus());
         Mockito.verify(mockTaskKiller, Mockito.only()).killTask(taskID);
     }
 
     private TaskKillStep createStep() {
-        TaskKillStep step = new TaskKillStep(taskID, mockTaskKiller);
-        return step;
+        return new TaskKillStep(taskID, mockTaskKiller);
     }
 }

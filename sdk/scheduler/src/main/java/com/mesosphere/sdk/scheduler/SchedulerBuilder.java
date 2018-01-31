@@ -86,11 +86,11 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Specifies a custom {@link StateStore}.  The state store persists copies of task information and task status for
+     * Specifies a custom {@link TaskStore}.  The state store persists copies of task information and task status for
      * all tasks running in the service.
      *
      * @throws IllegalStateException if the state store is already set, via a previous call to either
-     * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+     * {@link #setStateStore(TaskStore)} or to {@link #getStateStore()}
      */
     public SchedulerBuilder setStateStore(StateStore stateStore) {
         if (stateStoreOptional.isPresent()) {
@@ -102,10 +102,10 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
+     * Returns the {@link TaskStore} provided via {@link #setStateStore(TaskStore)}, or a reasonable default.
      *
      * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
+     * {@link #setStateStore(TaskStore)} may not be invoked after this has been called.
      */
     public StateStore getStateStore() {
         if (!stateStoreOptional.isPresent()) {

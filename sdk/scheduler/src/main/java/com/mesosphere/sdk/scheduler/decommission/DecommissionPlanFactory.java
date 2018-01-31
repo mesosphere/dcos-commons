@@ -49,7 +49,7 @@ import com.mesosphere.sdk.state.StateStore;
  * <li>Kill is issued for all tasks in the pod.</li>
  * <li>As resources for tasks within the pod are offered, the DECOMMISSIONED+IN_PROGRESS state results in those
  * resources being unreserved and removed from the {@code TaskInfo}.</li>
- * <li>Once the resources are all cleared, the task is deleted from the {@link StateStore}.</li></ol>
+ * <li>Once the resources are all cleared, the task is deleted from the {@link TaskStore}.</li></ol>
  *
  * Note that this is different from uninstall behavior in a couple ways, resulting in different handling from uninstall:
  *

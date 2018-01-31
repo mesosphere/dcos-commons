@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -841,8 +841,8 @@ public class DefaultSchedulerTest {
 
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
+        public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return PlacementOutcome.pass(this, "test pass").build();
         }
 
         @Override
@@ -861,8 +861,8 @@ public class DefaultSchedulerTest {
         }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
+        public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return PlacementOutcome.pass(this, "test pass").build();
         }
 
         @Override

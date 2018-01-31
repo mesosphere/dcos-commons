@@ -6,8 +6,8 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.GoalStateOverride;
 
 import org.apache.mesos.Protos;
 
@@ -32,8 +32,7 @@ public class DeploymentStep extends AbstractStep {
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
      * by the step, and any {@code errors} to be displayed to the user.
      */
-    public DeploymentStep(
-            String name, PodInstanceRequirement podInstanceRequirement, StateStore stateStore) {
+    public DeploymentStep(String name, PodInstanceRequirement podInstanceRequirement, StateStore stateStore) {
         super(name, Status.PENDING);
         this.podInstanceRequirement = podInstanceRequirement;
         this.stateStore = stateStore;
@@ -69,8 +68,7 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
-        return getPodInstanceRequirement();
+    public void start() {
     }
 
     @Override

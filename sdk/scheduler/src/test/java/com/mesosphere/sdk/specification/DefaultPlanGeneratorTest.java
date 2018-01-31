@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlanGenerator;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -111,7 +113,9 @@ public class DefaultPlanGeneratorTest {
     private void validatePhase(Phase phase, List<List<String>> stepTasks) {
         Assert.assertEquals(phase.getChildren().size(), stepTasks.size());
         for (int i = 0; i < stepTasks.size(); i++) {
-            PodInstanceRequirement podInstanceRequirement = phase.getChildren().get(i).start().get();
+            Step step = phase.getChildren().get(i);
+            step.start();
+            PodInstanceRequirement podInstanceRequirement = step.getPodInstanceRequirement().get();
             List<String> tasksToLaunch = new ArrayList<>(podInstanceRequirement.getTasksToLaunch());
 
             for (int j = 0; j < tasksToLaunch.size(); j++) {

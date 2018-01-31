@@ -11,7 +11,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An extension of {@link DeploymentStep} meant for use with {@link DefaultRecoveryPlanManager}.
@@ -30,12 +29,12 @@ public class DefaultRecoveryStep extends DeploymentStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
             FailureUtils.setPermanentlyFailed(stateStore, podInstanceRequirement.getPodInstance());
         }
 
-        return super.start();
+        super.start();
     }
 
     @Override

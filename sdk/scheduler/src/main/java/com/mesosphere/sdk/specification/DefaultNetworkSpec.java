@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -15,6 +16,7 @@ import java.util.Map;
  * Default implementation of {@link NetworkSpec}. This class encapsulates the Container Network Interface
  * (CNI) implementation within the SDK.
  */
+@JsonTypeName("NetworkSpec")
 public class DefaultNetworkSpec implements NetworkSpec {
     @Valid
     private String networkName;  // name of the network to join, checked against supported networks
