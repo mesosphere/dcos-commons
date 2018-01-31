@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.testing;
 
+import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -54,6 +55,7 @@ public class ServiceTestRunner {
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
     private boolean supportsDefaultExecutor = true;
+    private List<ConfigValidator<ServiceSpec>> validators = Collections.emptyList();
 
     /**
      * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
@@ -239,6 +241,11 @@ public class ServiceTestRunner {
         return this;
     }
 
+    public ServiceTestRunner setCustomValidators(ConfigValidator<ServiceSpec>... validators) {
+        this.validators = Arrays.asList(validators);
+        return this;
+    }
+
     /**
      * Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
      *
@@ -308,6 +315,7 @@ public class ServiceTestRunner {
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
+                .setCustomConfigValidators(validators)
                 .build()
                 .disableThreading()
                 .disableApiServer();
