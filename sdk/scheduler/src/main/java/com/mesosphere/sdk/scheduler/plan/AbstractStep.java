@@ -5,6 +5,9 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.offer.OfferRecommendation;
+
+import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -50,6 +53,16 @@ public abstract class AbstractStep implements Step {
             return status;
         }
     }
+
+    /**
+     * Notifies the Step whether the {@link PodInstanceRequirement} previously returned by
+     * {@link #getPodInstanceRequirement()} has been successfully accepted/fulfilled. The {@code recommendations} param
+     * is empty when no offers matching the requirement previously returned by {@link #getPodInstanceRequirement()}
+     * could be found. This is only called if {@link #getPodInstanceRequirement()} returned a non-empty value.
+     *
+     * <p>This method is defined here rather than in the parent {@link Step} because it's internal to offer evaluation.
+     */
+    public abstract void updateOfferStatus(Collection<OfferRecommendation> recommendations);
 
     /**
      * Updates the status setting and logs the outcome. Should only be called either by tests, by

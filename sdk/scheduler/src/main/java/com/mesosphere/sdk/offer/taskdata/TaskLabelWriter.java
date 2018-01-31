@@ -135,7 +135,7 @@ public class TaskLabelWriter {
     public TaskLabelWriter setReadinessCheck(HealthCheck readinessCheck) {
         writer.put(
                 LabelConstants.READINESS_CHECK_LABEL,
-                LabelUtils.encodeHealthCheck(readinessCheck.toBuilder().setConsecutiveFailures(0).build()));
+                ExecutorLabelUtils.encodeHealthCheck(readinessCheck.toBuilder().setConsecutiveFailures(0).build()));
         return this;
     }
 
@@ -170,7 +170,7 @@ public class TaskLabelWriter {
     protected Optional<HealthCheck> getReadinessCheck() throws TaskException {
         Optional<String> encodedReadinessCheck = writer.getOptional(LabelConstants.READINESS_CHECK_LABEL);
         return (encodedReadinessCheck.isPresent())
-                ? Optional.of(LabelUtils.decodeHealthCheck(encodedReadinessCheck.get()))
+                ? Optional.of(ExecutorLabelUtils.decodeHealthCheck(encodedReadinessCheck.get()))
                 : Optional.empty();
     }
 }

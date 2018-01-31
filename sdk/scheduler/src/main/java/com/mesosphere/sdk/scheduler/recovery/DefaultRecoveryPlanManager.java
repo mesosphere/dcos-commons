@@ -347,7 +347,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        return PlanUtils.getDirtyAssets(plan);
+        return DefaultPlanManager.getDirtyAssets(plan);
     }
 
     private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
@@ -358,8 +358,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     private static List<String> getPodNames(Collection<PodInstanceRequirement> podInstanceRequirements) {
         return podInstanceRequirements.stream()
-                .map(podInstanceRequirement -> String.format("%s:%s",
-                        podInstanceRequirement.getPodInstance().getName(), podInstanceRequirement.getTasksToLaunch()))
+                .map(podInstanceRequirement -> PlanUtils.getStepName(
+                        podInstanceRequirement.getPodInstance(), podInstanceRequirement.getTasksToLaunch()))
                 .collect(Collectors.toList());
     }
 

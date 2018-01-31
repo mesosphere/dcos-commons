@@ -8,6 +8,7 @@ import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,9 +27,9 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testStart() throws Exception {
-        assert resourceCleanupStep.getStatus().equals(Status.PENDING);
-        assert resourceCleanupStep.start().equals(Optional.empty());
-        assert resourceCleanupStep.getStatus().equals(Status.PREPARED);
+        Assert.assertEquals(Status.PENDING, resourceCleanupStep.getStatus());
+        resourceCleanupStep.start();
+        Assert.assertEquals(Status.PREPARED, resourceCleanupStep.getStatus());
     }
 
     @Test
@@ -37,7 +38,7 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
                 ResourceTestUtils.getReservedCpus(1.0, TestConstants.RESOURCE_ID));
         resourceCleanupStep.start();
         resourceCleanupStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
-        assert resourceCleanupStep.getStatus().equals(Status.COMPLETE);
+        Assert.assertEquals(Status.COMPLETE, resourceCleanupStep.getStatus());
     }
 
     @Test
@@ -46,7 +47,7 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
                 ResourceTestUtils.getReservedCpus(1.0, DIFFERENT_RESOURCE_ID));
         resourceCleanupStep.start();
         resourceCleanupStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
-        assert resourceCleanupStep.getStatus().equals(Status.PREPARED);
+        Assert.assertEquals(Status.PREPARED, resourceCleanupStep.getStatus());
     }
 
     @Test
@@ -56,7 +57,7 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
                 ResourceTestUtils.getReservedCpus(1.0, TestConstants.RESOURCE_ID));
         resourceCleanupStep.start();
         resourceCleanupStep.updateOfferStatus(Arrays.asList(rec1, rec2));
-        assert resourceCleanupStep.getStatus().equals(Status.COMPLETE);
+        Assert.assertEquals(Status.COMPLETE, resourceCleanupStep.getStatus());
     }
 
     @Test

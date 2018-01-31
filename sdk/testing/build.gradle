@@ -1,13 +1,11 @@
 ext {
     junitVer = "4.12"
-    systemRulesVer = "1.16.0"
     mockitoVer = "1.9.5"
 }
 
 dependencies {
     compile project(":scheduler")
     compile "junit:junit:${junitVer}"
-    compile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
     compile "org.mockito:mockito-all:${mockitoVer}"
 }
 

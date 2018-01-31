@@ -2,11 +2,8 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
-import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,11 +18,9 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
     private static final String PHASE_NAME_TEMPLATE = "permanent-%s-failure-recovery";
     private static final String NN_PHASE_NAME = "name";
     private static final String JN_PHASE_NAME = "journal";
-    private final StateStore stateStore;
     private final Plan replacePlan;
 
-    public HdfsRecoveryPlanOverrider(StateStore stateStore, Plan replacePlan) {
-        this.stateStore = stateStore;
+    public HdfsRecoveryPlanOverrider(Plan replacePlan) {
         this.replacePlan = replacePlan;
     }
 
@@ -78,33 +73,20 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
 
         // Bootstrap
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
+        inputBootstrapStep.start();
         PodInstanceRequirement bootstrapPodInstanceRequirement =
-                PodInstanceRequirement.newBuilder(
-                        inputBootstrapStep.start().get().getPodInstance(),
-                        inputBootstrapStep.start().get().getTasksToLaunch())
+                PodInstanceRequirement.newBuilder(inputBootstrapStep.getPodInstanceRequirement().get())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
-        Step bootstrapStep =
-                new DefaultRecoveryStep(
-                        inputBootstrapStep.getName(),
-                        bootstrapPodInstanceRequirement,
-                        new UnconstrainedLaunchConstrainer(),
-                        stateStore);
+        Step bootstrapStep = inputBootstrapStep.withPodInstanceRequirement(bootstrapPodInstanceRequirement);
 
         // JournalNode or NameNode
         Step inputNodeStep = inputPhase.getChildren().get(offset + 1);
         PodInstanceRequirement nameNodePodInstanceRequirement =
-                PodInstanceRequirement.newBuilder(
-                        inputNodeStep.start().get().getPodInstance(),
-                        inputNodeStep.start().get().getTasksToLaunch())
+                PodInstanceRequirement.newBuilder(inputNodeStep.getPodInstanceRequirement().get())
                 .recoveryType(RecoveryType.TRANSIENT)
                 .build();
-        Step nodeStep =
-                new DefaultRecoveryStep(
-                        inputNodeStep.getName(),
-                        nameNodePodInstanceRequirement,
-                        new UnconstrainedLaunchConstrainer(),
-                        stateStore);
+        Step nodeStep = inputNodeStep.withPodInstanceRequirement(nameNodePodInstanceRequirement);
 
         return new DefaultPhase(
                 String.format(PHASE_NAME_TEMPLATE, phaseName),

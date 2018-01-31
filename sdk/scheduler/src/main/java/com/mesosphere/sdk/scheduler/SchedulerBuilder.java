@@ -10,10 +10,10 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.evaluate.SchedulerPlacementUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -22,11 +22,12 @@ import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.state.PersisterException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
-import com.mesosphere.sdk.storage.PersisterException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,11 +87,11 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Specifies a custom {@link StateStore}.  The state store persists copies of task information and task status for
+     * Specifies a custom {@link TaskStore}.  The state store persists copies of task information and task status for
      * all tasks running in the service.
      *
      * @throws IllegalStateException if the state store is already set, via a previous call to either
-     * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+     * {@link #setStateStore(TaskStore)} or to {@link #getStateStore()}
      */
     public SchedulerBuilder setStateStore(StateStore stateStore) {
         if (stateStoreOptional.isPresent()) {
@@ -102,10 +103,10 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
+     * Returns the {@link TaskStore} provided via {@link #setStateStore(TaskStore)}, or a reasonable default.
      *
      * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
+     * {@link #setStateStore(TaskStore)} may not be invoked after this has been called.
      */
     public StateStore getStateStore() {
         if (!stateStoreOptional.isPresent()) {
@@ -196,7 +197,7 @@ public class SchedulerBuilder {
      *
      * @param recoveryPlanOverriderFactory the factory which generates the custom recovery plan manager
      */
-    public SchedulerBuilder setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
+    public SchedulerBuilder setRecoveryPlanOverriderFactory(RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         return this;
     }
@@ -330,7 +331,8 @@ public class SchedulerBuilder {
      * @return The updated {@link PodSpec}
      */
     static PodSpec updatePodPlacement(PodSpec podSpec) {
-        if (!Capabilities.getInstance().supportsDomains() || PlacementUtils.placementRuleReferencesRegion(podSpec)) {
+        if (!Capabilities.getInstance().supportsDomains()
+                || SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec)) {
             return podSpec;
         }
 

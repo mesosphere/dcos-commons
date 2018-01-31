@@ -28,22 +28,8 @@ public class OfferUtils {
             List<Protos.Offer> offers,
             Collection<Protos.OfferID> acceptedOfferIds) {
         return offers.stream()
-                .filter(offer -> !isOfferAccepted(offer, acceptedOfferIds))
+                .filter(offer -> !acceptedOfferIds.contains(offer.getId()))
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Determines if a certain offer is part of the accepted OfferID collection.
-     *
-     * @param offer            An {@link org.apache.mesos.Protos.Offer} that needs to be checked for acceptance.
-     * @param acceptedOfferIds A {@link Collection} of accepted {@link org.apache.mesos.Protos.OfferID}.
-     * @return {@code true} if {@link org.apache.mesos.Protos.Offer} is accepted; {@code false} otherwise.
-     */
-    public static boolean isOfferAccepted(
-            Protos.Offer offer,
-            Collection<Protos.OfferID> acceptedOfferIds) {
-        return acceptedOfferIds.stream()
-                .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
     }
 
     public static void declineShort(SchedulerDriver driver, Collection<Protos.Offer> unusedOffers) {

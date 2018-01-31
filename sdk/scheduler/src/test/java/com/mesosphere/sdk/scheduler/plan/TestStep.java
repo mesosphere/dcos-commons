@@ -30,14 +30,20 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         setStatus(Status.PREPARED);
-        return getPodInstanceRequirement();
     }
 
     @Override
     public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
         return Optional.ofNullable(podInstanceRequirement);
+    }
+
+    @Override
+    public Step withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement) {
+        TestStep step = new TestStep(id, getName(), podInstanceRequirement);
+        step.setStatus(getStatus());
+        return step;
     }
 
     @Override

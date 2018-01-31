@@ -3,6 +3,8 @@ package com.mesosphere.sdk.storage;
 import java.util.Collection;
 import java.util.Map;
 
+import com.mesosphere.sdk.state.PersisterException;
+
 /**
  * A low-level interface for key/value storage in a tree structure.
  *

@@ -62,12 +62,12 @@ public class HostnameRuleTest {
 
     @Test
     public void testRequireHostnames() {
-        PlacementRule rule = HostnameRuleFactory.getInstance().require(HOST_MATCHER_1, HOST_MATCHER_3);
+        PlacementRule rule = HostnameRuleFactory.getInstance().require(Arrays.asList(HOST_MATCHER_1, HOST_MATCHER_3));
         assertTrue(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertFalse(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertTrue(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
 
-        rule = HostnameRuleFactory.getInstance().require(HOST_MATCHER_2, HOST_MATCHER_3);
+        rule = HostnameRuleFactory.getInstance().require(Arrays.asList(HOST_MATCHER_2, HOST_MATCHER_3));
         assertFalse(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertTrue(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertTrue(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
@@ -75,12 +75,12 @@ public class HostnameRuleTest {
 
     @Test
     public void testAvoidHostnames() {
-        PlacementRule rule = HostnameRuleFactory.getInstance().avoid(HOST_MATCHER_1, HOST_MATCHER_3);
+        PlacementRule rule = HostnameRuleFactory.getInstance().avoid(Arrays.asList(HOST_MATCHER_1, HOST_MATCHER_3));
         assertFalse(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertTrue(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertFalse(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
 
-        rule = HostnameRuleFactory.getInstance().avoid(HOST_MATCHER_2, HOST_MATCHER_3);
+        rule = HostnameRuleFactory.getInstance().avoid(Arrays.asList(HOST_MATCHER_2, HOST_MATCHER_3));
         assertTrue(rule.filter(offerWithHost(HOST_1), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertFalse(rule.filter(offerWithHost(HOST_2), POD_INSTANCE, Collections.emptyList()).isPassing());
         assertFalse(rule.filter(offerWithHost(HOST_3), POD_INSTANCE, Collections.emptyList()).isPassing());
@@ -88,11 +88,11 @@ public class HostnameRuleTest {
 
     @Test
     public void testSerializeDeserialize() throws IOException {
-        PlacementRule rule = HostnameRuleFactory.getInstance().avoid(HOST_MATCHER_1, HOST_MATCHER_3);
+        PlacementRule rule = HostnameRuleFactory.getInstance().avoid(Arrays.asList(HOST_MATCHER_1, HOST_MATCHER_3));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = HostnameRuleFactory.getInstance().require(HOST_MATCHER_1, HOST_MATCHER_3);
+        rule = HostnameRuleFactory.getInstance().require(Arrays.asList(HOST_MATCHER_1, HOST_MATCHER_3));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 

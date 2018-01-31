@@ -26,6 +26,6 @@ public class ExecutorTaskLabelReader {
         if (!readinessCheckStrOptional.isPresent()) {
             return Optional.empty();
         }
-        return Optional.of(LabelUtils.decodeHealthCheck(readinessCheckStrOptional.get()));
+        return Optional.of(ExecutorLabelUtils.decodeHealthCheck(readinessCheckStrOptional.get()));
     }
 }

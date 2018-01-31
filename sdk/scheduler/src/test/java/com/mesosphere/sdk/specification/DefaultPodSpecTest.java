@@ -2,7 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.offer.evaluate.placement.HostnameRule;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
-import com.mesosphere.sdk.specification.RLimitSpec.InvalidRLimitException;
+import com.mesosphere.sdk.specification.DefaultRLimitSpec.InvalidRLimitException;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
 import org.junit.Test;
@@ -50,7 +50,7 @@ public class DefaultPodSpecTest {
                 5,
                 "mesosphere:image",
                 Arrays.asList(new DefaultNetworkSpec("net-name", Collections.singletonMap(5, 4), Collections.singletonMap("key", "val"))),
-                Arrays.asList(new RLimitSpec("RLIMIT_CPU", 20L, 50L)),
+                Arrays.asList(new DefaultRLimitSpec("RLIMIT_CPU", 20L, 50L)),
                 Arrays.asList(URI.create("http://example.com/artifact.tgz")),
                 taskSpecs,
                 new HostnameRule(RegexMatcher.create(".*")),

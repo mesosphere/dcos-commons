@@ -2,10 +2,10 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

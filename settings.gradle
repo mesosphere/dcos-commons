@@ -1,5 +1,8 @@
 rootProject.name = 'dcos-commons'
 
+include 'sdk/api'
+project(":sdk/api").name = "api"
+
 include 'sdk/common'
 project(":sdk/common").name = "common"
 

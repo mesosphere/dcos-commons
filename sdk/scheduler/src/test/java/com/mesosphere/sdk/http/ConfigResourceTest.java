@@ -3,7 +3,8 @@ package com.mesosphere.sdk.http;
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
+
 import org.json.JSONArray;
 import org.junit.Before;
 import org.junit.Test;

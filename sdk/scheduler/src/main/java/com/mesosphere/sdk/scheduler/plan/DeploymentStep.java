@@ -6,8 +6,8 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.GoalStateOverride;
 
 import org.apache.mesos.Protos;
 
@@ -32,8 +32,7 @@ public class DeploymentStep extends AbstractStep {
      * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
      * by the step, and any {@code errors} to be displayed to the user.
      */
-    public DeploymentStep(
-            String name, PodInstanceRequirement podInstanceRequirement, StateStore stateStore) {
+    public DeploymentStep(String name, PodInstanceRequirement podInstanceRequirement, StateStore stateStore) {
         super(name, Status.PENDING);
         this.podInstanceRequirement = podInstanceRequirement;
         this.stateStore = stateStore;
@@ -69,8 +68,7 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
-        return getPodInstanceRequirement();
+    public void start() {
     }
 
     @Override
@@ -79,6 +77,27 @@ public class DeploymentStep extends AbstractStep {
                 PodInstanceRequirement.newBuilder(podInstanceRequirement)
                         .environment(parameters)
                         .build());
+    }
+
+    @Override
+    public DeploymentStep withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement) {
+        DeploymentStep copy = new DeploymentStep(getName(), podInstanceRequirement, stateStore);
+        this.copyDataTo(copy);
+        return copy;
+    }
+
+    protected void copyDataTo(DeploymentStep out) {
+        // DeploymentStep
+        out.errors.addAll(this.errors);
+        out.parameters.putAll(this.parameters);
+        out.tasks.putAll(this.tasks);
+        out.prepared.set(this.prepared.get());
+        // AbstractStep
+        out.id = this.getId();
+        out.setStatus(this.getStatus());
+        if (this.isInterrupted()) {
+            out.interrupt();
+        }
     }
 
     private static Set<Protos.TaskID> getTaskIds(Collection<OfferRecommendation> recommendations) {
@@ -93,7 +112,6 @@ public class DeploymentStep extends AbstractStep {
     /**
      * Synchronized to ensure consistency between this and {@link #update(Protos.TaskStatus)}.
      */
-    @Override
     public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
         logger.info("Updated step '{} [{}]' to reflect {} recommendation{}: {}",

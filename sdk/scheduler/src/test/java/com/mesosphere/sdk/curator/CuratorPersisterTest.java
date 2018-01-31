@@ -27,10 +27,10 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.PersisterException;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import java.nio.charset.Charset;

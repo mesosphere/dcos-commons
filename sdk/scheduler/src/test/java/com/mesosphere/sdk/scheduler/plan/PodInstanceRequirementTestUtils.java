@@ -104,7 +104,7 @@ public class PodInstanceRequirementTestUtils {
             valueBuilder.getRangesBuilder().addRangeBuilder()
                     .setBegin(envPort.getValue())
                     .setEnd(envPort.getValue());
-            builder.addResource(new PortSpec(
+            builder.addResource(new DefaultPortSpec(
                     valueBuilder.build(),
                     TestConstants.ROLE,
                     Constants.ANY_ROLE,
@@ -128,7 +128,7 @@ public class PodInstanceRequirementTestUtils {
             valueBuilder.getRangesBuilder().addRangeBuilder()
                     .setBegin(taskPort)
                     .setEnd(taskPort);
-            builder.addResource(new NamedVIPSpec(
+            builder.addResource(new DefaultNamedVIPSpec(
                     valueBuilder.build(),
                     TestConstants.ROLE,
                     Constants.ANY_ROLE,

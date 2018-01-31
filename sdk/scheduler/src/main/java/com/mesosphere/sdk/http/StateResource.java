@@ -2,12 +2,12 @@ package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.PersisterException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;
@@ -355,7 +355,7 @@ public class StateResource {
 
     /**
      * Gets the zone of a pod given its pod type and the IP address of the pod.
-     * @param stateStore The {@link StateStore} from which to get task info and task status from.
+     * @param stateStore The {@link TaskStore} from which to get task info and task status from.
      * @param podType The type of the pod to get zone information for.
      * @param ipAddress The IP address of the pod to get zone information for.
      * @return A string indicating the zone of the pod.

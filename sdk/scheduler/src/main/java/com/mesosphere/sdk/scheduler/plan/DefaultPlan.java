@@ -4,7 +4,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import com.google.common.base.Joiner;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 
 import java.util.ArrayList;
 import java.util.Collections;

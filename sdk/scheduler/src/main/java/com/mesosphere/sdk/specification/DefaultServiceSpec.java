@@ -2,28 +2,25 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.TextNode;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
 import com.mesosphere.sdk.config.ConfigurationComparator;
 import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
+
+import difflib.DiffUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -37,14 +34,13 @@ import javax.validation.constraints.Size;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
  * Default implementation of {@link ServiceSpec}.
  */
+@JsonTypeName("ServiceSpec")
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
     private static final Logger logger = LoggerFactory.getLogger(DefaultServiceSpec.class);
@@ -280,7 +276,8 @@ public class DefaultServiceSpec implements ServiceSpec {
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
-        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister, serviceSpec);
+        ConfigurationFactory<ServiceSpec> factory =
+                new DefaultServiceSpecFactory(additionalSubtypesToRegister, serviceSpec);
 
         ServiceSpec loopbackSpecification;
         try {
@@ -288,12 +285,13 @@ public class DefaultServiceSpec implements ServiceSpec {
             loopbackSpecification = factory.parse(serviceSpec.getBytes());
         } catch (Exception e) {
             logger.error("Failed to parse JSON for loopback validation", e);
-            logger.error("JSON to be parsed was:\n{}",
-                    new String(serviceSpec.getBytes(), StandardCharsets.UTF_8));
+            logger.error("JSON to be parsed was:\n{}", new String(serviceSpec.getBytes(), CHARSET));
             throw e;
         }
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
+            String originalStr = serviceSpec.toJsonString();
+            String loopbackStr = loopbackSpecification.toJsonString();
             StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
             error.append("Equality test failed: Loopback result is not equal to original:\n");
             error.append("- Original:\n");
@@ -301,6 +299,17 @@ public class DefaultServiceSpec implements ServiceSpec {
             error.append('\n');
             error.append("- Result:\n");
             error.append(loopbackSpecification.toJsonString());
+            error.append("- Diff:\n");
+            final List<String> originalLines =
+                    Lists.newArrayList(Splitter.on('\n').split(originalStr));
+            final List<String> loopbackLines = Lists.newArrayList(Splitter.on('\n').split(loopbackStr));
+            List<String> diffResult = DiffUtils.generateUnifiedDiff(
+                    "ServiceSpec.orig",
+                    "ServiceSpec.loopback",
+                    originalLines,
+                    DiffUtils.diff(originalLines, loopbackLines),
+                    2);
+            error.append(Joiner.on('\n').join(diffResult));
             error.append('\n');
             throw new ConfigStoreException(Reason.LOGIC_ERROR, error.toString());
         }
@@ -308,129 +317,17 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Factory which performs the inverse of {@link DefaultServiceSpec#getBytes()}.
+     * Returns a JSON representation of this Configuration which is suitable for displaying to the
+     * user.
+     *
+     * @throws ConfigStoreException if deserialization fails
      */
-    public static class ConfigFactory implements ConfigurationFactory<ServiceSpec> {
-
-        /**
-         * Subtypes to be registered by defaults. This list should include all
-         * {@link PlacementRule}s that are included in the library.
-         */
-        private static final Collection<Class<?>> defaultRegisteredSubtypes = Arrays.asList(
-                AgentRule.class,
-                AndRule.class,
-                AnyMatcher.class,
-                AttributeRule.class,
-                DefaultResourceSpec.class,
-                DefaultVolumeSpec.class,
-                ExactMatcher.class,
-                HostnameRule.class,
-                IsLocalRegionRule.class,
-                MaxPerAttributeRule.class,
-                MaxPerHostnameRule.class,
-                MaxPerRegionRule.class,
-                MaxPerZoneRule.class,
-                NamedVIPSpec.class,
-                NotRule.class,
-                OrRule.class,
-                PassthroughRule.class,
-                PortSpec.class,
-                RegexMatcher.class,
-                RegionRule.class,
-                RoundRobinByAttributeRule.class,
-                RoundRobinByHostnameRule.class,
-                RoundRobinByRegionRule.class,
-                RoundRobinByZoneRule.class,
-                TaskTypeLabelConverter.class,
-                TaskTypeRule.class,
-                ZoneRule.class,
-                DefaultSecretSpec.class);
-
-        private final ObjectMapper objectMapper;
-        private final GoalState referenceTerminalGoalState;
-
-        /**
-         * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
-         */
-        private ConfigFactory(Collection<Class<?>> additionalSubtypes, ServiceSpec serviceSpec) {
-            objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
-            objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            for (Class<?> subtype : defaultRegisteredSubtypes) {
-                objectMapper.registerSubtypes(subtype);
-            }
-            for (Class<?> subtype : additionalSubtypes) {
-                objectMapper.registerSubtypes(subtype);
-            }
-
-            SimpleModule module = new SimpleModule();
-            module.addDeserializer(GoalState.class, new GoalStateDeserializer());
-            objectMapper.registerModule(module);
-
-            referenceTerminalGoalState = getReferenceTerminalGoalState(serviceSpec);
-        }
-
-        @VisibleForTesting
-        public GoalStateDeserializer getGoalStateDeserializer() {
-            return new GoalStateDeserializer();
-        }
-
-        @Override
-        public ServiceSpec parse(byte[] bytes) throws ConfigStoreException {
-            try {
-                return SerializationUtils.fromString(
-                        new String(bytes, CHARSET), DefaultServiceSpec.class, objectMapper);
-            } catch (IOException e) {
-                throw new ConfigStoreException(Reason.SERIALIZATION_ERROR,
-                        "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
-            }
-        }
-
-        private GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
-            Collection<TaskSpec> serviceTasks =
-                    serviceSpec.getPods().stream().flatMap(p -> p.getTasks().stream()).collect(Collectors.toList());
-            for (TaskSpec taskSpec : serviceTasks) {
-                if (taskSpec.getGoal().equals(GoalState.FINISHED)) {
-                    return GoalState.FINISHED;
-                }
-            }
-
-            return GoalState.ONCE;
-        }
-
-        @VisibleForTesting
-        public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
-            return defaultRegisteredSubtypes;
-        }
-
-        /**
-         * Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.
-         */
-        public class GoalStateDeserializer extends StdDeserializer<GoalState> {
-
-            public GoalStateDeserializer() {
-                this(null);
-            }
-
-            protected GoalStateDeserializer(Class<?> vc) {
-                super(vc);
-            }
-
-            @Override
-            public GoalState deserialize(
-                    JsonParser p, DeserializationContext ctxt) throws IOException, JsonParseException {
-                String value = ((TextNode) p.getCodec().readTree(p)).textValue();
-
-                if (value.equals("FINISHED") || value.equals("ONCE")) {
-                    return referenceTerminalGoalState;
-                } else if (value.equals("FINISH")) {
-                    return GoalState.FINISH;
-                } else if (value.equals("RUNNING")) {
-                    return GoalState.RUNNING;
-                } else {
-                    logger.warn("Found unknown goal state in config store: {}", value);
-                    return GoalState.UNKNOWN;
-                }
-            }
+    @Override
+    public String toJsonString() throws ConfigStoreException {
+        try {
+            return SerializationUtils.toJsonString(this);
+        } catch (IOException e) {
+            throw new ConfigStoreException(Reason.SERIALIZATION_ERROR, e);
         }
     }
 

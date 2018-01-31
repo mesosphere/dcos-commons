@@ -2,10 +2,9 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -41,7 +40,7 @@ import java.util.*;
  */
 public class StateStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(StateStore.class);
+    private static final Logger logger = LoggerFactory.getLogger(TaskStore.class);
 
     /**
      * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION
@@ -65,7 +64,7 @@ public class StateStore {
     protected final Persister persister;
 
     /**
-     * Creates a new {@link StateStore} which uses the provided {@link Persister} to access state data.
+     * Creates a new {@link TaskStore} which uses the provided {@link Persister} to access state data.
      *
      * @param persister The persister which holds the state data
      */
@@ -368,8 +367,8 @@ public class StateStore {
      * @param key must be a non-blank String without any forward slashes ('/')
      * @param value The value should be a byte array no larger than 1MB (1024 * 1024 bytes)
      * @throws StateStoreException if the key or value fail validation, or if storing the data otherwise fails
-     * @see StateStore#validateKey(String)
-     * @see StateStore#validateValue(byte[])
+     * @see TaskStore#validateKey(String)
+     * @see TaskStore#validateValue(byte[])
      */
     public void storeProperty(final String key, final byte[] value) throws StateStoreException {
         validateKey(key);
@@ -389,7 +388,7 @@ public class StateStore {
      *
      * @param key must be a non-blank String without any forward slashes ('/')
      * @throws StateStoreException if no data was found for the requested key, or if fetching the data otherwise fails
-     * @see StateStore#validateKey(String)
+     * @see TaskStore#validateKey(String)
      */
     public byte[] fetchProperty(final String key) throws StateStoreException {
         validateKey(key);

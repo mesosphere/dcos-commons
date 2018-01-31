@@ -337,7 +337,7 @@ public class SchedulerConfig {
         return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
     }
 
-    public boolean isregionAwarenessEnabled() {
+    public boolean isRegionAwarenessEnabled() {
         return Boolean.valueOf(envStore.getOptional(ALLOW_REGION_AWARENESS_ENV, "false"));
     }
 

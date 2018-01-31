@@ -22,7 +22,7 @@ public class ResourceCleanerScheduler {
         this.offerAccepter = offerAccepter;
     }
 
-    public List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers) {
+    public Collection<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers) {
         final List<OfferRecommendation> recommendations = resourceCleaner.evaluate(offers);
 
         // Recommendations should be grouped by agent, as Mesos enforces processing of acceptOffers Operations
@@ -30,7 +30,7 @@ public class ResourceCleanerScheduler {
         final Map<Protos.SlaveID, List<OfferRecommendation>> recommendationsGroupedByAgents =
                         groupRecommendationsByAgent(recommendations);
 
-        final List<OfferID> processedOffers = new ArrayList<>(offers.size());
+        final Collection<OfferID> processedOffers = new HashSet<>(offers.size());
         for (Map.Entry<Protos.SlaveID, List<OfferRecommendation>> entry : recommendationsGroupedByAgents.entrySet()) {
             processedOffers.addAll(offerAccepter.accept(driver, recommendationsGroupedByAgents.get(entry.getKey())));
         }

@@ -47,7 +47,7 @@ public class DefaultStepFactory implements StepFactory {
                     .collect(Collectors.toList());
 
             return new DeploymentStep(
-                    TaskUtils.getStepName(podInstance, tasksToLaunch),
+                    PlanUtils.getStepName(podInstance, tasksToLaunch),
                     PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build(),
                     stateStore)
                     .updateInitialStatus(taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos));

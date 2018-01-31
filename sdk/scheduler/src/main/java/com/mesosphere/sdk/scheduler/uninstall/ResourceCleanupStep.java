@@ -3,11 +3,9 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
 import java.util.Collection;
-import java.util.Optional;
 
 /**
  * Step which implements the uninstalling of a particular reserved resource. For instance, persistent volumes and cpu.
@@ -26,13 +24,11 @@ public class ResourceCleanupStep extends UninstallStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         if (isPending()) {
             logger.info("Setting state to Prepared for resource {}", resourceId);
             setStatus(Status.PREPARED);
         }
-
-        return getPodInstanceRequirement();
     }
 
     @Override

@@ -4,11 +4,11 @@ import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.mesos.Protos;
@@ -99,30 +99,15 @@ public class TaskUtils {
         return stateStore.fetchTasks().stream()
                 .filter(taskInfo -> {
                     try {
-                        return isSamePodInstance(taskInfo, podInstance);
+                        TaskLabelReader labels = new TaskLabelReader(taskInfo);
+                        return labels.getType().equals(podInstance.getPod().getType())
+                                && labels.getIndex() == podInstance.getIndex();
                     } catch (TaskException e) {
                         LOGGER.error("Failed to find pod tasks with exception: ", e);
                         return false;
                     }
                 })
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * Returns whether the provided {@link TaskInfo} (representing a launched task) and {@link PodInstance} (from the
-     * {@link ServiceSpec}) are both effectively for the same pod instance.
-     */
-    public static boolean isSamePodInstance(TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
-        return isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
-    }
-
-    /**
-     * Returns whether the provided {@link TaskInfo} is in the provided pod type and index.
-     */
-    public static boolean isSamePodInstance(TaskInfo taskInfo, String type, int index) throws TaskException {
-        TaskLabelReader labels = new TaskLabelReader(taskInfo);
-        return labels.getType().equals(type)
-                && labels.getIndex() == index;
     }
 
     /**
@@ -536,17 +521,6 @@ public class TaskUtils {
         } else {
             return isRecoveryNeeded(taskStatus);
         }
-    }
-
-    /**
-     * Returns a default name for a {@link Step} given a PodInstance and the tasks to be launched in it.
-     *
-     * @param podInstance   The PodInstance to be launched by a {@link Step}.
-     * @param tasksToLaunch The tasks to be launched in the Pod.
-     * @return The {@link Step} name
-     */
-    public static String getStepName(PodInstance podInstance, Collection<String> tasksToLaunch) {
-        return podInstance.getName() + ":" + tasksToLaunch;
     }
 
     /**

@@ -328,17 +328,29 @@ public interface Expect extends SimulationTick {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
-                Plan recoveryPlan = state.getPlans().stream()
-                        .filter(plan -> plan.getName().equals(planName))
-                        .findAny().get();
+                Plan plan = state.getPlans().stream()
+                        .filter(p -> p.getName().equals(planName))
+                        .findAny().orElse(null);
+                Assert.assertNotNull(String.format("Expected plan %s, got %s",
+                        planName, state.getPlans().stream().map(p -> p.getName()).collect(Collectors.toList())), plan);
 
-                Phase phase = recoveryPlan.getChildren().stream()
+                Phase phase = plan.getChildren().stream()
                         .filter(p -> p.getName().equals(phaseName))
-                        .findAny().get();
+                        .findAny().orElse(null);
+                Assert.assertNotNull(String.format("Expected phase %s in plan %s, got phases %s",
+                        phaseName,
+                        planName,
+                        plan.getChildren().stream().map(p -> p.getName()).collect(Collectors.toList())), phase);
 
                 Step step = phase.getChildren().stream()
                         .filter(s -> s.getName().equals(stepName))
-                        .findAny().get();
+                        .findAny().orElse(null);
+                Assert.assertNotNull(String.format(
+                        "Expected step %s in plan %s/phase %s, got steps %s",
+                        stepName,
+                        planName,
+                        phaseName,
+                        phase.getChildren().stream().map(s -> s.getName()).collect(Collectors.toList())), phase);
 
                 Assert.assertEquals(expectedStatus, step.getStatus());
             }

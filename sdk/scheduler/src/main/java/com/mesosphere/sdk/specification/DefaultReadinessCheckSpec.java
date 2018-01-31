@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -12,6 +13,7 @@ import javax.validation.constraints.NotNull;
 /**
  * Default implementation of {@link ReadinessCheckSpec}.
  */
+@JsonTypeName("ReadinessCheckSpec")
 public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     @NotNull
     private String command;

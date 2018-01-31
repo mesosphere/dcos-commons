@@ -38,7 +38,7 @@ public class GroupedTasks {
 
     /**
      * Returns a new instance which contains all the tasks/statuses that are currently present in the provided
-     * {@link StateStore}.
+     * {@link TaskStore}.
      */
     public static GroupedTasks create(StateStore stateStore) {
         return new GroupedTasks(stateStore.fetchTasks(), stateStore.fetchStatuses());

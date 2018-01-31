@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -13,6 +15,7 @@ import java.util.Optional;
 /**
  * Default implementation of a {@link DiscoverySpec}.
  */
+@JsonTypeName("DiscoverySpec")
 public class DefaultDiscoverySpec implements DiscoverySpec {
     @Valid
     private final String prefix;

@@ -5,6 +5,8 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
+
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
@@ -25,6 +27,12 @@ public abstract class UninstallStep extends AbstractStep {
     @Override
     public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
         return Optional.empty();
+    }
+
+    @Override
+    public Step withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement) {
+        // We don't use PodInstanceRequirement so this doesn't make sense.
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -23,5 +23,5 @@ public interface PlanScheduler {
     Collection<OfferID> resourceOffers(
             final SchedulerDriver driver,
             final List<Offer> offers,
-            final Collection<? extends Step> steps);
+            final Collection<Step> steps);
 }

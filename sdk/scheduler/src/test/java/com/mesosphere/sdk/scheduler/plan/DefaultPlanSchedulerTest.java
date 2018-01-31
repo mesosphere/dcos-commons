@@ -35,8 +35,8 @@ public class DefaultPlanSchedulerTest {
             .setSlaveId(SlaveID.newBuilder().setValue("slaveid").build())
             .setHostname("hello")
             .build());
-    private static final List<OfferID> ACCEPTED_IDS =
-            Arrays.asList(OfferID.newBuilder().setValue("offer").build());
+    private static final Collection<OfferID> ACCEPTED_IDS =
+            Collections.singleton(OfferID.newBuilder().setValue("offer").build());
     private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     @Mock private OfferAccepter mockOfferAccepter;
@@ -139,13 +139,13 @@ public class DefaultPlanSchedulerTest {
         }
 
         @Override
-        public Optional<PodInstanceRequirement> start() {
+        public void start() {
             super.start();
-            if (podInstanceRequirement == null) {
-                return Optional.empty();
-            } else {
-                return Optional.of(podInstanceRequirement);
-            }
+        }
+
+        @Override
+        public Optional<PodInstanceRequirement> getPodInstanceRequirement() {
+            return Optional.ofNullable(podInstanceRequirement);
         }
 
         @Override

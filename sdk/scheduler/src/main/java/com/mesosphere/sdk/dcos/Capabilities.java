@@ -3,7 +3,6 @@ package com.mesosphere.sdk.dcos;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +102,8 @@ public class Capabilities {
 
     public boolean supportsRegionAwareness() {
         // This feature is in BETA for 1.11, so requires explicit opt-in by end-users.
-        return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
+        // See SchedulerConfig.isRegionAwarenessEnabled().
+        return hasOrExceedsVersion(1, 11);
     }
 
     public boolean supportsDomains() {

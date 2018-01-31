@@ -4,6 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.taskdata.*;
+import com.mesosphere.sdk.specification.DefaultPortSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -41,7 +42,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        long requestedPort = portSpec.getValue().getRanges().getRange(0).getBegin();
+        long requestedPort = portSpec.getPort();
         long assignedPort = requestedPort;
         if (requestedPort == 0) {
             // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
@@ -77,7 +78,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         valueBuilder.getRangesBuilder().addRangeBuilder()
                 .setBegin(assignedPort)
                 .setEnd(assignedPort);
-        PortSpec updatedPortSpec = PortSpec.withValue(portSpec, valueBuilder.build());
+        PortSpec updatedPortSpec = DefaultPortSpec.withValue(portSpec, valueBuilder.build());
 
         if (useHostPorts) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =

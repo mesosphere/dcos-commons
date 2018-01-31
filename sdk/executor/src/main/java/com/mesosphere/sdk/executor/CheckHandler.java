@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.executor;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.taskdata.ExecutorTaskLabelWriter;
 import com.mesosphere.sdk.offer.taskdata.ProcessBuilderUtils;
@@ -53,7 +52,6 @@ public class CheckHandler {
     /**
      * Allows providing a custom {@link ProcessRunner} for testing.
      */
-    @VisibleForTesting
     CheckHandler(
             ExecutorDriver executorDriver,
             Protos.TaskInfo taskInfo,
@@ -249,7 +247,6 @@ public class CheckHandler {
      * Runs the provided process and returns an exit value. This is broken out into a separate
      * function to allow mockery in tests.
      */
-    @VisibleForTesting
     static class ProcessRunner {
         public int run(ProcessBuilder processBuilder, double timeoutSeconds)
                 throws IOException, InterruptedException {

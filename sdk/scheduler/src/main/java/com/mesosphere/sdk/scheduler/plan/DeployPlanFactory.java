@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.StrategyGenerator;
 import com.mesosphere.sdk.specification.ServiceSpec;
 

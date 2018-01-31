@@ -5,19 +5,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.state.PersisterException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.PersisterCache;
-import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
@@ -37,7 +37,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
@@ -63,8 +62,6 @@ public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule
     public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
-    @Rule
-    public final ExpectedSystemExit exit = ExpectedSystemExit.none();
     @Mock
     private SchedulerDriver mockSchedulerDriver;
     @Mock
@@ -841,8 +838,8 @@ public class DefaultSchedulerTest {
 
     private static class PlacementRuleMissingEquality implements PlacementRule {
         @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
+        public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return PlacementOutcome.pass(this, "test pass").build();
         }
 
         @Override
@@ -861,8 +858,8 @@ public class DefaultSchedulerTest {
         }
 
         @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
+        public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return PlacementOutcome.pass(this, "test pass").build();
         }
 
         @Override

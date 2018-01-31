@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -14,6 +16,7 @@ import javax.validation.constraints.Size;
 /**
  * Default implementation of {@link HealthCheckSpec}.
  */
+@JsonTypeName("HealthCheckSpec")
 public class DefaultHealthCheckSpec implements HealthCheckSpec {
     @NotNull
     private String command;

@@ -9,7 +9,8 @@ import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,7 +57,7 @@ public class StateStoreUtils {
             ConfigStore<ServiceSpec> configStore,
             Set<String> launchableTaskNames) throws TaskException {
 
-        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).stream()
+        return fetchTasksNeedingRecovery(stateStore, configStore).stream()
                 .filter(taskInfo -> launchableTaskNames.contains(taskInfo.getName()))
                 .collect(Collectors.toList());
     }

@@ -9,6 +9,8 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.state.PersisterException;
+
 /**
  * A transparent write-through cache for an underlying {@link Persister} instance. Each cache instance is thread-safe,
  * but there is no guarantee of consistent behavior across multiple cache instances.

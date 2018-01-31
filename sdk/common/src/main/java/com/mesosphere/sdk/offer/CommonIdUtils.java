@@ -2,13 +2,12 @@ package com.mesosphere.sdk.offer;
 
 import java.util.UUID;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.ExecutorID;
 import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.Protos.TaskID;
 
 /**
- * Various utility methods for manipulating data in {@link Protos.TaskInfo}s.
+ * Various utility methods for manipulating data in protobuf ID fields.
  */
 public class CommonIdUtils {
 
@@ -42,25 +41,25 @@ public class CommonIdUtils {
     }
 
     /**
-     * Converts the unique {@link Protos.ExecutorID} into a Framework defined executor name.
+     * Converts the unique {@link ExecutorID} into a Framework defined executor name.
      * <p>
      * For example: "instance-0_aoeu5678" => "instance-0"
      *
      * @see #toExecutorId(String)
      */
-    public static String toExecutorName(Protos.ExecutorID executorId) throws TaskException {
+    public static String toExecutorName(ExecutorID executorId) throws TaskException {
         return extractNameFromId(executorId.getValue());
     }
 
     /**
-     * Converts the Framework defined Executor name into a unique {@link Protos.ExecutorID}.
+     * Converts the Framework defined Executor name into a unique {@link ExecutorID}.
      * <p>
      * For example: "instance-0" => "instance-0_aoeu5678"
      *
      * @see #toExecutorName(ExecutorID)
      */
-    public static Protos.ExecutorID toExecutorId(String executorName) {
-        return Protos.ExecutorID.newBuilder().setValue(generateIdString(executorName)).build();
+    public static ExecutorID toExecutorId(String executorName) {
+        return ExecutorID.newBuilder().setValue(generateIdString(executorName)).build();
     }
 
     public static TaskID emptyTaskId() {

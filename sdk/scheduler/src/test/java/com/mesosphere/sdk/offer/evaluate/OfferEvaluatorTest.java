@@ -614,8 +614,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 ResourceTestUtils.getUnreservedMem(1024),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
 
+        deploymentStep.start();
         List<OfferRecommendation> recommendations = evaluator.evaluate(
-                deploymentStep.start().get(),
+                deploymentStep.getPodInstanceRequirement().get(),
                 Arrays.asList(sufficientOffer));
 
         Assert.assertEquals(recommendations.toString(), 8, recommendations.size());
@@ -638,8 +639,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Assert.assertTrue(FailureUtils.isPermanentlyFailed(stateStore.fetchTask(taskInfo.getName()).get()));
 
+        deploymentStep.start();
         recommendations = evaluator.evaluate(
-                deploymentStep.start().get(),
+                deploymentStep.getPodInstanceRequirement().get(),
                 Arrays.asList(sufficientOffer));
         Assert.assertEquals(recommendations.toString(), 8, recommendations.size());
 

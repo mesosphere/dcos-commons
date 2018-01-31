@@ -56,7 +56,7 @@ public class MaxPerAttributeRuleTest {
 
     @Test
     public void getAllTaskKeys() {
-        MaxPerRule rule = new MaxPerAttributeRule(2, AnyMatcher.create());
+        AbstractMaxPerRule rule = new MaxPerAttributeRule(2, AnyMatcher.create());
 
         Assert.assertEquals(1, rule.getKeys(TASK_ATTR_MATCH_1).size());
         Assert.assertEquals("footext:123", rule.getKeys(TASK_ATTR_MATCH_1).stream().findFirst().get());
@@ -65,7 +65,7 @@ public class MaxPerAttributeRuleTest {
     @Test
     public void getTaskKeysMatchNoAttributes() {
         final StringMatcher matcher = RegexMatcher.create("banana");
-        MaxPerRule rule = new MaxPerAttributeRule(2, matcher);
+        AbstractMaxPerRule rule = new MaxPerAttributeRule(2, matcher);
 
         Assert.assertEquals(0, rule.getKeys(TASK_ATTR_MATCH_1).size());
     }
@@ -74,7 +74,7 @@ public class MaxPerAttributeRuleTest {
     public void getTaskKeysMatchNoTasks() {
         final StringMatcher attributeMatcher = AnyMatcher.create();
         final StringMatcher taskMatcher = RegexMatcher.create("banana");
-        MaxPerRule rule = new MaxPerAttributeRule(2, attributeMatcher, taskMatcher);
+        AbstractMaxPerRule rule = new MaxPerAttributeRule(2, attributeMatcher, taskMatcher);
 
         Assert.assertEquals(0, rule.getKeys(TestConstants.TASK_INFO).size());
     }
@@ -82,7 +82,7 @@ public class MaxPerAttributeRuleTest {
     @Test
     public void getAllOfferKeys() {
         final StringMatcher matcher = AnyMatcher.create();
-        MaxPerRule rule = new MaxPerAttributeRule(2, matcher);
+        AbstractMaxPerRule rule = new MaxPerAttributeRule(2, matcher);
 
         Assert.assertEquals(1, rule.getKeys(OFFER_ATTR_MATCH_1).size());
         Assert.assertEquals("footext:123", rule.getKeys(OFFER_ATTR_MATCH_1).stream().findFirst().get());
@@ -91,7 +91,7 @@ public class MaxPerAttributeRuleTest {
     @Test
     public void getOfferKeysMatchNoAttributes() {
         final StringMatcher matcher = RegexMatcher.create("banana");
-        MaxPerRule rule = new MaxPerAttributeRule(2, matcher);
+        AbstractMaxPerRule rule = new MaxPerAttributeRule(2, matcher);
 
         Assert.assertEquals(0, rule.getKeys(OFFER_ATTR_MATCH_1).size());
     }

@@ -8,7 +8,8 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.PersisterException;
+import com.mesosphere.sdk.state.StorageError.Reason;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;

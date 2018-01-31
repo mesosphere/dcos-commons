@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.Strategy;
 
 /**
  * A StrategyGenerator generates {@link Strategy} objects of the appropriate type.

@@ -1,11 +1,8 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.SchedulerDriver;
-
-import java.util.Optional;
 
 /**
  * Step which implements the deregistering of a framework.
@@ -26,7 +23,7 @@ public class DeregisterStep extends UninstallStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         logger.info("Stopping SchedulerDriver...");
         // Remove the framework ID before unregistering
         stateStore.clearFrameworkId();
@@ -39,6 +36,5 @@ public class DeregisterStep extends UninstallStep {
         logger.info("### UNINSTALL IS COMPLETE! ###");
         logger.info("Scheduler should be cleaned up shortly...");
         setStatus(Status.COMPLETE);
-        return Optional.empty();
     }
 }

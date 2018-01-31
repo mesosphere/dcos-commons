@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -17,6 +19,7 @@ import java.util.Objects;
 /**
  * Default implementation of {@link ResourceSet}.
  */
+@JsonTypeName("ResourceSet")
 public class DefaultResourceSet implements ResourceSet {
 
     private final String preReservedRole;

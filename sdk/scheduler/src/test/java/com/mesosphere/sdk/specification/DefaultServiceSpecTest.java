@@ -2,10 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Iterables;
-import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
@@ -16,9 +13,9 @@ import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.mesos.Protos;
@@ -38,7 +35,6 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-
 
 public class DefaultServiceSpecTest {
     private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
@@ -524,7 +520,7 @@ public class DefaultServiceSpecTest {
         }
     }
 
-    @Test(expected = RLimitSpec.InvalidRLimitException.class)
+    @Test(expected = DefaultRLimitSpec.InvalidRLimitException.class)
     public void invalidRLimitName() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-rlimit-name.yml").getFile());
@@ -656,7 +652,6 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, listOfNull));
     }
 
-
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
@@ -673,47 +668,5 @@ public class DefaultServiceSpecTest {
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .build();
-    }
-
-    @Test
-    public void testGoalStateDeserializesOldValues() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-
-        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) serviceSpec.getConfigurationFactory(serviceSpec))
-                        .getGoalStateDeserializer();
-
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(GoalState.class, goalStateDeserializer);
-        objectMapper.registerModule(module);
-
-        Assert.assertEquals(
-                GoalState.ONCE, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
-        Assert.assertEquals(
-                GoalState.ONCE, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
-    }
-
-    @Test
-    public void testGoalStateDeserializesNewValues() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-finished.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-
-        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) serviceSpec.getConfigurationFactory(serviceSpec))
-                        .getGoalStateDeserializer();
-
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(GoalState.class, goalStateDeserializer);
-        objectMapper.registerModule(module);
-
-        Assert.assertEquals(
-                GoalState.FINISHED, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
-        Assert.assertEquals(
-                GoalState.FINISHED, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
     }
 }

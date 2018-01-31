@@ -9,7 +9,9 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.state.DefaultTaskStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.TaskStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.*;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -429,29 +431,29 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         new ServiceTestRunner()
-                .setRecoveryManagerFactory(new RecoveryPlanOverriderFactory() {
+                .setRecoveryPlanOverriderFactory(new RecoveryPlanOverriderFactory() {
                     @Override
-                    public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
+                    public RecoveryPlanOverrider create(TaskStore taskStore, Collection<Plan> plans) {
                         return new RecoveryPlanOverrider() {
                             @Override
                             public Optional<Phase> override(PodInstanceRequirement podInstanceRequirement) {
-                                if (podInstanceRequirement.getPodInstance().getPod().getType().equals("hello") &&
-                                        podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-                                    Phase phase = new DefaultPhase(
-                                            "custom-hello-recovery",
-                                            Arrays.asList(
-                                                    new DefaultRecoveryStep(
-                                                            podInstanceRequirement.getPodInstance().getName(),
-                                                            podInstanceRequirement,
-                                                            new UnconstrainedLaunchConstrainer(),
-                                                            stateStore)),
-                                            new SerialStrategy<>(),
-                                            Collections.emptyList());
-
-                                    return Optional.of(phase);
+                                if (!podInstanceRequirement.getPodInstance().getPod().getType().equals("hello") ||
+                                        !podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+                                    return Optional.empty();
                                 }
+                                // pod=hello and recovery=permanent
+                                Phase phase = new DefaultPhase(
+                                        "custom-hello-recovery",
+                                        Arrays.asList(
+                                                new DefaultRecoveryStep(
+                                                        podInstanceRequirement.getPodInstance().getName(),
+                                                        podInstanceRequirement,
+                                                        new UnconstrainedLaunchConstrainer(),
+                                                        ((DefaultTaskStore) taskStore).getStateStore())),
+                                        new SerialStrategy<>(),
+                                        Collections.emptyList());
 
-                                return Optional.empty();
+                                return Optional.of(phase);
                             }
                         };
                     }

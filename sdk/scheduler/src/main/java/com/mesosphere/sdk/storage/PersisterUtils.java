@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.mesosphere.sdk.state.PersisterException;
+
 /**
  * Utilities relating to usage of {@link Persister}s.
  */

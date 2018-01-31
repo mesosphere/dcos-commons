@@ -16,7 +16,7 @@ import java.util.*;
 import static org.junit.Assert.*;
 
 /**
- * Tests to validate the operation of the {@link StateStore}.
+ * Tests to validate the operation of the {@link TaskStore}.
  */
 public class StateStoreTest {
     private static final Protos.FrameworkID FRAMEWORK_ID =

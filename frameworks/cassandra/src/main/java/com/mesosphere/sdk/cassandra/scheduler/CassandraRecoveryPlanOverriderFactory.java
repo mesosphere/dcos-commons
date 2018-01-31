@@ -3,7 +3,7 @@ package com.mesosphere.sdk.cassandra.scheduler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
-import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.TaskStore;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -15,8 +15,8 @@ public class CassandraRecoveryPlanOverriderFactory implements RecoveryPlanOverri
     private static final String REPLACE_PLAN_NAME = "replace";
 
     @Override
-    public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
-        return new CassandraRecoveryPlanOverrider(stateStore, getNodeReplacementPlan(plans));
+    public RecoveryPlanOverrider create(TaskStore taskStore, Collection<Plan> plans) {
+        return new CassandraRecoveryPlanOverrider(taskStore, getNodeReplacementPlan(plans));
     }
 
     private Plan getNodeReplacementPlan(Collection<Plan> plans) {

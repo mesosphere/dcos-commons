@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
+import com.mesosphere.sdk.offer.evaluate.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -201,7 +201,7 @@ public class YAMLToInternalMappers {
         List<RLimitSpec> rlimits = new ArrayList<>();
         for (Map.Entry<String, RawRLimit> entry : rawPod.getRLimits().entrySet()) {
             RawRLimit rawRLimit = entry.getValue();
-            rlimits.add(new RLimitSpec(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
+            rlimits.add(new DefaultRLimitSpec(entry.getKey(), rawRLimit.getSoft(), rawRLimit.getHard()));
         }
 
         WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetworks();
@@ -344,13 +344,10 @@ public class YAMLToInternalMappers {
         if (rawTask.getDiscovery() != null) {
             discoverySpec = convertDiscovery(rawTask.getDiscovery());
         }
-
-        Collection<TransportEncryptionSpec> transportEncryption = rawTask
-                .getTransportEncryption()
-                .stream()
-                .map(task -> new DefaultTransportEncryptionSpec.Builder()
-                        .name(task.getName())
-                        .type(TransportEncryptionSpec.Type.valueOf(task.getType()))
+        Collection<TransportEncryptionSpec> transportEncryption = rawTask.getTransportEncryption().stream()
+                .map(rte -> new DefaultTransportEncryptionSpec.Builder()
+                        .name(rte.getName())
+                        .type(TransportEncryptionSpec.Type.valueOf(rte.getType()))
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new));
 
@@ -580,7 +577,7 @@ public class YAMLToInternalMappers {
                 // Note: Multiple VIPs may share prefixes with each other. For example if one wants the VIP hostnames,
                 // across multiple ports, to reflect the host that's serving the port.
 
-                NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
+                DefaultNamedVIPSpec namedVIPSpec = new DefaultNamedVIPSpec(
                         portValueBuilder.build(),
                         role,
                         preReservedRole,
@@ -594,7 +591,7 @@ public class YAMLToInternalMappers {
                         networkNames);
                 portSpecs.add(namedVIPSpec);
             } else {
-                portSpecs.add(new PortSpec(
+                portSpecs.add(new DefaultPortSpec(
                         portValueBuilder.build(),
                         role,
                         preReservedRole,

@@ -177,14 +177,14 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networks), TestConstants.TASK_NAME, resourceId);
     }
 
-    private static NamedVIPSpec getNamedVIPSpec(int taskPort, Collection<String> networkNames) {
+    private static DefaultNamedVIPSpec getNamedVIPSpec(int taskPort, Collection<String> networkNames) {
         Protos.Value.Builder valueBuilder = Protos.Value.newBuilder()
                 .setType(Protos.Value.Type.RANGES);
         valueBuilder.getRangesBuilder().addRangeBuilder()
                 .setBegin(taskPort)
                 .setEnd(taskPort);
 
-        return new NamedVIPSpec(
+        return new DefaultNamedVIPSpec(
                 valueBuilder.build(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,

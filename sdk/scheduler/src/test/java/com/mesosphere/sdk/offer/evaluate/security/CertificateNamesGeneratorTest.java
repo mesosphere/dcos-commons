@@ -2,7 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.DiscoverySpec;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
+import com.mesosphere.sdk.specification.DefaultNamedVIPSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -28,7 +28,7 @@ public class CertificateNamesGeneratorTest {
     @Mock private TaskSpec mockTaskSpec;
     @Mock private ResourceSet mockResourceSet;
     @Mock private DiscoverySpec mockDiscoverySpec;
-    @Mock private NamedVIPSpec mockVIPSpec;
+    @Mock private DefaultNamedVIPSpec mockVIPSpec;
 
     @Before
     public void beforeEach() {

@@ -7,9 +7,9 @@ import org.apache.curator.RetryPolicy;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.state.PersisterException;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
  * A set of common utilites for managing Curator/Zookeeper paths and data.

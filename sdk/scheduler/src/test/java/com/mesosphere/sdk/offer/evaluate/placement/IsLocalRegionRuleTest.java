@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -24,27 +23,27 @@ public class IsLocalRegionRuleTest {
 
     @Test
     public void offerLacksDomain() {
-        EvaluationOutcome outcome = rule.filter(getOffer(), null, null);
+        PlacementOutcome outcome = rule.filter(getOffer(), null, null);
         Assert.assertTrue(outcome.isPassing());
     }
 
     @Test
     public void offerHasDomainLocalDomainUnset() {
-        EvaluationOutcome outcome = rule.filter(getOffer(TestConstants.LOCAL_DOMAIN_INFO), null, null);
+        PlacementOutcome outcome = rule.filter(getOffer(TestConstants.LOCAL_DOMAIN_INFO), null, null);
         Assert.assertTrue(outcome.isPassing());
     }
 
     @Test
     public void offerMatchesLocalDomain() {
         IsLocalRegionRule.setLocalDomain(TestConstants.LOCAL_DOMAIN_INFO);
-        EvaluationOutcome outcome = rule.filter(getOffer(TestConstants.LOCAL_DOMAIN_INFO), null, null);
+        PlacementOutcome outcome = rule.filter(getOffer(TestConstants.LOCAL_DOMAIN_INFO), null, null);
         Assert.assertTrue(outcome.isPassing());
     }
 
     @Test
     public void offerMismatchesLocalDomain() {
         IsLocalRegionRule.setLocalDomain(TestConstants.LOCAL_DOMAIN_INFO);
-        EvaluationOutcome outcome = rule.filter(getOffer(TestConstants.REMOTE_DOMAIN_INFO), null, null);
+        PlacementOutcome outcome = rule.filter(getOffer(TestConstants.REMOTE_DOMAIN_INFO), null, null);
         Assert.assertFalse(outcome.isPassing());
     }
 

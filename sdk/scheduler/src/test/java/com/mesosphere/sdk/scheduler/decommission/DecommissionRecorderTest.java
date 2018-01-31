@@ -12,7 +12,7 @@ import org.mockito.MockitoAnnotations;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.DestroyOfferRecommendation;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -28,7 +28,7 @@ public class DecommissionRecorderTest {
 
     @Mock private Capabilities mockCapabilities;
 	@Mock private StateStore mockStateStore;
-	@Mock private Step mockStep;
+	@Mock private AbstractStep mockStep;
 
 	private DecommissionRecorder recorder;
 

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.RandomStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
