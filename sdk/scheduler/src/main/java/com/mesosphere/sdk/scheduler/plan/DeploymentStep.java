@@ -79,6 +79,27 @@ public class DeploymentStep extends AbstractStep {
                         .build());
     }
 
+    @Override
+    public DeploymentStep withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement) {
+        DeploymentStep copy = new DeploymentStep(getName(), podInstanceRequirement, stateStore);
+        this.copyDataTo(copy);
+        return copy;
+    }
+
+    protected void copyDataTo(DeploymentStep out) {
+        // DeploymentStep
+        out.errors.addAll(this.errors);
+        out.parameters.putAll(this.parameters);
+        out.tasks.putAll(this.tasks);
+        out.prepared.set(this.prepared.get());
+        // AbstractStep
+        out.id = this.getId();
+        out.setStatus(this.getStatus());
+        if (this.isInterrupted()) {
+            out.interrupt();
+        }
+    }
+
     private static Set<Protos.TaskID> getTaskIds(Collection<OfferRecommendation> recommendations) {
         return recommendations.stream()
                 .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
@@ -91,7 +112,6 @@ public class DeploymentStep extends AbstractStep {
     /**
      * Synchronized to ensure consistency between this and {@link #update(Protos.TaskStatus)}.
      */
-    @Override
     public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         // log a bulleted list of operations, with each operation on one line:
         logger.info("Updated step '{} [{}]' to reflect {} recommendation{}: {}",

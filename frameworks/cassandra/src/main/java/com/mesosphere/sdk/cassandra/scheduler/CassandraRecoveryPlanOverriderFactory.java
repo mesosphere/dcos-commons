@@ -15,8 +15,8 @@ public class CassandraRecoveryPlanOverriderFactory implements RecoveryPlanOverri
     private static final String REPLACE_PLAN_NAME = "replace";
 
     @Override
-    public RecoveryPlanOverrider create(TaskStore stateStore, Collection<Plan> plans) {
-        return new CassandraRecoveryPlanOverrider(stateStore, getNodeReplacementPlan(plans));
+    public RecoveryPlanOverrider create(TaskStore taskStore, Collection<Plan> plans) {
+        return new CassandraRecoveryPlanOverrider(taskStore, getNodeReplacementPlan(plans));
     }
 
     private Plan getNodeReplacementPlan(Collection<Plan> plans) {

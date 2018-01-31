@@ -16,7 +16,7 @@ import java.util.Collections;
 public class RegionRule extends StringMatcherRule {
 
     @JsonCreator
-    protected RegionRule(@JsonProperty("matcher") StringMatcher matcher) {
+    public RegionRule(@JsonProperty("matcher") StringMatcher matcher) {
         super("RegionRule", matcher);
     }
 

@@ -2,12 +2,12 @@ package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.PersisterException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;

@@ -12,6 +12,8 @@ import java.util.TreeSet;
 
 import org.junit.Test;
 
+import com.mesosphere.sdk.state.PersisterException;
+
 /**
  * Tests for {@link PersisterUtils}.
  */

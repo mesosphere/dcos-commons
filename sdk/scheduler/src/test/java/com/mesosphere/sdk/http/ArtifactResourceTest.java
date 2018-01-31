@@ -7,7 +7,7 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
 
 import org.junit.Before;
 import org.junit.Test;

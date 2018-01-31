@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
@@ -29,7 +28,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
-        PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
+        PlacementRule placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Arrays.asList(TestConstants.AGENT_ID.getValue()),
                 Collections.emptyList())
                 .get();
@@ -50,7 +49,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
 
         // Launch
-        placementRule = PlacementUtils.getAgentPlacementRule(
+        placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Arrays.asList("some-random-agent"),
                 Collections.emptyList()).get();
 
@@ -76,7 +75,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
-        PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
+        PlacementRule placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Arrays.asList(TestConstants.AGENT_ID.getValue()),
                 Collections.emptyList())
                 .get();
@@ -97,7 +96,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
 
         // Launch
-        placementRule = PlacementUtils.getAgentPlacementRule(
+        placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Arrays.asList("some-random-agent"),
                 Collections.emptyList()).get();
 
@@ -122,7 +121,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
-        PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
+        PlacementRule placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList("some-random-agent")).get();
 
@@ -142,7 +141,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
 
         // Launch
-        placementRule = PlacementUtils.getAgentPlacementRule(
+        placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList(TestConstants.AGENT_ID.getValue())).get();
 
@@ -168,7 +167,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Protos.Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(2.0);
 
         // Don't launch
-        PlacementRule placementRule = PlacementUtils.getAgentPlacementRule(
+        PlacementRule placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList("some-random-agent")).get();
 
@@ -188,7 +187,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(0, recommendations.size());
 
         // Launch
-        placementRule = PlacementUtils.getAgentPlacementRule(
+        placementRule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList(TestConstants.AGENT_ID.getValue())).get();
 

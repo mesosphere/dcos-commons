@@ -47,6 +47,14 @@ public class DefaultRecoveryStep extends DeploymentStep {
         }
     }
 
+    @Override
+    public DefaultRecoveryStep withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement) {
+        DefaultRecoveryStep copy =
+                new DefaultRecoveryStep(getName(), podInstanceRequirement, launchConstrainer, stateStore);
+        super.copyDataTo(copy);
+        return copy;
+    }
+
     public RecoveryType getRecoveryType() {
         return podInstanceRequirement.getRecoveryType();
     }

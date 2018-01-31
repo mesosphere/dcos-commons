@@ -31,14 +31,12 @@ public class RoundRobinByZoneRule extends AbstractRoundRobinRule {
         if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {
             return offer.getDomain().getFaultDomain().getZone().getName();
         }
-
         return null;
     }
 
     @Override
     public String getKey(Protos.TaskInfo task) {
-        Optional<String> zone = new TaskLabelReader(task).getZone();
-        return zone.isPresent() ? zone.get() : null;
+        return new TaskLabelReader(task).getZone().orElse(null);
     }
 
     @JsonProperty("zone-count")

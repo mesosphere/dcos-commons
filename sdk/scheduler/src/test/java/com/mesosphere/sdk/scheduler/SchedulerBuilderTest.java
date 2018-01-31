@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.evaluate.SchedulerPlacementUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -52,7 +53,7 @@ public class SchedulerBuilderTest {
 
         Assert.assertTrue(updatedPodSpec.getPlacementRule().isPresent());
         Assert.assertTrue(updatedPodSpec.getPlacementRule().get() instanceof AndRule);
-        Assert.assertTrue(PlacementUtils.placementRuleReferencesRegion(updatedPodSpec));
+        Assert.assertTrue(SchedulerPlacementUtils.placementRuleReferencesRegion(updatedPodSpec));
     }
 
     private PlacementRule getRemoteRegionRule() {

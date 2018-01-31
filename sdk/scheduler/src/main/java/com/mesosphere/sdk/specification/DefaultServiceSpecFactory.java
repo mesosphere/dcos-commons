@@ -49,7 +49,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeLabelConverter;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.evaluate.placement.ZoneRule;
 import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
 
 import jersey.repackaged.com.google.common.base.Joiner;
 
@@ -81,6 +81,7 @@ public class DefaultServiceSpecFactory implements ConfigurationFactory<ServiceSp
             .addMapping(NetworkSpec.class, DefaultNetworkSpec.class)
             .addMapping(PodSpec.class, DefaultPodSpec.class)
             .addMapping(ReadinessCheckSpec.class, DefaultReadinessCheckSpec.class)
+            .addMapping(ReplacementFailurePolicy.class, DefaultReplacementFailurePolicy.class)
             .addMapping(ResourceSet.class, DefaultResourceSet.class)
             .addMapping(RLimitSpec.class, DefaultRLimitSpec.class)
             .addMapping(SecretSpec.class, DefaultSecretSpec.class)
@@ -167,7 +168,7 @@ public class DefaultServiceSpecFactory implements ConfigurationFactory<ServiceSp
         private final GoalState referenceTerminalGoalState;
 
         GoalStateDeserializer(ServiceSpec serviceSpec) {
-            super((Class<?>)null);
+            super((Class<?>) null);
             referenceTerminalGoalState = getReferenceTerminalGoalState(serviceSpec);
         }
 
@@ -220,7 +221,7 @@ public class DefaultServiceSpecFactory implements ConfigurationFactory<ServiceSp
         }
 
         ResourceSpecDeserializer() {
-            super((Class<?>)null);
+            super((Class<?>) null);
         }
 
         @Override

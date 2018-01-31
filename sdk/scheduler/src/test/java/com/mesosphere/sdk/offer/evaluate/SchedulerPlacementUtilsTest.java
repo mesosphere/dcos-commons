@@ -1,5 +1,13 @@
-package com.mesosphere.sdk.offer.evaluate.placement;
+package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.AttributeRule;
+import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.OrRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.ZoneRule;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -13,24 +21,24 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Tests for {@link PlacementUtils}.
+ * Tests for {@link SchedulerPlacementUtils}.
  */
-public class PlacementUtilsTest {
+public class SchedulerPlacementUtilsTest {
     @Test
     public void testGetAgentPlacementRule() {
-        Optional<PlacementRule> rule = PlacementUtils.getAgentPlacementRule(
+        Optional<PlacementRule> rule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Collections.emptyList());
         assertFalse(rule.isPresent());
-        rule = PlacementUtils.getAgentPlacementRule(
+        rule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Arrays.asList("avoidme", "avoidme2"),
                 Collections.emptyList());
         assertEquals("NotRule{rule=OrRule{rules=[AgentRule{agentId=avoidme}, AgentRule{agentId=avoidme2}]}}", rule.get().toString());
-        rule = PlacementUtils.getAgentPlacementRule(
+        rule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Collections.emptyList(),
                 Arrays.asList("colocateme", "colocateme2"));
         assertEquals("OrRule{rules=[AgentRule{agentId=colocateme}, AgentRule{agentId=colocateme2}]}", rule.get().toString());
-        rule = PlacementUtils.getAgentPlacementRule(
+        rule = SchedulerPlacementUtils.getAgentPlacementRule(
                 Arrays.asList("avoidme", "avoidme2"),
                 Arrays.asList("colocateme", "colocateme2"));
         assertEquals("AndRule{rules=[NotRule{rule=OrRule{rules=[AgentRule{agentId=avoidme}, AgentRule{agentId=avoidme2}]}}, " +
@@ -40,28 +48,28 @@ public class PlacementUtilsTest {
     @Test
     public void emptyRuleNotRegion() {
         PodSpec podSpec = getPodSpec();
-        assertFalse(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertFalse(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
     public void passThroughRuleNotRegion() {
         PlacementRule rule = new PassthroughRule();
         PodSpec podSpec = getPodSpec(rule);
-        assertFalse(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertFalse(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
     public void simpleRegionRuleSucceeds() {
         PlacementRule rule = new RegionRule(ExactMatcher.create("region"));
         PodSpec podSpec = getPodSpec(rule);
-        assertTrue(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertTrue(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
     public void simpleNotRegionRuleFails() {
         PlacementRule rule = new ZoneRule(ExactMatcher.create("zone"));
         PodSpec podSpec = getPodSpec(rule);
-        assertFalse(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertFalse(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
@@ -71,7 +79,7 @@ public class PlacementUtilsTest {
         PlacementRule orRule = new OrRule(regionRule, zoneRule);
 
         PodSpec podSpec = getPodSpec(orRule);
-        assertTrue(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertTrue(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
@@ -81,7 +89,7 @@ public class PlacementUtilsTest {
         PlacementRule orRule = new OrRule(regionRule, zoneRule);
 
         PodSpec podSpec = getPodSpec(orRule);
-        assertFalse(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertFalse(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
@@ -94,7 +102,7 @@ public class PlacementUtilsTest {
         PlacementRule andRule = new AndRule(attributeRule, orRule);
 
         PodSpec podSpec = getPodSpec(andRule);
-        assertTrue(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertTrue(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     @Test
@@ -107,7 +115,7 @@ public class PlacementUtilsTest {
         PlacementRule andRule = new AndRule(attributeRule, orRule);
 
         PodSpec podSpec = getPodSpec(andRule);
-        assertFalse(PlacementUtils.placementRuleReferencesRegion(podSpec));
+        assertFalse(SchedulerPlacementUtils.placementRuleReferencesRegion(podSpec));
     }
 
     private static PodSpec getPodSpec() {

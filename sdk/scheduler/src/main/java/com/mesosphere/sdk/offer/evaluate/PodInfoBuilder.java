@@ -5,7 +5,6 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.ArtifactResource;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
@@ -443,11 +442,11 @@ public class PodInfoBuilder {
         // Inject PLACEMENT_REFERENCED_REGION
         environmentMap.put(
                 EnvConstants.PLACEMENT_REFERENCED_REGION_ENV,
-                String.valueOf(PlacementUtils.placementRuleReferencesRegion(podInstance.getPod())));
+                String.valueOf(SchedulerPlacementUtils.placementRuleReferencesRegion(podInstance.getPod())));
         // Inject PLACEMENT_REFERENCED_ZONE
         environmentMap.put(
                 EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV,
-                String.valueOf(PlacementUtils.placementRuleReferencesZone(podInstance.getPod())));
+                String.valueOf(SchedulerPlacementUtils.placementRuleReferencesZone(podInstance.getPod())));
 
         return environmentMap;
     }

@@ -5,8 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,14 +58,14 @@ public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
     /**
      * Returns a value to round robin against from the provided {@link Offer}.
      */
-    protected String getKey(Offer offer) {
+    protected String getKey(Protos.Offer offer) {
         return offer.getHostname();
     }
 
     /**
-     * Returns a value to round robin against from the provided {@link TaskInfo}.
+     * Returns a value to round robin against from the provided {@link TaskLabelReader}.
      */
-    protected String getKey(TaskInfo task) {
+    protected String getKey(Protos.TaskInfo task) {
         try {
             return new TaskLabelReader(task).getHostname();
         } catch (TaskException e) {

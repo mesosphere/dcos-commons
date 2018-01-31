@@ -30,7 +30,7 @@ public class ZoneRule extends StringMatcherRule {
 
     @Override
     public PlacementOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
-        if (!PlacementUtils.hasZone(offer)) {
+        if (!offer.getDomain().getFaultDomain().hasZone()) {
             return PlacementOutcome.fail(this, "Offer does not contain a zone.").build();
         } else if (isAcceptable(offer, podInstance, tasks)) {
             return PlacementOutcome.pass(

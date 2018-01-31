@@ -5,9 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -58,8 +56,8 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getKey(Offer offer) {
-        for (Attribute attribute : offer.getAttributesList()) {
+    protected String getKey(Protos.Offer offer) {
+        for (Protos.Attribute attribute : offer.getAttributesList()) {
             if (attribute.getName().equalsIgnoreCase(attributeName)) {
                 return AttributeStringUtils.valueString(attribute);
             }
@@ -68,7 +66,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     }
 
     @Override
-    protected String getKey(TaskInfo task) {
+    protected String getKey(Protos.TaskInfo task) {
         for (String taskAttributeString : new TaskLabelReader(task).getOfferAttributeStrings()) {
             AttributeStringUtils.NameValue taskAttributeNameValue =
                     AttributeStringUtils.split(taskAttributeString);

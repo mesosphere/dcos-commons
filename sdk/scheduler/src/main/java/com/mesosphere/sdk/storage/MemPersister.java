@@ -13,7 +13,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.google.common.base.Splitter;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.PersisterException;
+import com.mesosphere.sdk.state.StorageError.Reason;
 
 /**
  * Implementation of {@link Persister} which stores the data in local memory. Mirrors the behavior of

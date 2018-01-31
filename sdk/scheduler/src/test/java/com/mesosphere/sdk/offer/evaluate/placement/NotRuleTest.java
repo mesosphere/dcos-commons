@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -47,7 +48,10 @@ public class NotRuleTest {
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
 
-        rule = new NotRule(HostnameRuleFactory.getInstance().require(PlacementUtils.toExactMatchers("foo", "bar")));
+        rule = new NotRule(HostnameRuleFactory.getInstance().require(
+                Arrays.asList("foo", "bar").stream()
+                        .map(s -> ExactMatcher.create(s))
+                        .collect(Collectors.toList())));
         assertEquals(rule, SerializationUtils.fromString(
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }

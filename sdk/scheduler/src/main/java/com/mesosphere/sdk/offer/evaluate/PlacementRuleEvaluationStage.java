@@ -8,8 +8,6 @@ import org.apache.mesos.Protos;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
-
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
  * ensuring that its resources meet the constraints imposed by the supplied
@@ -27,7 +25,7 @@ public class PlacementRuleEvaluationStage implements OfferEvaluationStage {
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         if (placementRule == null) {
-            return pass(this, "No placement rule defined").build();
+            return EvaluationOutcome.pass(this, "No placement rule defined").build();
         }
 
         return toEvaluationOutcome(

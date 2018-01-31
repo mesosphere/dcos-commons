@@ -10,7 +10,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import javax.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,9 +18,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 /**
- * This class tests the {@link MaxPerRule} class.
+ * This class tests the {@link AbstractMaxPerRule} class.
  */
-public class MaxPerTest {
+public class AbstractMaxPerRuleTest {
     private Protos.TaskInfo taskInfo;
     private Protos.Offer offer;
     private PodInstance podInstance;
@@ -40,7 +39,7 @@ public class MaxPerTest {
         offer = OfferTestUtils.getEmptyOfferBuilder().build();
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void limitZero() {
         new MaxPerHostnameRule(0);
     }
@@ -51,7 +50,7 @@ public class MaxPerTest {
      */
     @Test
     public void acceptEmptyAll() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Collections.emptyList(),
                 Collections.emptyList(),
@@ -65,7 +64,7 @@ public class MaxPerTest {
      */
     @Test
     public void acceptEmptyKeysNonEmptyTasks() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Collections.emptyList(),
                 Collections.emptyList(),
@@ -78,7 +77,7 @@ public class MaxPerTest {
      */
     @Test
     public void acceptOfferWithoutKeys() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0"),
                 Collections.emptyList(),
@@ -92,7 +91,7 @@ public class MaxPerTest {
      */
     @Test
     public void acceptOfferWithDifferentKey() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0"),
                 Arrays.asList("key1"),
@@ -106,7 +105,7 @@ public class MaxPerTest {
      */
     @Test
     public void rejectSingleTask() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0"),
                 Arrays.asList("key0"),
@@ -121,7 +120,7 @@ public class MaxPerTest {
      */
     @Test
     public void ignoreSelf() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0"),
                 Arrays.asList("key0"),
@@ -143,7 +142,7 @@ public class MaxPerTest {
      */
     @Test
     public void ignoreSelfLargerLimit() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 2,
                 Arrays.asList("key0", "key0"),
                 Arrays.asList("key0"),
@@ -165,7 +164,7 @@ public class MaxPerTest {
      */
     @Test
     public void rejectOneOfMultipleOverLimit() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0", "key1"),
                 Arrays.asList("key1"),
@@ -180,7 +179,7 @@ public class MaxPerTest {
      */
     @Test
     public void rejectOneOfMultipleOverLargerLimit() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 2,
                 Arrays.asList("key0", "key1", "key1"),
                 Arrays.asList("key1"),
@@ -195,7 +194,7 @@ public class MaxPerTest {
      */
     @Test
     public void rejectMultipleOverLimit() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0", "key1"),
                 Arrays.asList("key1", "key0"),
@@ -210,7 +209,7 @@ public class MaxPerTest {
      */
     @Test
     public void rejectMultipleOverLargerLimit() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 2,
                 Arrays.asList("key0", "key0", "key1", "key1"),
                 Arrays.asList("key1", "key0"),
@@ -225,7 +224,7 @@ public class MaxPerTest {
      */
     @Test
     public void acceptOfferWithDisjointKeys() {
-        MaxPerRule rule = new TestMaxPerRule(
+        AbstractMaxPerRule rule = new TestMaxPerRule(
                 1,
                 Arrays.asList("key0", "key1"),
                 Arrays.asList("key2", "key3"),
@@ -234,7 +233,7 @@ public class MaxPerTest {
         assertTrue(rule.filter(offer, podInstance, Arrays.asList(taskInfo)).isPassing());
     }
 
-    private static class TestMaxPerRule extends MaxPerRule {
+    private static class TestMaxPerRule extends AbstractMaxPerRule {
         private final StringMatcher stringMatcher;
         private final Collection<String> taskKeys;
         private final Collection<String> offerKeys;

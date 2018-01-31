@@ -7,8 +7,6 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.annotations.VisibleForTesting;
-
 /**
  * Storage of tasks that are being run by this executor.
  */
@@ -30,7 +28,6 @@ public class LaunchedTaskStore {
         this(exitCallback, RUNNING_TASK_POLL_INTERVAL_MS);
     }
 
-    @VisibleForTesting
     LaunchedTaskStore(Runnable exitCallback, int exitPollIntervalMs) {
         this.monitor = new TasksRunningMonitor(exitCallback);
         this.exitPollIntervalMs = exitPollIntervalMs;

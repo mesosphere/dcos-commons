@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.OfferRecommendation;
-
 import java.util.Collection;
 import java.util.Optional;
 
@@ -32,13 +30,10 @@ public interface Step extends Element, Interruptible {
     Optional<PodInstanceRequirement> getPodInstanceRequirement();
 
     /**
-     * Notifies the Step whether the {@link PodInstanceRequirement} previously returned by
-     * {@link #start()} has been successfully accepted/fulfilled. The {@code recommendations} param is
-     * empty when no offers matching the requirement previously returned by {@link #start()}
-     * could be found. This is only called if {@link #start()} returned a non-empty
-     * {@link PodInstanceRequirement}.
+     * Returns a copy of this {@link Step} which has the provided {@link PodInstanceRequirement}. The original
+     * {@link Step} is unaffected.
      */
-    void updateOfferStatus(Collection<OfferRecommendation> recommendations);
+    Step withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement);
 
     /**
      * Returns a user-facing display status of this step, which may provide additional context on the work being

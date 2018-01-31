@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 /**
  * This class generates {@link AttributeRule}s.
  */
-public class AttributeRuleFactory implements RuleFactory {
+public class AttributeRuleFactory extends AbstractRuleFactory {
     private static final AttributeRuleFactory factory = new AttributeRuleFactory();
 
     public static AttributeRuleFactory getInstance() {

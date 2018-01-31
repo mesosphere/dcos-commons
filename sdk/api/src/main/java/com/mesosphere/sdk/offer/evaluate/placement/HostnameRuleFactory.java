@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 /**
  * This class generates {@link HostnameRule}s.
  */
-public class HostnameRuleFactory implements RuleFactory {
+public class HostnameRuleFactory extends AbstractRuleFactory {
     private static final HostnameRuleFactory factory = new HostnameRuleFactory();
 
     public static HostnameRuleFactory getInstance() {

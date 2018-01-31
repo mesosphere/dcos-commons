@@ -17,7 +17,8 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
+
 import difflib.DiffUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;

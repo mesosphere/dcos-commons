@@ -35,7 +35,7 @@ public class OfferAccepter {
         return this;
     }
 
-    public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
+    public Collection<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
         if (CollectionUtils.isEmpty(recommendations)) {
             LOGGER.warn("No recommendations, nothing to do");
             return new ArrayList<>();

@@ -5,14 +5,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,13 +35,10 @@ import java.util.Collections;
  * on any given host. Among the above three hosts, any offers from host-1 and host-3 will be
  * accepted and offers from host-2 will be denied.
  */
-public class MaxPerHostnameRule extends MaxPerRule {
+public class MaxPerHostnameRule extends AbstractMaxPerRule {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MaxPerHostnameRule.class);
 
-    @Valid
-    @Min(1)
-    private final int maxTasksPerHostname;
     private final StringMatcher taskFilter;
 
     /**
@@ -73,12 +67,10 @@ public class MaxPerHostnameRule extends MaxPerRule {
             @JsonProperty("max") int maxTasksPerSelectedHostname,
             @JsonProperty("task-filter") StringMatcher taskFilter) {
         super(maxTasksPerSelectedHostname, taskFilter);
-        this.maxTasksPerHostname = maxTasksPerSelectedHostname;
         if (taskFilter == null) { // null when unspecified in serialized data
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
-        ValidationUtils.validate(this);
     }
 
     @Override
@@ -87,13 +79,13 @@ public class MaxPerHostnameRule extends MaxPerRule {
             return PlacementOutcome.pass(
                     this,
                     "Fewer than %d tasks matching filter '%s' are present on this host",
-                    maxTasksPerHostname, taskFilter.toString())
+                    max, taskFilter.toString())
                     .build();
         } else {
             return PlacementOutcome.fail(
                     this,
                     "%d tasks matching filter '%s' are already present on this host",
-                    maxTasksPerHostname, taskFilter.toString())
+                    max, taskFilter.toString())
                     .build();
         }
     }
@@ -121,6 +113,6 @@ public class MaxPerHostnameRule extends MaxPerRule {
     @Override
     public String toString() {
         return String.format("MaxPerHostnameRule{max=%s, task-filter=%s}",
-                maxTasksPerHostname, taskFilter);
+                max, taskFilter);
     }
 }

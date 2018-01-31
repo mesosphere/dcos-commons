@@ -1,8 +1,7 @@
 package com.mesosphere.sdk.state;
 
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;

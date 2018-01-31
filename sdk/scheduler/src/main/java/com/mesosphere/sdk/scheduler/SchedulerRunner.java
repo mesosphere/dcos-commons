@@ -12,13 +12,14 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Strategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.PersisterException;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.PersisterException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -178,7 +179,7 @@ public class SchedulerRunner implements Runnable {
 
     private static void runScheduler(
             Scheduler mesosScheduler, ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, StateStore stateStore) {
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, schedulerConfig, stateStore);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
@@ -192,7 +193,8 @@ public class SchedulerRunner implements Runnable {
         }
     }
 
-    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    private static Protos.FrameworkInfo getFrameworkInfo(
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, StateStore stateStore) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
@@ -221,7 +223,8 @@ public class SchedulerRunner implements Runnable {
                     .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
         }
 
-        if (Capabilities.getInstance().supportsRegionAwareness()) {
+        if (schedulerConfig.isRegionAwarenessEnabled() &&
+                Capabilities.getInstance().supportsRegionAwareness()) {
             fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
                     .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE));
         }

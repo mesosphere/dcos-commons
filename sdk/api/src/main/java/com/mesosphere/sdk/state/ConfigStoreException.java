@@ -2,8 +2,7 @@ package com.mesosphere.sdk.state;
 
 import java.io.IOException;
 
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
+import com.mesosphere.sdk.state.StorageError.Reason;
 
 /**
  * Exception that indicates that there was an issue with storing values

@@ -3,8 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import com.mesosphere.sdk.offer.Constants;
-
 /**
  * Defines the interface for a collection of one or more {@link Phase}s, along with any errors encountered while
  * processing those {@link Phase}s. The Plan is a representation of any work that is currently being
@@ -32,6 +30,6 @@ public interface Plan extends ParentElement<Phase> {
     }
 
     default boolean isDeployPlan() {
-        return getName().equals(Constants.DEPLOY_PLAN_NAME);
+        return getName().equals("deploy");
     }
 }

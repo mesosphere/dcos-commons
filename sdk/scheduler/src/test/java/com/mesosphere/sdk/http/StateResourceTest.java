@@ -1,15 +1,15 @@
 package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
-import com.mesosphere.sdk.state.StateStoreUtilsTest;
-import com.mesosphere.sdk.storage.*;
+import com.mesosphere.sdk.state.*;
+import com.mesosphere.sdk.state.StorageError.Reason;
+import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.json.JSONArray;

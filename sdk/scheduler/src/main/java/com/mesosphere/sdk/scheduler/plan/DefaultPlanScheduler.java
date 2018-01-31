@@ -45,33 +45,31 @@ public class DefaultPlanScheduler implements PlanScheduler {
     public Collection<OfferID> resourceOffers(
             final SchedulerDriver driver,
             final List<Offer> offers,
-            final Collection<? extends Step> steps) {
+            final Collection<Step> steps) {
         if (driver == null || offers == null || steps == null) {
             logger.error("Unexpected null argument(s) encountered: driver='{}' offers='{}', steps='{}'",
                     driver, offers, steps);
             return Collections.emptyList();
         }
 
-        List<OfferID> acceptedOfferIds = new ArrayList<>();
+        Set<OfferID> acceptedOfferIds = new HashSet<>();
         List<Offer> availableOffers = new ArrayList<>(offers);
 
         for (Step step : steps) {
             acceptedOfferIds.addAll(resourceOffers(driver, availableOffers, step));
-            availableOffers = PlanUtils.filterAcceptedOffers(availableOffers, acceptedOfferIds);
+            availableOffers = availableOffers.stream()
+                    .filter(offer -> !acceptedOfferIds.contains(offer.getId()))
+                    .collect(Collectors.toList());
         }
 
         return acceptedOfferIds;
     }
 
     private Collection<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Step step) {
-
-        if (driver == null || offers == null) {
-            logger.error("Unexpected null argument encountered: driver='{}' offers='{}'", driver, offers);
-            return Collections.emptyList();
-        }
-
-        if (step == null) {
-            logger.info("Ignoring resource offers for null step.");
+        if (!(step instanceof AbstractStep)) {
+            // Custom Step implementations via the API are not supported, at least for now.
+            logger.warn("Ignoring resource offers for step: {} with type: {}",
+                    step.getName(), step.getClass().getName());
             return Collections.emptyList();
         }
 
@@ -85,7 +83,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.getPodInstanceRequirement();
         if (!podInstanceRequirementOptional.isPresent()) {
             logger.info("No PodInstanceRequirement for step: {}", step.getName());
-            step.updateOfferStatus(Collections.emptyList());
+            ((AbstractStep) step).updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
 
@@ -101,7 +99,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         try {
             recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
         } catch (InvalidRequirementException | IOException e) {
-            logger.error("Failed generate OfferRecommendations.", e);
+            logger.error("Failed to generate OfferRecommendations", e);
             return Collections.emptyList();
         }
 
@@ -110,19 +108,19 @@ public class DefaultPlanScheduler implements PlanScheduler {
             logger.warn(
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
                     step.getName(), podInstanceRequirement);
-            step.updateOfferStatus(Collections.emptyList());
+            ((AbstractStep) step).updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
 
-        List<OfferID> acceptedOffers = offerAccepter.accept(driver, recommendations);
+        Collection<OfferID> acceptedOffers = offerAccepter.accept(driver, recommendations);
 
         // Notify step of offer outcome:
         if (acceptedOffers.isEmpty()) {
             // If no Operations occurred it may be of interest to the Step.  For example it may want to set its state
             // to Pending to ensure it will be reattempted on the next Offer cycle.
-            step.updateOfferStatus(Collections.emptyList());
+            ((AbstractStep) step).updateOfferStatus(Collections.emptyList());
         } else {
-            step.updateOfferStatus(getNonTransientRecommendations(recommendations));
+            ((AbstractStep) step).updateOfferStatus(getNonTransientRecommendations(recommendations));
         }
 
         return acceptedOffers;

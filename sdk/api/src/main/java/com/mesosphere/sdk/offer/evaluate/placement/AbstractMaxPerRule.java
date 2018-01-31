@@ -6,21 +6,19 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * This interface defines the required methods for generic application of a PlacementRule which forces a
+ * This class defines the required methods for generic application of a {@link PlacementRule} which forces a
  * maximum per some key (e.g. attribute, hostname, region, zone ...).
  */
-public abstract class MaxPerRule implements PlacementRule {
-    @Valid
-    @Min(1)
+public abstract class AbstractMaxPerRule implements PlacementRule {
     protected final Integer max;
+
+    // Value to be used for serialization purposes.
     private final StringMatcher taskFilter;
 
     public abstract Collection<String> getKeys(Protos.TaskInfo taskInfo);
@@ -41,9 +39,13 @@ public abstract class MaxPerRule implements PlacementRule {
      * @param max The maximum number of tasks allowed on any given key.
      * @param taskFilter A filter which determines which tasks this rule applies.
      */
-    protected MaxPerRule(Integer max, StringMatcher taskFilter) {
+    protected AbstractMaxPerRule(Integer max, StringMatcher taskFilter) {
         this.max = max;
         this.taskFilter = taskFilter;
+        if (max < 1) {
+            throw new IllegalArgumentException(String.format(
+                    "Max must be 1 or greater, but was %d", max));
+        }
     }
 
     protected boolean isAcceptable(

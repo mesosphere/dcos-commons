@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.Strategy;
 
 import java.util.*;
 

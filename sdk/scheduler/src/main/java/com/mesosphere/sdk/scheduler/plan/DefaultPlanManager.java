@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import org.apache.mesos.Protos;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Provides the default implementation of a {@link PlanManager}.
@@ -47,6 +48,18 @@ public class DefaultPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        return PlanUtils.getDirtyAssets(plan);
+        return getDirtyAssets(plan);
+    }
+
+    public static Set<PodInstanceRequirement> getDirtyAssets(Plan plan) {
+        if (plan == null) {
+            return Collections.emptySet();
+        }
+
+        return plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.isAssetDirty() && step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
+                .collect(Collectors.toSet());
     }
 }

@@ -2,8 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import org.junit.Test;
 
-import com.mesosphere.sdk.offer.evaluate.MarathonConstraintParser;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;

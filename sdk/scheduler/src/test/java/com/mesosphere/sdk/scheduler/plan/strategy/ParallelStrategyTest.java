@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan.strategy;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.Strategy;
 import com.mesosphere.sdk.scheduler.plan.TestStep;
 import org.junit.Assert;
 import org.junit.Before;

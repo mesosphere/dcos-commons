@@ -38,8 +38,7 @@ public class RoundRobinByRegionRule extends AbstractRoundRobinRule {
 
     @Override
     protected String getKey(Protos.TaskInfo task) {
-        Optional<String> region = new TaskLabelReader(task).getRegion();
-        return region.isPresent() ? region.get() : null;
+        return new TaskLabelReader(task).getRegion().orElse(null);
     }
 
     @JsonProperty("region-count")

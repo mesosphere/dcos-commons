@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * This rules implements a placement rule for restricting the maximum number of tasks per Zone.
  */
-public class MaxPerZoneRule extends MaxPerRule {
+public class MaxPerZoneRule extends AbstractMaxPerRule {
 
     public MaxPerZoneRule(int maxPerZone) {
         this(maxPerZone, null);
@@ -48,7 +48,7 @@ public class MaxPerZoneRule extends MaxPerRule {
 
     @Override
     public PlacementOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
-        if (!PlacementUtils.hasZone(offer)) {
+        if (!offer.getDomain().getFaultDomain().hasZone()) {
             return PlacementOutcome.fail(this, "Offer does not contain a zone.").build();
         } else if (isAcceptable(offer, podInstance, tasks)) {
             return PlacementOutcome.pass(

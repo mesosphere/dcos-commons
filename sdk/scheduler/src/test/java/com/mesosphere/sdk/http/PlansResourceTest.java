@@ -5,7 +5,8 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+import com.mesosphere.sdk.scheduler.plan.Strategy;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

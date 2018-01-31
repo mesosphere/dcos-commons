@@ -22,7 +22,7 @@ import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -210,17 +210,19 @@ public class DefaultScheduler extends AbstractScheduler {
     private PlanManager getRecoveryPlanManager() {
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryPlanOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
+            LOGGER.info("Adding overriding recovery plan manager: {}",
+                    recoveryPlanOverriderFactory.get().getClass().getName());
+            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get()
+                    .create(new DefaultTaskStore(stateStore), plans));
         }
         final LaunchConstrainer launchConstrainer;
         final FailureMonitor failureMonitor;
         if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
             ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
             launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMins()));
             failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
                     stateStore,
                     configStore);
         } else {
@@ -265,8 +267,7 @@ public class DefaultScheduler extends AbstractScheduler {
     @Override
     protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
         // See which offers are useful to the plans.
-        List<Protos.OfferID> planOffers = new ArrayList<>();
-        planOffers.addAll(planScheduler.resourceOffers(driver, offers, steps));
+        Collection<Protos.OfferID> planOffers = planScheduler.resourceOffers(driver, offers, steps);
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, planOffers);
 
         // Resource Cleaning:
@@ -280,7 +281,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
         ResourceCleanerScheduler cleanerScheduler =
                 new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
-        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
+        Collection<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
         // Decline remaining offers.

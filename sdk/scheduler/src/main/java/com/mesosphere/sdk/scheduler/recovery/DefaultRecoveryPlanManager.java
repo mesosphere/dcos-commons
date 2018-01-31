@@ -347,7 +347,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     @Override
     public Set<PodInstanceRequirement> getDirtyAssets() {
-        return PlanUtils.getDirtyAssets(plan);
+        return DefaultPlanManager.getDirtyAssets(plan);
     }
 
     private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {

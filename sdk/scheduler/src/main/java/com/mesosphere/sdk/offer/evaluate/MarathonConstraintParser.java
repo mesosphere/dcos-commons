@@ -13,8 +13,8 @@ import com.mesosphere.sdk.offer.evaluate.placement.MaxPerHostnameRule;
 import com.mesosphere.sdk.offer.evaluate.placement.MaxPerRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.MaxPerZoneRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.offer.evaluate.placement.RoundRobinByAttributeRule;
@@ -50,6 +50,11 @@ public class MarathonConstraintParser {
         SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
         SUPPORTED_OPERATORS.put("IS", new IsOperator());
     }
+
+    private static final String HOSTNAME_FIELD_LEGACY = "hostname";
+    private static final String HOSTNAME_FIELD = "@hostname";
+    private static final String REGION_FIELD = "@region";
+    private static final String ZONE_FIELD = "@zone";
 
     private MarathonConstraintParser() {
         // do not instantiate
@@ -248,7 +253,7 @@ public class MarathonConstraintParser {
                 Optional<String> requiredParameter) throws IOException {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
                 case ZONE:
@@ -277,7 +282,7 @@ public class MarathonConstraintParser {
                 String operatorName,
                 Optional<String> ignoredParameter) {
 
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return new MaxPerHostnameRule(1, taskFilter);
                 case ZONE:
@@ -313,7 +318,7 @@ public class MarathonConstraintParser {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
 
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(ExactMatcher.create(parameter));
                 case ZONE:
@@ -365,7 +370,7 @@ public class MarathonConstraintParser {
                         operatorName, parameter), e);
             }
 
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return new RoundRobinByHostnameRule(num, taskFilter);
                 case ZONE:
@@ -396,7 +401,7 @@ public class MarathonConstraintParser {
                 Optional<String> requiredParameter) throws IOException {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().require(RegexMatcher.create(parameter));
                 case ZONE:
@@ -427,7 +432,7 @@ public class MarathonConstraintParser {
                 Optional<String> requiredParameter) throws IOException {
 
             String parameter = validateRequiredParameter(operatorName, requiredParameter);
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return HostnameRuleFactory.getInstance().avoid(RegexMatcher.create(parameter));
                 case ZONE:
@@ -466,7 +471,7 @@ public class MarathonConstraintParser {
                         operatorName, requiredParameter), e);
             }
 
-            switch (PlacementUtils.getField(fieldName)) {
+            switch (getField(fieldName)) {
                 case HOSTNAME:
                     return new MaxPerHostnameRule(max, taskFilter);
                 case ZONE:
@@ -494,5 +499,19 @@ public class MarathonConstraintParser {
             throw new IOException(String.format("Missing required parameter for operator '%s'.", operatorName));
         }
         return requiredParameter.get();
+    }
+
+    private static PlacementField getField(String fieldName) {
+        switch (fieldName) {
+            case HOSTNAME_FIELD_LEGACY:
+            case HOSTNAME_FIELD:
+                return PlacementField.HOSTNAME;
+            case REGION_FIELD:
+                return PlacementField.REGION;
+            case ZONE_FIELD:
+                return PlacementField.ZONE;
+            default:
+                return PlacementField.ATTRIBUTE;
+        }
     }
 }

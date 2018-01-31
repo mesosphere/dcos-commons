@@ -1,35 +1,28 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * This interface defines the requirements for a factory which generates {@link PlacementRule}s.
  */
-public interface RuleFactory {
+public abstract class AbstractRuleFactory {
+
     /**
      * Requires that a task be placed on the provided string matcher.
      *
      * @param matcher matcher for key to require
      */
-    PlacementRule require(StringMatcher matcher);
+    public abstract PlacementRule require(StringMatcher matcher);
 
     /**
      * Requires that a task be placed on one of the provided string matchers.
      *
      * @param matchers matchers for key to require
      */
-    default PlacementRule require(Collection<StringMatcher> matchers) {
-        return PlacementUtils.require(this, matchers);
-    }
-
-    /**
-     * Requires that a task be placed on one of the provided string matchers.
-     *
-     * @param matchers matchers for keys to require
-     */
-    default PlacementRule require(StringMatcher... matchers) {
-        return PlacementUtils.require(this, Arrays.asList(matchers));
+    public PlacementRule require(Collection<StringMatcher> matchers) {
+        return require(this, matchers);
     }
 
     /**
@@ -37,7 +30,7 @@ public interface RuleFactory {
      *
      * @param matcher matcher for key to avoid
      */
-    default PlacementRule avoid(StringMatcher matcher) {
+    public PlacementRule avoid(StringMatcher matcher) {
         return new NotRule(require(matcher));
     }
 
@@ -46,7 +39,7 @@ public interface RuleFactory {
      *
      * @param matchers matchers for keys to avoid
      */
-    default PlacementRule avoid(Collection<StringMatcher> matchers) {
+    public PlacementRule avoid(Collection<StringMatcher> matchers) {
         if (matchers.size() == 1) {
             return avoid(matchers.iterator().next());
         }
@@ -54,11 +47,18 @@ public interface RuleFactory {
     }
 
     /**
-     * Requires that a task NOT be placed on any of the provided string matchers.
+     * Requires that a task be placed on one of the provided string matchers.
      *
-     * @param matchers matchers for keys to avoid
+     * @param matchers matchers for keys to require
      */
-    default PlacementRule avoid(StringMatcher... matchers) {
-        return avoid(Arrays.asList(matchers));
+    private static PlacementRule require(AbstractRuleFactory ruleFactory, Collection<StringMatcher> matchers) {
+        if (matchers.size() == 1) {
+            return ruleFactory.require(matchers.iterator().next());
+        }
+        List<PlacementRule> rules = new ArrayList<>();
+        for (StringMatcher matcher : matchers) {
+            rules.add(ruleFactory.require(matcher));
+        }
+        return new OrRule(rules);
     }
 }

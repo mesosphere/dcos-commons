@@ -10,5 +10,5 @@ import java.util.Collection;
  * with a custom implementation that addresses applicaiton specific failure recovery mechanisms.
  */
 public interface RecoveryPlanOverriderFactory {
-    RecoveryPlanOverrider create(TaskStore stateStore, Collection<Plan> plans);
+    RecoveryPlanOverrider create(TaskStore taskStore, Collection<Plan> plans);
 }

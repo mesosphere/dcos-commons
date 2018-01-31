@@ -1,11 +1,11 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,16 +36,16 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
      * Returns a key to round robin against from the provided {@link Offer}, or {@code null} if
      * none was found.
      */
-    protected abstract String getKey(Offer offer);
+    protected abstract String getKey(Protos.Offer offer);
 
     /**
-     * Returns a key to round robin against from the provided {@link TaskInfo}, or {@code null} if
+     * Returns a key to round robin against from the provided {@link TaskLabelReader}, or {@code null} if
      * none was found.
      */
-    protected abstract String getKey(TaskInfo task);
+    protected abstract String getKey(Protos.TaskInfo task);
 
     @Override
-    public PlacementOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+    public PlacementOutcome filter(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
         final String offerKey = getKey(offer);
         if (offerKey == null) {
             // offer doesn't have the required attribute at all. denied.
@@ -55,7 +55,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
         // search across tasks, keeping key counts on a per-key basis.
         // key => # of instances on key
         Map<String, Integer> counts = new HashMap<>();
-        for (TaskInfo task : tasks) {
+        for (Protos.TaskInfo task : tasks) {
             // only tally tasks which match the task matcher (eg 'index-.*')
             if (!taskFilter.matches(task.getName())) {
                 continue;

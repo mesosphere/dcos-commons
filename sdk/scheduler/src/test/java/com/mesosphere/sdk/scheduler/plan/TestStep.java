@@ -40,6 +40,13 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
+    public Step withPodInstanceRequirement(PodInstanceRequirement podInstanceRequirement) {
+        TestStep step = new TestStep(id, getName(), podInstanceRequirement);
+        step.setStatus(getStatus());
+        return step;
+    }
+
+    @Override
     public void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         if (recommendations.isEmpty()) {
             setStatus(Status.PREPARED);

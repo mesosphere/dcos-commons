@@ -2,10 +2,9 @@ package com.mesosphere.sdk.state;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.StorageError.Reason;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -39,7 +38,7 @@ import java.util.*;
  * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
  * <br>&nbsp;&nbsp;-> ...
  */
-public class StateStore implements TaskStore {
+public class StateStore {
 
     private static final Logger logger = LoggerFactory.getLogger(TaskStore.class);
 

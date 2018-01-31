@@ -54,20 +54,20 @@ public class MaxPerHostnameRuleTest {
 
     @Test
     public void getAllTaskKeys() {
-        MaxPerRule rule = new MaxPerHostnameRule(2, AnyMatcher.create());
+        AbstractMaxPerRule rule = new MaxPerHostnameRule(2, AnyMatcher.create());
         Assert.assertEquals(1, rule.getKeys(TASK_HOSTNAME).size());
         Assert.assertEquals(HOSTNAME_1, rule.getKeys(TASK_HOSTNAME).stream().findFirst().get());
     }
 
     @Test
     public void getTaskKeysNoHostname() {
-        MaxPerRule rule = new MaxPerHostnameRule(2, AnyMatcher.create());
+        AbstractMaxPerRule rule = new MaxPerHostnameRule(2, AnyMatcher.create());
         Assert.assertEquals(0, rule.getKeys(TASK_NO_HOSTNAME).size());
     }
 
     @Test
     public void getOfferKeys() {
-        MaxPerRule rule = new MaxPerHostnameRule(2, AnyMatcher.create());
+        AbstractMaxPerRule rule = new MaxPerHostnameRule(2, AnyMatcher.create());
         Assert.assertEquals(1, rule.getKeys(OFFER_HOSTNAME).size());
         Assert.assertEquals(HOSTNAME_1, rule.getKeys(OFFER_HOSTNAME).stream().findFirst().get());
     }

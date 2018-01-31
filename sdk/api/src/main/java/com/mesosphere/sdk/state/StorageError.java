@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.storage;
+package com.mesosphere.sdk.state;
 
 /**
  * Container for types related to {@link com.mesosphere.sdk.state.ConfigStoreException}s and

@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.decommission;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 public class DecommissionRecorder implements OperationRecorder {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final StateStore stateStore;
-    private final Collection<Step> resourceSteps;
+    private final Collection<? extends AbstractStep> resourceSteps;
 
-    public DecommissionRecorder(StateStore stateStore, Collection<Step> resourceSteps) {
+    public DecommissionRecorder(StateStore stateStore, Collection<? extends AbstractStep> resourceSteps) {
         this.stateStore = stateStore;
         this.resourceSteps = resourceSteps;
     }

@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * This rules implements a placement rule for restricting the maximum number of tasks per Region.
  */
-public class MaxPerRegionRule extends MaxPerRule {
+public class MaxPerRegionRule extends AbstractMaxPerRule {
     public MaxPerRegionRule(int maxPerRegion) {
         this(maxPerRegion, null);
     }

@@ -24,6 +24,7 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -88,15 +89,15 @@ public class DecommissionPlanFactory {
      * Returns all {@link ResourceCleanupStep}s associated with the decommission plan, or an empty list if no steps are
      * applicable.
      */
-    public Collection<Step> getResourceSteps() {
+    public Collection<? extends AbstractStep> getResourceSteps() {
         return planInfo.resourceSteps;
     }
 
     private static class PlanInfo {
         private final Optional<Plan> plan;
-        private final Collection<Step> resourceSteps;
+        private final Collection<? extends AbstractStep> resourceSteps;
 
-        private PlanInfo(Optional<Plan> plan, Collection<Step> resourceSteps) {
+        private PlanInfo(Optional<Plan> plan, Collection<? extends AbstractStep> resourceSteps) {
             this.plan = plan;
             this.resourceSteps = resourceSteps;
         }
@@ -140,7 +141,7 @@ public class DecommissionPlanFactory {
             return new PlanInfo(Optional.empty(), Collections.emptyList());
         }
 
-        Collection<Step> resourceSteps = new ArrayList<>();
+        Collection<AbstractStep> resourceSteps = new ArrayList<>();
         List<Phase> phases = new ArrayList<>();
         // Each pod to be decommissioned gets its own phase in the decommission plan:
         for (Map.Entry<PodKey, Collection<Protos.TaskInfo>> entry : podsToDecommission.entrySet()) {
@@ -154,7 +155,7 @@ public class DecommissionPlanFactory {
             // 2. Unreserve pod's resources
             // Note: Even though this step is in a serial phase, in practice resource cleanup should be done in
             // parallel, as all the tasks had been flagged for decommissioning via TriggerDecommissionStep.
-            Collection<ResourceCleanupStep> resourceStepsForPod =
+            Collection<AbstractStep> resourceStepsForPod =
                     ResourceUtils.getResourceIds(ResourceUtils.getAllResources(entry.getValue())).stream()
                             .map(resourceId -> new ResourceCleanupStep(resourceId, Status.PENDING))
                             .collect(Collectors.toList());

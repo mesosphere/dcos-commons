@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 /**
  * This class generates {@link RegionRule}s.
  */
-public class RegionRuleFactory implements RuleFactory {
+public class RegionRuleFactory extends AbstractRuleFactory {
     private static final RegionRuleFactory factory = new RegionRuleFactory();
 
     public static RegionRuleFactory getInstance() {

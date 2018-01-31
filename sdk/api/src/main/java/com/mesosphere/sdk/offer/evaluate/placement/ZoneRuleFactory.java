@@ -3,7 +3,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 /**
  * This class generates {@link ZoneRule}s.
  */
-public class ZoneRuleFactory implements RuleFactory {
+public class ZoneRuleFactory extends AbstractRuleFactory {
+
     private static final ZoneRuleFactory factory = new ZoneRuleFactory();
 
     public static ZoneRuleFactory getInstance() {

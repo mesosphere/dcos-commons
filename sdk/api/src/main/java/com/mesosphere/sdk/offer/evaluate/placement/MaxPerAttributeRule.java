@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -49,7 +48,7 @@ import java.util.stream.Collectors;
  * 'index-.*'. This allows us to only enforce the rule against certain task types or task instances
  * within the service.
  */
-public class MaxPerAttributeRule extends MaxPerRule {
+public class MaxPerAttributeRule extends AbstractMaxPerRule {
 
     private final StringMatcher attributeMatcher;
     private final StringMatcher taskFilter;
@@ -92,7 +91,6 @@ public class MaxPerAttributeRule extends MaxPerRule {
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
-        ValidationUtils.validate(this);
     }
 
     @Override

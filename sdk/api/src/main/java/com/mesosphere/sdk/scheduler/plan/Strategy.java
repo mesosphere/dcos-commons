@@ -1,8 +1,4 @@
-package com.mesosphere.sdk.scheduler.plan.strategy;
-
-import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.Interruptible;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+package com.mesosphere.sdk.scheduler.plan;
 
 import java.util.Collection;
 

@@ -15,8 +15,8 @@ public class HdfsRecoveryPlanOverriderFactory implements RecoveryPlanOverriderFa
     private static final String REPLACE_PLAN_NAME = "replace";
 
     @Override
-    public RecoveryPlanOverrider create(TaskStore stateStore, Collection<Plan> plans) {
-        return new HdfsRecoveryPlanOverrider(stateStore, getNameNodeReplacementPlan(plans));
+    public RecoveryPlanOverrider create(TaskStore taskStore, Collection<Plan> plans) {
+        return new HdfsRecoveryPlanOverrider(getNameNodeReplacementPlan(plans));
     }
 
     private Plan getNameNodeReplacementPlan(Collection<Plan> plans) {

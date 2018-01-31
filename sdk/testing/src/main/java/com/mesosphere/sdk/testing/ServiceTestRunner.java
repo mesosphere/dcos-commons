@@ -52,7 +52,7 @@ public class ServiceTestRunner {
     private final Map<String, String> buildTemplateParams = new HashMap<>();
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
-    private RecoveryPlanOverriderFactory recoveryManagerFactory;
+    private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private boolean supportsDefaultExecutor = true;
 
     /**
@@ -231,11 +231,11 @@ public class ServiceTestRunner {
     }
 
     /**
-     * Allows the specification of custom recovery logic just as in
-     * {@link com.mesosphere.sdk.scheduler.SchedulerBuilder#setRecoveryManagerFactory(RecoveryPlanOverriderFactory)}.
+     * Allows the specification of custom recovery logic just as in {@code SchedulerBuilder}.
      */
-    public ServiceTestRunner setRecoveryManagerFactory(RecoveryPlanOverriderFactory recoveryManagerFactory) {
-        this.recoveryManagerFactory = recoveryManagerFactory;
+    public ServiceTestRunner setRecoveryPlanOverriderFactory(
+            RecoveryPlanOverriderFactory recoveryPlanOverriderFactory) {
+        this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
         return this;
     }
 
@@ -307,7 +307,7 @@ public class ServiceTestRunner {
                 .setStateStore(new StateStore(persister))
                 .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)
-                .setRecoveryManagerFactory(recoveryManagerFactory)
+                .setRecoveryPlanOverriderFactory(recoveryPlanOverriderFactory)
                 .build()
                 .disableThreading()
                 .disableApiServer();
