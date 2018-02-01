@@ -738,8 +738,8 @@
         },
         "fsdataset_volume_choosing_policy": {
           "type": "string",
-          "description": "The class name of the policy for choosing volumes in the list of directories. Defaults to org.apache.hadoop.hdfs.server.datanode.fsdataset.RoundRobinVolumeChoosingPolicy. If you would like to take into account available disk space, set the value to 'org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy'.",
-          "default": ""
+          "description": "The class name of the policy for choosing volumes in the list of directories. If you would like to take into account available disk space, set the value to 'org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy'.",
+          "default": "org.apache.hadoop.hdfs.server.datanode.fsdataset.RoundRobinVolumeChoosingPolicy"
         },
         "available-space-volume-choosing-policy_balanced-space-threshold": {
           "type": "string",
