@@ -5,7 +5,6 @@ import retrying
 import shakedown
 
 import sdk_cmd
-import sdk_hosts
 import sdk_plan
 import sdk_tasks
 import sdk_utils
@@ -15,7 +14,6 @@ log = logging.getLogger(__name__)
 PACKAGE_NAME = sdk_utils.get_package_name("hdfs")
 SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
-FOLDERED_DNS_NAME = sdk_hosts.get_foldered_dns_name(SERVICE_NAME)
 
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
