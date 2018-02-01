@@ -150,9 +150,6 @@ dcos cassandra plan start restore-s3 \
     -p S3_BUCKET_NAME=$S3_BUCKET_NAME
 ```
 
-FOO=bar
-echo $FOO
-
 To view the status of this plan from the command line:
 ```
 dcos cassandra plan status restore-s3
