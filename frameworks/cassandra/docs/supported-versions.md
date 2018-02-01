@@ -10,10 +10,10 @@ excerpt:
 <a name="package-versioning-scheme"></a>
 # Package Versioning Scheme
 
-- Apache Cassandra: 3.0.13
-- DC/OS: 1.8 and higher
+- Cassandra: latest stable at the time of the release, refer to the package version.
+- DC/OS: 1.10 and higher
 
-Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integration and `x.y.z` indicates the version of Apache Cassandra. For example, `1.8.0-3.0.13` indicates version `1.8.0` of the DC/OS integration and version `3.0.13` of Apache Cassandra.
+Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integration and `x.y.z` indicates the version of Apache Cassandra. For example, `1.2.3-3.0.13` indicates version `1.2.3` of the DC/OS integration and version `3.0.13` of Apache Cassandra.
 
 <a name="version-policy"></a>
 # Version Policy
