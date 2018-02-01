@@ -11,9 +11,9 @@ excerpt:
 # Package Versioning Scheme
 
 - HDFS: latest stable at the time of the release, refer to the package version.
-- DC/OS: 1.9 or higher
+- DC/OS: 1.10 or higher
 
-Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integration and `x.y.z` indicates the version of HDFS. For example, `1.5.0-3.2.1` indicates version `1.5.0` of the DC/OS integration and version `3.2.1` of HDFS.
+Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integration and `x.y.z` indicates the version of HDFS. For example, `1.2.3-3.2.1` indicates version `1.2.3` of the DC/OS integration and version `3.2.1` of HDFS.
 
 <a name="version-policy"></a>
 # Version Policy

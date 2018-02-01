@@ -12,10 +12,10 @@ menuWeight: 110
 <a name="package-versioning-scheme"></a>
 ## Package Versioning Scheme
 
-- Kafka: 0.11.0
-- DC/OS: 1.9 or higher.
+- Kafka: latest stable at the time of the release, refer to the package version.
+- DC/OS: 1.10 or higher.
 
-Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integration and `x.y.z` indicates the version of Kafka. For example, `1.10.0-0.11.0` indicates version `1.10.0` of the DC/OS integration and version `0.11.0` of Kafka.
+Packages are versioned with an `a.b.c-x.y.z` format, where `a.b.c` is the version of the DC/OS integration and `x.y.z` indicates the version of Kafka. For example, `1.2.3-0.11.0` indicates version `1.2.3` of the DC/OS integration and version `0.11.0` of Kafka.
 
 <a name="version-policy"></a>
 ## Version Policy
