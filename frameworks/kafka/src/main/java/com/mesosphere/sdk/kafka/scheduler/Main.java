@@ -59,6 +59,7 @@ public class Main {
                         .setAllPodsEnv(KAFKA_ZK_URI_ENV, kafkaZookeeperUri)
                         .build(),
                 schedulerConfig)
+                .setCustomConfigValidators(Arrays.asList(new KafkaZoneValidator()))
                 .setPlansFrom(rawServiceSpec);
 
         return schedulerBuilder
