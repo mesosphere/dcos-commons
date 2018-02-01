@@ -182,32 +182,6 @@ public class DeploymentStepTest {
     }
 
     @Test
-    public void testIsEligible() {
-        TaskSpec taskSpec0 =
-                TestPodFactory.getTaskSpec(
-                        TASK_NAME_0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX);
-        TaskSpec taskSpec1 =
-                TestPodFactory.getTaskSpec(
-                        TASK_NAME_1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder("")
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
-        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
-
-        DeploymentStep step = new DeploymentStep(
-                TEST_STEP_NAME,
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore);
-
-        Assert.assertTrue(step.isEligible(Arrays.asList()));
-
-        Collection<PodInstanceRequirement> dirtyAssets = Arrays.asList(step.getPodInstanceRequirement().get());
-        Assert.assertFalse(step.isEligible(dirtyAssets));
-    }
-
-    @Test
     public void testPrepared() {
         TaskSpec taskSpec0 =
                 TestPodFactory.getTaskSpec(

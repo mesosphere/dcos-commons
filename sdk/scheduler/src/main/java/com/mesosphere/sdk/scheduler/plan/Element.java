@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos.TaskStatus;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -97,13 +96,6 @@ public interface Element {
      */
     default boolean isRunning() {
         return getStatus().isRunning();
-    }
-
-    /**
-     * Indicates whether this Element is capable of being started.
-     */
-    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
-        return !isComplete() && !hasErrors();
     }
 
     /**
