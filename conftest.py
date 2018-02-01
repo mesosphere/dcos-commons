@@ -37,6 +37,10 @@ for noise_source in [
 
 log = logging.getLogger(__name__)
 
+# The following environment variable allows for log collection to be turned off.
+# This is useful, for exampl in testing.
+INTEGRATION_TEST__SKIP_LOG_COLLECTION = os.environ.get('INTEGRATION_TEST__SKIP_LOG_COLLECTION', False)
+
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item: pytest.Item, call): # _pytest.runner.CallInfo
@@ -50,7 +54,10 @@ def pytest_runtest_makereport(item: pytest.Item, call): # _pytest.runner.CallInf
 
     # Handle failures. Must be done here and not in a fixture in order to
     # properly handle post-yield fixture teardown failures.
-    sdk_diag.handle_test_report(item, outcome.get_result())
+    if not INTEGRATION_TEST__SKIP_LOG_COLLECTION:
+        sdk_diag.handle_test_report(item, outcome.get_result())
+    else:
+        print("INTEGRATION_TEST__SKIP_LOG_COLLECTION=True. Skipping log collection")
 
 
 def pytest_runtest_teardown(item: pytest.Item):
@@ -74,5 +81,6 @@ def pytest_runtest_setup(item: pytest.Item):
 ======= START: {}::{}
 =========='''.format(sdk_diag.get_test_suite_name(item), item.name))
 
-    sdk_diag.handle_test_setup(item)
+    if not INTEGRATION_TEST__SKIP_LOG_COLLECTION:
+        sdk_diag.handle_test_setup(item)
     sdk_utils.check_dcos_min_version_mark(item)
