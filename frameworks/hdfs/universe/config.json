@@ -188,7 +188,7 @@
         },
         "hadoop_journalnode_opts": {
           "type": "string",
-          "description": "Options to specify when running the journal node.",
+          "description": "JVM options to specify when running the journal node. This overrides HADOOP_HEAPSIZE Xmx value for the journal nodes.",
           "default": ""
         }
       },
@@ -225,7 +225,7 @@
         },
         "hadoop_namenode_opts": {
           "type": "string",
-          "description": "Options to specify when running the name node.",
+          "description": "JVM options to specify when running the name node. This overrides HADOOP_HEAPSIZE Xmx value for the name nodes.",
           "default": ""
         },
         "logging_level": {
@@ -791,7 +791,7 @@
         },
         "hadoop_datanode_opts": {
           "type": "string",
-          "description": "Options to specify when running the data node.",
+          "description": "JVM options to specify when running the data node. This overrides HADOOP_HEAPSIZE Xmx value for the data nodes.",
           "default": ""
         }
       },
@@ -890,8 +890,13 @@
         },
         "hadoop_opts": {
           "type": "string",
-          "description": "Extra Java runtime options.",
+          "description": "Extra Java runtime options for all Hadoop nodes.",
           "default": ""
+        },
+        "hadoop_heapsize": {
+          "type": "string",
+          "description": "The maximum amount of heap to use, in MB.",
+          "default": "1000"
         },
         "permissions_enabled": {
           "type": "boolean",
