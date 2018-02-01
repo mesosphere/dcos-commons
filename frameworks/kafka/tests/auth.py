@@ -51,6 +51,7 @@ def wait_for_brokers(client: str, brokers: list):
     bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
     assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
+    return True
 
 
 def is_not_authorized(output: str) -> bool:

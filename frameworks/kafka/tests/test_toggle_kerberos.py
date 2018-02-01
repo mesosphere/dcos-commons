@@ -1,15 +1,19 @@
 import logging
 import json
 import tempfile
-import pytest
 import uuid
+import pytest
 
 import sdk_auth
 import sdk_cmd
+import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_security
 import sdk_utils
+
+from security import transport_encryption
 
 from tests import auth
 from tests import config
@@ -20,12 +24,30 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.dcos_version_less_than('1.10'), reason="Kerberos tests require DC/OS 1.10"),
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Kerberos tests required DC/OS EE"),
+    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Security tests required DC/OS EE"),
 ]
 
 
 MESSAGES = []
+
+
+@pytest.fixture(scope='module', autouse=True)
+def service_account(configure_security):
+    """
+    Creates service account and yields the name and corresponding secret name.
+    """
+    try:
+        name = config.SERVICE_NAME
+        secret = "{}-secret".format(name)
+        sdk_security.create_service_account(
+            service_account_name=name, service_account_secret=secret)
+        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+        sdk_cmd.run_cli(
+            "security org groups add_user superusers {name}".format(name=name))
+        yield {"name": name, "secret": secret}
+    finally:
+        sdk_security.delete_service_account(
+            service_account_name=name, service_account_secret=secret)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -50,15 +72,19 @@ def kerberos():
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_server():
+def kafka_server(service_account):
     """
     A pytest fixture that installs a non-kerberized kafka service.
 
     On teardown, the service is uninstalled.
     """
-    service_kerberos_options = {
+    service_options = {
         "service": {
-            "name": config.SERVICE_NAME
+            "name": config.SERVICE_NAME,
+            # Note that since we wish to toggle TLS which *REQUIRES* a service account,
+            # we need to install Kafka with a service account to start with.
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
         }
     }
 
@@ -68,26 +94,22 @@ def kafka_server():
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options=service_kerberos_options,
+            additional_options=service_options,
             timeout_seconds=30 * 60)
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_client(kerberos, kafka_server):
+def kafka_client(kerberos):
     """
-    A pytest fixture to install a Kerberized Kafka client as a Marathon application.
+    A pytest fixture to install a Kafka client as a Marathon application.
+    This client is capable of both Kerberos and TLS communication.
 
     On teardown, the client is uninstalled.
     """
-    brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint broker", json=True)["dns"]
-
     try:
         client_id = "kafka-client"
         client = {
@@ -121,28 +143,44 @@ def kafka_client(kerberos, kafka_server):
                 "JVM_MaxHeapSize": "512",
                 "KAFKA_CLIENT_MODE": "test",
                 "KAFKA_TOPIC": "securetest",
-                "KAFKA_BROKER_LIST": ",".join(brokers)
+                "KAFKA_BROKER_LIST": ""
             }
         }
 
         sdk_marathon.install_app(client)
-        yield {**client, **{"brokers": list(map(lambda x: x.split(':')[0], brokers))}}
+
+        # Create a TLS certificate for the TLS tests
+        transport_encryption.create_tls_artifacts(
+            cn="client",
+            task=client_id)
+
+        yield {
+            **client,
+            **{
+                "tls-id": "client",
+            }
+        }
 
     finally:
         sdk_marathon.destroy_app(client_id)
 
 
-def test_default_installation(kafka_client, kafka_server):
-    assert check_brokers_are_unchanged(kafka_client, kafka_server)
-    write_success, read_success = client_can_read_and_write("default",
-                                                            kafka_client, kafka_server, None)
+@pytest.mark.incremental
+def test_no_security(kafka_client, kafka_server):
+    """
+    Check the default no-security state is sane.
+    """
+    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert not service_has_brokers(kafka_server, "broker-tls", 0), "TLS enpoints not expected"
 
+    write_success, read_successes = client_can_read_and_write("default", kafka_client, kafka_server, "broker")
     assert write_success, "Write failed"
-    assert read_success, "Read failed: MESSAGES={} read_success={}".format(MESSAGES, read_success)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
 
 
+@pytest.mark.incremental
 def test_enable_kerberos(kafka_client, kafka_server, kerberos):
-    kerberos_options = {
+    update_options = {
         "service": {
             "security": {
                 "kerberos": {
@@ -158,32 +196,92 @@ def test_enable_kerberos(kafka_client, kafka_server, kerberos):
         }
     }
 
-    with tempfile.NamedTemporaryFile("w", suffix=".kerberos.json") as f:
-        kerberos_options_path = f.name
+    brokers = service_get_brokers(kafka_server, "broker")
 
-        log.info("Writing kerberos options to %s", kerberos_options_path)
-        json.dump(kerberos_options, f)
-        f.flush()
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-        cmd = ["update", "start", "--options={}".format(kerberos_options_path)]
-        sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"], " ".join(cmd))
+    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert not service_has_brokers(kafka_server, "broker-tls", 0), "TLS enpoints not expected"
 
-        # An update plan is a deploy plan
-        sdk_plan.wait_for_kicked_off_deployment(kafka_server["service"]["name"])
-        sdk_plan.wait_for_completed_deployment(kafka_server["service"]["name"])
+    updated_brokers = service_get_brokers(kafka_server, "broker")
+    assert set(brokers) == set(updated_brokers), "Brokers should not change"
 
-    assert check_brokers_are_unchanged(kafka_client, kafka_server)
-
-    # TODO(elezar): The "id" here is currently tied to the principal used. Therefore we need to use "client"
-    # for the kerberos test.
-    write_success, read_success = client_can_read_and_write("client", kafka_client, kafka_server, kerberos)
-
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker", kerberos)
     assert write_success, "Write failed"
-    assert read_success, "Read failed: MESSAGES={} read_success={}".format(MESSAGES, read_success)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
 
 
+@pytest.mark.incremental
+def test_enable_tls_with_plaintext(kafka_client, kafka_server, kerberos):
+    update_options = {
+        "service": {
+            "security": {
+                "transport_encryption": {
+                    "enabled": True,
+                    "allow_plaintext": True
+                }
+            }
+        }
+    }
+
+    brokers = service_get_brokers(kafka_server, "broker")
+
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
+
+    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+
+    updated_brokers = service_get_brokers(kafka_server, "broker")
+    assert set(brokers) == set(updated_brokers), "Brokers should not change"
+
+    tls_brokers = service_get_brokers(kafka_server, "broker-tls")
+
+    assert set(_get_hostnames(brokers)) == set(_get_hostnames(tls_brokers)), "TLS and non-TLS broker hostnames should match"
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker", kerberos)
+    assert write_success, "Write failed"
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker-tls", kerberos)
+    assert write_success, "Write failed (TLS)"
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+
+@pytest.mark.incremental
+def test_disable_plaintext(kafka_client, kafka_server, kerberos):
+    update_options = {
+        "service": {
+            "security": {
+                "transport_encryption": {
+                    "enabled": True,
+                    "allow_plaintext": False
+                }
+            }
+        }
+    }
+
+    brokers = service_get_brokers(kafka_server, "broker-tls")
+
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
+
+    assert not service_has_brokers(kafka_server, "broker", 0), "non-TLS enpoints not expected"
+    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+
+    updated_brokers = service_get_brokers(kafka_server, "broker-tls")
+    assert set(brokers) == set(updated_brokers), "Brokers should not change"
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker-tls", kerberos)
+    assert write_success, "Write failed (TLS)"
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+
+@pytest.mark.incremental
 def test_disable_kerberos(kafka_client, kafka_server):
-    kerberos_options = {
+    update_options = {
         "service": {
             "security": {
                 "kerberos": {
@@ -193,42 +291,144 @@ def test_disable_kerberos(kafka_client, kafka_server):
         }
     }
 
-    with tempfile.NamedTemporaryFile("w", suffix=".disable-kerberos.json") as f:
-        kerberos_options_path = f.name
+    brokers = service_get_brokers(kafka_server, "broker-tls")
 
-        log.info("Writing kerberos options to %s", kerberos_options_path)
-        json.dump(kerberos_options, f)
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
+
+    assert not service_has_brokers(kafka_server, "broker", 0), "non-TLS enpoints not expected"
+    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+
+    updated_brokers = service_get_brokers(kafka_server, "broker-tls")
+    assert set(brokers) == set(updated_brokers), "Brokers should not change"
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker-tls", None)
+    assert write_success, "Write failed (TLS)"
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+
+@pytest.mark.incremental
+def test_enable_tls_enable_plaintext(kafka_client, kafka_server):
+    update_options = {
+        "service": {
+            "security": {
+                "transport_encryption": {
+                    "enabled": True,
+                    "allow_plaintext": True
+                }
+            }
+        }
+    }
+
+    brokers = service_get_brokers(kafka_server, "broker-tls")
+
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
+
+    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+
+    updated_brokers = service_get_brokers(kafka_server, "broker-tls")
+    assert set(brokers) == set(updated_brokers), "Brokers should not change"
+
+    non_tls_brokers = service_get_brokers(kafka_server, "broker")
+
+    assert set(_get_hostnames(brokers)) == set(_get_hostnames(non_tls_brokers)), "TLS and non-TLS broker hostnames should match"
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker", None)
+    assert write_success, "Write failed"
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker-tls", None)
+    assert write_success, "Write failed (TLS)"
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+
+@pytest.mark.incremental
+def test_disable_tls(kafka_client, kafka_server):
+    update_options = {
+        "service": {
+            "security": {
+                "transport_encryption": {
+                    "enabled": False,
+                    "allow_plaintext": False
+                }
+            }
+        }
+    }
+
+    brokers = service_get_brokers(kafka_server, "broker")
+
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
+
+    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert not service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+
+    updated_brokers = service_get_brokers(kafka_server, "broker")
+    assert set(brokers) == set(updated_brokers), "Brokers should not change"
+
+    write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
+                                                              "broker", None)
+    assert write_success, "Write failed"
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+
+
+def _get_hostnames(broker_list: list) -> list:
+    return map(lambda b: b.split(":")[0], broker_list)
+
+
+def update_service(package_name: str, service_name: str, options: dict):
+    with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
+        options_path = f.name
+
+        log.info("Writing updated options to %s", options_path)
+        json.dump(options, f)
         f.flush()
 
-        cmd = ["update", "start", "--options={}".format(kerberos_options_path)]
-        sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"], " ".join(cmd))
+        cmd = ["update", "start", "--options={}".format(options_path)]
+        sdk_cmd.svc_cli(package_name, service_name, " ".join(cmd))
 
         # An update plan is a deploy plan
-        sdk_plan.wait_for_kicked_off_deployment(kafka_server["service"]["name"])
-        sdk_plan.wait_for_completed_deployment(kafka_server["service"]["name"])
-
-    assert check_brokers_are_unchanged(kafka_client, kafka_server)
-    write_success, read_success = client_can_read_and_write("disable_kerberos",
-                                                            kafka_client, kafka_server, None)
-
-    assert write_success, "Write failed"
-    assert read_success, "Read failed: MESSAGES={} read_success={}".format(MESSAGES, read_success)
+        sdk_plan.wait_for_kicked_off_deployment(service_name)
+        sdk_plan.wait_for_completed_deployment(service_name)
 
 
-def check_brokers_are_unchanged(kafka_client: dict, kafka_server: dict) -> bool:
+def service_get_brokers(kafka_server: dict, endpoint_name: str) -> list:
     brokers = sdk_cmd.svc_cli(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
-        "endpoint broker", json=True)["dns"]
+        "endpoint {}".format(endpoint_name), json=True)["dns"]
 
-    return set(brokers) == set(kafka_client["env"]["KAFKA_BROKER_LIST"].split(","))
+    return brokers
+
+
+def service_has_brokers(kafka_server: dict, endpoint_name: str, number_of_brokers: int) -> bool:
+    endpoints = sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "endpoint", json=True)
+
+    if endpoint_name not in endpoints:
+        log.error("Expecting endpoint %s. Found %s", endpoint_name, endpoints)
+        return False
+
+    brokers = service_get_brokers(kafka_server, endpoint_name)
+    return number_of_brokers == len(brokers)
 
 
 def client_can_read_and_write(test_id: str,
-                              kafka_client: dict, kafka_server: dict, krb5=None) -> tuple:
+                              kafka_client: dict, kafka_server: dict,
+                              endpoint_name: str, krb5: object=None) -> tuple:
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    brokers_list = service_get_brokers(kafka_server, endpoint_name)
+    broker_hosts = map(lambda b: b.split(":")[0], brokers_list)
+    brokers = ",".join(brokers_list)
+
+    if not auth.wait_for_brokers(kafka_client["id"], broker_hosts):
+        log.error("Failed to resolve brokers: %s", broker_hosts)
+        return False, []
 
     topic_name = kafka_client["env"]["KAFKA_TOPIC"]
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
@@ -239,35 +439,47 @@ def client_can_read_and_write(test_id: str,
 
     message = str(uuid.uuid4())
 
-    write_success = write_to_topic(test_id, client_id, topic_name, message, krb5)
+    security_options = {"is-tls": endpoint_name == "broker-tls",
+                        "kerberos": krb5}
+
+    write_success = write_to_topic(test_id, client_id, topic_name, message, brokers, security_options)
     if write_success:
         MESSAGES.append(message)
 
-    read_messages = read_from_topic(test_id, client_id, topic_name, len(MESSAGES), krb5)
+    read_messages = read_from_topic(test_id, client_id, topic_name, len(MESSAGES), brokers, security_options)
 
     read_success = map(lambda m: m in read_messages, MESSAGES)
 
     return write_success, read_success
 
 
-def get_settings(cn: str, task: str, krb5: object) -> tuple:
+def get_settings(cn: str, task: str, security_options: bool) -> tuple:
 
-    if krb5 is None:
-        return [], None
+    is_tls = security_options.get("is-tls", False)
 
-    properties = auth.get_kerberos_client_properties(ssl_enabled=False)
-    environment = auth.setup_krb5_env(cn, task, krb5)
+    kerberos_options = security_options.get("kerberos", None)
+    is_kerberos = kerberos_options is not None
+
+    properties = []
+    environment = None
+
+    if is_kerberos:
+        properties.extend(auth.get_kerberos_client_properties(ssl_enabled=is_tls))
+        environment = auth.setup_krb5_env(cn, task, kerberos_options)
+
+    if is_tls:
+        properties.extend(auth.get_ssl_client_properties(cn, has_kerberos=is_kerberos))
 
     return properties, environment
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
+def write_to_topic(cn: str, task: str, topic: str, message: str, brokers: str, tls: bool) -> bool:
 
-    properties, environment = get_settings(cn, task, krb5)
-    return auth.write_to_topic(cn, task, topic, message, properties, environment)
+    properties, environment = get_settings(cn, task, tls)
+    return auth.write_to_topic(cn, task, topic, message, properties, environment, brokers)
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
+def read_from_topic(cn: str, task: str, topic: str, messages: int, brokers: str, tls: bool) -> str:
 
-    properties, environment = get_settings(cn, task, krb5)
-    return auth.read_from_topic(cn, task, topic, messages, properties, environment)
+    properties, environment = get_settings(cn, task, tls)
+    return auth.read_from_topic(cn, task, topic, messages, properties, environment, brokers)
