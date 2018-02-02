@@ -894,9 +894,9 @@
           "default": ""
         },
         "hadoop_heapsize": {
-          "type": "string",
+          "type": "integer",
           "description": "The maximum amount of heap to use, in MB.",
-          "default": "1000"
+          "default": 1000
         },
         "permissions_enabled": {
           "type": "boolean",
