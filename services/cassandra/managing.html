@@ -655,6 +655,62 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <p>Note: volume requirements (type and/or size) can not be changed after initial deployment.</p>
 
+<h2 id="performing-cassandra-cleanup-and-repair-operations">Performing Cassandra Cleanup and Repair Operations</h2>
+
+<p>You may manually trigger certain <code class="highlighter-rouge">nodetool</code> operations against your Cassandra instance using the CLI or the HTTP API.</p>
+
+<h3 id="cleanup">Cleanup</h3>
+
+<p>You may trigger a <code class="highlighter-rouge">nodetool cleanup</code> operation across your Cassandra nodes using the <code class="highlighter-rouge">cleanup</code> plan. This plan requires the following parameters to run:</p>
+<ul>
+  <li><code class="highlighter-rouge">CASSANDRA_KEYSPACE</code>: the Cassandra keyspace to be cleaned up.</li>
+</ul>
+
+<p>To initiate this plan from the command line:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan start cleanup -p CASSANDRA_KEYSPACE=space1
+</code></pre></div></div>
+
+<p>To view the status of this plan from the command line:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status cleanup
+cleanup (IN_PROGRESS)
+└─ cleanup-deploy (IN_PROGRESS)
+   ├─ node-0:[cleanup] (COMPLETE)
+   ├─ node-1:[cleanup] (STARTING)
+   └─ node-2:[cleanup] (PENDING)
+</code></pre></div></div>
+
+<p>When the plan is completed, its status will be <code class="highlighter-rouge">COMPLETE</code>.</p>
+
+<p>The above <code class="highlighter-rouge">plan start</code> and <code class="highlighter-rouge">plan status</code> commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional <code class="highlighter-rouge">-v</code> flag.</p>
+
+<p>For more information about <code class="highlighter-rouge">nodetool cleanup</code>, see the Cassandra documentation.</p>
+
+<h3 id="repair">Repair</h3>
+
+<p>You may trigger a <code class="highlighter-rouge">nodetool repair</code> operation across your Cassandra nodes using the <code class="highlighter-rouge">repair</code> plan. This plan requires the following parameters to run:</p>
+<ul>
+  <li><code class="highlighter-rouge">CASSANDRA_KEYSPACE</code>: the Cassandra keyspace to be cleaned up.</li>
+</ul>
+
+<p>To initiate this command from the command line:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan start repair -p CASSANDRA_KEYSPACE=space1
+</code></pre></div></div>
+
+<p>To view the status of this plan from the command line:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status repair
+repair (STARTING)
+└─ repair-deploy (STARTING)
+   ├─ node-0:[repair] (STARTING)
+   ├─ node-1:[repair] (PENDING)
+   └─ node-2:[repair] (PENDING)
+</code></pre></div></div>
+
+<p>When the plan is completed, its status will be <code class="highlighter-rouge">COMPLETE</code>.</p>
+
+<p>The above <code class="highlighter-rouge">plan start</code> and <code class="highlighter-rouge">plan status</code> commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional <code class="highlighter-rouge">-v</code> flag.</p>
+
+<p>For more information about <code class="highlighter-rouge">nodetool repair</code>, see the Cassandra documentation.</p>
+
 <h2 id="updating-placement-constraints">Updating Placement Constraints</h2>
 
 <p>Placement constraints may be updated after initial deployment using the following procedure. See <a href="#service-settings">Service Settings</a> above for more information on placement constraints.</p>
