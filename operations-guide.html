@@ -568,7 +568,15 @@
 </li>
 <li class="toc-entry toc-h2"><a href="#placement-constraints">Placement Constraints</a>
 <ul>
-<li class="toc-entry toc-h3"><a href="#regions-and-zones">Regions and Zones</a></li>
+<li class="toc-entry toc-h3"><a href="#regions-and-zones">Regions and Zones</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#rack-aware-services">Rack aware services</a>
+<ul>
+<li class="toc-entry toc-h5"><a href="#placement-constraint-references-zones">Placement Constraint References Zones</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toc-entry toc-h3"><a href="#updating-placement-constraints">Updating placement constraints</a></li>
 </ul>
 </li>
@@ -1245,6 +1253,41 @@ only as a file such that it will be autoatically decoded and made available as a
 </code></pre></div></div>
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
+
+<h4 id="rack-aware-services">
+<a id="rack-aware-services" class="anchor" href="#rack-aware-services" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rack aware services</h4>
+
+<p>Many rack aware services do not support reliable migration between rack-aware and non-rack-aware operation.  These services can choose to restrict the set of placement constraint transitions which are valid through use of the <code class="highlighter-rouge">ZoneValidator</code>.  The allowed placement constraint transitions when using the <code class="highlighter-rouge">ZoneValidator</code> are as follows:</p>
+
+<h5 id="placement-constraint-references-zones">
+<a id="placement-constraint-references-zones" class="anchor" href="#placement-constraint-references-zones" aria-hidden="true"><span class="octicon octicon-link"></span></a>Placement Constraint References Zones</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>Original Constraint</th>
+      <th>New Constraint</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>None</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>True</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
 
 <h3 id="updating-placement-constraints">
 <a id="updating-placement-constraints" class="anchor" href="#updating-placement-constraints" aria-hidden="true"><span class="octicon octicon-link"></span></a>Updating placement constraints</h3>

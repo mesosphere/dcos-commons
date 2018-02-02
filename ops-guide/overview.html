@@ -1030,6 +1030,39 @@ only as a file such that it will be autoatically decoded and made available as a
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
 
+<h4 id="rack-aware-services">Rack aware services</h4>
+
+<p>Many rack aware services do not support reliable migration between rack-aware and non-rack-aware operation.  These services can choose to restrict the set of placement constraint transitions which are valid through use of the <code class="highlighter-rouge">ZoneValidator</code>.  The allowed placement constraint transitions when using the <code class="highlighter-rouge">ZoneValidator</code> are as follows:</p>
+
+<h5 id="placement-constraint-references-zones">Placement Constraint References Zones</h5>
+
+<table>
+  <thead>
+    <tr>
+      <th>Original Constraint</th>
+      <th>New Constraint</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>None</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>False</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <td>True</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <td> </td>
+      <td> </td>
+    </tr>
+  </tbody>
+</table>
+
 <h3 id="updating-placement-constraints">Updating placement constraints</h3>
 
 <p>Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:</p>
