@@ -59,7 +59,7 @@
           "portworx_options": {
             "title": "Portworx Options",
             "type": "string",
-            "default":"-a"
+            "default":"-a -x mesos"
           },
           "kvdb_servers": {
             "title":"KVDB servers",

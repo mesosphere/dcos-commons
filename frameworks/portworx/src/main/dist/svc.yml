@@ -74,9 +74,11 @@ pods:
                     ExecStartPre=-/opt/pwx/bin/runc delete -f %n
                     ExecStart=/opt/pwx/bin/px-runc run \
                           -v /run/docker/plugins:/run/docker/plugins     \
+                          -v /var/lib/mesos:/var/lib/mesos:shared        \
+                          -v /var/lib/kubelet:/var/lib/kubelet:shared    \
                           $USR_SRC_MOUNT                                 \
                           {{#NODE_CONTAINER_PARAMETERS}}
-                          {{{NODE_CONTAINER_PARAMETERS}}}                  \
+                          {{{NODE_CONTAINER_PARAMETERS}}}                \
                           {{/NODE_CONTAINER_PARAMETERS}}
                           {{#LIGHTHOUSE_ENABLED}}
                           -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
