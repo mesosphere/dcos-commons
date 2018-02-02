@@ -549,6 +549,7 @@
 </li>
 <li class="toc-entry toc-h3"><a href="#custom-update-plans">Custom Update Plans</a></li>
 <li class="toc-entry toc-h3"><a href="#custom-auxiliary-plans">Custom Auxiliary Plans</a></li>
+<li class="toc-entry toc-h3"><a href="#programmatic-plan-modification">Programmatic Plan Modification</a></li>
 </ul>
 </li>
 <li class="toc-entry toc-h2"><a href="#packaging">Packaging</a>
@@ -1261,6 +1262,27 @@ now, you must manually run the janitor script as shown above.</p>
 </code></pre></div></div>
 
 <p>Any parameters passed via <code class="highlighter-rouge">-p</code> are automatically passed though to the invoked Tasks as environment variables. Service developers must separately document any such parameters so that users know what to provide.</p>
+
+<h3 id="programmatic-plan-modification">
+<a id="programmatic-plan-modification" class="anchor" href="#programmatic-plan-modification" aria-hidden="true"><span class="octicon octicon-link"></span></a>Programmatic Plan Modification</h3>
+
+<p>There are some scenarios which cannot be modeled given the YAML plan specifications described above.  In these scenarios it is possible to programmatically modify plans through implementation of the <code class="highlighter-rouge">PlanCustomizer</code> interface.  For example one could reverse the order of the deploy plan’s phases based on an environment variable.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ReverseDeployPhases</span> <span class="kd">implements</span> <span class="n">PlanCustomizer</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Plan</span> <span class="nf">updatePlan</span><span class="o">(</span><span class="n">Plan</span> <span class="n">plan</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">plan</span><span class="o">.</span><span class="na">isDeployPlan</span><span class="o">()</span> <span class="o">&amp;&amp;</span> <span class="n">Boolean</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">"REVERSE"</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="n">Collections</span><span class="o">.</span><span class="na">reverse</span><span class="o">(</span><span class="n">plan</span><span class="o">.</span><span class="na">getChildren</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="k">return</span> <span class="n">plan</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Implementations of this interface are called once for each plan at scheduler startup time before plans begin execution.  If no modification of a particular plan is desired it should be returned unaltered.  A <code class="highlighter-rouge">PlanCustomizer</code> implementation may be specified when building a scheduler with a <code class="highlighter-rouge">SchedulerBuilder</code>.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">SchedulerBuilder</span> <span class="n">builder</span> <span class="o">=</span> <span class="n">DefaultScheduler</span><span class="o">.</span><span class="na">newBuilder</span><span class="o">(</span><span class="n">serviceSpec</span><span class="o">,</span> <span class="n">SchedulerConfig</span><span class="o">.</span><span class="na">fromEnv</span><span class="o">())</span>
+    <span class="o">.</span><span class="na">setPlanCustomizer</span><span class="o">(</span><span class="k">new</span> <span class="n">ReverseDeployPhases</span><span class="o">());</span>
+</code></pre></div></div>
 
 <h2 id="packaging">
 <a id="packaging" class="anchor" href="#packaging" aria-hidden="true"><span class="octicon octicon-link"></span></a>Packaging</h2>
