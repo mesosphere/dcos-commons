@@ -201,6 +201,18 @@ Install the DC/OS Apache Kafka service with the following options alongside your
 
 *Note*: It is possible to enable SSL Auth after initial installation, but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured.
 
+#### Authenticating a Client
+
+To authenticate a client to DC/OS Apache Kafka, you will need to configure it to use a TLS certificate signed by the DC/OS CA. After generating a certificate signing request, you can issue it to the DC/OS CA by calling the API `<dcos-cluster>/ca/api/v2/sign`. Using `cURL` the request would look like:
+```
+curl -X POST \
+-H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
+<dcos-cluster>/ca/api/v2/sign \
+-d '{"certificate_request": "<json-encoded-value-of-request.csr>"}'
+```
+
+The response will contain a signed public certificate. Full details on the DC/OS CA API can be found [here](https://docs.mesosphere.com/latest/security/ent/tls-ssl/ca-api/).
+
 ## Authorization
 
 The DC/OS Apache Kafka Service supports Kafka's ACL based authorization (authz) system. To use Kafka's authz, either SSL Auth or Kerberos must be enabled as detailed above.
