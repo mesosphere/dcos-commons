@@ -39,13 +39,9 @@ log = logging.getLogger(__name__)
 
 # The following environment variable allows for log collection to be turned off.
 # This is useful, for exampl in testing.
-INTEGRATION_TEST_LOG_COLLECTION = True
-try:
-    INTEGRATION_TEST_LOG_COLLECTION = bool(os.environ.get('INTEGRATION_TEST_LOG_COLLECTION', True))
-except Exception as e:
-    log.warning("Error setting or converting INTEGRATION_TEST_LOG_COLLECTION from %s\n%s",
-                os.environ.get('INTEGRATION_TEST_LOG_COLLECTION', True),
-                e)
+INTEGRATION_TEST_LOG_COLLECTION = str(
+    os.environ.get('INTEGRATION_TEST_LOG_COLLECTION', "True")
+).lower() in ["true", "1"]
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
