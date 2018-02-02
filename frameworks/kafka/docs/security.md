@@ -11,7 +11,7 @@ menuWeight: 22
 
 The DC/OS Apache Kafka service supports Kafka's native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.
 
-A good overview of these features can be found [here](https://www.confluent.io/blog/apache-kafka-security-authorization-authentication-encryption/).
+A good overview of these features can be found [here](https://www.confluent.io/blog/apache-kafka-security-authorization-authentication-encryption/), and Kafka's security documentation can be found [here](http://kafka.apache.org/documentation/#security).
 
 *Note*: These security features are only available on DC/OS Enterprise.
 
