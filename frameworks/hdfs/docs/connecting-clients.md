@@ -1,10 +1,9 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
-
 ---
 
 # Connecting Clients

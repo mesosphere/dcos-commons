@@ -1,16 +1,14 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Release Notes
 menuWeight: 120
-
 ---
 
 ## Version 2.1.1-3.0.15-beta
 
-## NOTICE
-
+### NOTICE
 This is a beta release of the DC/OS Apache Cassandra framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### Updates
@@ -23,8 +21,7 @@ This is a beta release of the DC/OS Apache Cassandra framework. It contains mult
 
 ## Version 3.0.0-3.0.15-beta
 
-## NOTICE
-
+### NOTICE
 This is a beta release of the DC/OS Cassandra framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### New features
