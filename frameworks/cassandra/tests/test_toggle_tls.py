@@ -137,7 +137,7 @@ def test_disable_tls(cassandra_service):
 @pytest.mark.tls
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
-def test_enabling_then_disabling_tls(cassandra_service):
+def test_enabling_then_disabling_tls(cassandra_service, dcos_ca_bundle):
     # Write data.
     write_data_job = config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle)
     with sdk_jobs.InstallJobContext([write_data_job]):
