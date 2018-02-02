@@ -33,12 +33,42 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start backup-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
+dcos cassandra plan start backup-s3 \
+    -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
+    -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
+    -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+    -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+    -p AWS_REGION=$AWS_REGION \
+    -p S3_BUCKET_NAME=$S3_BUCKET_NAME
 ```
 
 If you're backing up multiple keyspaces, they must be separated by spaces and wrapped in quotation marks when supplied to the `plan start` command, as in the example above. If the `CASSANDRA_KEYSPACES` parameter isn't supplied, then every keyspace in your cluster will be backed up.
 
 **IMPORTANT**: To ensure that sensitive information, such as your AWS secret access key, remains secure, make sure that you've set the `core.dcos_url` configuration property in the DC/OS CLI to an HTTPS URL.
+
+To view the status of this plan from the command line:
+```
+dcos cassandra plan status backup-s3
+backup-s3 (IN_PROGRESS)
+├─ backup-schema (COMPLETE)
+│  ├─ node-0:[backup-schema] (COMPLETE)
+│  ├─ node-1:[backup-schema] (COMPLETE)
+│  └─ node-2:[backup-schema] (COMPLETE)
+├─ create-snapshots (IN_PROGRESS)
+│  ├─ node-0:[snapshot] (STARTED)
+│  ├─ node-1:[snapshot] (STARTED)
+│  └─ node-2:[snapshot] (COMPLETE)
+├─ upload-backups (PENDING)
+│  ├─ node-0:[upload-s3] (PENDING)
+│  ├─ node-1:[upload-s3] (PENDING)
+│  └─ node-2:[upload-s3] (PENDING)
+└─ cleanup-snapshots (PENDING)
+   ├─ node-0:[cleanup-snapshot] (PENDING)
+   ├─ node-1:[cleanup-snapshot] (PENDING)
+   └─ node-2:[cleanup-snapshot] (PENDING)
+```
+
+The above `plan start` and `plan status` commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional `-v` flag.
 
 ## Backing up to Azure
 
@@ -55,8 +85,40 @@ You can also back up to Microsoft Azure using the `backup-azure` plan. This plan
 
 You can initiate this plan from the command line in the same way as the Amazon S3 backup plan:
 ```
-dcos cassandra plan start backup-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
+dcos cassandra plan start backup-azure \
+    -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
+    -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
+    -p CLIENT_ID=$CLIENT_ID \
+    -p TENANT_ID=$TENANT_ID \
+    -p CLIENT_SECRET=$CLIENT_SECRET \
+    -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT \
+    -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY \
+    -p CONTAINER_NAME=$CONTAINER_NAME
 ```
+
+To view the status of this plan from the command line:
+```
+dcos cassandra plan status backup-azure
+backup-azure (IN_PROGRESS)
+├─ backup-schema (COMPLETE)
+│  ├─ node-0:[backup-schema] (COMPLETE)
+│  ├─ node-1:[backup-schema] (COMPLETE)
+│  └─ node-2:[backup-schema] (COMPLETE)
+├─ create-snapshots (COMPLETE)
+│  ├─ node-0:[snapshot] (COMPLETE)
+│  ├─ node-1:[snapshot] (COMPLETE)
+│  └─ node-2:[snapshot] (COMPLETE)
+├─ upload-backups (IN_PROGRESS)
+│  ├─ node-0:[upload-azure] (COMPLETE)
+│  ├─ node-1:[upload-azure] (STARTING)
+│  └─ node-2:[upload-azure] (PENDING)
+└─ cleanup-snapshots (PENDING)
+   ├─ node-0:[cleanup-snapshot] (PENDING)
+   ├─ node-1:[cleanup-snapshot] (PENDING)
+   └─ node-2:[cleanup-snapshot] (PENDING)
+```
+
+The above `plan start` and `plan status` commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional `-v` flag.
 
 # Restore
 
@@ -79,8 +141,34 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start restore-s3 -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY -p AWS_REGION=$AWS_REGION -p S3_BUCKET_NAME=$S3_BUCKET_NAME
+dcos cassandra plan start restore-s3 \
+    -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
+    -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
+    -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+    -p AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+    -p AWS_REGION=$AWS_REGION \
+    -p S3_BUCKET_NAME=$S3_BUCKET_NAME
 ```
+
+To view the status of this plan from the command line:
+```
+dcos cassandra plan status restore-s3
+restore-s3 (IN_PROGRESS)
+├─ fetch-s3 (COMPLETE)
+│  ├─ node-0:[fetch-s3] (COMPLETE)
+│  ├─ node-1:[fetch-s3] (COMPLETE)
+│  └─ node-2:[fetch-s3] (COMPLETE)
+├─ restore-schema (IN_PROGRESS)
+│  ├─ node-0:[restore-schema] (COMPLETE)
+│  ├─ node-1:[restore-schema] (STARTED)
+│  └─ node-2:[restore-schema] (PENDING)
+└─ restore-snapshots (PENDING)
+   ├─ node-0:[restore-snapshot] (PENDING)
+   ├─ node-1:[restore-snapshot] (PENDING)
+   └─ node-2:[restore-snapshot] (PENDING)
+```
+
+The above `plan start` and `plan status` commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional `-v` flag.
 
 ## Restoring From Azure
 
@@ -96,5 +184,32 @@ You can restore from Microsoft Azure using the `restore-azure` plan. This plan r
 
 You can initiate this plan from the command line in the same way as the Amazon S3 restore plan:
 ```
-dcos cassandra plan start restore-azure -p SNAPSHOT_NAME=$SNAPSHOT_NAME -p CLIENT_ID=$CLIENT_ID -p TENANT_ID=$TENANT_ID -p CLIENT_SECRET=$CLIENT_SECRET -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY -p CONTAINER_NAME=$CONTAINER_NAME
+dcos cassandra plan start restore-azure \
+    -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
+    -p CLIENT_ID=$CLIENT_ID \
+    -p TENANT_ID=$TENANT_ID \
+    -p CLIENT_SECRET=$CLIENT_SECRET \
+    -p AZURE_STORAGE_ACCOUNT=$AZURE_STORAGE_ACCOUNT \
+    -p AZURE_STORAGE_KEY=$AZURE_STORAGE_KEY \
+    -p CONTAINER_NAME=$CONTAINER_NAME
 ```
+
+To view the status of this plan from the command line:
+```
+dcos cassandra plan status restore-azure
+restore-azure (IN_PROGRESS)
+├─ fetch-azure (COMPLETE)
+│  ├─ node-0:[fetch-azure] (COMPLETE)
+│  ├─ node-1:[fetch-azure] (COMPLETE)
+│  └─ node-2:[fetch-azure] (COMPLETE)
+├─ restore-schema (COMPLETE)
+│  ├─ node-0:[restore-schema] (COMPLETE)
+│  ├─ node-1:[restore-schema] (COMPLETE)
+│  └─ node-2:[restore-schema] (COMPLETE)
+└─ restore-snapshots (IN_PROGRESS)
+   ├─ node-0:[restore-snapshot] (COMPLETE)
+   ├─ node-1:[restore-snapshot] (STARTING)
+   └─ node-2:[restore-snapshot] (PENDING)
+```
+
+The above `plan start` and `plan status` commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional `-v` flag.
