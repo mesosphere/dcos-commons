@@ -352,6 +352,20 @@ Placement constraints can be applied to zones by referring to the `@zone` key. F
 
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
+#### Rack aware services
+
+Many rack aware services do not support reliable migration between rack-aware and non-rack-aware operation.  These services can choose to restrict the set of placement constraint transitions which are valid through use of the `ZoneValidator`.  The allowed placement constraint transitions when using the `ZoneValidator` are as follows:
+```
+Placement Constraint References Zones
+
+| Original Constraint | New Constraint |
+|---------------------|----------------|
+| None                | False          |
+| False               | False          |
+| True                | True           |
+|                     |                |
+```
+
 ### Updating placement constraints
 
 Clusters change, and as such so should your placement constraints. We recommend using the following procedure to do this:
