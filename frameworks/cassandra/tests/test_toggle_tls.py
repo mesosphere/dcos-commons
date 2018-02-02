@@ -102,20 +102,8 @@ def test_enable_tls_and_plaintext(cassandra_service, dcos_ca_bundle):
     Tests writing, reading and deleting data over TLS but still accepting
     plaintext connections.
     """
-    update_options = {
-        "service": {
-            "security": {
-                "transport_encryption": {
-                    "enabled": True,
-                    "allow_plaintext": True
-                }
-            }
-        }
-    }
-
-    update_service(cassandra_service["package_name"],
-                   cassandra_service["service"]["name"], update_options)
-
+    update_service_transport_encryption(
+        cassandra_service, enabled=True, allow_plaintext=True)
     verify_client_can_write_read_and_delete(dcos_ca_bundle)
 
 
@@ -127,20 +115,8 @@ def test_disable_plaintext(cassandra_service, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a TLS connection.
     """
-    update_options = {
-        "service": {
-            "security": {
-                "transport_encryption": {
-                    "enabled": True,
-                    "allow_plaintext": False
-                }
-            }
-        }
-    }
-
-    update_service(cassandra_service["package_name"],
-                   cassandra_service["service"]["name"], update_options)
-
+    update_service_transport_encryption(
+        cassandra_service, enabled=True, allow_plaintext=False)
     verify_client_can_write_read_and_delete(dcos_ca_bundle)
 
 
@@ -152,41 +128,71 @@ def test_disable_tls(cassandra_service):
     """
     Tests writing, reading and deleting data over a plaintext connection.
     """
+    update_service_transport_encryption(
+        cassandra_service, enabled=False, allow_plaintext=False)
+    verify_client_can_write_read_and_delete()
+
+
+@pytest.mark.sanity
+@pytest.mark.tls
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+def test_enabling_then_disabling_tls(cassandra_service):
+    # Write data.
+    write_data_job = config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    with sdk_jobs.InstallJobContext([write_data_job]):
+        sdk_jobs.run_job(write_data_job)
+
+    # Turn TLS on and off again.
+    update_service_transport_encryption(
+        cassandra_service, enabled=True, allow_plaintext=True)
+    update_service_transport_encryption(
+        cassandra_service, enabled=True, allow_plaintext=False)
+    update_service_transport_encryption(
+        cassandra_service, enabled=False, allow_plaintext=False)
+
+    # Make sure data is still there.
+    verify_data_job = config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    with sdk_jobs.InstallJobContext([verify_data_job]):
+        sdk_jobs.run_job(verify_data_job)
+
+
+def verify_client_can_write_read_and_delete(dcos_ca_bundle=None):
+    write_data_job = config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    verify_data_job = config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    delete_data_job = config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    verify_deletion_job = config.get_verify_deletion_job(dcos_ca_bundle=dcos_ca_bundle)
+
+    with sdk_jobs.InstallJobContext([
+            write_data_job,
+            verify_data_job,
+            delete_data_job,
+            verify_deletion_job
+    ]):
+        sdk_jobs.run_job(write_data_job)
+        sdk_jobs.run_job(verify_data_job)
+        sdk_jobs.run_job(delete_data_job)
+        sdk_jobs.run_job(verify_deletion_job)
+
+
+def update_service_transport_encryption(cassandra_service: dict,
+                                        enabled: bool = False,
+                                        allow_plaintext: bool = False):
     update_options = {
         "service": {
             "security": {
                 "transport_encryption": {
-                    "enabled": False,
-                    "allow_plaintext": False
+                    "enabled": enabled,
+                    "allow_plaintext": allow_plaintext
                 }
             }
         }
     }
 
-    update_service(cassandra_service["package_name"],
-                   cassandra_service["service"]["name"], update_options)
-
-    verify_client_can_write_read_and_delete()
+    update_service(cassandra_service, update_options)
 
 
-def verify_client_can_write_read_and_delete(dcos_ca_bundle=None):
-    with sdk_jobs.InstallJobContext([
-            config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle),
-            config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle),
-            config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle),
-            config.get_verify_deletion_job(dcos_ca_bundle=dcos_ca_bundle)
-    ]):
-        sdk_jobs.run_job(
-            config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle))
-        sdk_jobs.run_job(
-            config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
-        sdk_jobs.run_job(
-            config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
-        sdk_jobs.run_job(
-            config.get_verify_deletion_job(dcos_ca_bundle=dcos_ca_bundle))
-
-
-def update_service(package_name: str, service_name: str, options: dict):
+def update_service(service: dict, options: dict):
     with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
         options_path = f.name
 
@@ -195,8 +201,9 @@ def update_service(package_name: str, service_name: str, options: dict):
         f.flush()
 
         cmd = ["update", "start", "--options={}".format(options_path)]
-        sdk_cmd.svc_cli(package_name, service_name, " ".join(cmd))
+        sdk_cmd.svc_cli(service["package_name"], service["service"]["name"],
+                        " ".join(cmd))
 
         # An update plan is a deploy plan
-        sdk_plan.wait_for_kicked_off_deployment(service_name)
-        sdk_plan.wait_for_completed_deployment(service_name)
+        sdk_plan.wait_for_kicked_off_deployment(service["service"]["name"])
+        sdk_plan.wait_for_completed_deployment(service["service"]["name"])
