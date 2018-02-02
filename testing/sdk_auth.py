@@ -310,18 +310,19 @@ class KerberosEnvironment:
                                 stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
 
+        log.info(result.stdout)
         if result.returncode is not 0:
-            log.info(result.stdout)
             # reverse the principal list before generating again.
             principals.reverse()
-            raise Exception("The keytab is bad :(. We're going to retry generating this keytab. What fun.")
-
-        log.info(result.stdout)
+            raise Exception("The keytab is bad :(. "
+                            "We're going to retry generating this keytab with reversed principals. "
+                            "What fun.")
 
     def __create_and_fetch_keytab(self):
         """
-        Creates the keytab file that holds the info about all the principals that have been
-        added to the KDC. It also fetches it locally so that later the keytab can be uploaded to the secret store.
+        Creates the keytab file that holds the info about all the principals
+        that have been added to the KDC. It also fetches it locally so that
+        the keytab can be uploaded to the secret store later.
         """
         local_keytab_filename = self.get_working_file_path(self.keytab_file_name)
         self.get_keytab_for_principals(self.principals, local_keytab_filename)
