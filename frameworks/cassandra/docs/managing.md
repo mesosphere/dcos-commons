@@ -131,6 +131,62 @@ The CPU and Memory requirements of each node may be increased or decreased as fo
 
 Note: volume requirements (type and/or size) can not be changed after initial deployment.
 
+## Performing Cassandra Cleanup and Repair Operations
+
+You may manually trigger certain `nodetool` operations against your Cassandra instance using the CLI or the HTTP API.
+
+### Cleanup
+
+You may trigger a `nodetool cleanup` operation across your Cassandra nodes using the `cleanup` plan. This plan requires the following parameters to run:
+- `CASSANDRA_KEYSPACE`: the Cassandra keyspace to be cleaned up.
+
+To initiate this plan from the command line:
+```
+dcos cassandra plan start cleanup -p CASSANDRA_KEYSPACE=space1
+```
+
+To view the status of this plan from the command line:
+```
+dcos cassandra plan status cleanup
+cleanup (IN_PROGRESS)
+└─ cleanup-deploy (IN_PROGRESS)
+   ├─ node-0:[cleanup] (COMPLETE)
+   ├─ node-1:[cleanup] (STARTING)
+   └─ node-2:[cleanup] (PENDING)
+```
+
+When the plan is completed, its status will be `COMPLETE`.
+
+The above `plan start` and `plan status` commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional `-v` flag.
+
+For more information about `nodetool cleanup`, see the Cassandra documentation.
+
+### Repair
+
+You may trigger a `nodetool repair` operation across your Cassandra nodes using the `repair` plan. This plan requires the following parameters to run:
+- `CASSANDRA_KEYSPACE`: the Cassandra keyspace to be cleaned up.
+
+To initiate this command from the command line:
+```
+dcos cassandra plan start repair -p CASSANDRA_KEYSPACE=space1
+```
+
+To view the status of this plan from the command line:
+```
+dcos cassandra plan status repair
+repair (STARTING)
+└─ repair-deploy (STARTING)
+   ├─ node-0:[repair] (STARTING)
+   ├─ node-1:[repair] (PENDING)
+   └─ node-2:[repair] (PENDING)
+```
+
+When the plan is completed, its status will be `COMPLETE`.
+
+The above `plan start` and `plan status` commands may also be made directly to the service over HTTP. To see the queries involved, run the above commands with an additional `-v` flag.
+
+For more information about `nodetool repair`, see the Cassandra documentation.
+
 ## Updating Placement Constraints
 
 Placement constraints may be updated after initial deployment using the following procedure. See [Service Settings](#service-settings) above for more information on placement constraints.
