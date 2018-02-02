@@ -16,7 +16,6 @@ import base64
 import json
 import logging
 import os
-import sys
 import uuid
 import retrying
 import subprocess
@@ -24,7 +23,6 @@ import subprocess
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
-import sdk_tasks
 import sdk_security
 
 
@@ -130,7 +128,9 @@ def kinit(task_id: str, keytab: str, principal: str):
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
     rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
     if rc != 0:
-        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\nstdout: {}\nstderr: {}".format(rc, keytab, principal, stdout, stderr))
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
+                           "stdout: {}\n" \
+                           "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
 def kdestroy(task_id: str):
@@ -254,7 +254,6 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
-
     def create_remote_keytab(self, name: str, principals: list=[]) -> str:
         """
         Create a remote keytab for the specified list of principals
@@ -288,8 +287,7 @@ class KerberosEnvironment:
                                             "runs/latest", name)
         return keytab_absolute_path
 
-
-    @retrying.retry(stop_max_attempt_number=5, wait_fixed=60000)
+    @retrying.retry(stop_max_attempt_number=2, wait_fixed=5000)
     def get_keytab_for_principals(self, principals: list, output_filename: str):
         """
         Download a generated keytab for the specified list of principals
@@ -302,22 +300,23 @@ class KerberosEnvironment:
         #
         # See HDFS-493 if you'd like to learn more. Personally, I'd like to forget about this.
         command = "java -jar {} {}".format(
-                os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                    "security",
-                    "keytab-validator",
-                    "keytab-validator.jar"),
-                output_filename)
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         "security",
+                         "keytab-validator",
+                         "keytab-validator.jar"),
+            output_filename)
         result = subprocess.run(command,
-               shell=True,
-               stdout=subprocess.PIPE,
-               stderr=subprocess.PIPE)
+                                shell=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
 
         if result.returncode is not 0:
             log.info(result.stdout)
+            # reverse the principal list before generating again.
+            principals.reverse()
             raise Exception("The keytab is bad :(. We're going to retry generating this keytab. What fun.")
 
         log.info(result.stdout)
-
 
     def __create_and_fetch_keytab(self):
         """
