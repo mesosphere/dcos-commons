@@ -23,7 +23,6 @@ import subprocess
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
-import sdk_tasks
 import sdk_security
 
 
@@ -129,7 +128,9 @@ def kinit(task_id: str, keytab: str, principal: str):
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
     rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
     if rc != 0:
-        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\nstdout: {}\nstderr: {}".format(rc, keytab, principal, stdout, stderr))
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
+                           "stdout: {}\n" \
+                           "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
 def kdestroy(task_id: str):
@@ -253,7 +254,6 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
-
     def create_remote_keytab(self, name: str, principals: list=[]) -> str:
         """
         Create a remote keytab for the specified list of principals
@@ -287,8 +287,7 @@ class KerberosEnvironment:
                                             "runs/latest", name)
         return keytab_absolute_path
 
-
-    @retrying.retry(stop_max_attempt_number=6, wait_fixed=60000)
+    @retrying.retry(stop_max_attempt_number=2, wait_fixed=5000)
     def get_keytab_for_principals(self, principals: list, output_filename: str):
         """
         Download a generated keytab for the specified list of principals
@@ -297,29 +296,33 @@ class KerberosEnvironment:
         _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, output_filename)
 
         # In a fun twist, at least in the HDFS tests, we sometimes wind up with a _bad_ keytab. I know, right?
-        # We can validate if it is good or bad by checking it for a certain pattern. That pattern, is when
-        # strings is run against it (remember, strings will show any 4+ consecutive ASCII characters by default)
-        # that some lines will start with ZX.
+        # We can validate if it is good or bad by checking it with some internal Java APIs.
         #
         # See HDFS-493 if you'd like to learn more. Personally, I'd like to forget about this.
-        command = "strings {} | grep ^ZX".format(output_filename)
+        command = "java -jar {} {}".format(
+            os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                         "security",
+                         "keytab-validator",
+                         "keytab-validator.jar"),
+            output_filename)
         result = subprocess.run(command,
-               shell=True,
-               stdout=subprocess.PIPE,
-               stderr=subprocess.PIPE)
+                                shell=True,
+                                stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE)
 
-        # Grep exits 0 if there were matches
-        if result.returncode == 0:
-            log.info("There were some matches when checking the keytab for ^ZX: %s", result.stdout)
-            raise Exception("The keytab is bad :(. We're going to retry generating this keytab. What fun.")
-
-        log.info("This keytab is great, and does not contain any weird ZX lines.")
-
+        log.info(result.stdout)
+        if result.returncode is not 0:
+            # reverse the principal list before generating again.
+            principals.reverse()
+            raise Exception("The keytab is bad :(. "
+                            "We're going to retry generating this keytab with reversed principals. "
+                            "What fun.")
 
     def __create_and_fetch_keytab(self):
         """
-        Creates the keytab file that holds the info about all the principals that have been
-        added to the KDC. It also fetches it locally so that later the keytab can be uploaded to the secret store.
+        Creates the keytab file that holds the info about all the principals
+        that have been added to the KDC. It also fetches it locally so that
+        the keytab can be uploaded to the secret store later.
         """
         local_keytab_filename = self.get_working_file_path(self.keytab_file_name)
         self.get_keytab_for_principals(self.principals, local_keytab_filename)
