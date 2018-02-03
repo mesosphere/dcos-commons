@@ -103,6 +103,10 @@ public abstract class AbstractScheduler {
         return this;
     }
 
+    public void markApiServerStarted() {
+        apiServerStarted.set(true);
+    }
+
     /**
      * Returns a Mesos API {@link Scheduler} object to be registered with Mesos, or an empty {@link Optional} if Mesos
      * registration should not be performed.
@@ -250,18 +254,6 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
             }
 
-            // Trigger launch of the API server. We start processing offers only once the API server has launched.
-            if (apiServerStarted.get()) {
-                LOGGER.info("Skipping API server setup");
-            } else {
-                SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, getResources());
-                apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                    @Override
-                    public void lifeCycleStarted(LifeCycle event) {
-                        apiServerStarted.set(true);
-                    }
-                });
-            }
 
             try {
                 stateStore.storeFrameworkId(frameworkId);
