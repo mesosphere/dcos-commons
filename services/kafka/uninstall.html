@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -530,9 +530,9 @@
   <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; beta-kafka</code>.</li>
 </ol>
 
-<p>For example, to uninstall a Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
+<p>For example, to uninstall an Apache Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>kafka-dev beta-kafka
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>kafka-dev beta-kafka
 </code></pre></div></div>
 
 <h3 id="older-versions">Older versions</h3>
@@ -545,10 +545,10 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
   <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
 </ol>
 
-<p>For example, to uninstall a Kafka instance named <code class="highlighter-rouge">kakfa-dev</code>, run:</p>
+<p>For example, to uninstall an Apache Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ MY_SERVICE_NAME</span><span class="o">=</span>kafka-dev
-<span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-kafka<span class="sb">`</span>
+<span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-kafka<span class="sb">`</span><span class="nb">.</span>
 <span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span> <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
     -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
     -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
@@ -556,6 +556,7 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
 </code></pre></div></div>
 
 <!-- END DUPLICATE BLOCK -->
+
 
 </div>
 </div>

@@ -10,7 +10,7 @@
 
 
 <head>
-<title>Cassandra: Installing and Customizing</title>
+<title>Cassandra: Install and Customize</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/layout.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -517,43 +517,45 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Cassandra: Installing and Customizing</h1>
+<h1>Cassandra: Install and Customize</h1>
 <div id="content">
 
-<p>The default DC/OS Apache Cassandra installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require different configurations depending on the context of the deployment.</p>
+<p>The default DC/OS Apache Cassandra installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
+
 <ul>
-  <li>If you are using Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/">need to provision a service account</a> before installing DC/OS Apache Cassandra. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.</li>
-  <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/administration/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
-  <li>In <code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
-  <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
-  <li>Your cluster must have at least 3 private nodes.</li>
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+    <ul>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
+      <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Your cluster must have at least three private nodes.</p>
+  </li>
+  <li></li>
 </ul>
 
-<h2 id="installation-from-the-dcos-cli">Installation from the DC/OS CLI</h2>
+<h2 id="default-installation">Default Installation</h2>
 
-<p>To start a basic test cluster, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/">More information about installing DC/OS Apache Cassandra on Enterprise DC/OS</a>.</p>
+<p>To start a basic test cluster with three cassandra nodes, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">More information about installing Apache Cassandra on Enterprise DC/OS</a>.</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-cassandra
-</code></pre></div></div>
-<p>You can specify a custom configuration in an <code class="highlighter-rouge">options.json</code> file and pass it to <code class="highlighter-rouge">dcos package install</code> using the <code class="highlighter-rouge">--options</code> parameter.</p>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos package install beta-cassandra --options=&lt;options&gt;.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra
 </code></pre></div></div>
 
-<p>It is recommended that this custom configuration is stored in source control.</p>
+<p>This command creates a new instance with the default name <code class="highlighter-rouge">cassandra</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>For more information about building the <code class="highlighter-rouge">options.json</code> file, see the <a href="https://docs.mesosphere.com/latest/usage/managing-services/config-universe-service/">DC/OS documentation</a> for service configuration access.</p>
+<p>All <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-cassandra</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<h2 id="installation-from-the-dcos-web-interface">Installation from the DC/OS Web Interface</h2>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span> cassandra &lt;cmd&gt;
+</code></pre></div></div>
 
-<p>You can <a href="https://docs.mesosphere.com/1.9/usage/managing-services/install/">install DC/OS Apache Cassandra from the DC/OS web interface</a>. If you install DC/OS Apache Cassandra from the web interface, you must install the DC/OS Apache Cassandra CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-cassandra <span class="nt">--cli</span>
 </code></pre></div></div>
-<p>Choose <code class="highlighter-rouge">ADVANCED INSTALLATION</code> to perform a custom installation.</p>
-
-<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
 <h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
 
@@ -564,20 +566,21 @@
 <ol>
   <li>In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click <strong>Organization</strong> &gt; <strong>Groups</strong> &gt; <strong>+</strong> or <strong>Organization</strong> &gt; <strong>Users</strong> &gt; <strong>+</strong>. If you create a group, you must also create a user and add them to the group.</li>
   <li>
-    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.
-Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
+    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos:adminrouter:service:marathon full
-dcos:service:marathon:marathon:services:/testing full
-dcos:adminrouter:ops:mesos full
-dcos:adminrouter:ops:slave full
+    <p>Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  dcos:adminrouter:service:marathon full
+  dcos:service:marathon:marathon:services:/testing full
+  dcos:adminrouter:ops:mesos full
+  dcos:adminrouter:ops:slave full
 </code></pre></div>    </div>
   </li>
   <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-cassandra</strong>.</li>
   <li>
     <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/cassandra</code>, then deploy.</p>
 
-    <p>The slashes in your service name are interpreted as folders. You are deploying Cassandra in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
+    <p>The slashes in your service name are interpreted as folders. You are deploying <code class="highlighter-rouge">cassandra</code> in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
   </li>
 </ol>
 
@@ -587,14 +590,43 @@ dcos:adminrouter:ops:slave full
   <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
 </ul>
 
-<h3 id="interacting-with-your-foldered-service">Interacting with your foldered service</h3>
+<h2 id="interacting-with-your-foldered-service">Interacting with your foldered service</h2>
 
 <ul>
   <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
   <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/cassandra/v1/endpoints</code>.</li>
 </ul>
 
-<!-- END DUPLICATE BLOCK -->
+<h2 id="placement-constraints">Placement Constraints</h2>
+
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent.</p>
+
+<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
+</code></pre></div></div>
+
+<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
+
+<h2 id="regions-and-zones">Regions and Zones</h2>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
+</code></pre></div></div>
+
+<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
+
+<h3 id="example">Example</h3>
+
+<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>. For balanced Placement for a Single Region:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  ...
+  "count": 6,
+  "placement": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+}
+</code></pre></div></div>
+
+<p>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
 
 <h1 id="multi-datacenter-deployment">Multi-datacenter Deployment</h1>
 

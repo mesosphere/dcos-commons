@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,50 +520,49 @@
 <h1>Template: Quick Start</h1>
 <div id="content">
 
-<h1 id="prerequisite">Prerequisite</h1>
+<h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
   <li><a href="https://docs.mesosphere.com/latest/administration/installing/">DC/OS installed on your cluster</a>.</li>
 </ul>
 
-<h1 id="steps">Steps</h1>
+<h2 id="steps">Steps</h2>
 
 <ol>
   <li>
-    <p>If you are using open source DC/OS, install <em>SERVICENAME</em> cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.</p>
+    <p>If you are using open source DC/OS, install YOUR_SERVICE cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.</p>
 
-    <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos package <span class="nb">install </span>_PKGNAME_
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos package <span class="nb">install </span>template
 </code></pre></div>    </div>
 
-    <p>Alternatively, you can install <em>SERVICENAME</em> from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
+    <p>Alternatively, you can install YOUR_SERVICE from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
   </li>
   <li>
     <p>The service will now deploy with a default configuration. You can monitor its deployment via the Services tab of the DC/OS web interface.</p>
   </li>
-  <li>Connect a client to <em>SERVICENAME</em>.
-    <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos _PKGNAME_ endpoints
+  <li>Connect a client to YOUR_SERVICE.
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos template endpoints
  <span class="o">[</span>
      <span class="s2">"_LIST_"</span>,
      <span class="s2">"_OF_"</span>,
      <span class="s2">"_ENDPOINTS_
  ]
 
- dcos _PKGNAME_ endpoints _ENDPOINT_
+ dcos template endpoints _ENDPOINT_
  {
      "</span>address<span class="s2">": ["</span>10.0.3.156:_PORT_<span class="s2">", "</span>10.0.3.84:_PORT_<span class="s2">"],
-     "</span>dns<span class="s2">": ["</span>_POD_-0._PKGNAME_.mesos:_PORT_<span class="s2">", "</span>_POD_-1._PKGNAME_.mesos:_PORT_<span class="s2">"]
+     "</span>dns<span class="s2">": ["</span>_POD_-0.template.mesos:_PORT_<span class="s2">", "</span>_POD_-1.template.mesos:_PORT_<span class="s2">"]
  }
 </span></code></pre></div>    </div>
   </li>
   <li><em>PROVIDE A SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATA, READ DATA).</em></li>
 </ol>
 
-<h1 id="see-also">See Also</h1>
+<h2 id="see-also">See Also</h2>
 
 <ul>
-  <li><a href="https://docs.mesosphere.com/service-docs/&lt;Template&gt;/connecting-clients/">Connecting clients</a>.</li>
+  <li><a href="https://docs.mesosphere.com/service-docs/&lt;Template&gt;/connecting-clients/">Connecting clients</a></li>
 </ul>
-
 
 </div>
 </div>

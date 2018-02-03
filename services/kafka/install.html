@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,41 +520,117 @@
 <h1>Kafka: Install and Customize</h1>
 <div id="content">
 
-<p>Kafka is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.</p>
+<p>The default DC/OS Apache Kafka installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
-<h2 id="prerequisites"><a name="install-enterprise"></a>Prerequisites</h2>
+<h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
-  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/services/kafka/kafka-auth/">need to provision a service account</a> before installing Kafka. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/services/kafka/kafka-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
     <ul>
-      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
       <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
       <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
     </ul>
   </li>
-  <li>Your cluster must have at least three private nodes.</li>
+  <li>
+    <p>Your cluster must have at least three private nodes.</p>
+  </li>
+  <li></li>
 </ul>
 
-<h1 id="default-installation">Default Installation</h1>
+<h2 id="default-installation">Default Installation</h2>
 
-<p>To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="#install-enterprise">More information about installing Kafka on Enterprise DC/OS</a>.</p>
+<p>To start a basic test cluster with three brokers, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="">More information about installing Apache Kafka on Enterprise DC/OS</a>.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka
 </code></pre></div></div>
 
-<p>This command creates a new Kafka cluster with the default name <code class="highlighter-rouge">kafka</code>. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
+<p>This command creates a new instance with the default name <code class="highlighter-rouge">kafka</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which Kafka instance to query. If you do not specify a service name, the CLI assumes the default value, <code class="highlighter-rouge">kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span> kafka-dev &lt;cmd&gt;
-
-<span class="k">**</span>Note:<span class="k">**</span> Alternatively, you can <span class="o">[</span><span class="nb">install </span>Kafka from the DC/OS web interface]<span class="o">(</span>https://docs.mesosphere.com/1.9/deploying-services/install/<span class="o">)</span><span class="nb">.</span> If you <span class="nb">install </span>Kafka from the web interface, you must <span class="nb">install </span>the Kafka DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
-
-<span class="sb">```</span>bash
-dcos package <span class="nb">install </span>beta-kafka <span class="nt">--cli</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span> kafka &lt;cmd&gt;
 </code></pre></div></div>
 
-<h1 id="minimal-installation">Minimal Installation</h1>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--cli</span>
+</code></pre></div></div>
+
+<h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
+
+<p>In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/kafka</code> and <code class="highlighter-rouge">production/kafka</code>.</p>
+
+<p>Steps:</p>
+
+<ol>
+  <li>In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click <strong>Organization</strong> &gt; <strong>Groups</strong> &gt; <strong>+</strong> or <strong>Organization</strong> &gt; <strong>Users</strong> &gt; <strong>+</strong>. If you create a group, you must also create a user and add them to the group.</li>
+  <li>
+    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.</p>
+
+    <p>Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  dcos:adminrouter:service:marathon full
+  dcos:service:marathon:marathon:services:/testing full
+  dcos:adminrouter:ops:mesos full
+  dcos:adminrouter:ops:slave full
+</code></pre></div>    </div>
+  </li>
+  <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-kafka</strong>.</li>
+  <li>
+    <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/kafka</code>, then deploy.</p>
+
+    <p>The slashes in your service name are interpreted as folders. You are deploying <code class="highlighter-rouge">kafka</code> in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
+  </li>
+</ol>
+
+<p><strong>Important:</strong></p>
+<ul>
+  <li>Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.</li>
+  <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
+</ul>
+
+<h2 id="interacting-with-your-foldered-service">Interacting with your foldered service</h2>
+
+<ul>
+  <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
+  <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/kafka/v1/endpoints</code>.</li>
+</ul>
+
+<h2 id="placement-constraints">Placement Constraints</h2>
+
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent.</p>
+
+<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
+</code></pre></div></div>
+
+<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
+
+<h2 id="regions-and-zones">Regions and Zones</h2>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
+</code></pre></div></div>
+
+<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
+
+<h3 id="example">Example</h3>
+
+<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>. For balanced Placement for a Single Region:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  ...
+  "count": 6,
+  "placement": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+}
+</code></pre></div></div>
+
+<p>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
+
+<h2 id="alternate-install-configurations">Alternate install configurations</h2>
+
+<h3 id="minimal-installation">Minimal Installation</h3>
 
 <p>For development purposes, you may wish to install Kafka on a local DC/OS cluster. For this, you can use <a href="https://github.com/mesosphere/dcos-vagrant">dcos-vagrant</a>.</p>
 
@@ -574,8 +650,7 @@ dcos package <span class="nb">install </span>beta-kafka <span class="nt">--cli</
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--options</span><span class="o">=</span>sample-kafka-minimal.json beta-kafka
 </code></pre></div></div>
 
-<p><a name="custom-installation"></a></p>
-<h1 id="custom-installation">Custom Installation</h1>
+<h3 id="custom-installation">Custom Installation</h3>
 
 <p>Customize the defaults by creating a JSON file. Then, pass it to <code class="highlighter-rouge">dcos package install</code> using the <code class="highlighter-rouge">--options</code> parameter.</p>
 
@@ -608,7 +683,7 @@ dcos package <span class="nb">install </span>beta-kafka <span class="nt">--cli</
 
 <p>Alternatively, you can perform a custom installation from the DC/OS web interface. Choose <code class="highlighter-rouge">ADVANCED INSTALLATION</code> at install time.</p>
 
-<h1 id="multiple-kafka-cluster-installation">Multiple Kafka cluster installation</h1>
+<h3 id="multiple-kafka-cluster-installation">Multiple Kafka cluster installation</h3>
 
 <p>Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique <code class="highlighter-rouge">name</code> be specified for each installation. For example:</p>
 
@@ -621,74 +696,8 @@ dcos package <span class="nb">install </span>beta-kafka <span class="nt">--cli</
 
 <span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>kafka1.json
 </code></pre></div></div>
-<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
 
-<h1 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h1>
-
-<p>In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/kafka</code> and <code class="highlighter-rouge">production/kafka</code>.</p>
-
-<p>Steps:</p>
-
-<ol>
-  <li>In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click <strong>Organization</strong> &gt; <strong>Groups</strong> &gt; <strong>+</strong> or <strong>Organization</strong> &gt; <strong>Users</strong> &gt; <strong>+</strong>. If you create a group, you must also create a user and add them to the group.</li>
-  <li>
-    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.</p>
-
-    <p>Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
-
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    ```
-    dcos:adminrouter:service:marathon full
-    dcos:service:marathon:marathon:services:/testing full
-    dcos:adminrouter:ops:mesos full
-    dcos:adminrouter:ops:slave full
-    ```
-</code></pre></div>    </div>
-  </li>
-  <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-kafka</strong>.</li>
-  <li>
-    <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/kafka</code>, then deploy.</p>
-
-    <p>The slashes in your service name are interpreted as folders. You are deploying Kafka in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
-  </li>
-</ol>
-
-<p><strong>Important:</strong></p>
-<ul>
-  <li>Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.</li>
-  <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
-</ul>
-
-<h2 id="interacting-with-your-foldered-service">Interacting with your foldered service</h2>
-
-<ul>
-  <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
-  <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/kafka/v1/endpoints</code>.</li>
-</ul>
-
-<!-- END DUPLICATE BLOCK -->
-
-<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
-<h2 id="placement-constraints">Placement Constraints</h2>
-
-<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent.</p>
-
-<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
-</code></pre></div></div>
-
-<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
-
-<h3 id="regions-and-zones">Regions and Zones</h3>
-
-<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
-</code></pre></div></div>
-
-<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
-
-<!-- end duplicate block -->
-
-<h1 id="alternate-zookeeper">Alternate ZooKeeper</h1>
+<h3 id="alternate-zookeeper">Alternate ZooKeeper</h3>
 
 <p>By default, the Kafka services uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster. You can configure an alternate ZooKeeper at install time. This enables you to increase Kafka’s capacity and removes the system ZooKeeper’s involvment in the service.</p>
 
@@ -720,7 +729,6 @@ dcos package <span class="nb">install </span>beta-kafka <span class="nt">--cli</
 
 <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos kafka <span class="nt">--name</span><span class="o">=</span>/kafka update start <span class="nt">--options</span><span class="o">=</span>options.json
 </code></pre></div></div>
-
 
 </div>
 </div>

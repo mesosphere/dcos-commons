@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,19 +520,9 @@
 <h1>Elastic: Limitations</h1>
 <div id="content">
 
-<h2 id="node-requirements">Node requirements</h2>
+<h2 id="configuration-via-elasticsearchyml-andor-elastic-apis">Configuration via elasticsearch.yml and/or Elastic APIs</h2>
 
-<p>The maximum number of deployable nodes is constrained by the DC/OS cluster’s resources. Each Elasticsearch node has specified required resources, so nodes may not be placed if the DC/OS cluster lacks the requisite resources.</p>
-
-<h2 id="upgrades-and-rolling-configuration-updates-do-not-wait-for-green-status">Upgrades and rolling configuration updates do not wait for green status</h2>
-
-<p>During deployment and upgrades, the <code class="highlighter-rouge">serial</code> strategy does not wait for the Elastic service to reach green before proceeding to the next node.</p>
-
-<h2 id="toggling-tls">Toggling TLS</h2>
-
-<p>Toggling TLS requires doing a full-cluster restart. This is an <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html">Elasticsearch limitation</a>. Since the service’s default update strategy is a rolling upgrade (<code class="highlighter-rouge">serial</code>) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). A full-cluster restart is required (using the <code class="highlighter-rouge">parallel</code> update strategy). Make sure to have backups and plan for some downtime.</p>
-
-<p>Afterwards, you should set the update strategy back to <code class="highlighter-rouge">serial</code> for future updates.</p>
+<p>Elasticsearch provides two ways of updating settings: persistent (through <code class="highlighter-rouge">elasticsearch.yml</code> file) and transient (through Elastic Settings Update API). The service’s Configuration Options are carried over to the tasks’ elasticsearch.yml file automatically. Out-of-band configuration changes (either via Elasticsearch’s Update API or externally modifying elasticsearch.yml files) will not persist in case of a restart, failure recovery, or upgrade.</p>
 
 <h2 id="out-of-band-configuration">Out-of-band configuration</h2>
 
@@ -541,8 +531,6 @@
   <li>If a task crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band.</li>
   <li>If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.</li>
 </ul>
-
-<p>Elasticsearch provides two ways of updating settings: persistent (through <code class="highlighter-rouge">elasticsearch.yml</code> file) and transient (through Elastic Settings Update API). The service’s Configuration Options are carried over to the tasks’ elasticsearch.yml file automatically. Out-of-band configuration changes (either via Elasticsearch’s Update API or externally modifying elasticsearch.yml files) will not persist in case of a restart, failure recovery, or upgrade.</p>
 
 <h2 id="scaling-in">Scaling in</h2>
 
@@ -563,6 +551,20 @@
 <h2 id="task-environment-variables">Task Environment Variables</h2>
 
 <p>Each service task has some number of environment variables, which are used to configure the task. These environment variables are set by the service scheduler. While it is <em>possible</em> to use these environment variables in adhoc scripts (e.g. via <code class="highlighter-rouge">dcos task exec</code>), the name of a given environment variable may change between versions of a service and should not be considered a public API of the service.</p>
+
+<h2 id="node-requirements">Node requirements</h2>
+
+<p>The maximum number of deployable nodes is constrained by the DC/OS cluster’s resources. Each Elasticsearch node has specified required resources, so nodes may not be placed if the DC/OS cluster lacks the requisite resources.</p>
+
+<h2 id="upgrades-and-configuration-updates">Upgrades and configuration updates</h2>
+
+<p>Upgrades and rolling configuration updates do not wait for a green status. During deployment and upgrades, the <code class="highlighter-rouge">serial</code> strategy does not wait for the Elastic service to reach green before proceeding to the next node.</p>
+
+<h2 id="toggling-tls">Toggling TLS</h2>
+
+<p>Toggling TLS requires doing a full-cluster restart. This is an <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html">Elasticsearch limitation</a>. Since the service’s default update strategy is a rolling upgrade (<code class="highlighter-rouge">serial</code>) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). A full-cluster restart is required (using the <code class="highlighter-rouge">parallel</code> update strategy). Make sure to have backups and plan for some downtime.</p>
+
+<p>Afterwards, you should set the update strategy back to <code class="highlighter-rouge">serial</code> for future updates.</p>
 
 </div>
 </div>

@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,17 +520,79 @@
 <h1>HDFS: Troubleshooting</h1>
 <div id="content">
 
-<h1 id="replacing-a-permanently-failed-node">Replacing a Permanently Failed Node</h1>
-<p>The DC/OS HDFS Service is resilient to temporary node failures. However, if a DC/OS agent hosting an HDFS node is permanently lost, manual intervention is required to replace the failed node. The following command should be used to replace the node residing on the failed server.</p>
+<h2 id="configuration-update-errors">Configuration update errors</h2>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; pod replace &lt;node_id&gt;
+<p>After a configuration change, the service may enter an unhealthy state. This commonly occurs when an invalid configuration change was made by the user. Certain configuration values may not be changed, or may not be decreased. To verify whether this is the case, check the service’s <code class="highlighter-rouge">deploy</code> plan for any errors.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev plan show deploy
 </code></pre></div></div>
 
-<h1 id="restarting-a-node">Restarting a Node</h1>
-<p>If you must forcibly restart a node, use the following command to restart the node on the same agent node where it currently resides. This will not result in an outage or loss of data.</p>
+<h2 id="accessing-logs">Accessing Logs</h2>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; pod restart &lt;node_id&gt;
+<p>Logs for the scheduler and all service nodes can be viewed from the DC/OS web interface.</p>
+
+<ul>
+  <li>Scheduler logs are useful for determining why a node isn’t being launched (this is under the purview of the Scheduler).</li>
+  <li>Node logs are useful for examining problems in the service itself.</li>
+</ul>
+
+<p>In all cases, logs are generally piped to files named <code class="highlighter-rouge">stdout</code> and/or <code class="highlighter-rouge">stderr</code>.</p>
+
+<p>To view logs for a given node, perform the following steps:</p>
+<ol>
+  <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
+  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be examined (default <code class="highlighter-rouge">hdfs</code>).</li>
+  <li>In the list of tasks for the service, click on the task to be examined (scheduler is named after the service, nodes are each named e.g. <code class="highlighter-rouge">node-&lt;#&gt;-server</code> depending on their type).</li>
+  <li>In the task details, click on the <code class="highlighter-rouge">Logs</code> tab to go into the log viewer. By default, you will see <code class="highlighter-rouge">stdout</code>, but <code class="highlighter-rouge">stderr</code> is also useful. Use the pull-down in the upper right to select the file to be examined.</li>
+</ol>
+
+<p>You can also access the logs via the Mesos UI:</p>
+<ol>
+  <li>Visit <code class="highlighter-rouge">&lt;dcos-url&gt;/mesos</code> to view the Mesos UI.</li>
+  <li>Click the <code class="highlighter-rouge">Frameworks</code> tab in the upper left to get a list of services running in the cluster.</li>
+  <li>Navigate into the correct framework for your needs. The scheduler runs under <code class="highlighter-rouge">marathon</code> with a task name matching the service name (default hdfs). Service nodes run under a framework whose name matches the service name (default hdfs).</li>
+  <li>You should now see two lists of tasks. <code class="highlighter-rouge">Active Tasks</code> are tasks currently running, and <code class="highlighter-rouge">Completed Tasks</code> are tasks that have exited. Click the <code class="highlighter-rouge">Sandbox</code> link for the task you wish to examine.</li>
+  <li>The <code class="highlighter-rouge">Sandbox</code> view will list files named <code class="highlighter-rouge">stdout</code> and <code class="highlighter-rouge">stderr</code>. Click the file names to view the files in the browser, or click <code class="highlighter-rouge">Download</code> to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.</li>
+</ol>
+
+<h2 id="replacing-a-permanently-failed-node">Replacing a Permanently Failed Node</h2>
+
+<p>The DC/OS Elastic Service is resilient to temporary pod failures, automatically relaunching them in-place if they stop running. However, if a machine hosting a pod is permanently lost, manual intervention is required to discard the downed pod and reconstruct it on a new machine.</p>
+
+<p>The following command should be used to get a list of available pods. In this example we are querying a service named <code class="highlighter-rouge">hdfs-dev</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev pod list
 </code></pre></div></div>
+
+<p>The following command should then be used to replace the pod residing on the failed machine, using the appropriate <code class="highlighter-rouge">pod_name</code> provided in the above list.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev pod replace &lt;pod_name&gt;
+</code></pre></div></div>
+
+<p>The pod recovery may then be monitored via the <code class="highlighter-rouge">recovery</code> plan.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev plan show recovery
+</code></pre></div></div>
+
+<h2 id="restarting-a-node">Restarting a Node</h2>
+
+<p>If you must forcibly restart a pod’s processes but do not wish to clear that pod’s data, use the following command to restart the pod on the same agent machine where it currently resides. This will not result in an outage or loss of data.</p>
+
+<p>The following command should be used to get a list of available pods. In this example we are querying a service named <code class="highlighter-rouge">hdfs-dev</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev pod list
+</code></pre></div></div>
+
+<p>The following command should then be used to restart the pod, using the appropriate <code class="highlighter-rouge">pod_name</code> provided in the above list.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev pod restart &lt;pod_name&gt;
+</code></pre></div></div>
+
+<p>The pod recovery may then be monitored via the <code class="highlighter-rouge">recovery</code> plan.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs-dev plan show recovery
+</code></pre></div></div>
+
 
 </div>
 </div>

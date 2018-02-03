@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -522,13 +522,13 @@
 
 <h1 id="updating-configuration">Updating Configuration</h1>
 
-<p>You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying DC/OS Elastic Service itself.</p>
+<p>You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying Elastic itself.</p>
 
-<p>After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to <code class="highlighter-rouge">_NODEPOD_-0</code>, then <code class="highlighter-rouge">_NODEPOD_-1</code>, and so on.</p>
+<p>After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to <code class="highlighter-rouge">data-0</code>, then <code class="highlighter-rouge">data-1</code>, and so on.</p>
 
-<p>Nodes are configured with a “Readiness check” to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.</p>
+<p>Nodes are configured with a “readiness check” to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.</p>
 
-<p>Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See <a href="#limitations">Limitations</a>.</p>
+<p>Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See <a href="limitations.md">Limitations</a>.</p>
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
@@ -548,8 +548,8 @@
     <ul>
       <li>You can install just the subcommand CLI by running <code class="highlighter-rouge">dcos package install --cli beta-elastic</code>.</li>
       <li>If you are running an older version of the subcommand CLI that doesn’t have the <code class="highlighter-rouge">update</code> command, uninstall and reinstall your CLI.
-        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--cli</span> beta-elastic
-dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-elastic
+        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package uninstall <span class="nt">--cli</span> beta-elastic
+<span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-elastic
 </code></pre></div>        </div>
       </li>
     </ul>
@@ -558,16 +558,16 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <h3 id="preparing-configuration">Preparing configuration</h3>
 
-<p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:</p>
+<p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service, including any default values that were applied during installation. For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span><span class="s2">"elastic"</span> describe <span class="o">&gt;</span> options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos  describe <span class="o">&gt;</span> options.json
 </code></pre></div></div>
 
 <p>Make any configuration changes to this <code class="highlighter-rouge">options.json</code> file.</p>
 
 <p>If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the <code class="highlighter-rouge">options.json</code> file that was used when <a href="#initial-service-configuration">installing the service</a>.</p>
 
-<p><strong>Note:</strong> You need to specify all configuration values in the <code class="highlighter-rouge">options.json</code> file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the “Recreating <code class="highlighter-rouge">options.json</code>” section below for information on recovering these values.</p>
+<p><strong>Note:</strong> You must specify all configuration values in the <code class="highlighter-rouge">options.json</code> file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the “Recreating <code class="highlighter-rouge">options.json</code>” section below for information on recovering these values.</p>
 
 <h4 id="recreating-optionsjson-optional">Recreating <code class="highlighter-rouge">options.json</code> (optional)</h4>
 
@@ -577,32 +577,28 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <ol>
   <li>Ensure you have <a href="https://stedolan.github.io/jq/">jq</a> installed.</li>
-  <li>Set the service name that you’re using, for example:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ SERVICE_NAME</span><span class="o">=</span>elastic
-</code></pre></div>    </div>
-  </li>
   <li>Get the version of the package that is currently installed:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ PACKAGE_VERSION</span><span class="o">=</span><span class="k">$(</span>dcos package list | <span class="nb">grep</span> <span class="nv">$SERVICE_NAME</span> | <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="k">)</span>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ PACKAGE_VERSION</span><span class="o">=</span><span class="k">$(</span>dcos package list | <span class="nb">grep </span>beta-elastic | <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="k">)</span>
 </code></pre></div>    </div>
   </li>
   <li>Then fetch and save the environment variables that have been set for the service:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos marathon app show <span class="nv">$SERVICE_NAME</span> | jq .env <span class="o">&gt;</span> current_env.json
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos marathon app show elastic | jq .env <span class="o">&gt;</span> current_env.json
 </code></pre></div>    </div>
   </li>
   <li>To identify those values that are custom, we’ll get the default environment variables for this version of the service:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package describe <span class="nt">--package-version</span><span class="o">=</span><span class="nv">$PACKAGE_VERSION</span> <span class="nt">--render</span> <span class="nt">--app</span> <span class="nv">$SERVICE_NAME</span> | jq .env <span class="o">&gt;</span> default_env.json
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package describe <span class="nt">--package-version</span><span class="o">=</span><span class="nv">$PACKAGE_VERSION</span> <span class="nt">--render</span> <span class="nt">--app</span> elastic | jq .env <span class="o">&gt;</span> default_env.json
 </code></pre></div>    </div>
   </li>
   <li>We’ll also get the entire application template:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package describe <span class="nv">$SERVICE_NAME</span> <span class="nt">--app</span> <span class="o">&gt;</span> marathon.json.mustache
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package describe elastic <span class="nt">--app</span> <span class="o">&gt;</span> marathon.json.mustache
 </code></pre></div>    </div>
   </li>
 </ol>
 
-<p>Now that you have these files, we’ll attempt to recreate the <code class="highlighter-rouge">options.json</code>.</p>
+<p>With these files, <code class="highlighter-rouge">options.json</code> can be recreated.</p>
 
 <ol>
-  <li>Use JQ and <code class="highlighter-rouge">diff</code> to compare the two:
+  <li>Use <code class="highlighter-rouge">jq</code> and <code class="highlighter-rouge">diff</code> to compare the two:
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>diff &lt;<span class="o">(</span>jq <span class="nt">-S</span> <span class="nb">.</span> default_env.json<span class="o">)</span> &lt;<span class="o">(</span>jq <span class="nt">-S</span> <span class="nb">.</span> current_env.json<span class="o">)</span>
 </code></pre></div>    </div>
   </li>
@@ -610,21 +606,21 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>less marathon.json.mustache
 </code></pre></div>    </div>
   </li>
-  <li>Use the variable names (e.g. ``) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
+  <li>Use the variable names (e.g. <code class="highlighter-rouge">{{service.name}}</code>) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
 </ol>
 
 <h3 id="starting-the-update">Starting the update</h3>
 
 <p>Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated <code class="highlighter-rouge">options.json</code> file:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span><span class="s2">"elastic"</span> update start <span class="nt">--options</span><span class="o">=</span>options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update start <span class="nt">--options</span><span class="o">=</span>options.json
 </code></pre></div></div>
 
 <p>You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.</p>
 
 <p>See <a href="#advanced-update-actions">Advanced update actions</a> for commands you can use to inspect and manipulate an update after it has started.</p>
 
-<h2 id="open-source-dcos-enterprise-dcos-19-and-earlier">Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier</h2>
+<h3 id="open-source-dcos-enterprise-dcos-19-and-earlier">Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier</h3>
 
 <p>If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.</p>
 
@@ -632,7 +628,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <p>To make configuration changes via scheduler environment updates, perform the following steps:</p>
 <ol>
-  <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
+  <li>Visit <code class="highlighter-rouge">&lt;dcos-url&gt;</code> to access the DC/OS web interface.</li>
   <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be configured (default <code class="highlighter-rouge">elastic</code>).</li>
   <li>Click <code class="highlighter-rouge">Edit</code> in the upper right. On DC/OS 1.9.x, the <code class="highlighter-rouge">Edit</code> button is in a menu made up of three dots.</li>
   <li>Navigate to <code class="highlighter-rouge">Environment</code> (or <code class="highlighter-rouge">Environment variables</code>) and search for the option to be updated.</li>
@@ -641,109 +637,133 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
   <li>If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.</li>
 </ol>
 
-<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-elastic</code> in the CLI, or browse the Elastic install dialog in the DC/OS web interface.</p>
+<p>To see a full listing of available options, run <code class="highlighter-rouge">dcos package describe --config beta-elastic</code> in the CLI, or browse the beta-elastic package install dialog in the DC/OS web interface.</p>
 
-<h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
-<p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
+<h1 id="upgrade-software">Upgrade Software</h1>
 
-<h1 id="node-info">Node Info</h1>
+<ol>
+  <li>
+    <p>In the DC/OS web interface, destroy the <code class="highlighter-rouge">elastic</code> scheduler to be updated.</p>
+  </li>
+  <li>
+    <p>Verify that you no longer see it in the DC/OS web interface.</p>
+  </li>
+  <li>
+    <p>Optional: Create a JSON options file with any custom configuration, such as a non-default <code class="highlighter-rouge">DEPLOY_STRATEGY</code>.</p>
+  </li>
+</ol>
 
-<p>Comprehensive information is available about every node.  To list all nodes:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"DEPLOY_STRATEGY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"parallel-canary"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; pod list
+<ol>
+  <li>Install the latest version of the beta-elastic package with the specified options:</li>
+</ol>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic -—options<span class="o">=</span>options.json
 </code></pre></div></div>
 
-<p>To view information about a node, run the following command from the CLI.</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
+<h1 id="pod-info">Pod Info</h1>
+
+<p>Comprehensive information is available about every pod.  To list all pods:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod list
+<span class="o">[</span>
+  <span class="s2">"data-0"</span>,
+  <span class="s2">"data-1"</span>,
+  ...
+<span class="o">]</span>
+</code></pre></div></div>
+
+<p>To view information about a pod, run the following command from the CLI.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod info &lt;data-id&gt;
 </code></pre></div></div>
 
 <p>For example:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; pod info master-0
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod info data-0
+<span class="o">{</span>
+  ... lots of JSON ...
+<span class="o">}</span>
 </code></pre></div></div>
 
-<h1 id="node-status">Node Status</h1>
-<p>Similarly, the status for any node may also be queried.</p>
+<h1 id="pod-status">Pod Status</h1>
+<p>Similarly, the status for any pod may also be queried.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; pod info &lt;node-id&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod status &lt;data-id&gt;
 </code></pre></div></div>
 
 <p>For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic pod info data-0
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod status data-1
+<span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"name"</span>: <span class="s2">"data-1-node"</span>,
+    <span class="s2">"id"</span>: <span class="s2">"data-1-node__b31a70f4-73c5-4065-990c-76c0c704b8e4"</span>,
+    <span class="s2">"state"</span>: <span class="s2">"TASK_RUNNING"</span>
+  <span class="o">}</span>
+<span class="o">]</span>
 </code></pre></div></div>
 
-<h1 id="pause-a-node">Pause a Node</h1>
+<h1 id="pause-a-pod">Pause a pod</h1>
 
-<p>Pausing a node relaunches it in an idle command state. This allows the operator to debug the contents of the node, possibly making changes to fix problems. While these problems are often fixed by just replacing the node, there may be cases where an in-place repair or other operation is needed.</p>
+<p>Pausing a pod relaunches it in an idle command state. This allows the operator to debug the contents of the pod, possibly making changes to fix problems. While these problems are often fixed by just replacing the pod, there may be cases where an in-place repair or other operation is needed.</p>
 
 <p>For example:</p>
 <ul>
-  <li>A node which crashes immediately upon starting may need additional work to be performed.</li>
+  <li>A pod which crashes immediately upon starting may need additional work to be performed.</li>
   <li>Some services may <em>require</em> that certain repair operations be performed manually when the task itself isn’t running.
-Being able to put the node in an offline but accessible state makes it easier to resolve these situations.</li>
+Being able to put the pod in an offline but accessible state makes it easier to resolve these situations.</li>
 </ul>
 
-<p>After the node has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.</p>
+<p>After the pod has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.</p>
 
-<p>Here is an example session where an <code class="highlighter-rouge">index-1</code> node is crash looping due to some corrupted data in a persistent volume. The operator pauses the <code class="highlighter-rouge">index-1</code> node, then uses <code class="highlighter-rouge">task exec</code> to repair the index. Following this, the operator starts the node and it resumes normal operation:</p>
+<p>Here is an example session where a <code class="highlighter-rouge">data-1</code> pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the <code class="highlighter-rouge">data-1</code> pod, then uses <code class="highlighter-rouge">task exec</code> to repair the pod. Following this, the operator starts the pod and it resumes normal operation:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic debug pod pause index-1
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic debug pod pause data-1
 <span class="o">{</span>
-  <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
+  <span class="s2">"pod"</span>: <span class="s2">"data-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
-    <span class="s2">"index-1-agent"</span>,
-    <span class="s2">"index-1-node"</span>
+    <span class="s2">"data-1-node"</span>
   <span class="o">]</span>
 <span class="o">}</span>
 
-<span class="nv">$ </span>dcos beta-elastic pod status
-myservice
-├─ index
-│  ├─ index-0
-│  │  ├─ index-0-agent <span class="o">(</span>COMPLETE<span class="o">)</span>
-│  │  └─ index-0-node <span class="o">(</span>COMPLETE<span class="o">)</span>
-│  └─ index-1
-│     ├─ index-1-agent <span class="o">(</span>PAUSING<span class="o">)</span>
-│     └─ index-1-node <span class="o">(</span>PAUSING<span class="o">)</span>
-└─ data
-   ├─ data-0
-   │  └─ data-0-node <span class="o">(</span>COMPLETE<span class="o">)</span>
-   └─ data-1
-      └─ data-1-node <span class="o">(</span>COMPLETE<span class="o">)</span>
-
-... repeat <span class="s2">"pod status"</span> <span class="k">until </span>index-1 tasks are PAUSED ...
-
-<span class="nv">$ </span>dcos task <span class="nb">exec</span> <span class="nt">--interactive</span> <span class="nt">--tty</span> index-1-node /bin/bash
-index-1-node<span class="nv">$ </span>./repair-index <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
-
-<span class="nv">$ </span>dcos beta-elastic debug pod resume index-1
-<span class="o">{</span>
-  <span class="s2">"pod"</span>: <span class="s2">"index-1"</span>,
-  <span class="s2">"tasks"</span>: <span class="o">[</span>
-    <span class="s2">"index-1-agent"</span>,
-    <span class="s2">"index-1-node"</span>
-  <span class="o">]</span>
-<span class="o">}</span>
-
-<span class="nv">$ </span>dcos beta-elastic pod status
-myservice
-├─ index
-│  ├─ index-0
-│  │  ├─ index-0-agent <span class="o">(</span>RUNNING<span class="o">)</span>
-│  │  └─ index-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
-│  └─ index-1
-│     ├─ index-1-agent <span class="o">(</span>STARTING<span class="o">)</span>
-│     └─ index-1-node <span class="o">(</span>STARTING<span class="o">)</span>
+<span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod status
+elastic
 └─ data
    ├─ data-0
    │  └─ data-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
    └─ data-1
-      └─ data-1-node <span class="o">(</span>RUNNING<span class="o">)</span>
+      └─ data-1-node <span class="o">(</span>PAUSING<span class="o">)</span>
 
-... repeat <span class="s2">"pod status"</span> <span class="k">until </span>index-1 tasks are RUNNING ...
+... repeat <span class="s2">"pod status"</span> <span class="k">until </span>data-1 is PAUSED ...
+
+<span class="nv">$ </span>dcos task <span class="nb">exec</span> <span class="nt">--interactive</span> <span class="nt">--tty</span> data-1-node /bin/bash
+data-1-node<span class="nv">$ </span>./repair-data <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
+
+<span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic debug pod resume data-1
+<span class="o">{</span>
+  <span class="s2">"pod"</span>: <span class="s2">"data-1"</span>,
+  <span class="s2">"tasks"</span>: <span class="o">[</span>
+    <span class="s2">"data-1-node"</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+
+<span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic pod status
+elastic
+└─ data
+   ├─ data-0
+   │  └─ data-0-node <span class="o">(</span>RUNNING<span class="o">)</span>
+   └─ data-1
+      └─ data-1-node <span class="o">(</span>STARTING<span class="o">)</span>
+
+... repeat <span class="s2">"pod status"</span> <span class="k">until </span>data-1 is RUNNING ...
 </code></pre></div></div>
 
-<p>In the above example, all tasks in the node were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a node. For example, <code class="highlighter-rouge">dcos beta-elastic debug pod pause index-1 -t agent</code> will pause only the <code class="highlighter-rouge">agent</code> task within the <code class="highlighter-rouge">index-1</code> node.</p>
+<p>In the above example, all tasks in the pod were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos beta-elastic --name=elastic debug pod pause data-1 -t node</code> will pause only the <code class="highlighter-rouge">node</code> task within the <code class="highlighter-rouge">data-1</code> pod.</p>
 
 <h1 id="upgrading-service-version">Upgrading Service Version</h1>
 
@@ -756,7 +776,7 @@ myservice
 <p>The <code class="highlighter-rouge">update package-versions</code> command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).</p>
 
 <p>For example, run:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update package-versions
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update package-versions
 </code></pre></div></div>
 
 <h2 id="upgrading-or-downgrading-a-service">Upgrading or downgrading a service</h2>
@@ -768,13 +788,14 @@ myservice
 </code></pre></div>    </div>
   </li>
   <li>Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS Elastic Service to version <code class="highlighter-rouge">1.1.6-5.0.7</code>:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update start <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update start <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre></div>    </div>
   </li>
 </ol>
 
 <p>If you are missing mandatory configuration parameters, the <code class="highlighter-rouge">update</code> command will return an error. To supply missing values, you can also provide an <code class="highlighter-rouge">options.json</code> file (see <a href="#updating-configuration">Updating configuration</a>):</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update start <span class="nt">--options</span><span class="o">=</span>options.json <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update start <span class="nt">--options</span><span class="o">=</span>options.json <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre></div></div>
 
 <p>See <a href="#advanced-update-actions">Advanced update actions</a> for commands you can use to inspect and manipulate an update after it has started.</p>
@@ -793,7 +814,7 @@ myservice
 
 <p>You can query the status of the update as follows:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update status
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update status
 </code></pre></div></div>
 
 <p>If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.</p>
@@ -802,7 +823,7 @@ myservice
 
 <p>To pause an ongoing update, issue a pause command:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update pause
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update pause
 </code></pre></div></div>
 
 <p>You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the <code class="highlighter-rouge">WAITING</code> state.</p>
@@ -811,7 +832,7 @@ myservice
 
 <p>If a plan is in a <code class="highlighter-rouge">WAITING</code> state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the <code class="highlighter-rouge">resume</code> command to continue the plan:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update resume
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update resume
 </code></pre></div></div>
 
 <p>You will receive an error message if you attempt to <code class="highlighter-rouge">resume</code> a plan that is already in progress or has already completed.</p>
@@ -820,7 +841,7 @@ myservice
 
 <p>In order to manually “complete” a step (such that the Scheduler stops attempting to launch a task), you can issue a <code class="highlighter-rouge">force-complete</code> command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update force-complete service-phase service-0:[node]
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update force-complete service-phase data-0:[task]
 </code></pre></div></div>
 
 <h2 id="force-restart">Force Restart</h2>
@@ -828,18 +849,22 @@ myservice
 <p>Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase, or just for a specific step.</p>
 
 <p>To restart the entire plan:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update force-restart
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update force-restart
 </code></pre></div></div>
 
 <p>Or for all steps in a single phase:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update force-restart service-phase
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update force-restart service-phase
 </code></pre></div></div>
 
 <p>Or for a specific step within a specific phase:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update force-restart service-phase service-0:[node]
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update force-restart service-phase data-0:[task]
 </code></pre></div></div>
 
 <!-- END DUPLICATE BLOCK -->
+
+<h1 id="add-a-dataingestcoordinator-node">Add a Data/Ingest/Coordinator Node</h1>
+
+<p>Increase the <code class="highlighter-rouge">DATA_NODE_COUNT</code>/<code class="highlighter-rouge">INGEST_NODE_COUNT</code>/<code class="highlighter-rouge">COORDINATOR_NODE_COUNT</code> value from the DC/OS dashboard as described in the Configuring section. This creates an update plan as described in that section. An additional node will be added as the last step of that plan.</p>
 
 </div>
 </div>

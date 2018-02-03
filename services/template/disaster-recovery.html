@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -521,114 +521,6 @@
 <div id="content">
 
 <p><em>ENSURE THAT YOUR SERVICE SUPPORTS BACKUP/RESTORE. iF NOT, HIDE THIS FILE AND LIST THE LACK OF BACKUP/RESTORE W/I LIMITATIONS.MD . THE PROCEDURES LISTED HERE ARE BASED ON THOSE IMPLEMENTED WITHIN MESOSPHERE-DEVELOPED SERVICES</em></p>
-
-<h1 id="backup">Backup</h1>
-
-<h2 id="backing-up-to-s3">Backing Up to S3</h2>
-
-<p>You can backup an entire cluster’s data and schema to Amazon S3 using the <code class="highlighter-rouge">backup-s3</code> plan. This plan requires the following parameters to run:</p>
-<ul>
-  <li><code class="highlighter-rouge">SNAPSHOT_NAME</code>: the name of this snapshot. Snapshots for individual nodes will be stored as S3 folders inside of a top level <code class="highlighter-rouge">snapshot</code> folder.</li>
-  <li><code class="highlighter-rouge">AWS_ACCESS_KEY_ID</code>: the access key ID for the AWS IAM user running this backup.</li>
-  <li><code class="highlighter-rouge">AWS_SECRET_ACCESS_KEY</code>: the secret access key for the AWS IAM user running this backup.</li>
-  <li><code class="highlighter-rouge">AWS_REGION</code>: the region of the S3 bucket being used to store this backup.</li>
-  <li><code class="highlighter-rouge">S3_BUCKET_NAME</code>: the name of the S3 bucket to store this backup in.
-<em>PROVIDE ADDITIONAL BACKUP/RESTORE PARAMETERS, IF NEEDED, IE KEYSPACE/TABLE NAMES.</em></li>
-</ul>
-
-<p>Make sure that you provision your nodes with enough disk space to perform a backup. <em>SERVICENAME</em> backups are stored on disk before being uploaded to S3, and will take up as much space as the data currently in the data store, so you’ll need sufficient space to be free to backup all of the data at once. The amount of space required for the backup form of the data does not directly relate to the amount of space consumed by <em>SERVICENAME</em>’s local data storage as the formats and use of compression differ. So backup often enough and monitor the overall local storage used by both the backup and the data service.</p>
-
-<p>As noted in the documentation for the <a href="#backup-restore-strategy">backup/restore strategy configuration option</a>, it is possible to run transfers to S3 either in serial or in parallel, but care must be taken not to exceed any throughput limits you may have in your cluster. Throughput depends on a variety of factors, including uplink speed, proximity to region where the backups are being uploaded and downloaded, and the performance of the underlying storage infrastructure. You should perform periodic tests in your local environment to understand what you can expect from S3.</p>
-
-<p>You can configure whether snapshots are created and uploaded in serial, the default, or in parallel (see <a href="#backup-restore-strategy">backup/restore strategy</a>), but the serial backup/restore strategy is recommended.</p>
-
-<p>You can initiate this plan from the command line:</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">SNAPSHOT_NAME</span><span class="o">=</span>&lt;my_snapshot&gt;
-<span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span>&lt;my_access_key_id&gt;
-<span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span>&lt;my_secret_access_key&gt;
-<span class="nv">AWS_REGION</span><span class="o">=</span>us-west-2
-<span class="nv">S3_BUCKET_NAME</span><span class="o">=</span>backups
-_PROVIDE ADDITIONAL BACKUP/RESTORE PARAMETERS, IF NEEDED, IE KEYSPACE/TABLE NAMES_
-_PROVIDE <span class="sb">`</span><span class="nt">-P</span> <span class="s2">"param=</span><span class="nv">$param</span><span class="s2">"</span><span class="sb">`</span> PROPERTIES W/I THE FOLLOWING cli INVOCATION, IF NEEDED_
-dcos _PKGNAME_ plan start backup-s3 <span class="nt">-p</span> <span class="nv">SNAPSHOT_NAME</span><span class="o">=</span><span class="nv">$SNAPSHOT_NAME</span> <span class="nt">-p</span> <span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span><span class="nv">$AWS_ACCESS_KEY_ID</span> <span class="nt">-p</span> <span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span><span class="nv">$AWS_SECRET_ACCESS_KEY</span> <span class="nt">-p</span> <span class="nv">AWS_REGION</span><span class="o">=</span><span class="nv">$AWS_REGION</span> <span class="nt">-p</span> <span class="nv">S3_BUCKET_NAME</span><span class="o">=</span><span class="nv">$S3_BUCKET_NAME</span>
-</code></pre></div></div>
-
-<p>If you’re backing up multiple keyspaces, they must be separated by spaces and wrapped in quotation marks when supplied to the <code class="highlighter-rouge">plan start</code> command, as in the example above.</p>
-
-<p><em>PROVIDE ANY ADDITIONAL NOTES/WARNINGS (NOT APPARENT DETAILS), IF NEEDED.</em></p>
-
-<p><strong>IMPORTANT</strong>: To ensure that sensitive information, such as your AWS secret access key, remains secure, make sure that you’ve set the <code class="highlighter-rouge">core.dcos_url</code> configuration property in the DC/OS CLI to an HTTPS URL.</p>
-
-<h2 id="backing-up-to-azure">Backing up to Azure</h2>
-
-<p>You can also back up to Microsoft Azure using the <code class="highlighter-rouge">backup-azure</code> plan. This plan requires the following parameters to run:</p>
-
-<ul>
-  <li><code class="highlighter-rouge">SNAPSHOT_NAME</code>: the name of this snapshot. Snapshots for individual nodes will be stored as gzipped tarballs with the name <code class="highlighter-rouge">node-&lt;POD_INDEX&gt;.tar.gz</code>.</li>
-  <li><code class="highlighter-rouge">CLIENT_ID</code>: the client ID for the Azure service principal running this backup.</li>
-  <li><code class="highlighter-rouge">TENANT_ID</code>: the tenant ID for the tenant that the service principal belongs to.</li>
-  <li><code class="highlighter-rouge">CLIENT_SECRET</code>: the service principal’s secret key.</li>
-  <li><code class="highlighter-rouge">AZURE_STORAGE_ACCOUNT</code>: the name of the storage account that this backup will be sent to.</li>
-  <li><code class="highlighter-rouge">AZURE_STORAGE_KEY</code>: the secret key associated with the storage account.</li>
-  <li><code class="highlighter-rouge">CONTAINER_NAME</code>: the name of the container to store this backup in.
-<em>PROVIDE ADDITIONAL BACKUP/RESTORE PARAMETERS, IF NEEDED, IE KEYSPACE/TABLE NAMES.</em></li>
-</ul>
-
-<p>You can initiate this plan from the command line in the same way as the Amazon S3 backup plan:
-<em>PROVIDE <code class="highlighter-rouge">-P "param=$param"</code> PROPERTIES W/I THE FOLLOWING cli INVOCATION, IF NEEDED.</em></p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ plan start backup-azure <span class="nt">-p</span> <span class="nv">SNAPSHOT_NAME</span><span class="o">=</span><span class="nv">$SNAPSHOT_NAME</span> <span class="nt">-p</span> <span class="nv">CLIENT_ID</span><span class="o">=</span><span class="nv">$CLIENT_ID</span> <span class="nt">-p</span> <span class="nv">TENANT_ID</span><span class="o">=</span><span class="nv">$TENANT_ID</span> <span class="nt">-p</span> <span class="nv">CLIENT_SECRET</span><span class="o">=</span><span class="nv">$CLIENT_SECRET</span> <span class="nt">-p</span> <span class="nv">AZURE_STORAGE_ACCOUNT</span><span class="o">=</span><span class="nv">$AZURE_STORAGE_ACCOUNT</span> <span class="nt">-p</span> <span class="nv">AZURE_STORAGE_KEY</span><span class="o">=</span><span class="nv">$AZURE_STORAGE_KEY</span> <span class="nt">-p</span> <span class="nv">CONTAINER_NAME</span><span class="o">=</span><span class="nv">$CONTAINER_NAME</span>
-</code></pre></div></div>
-
-<h1 id="restore">Restore</h1>
-
-<p>All restore plans will restore the schema from every keyspace backed up with the backup plan and populate those keyspaces with the data they contained at the time the snapshot was taken. Downloading and restoration of backups will use the configured backup/restore strategy. This plan assumes that the keyspaces being restored do not already exist in the current cluster, and will fail if any keyspace with the same name is present.</p>
-
-<h2 id="restoring-from-s3">Restoring From S3</h2>
-
-<p>Restoring cluster data is similar to backing it up. The <code class="highlighter-rouge">restore-s3</code> plan assumes that your data is stored in an S3 bucket in the format that <code class="highlighter-rouge">backup-s3</code> uses. The restore plan has the following parameters:</p>
-<ul>
-  <li><code class="highlighter-rouge">SNAPSHOT_NAME</code>: the snapshot name from the <code class="highlighter-rouge">backup-s3</code> plan.</li>
-  <li><code class="highlighter-rouge">AWS_ACCESS_KEY_ID</code>: the access key ID for the AWS IAM user running this restore.</li>
-  <li><code class="highlighter-rouge">AWS_SECRET_ACCESS_KEY</code>: the secret access key for the AWS IAM user running this restore.</li>
-  <li><code class="highlighter-rouge">AWS_REGION</code>: the region of the S3 bucket being used to store the backup being restored.</li>
-  <li><code class="highlighter-rouge">S3_BUCKET_NAME</code>: the name of the S3 bucket where the backup is stored.
-<em>PROVIDE ADDITIONAL BACKUP/RESTORE PARAMETERS, IF NEEDED, IE KEYSPACE/TABLE NAMES.</em></li>
-</ul>
-
-<p>To initiate this plan from the command line:</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">SNAPSHOT_NAME</span><span class="o">=</span>&lt;my_snapshot&gt;
-<span class="nv">AWS_ACCESS_KEY_ID</span><span class="o">=</span>&lt;my_access_key_id&gt;
-<span class="nv">AWS_SECRET_ACCESS_KEY</span><span class="o">=</span>&lt;my_secret_access_key&gt;
-<span class="nv">AWS_REGION</span><span class="o">=</span>us-west-2
-<span class="nv">S3_BUCKET_NAME</span><span class="o">=</span>backups
-
-_PROVIDE <span class="sb">`</span><span class="nv">param</span><span class="o">=</span><span class="nv">$param</span><span class="sb">`</span> PROPERTIES W/I THE FOLLOWING cli INVOCATION, IF NEEDED._
-dcos _PKGNAME_ plan start backup-s3 <span class="s2">"SNAPSHOT_NAME=</span><span class="nv">$SNAPSHOT_NAME</span><span class="s2">,AWS_ACCESS_KEY_ID=</span><span class="nv">$AWS_ACCESS_KEY_ID</span><span class="s2">,AWS_SECRET_ACCESS_KEY=</span><span class="nv">$AWS_SECRET_ACCESS_KEY</span><span class="s2">,AWS_REGION=</span><span class="nv">$AWS_REGION</span><span class="s2">,S3_BUCKET_NAME=</span><span class="nv">$S3_BUCKET_NAME</span><span class="s2">"</span>
-</code></pre></div></div>
-
-<h2 id="restoring-from-azure">Restoring From Azure</h2>
-
-<p>You can restore from Microsoft Azure using the <code class="highlighter-rouge">restore-azure</code> plan. This plan requires the following parameters to run:</p>
-
-<ul>
-  <li><code class="highlighter-rouge">SNAPSHOT_NAME</code>: the name of this snapshot. Snapshots for individual nodes will be stored as gzipped tarballs with the name <code class="highlighter-rouge">node-&lt;POD_INDEX&gt;.tar.gz</code>.</li>
-  <li><code class="highlighter-rouge">CLIENT_ID</code>: the client ID for the Azure service principal running this backup.</li>
-  <li><code class="highlighter-rouge">TENANT_ID</code>: the tenant ID for the tenant that the service principal belongs to.</li>
-  <li><code class="highlighter-rouge">CLIENT_SECRET</code>: the service principal’s secret key.</li>
-  <li><code class="highlighter-rouge">AZURE_STORAGE_ACCOUNT</code>: the name of the storage account that this backup will be sent to.</li>
-  <li><code class="highlighter-rouge">AZURE_STORAGE_KEY</code>: the secret key associated with the storage account.</li>
-  <li><code class="highlighter-rouge">CONTAINER_NAME</code>: the name of the container to store this backup in.
-<em>PROVIDE ADDITIONAL BACKUP/RESTORE PARAMETERS, IF NEEDED, IE KEYSPACE/TABLE NAMES.</em></li>
-</ul>
-
-<p>You can initiate this plan from the command line in the same way as the Amazon S3 restore plan:
-<em>PROVIDE <code class="highlighter-rouge">-P "param=$param"</code> PROPERTIES W/I THE FOLLOWING cli INVOCATION, IF NEEDED.</em></p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ plan start restore-azure <span class="nt">-p</span> <span class="nv">SNAPSHOT_NAME</span><span class="o">=</span><span class="nv">$SNAPSHOT_NAME</span> <span class="nt">-p</span> <span class="nv">CLIENT_ID</span><span class="o">=</span><span class="nv">$CLIENT_ID</span> <span class="nt">-p</span> <span class="nv">TENANT_ID</span><span class="o">=</span><span class="nv">$TENANT_ID</span> <span class="nt">-p</span> <span class="nv">CLIENT_SECRET</span><span class="o">=</span><span class="nv">$CLIENT_SECRET</span> <span class="nt">-p</span> <span class="nv">AZURE_STORAGE_ACCOUNT</span><span class="o">=</span><span class="nv">$AZURE_STORAGE_ACCOUNT</span> <span class="nt">-p</span> <span class="nv">AZURE_STORAGE_KEY</span><span class="o">=</span><span class="nv">$AZURE_STORAGE_KEY</span> <span class="nt">-p</span> <span class="nv">CONTAINER_NAME</span><span class="o">=</span><span class="nv">$CONTAINER_NAME</span>
-</code></pre></div></div>
 
 </div>
 </div>

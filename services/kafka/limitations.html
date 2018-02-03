@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,16 +520,6 @@
 <h1>Kafka: Limitations</h1>
 <div id="content">
 
-<h2 id="configurations">Configurations</h2>
-
-<p>The “disk” configuration value is denominated in MB. We recommend you set the configuration value <code class="highlighter-rouge">log_retention_bytes</code> to a value smaller than the indicated “disk” configuration. See the Configuring section for instructions for customizing these values.</p>
-
-<h2 id="security">Security</h2>
-
-<h3 id="kerberos">Kerberos</h3>
-
-<p>When Kerberos is enabled, the broker VIP is disabled as Kerberized clients will not be able to use it. This is because each Kafka broker uses a specific Kerberos principal and cannot accept connections from a single unified principal which the VIP would require.</p>
-
 <h2 id="out-of-band-configuration">Out-of-band configuration</h2>
 
 <p>Out-of-band configuration modifications are not supported. The service’s core responsibility is to deploy and maintain the service with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will override those modifications at a later time. For example:</p>
@@ -557,6 +547,16 @@
 <h2 id="task-environment-variables">Task Environment Variables</h2>
 
 <p>Each service task has some number of environment variables, which are used to configure the task. These environment variables are set by the service scheduler. While it is <em>possible</em> to use these environment variables in adhoc scripts (e.g. via <code class="highlighter-rouge">dcos task exec</code>), the name of a given environment variable may change between versions of a service and should not be considered a public API of the service.</p>
+
+<h2 id="configurations">Configurations</h2>
+
+<p>The “disk” configuration value is denominated in MB. We recommend you set the configuration value <code class="highlighter-rouge">log_retention_bytes</code> to a value smaller than the indicated “disk” configuration. See the Configuring section for instructions for customizing these values.</p>
+
+<h2 id="security">Security</h2>
+
+<h3 id="kerberos">Kerberos</h3>
+
+<p>When Kerberos is enabled, the broker VIP is disabled as Kerberized clients will not be able to use it. This is because each Kafka broker uses a specific Kerberos principal and cannot accept connections from a single unified principal which the VIP would require.</p>
 
 </div>
 </div>

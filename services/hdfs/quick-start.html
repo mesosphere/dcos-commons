@@ -10,7 +10,7 @@
 
 
 <head>
-<title>HDFS: Quickstart</title>
+<title>HDFS: Quick Start</title>
 <link rel="stylesheet" type="text/css" media="all" href="../../style/layout.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -517,17 +517,17 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>HDFS: Quickstart</h1>
+<h1>HDFS: Quick Start</h1>
 <div id="content">
 
 <p>This tutorial will get you up and running in minutes with HDFS. You will install and configure the DC/OS HDFS package and retrieve the core-site.xml and hdfs-site.xml files. These XML files are used to configure client nodes of the HDFS cluster.</p>
 
-<p><strong>Prerequisites:</strong></p>
+<h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
-  <li><a href="https://docs.mesosphere.com/1.9/installing/">DC/OS and DC/OS CLI installed</a> with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.</li>
+  <li><a href="https://docs.mesosphere.com/latest/installing/">DC/OS and DC/OS CLI installed</a> with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.</li>
   <li>
-    <p>Depending on your <a href="https://docs.mesosphere.com/1.9/overview/security/security-modes/">security mode</a>, HDFS requires a service authentication token for access to DC/OS. For more information, see <a href="https://docs.mesosphere.com/services/hdfs/hdfs-auth/">Configuring DC/OS Access for HDFS</a>.</p>
+    <p>Depending on your <a href="https://docs.mesosphere.com/latest/overview/security/security-modes/">security mode</a>, HDFS requires a service authentication token for access to DC/OS. For more information, see <a href="https://docs.mesosphere.com/services/hdfs/hdfs-auth/">Configuring DC/OS Access for HDFS</a>.</p>
 
     <table>
       <thead>
@@ -553,6 +553,8 @@
     </table>
   </li>
 </ul>
+
+<h2 id="steps">Steps</h2>
 
 <ol>
   <li>
@@ -580,7 +582,7 @@
     <p>Configure HDFS on your nodes.</p>
   </li>
   <li>
-    <p><a href="https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/">SSH</a> to the leading master node.</p>
+    <p><a href="https://docs.mesosphere.com/latest/administering-clusters/sshcluster/">SSH</a> to the leading master node.</p>
 
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos node ssh <span class="nt">--leader</span> <span class="nt">--master-proxy</span>
 </code></pre></div>    </div>
@@ -661,7 +663,7 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
 
         <p>The output should resemble:</p>
 
-        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+        <div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
 <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span><span class="nt">&lt;configuration&gt;</span>
 <span class="nt">&lt;property&gt;</span>
 <span class="nt">&lt;name&gt;</span>dfs.nameservice.id<span class="nt">&lt;/name&gt;</span>
@@ -680,12 +682,12 @@ Status: Downloaded newer image <span class="k">for </span>mesosphere/hdfs-client
 
         <p>The output should resemble:</p>
 
-        <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
+        <div class="language-xml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cp">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span>
 <span class="cp">&lt;?xml-stylesheet type="text/xsl" href="configuration.xsl"?&gt;</span>
 <span class="nt">&lt;configuration&gt;</span>
     <span class="nt">&lt;property&gt;</span>
-        <span class="nt">&lt;name&gt;</span>dfs.nameservice.id<span class="nt">&lt;/name&gt;</span>
-        <span class="nt">&lt;value&gt;</span>hdfs<span class="nt">&lt;/value&gt;</span>
+        <span class="nt">&lt;name&gt;</span>fs.defaultFS<span class="nt">&lt;/name&gt;</span>
+        <span class="nt">&lt;value&gt;</span>hdfs://hdfs<span class="nt">&lt;/value&gt;</span>
     <span class="nt">&lt;/property&gt;</span>
     ...
 

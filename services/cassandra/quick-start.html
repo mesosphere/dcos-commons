@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,17 +520,21 @@
 <h1>Cassandra: Quick Start</h1>
 <div id="content">
 
+<h2 id="prerequisites">Prerequisites</h2>
+
 <ol>
   <li>Install DC/OS on your cluster. See <a href="https://docs.mesosphere.com/latest/administration/installing/">the documentation</a> for instructions.</li>
   <li>
     <p>If you are using open source DC/OS, install DC/OS Apache Cassandra with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package install beta-cassandra
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra
 </code></pre></div>    </div>
   </li>
 </ol>
 
 <p>You can also install DC/OS Apache Cassandra from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
+
+<h2 id="steps">Steps</h2>
 
 <ol>
   <li>
@@ -539,24 +543,24 @@
   <li>
     <p>Connect a client to the DC/OS Apache Cassandra service.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra endpoints
-[
-  "native-client"
-]
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra endpoints
+ <span class="o">[</span>
+   <span class="s2">"native-client"</span>
+ <span class="o">]</span>
 
-dcos beta-cassandra endpoints native-client
-{
-  "address": [
-    "10.0.1.125:9042",
-    "10.0.2.152:9042",
-    "10.0.1.22:9042"
-  ],
-  "dns": [
-    "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-    "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-    "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"
-  ]
-}
+ <span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra endpoints native-client
+ <span class="o">{</span>
+   <span class="s2">"address"</span>: <span class="o">[</span>
+     <span class="s2">"10.0.1.125:9042"</span>,
+     <span class="s2">"10.0.2.152:9042"</span>,
+     <span class="s2">"10.0.1.22:9042"</span>
+   <span class="o">]</span>,
+   <span class="s2">"dns"</span>: <span class="o">[</span>
+     <span class="s2">"node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span>,
+     <span class="s2">"node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span>,
+     <span class="s2">"node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042"</span>
+   <span class="o">]</span>
+ <span class="o">}</span>
 </code></pre></div>    </div>
   </li>
   <li>
@@ -564,14 +568,14 @@ dcos beta-cassandra endpoints native-client
 
     <p><strong>Note:</strong> In production, you should specify multiple node addresses to avoid disruption if a subset of addressed nodes are down:</p>
 
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span>
-<span class="nv">$ </span>docker run <span class="nt">-it</span> cassandra:3.0.14 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
-node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042
-<span class="o">&gt;</span> CREATE KEYSPACE space1 WITH REPLICATION <span class="o">=</span> <span class="o">{</span> <span class="s1">'class'</span> : <span class="s1">'SimpleStrategy'</span>, <span class="s1">'replication_factor'</span> : 3 <span class="o">}</span><span class="p">;</span>
-<span class="o">&gt;</span> USE space1<span class="p">;</span>
-<span class="o">&gt;</span> CREATE TABLE testtable1 <span class="o">(</span>key varchar, value varchar, PRIMARY KEY<span class="o">(</span>key<span class="o">))</span><span class="p">;</span>
-<span class="o">&gt;</span> INSERT INTO space1.testtable1<span class="o">(</span>key, value<span class="o">)</span> VALUES<span class="o">(</span><span class="s1">'testkey1'</span>, <span class="s1">'testvalue1'</span><span class="o">)</span><span class="p">;</span>
-<span class="o">&gt;</span> SELECT <span class="k">*</span> FROM testtable1<span class="p">;</span>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span>
+ <span class="nv">$ </span>docker run <span class="nt">-it</span> cassandra:3.0.14 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
+ node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042
+ <span class="o">&gt;</span> CREATE KEYSPACE space1 WITH REPLICATION <span class="o">=</span> <span class="o">{</span> <span class="s1">'class'</span> : <span class="s1">'SimpleStrategy'</span>, <span class="s1">'replication_factor'</span> : 3 <span class="o">}</span><span class="p">;</span>
+ <span class="o">&gt;</span> USE space1<span class="p">;</span>
+ <span class="o">&gt;</span> CREATE TABLE testtable1 <span class="o">(</span>key varchar, value varchar, PRIMARY KEY<span class="o">(</span>key<span class="o">))</span><span class="p">;</span>
+ <span class="o">&gt;</span> INSERT INTO space1.testtable1<span class="o">(</span>key, value<span class="o">)</span> VALUES<span class="o">(</span><span class="s1">'testkey1'</span>, <span class="s1">'testvalue1'</span><span class="o">)</span><span class="p">;</span>
+ <span class="o">&gt;</span> SELECT <span class="k">*</span> FROM testtable1<span class="p">;</span>
 </code></pre></div>    </div>
   </li>
 </ol>

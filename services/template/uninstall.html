@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -527,12 +527,12 @@
 <p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
 
 <ol>
-  <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; _PKGNAME_</code>.</li>
+  <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; PACKAGE_NAME</code>.</li>
 </ol>
 
-<p>For example, to uninstall a <em>SERVICENAME</em> instance named <code class="highlighter-rouge">_PKGNAME_-dev</code>, run:</p>
+<p>For example, to uninstall a TECH_NAME instance named <code class="highlighter-rouge">SERVICE_NAME-dev</code>, run:</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>_PKGNAME_-dev _PKGNAME_
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>SERVICE_NAME-dev PACKAGE_NAME
 </code></pre></div></div>
 
 <h3 id="older-versions">Older versions</h3>
@@ -540,22 +540,23 @@
 <p>If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:</p>
 
 <ol>
-  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; _PKGNAME_</code>.
-For example, <code class="highlighter-rouge">dcos package uninstall --app-id=_PKGNAME_-dev _PKGNAME_</code>.</li>
+  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
+For example, <code class="highlighter-rouge">dcos package uninstall --app-id=SERVICE_NAME-dev PACKAGE_NAME</code>.</li>
   <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
 </ol>
 
-<p>For example, to uninstall a Cassandra instance named <code class="highlighter-rouge">_PKGNAME_-dev</code>, run:</p>
+<p>For example, to uninstall a TECH_NAME instance named <code class="highlighter-rouge">SERVICE_NAME-dev</code>, run:</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">MY_SERVICE_NAME</span><span class="o">=</span>_PKGNAME_-dev
-dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> _PKGNAME_<span class="sb">`</span><span class="nb">.</span>
-dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span> <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ MY_SERVICE_NAME</span><span class="o">=</span>SERVICE_NAME-dev
+<span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> PACKAGE_NAME<span class="sb">`</span><span class="nb">.</span>
+<span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span> <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
     -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
     -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
     -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
 </code></pre></div></div>
 
 <!-- END DUPLICATE BLOCK -->
+
 
 </div>
 </div>

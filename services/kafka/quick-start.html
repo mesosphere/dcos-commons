@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,11 +520,13 @@
 <h1>Kafka: Quick Start</h1>
 <div id="content">
 
-<h1 id="prerequisite">Prerequisite</h1>
+<h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
   <li><a href="https://docs.mesosphere.com/latest/administration/installing/">DC/OS installed on your cluster</a>.</li>
 </ul>
+
+<h2 id="steps">Steps</h2>
 
 <ol>
   <li>
@@ -540,41 +542,36 @@
   <li>
     <p>Create a new topic.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ```bash
- $ dcos beta-kafka topic create topic1
- ```
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic create topic1
 </code></pre></div>    </div>
   </li>
   <li>
     <p>Find Zookeeper and broker endpoint information.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ```bash
- $ dcos beta-kafka endpoints zookeeper
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka endpoints zookeeper
  master.mesos:2181/dcos-service-kafka
 
- $ dcos beta-kafka endpoints broker
- {
-   "address": [
-     "10.0.3.226:1000",
-     "10.0.3.98:1000",
-     "10.0.0.120:1000"
-   ],
-   "dns": [
-     "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1000",
-     "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1000",
-     "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1000"
-   ],
-   "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
- }
- ```
+ <span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka endpoints broker
+ <span class="o">{</span>
+   <span class="s2">"address"</span>: <span class="o">[</span>
+     <span class="s2">"10.0.3.226:1000"</span>,
+     <span class="s2">"10.0.3.98:1000"</span>,
+     <span class="s2">"10.0.0.120:1000"</span>
+   <span class="o">]</span>,
+   <span class="s2">"dns"</span>: <span class="o">[</span>
+     <span class="s2">"kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1000"</span>,
+     <span class="s2">"kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1000"</span>,
+     <span class="s2">"kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1000"</span>
+   <span class="o">]</span>,
+   <span class="s2">"vip"</span>: <span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span>
+ <span class="o">}</span>
 </code></pre></div>    </div>
   </li>
   <li>
     <p>Produce and consume data.</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> ```bash
- # Create marathon app defintion
- $ cat &lt;&lt;'EOF' &gt;&gt; kafkaclient.json
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="c"># Create marathon app defintion</span>
+ <span class="nv">$ </span><span class="nb">cat</span> <span class="o">&lt;&lt;</span><span class="sh">'</span><span class="no">EOF</span><span class="sh">' &gt;&gt; kafkaclient.json
  {
  "id": "/kafka-client",
  "instances": 1,
@@ -588,24 +585,22 @@
  "mem": 256,
  "cmd": "sleep 100000"
  }
- EOF
-    
- # Deploy marathon app definition
- $ dcos marathon app add kafkaclient.json
-    
- # Produce single `Hello world` event
- $ dcos task exec kafka-client bash -c "export JAVA_HOME=/opt/jdk1.8.0_144/jre/; echo 'Hello, World.' | /opt/kafka_2.12-0.11.0.0/bin/kafka-console-producer.sh --broker-list broker.kafka.l4lb.thisdcos.directory:9092 --topic topic1"
-    
- # Consume events from topic1
- $ dcos task exec kafka-client bash -c "export JAVA_HOME=/opt/jdk1.8.0_144/jre/; /opt/kafka_2.12-0.11.0.0/bin/kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-kafka --topic topic1 --from-beginning"
+</span><span class="no"> EOF
+
+</span> <span class="c"># Deploy marathon app definition</span>
+ <span class="nv">$ </span>dcos marathon app add kafkaclient.json
+
+ <span class="c"># Produce single `Hello world` event</span>
+ <span class="nv">$ </span>dcos task <span class="nb">exec </span>kafka-client bash <span class="nt">-c</span> <span class="s2">"export JAVA_HOME=/opt/jdk1.8.0_144/jre/; echo 'Hello, World.' | /opt/kafka_2.12-0.11.0.0/bin/kafka-console-producer.sh --broker-list broker.kafka.l4lb.thisdcos.directory:9092 --topic topic1"</span>
+
+ <span class="c"># Consume events from topic1</span>
+ <span class="nv">$ </span>dcos task <span class="nb">exec </span>kafka-client bash <span class="nt">-c</span> <span class="s2">"export JAVA_HOME=/opt/jdk1.8.0_144/jre/; /opt/kafka_2.12-0.11.0.0/bin/kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-kafka --topic topic1 --from-beginning"</span>
  Hello, World.
- ```
 </code></pre></div>    </div>
   </li>
 </ol>
 
-<p>See also <a href="https://docs.mesosphere.com/services/kafka/connecting-clients/">Connecting clients</a>.</p>
-
+<p>See also <a href="https://docs.mesosphere.com/services/kafka/connecting-clients/">Connecting clients</a></p>
 
 </div>
 </div>

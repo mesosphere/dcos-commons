@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,6 +520,8 @@
 <h1>Elastic: Quick Start</h1>
 <div id="content">
 
+<h2 id="steps">Steps</h2>
+
 <ol>
   <li>
     <p>Perform a default installation by following the instructions in the Install and Customize section of this topic.
@@ -528,36 +530,30 @@
   <li>
     <p>Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:</p>
 
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span><span class="s2">"elastic"</span> plan show deploy
-</code></pre></div>    </div>
-  </li>
-  <li>
-    <p>SSH into the master node.</p>
-
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic plan show deploy
 </code></pre></div>    </div>
   </li>
   <li>
     <p>Retrieve client endpoint information by running the <code class="highlighter-rouge">endpoints</code> command:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> $ dcos beta-elastic --name="elastic" endpoints coordinator-http
- {
-     "vip": "coordinator.elastic.l4lb.thisdcos.directory:9200",
-     "address": [
-         "10.0.2.88:1026",
-         "10.0.2.88:1027"
-     ],
-     "dns": [
-         "coordinator-0-node.elastic.autoip.dcos.thisdcos.directory:1026",
-         "coordinator-0-node.elastic.autoip.dcos.thisdcos.directory:1027"
-     ],
- }
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic endpoints coordinator-http
+ <span class="o">{</span>
+     <span class="s2">"vip"</span>: <span class="s2">"coordinator.elastic.l4lb.thisdcos.directory:9200"</span>,
+     <span class="s2">"address"</span>: <span class="o">[</span>
+         <span class="s2">"10.0.2.88:1026"</span>,
+         <span class="s2">"10.0.2.88:1027"</span>
+     <span class="o">]</span>,
+     <span class="s2">"dns"</span>: <span class="o">[</span>
+         <span class="s2">"coordinator-0-node.elastic.autoip.dcos.thisdcos.directory:1026"</span>,
+         <span class="s2">"coordinator-0-node.elastic.autoip.dcos.thisdcos.directory:1027"</span>
+     <span class="o">]</span>,
+ <span class="o">}</span>
 </code></pre></div>    </div>
   </li>
   <li>
-    <p><a href="https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/">SSH into a DC/OS node</a>:</p>
+    <p><a href="https://docs.mesosphere.com/latest/administering-clusters/sshcluster/">SSH into a DC/OS node</a>:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> $ dcos node ssh --master-proxy --leader
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span>
 </code></pre></div>    </div>
 
     <p>Now that you are inside your DC/OS cluster, you can connect to your Elasticsearch cluster directly.</p>
@@ -565,26 +561,25 @@
   <li>
     <p>Create an index:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>curl <span class="nt">-s</span> <span class="nt">-u</span> elastic:changeme <span class="nt">-XPUT</span> <span class="s1">'coordinator.elastic.l4lb.thisdcos.directory:9200/customer?pretty'</span>
 </code></pre></div>    </div>
   </li>
   <li>
     <p>Store data in your index:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XPUT 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
- {
-     "name": "John Doe"
- }'
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>curl <span class="nt">-s</span> <span class="nt">-u</span> elastic:changeme <span class="nt">-XPUT</span> <span class="se">\</span>
+     <span class="s1">'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'</span> <span class="se">\</span>
+     <span class="nt">-d</span> <span class="s1">'{ "name": "John Doe" }'</span>
 </code></pre></div>    </div>
   </li>
   <li>
     <p>Retrieve data from your index:</p>
 
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code> $ curl -s -u elastic:changeme -XGET 'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> <span class="nv">$ </span>curl <span class="nt">-s</span> <span class="nt">-u</span> elastic:changeme <span class="nt">-XGET</span> <span class="se">\</span>
+     <span class="s1">'coordinator.elastic.l4lb.thisdcos.directory:9200/customer/external/1?pretty'</span>
 </code></pre></div>    </div>
   </li>
 </ol>
-
 
 </div>
 </div>

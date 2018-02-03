@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,13 +520,15 @@
 <h1>Kafka: API Reference</h1>
 <div id="content">
 
-<p><a name="#rest-auth"></a></p>
+<p>The DC/OS Apache Kafka Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Apache Kafka Service is deployed.</dcos_url></p>
+
 <h1 id="rest-api-authentication">REST API Authentication</h1>
-<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the Kafka REST API directly. You do not need the token to access the Kafka nodes themselves.</p>
 
-<p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/1.9/security/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
+<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the Apache Kafka REST API directly. You do not need the token to access the Apache Kafka nodes themselves.</p>
 
-<p>If you are using open source DC/OS, follow these instructions to <a href="https://dcos.io/docs/1.9/security/iam-api/">pass your authentication token to the DC/OS endpoint</a>.</p>
+<p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/latest/security/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
+
+<p>If you are using open source DC/OS, follow these instructions to [pass your HTTP API token to the DC/OS endpoint]https://dcos.io/docs/latest/security/iam-api/).</p>
 
 <p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
 
@@ -535,13 +537,175 @@
 
 <p>The <code class="highlighter-rouge">curl</code> examples in this document assume that an auth token has been stored in an environment variable named <code class="highlighter-rouge">auth_token</code>.</p>
 
-<p>If you are using Enterprise DC/OS, the security mode of your installation may also require the <code class="highlighter-rouge">--ca-cert</code> flag when making REST calls. Refer to <a href="https://docs.mesosphere.com/1.9/networking/tls-ssl/#get-dcos-cert">Obtaining and passing the DC/OS certificate in cURL requests</a> for information on how to use the <code class="highlighter-rouge">--cacert</code> flag. <a href="https://docs.mesosphere.com/1.9/networking/tls-ssl/">If your security mode is <code class="highlighter-rouge">disabled</code></a>, do not use the <code class="highlighter-rouge">--ca-cert</code> flag.</p>
+<p>If you are using Enterprise DC/OS, the security mode of your installation may also require the <code class="highlighter-rouge">--ca-cert</code> flag when making REST calls. Refer to <a href="https://docs.mesosphere.com/latest/networking/tls-ssl/#get-dcos-cert">Obtaining and passing the DC/OS certificate in cURL requests</a> for information on how to use the <code class="highlighter-rouge">--cacert</code> flag. <a href="https://docs.mesosphere.com/latest/networking/tls-ssl/">If your security mode is <code class="highlighter-rouge">disabled</code></a>, do not use the <code class="highlighter-rouge">--ca-cert</code> flag.</p>
 
-<p>For ongoing maintenance of the Kafka cluster itself, the Kafka service exposes an HTTP API whose structure is designed to roughly match the tools provided by the Kafka distribution, such as <code class="highlighter-rouge">bin/kafka-topics.sh</code>.</p>
+<h1 id="plan-api">Plan API</h1>
 
-<p>The examples here provide equivalent commands using both the <a href="https://github.com/mesosphere/dcos-cli">DC/OS CLI</a> (with the <code class="highlighter-rouge">kafka</code> CLI module installed) and <code class="highlighter-rouge">curl</code>. These examples assume a service named <code class="highlighter-rouge">kafka</code> (the default), and the <code class="highlighter-rouge">curl</code> examples assume that the DC/OS cluster path has been stored in an environment variable <code class="highlighter-rouge">$dcos_url</code>. Replace these with appropriate values as needed.</p>
+<p>The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.</p>
 
-<p>The <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument, allowing the user to specify which Kafka instance to query. The value defaults to <code class="highlighter-rouge">kafka</code>, so it’s technically redundant to specify <code class="highlighter-rouge">--name=kafka</code> in these examples.</p>
+<h2 id="list-plans">List plans</h2>
+
+<p>You may list the configured plans for the service. By default, all services at least have a <code class="highlighter-rouge">deploy</code> plan and a <code class="highlighter-rouge">recovery</code> plan. Some services may have additional custom plans defined.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan list
+</code></pre></div></div>
+
+<h2 id="view-plan">View plan</h2>
+
+<p>You may view the current state of a listed plan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans/&lt;plan&gt;
+</code></pre></div></div>
+
+<p>The CLI may be used to show a formatted tree of the plan (default), or the underlying JSON data as retrieved from the above HTTP endpoint:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan show &lt;plan&gt;
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan show &lt;plan&gt; <span class="nt">--json</span>
+</code></pre></div></div>
+
+<h2 id="pause-installation">Pause Installation</h2>
+
+<p>The installation will pause after completing installation of the current node and wait for user input.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans/deploy/interrupt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan pause deploy
+</code></pre></div></div>
+
+<h2 id="resume-installation">Resume Installation</h2>
+
+<p>The REST API request below will resume installation at the next pending node.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT &lt;dcos_surl&gt;/service/kafka/v1/plans/deploy/continue
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan <span class="k">continue </span>deploy
+</code></pre></div></div>
+
+<h1 id="nodes-api">Nodes API</h1>
+
+<p>The pod API provides endpoints for retrieving information about nodes, restarting them, and replacing them.</p>
+
+<h2 id="list-nodes">List Nodes</h2>
+
+<p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod list
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod
+</code></pre></div></div>
+
+<h2 id="node-info">Node Info</h2>
+
+<p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pod/&lt;node-id&gt;/info</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/info
+</code></pre></div></div>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod info journalnode-0
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/journalnode-0/info
+</code></pre></div></div>
+
+<h2 id="replace-a-node">Replace a Node</h2>
+
+<p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod replace &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/replace
+</code></pre></div></div>
+
+<p>If the operation succeeds, a <code class="highlighter-rouge">200 OK</code> is returned.</p>
+
+<h2 id="restart-a-node">Restart a Node</h2>
+
+<p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod restart &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/restart
+</code></pre></div></div>
+
+<p>If the operation succeeds a <code class="highlighter-rouge">200 OK</code> is returned.</p>
+
+<h2 id="pause-a-node">Pause a Node</h2>
+
+<p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
+
+<p>CLI example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka debug pod pause &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/pause
+</code></pre></div></div>
+
+<h1 id="configuration-api">Configuration API</h1>
+
+<p>The configuration API provides an endpoint to view current and previous configurations of the cluster.</p>
+
+<h2 id="view-target-config">View Target Config</h2>
+
+<p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config target
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/configurations/target
+</code></pre></div></div>
+
+<h2 id="list-configs">List Configs</h2>
+
+<p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config list
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/configurations
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<h2 id="view-specified-config">View Specified Config</h2>
+
+<p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+</code></pre></div></div>
 
 <h1 id="connection-information">Connection Information</h1>
 
@@ -577,74 +741,6 @@
 <span class="o">}</span>
 </code></pre></div></div>
 
-<h1 id="broker-operations">Broker Operations</h1>
-
-<h2 id="list-all-brokers">List All Brokers</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod list
-<span class="o">[</span>
-  <span class="s2">"kafka-0"</span>,
-  <span class="s2">"kafka-1"</span>,
-  <span class="s2">"kafka-2"</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/pod"</span>
-<span class="o">[</span>
-  <span class="s2">"kafka-0"</span>,
-  <span class="s2">"kafka-1"</span>,
-  <span class="s2">"kafka-2"</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<h2 id="restart-a-single-broker">Restart a Single Broker</h2>
-
-<p>Restarts the broker in-place.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod restart kafka-1
-<span class="o">[</span>
-  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
-  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/pod/kafka-1/restart"</span>
-<span class="o">[</span>
-  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
-  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<h2 id="replace-a-single-broker">Replace a Single Broker</h2>
-
-<p>Restarts the broker and replaces its existing resource/volume allocations. The new broker instance may also be placed on a different machine.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod replace kafka-1
-<span class="o">[</span>
-  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
-  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/pod/kafka-1/replace"</span>
-<span class="o">[</span>
-  <span class="s2">"pod"</span>: <span class="s2">"kafka-1"</span>,
-  <span class="s2">"tasks"</span>: <span class="o">[</span><span class="s2">"kafka-1-broker"</span><span class="o">]</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<h2 id="pause-a-broker">Pause a Broker</h2>
-
-<p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
-
-<p>CLI example</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-kafka debug pod pause &lt;node-id&gt;
-</code></pre></div></div>
-
-<p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/pause
-</code></pre></div></div>
-
 <h1 id="topic-operations">Topic Operations</h1>
 
 <p>These operations mirror what is available with <code class="highlighter-rouge">bin/kafka-topics.sh</code>.</p>
@@ -658,7 +754,7 @@
 <span class="o">]</span>
 </code></pre></div></div>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/topics"</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics"</span>
 <span class="o">[</span>
   <span class="s2">"topic1"</span>,
   <span class="s2">"topic0"</span>
@@ -768,7 +864,7 @@
 <span class="o">}</span>
 </code></pre></div></div>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/topics/topic1?partitions=3&amp;replication=3"</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?partitions=3&amp;replication=3"</span>
 <span class="o">{</span>
   <span class="s2">"message"</span>: <span class="s2">"Output: Created topic </span><span class="se">\"</span><span class="s2">topic1</span><span class="se">\"\n</span><span class="s2">"</span>
 <span class="o">}</span>
@@ -776,7 +872,7 @@
 
 <h2 id="view-topic-offsets">View Topic Offsets</h2>
 
-<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools#SystemTools-GetOffsetShell">described in the Kafka documentation</a>.</p>
+<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as [described in the Kafka documentation][15].</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic offsets topic1 <span class="nt">--time</span><span class="o">=</span>last
 <span class="o">[</span>
@@ -792,7 +888,7 @@
 <span class="o">]</span>
 </code></pre></div></div>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"</span><span class="nv">$dcos_url</span><span class="s2">/service/kafka/v1/topics/topic1/offsets?time=-1"</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1/offsets?time=-1"</span>
 <span class="o">[</span>
   <span class="o">{</span>
     <span class="s2">"2"</span>: <span class="s2">"334"</span>
@@ -886,436 +982,6 @@ $ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/ka
   <span class="s2">"message"</span>: <span class="s2">""</span>
 <span class="o">}</span>
 </code></pre></div></div>
-
-<h1 id="service-status">Service Status</h1>
-
-<p>Send a GET request to the <code class="highlighter-rouge">/v1/state/properties/suppressed</code> endpoint to learn if Kafka is in a <code class="highlighter-rouge">suppressed</code> state and not receiving offers. If a service does not need offers, Mesos can “suppress” it so that other services are not starved for resources.</p>
-
-<p>You can use this request to troubleshoot: if you think Kafka should be receiving resource offers, but is not, you can use this API call to see if Kafka is suppressed. You will receive a response of <code class="highlighter-rouge">true</code> or <code class="highlighter-rouge">false</code>.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$curl</span> <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/state/properties/suppressed"</span>
-</code></pre></div></div>
-
-<h1 id="config-history">Config History</h1>
-
-<p>These operations relate to viewing the service’s configuration history.</p>
-
-<h2 id="list-configuration-ids">List Configuration IDs</h2>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config list
-<span class="o">[</span>
-  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
-  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/configurations"</span>
-<span class="o">[</span>
-  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
-  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
-<span class="o">]</span>
-</code></pre></div></div>
-
-<h2 id="describe-configuration">Describe Configuration</h2>
-
-<p>This configuration shows a default per-broker memory allocation of 2048 (configured via the <code class="highlighter-rouge">BROKER_MEM</code> parameter):</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config show 319ebe89-42e2-40e2-9169-8568e2421023
-</code></pre></div></div>
-
-<p>Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
-is provided in <a href=".#appendix-a-configuration-resource">Appendix A</a>.</p>
-
-<p>The equivalent DC/OS API resource request follows:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/configurations/319ebe89-42e2-40e2-9169-8568e2421023"</span>
-</code></pre></div></div>
-
-<p>The CLI output for viewing a specific configuration matches the API output.</p>
-
-<h2 id="describe-target-configuration">Describe Target Configuration</h2>
-
-<p>The target configuration, meanwhile, shows an increase of configured per-broker memory from 2048 to 4096 (again, configured as <code class="highlighter-rouge">BROKER_MEM</code>):</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config target
-</code></pre></div></div>
-
-<p>Since the configuration resource is output for several CLI and API usages, a single reference version of this resource
-is provided in Appendix A.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/configurations/target"</span>
-</code></pre></div></div>
-
-<p>The CLI output for viewing a specific configuration matches the API output.</p>
-
-<h1 id="config-updates">Config Updates</h1>
-
-<p>These options relate to viewing and controlling rollouts and configuration updates.</p>
-
-<h2 id="view-plan-status">View Plan Status</h2>
-
-<p>Displays all Phases and Steps in the service Plan. If a rollout is currently in progress, this returns a 503 HTTP code with response content otherwise unchanged.</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan show deploy <span class="nt">--json</span>
-<span class="o">{</span>
-  <span class="s2">"phases"</span>: <span class="o">[</span>
-    <span class="o">{</span>
-      <span class="s2">"id"</span>: <span class="s2">"1915bcad-1235-400f-8406-4ac7555a7d34"</span>,
-      <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
-      <span class="s2">"steps"</span>: <span class="o">[</span>
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"9854a67d-7803-46d0-b278-402785fe3199"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Reconciliation complete"</span>
-        <span class="o">}</span>
-      <span class="o">]</span>,
-      <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>
-    <span class="o">}</span>,
-    <span class="o">{</span>
-      <span class="s2">"id"</span>: <span class="s2">"3e72c258-1ead-465f-871e-2a305d29124c"</span>,
-      <span class="s2">"name"</span>: <span class="s2">"Update to: 329ef254-7331-48dc-a476-8a0e45752871"</span>,
-      <span class="s2">"steps"</span>: <span class="o">[</span>
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"ebf4cb02-1011-452a-897a-8c4083188bb2"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"broker-0"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Broker-0 is COMPLETE"</span>
-        <span class="o">}</span>,
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"ff9e74a7-04fd-45b7-b44c-00467aaacd5b"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"broker-1"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Broker-1 is IN_PROGRESS"</span>
-        <span class="o">}</span>,
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"a2ba3969-cb18-4a05-abd0-4186afe0f840"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"PENDING"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"broker-2"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Broker-2 is PENDING"</span>
-        <span class="o">}</span>
-      <span class="o">]</span>,
-      <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
-    <span class="o">}</span>
-  <span class="o">]</span>,
-  <span class="s2">"errors"</span>: <span class="o">[]</span>,
-  <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/plan/deploy"</span>
-<span class="o">{</span>
-  <span class="s2">"phases"</span>: <span class="o">[</span>
-    <span class="o">{</span>
-      <span class="s2">"id"</span>: <span class="s2">"1915bcad-1235-400f-8406-4ac7555a7d34"</span>,
-      <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
-      <span class="s2">"steps"</span>: <span class="o">[</span>
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"9854a67d-7803-46d0-b278-402785fe3199"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"Reconciliation"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Reconciliation complete"</span>
-        <span class="o">}</span>
-      <span class="o">]</span>,
-      <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>
-    <span class="o">}</span>,
-    <span class="o">{</span>
-      <span class="s2">"id"</span>: <span class="s2">"3e72c258-1ead-465f-871e-2a305d29124c"</span>,
-      <span class="s2">"name"</span>: <span class="s2">"Update to: 329ef254-7331-48dc-a476-8a0e45752871"</span>,
-      <span class="s2">"steps"</span>: <span class="o">[</span>
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"ebf4cb02-1011-452a-897a-8c4083188bb2"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"broker-0"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Broker-0 is COMPLETE"</span>
-        <span class="o">}</span>,
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"ff9e74a7-04fd-45b7-b44c-00467aaacd5b"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"broker-1"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Broker-1 is IN_PROGRESS"</span>
-        <span class="o">}</span>,
-        <span class="o">{</span>
-          <span class="s2">"id"</span>: <span class="s2">"a2ba3969-cb18-4a05-abd0-4186afe0f840"</span>,
-          <span class="s2">"status"</span>: <span class="s2">"PENDING"</span>,
-          <span class="s2">"name"</span>: <span class="s2">"broker-2"</span>,
-          <span class="s2">"message"</span>: <span class="s2">"Broker-2 is PENDING"</span>
-        <span class="o">}</span>
-      <span class="o">]</span>,
-      <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
-    <span class="o">}</span>
-  <span class="o">]</span>,
-  <span class="s2">"errors"</span>: <span class="o">[]</span>,
-  <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
-<span class="o">}</span>
-</code></pre></div></div>
-
-<h2 id="upgrade-interaction">Upgrade Interaction</h2>
-
-<p>These operations are only applicable when <code class="highlighter-rouge">PHASE_STRATEGY</code> is set to <code class="highlighter-rouge">STAGE</code>, they have no effect when it is set to <code class="highlighter-rouge">INSTALL</code>. See the Changing Configuration at Runtime part of the Configuring section for more information.</p>
-
-<h3 id="continue">Continue</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan <span class="k">continue </span>deploy
-<span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/plan/deploy/continue"</span>
-</code></pre></div></div>
-
-<h3 id="interrupt">Interrupt</h3>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan pause deploy
-<span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/plan/deploy/interrupt"</span>
-</code></pre></div></div>
-
-<h1 id="appendix-a---configuration-resource">Appendix A - Configuration Resource</h1>
-
-<p>The following is an example of the configuration resource:</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-  </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"api-port"</span><span class="p">:</span><span class="w"> </span><span class="mi">16962</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"web-url"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"zookeeper"</span><span class="p">:</span><span class="w"> </span><span class="s2">"master.mesos:2181"</span><span class="p">,</span><span class="w">
-  </span><span class="s2">"pod-specs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-    </span><span class="p">{</span><span class="w">
-      </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"user"</span><span class="p">:</span><span class="w"> </span><span class="s2">"nobody"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"image"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"networks"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
-      </span><span class="s2">"rlimits"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
-      </span><span class="s2">"uris"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-        </span><span class="s2">"https://downloads.mesosphere.com/kafka/assets/kafka_2.11-0.10.2.1.tgz"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"https://infinity-artifacts.s3.amazonaws.com/autodelete7d/kafka/20170714-084852-rmq3POwXq1PqNImH/bootstrap.zip"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"https://infinity-artifacts.s3.amazonaws.com/autodelete7d/kafka/20170714-084852-rmq3POwXq1PqNImH/executor.zip"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-1.10-1.4-63e0814.tar.gz"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"http://downloads.mesosphere.com/kafka/assets/kafka-statsd-metrics2-0.5.3.jar"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"http://downloads.mesosphere.com/kafka/assets/java-dogstatsd-client-2.3.jar"</span><span class="w">
-      </span><span class="p">],</span><span class="w">
-      </span><span class="s2">"task-specs"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-        </span><span class="p">{</span><span class="w">
-          </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker"</span><span class="p">,</span><span class="w">
-          </span><span class="s2">"goal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RUNNING"</span><span class="p">,</span><span class="w">
-          </span><span class="s2">"resource-set"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker-resource-set"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"resource-specifications"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-              </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DefaultResourceSpec"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cpus"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SCALAR"</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                    </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">1.0</span><span class="w">
-                  </span><span class="p">},</span><span class="w">
-                  </span><span class="s2">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-                </span><span class="p">},</span><span class="w">
-                </span><span class="s2">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"envKey"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-              </span><span class="p">},</span><span class="w">
-              </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DefaultResourceSpec"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mem"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SCALAR"</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                    </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">2048.0</span><span class="w">
-                  </span><span class="p">},</span><span class="w">
-                  </span><span class="s2">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-                </span><span class="p">},</span><span class="w">
-                </span><span class="s2">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"envKey"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-              </span><span class="p">},</span><span class="w">
-              </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"NamedVIPSpec"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RANGES"</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                    </span><span class="s2">"range"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-                      </span><span class="p">{</span><span class="w">
-                        </span><span class="s2">"begin"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
-                        </span><span class="s2">"end"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="w">
-                      </span><span class="p">}</span><span class="w">
-                    </span><span class="p">]</span><span class="w">
-                  </span><span class="p">},</span><span class="w">
-                  </span><span class="s2">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-                </span><span class="p">},</span><span class="w">
-                </span><span class="s2">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"env-key"</span><span class="p">:</span><span class="w"> </span><span class="s2">"KAFKA_BROKER_PORT"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"port-name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"protocol"</span><span class="p">:</span><span class="w"> </span><span class="s2">"tcp"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"visibility"</span><span class="p">:</span><span class="w"> </span><span class="s2">"EXTERNAL"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"vip-name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"broker"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"vip-port"</span><span class="p">:</span><span class="w"> </span><span class="mi">9092</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"networkNames"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
-                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ports"</span><span class="w">
-              </span><span class="p">}</span><span class="w">
-            </span><span class="p">],</span><span class="w">
-            </span><span class="s2">"volume-specifications"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-              </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DefaultVolumeSpec"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ROOT"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"container-path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-broker-data"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"disk"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                  </span><span class="s2">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SCALAR"</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"scalar"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                    </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="mf">5000.0</span><span class="w">
-                  </span><span class="p">},</span><span class="w">
-                  </span><span class="s2">"ranges"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"set"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-                  </span><span class="s2">"text"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-                </span><span class="p">},</span><span class="w">
-                </span><span class="s2">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"envKey"</span><span class="p">:</span><span class="w"> </span><span class="s2">"DISK_SIZE"</span><span class="w">
-              </span><span class="p">}</span><span class="w">
-            </span><span class="p">],</span><span class="w">
-            </span><span class="s2">"role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-role"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"principal"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-principal"</span><span class="w">
-          </span><span class="p">},</span><span class="w">
-          </span><span class="s2">"command-spec"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="s2">"value"</span><span class="p">:</span><span class="w"> </span><span class="s2">"mv -v *statsd*.jar $MESOS_SANDBOX/kafka_2.11-0.10.2.1/libs/ &amp;&amp; ./bootstrap -resolve=false &amp;&amp; exec $MESOS_SANDBOX/kafka_2.11-0.10.2.1/bin/kafka-server-start.sh $MESOS_SANDBOX/kafka_2.11-0.10.2.1/config/server.properties</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"environment"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-              </span><span class="s2">"KAFKA_ADVERTISE_HOST"</span><span class="p">:</span><span class="w"> </span><span class="s2">"set"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_AUTO_CREATE_TOPICS_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_AUTO_LEADER_REBALANCE_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_BACKGROUND_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_COMPRESSION_TYPE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"producer"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_CONNECTIONS_MAX_IDLE_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"600000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_CONTROLLED_SHUTDOWN_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_CONTROLLED_SHUTDOWN_MAX_RETRIES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_CONTROLLED_SHUTDOWN_RETRY_BACKOFF_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_CONTROLLER_SOCKET_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_DEFAULT_REPLICATION_FACTOR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_DELETE_TOPIC_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"false"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_DISK_PATH"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-broker-data"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_FETCH_PURGATORY_PURGE_INTERVAL_REQUESTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_GROUP_MIN_SESSION_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_HEAP_OPTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-Xms512M -Xmx512M"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_INTER_BROKER_PROTOCOL_VERSION"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0.0"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LEADER_IMBALANCE_CHECK_INTERVAL_SECONDS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LEADER_IMBALANCE_PER_BROKER_PERCENTAGE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_BACKOFF_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"15000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_DEDUPE_BUFFER_SIZE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"134217728"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_DELETE_RETENTION_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"86400000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_IO_BUFFER_LOAD_FACTOR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.9"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_IO_BUFFER_SIZE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"524288"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_IO_MAX_BYTES_PER_SECOND"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1.7976931348623157E308"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_MIN_CLEANABLE_RATIO"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.5"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANER_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_CLEANUP_POLICY"</span><span class="p">:</span><span class="w"> </span><span class="s2">"delete"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_FLUSH_INTERVAL_MESSAGES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_FLUSH_OFFSET_CHECKPOINT_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"60000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_FLUSH_SCHEDULER_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_INDEX_INTERVAL_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4096"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_INDEX_SIZE_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10485760"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_MESSAGE_FORMAT_VERSION"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0.10.0"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_PREALLOCATE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"false"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_RETENTION_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"300000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_RETENTION_HOURS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"168"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_ROLL_HOURS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"168"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_ROLL_JITTER_HOURS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_SEGMENT_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1073741824"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_LOG_SEGMENT_DELETE_DELAY_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"60000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_MAX_CONNECTIONS_PER_IP"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2147483647"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_MAX_CONNECTIONS_PER_IP_OVERRIDES"</span><span class="p">:</span><span class="w"> </span><span class="s2">""</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_MESSAGE_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000012"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_METRICS_NUM_SAMPLES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_METRICS_REPORTERS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.airbnb.kafka.kafka08.StatsdMetricsReporter"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_METRICS_SAMPLE_WINDOW_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_MIN_INSYNC_REPLICAS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_NUM_IO_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"8"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_NUM_NETWORK_THREADS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_NUM_PARTITIONS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_NUM_RECOVERY_THREADS_PER_DATA_DIR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_NUM_REPLICA_FETCHERS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_COMMIT_REQUIRED_ACKS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"-1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_COMMIT_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_LOAD_BUFFER_SIZE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5242880"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_RETENTION_CHECK_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"600000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_RETENTION_MINUTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1440"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_TOPIC_COMPRESSION_CODEC"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"50"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSETS_TOPIC_SEGMENT_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"104857600"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_OFFSET_METADATA_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"4096"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_PRODUCER_PURGATORY_PURGE_INTERVAL_REQUESTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_QUEUED_MAX_REQUESTS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"500"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_QUOTA_CONSUMER_DEFAULT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_QUOTA_PRODUCER_DEFAULT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"9223372036854775807"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_QUOTA_WINDOW_NUM"</span><span class="p">:</span><span class="w"> </span><span class="s2">"11"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_QUOTA_WINDOW_SIZE_SECONDS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_FETCH_BACKOFF_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_FETCH_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1048576"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_FETCH_MIN_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_FETCH_WAIT_MAX_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"500"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_HIGH_WATERMARK_CHECKPOINT_INTERVAL_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"5000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_LAG_TIME_MAX_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"10000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_SOCKET_RECEIVE_BUFFER_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"65536"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REPLICA_SOCKET_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_REQUEST_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"30000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_RESERVED_BROKER_MAX_ID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_SOCKET_RECEIVE_BUFFER_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"102400"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_SOCKET_REQUEST_MAX_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"104857600"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_SOCKET_SEND_BUFFER_BYTES"</span><span class="p">:</span><span class="w"> </span><span class="s2">"102400"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_UNCLEAN_LEADER_ELECTION_ENABLE"</span><span class="p">:</span><span class="w"> </span><span class="s2">"true"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_ZOOKEEPER_SESSION_TIMEOUT_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"6000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_ZOOKEEPER_SYNC_TIME_MS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2000"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"KAFKA_ZOOKEEPER_URI"</span><span class="p">:</span><span class="w"> </span><span class="s2">"master.mesos:2181/dcos-service-kafka"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"METRIC_REPORTERS"</span><span class="p">:</span><span class="w"> </span><span class="s2">"com.airbnb.kafka.kafka09.StatsdMetricsReporter"</span><span class="w">
-            </span><span class="p">}</span><span class="w">
-          </span><span class="p">},</span><span class="w">
-          </span><span class="s2">"health-check-spec"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-          </span><span class="s2">"readiness-check-spec"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="s2">"command"</span><span class="p">:</span><span class="w"> </span><span class="s2">"# since the server is just started, the starting and started log lines</span><span class="se">\n</span><span class="s2"># should be present in the server.log file, independent of whether or</span><span class="se">\n</span><span class="s2"># not the server.log file is being logrotated.</span><span class="se">\n</span><span class="s2"># </span><span class="se">\n</span><span class="s2"># Example log lines follow:</span><span class="se">\n</span><span class="s2">## starting:</span><span class="se">\n</span><span class="s2"># [2017-06-14 22:20:54,260] INFO starting (kafka.server.KafkaServer)</span><span class="se">\n</span><span class="s2">## started:</span><span class="se">\n</span><span class="s2"># [2017-06-14 22:20:55,464] INFO [Kafka Server 1], started (kafka.server.KafkaServer)</span><span class="se">\n\n</span><span class="s2">kafka_dir=$(ls -d kafka_* |head -n 1)</span><span class="se">\n</span><span class="s2">kafka_server_log_file=${kafka_dir}/logs/server.log</span><span class="se">\n</span><span class="s2">starting_date_s=$(awk '/.*starting.*</span><span class="se">\\</span><span class="s2">(kafka.server.KafkaServer</span><span class="se">\\</span><span class="s2">)/{gsub(</span><span class="se">\"</span><span class="s2">[[]</span><span class="se">\"</span><span class="s2">, </span><span class="se">\"\"</span><span class="s2">, $1);gsub(</span><span class="se">\"</span><span class="s2">[]]</span><span class="se">\"</span><span class="s2">, </span><span class="se">\"\"</span><span class="s2">, $2); print $1</span><span class="se">\"</span><span class="s2">T</span><span class="se">\"</span><span class="s2">$2}' $kafka_server_log_file |tail -n 1)</span><span class="se">\n</span><span class="s2">starting_date=$(date -d $starting_date_s +%s)</span><span class="se">\n</span><span class="s2">started_date_s=$(awk '/.*started.*</span><span class="se">\\</span><span class="s2">(kafka.server.KafkaServer</span><span class="se">\\</span><span class="s2">)/{gsub(</span><span class="se">\"</span><span class="s2">[[]</span><span class="se">\"</span><span class="s2">, </span><span class="se">\"\"</span><span class="s2">, $1);gsub(</span><span class="se">\"</span><span class="s2">[]]</span><span class="se">\"</span><span class="s2">, </span><span class="se">\"\"</span><span class="s2">, $2); print $1</span><span class="se">\"</span><span class="s2">T</span><span class="se">\"</span><span class="s2">$2}' $kafka_server_log_file |tail -n 1)</span><span class="se">\n</span><span class="s2">started_date=$(date -d $started_date_s +%s)</span><span class="se">\n</span><span class="s2">[ ! -z $started_date_s ] &amp;&amp; </span><span class="se">\\\n</span><span class="s2">    [ ! -z $starting_date_s ] &amp;&amp; </span><span class="se">\\\n</span><span class="s2">    [ $starting_date -le $started_date ]</span><span class="se">\n</span><span class="s2">is_ready=$?</span><span class="se">\n</span><span class="s2">exit $is_ready</span><span class="se">\n</span><span class="s2">"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"delay"</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"interval"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"timeout"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
-          </span><span class="p">},</span><span class="w">
-          </span><span class="s2">"config-files"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
-            </span><span class="p">{</span><span class="w">
-              </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"server-properties"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"relative-path"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka_2.11-0.10.2.1/config/server.properties"</span><span class="p">,</span><span class="w">
-              </span><span class="s2">"template-content"</span><span class="p">:</span><span class="w"> </span><span class="s2">"... content of server.properties template ..."</span><span class="w">
-            </span><span class="p">}</span><span class="w">
-          </span><span class="p">],</span><span class="w">
-          </span><span class="s2">"discovery-spec"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span><span class="w">
-          </span><span class="s2">"task-kill-grace-period-seconds"</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="w">
-        </span><span class="p">}</span><span class="w">
-      </span><span class="p">],</span><span class="w">
-      </span><span class="s2">"placement-rule"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"MaxPerHostnameRule"</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"max"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
-        </span><span class="s2">"task-filter"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-          </span><span class="s2">"@type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"RegexMatcher"</span><span class="p">,</span><span class="w">
-          </span><span class="s2">"pattern"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka-.*"</span><span class="w">
-        </span><span class="p">}</span><span class="w">
-      </span><span class="p">},</span><span class="w">
-      </span><span class="s2">"volumes"</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span><span class="w">
-      </span><span class="s2">"pre-reserved-role"</span><span class="p">:</span><span class="w"> </span><span class="s2">"*"</span><span class="p">,</span><span class="w">
-      </span><span class="s2">"secrets"</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-  </span><span class="p">],</span><span class="w">
-  </span><span class="s2">"replacement-failure-policy"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
 
 </div>
 </div>

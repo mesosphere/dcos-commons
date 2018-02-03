@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,19 +520,113 @@
 <h1>Elastic: Install and Customize</h1>
 <div id="content">
 
-<h1 id="default-installation">Default Installation</h1>
+<p>The default DC/OS Elastic installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
-<p>To start a basic cluster with three master nodes, two data nodes, and one coordinator node, run the following command on the DC/OS CLI:</p>
+<h2 id="prerequisites">Prerequisites</h2>
+
+<ul>
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+    <ul>
+      <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
+      <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
+      <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
+    </ul>
+  </li>
+  <li>
+    <p>Your cluster must have at least three private nodes.</p>
+  </li>
+  <li></li>
+</ul>
+
+<h2 id="default-installation">Default Installation</h2>
+
+<p>To start a basic test cluster with three master nodes, two data nodes, and one coordinator node, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="">More information about installing Elastic on Enterprise DC/OS</a>.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic
 </code></pre></div></div>
 
-<p>This command creates a new Elasticsearch cluster with the default name <code class="highlighter-rouge">elastic</code>. Two clusters cannot share the same name, so installing additional clusters beyond the default cluster requires customizing the <code class="highlighter-rouge">name</code> at install time for each additional instance.</p>
+<p>This command creates a new instance with the default name <code class="highlighter-rouge">elastic</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p><strong>Note:</strong> You can also install Elastic from the <strong>Universe</strong> &gt; <strong>Packages</strong> tab of the DC/OS web interface. If you install Elastic from the web interface, you must install the Elastic DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<p>All <code class="highlighter-rouge">dcos beta-elastic</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-elastic</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span> elastic &lt;cmd&gt;
+</code></pre></div></div>
+
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--cli</span>
 </code></pre></div></div>
+
+<h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
+
+<p>In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/elastic</code> and <code class="highlighter-rouge">production/elastic</code>.</p>
+
+<p>Steps:</p>
+
+<ol>
+  <li>In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click <strong>Organization</strong> &gt; <strong>Groups</strong> &gt; <strong>+</strong> or <strong>Organization</strong> &gt; <strong>Users</strong> &gt; <strong>+</strong>. If you create a group, you must also create a user and add them to the group.</li>
+  <li>
+    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.</p>
+
+    <p>Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
+
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  dcos:adminrouter:service:marathon full
+  dcos:service:marathon:marathon:services:/testing full
+  dcos:adminrouter:ops:mesos full
+  dcos:adminrouter:ops:slave full
+</code></pre></div>    </div>
+  </li>
+  <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-elastic</strong>.</li>
+  <li>
+    <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/elastic</code>, then deploy.</p>
+
+    <p>The slashes in your service name are interpreted as folders. You are deploying <code class="highlighter-rouge">elastic</code> in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
+  </li>
+</ol>
+
+<p><strong>Important:</strong></p>
+<ul>
+  <li>Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.</li>
+  <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
+</ul>
+
+<h2 id="interacting-with-your-foldered-service">Interacting with your foldered service</h2>
+
+<ul>
+  <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
+  <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/elastic/v1/endpoints</code>.</li>
+</ul>
+
+<h2 id="placement-constraints">Placement Constraints</h2>
+
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent.</p>
+
+<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
+</code></pre></div></div>
+
+<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
+
+<h2 id="regions-and-zones">Regions and Zones</h2>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
+</code></pre></div></div>
+
+<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
+
+<h3 id="example">Example</h3>
+
+<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>. For balanced Placement for a Single Region:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  ...
+  "count": 6,
+  "placement": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+}
+</code></pre></div></div>
+
+<p>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
 
 <h1 id="custom-installation">Custom Installation</h1>
 
@@ -549,7 +643,6 @@
         </span><span class="s2">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis-icu,analysis-kuromoji"</span><span class="w">
     </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
-
 </span></code></pre></div></div>
 
 <p>The command below creates a cluster using a <code class="highlighter-rouge">options.json</code> file:</p>
@@ -578,53 +671,8 @@
 
 <p>See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.</p>
 
-<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
-
-<h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
-
-<p>In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, <code class="highlighter-rouge">staging/elastic</code> and <code class="highlighter-rouge">production/elastic</code>.</p>
-
-<p>Steps:</p>
-
-<ol>
-  <li>In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click <strong>Organization</strong> &gt; <strong>Groups</strong> &gt; <strong>+</strong> or <strong>Organization</strong> &gt; <strong>Users</strong> &gt; <strong>+</strong>. If you create a group, you must also create a user and add them to the group.</li>
-  <li>
-    <p>Give the user permissions for the folder where you will install your service. In this example, we are creating a user called <code class="highlighter-rouge">developer</code>, who will have access to the <code class="highlighter-rouge">/testing</code> folder.
-Select the group or user you created. Select <strong>ADD PERMISSION</strong> and then toggle to <strong>INSERT PERMISSION STRING</strong>. Add each of the following permissions to your user or group, and then click <strong>ADD PERMISSIONS</strong>.</p>
-
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos:adminrouter:service:marathon full
-dcos:service:marathon:marathon:services:/testing full
-dcos:adminrouter:ops:mesos full
-dcos:adminrouter:ops:slave full
-</code></pre></div>    </div>
-  </li>
-  <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-elastic</strong>.</li>
-  <li>
-    <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/elastic</code>, then deploy.</p>
-
-    <p>The slashes in your service name are interpreted as folders. You are deploying Elastic in the <code class="highlighter-rouge">/testing</code> folder. Any user with access to the <code class="highlighter-rouge">/testing</code> folder will have access to the service.</p>
-  </li>
-</ol>
-
-<p><strong>Important:</strong></p>
-<ul>
-  <li>Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.</li>
-  <li>DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.</li>
-</ul>
-
-<h3 id="interacting-with-your-foldered-service">Interacting with your foldered service</h3>
-
-<ul>
-  <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.
-    <ul>
-      <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/elastic/v1/endpoints</code>.</li>
-    </ul>
-  </li>
-</ul>
-
-<!-- END DUPLICATE BLOCK -->
-
 <h2 id="virtual-networks">Virtual networks</h2>
+
 <p>Elastic supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:</p>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -633,30 +681,6 @@ dcos:adminrouter:ops:slave full
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
 <p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
-
-<h2 id="zones">Zones</h2>
-
-<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint <code class="highlighter-rouge">[["@zone", "GROUP_BY", "3"]]</code>.</p>
-
-<!--
-When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
--->
-<h2 id="example">Example</h2>
-
-<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
-
-<h2 id="balanced-placement-for-a-single-region">Balanced Placement for a Single Region</h2>
-
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
-  ...
-  "count": 6,
-  "placement": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
-}
-</code></pre></div></div>
-
-<ul>
-  <li>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</li>
-</ul>
 
 <h2 id="tls">TLS</h2>
 
@@ -706,27 +730,6 @@ When the region awareness feature is enabled (currently in beta), the `@region` 
 
 <p>Similarly to Elastic, Kibana requires <a href="x-pack.md">X-Pack</a> to be installed. The Kibana package itself doesn’t support exposing itself over a TLS connection.</p>
 
-<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
-<h2 id="placement-constraints">Placement Constraints</h2>
-
-<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a> with this syntax: <code class="highlighter-rouge">field:OPERATOR[:parameter]</code>. For example, if the reference lists <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code>, you should  use <code class="highlighter-rouge">hostname:UNIQUE</code>.</p>
-
-<p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
-</code></pre></div></div>
-
-<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
-
-<h3 id="regions-and-zones">Regions and Zones</h3>
-
-<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
-</code></pre></div></div>
-
-<p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
-
-<!-- end duplicate block -->
-
 <h1 id="changing-configuration-at-runtime">Changing Configuration at Runtime</h1>
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
@@ -737,7 +740,7 @@ When the region awareness feature is enabled (currently in beta), the `@region` 
 
 <p>Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service’s configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.</p>
 
-<h3 id="prerequisites">Prerequisites</h3>
+<h3 id="prerequisites-1">Prerequisites</h3>
 
 <ul>
   <li>Enterprise DC/OS 1.10 or newer.</li>

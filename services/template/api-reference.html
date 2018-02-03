@@ -264,7 +264,7 @@
           
           
           
-          <li><a href="../../services/cassandra/install.html">Installing and Customizing</a></li>
+          <li><a href="../../services/cassandra/install.html">Install and Customize</a></li>
           
           
           
@@ -412,7 +412,7 @@
           
           
           
-          <li><a href="../../services/hdfs/quick-start.html">Quickstart</a></li>
+          <li><a href="../../services/hdfs/quick-start.html">Quick Start</a></li>
           
           
           
@@ -520,57 +520,73 @@
 <h1>Template: API Reference</h1>
 <div id="content">
 
-<!--  disable mustache templating in this file: retain templated examples as-is -->
+<p>The DC/OS TEMPLATE SERVICE Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the TEMPLATE SERVICE Service is deployed.</dcos_url></p>
 
-<p>The DC/OS <em>SERVICENAME</em> Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the DC/OS _SERVICENAME_ Service is deployed.</dcos_url></p>
-
-<p><a name="#rest-auth"></a></p>
 <h1 id="rest-api-authentication">REST API Authentication</h1>
-<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the DC/OS <em>SERVICENAME</em> REST API directly. You do not need the token to access the <em>SERVICENAME</em> nodes themselves.</p>
 
-<p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/1.9/security/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/1.9/security/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
+<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the TEMPLATE SERVICE REST API directly. You do not need the token to access the TEMPLATE SERVICE nodes themselves.</p>
 
-<p>If you are using open source DC/OS, follow these instructions to <a href="https://dcos.io/docs/latest/security/iam-api/">pass your HTTP API token to the DC/OS endpoint</a>.</p>
+<p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/latest/security/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
+
+<p>If you are using open source DC/OS, follow these instructions to [pass your HTTP API token to the DC/OS endpoint]https://dcos.io/docs/latest/security/iam-api/).</p>
 
 <p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
 </code></pre></div></div>
 
 <p>The <code class="highlighter-rouge">curl</code> examples in this document assume that an auth token has been stored in an environment variable named <code class="highlighter-rouge">auth_token</code>.</p>
 
-<p>If you are using Enterprise DC/OS, the security mode of your installation may also require the <code class="highlighter-rouge">--ca-cert</code> flag when making REST calls. Refer to <a href="https://docs.mesosphere.com/1.9/networking/tls-ssl/#get-dcos-cert">Obtaining and passing the DC/OS certificate in cURL requests</a> for information on how to use the <code class="highlighter-rouge">--cacert</code> flag. <a href="https://docs.mesosphere.com/1.9/networking/tls-ssl/">If your security mode is <code class="highlighter-rouge">disabled</code></a>, do not use the <code class="highlighter-rouge">--ca-cert</code> flag.</p>
+<p>If you are using Enterprise DC/OS, the security mode of your installation may also require the <code class="highlighter-rouge">--ca-cert</code> flag when making REST calls. Refer to <a href="https://docs.mesosphere.com/latest/networking/tls-ssl/#get-dcos-cert">Obtaining and passing the DC/OS certificate in cURL requests</a> for information on how to use the <code class="highlighter-rouge">--cacert</code> flag. <a href="https://docs.mesosphere.com/latest/networking/tls-ssl/">If your security mode is <code class="highlighter-rouge">disabled</code></a>, do not use the <code class="highlighter-rouge">--ca-cert</code> flag.</p>
 
 <h1 id="plan-api">Plan API</h1>
+
 <p>The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/plans/deploy
+<h2 id="list-plans">List plans</h2>
+
+<p>You may list the configured plans for the service. By default, all services at least have a <code class="highlighter-rouge">deploy</code> plan and a <code class="highlighter-rouge">recovery</code> plan. Some services may have additional custom plans defined.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/plans
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template plan list
+</code></pre></div></div>
+
+<h2 id="view-plan">View plan</h2>
+
+<p>You may view the current state of a listed plan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/plans/&lt;plan&gt;
+</code></pre></div></div>
+
+<p>The CLI may be used to show a formatted tree of the plan (default), or the underlying JSON data as retrieved from the above HTTP endpoint:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template plan show &lt;plan&gt;
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template plan show &lt;plan&gt; <span class="nt">--json</span>
 </code></pre></div></div>
 
 <h2 id="pause-installation">Pause Installation</h2>
 
 <p>The installation will pause after completing installation of the current node and wait for user input.</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/plans/deploy/interrupt
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/plans/deploy/interrupt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template plan pause deploy
 </code></pre></div></div>
 
 <h2 id="resume-installation">Resume Installation</h2>
 
 <p>The REST API request below will resume installation at the next pending node.</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> PUT &lt;dcos_surl&gt;/service/_PKGNAME_/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT &lt;dcos_surl&gt;/service/template/v1/plans/deploy/continue
 </code></pre></div></div>
 
-<h1 id="connection-api">Connection API</h1>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> dcos_url/service/_PKGNAME_/v1/endpoints/&lt;endpoint&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template plan <span class="k">continue </span>deploy
 </code></pre></div></div>
-
-<p>You will see a response similar to the following:</p>
-
-<!-- TODO: provide endpoint <endpoint> example (default options) output -->
-
-<p>The contents of the endpoint response contain details sufficient for clients to connect to the service.</p>
 
 <h1 id="nodes-api">Nodes API</h1>
 
@@ -581,56 +597,38 @@
 <p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
 
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ pod list
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod list
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/pod
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/pod
 </code></pre></div></div>
-
-<p>You will see a response similar to the following:</p>
-
-<!-- TODO: provide pod list example (default options) output -->
 
 <h2 id="node-info">Node Info</h2>
 
 <p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pod/&lt;node-id&gt;/info</code>:</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/pod/&lt;node-id&gt;/info
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/pod/&lt;node-id&gt;/info
 </code></pre></div></div>
 
-<p>You will see a response similar to the following:</p>
-
-<!-- TODO: using node-0 here, but ensure that the node name matches a _SERVICENAME_ service node type -->
-
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ pod info node-0
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod info journalnode-0
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/pod/node-0/info
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/pod/journalnode-0/info
 </code></pre></div></div>
-
-<p>You will see a response similar to the following:</p>
-
-<!-- TODO: provide pod <node-id> example (default options) output -->
 
 <h2 id="replace-a-node">Replace a Node</h2>
 
 <p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
 
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ pod replace &lt;node-id&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod replace &lt;node-id&gt;
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/pod/&lt;node-id&gt;/replace
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/pod/&lt;node-id&gt;/replace
 </code></pre></div></div>
 
 <p>If the operation succeeds, a <code class="highlighter-rouge">200 OK</code> is returned.</p>
@@ -640,16 +638,26 @@
 <p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
 
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ pod restart &lt;node-id&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod restart &lt;node-id&gt;
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/pod/&lt;node-id&gt;/restart
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/pod/&lt;node-id&gt;/restart
 </code></pre></div></div>
 
 <p>If the operation succeeds a <code class="highlighter-rouge">200 OK</code> is returned.</p>
+
+<h2 id="pause-a-node">Pause a Node</h2>
+
+<p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
+
+<p>CLI example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos template <span class="nt">--name</span><span class="o">=</span>template debug pod pause &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/pod/&lt;node-id&gt;/pause
+</code></pre></div></div>
 
 <h1 id="configuration-api">Configuration API</h1>
 
@@ -660,61 +668,45 @@
 <p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
 
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ config target
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template config target
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/configurations/target
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/configurations/target
 </code></pre></div></div>
-
-<p>You will see a response similar to the following:</p>
-
-<!-- TODO: provide configurations/target example (default options) output -->
 
 <h2 id="list-configs">List Configs</h2>
 
 <p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
 
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ config list
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template config list
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/configurations
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/configurations
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
 </code></pre></div></div>
-
-<p>You will see a response similar to the following:</p>
-
-<!-- TODO: provide configurations example (default options) output -->
 
 <h2 id="view-specified-config">View Specified Config</h2>
 
 <p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
 
 <p>CLI Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos _PKGNAME_ config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/_PKGNAME_/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
 </code></pre></div></div>
 
-<p>You will see a response similar to the target config above.</p>
-
-<h1 id="service-status-info">Service Status Info</h1>
-<p>Send a GET request to the <code class="highlighter-rouge">/v1/state/properties/suppressed</code> endpoint to learn if DC/OS <em>SERVICENAME</em> is in a <code class="highlighter-rouge">suppressed</code> state and not receiving offers. If a service does not need offers, Mesos can “suppress” it so that other services are not starved for resources.
-You can use this request to troubleshoot: if you think DC/OS <em>SERVICENAME</em> should be receiving resource offers, but is not, you can use this API call to see if DC/OS <em>SERVICENAME</em> is suppressed.</p>
-
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/_PKGNAME_/v1/state/properties/suppressed"</span>
-</code></pre></div></div>
-
-<!--  disable mustache templating in this file: retain templated examples as-is -->
 
 </div>
 </div>
