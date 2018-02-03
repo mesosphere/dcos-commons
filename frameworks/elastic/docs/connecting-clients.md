@@ -1,15 +1,14 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
-
 ---
 
 # Connecting Clients
 
-The Elasticsearch REST APIs are exposed using JSON over HTTP. You simply send HTTP requests to the appropriate Named VIP, which is essentially a load-balanced name-based service address. By default, the Elastic framework creates an Elasticsearch cluster with one [coordinator node](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html#coordinating-node). Send your requests to this service address as shown in the following examples:  
+The Elasticsearch REST APIs are exposed using JSON over HTTP. You simply send HTTP requests to the appropriate Named VIP, which is essentially a load-balanced name-based service address. By default, the Elastic framework creates an Elasticsearch cluster with one [coordinator node](https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-node.html#coordinating-node). Send your requests to this service address as shown in the following examples:
 
 1. Create an index.
 
@@ -71,7 +70,7 @@ This command launches a new Kibana application with the default name `kibana` an
   http://<dcos_url>/service/kibana/login
   ```
   and log in with `elastic`/`changeme`. [More information on installing X-Pack](https://docs.mesosphere.com/services/elastic/v2.0.0-5.5.1/elastic-x-pack/).
-  
+
   Otherwise go to
   ```
   http://<dcos_url>/service/kibana
@@ -81,9 +80,9 @@ This command launches a new Kibana application with the default name `kibana` an
 
 - Service name: This needs to be unique for each instance of the service that is running.
 - Service user: This must be a non-root user that already exists on each agent. The default user is `nobody`.
-- The Kibana X-Pack plugin is not installed by default, but you can enable it. See the [X-Pack documentation](x-pack.md) to learn more about X-Pack in the Elastic package. This setting must match the corresponding setting in the Elastic package (i.e., if you have X-Pack enabled in Kibana, you must also have it enabled in Elastic). 
+- The Kibana X-Pack plugin is not installed by default, but you can enable it. See the [X-Pack documentation](x-pack.md) to learn more about X-Pack in the Elastic package. This setting must match the corresponding setting in the Elastic package (i.e., if you have X-Pack enabled in Kibana, you must also have it enabled in Elastic).
 - Elasticsearch credentials: If you have X-Pack enabled, Kibana will use these credentials for authorization. The default user is  `kibana`.
-- Elasticsearch URL: This is a required configuration parameter. The default value `http://coordinator.elastic.l4lb.thisdcos.directory:9200` corresponds to the named VIP that exists when the Elastic package is launched with its own default configuration.  
+- Elasticsearch URL: This is a required configuration parameter. The default value `http://coordinator.elastic.l4lb.thisdcos.directory:9200` corresponds to the named VIP that exists when the Elastic package is launched with its own default configuration.
 
 ### Custom Installation
 
@@ -105,6 +104,6 @@ You can customize the Kibana installation in a variety of ways by specifying a J
 The command below installs Kibana using a `options.json` file:
 
 ```bash
-$ dcos package install kibana --options=options.json 
+$ dcos package install kibana --options=options.json
 ```
 

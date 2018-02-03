@@ -1,10 +1,9 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
+excerpt:
 title: Connecting Clients
 menuWeight: 50
-excerpt:
-
 ---
 
 Clients communicating with Apache Cassandra use the Cassandra Query Language (CQL) to issue queries and write data to the cluster. CQL client libraries exist in many languages, and Apache Cassandra ships with a utility called `cqlsh` that enables you to issue queries against an Apache Cassandra cluster from the command line.
