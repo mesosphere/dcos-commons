@@ -118,6 +118,15 @@ public class SchedulerRunner implements Runnable {
         scheduler.start();
         Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
         if (mesosScheduler.isPresent()) {
+            // Trigger launch of the API server. We start processing offers only once the API server has launched.
+            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
+            apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                @Override
+                public void lifeCycleStarted(LifeCycle event) {
+                    scheduler.markApiServerStarted();
+                }
+            });
+
             runScheduler(
                     mesosScheduler.get(),
                     schedulerBuilder.getServiceSpec(),
