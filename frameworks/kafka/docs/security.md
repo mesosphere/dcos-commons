@@ -31,12 +31,12 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 
 #### Setup the Service Account
 
-Grant the service account the correct permissions.
+[Grant](https://docs.mesosphere.com/1.10/security/ent/perms-management/) the service account the correct permissions.
 - In DC/OS 1.10, the required permission is `dcos:superuser full`.
 - In DC/OS 1.11+ the required permissions are:
 ```
-dcos:secrets:default:/<service name>/* full
-dcos:secrets:default:/<service name> list
+dcos:secrets:default:<service name>/* full
+dcos:secrets:list:default:/<service name> full
 ```
 where `<service name>` is the name of the service to be installed.
 
@@ -188,7 +188,7 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 {
     "service": {
         "service_account": "<service-account>",
-        "service_account_secret": "<secret path>"
+        "service_account_secret": "<secret path>",
         "security": {
             "transport_encryption": {
                 "enabled": true
