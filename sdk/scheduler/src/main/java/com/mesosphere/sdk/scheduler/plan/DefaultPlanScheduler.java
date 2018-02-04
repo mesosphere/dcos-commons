@@ -28,17 +28,14 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
     private final StateStore stateStore;
-    private final TaskKiller taskKiller;
 
     public DefaultPlanScheduler(
             OfferAccepter offerAccepter,
             OfferEvaluator offerEvaluator,
-            StateStore stateStore,
-            TaskKiller taskKiller) {
+            StateStore stateStore) {
         this.offerAccepter = offerAccepter;
         this.offerEvaluator = offerEvaluator;
         this.stateStore = stateStore;
-        this.taskKiller = taskKiller;
     }
 
     @Override
@@ -165,7 +162,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
                 }
 
                 if (!TaskUtils.isTerminal(state)) {
-                    taskKiller.killTask(taskInfo.getTaskId());
+                    TaskKiller.killTask(taskInfo.getTaskId());
                 }
             }
         }

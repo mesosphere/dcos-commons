@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -18,33 +19,34 @@ import static org.mockito.Mockito.*;
  * This class test the {@link TaskCleaner}.
  */
 public class TaskCleanerTest {
-    @Mock TaskKiller taskKiller;
     @Mock StateStore stateStore;
+    @Mock SchedulerDriver driver;
     private TaskCleaner taskCleaner;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        taskCleaner = new TaskCleaner(stateStore, taskKiller, false);
+        TaskKiller.setDriver(driver);
+        taskCleaner = new TaskCleaner(stateStore, false);
     }
 
     @Test
     public void ignoreTerminalState() {
         taskCleaner.statusUpdate(getTerminalStatus());
-        verify(taskKiller, never()).killTask(any());
+        verify(driver, never()).killTask(any());
     }
 
     @Test
     public void ignoreTaskLost() {
         Protos.TaskStatus taskLost = TestConstants.TASK_STATUS.toBuilder().setState(Protos.TaskState.TASK_LOST).build();
         taskCleaner.statusUpdate(taskLost);
-        verify(taskKiller, never()).killTask(any());
+        verify(driver, never()).killTask(any());
     }
 
     @Test
     public void killTaskEmptyStateStore() {
         taskCleaner.statusUpdate(getNonTerminalStatus());
-        verify(taskKiller, times(1)).killTask(any());
+        verify(driver, times(1)).killTask(any());
     }
 
     @Test
@@ -52,7 +54,7 @@ public class TaskCleanerTest {
         when(stateStore.fetchTasks()).thenReturn(Arrays.asList(TestConstants.TASK_INFO));
 
         taskCleaner.statusUpdate(getNonTerminalStatus());
-        verify(taskKiller, never()).killTask(any());
+        verify(driver, never()).killTask(any());
     }
 
     @Test
@@ -63,7 +65,7 @@ public class TaskCleanerTest {
         when(stateStore.fetchTasks()).thenReturn(Arrays.asList(taskInfo));
 
         taskCleaner.statusUpdate(getNonTerminalStatus());
-        verify(taskKiller, times(1)).killTask(any());
+        verify(driver, times(1)).killTask(any());
     }
 
     private Protos.TaskStatus getTerminalStatus() {

@@ -45,8 +45,6 @@ public class PodResource extends PrettyJsonResource {
     private final String serviceName;
     private final TaskFailureListener taskFailureListener;
 
-    private TaskKiller taskKiller;
-
     /**
      * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
      */
@@ -238,10 +236,6 @@ public class PodResource extends PrettyJsonResource {
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
         LOGGER.info("Performing {} goal state override of {} tasks in pod {}:",
                 override, podTasks.size(), podInstanceName);
-        if (taskKiller == null) {
-            LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
-        }
 
         // First pass: Store the desired override for each task
         GoalStateOverride.Status pendingStatus = override.newStatus(GoalStateOverride.Progress.PENDING);
@@ -250,7 +244,7 @@ public class PodResource extends PrettyJsonResource {
         }
 
         // Second pass: Restart the tasks. They will be updated to IN_PROGRESS once we receive a terminal TaskStatus.
-        return killTasks(taskKiller, podInstanceName, podTasks, RecoveryType.TRANSIENT);
+        return killTasks(podInstanceName, podTasks, RecoveryType.TRANSIENT);
     }
 
     /**
@@ -294,11 +288,6 @@ public class PodResource extends PrettyJsonResource {
         LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
                 recoveryType, podInstanceName, podTasks.get().size());
 
-        if (taskKiller == null) {
-            LOGGER.error("Task killer wasn't initialized yet (scheduler started recently?), exiting early.");
-            return Response.status(Response.Status.SERVICE_UNAVAILABLE).build();
-        }
-
         if (recoveryType.equals(RecoveryType.PERMANENT)) {
             Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
                     .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo())
@@ -306,11 +295,10 @@ public class PodResource extends PrettyJsonResource {
             taskFailureListener.tasksFailed(taskInfos);
         }
 
-        return killTasks(taskKiller, podInstanceName, podTasks.get(), recoveryType);
+        return killTasks(podInstanceName, podTasks.get(), recoveryType);
     }
 
     private static Response killTasks(
-            TaskKiller taskKiller,
             String podName,
             Collection<TaskInfoAndStatus> tasksToKill,
             RecoveryType recoveryType) {
@@ -326,7 +314,7 @@ public class PodResource extends PrettyJsonResource {
                         taskInfo.getName(),
                         taskInfo.getTaskId().getValue());
             }
-            taskKiller.killTask(taskInfo.getTaskId());
+            TaskKiller.killTask(taskInfo.getTaskId());
         }
 
         JSONObject json = new JSONObject();
@@ -388,12 +376,5 @@ public class PodResource extends PrettyJsonResource {
             stateString = stateString.substring("TASK_".length());
         }
         return Optional.of(stateString);
-    }
-
-    /**
-     * Configures the {@link TaskKiller} instance to be invoked when restart/replace operations are invoked.
-     */
-    public void setTaskKiller(TaskKiller taskKiller) {
-        this.taskKiller = taskKiller;
     }
 }
