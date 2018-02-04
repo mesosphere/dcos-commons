@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.SchedulerDriver;
@@ -21,24 +22,32 @@ import java.util.concurrent.TimeUnit;
 public final class TaskKiller {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskKiller.class);
 
-    private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private static final Duration killInterval = Duration.ofSeconds(5);
     private static final Set<TaskID> tasksToKill = new HashSet<>();
-
-    private static TaskKiller taskKiller = new TaskKiller();
-    private static SchedulerDriver driver;
     private static final Object lock = new Object();
 
+    private static ScheduledExecutorService executor;
+    private static TaskKiller taskKiller = new TaskKiller();
+    private static SchedulerDriver driver;
+
     private TaskKiller() {
+        startScheduling();
+    }
+
+    @VisibleForTesting
+    static void shutdownScheduling() throws InterruptedException {
+        executor.shutdownNow();
+        executor.awaitTermination(killInterval.toMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    @VisibleForTesting
+    static void startScheduling() {
+        executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(
                 new Runnable() {
                     @Override
                     public void run() {
-                        // Don't acquire the lock here.  There's no harm killing tasks more than once
-                        // and holding a lock while accessing the driver always causes deadlocks.
-                        for (TaskID taskID : tasksToKill) {
-                            killTaskInternal(taskID);
-                        }
+                        killAllTasks();
                     }
                 },
                 killInterval.toMillis(),
@@ -89,12 +98,19 @@ public final class TaskKiller {
         }
     }
 
+    @VisibleForTesting
+    static void killAllTasks() {
+        for (TaskID taskId : tasksToKill) {
+            killTaskInternal(taskId);
+        }
+    }
+
     private static void killTaskInternal(TaskID taskId) {
         if (driver != null) {
             LOGGER.info("Killing task: {}", taskId.getValue());
             driver.killTask(taskId);
         } else {
-            LOGGER.warn("Driver not yet set.");
+            LOGGER.warn("Can't kill '{}' driver not yet set.", taskId);
         }
     }
 
