@@ -4,7 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
@@ -440,7 +440,7 @@ public class ServiceTest {
                                     Phase phase = new DefaultPhase(
                                             "custom-hello-recovery",
                                             Arrays.asList(
-                                                    new DefaultRecoveryStep(
+                                                    new RecoveryStep(
                                                             podInstanceRequirement.getPodInstance().getName(),
                                                             podInstanceRequirement,
                                                             new UnconstrainedLaunchConstrainer(),
