@@ -116,7 +116,12 @@ public final class TaskKiller {
 
     @VisibleForTesting
     static void killAllTasks() {
-        for (TaskID taskId : tasksToKill) {
+        Set<TaskID> copy;
+        synchronized (lock) {
+            copy = new HashSet<>(tasksToKill);
+        }
+
+        for (TaskID taskId : copy) {
             killTaskInternal(taskId);
         }
     }
