@@ -114,6 +114,13 @@ public final class TaskKiller {
         }
     }
 
+    @VisibleForTesting
+    static void killAllTasks() {
+        for (TaskID taskId : tasksToKill) {
+            killTaskInternal(taskId);
+        }
+    }
+
     private static void killTaskInternal(TaskID taskId) {
         if (driver != null) {
             LOGGER.info("Killing task: {}", taskId.getValue());
