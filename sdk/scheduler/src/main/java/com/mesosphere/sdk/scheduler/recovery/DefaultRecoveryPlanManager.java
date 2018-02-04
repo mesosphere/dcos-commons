@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * <p>
  * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
- * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
+ * generates a new {@link RecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager implements PlanManager {
     public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
@@ -96,7 +96,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
             updatePlan(dirtyAssets);
             return getPlan().getCandidates(dirtyAssets).stream()
                     .filter(step ->
-                            launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryType()))
+                            launchConstrainer.canLaunch(((RecoveryStep) step).getRecoveryType()))
                     .collect(Collectors.toList());
         }
     }
@@ -338,7 +338,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     Step createStep(PodInstanceRequirement podInstanceRequirement) {
         logger.info("Creating step: {}", podInstanceRequirement);
-        return new DefaultRecoveryStep(
+        return new RecoveryStep(
                 podInstanceRequirement.getName(),
                 podInstanceRequirement,
                 launchConstrainer,
