@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * This class implements reliable task killing in conjunction with the {@link TaskCleaner}.  Mesos does not provide
@@ -86,21 +87,29 @@ public final class TaskKiller {
     }
 
     public static void update(Protos.TaskStatus taskStatus) {
-        // The race here is fine.  If we check for the set containing an element
-        // then try to remove it after it's already gone there's no harm.  In return
-        // for this subtlety we avoid acquiring the lock on potentially many TaskStatus
-        // updates for tasks we don't care about killing.
-        if (isDead(taskStatus) && tasksToKill.contains(taskStatus.getTaskId())) {
+        if (isDead(taskStatus)) {
             synchronized (lock) {
-                tasksToKill.remove(taskStatus.getTaskId());
-                LOGGER.info("Completed killing: {}", taskStatus.getTaskId());
+                if (tasksToKill.remove(taskStatus.getTaskId())) {
+                    LOGGER.info("Completed killing: {}, remaining tasks to kill: {}",
+                            taskStatus.getTaskId().getValue(),
+                            tasksToKill.stream().map(t -> t.getValue()).collect(Collectors.toList()));
+                } else {
+                    LOGGER.warn(
+                            "Attempted to complete killing of unexpected task: {}",
+                            taskStatus.getTaskId().getValue());
+                }
             }
         }
     }
 
     @VisibleForTesting
     static void killAllTasks() {
-        for (TaskID taskId : tasksToKill) {
+        Set<TaskID> copy;
+        synchronized (lock) {
+            copy = new HashSet<>(tasksToKill);
+        }
+
+        for (TaskID taskId : copy) {
             killTaskInternal(taskId);
         }
     }
@@ -110,7 +119,7 @@ public final class TaskKiller {
             LOGGER.info("Killing task: {}", taskId.getValue());
             driver.killTask(taskId);
         } else {
-            LOGGER.warn("Can't kill '{}' driver not yet set.", taskId);
+            LOGGER.warn("Can't kill '{}', driver not yet set.", taskId.getValue());
         }
     }
 
