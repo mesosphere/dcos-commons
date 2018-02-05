@@ -21,10 +21,10 @@ $ dcos package install {{ include.packageName }}
 
 This command creates a new instance with the default name `{{ include.serviceName }}`. Two instances cannot share the same name, so installing additional instances beyond the default instance requires [customizing the `name` at install time](#custom-installation) for each additional instance.
 
-All `dcos {{ include.packageName }}` CLI commands have a `--name` argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, `{{ include.packageName }}`. The default value for `--name` can be customized via the DC/OS CLI configuration:
+All `dcos {{ include.packageName }}` CLI commands have a `--name` argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. `{{ include.packageName }}`. The default value for `--name` can be customized via the DC/OS CLI configuration:
 
 ```bash
-$ dcos {{ include.packageName }} --name {{ include.serviceName }} <cmd>
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} <cmd>
 ```
 
 **Note:** Alternatively, you can [install from the DC/OS web interface](https://docs.mesosphere.com/latest/deploying-services/install/). If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:

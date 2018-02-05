@@ -4,12 +4,15 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
+
+packageName: template
+serviceName: template
 ---
 
 {% include services/install.md
     techName="TEMPLATE SERVICE"
-    packageName="beta-template"
-    serviceName="template"
+    packageName=page.packageName
+    serviceName=page.serviceName
     minNodeCount="some"
     defaultInstallDescription=" with some master nodes"
     agentRequirements="Each agent node must have some quantity of cpu, memory, disk, and ports."

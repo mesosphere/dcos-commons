@@ -34,7 +34,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service, including any default values that were applied during installation. For example:
 
 ```bash
-$ dcos {{ cliPackageName }} describe > options.json
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} describe > options.json
 ```
 
 Make any configuration changes to this `options.json` file.

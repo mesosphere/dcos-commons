@@ -4,12 +4,15 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
+
+packageName: beta-elastic
+serviceName: elastic
 ---
 
 {% include services/install.md
     techName="Elastic"
-    packageName="beta-elastic"
-    serviceName="elastic"
+    packageName=page.packageName
+    serviceName=page.serviceName
     minNodeCount="three"
     defaultInstallDescription="with three master nodes, two data nodes, and one coordinator node"
     serviceAccountInstructionsUrl=""
@@ -36,7 +39,7 @@ You can customize the Elastic cluster in a variety of ways by specifying a JSON 
 The command below creates a cluster using a `options.json` file:
 
 ```bash
-$ dcos package install beta-elastic --options=options.json
+$ dcos package install {{ page.packageName }} --options=options.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -57,7 +60,7 @@ Sample JSON options file named `another-cluster.json`:
 The command below creates a cluster using `another-cluster.json`:
 
 ```bash
-$ dcos package install beta-elastic --options=another-cluster.json
+$ dcos package install {{ page.packageName }} --options=another-cluster.json
 ```
 
 See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.
@@ -115,7 +118,7 @@ Sample JSON options file named `kibana-tls.json`:
 {
     "kibana": {
         "xpack_enabled": true,
-        "elasticsearch_url": "https://coordinator.elastic.l4lb.thisdcos.directory:9200",
+        "elasticsearch_url": "https://coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200",
         "elasticsearch_tls": true,
         "...": "..."
     }
@@ -140,11 +143,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli beta-elastic`.
+  + You can install just the subcommand CLI by running `dcos package install --cli {{ page.packageName }}`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    dcos package uninstall --cli beta-elastic
-    dcos package install --cli beta-elastic
+    dcos package uninstall --cli {{ page.packageName }}
+    dcos package install --cli {{ page.packageName }}
     ```
 
 ### Preparing configuration
@@ -152,7 +155,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
 
 ```bash
-$ dcos beta-elastic describe > options.json
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} describe > options.json
 ```
 
 Make any configuration changes to this `options.json` file.
@@ -170,7 +173,7 @@ First, we'll fetch the default application's environment, current application's 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Set the service name that you're using, for example:
 ```bash
-$ SERVICE_NAME=beta-elastic
+$ SERVICE_NAME={{ page.serviceName }}
 ```
 1. Get the version of the package that is currently installed:
 ```bash
@@ -199,14 +202,14 @@ $ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
 ```bash
 $ less marathon.json.mustache
 ```
-1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
+1. Use the variable names (e.g. `service.name`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
 
 ### Starting the update
 
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
 ```bash
-$ dcos beta-elastic update start --options=options.json
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} update start --options=options.json
 ```
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
@@ -295,7 +298,7 @@ You can set up a minimal development/staging cluster without ingest nodes, or co
 Note that with X-Pack installed, the default monitoring behavior is to try to write to an ingest node every few seconds. Without an ingest node, you will see frequent warnings in your master node error logs. While they can be ignored, you can turn them off by disabling X-Pack monitoring in your cluster, like this:
 
 ```bash
-$ curl -XPUT -u elastic:changeme master.elastic.l4lb.thisdcos.directory:9200/_cluster/settings -d '{
+$ curl -XPUT -u elastic:changeme master.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/_cluster/settings -d '{
     "persistent" : {
         "xpack.monitoring.collection.interval" : -1
     }
