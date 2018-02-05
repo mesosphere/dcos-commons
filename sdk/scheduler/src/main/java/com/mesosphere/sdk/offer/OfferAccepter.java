@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.scheduler.Driver;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -35,10 +36,16 @@ public class OfferAccepter {
         return this;
     }
 
-    public List<OfferID> accept(SchedulerDriver driver, List<OfferRecommendation> recommendations) {
+    public List<OfferID> accept(List<OfferRecommendation> recommendations) {
         if (CollectionUtils.isEmpty(recommendations)) {
             LOGGER.warn("No recommendations, nothing to do");
-            return new ArrayList<>();
+            return Collections.emptyList();
+        }
+
+        Optional<SchedulerDriver> driver = Driver.getDriver();
+        if (!driver.isPresent()) {
+            LOGGER.error("No driver present for accepting offers.  This should never happen.");
+            return Collections.emptyList();
         }
 
         List<OfferID> offerIds = getOfferIds(recommendations);
@@ -50,11 +57,11 @@ public class OfferAccepter {
             record(recommendations);
         } catch (Exception ex) {
             LOGGER.error("Failed to record Operations so not launching Task", ex);
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
         if (CollectionUtils.isNotEmpty(operations)) {
-            driver.acceptOffers(offerIds, operations, FILTERS);
+            driver.get().acceptOffers(offerIds, operations, FILTERS);
         } else {
             LOGGER.warn("No Operations to perform.");
         }

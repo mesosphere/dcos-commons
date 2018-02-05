@@ -26,7 +26,7 @@ public class TaskCleanerTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         taskCleaner = new TaskCleaner(stateStore, false);
     }
 

@@ -65,8 +65,8 @@ public class ResourceCleanerSchedulerTest {
 
     @Test
     public void testResourceOffers() {
-        scheduler.resourceOffers(driver, offers);
-        verify(offerAccepter, times(2)).accept(any(), any());
+        scheduler.resourceOffers(offers);
+        verify(offerAccepter, times(2)).accept(any());
     }
 
     @Test

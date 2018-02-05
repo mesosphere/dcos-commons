@@ -3,6 +3,7 @@ package com.mesosphere.sdk.reconciliation;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.mesosphere.sdk.scheduler.Driver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
@@ -51,7 +52,7 @@ public class Reconciler {
         try {
             taskStatuses.addAll(stateStore.fetchStatuses());
         } catch (Exception e) {
-            throw new RuntimeException("Failed to initialize TaskStatuses for reconciliation with exception: ", e);
+            throw new RuntimeException("Failed to fetch TaskStatuses for reconciliation with exception: ", e);
         }
 
         synchronized (unreconciled) {
@@ -82,9 +83,15 @@ public class Reconciler {
      * driver.reconcile(emptyList); // implicit reconciliation (PHASE 2)
      * </code>
      */
-    public void reconcile(final SchedulerDriver driver) {
+    public void reconcile() {
         if (isImplicitReconciliationTriggered.get()) {
             // PHASE 3: implicit reconciliation has been triggered, we're done
+            return;
+        }
+
+        Optional<SchedulerDriver> driver = Driver.getDriver();
+        if (!driver.isPresent()) {
+            LOGGER.error("No driver present for reconciliation.  This should never happen.");
             return;
         }
 
@@ -133,7 +140,7 @@ public class Reconciler {
                     unreconciled.size(), backOffMs);
         }
 
-        driver.reconcileTasks(tasksToReconcile);
+        driver.get().reconcileTasks(tasksToReconcile);
     }
 
     /**

@@ -16,8 +16,6 @@ import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,6 +108,10 @@ public abstract class AbstractScheduler {
         return Optional.of(mesosScheduler);
     }
 
+    protected void markApiServerStarted() {
+        apiServerStarted.set(true);
+    }
+
     /**
      * All offers must have been presented to resourceOffers() before calling this.  This call will block until all
      * offers have been processed.
@@ -183,21 +185,19 @@ public abstract class AbstractScheduler {
 
     /**
      * Returns a list of API resources to be served by the scheduler to the local cluster.
-     * This may be called before {@link #initialize(SchedulerDriver)} has been called.
+     * This may be called before {@link #getPlanCoordinator()} has been called.
      */
     public abstract Collection<Object> getResources();
 
     /**
-     * Performs any additional Scheduler initialization after registration has completed. The provided
-     * {@link SchedulerDriver} may be used to talk to Mesos. Returns a {@link PlanCoordinator} which will be used to
-     * select candidate workloads.
+     * Returns the {@link PlanCoordinator}.
      */
-    protected abstract PlanCoordinator initialize(SchedulerDriver driver) throws Exception;
+    protected abstract PlanCoordinator getPlanCoordinator() throws Exception;
 
     /**
      * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
      */
-    protected abstract void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps);
+    protected abstract void processOffers(List<Protos.Offer> offers, Collection<Step> steps);
 
     /**
      * Handles a task status update which was received from Mesos. This call is executed on a separate thread which is
@@ -221,7 +221,6 @@ public abstract class AbstractScheduler {
         private OfferQueue offerQueue = new OfferQueue();
 
         // These are all (re)assigned when the scheduler has (re)registered:
-        private SchedulerDriver driver;
         private ReviveManager reviveManager;
         private Reconciler reconciler;
         private PlanCoordinator planCoordinator;
@@ -236,30 +235,18 @@ public abstract class AbstractScheduler {
                 return;
             }
 
+            Driver.setDriver(driver);
+
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
-            this.driver = driver;
             this.reviveManager = new ReviveManager(driver);
             this.reconciler = new Reconciler(stateStore);
             this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
 
             try {
-                this.planCoordinator = initialize(driver);
+                this.planCoordinator = getPlanCoordinator();
             } catch (Exception e) {
                 LOGGER.error("Initialization failed with exception: ", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
-            }
-
-            // Trigger launch of the API server. We start processing offers only once the API server has launched.
-            if (apiServerStarted.get()) {
-                LOGGER.info("Skipping API server setup");
-            } else {
-                SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, getResources());
-                apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                    @Override
-                    public void lifeCycleStarted(LifeCycle event) {
-                        apiServerStarted.set(true);
-                    }
-                });
             }
 
             try {
@@ -278,12 +265,12 @@ public abstract class AbstractScheduler {
         @Override
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
+            Driver.setDriver(driver);
             postRegister(driver, masterInfo);
         }
 
         private void postRegister(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             restartReconciliation();
-            TaskKiller.setDriver(driver);
             if (masterInfo.hasDomain()) {
                 IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
             }
@@ -296,7 +283,7 @@ public abstract class AbstractScheduler {
             if (!apiServerStarted.get()) {
                 LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                         offers.size(), offers.size() == 1 ? "" : "s");
-                OfferUtils.declineShort(driver, offers);
+                OfferUtils.declineShort(offers);
                 return;
             }
 
@@ -319,7 +306,7 @@ public abstract class AbstractScheduler {
                 if (!queued) {
                     LOGGER.warn("Offer queue is full: Declining offer and removing from in progress: '{}'",
                             offer.getId().getValue());
-                    OfferUtils.declineShort(driver, Arrays.asList(offer));
+                    OfferUtils.declineShort(Arrays.asList(offer));
                     // Remove AFTER decline: Avoid race where we haven't declined yet but appear to be done
                     synchronized (inProgressLock) {
                         offersInProgress.remove(offer.getId());
@@ -410,11 +397,11 @@ public abstract class AbstractScheduler {
                 // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
                 // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
                 // http://mesos.apache.org/documentation/latest/reconciliation/
-                reconciler.reconcile(driver);
+                reconciler.reconcile();
                 if (!reconciler.isReconciled()) {
                     LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
                             offers.size(), offers.size() == 1 ? "" : "s");
-                    OfferUtils.declineShort(driver, offers);
+                    OfferUtils.declineShort(offers);
                     return;
                 }
 
@@ -442,7 +429,7 @@ public abstract class AbstractScheduler {
                 // Match offers with work (call into implementation)
                 final Timer.Context context = Metrics.getProcessOffersDurationTimer();
                 try {
-                    processOffers(driver, offers, steps);
+                    processOffers(offers, steps);
                 } finally {
                     context.stop();
                 }
@@ -479,7 +466,7 @@ public abstract class AbstractScheduler {
         private void restartReconciliation() {
             // Task reconciliation should be (re)started on all (re-)registrations.
             reconciler.start();
-            reconciler.reconcile(driver);
+            reconciler.reconcile();
         }
     }
 }
