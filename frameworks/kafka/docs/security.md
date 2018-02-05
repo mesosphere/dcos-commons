@@ -37,6 +37,7 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 ```
 dcos:secrets:default:<service name>/* full
 dcos:secrets:list:default:/<service name> full
+dcos:adminrouter:ops:ca:rw full
 ```
 where `<service name>` is the name of the service to be installed.
 
