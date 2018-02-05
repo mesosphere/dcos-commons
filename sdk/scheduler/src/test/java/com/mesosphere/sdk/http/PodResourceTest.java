@@ -498,7 +498,7 @@ public class PodResourceTest {
 
         verify(driver).killTask(POD_1_TASK_A.getTaskId());
         verify(driver).killTask(POD_1_TASK_B.getTaskId());
-        verifyNoMoreInteractions(driver);
+        verify(driver, times(2)).killTask(any());
 
         List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
