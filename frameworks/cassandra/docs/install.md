@@ -7,13 +7,13 @@ menuWeight: 20
 ---
 
 {% include services/install.md
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra"
-    min_node_count="three"
-    default_install_description="with three cassandra nodes"
-    service_account_instructions_url="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/"
-    enterprise_install_url="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/" %}
+    techName="Apache Cassandra"
+    packageName="beta-cassandra"
+    serviceName="cassandra"
+    minNodeCount="three"
+    defaultInstallDescription="with three cassandra nodes"
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/"
+    enterpriseInstallUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/" %}
 
 # Multi-datacenter Deployment
 

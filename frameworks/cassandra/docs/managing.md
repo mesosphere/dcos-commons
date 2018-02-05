@@ -7,12 +7,12 @@ menuWeight: 60
 ---
 
 {% include services/managing.md
-    pod_type="node"
-    task_type="server"
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra"
-    cli_package_name="beta-cassandra --name=cassandra" %}
+    podType="node"
+    taskType="server"
+    techName="Apache Cassandra"
+    packageName="beta-cassandra"
+    serviceName="cassandra"
+    cliPackageName="beta-cassandra --name=cassandra" %}
 
 ## Performing Cassandra Cleanup and Repair Operations
 

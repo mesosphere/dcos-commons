@@ -7,8 +7,8 @@ menuWeight: 90
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-kafka"
-    service_name="kafka" %}
+    packageName="beta-kafka"
+    serviceName="kafka" %}
 
 ## Partition replication
 

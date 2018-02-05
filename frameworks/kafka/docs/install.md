@@ -7,13 +7,13 @@ menuWeight: 20
 ---
 
 {% include services/install.md
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka"
-    min_node_count="three"
-    default_install_description="with three brokers"
-    service_account_instructions_url="https://docs.mesosphere.com/services/kafka/kafka-auth/"
-    enterprise_install_url="" %}
+    techName="Apache Kafka"
+    packageName="beta-kafka"
+    serviceName="kafka"
+    minNodeCount="three"
+    defaultInstallDescription="with three brokers"
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/kafka/kafka-auth/"
+    enterpriseInstallUrl="" %}
 
 ## Alternate install configurations
 

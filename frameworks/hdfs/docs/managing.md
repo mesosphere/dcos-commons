@@ -7,12 +7,12 @@ menuWeight: 60
 ---
 
 {% include services/managing.md
-    pod_type="data"
-    task_type="node"
-    tech_name="HDFS"
-    package_name="beta-hdfs"
-    service_name="hdfs"
-    cli_package_name="beta-hdfs --name=hdfs" %}
+    podType="data"
+    taskType="node"
+    techName="HDFS"
+    packageName="beta-hdfs"
+    serviceName="hdfs"
+    cliPackageName="beta-hdfs --name=hdfs" %}
 
 # Replacing Journal Nodes
 

@@ -7,6 +7,6 @@ excerpt:
 ---
 
 {% include services/supported-versions.md
-    tech_name="Elastic"
-    tech_policy_desc="the [Elastic Stack](https://www.elastic.co/downloads/elasticsearch) and [X-Pack](https://www.elastic.co/downloads/x-pack)"
-    tech_version="6.1.3" %}
+    techName="Elastic"
+    techPolicyDesc="the [Elastic Stack](https://www.elastic.co/downloads/elasticsearch) and [X-Pack](https://www.elastic.co/downloads/x-pack)"
+    techVersion="6.1.3" %}

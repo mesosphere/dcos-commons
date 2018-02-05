@@ -7,5 +7,5 @@ menuWeight: 90
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-cassandra"
-    service_name="cassandra" %}
+    packageName="beta-cassandra"
+    serviceName="cassandra" %}
