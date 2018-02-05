@@ -1,10 +1,9 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
+excerpt:
 title: Overview
 menuWeight: 10
-excerpt:
-
 ---
 
 DC/OS Apache Cassandra is an automated service that makes it easy to deploy and manage Apache Cassandra on [DC/OS](https://mesosphere.com/product/). Apache Cassandra is a distributed NoSQL database offering high availability, fault tolerance and scalability across data centers.

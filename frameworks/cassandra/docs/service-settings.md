@@ -1,10 +1,9 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
+excerpt:
 title: Service Settings
 menuWeight: 21
-excerpt:
-
 ---
 
 # Service Name
@@ -63,7 +62,7 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 {
   ...
   "count": 6,
-  "constraints": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+  "placement_constraint": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
 }
 ```
 

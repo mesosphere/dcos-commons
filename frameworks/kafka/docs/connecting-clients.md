@@ -1,15 +1,17 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
 
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 # Supported Client Libraries
 
-- The official Kafka Java library, i.e., `org.apache.kafka.clients.consumer.KafkaConsumer` and `org.apache.kafka.clients.producer.KafkaProducer`. 
+- The official Kafka Java library, i.e., `org.apache.kafka.clients.consumer.KafkaConsumer` and `org.apache.kafka.clients.producer.KafkaProducer`.
 
 Through Confluent:
 - Go
@@ -28,7 +30,7 @@ Through Confluent:
 The following command can be executed from the cli in order to retrieve a set of brokers to connect to.
 
 ```bash
-$ dcos beta-kafka --name=<name> endpoints broker
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
 ```
 
 <a name="using-the-rest-api"></a>
@@ -39,12 +41,12 @@ REST API requests must be authenticated. See the REST API Authentication part of
 The following `curl` example demonstrates how to retrive connection a set of brokers to connect to using the REST API.
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/endpoints/broker"
 ```
 
 ## User token authentication
 
-DC/OS Enterprise Edition comes with support for [user ACLs][13]. To interact with the Kafka REST API you must first retrieve an auth token from the [auth HTTP endpoint][14], then provide this token in following requests.
+DC/OS Enterprise Edition comes with support for [user ACLs](https://docs.mesosphere.com/1.9/security/users-groups/). To interact with the Kafka REST API you must first retrieve an auth token from the [auth HTTP endpoint](https://docs.mesosphere.com/1.9/security/iam-api/), then provide this token in following requests.
 
 First, we retrieve `uSeR_t0k3n` with our user credentials and store the token as an environment variable:
 
@@ -59,7 +61,7 @@ $ export auth_token=uSeR_t0k3n
 Then, use this token to authenticate requests to the Kafka Service:
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/endpoints/broker"
 ```
 
 You do not need the token to access the Kafka brokers themselves.
@@ -76,17 +78,17 @@ The response, for both the CLI and the REST API is as below.
     "10.0.1.27:1025"
   ],
   "dns": [
-    "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025",
-    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
-    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"
+    "kafka-2-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025"
   ],
-  "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+  "vip": "broker.{{ page.serviceName }}.l4lb.thisdcos.directory:9092"
 }
 ```
 
 This JSON array contains a list of valid brokers that the client can use to connect to the Kafka cluster. For availability reasons, it is best to specify multiple brokers in configuration of the client. Use the VIP to address any one of the Kafka brokers in the cluster. [Learn more about load balancing and VIPs in DC/OS](https://docs.mesosphere.com/1.9/networking/).
 
-When [the TLS][15] is enabled you can request details for `broker-tls` port. To verify a TLS connection from a client the [DC/OS trust bundle with a CA certificate](https://docs.mesosphere.com/1.9/networking/tls-ssl/get-cert/) is required.
+When [the TLS](https://docs.mesosphere.com/services/{{ page.packageName }}/configure/#tls) is enabled you can request details for `broker-tls` port. To verify a TLS connection from a client the [DC/OS trust bundle with a CA certificate](https://docs.mesosphere.com/1.9/networking/tls-ssl/get-cert/) is required.
 
 # Configuring the Kafka Client Library
 
@@ -173,7 +175,7 @@ The code snippet below demonstrates how to connect a Kafka Consumer to the clust
 The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-console-producer.sh` and `bin/kafka-console-consumer.sh` as an example:
 
 ```bvash
-$ dcos beta-kafka endpoints broker
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
 {
   "address": [
     "10.0.0.49:1025",
@@ -181,11 +183,11 @@ $ dcos beta-kafka endpoints broker
     "10.0.1.27:1025"
   ],
   "dns": [
-    "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025",
-    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
-    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025"
+    "kafka-2-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025"
   ],
-  "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+  "vip": "broker.{{ page.serviceName }}.l4lb.thisdcos.directory:9092"
 }
 
 $ dcos node ssh --master-proxy --leader
@@ -194,10 +196,6 @@ core@ip-10-0-6-153 ~ $ docker run -it mesosphere/kafka-client
 
 root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list 10.0.0.49:1025, 10.0.2.253:1025, 10.0.1.27:1025 --topic topic1
 
-root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-kafka --topic topic1 --from-beginning
+root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-{{ page.serviceName }} --topic topic1 --from-beginning
     Hello, World.
 ```
-
- [13]: https://docs.mesosphere.com/1.9/security/users-groups/
- [14]: https://docs.mesosphere.com/1.9/security/iam-api/
- [15]: https://docs.mesosphere.com/services/kafka/configure/#tls

@@ -1,10 +1,12 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: SSL Auth
 menuWeight: 23
 
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 ## How to connect an authenticated client
@@ -22,10 +24,10 @@ $ openssl req -new -sha256 -key priv.key -out request.csr
 ```
 3. Make a request to the DC/OS CA
 ```bash
-#Request
+# Request
 $ curl -X POST \
   -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
-  http://bwood-8zp-elasticl-1tcip3im8ushp-1069834978.us-west-2.elb.amazonaws.com/ca/api/v2/sign \
+  http://YOURCLUSTER.com/ca/api/v2/sign \
   -d '{"certificate_request": "<json-encoded-value-of-request.csr>"}'
 
 # Response

@@ -1,22 +1,23 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
 
+packageName: beta-hdfs
+serviceName: hdfs
 ---
 
-HDFS is available in the Universe and can be installed by using either the web interface or the DC/OS CLI.
-
-## Prerequisites
-
-- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account](https://docs.mesosphere.com/services/hdfs/hdfs-auth/) before installing HDFS. Only someone with `superuser` permission can create the service account.
-	- `strict` [security mode](https://docs.mesosphere.com/1.9/installing/custom/configuration-parameters/#security) requires a service account.
-	- `permissive` security mode a service account is optional.
-	- `disabled` security mode does not require a service account.
-- A minimum of five agent nodes with eight GiB of memory and ten GiB of disk available on each agent.
-- Each agent node must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
+{% include services/install.md
+    techName="HDFS"
+    packageName=page.packageName
+    serviceName=page.serviceName
+    minNodeCount="five"
+    defaultInstallDescription=" with three master nodes, two data nodes, and one coordinator node"
+    agentRequirements="Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007."
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/hdfs/hdfs-auth/"
+    enterpriseInstallUrl="" %}
 
 # Installation
 
@@ -29,14 +30,14 @@ The default installation may not be sufficient for a production deployment, but 
 Once you have installed HDFS, install the CLI.
 
 ```bash
-$ dcos package install beta-hdfs --cli
+$ dcos package install {{ page.packageName }} --cli
 ```
 
 # Service Settings
 
 ## Service Name
 
-Each instance of HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `beta-hdfs`.
+Each instance of HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `{{ page.packageName }}`.
 
 # Custom Installation
 
@@ -55,7 +56,7 @@ Sample JSON options file named `sample-hdfs.json`:
 The command below creates a cluster using `sample-hdfs.json`:
 
 ```bash
-$ dcos package install --options=sample-hdfs.json hdfs
+$ dcos package install {{ page.packageName }} --options=sample-hdfs.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -77,48 +78,14 @@ $ cat hdfs1.json
 
 {
    "service": {
-       "name": "hdfs1"
+       "name": "{{ page.serviceName }}1"
    }
 }
 
-$ dcos package install beta-hdfs --options=hdfs1.json
+$ dcos package install {{ page.packageName }} --options=hdfs1.json
 ```
 
-Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
-
-<!-- THIS BLOCK DUPLICATES THE OPERATIONS GUIDE -->
-
-# Integration with DC/OS access controls
-
-In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/hdfs` and `production/hdfs`.
-
-Steps:
-
-1. In the DC/OS GUI, create a group, then add a user to the group. Or, just create a user. Click **Organization** > **Groups** > **+** or **Organization** > **Users** > **+**. If you create a group, you must also create a user and add them to the group.
-1. Give the user permissions for the folder where you will install your service. In this example, we are creating a user called `developer`, who will have access to the `/testing` folder.
-   Select the group or user you created. Select **ADD PERMISSION** and then toggle to **INSERT PERMISSION STRING**. Add each of the following permissions to your user or group, and then click **ADD PERMISSIONS**.
-
-   ```
-   dcos:adminrouter:service:marathon full
-   dcos:service:marathon:marathon:services:/testing full
-   dcos:adminrouter:ops:mesos full
-   dcos:adminrouter:ops:slave full
-   ```
-1. Install your service into a folder called `test`. Go to **Catalog**, then search for **beta-hdfs**.
-1. Click **CONFIGURE** and change the service name to `/testing/hdfs`, then deploy.
-
-   The slashes in your service name are interpreted as folders. You are deploying HDFS in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
-
-**Important:**
-- Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
-- DC/OS 1.9 and earlier does not accept slashes in service names. You may be able to create the service, but you will encounter unexpected problems.
-
-## Interacting with your foldered service
-
-- Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
-- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/hdfs/v1/endpoints`.
-
-<!-- END DUPLICATE BLOCK -->
+Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos {{ page.packageName }}` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. `{{ page.packageName }}`.
 
 # Zones
 
@@ -137,7 +104,7 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 {
   ...
   "count": 6,
-  "constraints": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+  "placement": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
 }
 ```
 
@@ -146,100 +113,6 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`.
 # Colocation
 
 An individual HDFS deployment will colocate name nodes with journal nodes, but it will not colocate two name nodes or two journal nodes on the same agent node in the cluster. Data nodes may be colocated with both name nodes and journal nodes. If multiple clusters are installed, they may share the same agent nodes in the cluster provided that no ports specified in the service configurations conflict for those node types.
-
-# Installation Plan
-
-When the DC/OS HDFS service is initially installed, it generates an installation plan as shown below.
-
-```json
-{
-	phases: [{
-		id: "0c64b701-6b8b-440e-93e1-6c43b05abfc2",
-		name: "jn-deploy",
-		steps: [{
-			id: "ba608f90-32c6-42e0-93c7-a6b51fc2e52b",
-			status: "COMPLETE",
-			name: "journal-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-0:[node] [ba608f90-32c6-42e0-93c7-a6b51fc2e52b]' has status: 'COMPLETE'."
-		}, {
-			id: "f29c13d8-a477-4e2b-84ac-046cd8a7d283",
-			status: "COMPLETE",
-			name: "journal-1:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-1:[node] [f29c13d8-a477-4e2b-84ac-046cd8a7d283]' has status: 'COMPLETE'."
-		}, {
-			id: "75da5719-9296-4872-887a-cc1ab157191b",
-			status: "COMPLETE",
-			name: "journal-2:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'journal-2:[node] [75da5719-9296-4872-887a-cc1ab157191b]' has status: 'COMPLETE'."
-		}],
-		status: "COMPLETE"
-	}, {
-		id: "967aadc8-ef25-402e-b81a-9fcab0e57463",
-		name: "nn-deploy",
-		steps: [{
-			id: "33d02aa7-0927-428b-82d7-cec93cfde090",
-			status: "COMPLETE",
-			name: "name-0:[format]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[format] [33d02aa7-0927-428b-82d7-cec93cfde090]' has status: 'COMPLETE'."
-		}, {
-			id: "62f048f4-7b6c-4ea0-8509-82b328d40e61",
-			status: "STARTING",
-			name: "name-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-0:[node] [62f048f4-7b6c-4ea0-8509-82b328d40e61]' has status: 'STARTING'."
-		}, {
-			id: "e7b8aa27-39b2-4aba-9d87-3b47c752878f",
-			status: "PENDING",
-			name: "name-1:[bootstrap]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[bootstrap] [e7b8aa27-39b2-4aba-9d87-3b47c752878f]' has status: 'PENDING'."
-		}, {
-			id: "cd633e0d-6aac-45a9-b764-296676fc228d",
-			status: "PENDING",
-			name: "name-1:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'name-1:[node] [cd633e0d-6aac-45a9-b764-296676fc228d]' has status: 'PENDING'."
-		}],
-		status: "IN_PROGRESS"
-	}, {
-		id: "248fa719-dc57-4ef9-9c48-5e6e1218b6c2",
-		name: "zkfc-deploy",
-		steps: [{
-			id: "812ae290-e6a4-4128-b486-7288e855bfe6",
-			status: "PENDING",
-			name: "zkfc-0:[format]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[format] [812ae290-e6a4-4128-b486-7288e855bfe6]' has status: 'PENDING'."
-		}, {
-			id: "8a401585-a5af-4540-94f0-dada95093329",
-			status: "PENDING",
-			name: "zkfc-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-0:[node] [8a401585-a5af-4540-94f0-dada95093329]' has status: 'PENDING'."
-		}, {
-			id: "7eabc15d-7feb-4546-8699-0fadac1f303b",
-			status: "PENDING",
-			name: "zkfc-1:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'zkfc-1:[node] [7eabc15d-7feb-4546-8699-0fadac1f303b]' has status: 'PENDING'."
-		}],
-		status: "PENDING"
-	}, {
-		id: "ddb20a39-830b-417b-a901-5b9027e459f7",
-		name: "dn-deploy",
-		steps: [{
-			id: "018deb17-8853-4d3b-820c-6b2caa55743f",
-			status: "PENDING",
-			name: "data-0:[node]",
-			message: "com.mesosphere.sdk.scheduler.plan.DeploymentStep: 'data-0:[node] [018deb17-8853-4d3b-820c-6b2caa55743f]' has status: 'PENDING'."
-		}],
-		status: "PENDING"
-	}],
-	errors: [],
-	status: "IN_PROGRESS"
-}
-```
-
-## Viewing the Installation Plan
-The plan can be viewed from the API via the REST endpoint. A curl example is provided below. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
-
-```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" http://<dcos_url>/service/hdfs/v1/plans/deploy
-```
 
 ## Plan Errors
 The plan will display any errors that prevent installation in the errors list. The presence of any error indicates that the installation cannot progress. See the Troubleshooting section for information on resolving errors.
@@ -261,14 +134,14 @@ To pause installation, issue a REST API request as shown below. The installation
 
 
 ```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/interrupt
 ```
 
 ## Resuming Installation
 If the installation has been paused, the REST API request below will resume installation at the next pending node.
 
 ```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/continue
 ```
 
 ## Virtual networks
@@ -303,146 +176,11 @@ Sample JSON options file named `hdfs-tls.json`:
 
 For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
 
-<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
-## Placement Constraints
-
-Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using [Marathon operators (reference)](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, you should  use `hostname:UNIQUE`.
-
-A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:
-```
-hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
-```
-
-You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
-
-### Regions and Zones
-
-Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
-```
-[["@zone", "GROUP_BY", "3"]]
-```
-
-When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
-
-<!-- end duplicate block -->
-
 ### Clients
 
 Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (`journal`, `name` and `data`) can be configured with different port numbers for TLS connections.
 
-Clients can connect only over the TLS version 1.2.
-
-# Changing Configuration at Runtime
-
-You can customize your cluster in-place when it is up and running.
-
-<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
-
-The instructions below describe how to update the configuration for a running DC/OS service.
-
-## Enterprise DC/OS 1.10
-
-Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service's configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.
-
-### Prerequisites
-
-+ Enterprise DC/OS 1.10 or newer.
-+ Service with a version greater than 2.0.0-x.
-+ [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
-+ The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli beta-hdfs`.
-  + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
-    ```bash
-    dcos package uninstall --cli beta-hdfs
-    dcos package install --cli beta-hdfs
-    ```
-
-### Preparing configuration
-
-If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:
-
-```bash
-$ dcos beta-hdfs describe > options.json
-```
-
-Make any configuration changes to this `options.json` file.
-
-If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the `options.json` file that was used when [installing the service](#initial-service-configuration).
-
-**Note:** You must specify all configuration values in the `options.json` file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the "Recreating `options.json`" section below for information on recovering these values.
-
-#### Recreating `options.json` (optional)
-
-If the `options.json` from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.
-
-First, we'll fetch the default application's environment, current application's environment, and the actual template that maps config values to the environment:
-
-1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
-1. Set the service name that you're using, for example:
-```bash
-$ SERVICE_NAME=beta-hdfs
-```
-1. Get the version of the package that is currently installed:
-```bash
-$ PACKAGE_VERSION=$(dcos package list | grep $SERVICE_NAME | awk '{print $2}')
-```
-1. Then fetch and save the environment variables that have been set for the service:
-```bash
-$ dcos marathon app show $SERVICE_NAME | jq .env > current_env.json
-```
-1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
-```bash
-$ dcos package describe --package-version=$PACKAGE_VERSION --render --app $SERVICE_NAME | jq .env > default_env.json
-```
-1. We'll also get the entire application template:
-```bash
-$ dcos package describe $SERVICE_NAME --app > marathon.json.mustache
-```
-
-Now that you have these files, we'll attempt to recreate the `options.json`.
-
-1. Use JQ and `diff` to compare the two:
-```bash
-$ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
-```
-1. Now compare these values to the values contained in the `env` section in application template:
-```bash
-$ less marathon.json.mustache
-```
-1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
-
-### Starting the update
-
-Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
-
-```bash
-$ dcos beta-hdfs update start --options=options.json
-```
-
-You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
-
-See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
-
-### Open Source DC/OS, Enterprise DC/OS 1.9 and Earlier
-
-If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.
-
-<!-- END DUPLICATE BLOCK -->
-These are the general steps to follow:
-
-1.  Go to the **Services** tab of the DC/OS GUI and click the name of the HDFS service to be updated.
-
-	![HFDS in DC/OS GUI](/img/hdfs-service-gui.png)
-
-1.  Within the HDFS instance details view, click the vertical ellipsis menu in the upper right, then choose **Edit**.
-
-	![Edit tab](/img/hdfs-service-gui2.png)
-
-1.  Click the **Environment** tab and make your updates. For example, to increase the number of nodes, edit the value for `DATA_COUNT`.
-
-	![Edit environment](/img/hdfs-service-gui3.png)
-
-1. Click **REVIEW & RUN** to apply any changes and cleanly reload the HDFS scheduler. The HDFS cluster itself will persist across the change.
+Clients can connect only using TLS version 1.2.
 
 ## Configuration Deployment Strategy
 
@@ -457,7 +195,7 @@ This configuration update strategy is analogous to the installation procedure ab
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
 ```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy"
 ```
 
 The response will look similar to this:
@@ -558,7 +296,7 @@ The response will look similar to this:
 If you want to interrupt a configuration update that is in progress, enter the `interrupt` command.
 
 ```bash
-$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/interrupt
 ```
 
 
@@ -657,12 +395,12 @@ If you query the plan again, the response will look like this (notice `status: "
 }
 ```
 
-**Note:** The interrupt command can’t stop a block that is `STARTING`, but it will stop the change on the subsequent blocks.
+**Note:** The interrupt command can’t stop a step that is `STARTING`, but it will stop the change on the subsequent steps.
 
 Enter the `continue` command to resume the update process.
 
 ```bash
-$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/continue
 ```
 
 After you execute the continue operation, the plan will look like this:
@@ -771,8 +509,8 @@ The service configuration object contains properties that MUST be specified duri
 ```json
 {
     "service": {
-        "name": "hdfs",
-        "service_account": "hdfs-principal",
+        "name": "{{ page.serviceName }}",
+        "service_account": "{{ page.serviceName }}-principal",
     }
 }
 ```
@@ -800,7 +538,7 @@ The service configuration object contains properties that MUST be specified duri
 
 ## Change the Service Name
 
-- **In the DC/OS CLI, options.json**: `name` = string (default: `hdfs`)
+- **In the DC/OS CLI, options.json**: `name` = string (default: `{{ page.serviceName }}`)
 
 ## Node Configuration
 

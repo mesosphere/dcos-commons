@@ -540,6 +540,28 @@ $ dcos myservice plan start backup-s3 \
 
 Any parameters passed via `-p` are automatically passed though to the invoked Tasks as environment variables. Service developers must separately document any such parameters so that users know what to provide.
 
+### Programmatic Plan Modification
+
+There are some scenarios which cannot be modeled given the YAML plan specifications described above.  In these scenarios it is possible to programmatically modify plans through implementation of the `PlanCustomizer` interface.  For example one could reverse the order of the deploy plan's phases based on an environment variable.
+```java
+public class ReverseDeployPhases implements PlanCustomizer {
+    @Override
+    public Plan updatePlan(Plan plan) {
+        if (plan.isDeployPlan() && Boolean.valueOf(System.getenv("REVERSE"))) {
+            Collections.reverse(plan.getChildren());
+        }
+
+        return plan;
+    }
+}
+```
+
+Implementations of this interface are called once for each plan at scheduler startup time before plans begin execution.  If no modification of a particular plan is desired it should be returned unaltered.  A `PlanCustomizer` implementation may be specified when building a scheduler with a `SchedulerBuilder`.
+```java
+SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv())
+    .setPlanCustomizer(new ReverseDeployPhases());
+```
+
 ## Packaging
 
 A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: `marathon.json.mustache`, `config.json`, `resource.json`, and `package.json`. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
