@@ -7,7 +7,6 @@ menuWeight: 40
 
 packageName: beta-cassandra
 serviceName: cassandra
-cliPackageName: beta-cassandra --name=cassandra
 ---
 
 ## Prerequisites

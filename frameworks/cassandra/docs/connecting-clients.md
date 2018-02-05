@@ -4,6 +4,9 @@ navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
+
+packageName: beta-cassandra
+serviceName: cassandra
 ---
 
 Clients communicating with Apache Cassandra use the Cassandra Query Language (CQL) to issue queries and write data to the cluster. CQL client libraries exist in many languages, and Apache Cassandra ships with a utility called `cqlsh` that enables you to issue queries against an Apache Cassandra cluster from the command line.
@@ -12,13 +15,13 @@ Clients communicating with Apache Cassandra use the Cassandra Query Language (CQ
 
 Once the service is running, you may view information about its endpoints via either of the following methods:
 - CLI:
-  - List endpoint types: `dcos beta-cassandra endpoints`
-  - View endpoints for an endpoint type: `dcos beta-cassandra endpoints <endpoint>`
+  - List endpoint types: `dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints`
+  - View endpoints for an endpoint type: `dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints <endpoint>`
 - Web:
-  - List endpoint types: `<dcos-url>/service/cassandra/v1/endpoints`
-  - View endpoints for an endpoint type: `<dcos-url>/service/cassandra/v1/endpoints/<endpoint>`
+  - List endpoint types: `<dcos-url>/service/{{ page.serviceName }}/v1/endpoints`
+  - View endpoints for an endpoint type: `<dcos-url>/service/{{ page.serviceName }}/v1/endpoints/<endpoint>`
 
-By default, the DC/OS Apache Cassandra Service exposes only the `native-client` endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a `thrift-client` endpoint will also be listed. To see node addresses for use by native clients, such as `cqlsh`, run `dcos beta-cassandra endpoints native-client`. A typical response will look like the following:
+By default, the DC/OS Apache Cassandra Service exposes only the `native-client` endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a `thrift-client` endpoint will also be listed. To see node addresses for use by native clients, such as `cqlsh`, run `dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints native-client`. A typical response will look like the following:
 
 ```json
 {
@@ -28,9 +31,9 @@ By default, the DC/OS Apache Cassandra Service exposes only the `native-client` 
     "10.0.1.27:9042"
   ],
   "dns": [
-    "node-2-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-    "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-    "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"
+    "node-2-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042",
+    "node-0-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042",
+    "node-1-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042"
   ]
 }
 ```
@@ -46,7 +49,7 @@ dcos node ssh --leader --master-proxy
 
 Then, use the `cassandra` Docker image to run `cqlsh`, passing as an argument the address of one of the Apache Cassandra nodes in the cluster:
 ```
-docker run cassandra:3.0.13 cqlsh node-0-server.cassandra.autoip.dcos.thisdcos.directory
+docker run cassandra:3.0.13 cqlsh node-0-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory
 ```
 
 This will open an interactive shell from which you can issue queries and write to the cluster. To ensure that the `cqlsh` client and your cluster are using the same CQL version, be sure to use the version of the `cassandra` Docker image that corresponds to the version of Apache Cassandra being run in your cluster. The version installed by the DC/OS Apache Cassandra Service is 3.0.13.

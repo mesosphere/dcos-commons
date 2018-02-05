@@ -4,14 +4,17 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
+
+packageName: beta-elastic
+serviceName: elastic
 ---
 
 {% include services/managing.md
     podType="data"
     taskType="node"
     techName="Elastic"
-    packageName="beta-elastic"
-    serviceName="elastic" %}
+    packageName=page.packageName
+    serviceName=page.serviceName %}
 
 # Add a Data/Ingest/Coordinator Node
 

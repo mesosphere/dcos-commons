@@ -4,19 +4,22 @@ navigationTitle:
 excerpt:
 title: Kerberos
 menuWeight: 22
+
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 # Setting up Apache Kafka with Kerberos
 
 ## Create principals
 
-In order to run Apache Kafka with Kerberos security enabled, a principal needs to be added for every broker in the cluster. For example, a three node cluster with the default service primary (`service.security.kerberos.primary`) of `kafka` will require to following principals:
+In order to run Apache Kafka with Kerberos security enabled, a principal needs to be added for every broker in the cluster. For example, a three node cluster with the default service primary (`service.security.kerberos.primary`) of `{{ page.serviceName }}` will require to following principals:
 ```
-kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
-kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
-kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
+kafka/kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory@LOCAL
+kafka/kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory@LOCAL
+kafka/kafka-2-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory@LOCAL
 ```
-(assuming a service name of `kafka` and a `LOCAL` realm)
+(assuming a service name of `{{ page.serviceName }}` and a `LOCAL` realm)
 
 ## Create the keytab secret
 
@@ -34,7 +37,7 @@ Create the following `kerberos-options.json` file:
 ```json
 {
     "service": {
-        "name": "kafka",
+        "name": "{{ page.serviceName }}",
         "security": {
             "kerberos": {
                 "enabled": true,
@@ -53,7 +56,7 @@ Note the specification of the secret name as created in the previous step.
 
 The kerberized Apache Kafka service is then deployed by running:
 ```bash
-$ dcos package install kafka --options=kerberos-options.json
+$ dcos package install {{ page.packageName }} --options=kerberos-options.json
 ```
 
 ## Deploy with kerberized ZooKeeper
@@ -62,7 +65,7 @@ If a kerberized `kafka-zookeeper` ensemble is available for use with this Apache
 
 In order to determine the endpoints for the ZooKeeper ensemble, the following command can be used:
 ```bash
-$ dcos kafka-zookeeper endpoint clientport
+$ dcos kafka-zookeeper --name=kafka-zookeeper endpoint clientport
 ```
 resulting in output resembling:
 ```json
@@ -84,7 +87,7 @@ Create a `kerberos-zookeeper-options.json` file with the following contents:
 ```json
 {
     "service": {
-        "name": "kafka",
+        "name": "{{ page.serviceName }}",
         "security": {
             "kerberos": {
                 "enabled": true,
@@ -107,7 +110,7 @@ Note that `service.security.kerberos.enabled_for_zookeeper` is now set to true a
 
 Kerberized Kafka can then be deployed as follows:
 ```bash
-$ dcos package install kafka --options=kerberos-zookeeper-options.json
+$ dcos package install {{ page.packageName }} --options=kerberos-zookeeper-options.json
 ```
 
 ## Active Directory
@@ -116,9 +119,9 @@ Kerberized Apache Kafka also supports Active Directory as a KDC. Here the genera
 
 As an example, the `ktpass` utility can be used to generate the keytab for the Apache Kafka brokers as follows:
 ```bash
-$ ktpass.exe                      /princ kafka/kafka-0-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-0-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-0.keytab
-$ ktpass.exe /in brokers-0.keytab /princ kafka/kafka-1-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-1-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-1.keytab
-$ ktpass.exe /in brokers-1.keytab /princ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-2-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out kafka-brokers.keytab
+$ ktpass.exe                      /princ kafka/kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-0-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-0.keytab
+$ ktpass.exe /in brokers-0.keytab /princ kafka/kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-1-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out brokers-1.keytab
+$ ktpass.exe /in brokers-1.keytab /princ kafka/kafka-2-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser kafka-2-broker@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out kafka-brokers.keytab
 ```
 Here it is assumed that the domain `example.com` exists and that the domain users `kafka-0-broker`, `kafka-1-broker`, and `kafka-2-broker` have been created (using the `net user` command, for example).
 
@@ -132,7 +135,7 @@ Kerberized Apache Kafka can then be deployed using the following configuration o
 ```json
 {
     "service": {
-        "name": "kafka",
+        "name": "{{ page.serviceName }}",
         "security": {
             "kerberos": {
                 "enabled": true,

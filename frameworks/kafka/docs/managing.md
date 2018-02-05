@@ -4,14 +4,17 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
+
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 {% include services/managing.md
     podType="kafka"
     taskType="broker"
     techName="Apache Kafka"
-    packageName="beta-kafka"
-    serviceName="kafka" %}
+    packageName=page.packageName
+    serviceName=page.serviceName %}
 
 # Graceful Shutdown
 
@@ -40,7 +43,7 @@ Create an options file `kafka-options.json` with the following content:
 Issue the following command:
 
 ```bash
-$ dcos beta-kafka --name=/kafka update --options=kafka-options.json
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} update --options=kafka-options.json
 ```
 
 ## Restart a Broker with Grace

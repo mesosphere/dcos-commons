@@ -4,12 +4,16 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
+
+techName: Apache Cassandra
+packageName: beta-cassandra
+serviceName: cassandra
 ---
 
 {% include services/install.md
-    techName="Apache Cassandra"
-    packageName="beta-cassandra"
-    serviceName="cassandra"
+    techName=page.techName
+    packageName=page.packageName
+    serviceName=page.serviceName
     minNodeCount="three"
     defaultInstallDescription="with three cassandra nodes"
     serviceAccountInstructionsUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/"
@@ -17,14 +21,14 @@ menuWeight: 20
 
 # Multi-datacenter Deployment
 
-To replicate data across data centers, Apache Cassandra requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here's what starting a multi-data-center Apache Cassandra deployment would look like, running inside of a single DC/OS cluster.
+To replicate data across data centers, {{ page.techName }} requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here's what starting a multi-data-center {{ page.techName }} deployment would look like, running inside of a single DC/OS cluster.
 
 ## Launch two Cassandra clusters
 
 Launch the first cluster with the default configuration:
 
 ```shell
-dcos package install beta-cassandra
+dcos package install {{ page.packageName }}
 ```
 
 Create an `options.json` file for the second cluster that specifies a different service name and data center name:
@@ -32,7 +36,7 @@ Create an `options.json` file for the second cluster that specifies a different 
 ```json
 {
   "service": {
-    "name": "cassandra2",
+    "name": "{{ page.serviceName }}2",
     "data_center": "dc2"
   }
 }
@@ -40,7 +44,7 @@ Create an `options.json` file for the second cluster that specifies a different 
 
 Launch the second cluster with these custom options:
 ```
-dcos package install beta-cassandra --options=<options>.json
+dcos package install {{ page.packageName }} --options=<options>.json
 ```
 
 ## Get the seed node IP addresses
@@ -50,7 +54,7 @@ dcos package install beta-cassandra --options=<options>.json
 Get the list of seed node addresses for the first cluster:
 
 ```shell
-dcos cassandra endpoints node
+dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints node
 ```
 
 Alternatively, you can get this information from the scheduler HTTP API:
@@ -58,7 +62,7 @@ Alternatively, you can get this information from the scheduler HTTP API:
 ```json
 DCOS_AUTH_TOKEN=$(dcos config show core.dcos_acs_token)
 DCOS_URL=$(dcos config show core.dcos_url)
-curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/cassandra/v1/endpoints/node
+curl -H "authorization:token=$DCOS_AUTH_TOKEN" $DCOS_URL/service/{{ page.serviceName }}/v1/endpoints/node
 ```
 
 Your output will resemble:
@@ -70,10 +74,10 @@ Your output will resemble:
     "10.0.0.119:9042"
   ],
   "dns": [
-    "node-0-server.cassandra.autoip.dcos.thisdcos.directory:9042",
-    "node-1-server.cassandra.autoip.dcos.thisdcos.directory:9042"
+    "node-0-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042",
+    "node-1-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042"
   ],
-  "vip": "node.cassandra.l4lb.thisdcos.directory:9042"
+  "vip": "node.{{ page.serviceName }}.l4lb.thisdcos.directory:9042"
 }
 ```
 
@@ -82,12 +86,12 @@ Note the IPs in the `address` field.
 Run the same command for your second Cassandra cluster and note the IPs in the `address` field:
 
 ```
-dcos cassandra endpoints node --name=cassandra2
+dcos {{ page.packageName }} --name={{ page.serviceName }}2 endpoints node
 ```
 
 ## Update configuration for both clusters
 
-Create an `options.json` file with the IP addresses of the first cluster (`cassandra`):
+Create an `options2.json` file with the IP addresses of the first cluster (`{{ page.serviceName }}`):
 
 ```json
 {
@@ -100,17 +104,23 @@ Create an `options.json` file with the IP addresses of the first cluster (`cassa
 Update the configuration of the second cluster:
 
 ```
-dcos cassandra update start --options=options.json --name=cassandra2
+dcos {{ page.packageName }} --name={{ page.serviceName}}2 update start --options=options2.json
 ```
 
-Perform the same operation on the first cluster, adding the IP addresses of the second cluster's seed nodes to the `service.remote_seeds` field. Then, update the first cluster's configuration: `dcos cassandra update start --options=options.json`.
+Perform the same operation on the first cluster, creating an `options.json` which contains the IP addresses of the second cluster (`{{ page.serviceName }}2`)'s seed nodes in the `service.remote_seeds` field. Then, update the first cluster's configuration: `dcos {{ page.packageName }} --name={{ page.serviceName }} update start --options=options.json`.
 
-Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add.
+Both schedulers will restart after each receives the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add.
 
-You can monitor the progress of the update:
+You can monitor the progress of the update for the first cluster:
 
 ```shell
-dcos cassandra --name=cassandra update status
+dcos {{ page.packageName }} --name={{ page.serviceName }} update status
+```
+
+Or for the second cluster:
+
+```shell
+dcos {{ page.packageName }} --name={{ page.serviceName }}2 update status
 ```
 
 Your output will resemble:

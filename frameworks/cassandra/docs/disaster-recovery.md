@@ -4,6 +4,9 @@ navigationTitle:
 excerpt:
 title: Disaster Recovery
 menuWeight: 80
+
+packageName: beta-cassandra
+serviceName: cassandra
 ---
 
 # Backup
@@ -32,7 +35,7 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start backup-s3 \
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan start backup-s3 \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
     -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
@@ -47,7 +50,7 @@ If you're backing up multiple keyspaces, they must be separated by spaces and wr
 
 To view the status of this plan from the command line:
 ```
-dcos cassandra plan status backup-s3
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan status backup-s3
 backup-s3 (IN_PROGRESS)
 ├─ backup-schema (COMPLETE)
 │  ├─ node-0:[backup-schema] (COMPLETE)
@@ -84,7 +87,7 @@ You can also back up to Microsoft Azure using the `backup-azure` plan. This plan
 
 You can initiate this plan from the command line in the same way as the Amazon S3 backup plan:
 ```
-dcos cassandra plan start backup-azure \
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan start backup-azure \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
     -p CLIENT_ID=$CLIENT_ID \
@@ -97,7 +100,7 @@ dcos cassandra plan start backup-azure \
 
 To view the status of this plan from the command line:
 ```
-dcos cassandra plan status backup-azure
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan status backup-azure
 backup-azure (IN_PROGRESS)
 ├─ backup-schema (COMPLETE)
 │  ├─ node-0:[backup-schema] (COMPLETE)
@@ -140,7 +143,7 @@ AWS_ACCESS_KEY_ID=<my_access_key_id>
 AWS_SECRET_ACCESS_KEY=<my_secret_access_key>
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start restore-s3 \
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan start restore-s3 \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
     -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
@@ -151,7 +154,7 @@ dcos cassandra plan start restore-s3 \
 
 To view the status of this plan from the command line:
 ```
-dcos cassandra plan status restore-s3
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan status restore-s3
 restore-s3 (IN_PROGRESS)
 ├─ fetch-s3 (COMPLETE)
 │  ├─ node-0:[fetch-s3] (COMPLETE)
@@ -183,7 +186,7 @@ You can restore from Microsoft Azure using the `restore-azure` plan. This plan r
 
 You can initiate this plan from the command line in the same way as the Amazon S3 restore plan:
 ```
-dcos cassandra plan start restore-azure \
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan start restore-azure \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p CLIENT_ID=$CLIENT_ID \
     -p TENANT_ID=$TENANT_ID \
@@ -195,7 +198,7 @@ dcos cassandra plan start restore-azure \
 
 To view the status of this plan from the command line:
 ```
-dcos cassandra plan status restore-azure
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan status restore-azure
 restore-azure (IN_PROGRESS)
 ├─ fetch-azure (COMPLETE)
 │  ├─ node-0:[fetch-azure] (COMPLETE)
