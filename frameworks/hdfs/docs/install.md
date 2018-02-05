@@ -4,17 +4,20 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
+
+packageName: beta-hdfs
+serviceName: hdfs
 ---
 
 {% include services/install.md
-    tech_name="HDFS"
-    package_name="beta-hdfs"
-    service_name="hdfs"
-    min_node_count="five"
-    default_install_description=" with three master nodes, two data nodes, and one coordinator node"
-    agent_requirements="Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007."
-    service_account_instructions_url="https://docs.mesosphere.com/services/hdfs/hdfs-auth/"
-    enterprise_install_url="" %}
+    techName="HDFS"
+    packageName=page.packageName
+    serviceName=page.serviceName
+    minNodeCount="five"
+    defaultInstallDescription=" with three master nodes, two data nodes, and one coordinator node"
+    agentRequirements="Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007."
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/hdfs/hdfs-auth/"
+    enterpriseInstallUrl="" %}
 
 # Installation
 
@@ -27,14 +30,14 @@ The default installation may not be sufficient for a production deployment, but 
 Once you have installed HDFS, install the CLI.
 
 ```bash
-$ dcos package install beta-hdfs --cli
+$ dcos package install {{ page.packageName }} --cli
 ```
 
 # Service Settings
 
 ## Service Name
 
-Each instance of HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `beta-hdfs`.
+Each instance of HDFS in a given DC/OS cluster must be configured with a different service name. You can configure the service name in the service section of the advanced installation section of the DC/OS web interface or with a JSON options file when installing from the DC/OS CLI. See [Multiple HDFS Cluster Installation](#multiple-install) for more information. The default service name (used in many examples here) is `{{ page.packageName }}`.
 
 # Custom Installation
 
@@ -53,7 +56,7 @@ Sample JSON options file named `sample-hdfs.json`:
 The command below creates a cluster using `sample-hdfs.json`:
 
 ```bash
-$ dcos package install --options=sample-hdfs.json hdfs
+$ dcos package install {{ page.packageName }} --options=sample-hdfs.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -75,14 +78,14 @@ $ cat hdfs1.json
 
 {
    "service": {
-       "name": "hdfs1"
+       "name": "{{ page.serviceName }}1"
    }
 }
 
-$ dcos package install beta-hdfs --options=hdfs1.json
+$ dcos package install {{ page.packageName }} --options=hdfs1.json
 ```
 
-Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos hdfs` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes the default value, `hdfs`.
+Use the `--name` argument after install time to specify which HDFS instance to query. All `dcos {{ page.packageName }}` CLI commands accept the `--name` argument. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. `{{ page.packageName }}`.
 
 # Zones
 
@@ -131,14 +134,14 @@ To pause installation, issue a REST API request as shown below. The installation
 
 
 ```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/interrupt
 ```
 
 ## Resuming Installation
 If the installation has been paused, the REST API request below will resume installation at the next pending node.
 
 ```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" -X POST http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/continue
 ```
 
 ## Virtual networks
@@ -192,7 +195,7 @@ This configuration update strategy is analogous to the installation procedure ab
 Make the REST request below to view the current plan. See the REST API Authentication part of the REST API Reference section for information on how this request must be authenticated.
 
 ```bash
-$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/hdfs/v1/plans/deploy"
+$ curl -v -H "Authorization: token=$(dcos config show core.dcos_acs_token)" "http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy"
 ```
 
 The response will look similar to this:
@@ -293,7 +296,7 @@ The response will look similar to this:
 If you want to interrupt a configuration update that is in progress, enter the `interrupt` command.
 
 ```bash
-$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/hdfs/v1/plans/deploy/interrupt
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http:/<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/interrupt
 ```
 
 
@@ -397,7 +400,7 @@ If you query the plan again, the response will look like this (notice `status: "
 Enter the `continue` command to resume the update process.
 
 ```bash
-$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/hdfs/v1/plans/deploy/continue
+$ curl -X -H "Authorization: token=$(dcos config show core.dcos_acs_token)" POST http://<dcos_url>/service/{{ page.serviceName }}/v1/plans/deploy/continue
 ```
 
 After you execute the continue operation, the plan will look like this:
@@ -506,8 +509,8 @@ The service configuration object contains properties that MUST be specified duri
 ```json
 {
     "service": {
-        "name": "hdfs",
-        "service_account": "hdfs-principal",
+        "name": "{{ page.serviceName }}",
+        "service_account": "{{ page.serviceName }}-principal",
     }
 }
 ```
@@ -535,7 +538,7 @@ The service configuration object contains properties that MUST be specified duri
 
 ## Change the Service Name
 
-- **In the DC/OS CLI, options.json**: `name` = string (default: `hdfs`)
+- **In the DC/OS CLI, options.json**: `name` = string (default: `{{ page.serviceName }}`)
 
 ## Node Configuration
 

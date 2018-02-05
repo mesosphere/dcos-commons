@@ -4,15 +4,17 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
+
+packageName: beta-cassandra
+serviceName: cassandra
 ---
 
 {% include services/managing.md
-    pod_type="node"
-    task_type="server"
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra"
-    cli_package_name="beta-cassandra --name=cassandra" %}
+    podType="node"
+    taskType="server"
+    techName="Apache Cassandra"
+    packageName=page.packageName
+    serviceName=page.serviceName %}
 
 ## Performing Cassandra Cleanup and Repair Operations
 
@@ -25,12 +27,12 @@ You may trigger a `nodetool cleanup` operation across your Cassandra nodes using
 
 To initiate this plan from the command line:
 ```
-dcos cassandra plan start cleanup -p CASSANDRA_KEYSPACE=space1
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan start cleanup -p CASSANDRA_KEYSPACE=space1
 ```
 
 To view the status of this plan from the command line:
 ```
-dcos cassandra plan status cleanup
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan status cleanup
 cleanup (IN_PROGRESS)
 └─ cleanup-deploy (IN_PROGRESS)
    ├─ node-0:[cleanup] (COMPLETE)
@@ -51,12 +53,12 @@ You may trigger a `nodetool repair` operation across your Cassandra nodes using 
 
 To initiate this command from the command line:
 ```
-dcos cassandra plan start repair -p CASSANDRA_KEYSPACE=space1
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan start repair -p CASSANDRA_KEYSPACE=space1
 ```
 
 To view the status of this plan from the command line:
 ```
-dcos cassandra plan status repair
+dcos {{ page.packageName }} --name={{ page.serviceName }} plan status repair
 repair (STARTING)
 └─ repair-deploy (STARTING)
    ├─ node-0:[repair] (STARTING)
@@ -80,19 +82,18 @@ operation is performed automatically.
 For example if `node-0` needed to be replaced we would execute:
 
 ```bash
-dcos beta-cassandra pod replace node-0
+dcos {{ page.packageName }} --name={{ page.serviceName }} pod replace node-0
 ```
 
 which would result in a recovery plan like the following:
 
 ```bash
-$ dcos beta-cassandra --name=cassandra plan show recovery
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} plan show recovery
 recovery (IN_PROGRESS)
 └─ permanent-node-failure-recovery (IN_PROGRESS)
    ├─ node-0:[server] (COMPLETE)
    ├─ node-1:[server] (STARTING)
    └─ node-2:[server] (PENDING)
-
 ```
 
 **Note:** Only the seed node is being placed on a new node, all other nodes are restarted in place with no loss of data.

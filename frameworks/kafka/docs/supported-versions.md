@@ -7,7 +7,7 @@ excerpt:
 ---
 
 {% include services/supported-versions.md
-    tech_name="Apache Kafka"
-    tech_policy_desc="[Apache Kafka](https://kafka.apache.org/downloads)"
-    tech_version="0.11.0.2" %}
+    techName="Apache Kafka"
+    techPolicyDesc="[Apache Kafka](https://kafka.apache.org/downloads)"
+    techVersion="0.11.0.2" %}
 

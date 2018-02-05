@@ -4,8 +4,11 @@ navigationTitle:
 excerpt:
 title: Troubleshooting
 menuWeight: 90
+
+packageName: beta-elastic
+serviceName: elastic
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-elastic"
-    service_name="elastic" %}
+    packageName=page.packageName
+    serviceName=page.serviceName %}

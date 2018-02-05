@@ -4,12 +4,14 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
+
+packageName: template
+serviceName: template
 ---
 
 {% include services/managing.md
-    pod_type="template"
-    task_type="node"
-    tech_name="TEMPLATE_SERVICE"
-    package_name="template"
-    service_name="template"
-    cli_package_name="template" %}
+    podType="template"
+    taskType="node"
+    techName="TEMPLATE_SERVICE"
+    packageName=page.packageName
+    serviceName=page.serviceName %}

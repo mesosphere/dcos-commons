@@ -127,7 +127,7 @@ else
     fi
     FAILED=""
     while [ 1 ]; do
-        python $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="$?"
+        $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="$?"
         if [ -n "$FAILED" ]; then
             echo "Failed to listen on HTTP_PORT=$HTTP_PORT (exit code $FAILED)".
             HTTP_PORT=$((HTTP_PORT + 1))

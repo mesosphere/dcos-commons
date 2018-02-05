@@ -4,6 +4,9 @@ navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
+
+packageName: beta-hdfs
+serviceName: hdfs
 ---
 
 # Connecting Clients
@@ -14,12 +17,12 @@ Applications interface with HDFS like they would any POSIX file system. However,
 
 ## Connection Info Using the DC/OS CLI
 
-Executed the following command from the DC/OS CLI to retrieve the `hdfs-site.xml` file that client applications can use to connect to the cluster.
+Execute the following command from the DC/OS CLI to retrieve the `hdfs-site.xml` file that client applications can use to connect to the HDFS instance, in this case named "hdfs".
 
 ```bash
-$ dcos beta-hdfs --name=<service-name> endpoints hdfs-site.xml
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints hdfs-site.xml
 ...
-$ dcos beta-hdfs --name=<service-name> endpoints core-site.xml
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints core-site.xml
 ...
 ```
 

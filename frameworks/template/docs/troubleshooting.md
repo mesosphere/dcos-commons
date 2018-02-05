@@ -4,9 +4,12 @@ navigationTitle:
 excerpt:
 title: Troubleshooting
 menuWeight: 90
+
+packageName: template
+serviceName: template
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-template"
-    service_name="template" %}
+    packageName=page.packageName
+    serviceName=page.serviceName %}
 

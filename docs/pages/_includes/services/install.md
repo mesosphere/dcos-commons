@@ -1,41 +1,41 @@
-The default DC/OS {{ include.tech_name }} installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.
+The default DC/OS {{ include.techName }} installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.
 
 ## Prerequisites
 
-- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account]({{ include.service_account_instructions_url }}) before installing. Only someone with `superuser` permission can create the service account.
+- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account]({{ include.serviceAccountInstructionsUrl }}) before installing. Only someone with `superuser` permission can create the service account.
 	- `strict` [security mode](https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security) requires a service account.
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
-- Your cluster must have at least {{ include.min_node_count }} private nodes.
-{{ #include.agent_requirements }}
-- {{ include.agent_requirements }}
-{{ /include.agent_requirements }}
+- Your cluster must have at least {{ include.minNodeCount }} private nodes.
+{{ #include.agentRequirements }}
+- {{ include.agentRequirements }}
+{{ /include.agentRequirements }}
 
 ## Default Installation
 
-To start a basic test cluster {{ include.default_install_description }}, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing {{ include.tech_name }} on Enterprise DC/OS]({{ include.enterprise_install_url }}).
+To start a basic test cluster {{ include.defaultInstallDescription }}, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing {{ include.techName }} on Enterprise DC/OS]({{ include.enterpriseInstallUrl }}).
 
 ```bash
-$ dcos package install {{ include.package_name }}
+$ dcos package install {{ include.packageName }}
 ```
 
-This command creates a new instance with the default name `{{ include.service_name }}`. Two instances cannot share the same name, so installing additional instances beyond the default instance requires [customizing the `name` at install time](#custom-installation) for each additional instance.
+This command creates a new instance with the default name `{{ include.serviceName }}`. Two instances cannot share the same name, so installing additional instances beyond the default instance requires [customizing the `name` at install time](#custom-installation) for each additional instance.
 
-All `dcos {{ include.package_name }}` CLI commands have a `--name` argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, `{{ include.package_name }}`. The default value for `--name` can be customized via the DC/OS CLI configuration:
+All `dcos {{ include.packageName }}` CLI commands have a `--name` argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. `{{ include.packageName }}`. The default value for `--name` can be customized via the DC/OS CLI configuration:
 
 ```bash
-$ dcos {{ include.package_name }} --name {{ include.service_name }} <cmd>
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} <cmd>
 ```
 
 **Note:** Alternatively, you can [install from the DC/OS web interface](https://docs.mesosphere.com/latest/deploying-services/install/). If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
 
 ```bash
-dcos package install {{ include.package_name }} --cli
+dcos package install {{ include.packageName }} --cli
 ```
 
 ## Integration with DC/OS access controls
 
-In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/{{ include.service_name }}` and `production/{{ include.service_name }}`.
+In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/{{ include.serviceName }}` and `production/{{ include.serviceName }}`.
 
 Steps:
 
@@ -51,10 +51,10 @@ Steps:
      dcos:adminrouter:ops:slave full
      ```
 
-1. Install your service into a folder called `test`. Go to **Catalog**, then search for **{{ include.package_name }}**.
-1. Click **CONFIGURE** and change the service name to `/testing/{{ include.service_name }}`, then deploy.
+1. Install your service into a folder called `test`. Go to **Catalog**, then search for **{{ include.packageName }}**.
+1. Click **CONFIGURE** and change the service name to `/testing/{{ include.serviceName }}`, then deploy.
 
-     The slashes in your service name are interpreted as folders. You are deploying `{{ include.service_name }}` in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+     The slashes in your service name are interpreted as folders. You are deploying `{{ include.serviceName }}` in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
 
 **Important:**
 - Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
@@ -63,7 +63,7 @@ Steps:
 ## Interacting with your foldered service
 
 - Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
-- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/{{ include.service_name }}/v1/endpoints`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/{{ include.serviceName }}/v1/endpoints`.
 
 ## Placement Constraints
 

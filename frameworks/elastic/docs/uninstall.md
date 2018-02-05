@@ -4,9 +4,12 @@ navigationTitle:
 excerpt:
 title: Uninstall
 menuWeight: 30
+
+packageName: beta-elastic
+serviceName: elastic
 ---
 
 {% include services/uninstall.md
-    tech_name="an Elastic"
-    package_name="beta-elastic"
-    service_name="elastic" %}
+    techName="an Elastic"
+    packageName=page.packageName
+    serviceName=page.serviceName %}

@@ -4,28 +4,31 @@ navigationTitle:
 excerpt:
 title: API Reference
 menuWeight: 70
+
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 {% include services/api-reference.md
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka" %}
+    techName="Apache Kafka"
+    packageName=page.packageName
+    serviceName=page.serviceName %}
 
 # Connection Information
 
-Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the `/endpoints` endpoint:
+Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the `/endpoints` endpoint (assuming your service is named "{{ page.serviceName }}"):
 
 ```bssh
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoints/broker"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/endpoints/broker"
 {
-  "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+  "vip": "broker.{{ page.serviceName }}.l4lb.thisdcos.directory:9092",
   "address": [
     "10.0.0.35:1028",
     "10.0.1.249:1030"
   ],
   "dns": [
-    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
-    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
+    "kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1028",
+    "kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1030"
   ],
 }
 ```
@@ -33,16 +36,16 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/endpoi
 The same information can be retrieved through the DC/OS CLI:
 
 ```bash
-$ dcos betai-kafka endpoints broker
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
 {
-  "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+  "vip": "broker.{{ page.serviceName }}.l4lb.thisdcos.directory:9092",
   "address": [
     "10.0.0.35:1028",
     "10.0.1.249:1030"
   ],
   "dns": [
-    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
-    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
+    "kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1028",
+    "kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1030"
   ],
 }
 ```
@@ -54,7 +57,7 @@ These operations mirror what is available with `bin/kafka-topics.sh`.
 ## List Topics
 
 ```bash
-$ dcos beta-kafka --name=kafka topic list
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic list
 [
   "topic1",
   "topic0"
@@ -62,7 +65,7 @@ $ dcos beta-kafka --name=kafka topic list
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics"
 [
   "topic1",
   "topic0"
@@ -72,7 +75,7 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics
 ## Describe Topic
 
 ```bash
-$ dcos beta-kafka --name=kafka topic describe topic1
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic describe topic1
 {
   "partitions": [
   {
@@ -119,7 +122,7 @@ $ dcos beta-kafka --name=kafka topic describe topic1
 ```
 
 ```bash
-$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
+$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/topic1"
 {
   "partitions": [
   {
@@ -169,14 +172,14 @@ $ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v
 ## Create Topic
 
 ```bash
-$ dcos beta-kafka --name=kafka topic create topic1 --partitions=3 --replication=3
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic create topic1 --partitions=3 --replication=3
 {
   "message": "Output: Created topic \"topic1\"\n"
 }
 ```
 
 ```bash
-$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?partitions=3&replication=3"
+$ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/topic1?partitions=3&replication=3"
 {
   "message": "Output: Created topic \"topic1\"\n"
 }
@@ -187,7 +190,7 @@ $ curl -X POST -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v
 There is an optional `--time` parameter which may be set to either "first", "last", or a timestamp in milliseconds as [described in the Kafka documentation][15].
 
 ```bash
-$ dcos beta-kafka --name=kafka topic offsets topic1 --time=last
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic offsets topic1 --time=last
 [
   {
     "2": "334"
@@ -202,7 +205,7 @@ $ dcos beta-kafka --name=kafka topic offsets topic1 --time=last
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1/offsets?time=-1"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/topic1/offsets?time=-1"
 [
   {
     "2": "334"
@@ -219,14 +222,14 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics
 ## Alter Topic Partition Count
 
 ```
-$ dcos beta-kafka --name=kafka topic partitions topic1 2
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic partitions topic1 2
 {
   "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
 }
 ```
 
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=partitions&partitions=2"
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/topic1?operation=partitions&partitions=2"
 {
   "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
 }
@@ -235,13 +238,13 @@ $ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1
 ## Run Producer Test on Topic
 
 ```
-$ dcos beta-kafka --name=kafka topic producer_test topic1 10
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic producer_test topic1 10
 {
   "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
 }
 
 ```bash
-$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1?operation=producer-test&messages=10"
+$ curl -X PUT -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/topic1?operation=producer-test&messages=10"
 {
   "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
 }
@@ -260,14 +263,14 @@ $ kafka-producer-perf-test.sh \
 ## Delete Topic
 
 ```bash
-$ dcos beta-kafka --name=kafka topic delete topic1
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic delete topic1
 {
   "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
 }
 ```
 
 ```bash
-$ curl -X DELETE -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/topic1"
+$ curl -X DELETE -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/topic1"
 {
   "message": "Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"
 }
@@ -278,14 +281,14 @@ Note the warning in the output from the commands above. You can change the indic
 ## List Under Replicated Partitions
 
 ```bash
-$ dcos beta-kafka --name=kafka topic under_replicated_partitions
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic under_replicated_partitions
 {
   "message": ""
 }
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/under_replicated_partitions"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/under_replicated_partitions"
 {
   "message": ""
 }
@@ -294,14 +297,14 @@ $ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics
 ## List Unavailable Partitions
 
 ```bash
-$ dcos beta-kafka --name=kafka topic unavailable_partitions
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} topic unavailable_partitions
 {
   "message": ""
 }
 ```
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/kafka/v1/topics/unavailable_partitions"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/topics/unavailable_partitions"
 {
   "message": ""
 }

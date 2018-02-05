@@ -4,7 +4,7 @@ Out-of-band configuration modifications are not supported. The service's core re
 - If a task crashes, it will be restarted with the configuration known to the scheduler, not one modified out-of-band.
 - If a configuration update is initiated, all out-of-band modifications will be overwritten during the rolling update.
 
-{{ include.config_blurb }}
+{{ include.configBlurb }}
 
 ## Scaling in
 

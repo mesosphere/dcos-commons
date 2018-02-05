@@ -1,10 +1,9 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
+excerpt:
 title: Service Settings
 menuWeight: 21
-excerpt:
-
 ---
 
 # Service Name

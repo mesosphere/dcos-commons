@@ -4,9 +4,12 @@ navigationTitle:
 excerpt:
 title: API Reference
 menuWeight: 70
+
+packageName: template
+serviceName: template
 ---
 
 {% include services/api-reference.md
-    tech_name="TEMPLATE SERVICE"
-    package_name="template"
-    service_name="template" %}
+    techName="TEMPLATE SERVICE"
+    packageName=page.packageName
+    serviceName=page.serviceName %}
