@@ -240,7 +240,7 @@ public abstract class AbstractScheduler {
             this.driver = driver;
             this.reviveManager = new ReviveManager(driver);
             this.reconciler = new Reconciler(stateStore);
-            this.taskCleaner = new TaskCleaner(stateStore, new TaskKiller(driver), multithreaded);
+            this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
 
             try {
                 this.planCoordinator = initialize(driver);
@@ -270,7 +270,7 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            postRegister(masterInfo);
+            postRegister(driver, masterInfo);
 
             isInitialized.set(true);
         }
@@ -278,11 +278,12 @@ public abstract class AbstractScheduler {
         @Override
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-            postRegister(masterInfo);
+            postRegister(driver, masterInfo);
         }
 
-        private void postRegister(Protos.MasterInfo masterInfo) {
+        private void postRegister(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             restartReconciliation();
+            TaskKiller.setDriver(driver);
             if (masterInfo.hasDomain()) {
                 IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
             }
@@ -341,6 +342,7 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+                TaskKiller.update(status);
 
                 Metrics.record(status);
             } catch (Exception e) {

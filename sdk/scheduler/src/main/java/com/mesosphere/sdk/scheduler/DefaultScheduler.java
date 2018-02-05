@@ -52,7 +52,6 @@ public class DefaultScheduler extends AbstractScheduler {
     private final PlansResource plansResource;
     private final PodResource podResource;
 
-    private TaskKiller taskKiller;
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
 
@@ -133,8 +132,6 @@ public class DefaultScheduler extends AbstractScheduler {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
 
-        this.taskKiller = new TaskKiller(driver);
-
         PlanManager deploymentPlanManager =
                 DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
         PlanManager recoveryPlanManager = getRecoveryPlanManager();
@@ -148,18 +145,15 @@ public class DefaultScheduler extends AbstractScheduler {
                                 configStore.getTargetConfig(),
                                 schedulerConfig,
                                 Capabilities.getInstance().supportsDefaultExecutor()),
-                        stateStore,
-                        taskKiller);
-        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+                        stateStore);
+        killUnneededTasks(stateStore, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         healthResource.setHealthyPlanManagers(Arrays.asList(deploymentPlanManager, recoveryPlanManager));
-        podResource.setTaskKiller(taskKiller);
         return planCoordinator;
     }
 
-    private static void killUnneededTasks(
-            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
+    private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
@@ -181,7 +175,7 @@ public class DefaultScheduler extends AbstractScheduler {
             stateStore.storeTasks(Arrays.asList(taskInfo));
         }
 
-        taskIds.forEach(taskID -> taskKiller.killTask(taskID));
+        taskIds.forEach(taskID -> TaskKiller.killTask(taskID));
 
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
@@ -189,7 +183,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
                 // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
                 // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
-                taskKiller.killTask(taskInfo.getTaskId());
+                TaskKiller.killTask(taskInfo.getTaskId());
             }
         }
     }
@@ -232,7 +226,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // If decommissioning nodes, set up decommission plan:
         DecommissionPlanFactory decommissionPlanFactory =
-                new DecommissionPlanFactory(serviceSpec, stateStore, taskKiller);
+                new DecommissionPlanFactory(serviceSpec, stateStore);
         Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
         if (decommissionPlan.isPresent()) {
             // Set things up for a decommission operation.
