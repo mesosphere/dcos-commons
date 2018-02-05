@@ -4,7 +4,8 @@
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/couchdb-scheduler.zip",
-      "executor-zip": "{{artifact-dir}}/executor.zip"
+      "executor-zip": "{{artifact-dir}}/executor.zip",
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
     },
     "container": {
       "docker": {

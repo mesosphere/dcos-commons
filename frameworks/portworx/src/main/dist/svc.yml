@@ -17,7 +17,7 @@ pods:
     placement: {{NODE_PLACEMENT}}
     tasks:
       install:
-        goal: FINISHED
+        goal: FINISH
         resource-set: px-resources
         cmd: >
 
@@ -95,7 +95,7 @@ pods:
                 systemctl start portworx
 
       upgrade:
-        goal: FINISHED
+        goal: FINISH
         resource-set: px-resources
         cmd: >
              docker pull {{{PORTWORX_IMAGE_NAME}}} &&

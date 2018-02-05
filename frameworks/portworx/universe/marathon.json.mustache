@@ -4,9 +4,10 @@
   "mem": 1024,
   "user":"{{service.user}}",
   "instances": 1,
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH &&  export JAVA_OPTS=\"-Xms256M -Xmx512M\" &&  ./portworx-scheduler/bin/portworx ./portworx-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=false && ./portworx-scheduler/bin/portworx ./portworx-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
+    "DCOS_COMMONS_UNINSTALL": "true",
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "MARATHON_SINGLE_INSTANCE_APP": "true",
     "DCOS_SERVICE_NAME": "{{service.name}}",
@@ -21,7 +22,12 @@
   },
   {{/service.secret_name}}
   "env": {
-    "SERVICE_NAME": "{{service.name}}",
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "{{package-version}}",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
+    "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
+    "MESOS_API_VERSION": "{{service.mesos_api_version}}",
+
     "SERVICE_USER": "{{service.user}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
@@ -83,6 +89,7 @@
     "LIGHTHOUSE_ADMIN_PASSWORD": "{{lighthouse.admin_password}}"
   },
   "uris": [
+    "{{resource.assets.uris.bootstrap-zip}}",
     "{{resource.assets.uris.jre-tar-gz}}",
     "{{resource.assets.uris.scheduler-zip}}",
     "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
@@ -93,22 +100,13 @@
   },
   "healthChecks": [
     {
-      "protocol": "HTTP",
-      "path": "/v1/plans/deploy",
-      "gracePeriodSeconds": 30,
+      "protocol": "MESOS_HTTP",
+      "path": "/v1/health",
+      "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,
       "timeoutSeconds": 30,
-      "maxConsecutiveFailures": 3
-    },
-    {
-      "protocol": "HTTP",
-      "path": "/v1/plans/recovery",
-      "gracePeriodSeconds": 30,
-      "intervalSeconds": 30,
-      "portIndex": 0,
-      "timeoutSeconds": 30,
-      "maxConsecutiveFailures": 3
+      "maxConsecutiveFailures": 0
     }
   ],
   "portDefinitions": [
