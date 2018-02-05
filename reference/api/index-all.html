@@ -1007,7 +1007,7 @@
 <dd>
 <div class="block">Handles creation of the decommission plan, used for removing nodes from a service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#DecommissionPlanFactory-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.TaskKiller-">DecommissionPlanFactory(ServiceSpec, StateStore, TaskKiller)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#DecommissionPlanFactory-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-">DecommissionPlanFactory(ServiceSpec, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission"><span class="typeNameLink">DecommissionPlanFactory.PodKey</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/decommission/package-summary.html">com.mesosphere.sdk.scheduler.decommission</a></dt>
 <dd>
@@ -1164,7 +1164,7 @@
 <dd>
 <div class="block">Default deployment scheduler.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html#DefaultPlanScheduler-com.mesosphere.sdk.offer.OfferAccepter-com.mesosphere.sdk.offer.evaluate.OfferEvaluator-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.TaskKiller-">DefaultPlanScheduler(OfferAccepter, OfferEvaluator, StateStore, TaskKiller)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html#DefaultPlanScheduler-com.mesosphere.sdk.offer.OfferAccepter-com.mesosphere.sdk.offer.evaluate.OfferEvaluator-com.mesosphere.sdk.state.StateStore-">DefaultPlanScheduler(OfferAccepter, OfferEvaluator, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlanScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/DefaultPodInstance.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">DefaultPodInstance</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
@@ -4499,10 +4499,14 @@
 <dd>
 <div class="block">Kills any previously added tasks that are still running.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#killAllTasks--">killAllTasks()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#killTask-ExecutorDriver-Protos.TaskID-">killTask(ExecutorDriver, Protos.TaskID)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-">killTask(TaskID)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
-<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-">killTask(TaskID)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
+<dd>
+<div class="block">Calling this method will cause the referenced TaskID to be reliably killed.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#knownTasks-com.mesosphere.sdk.storage.Persister-java.lang.String...-">knownTasks(Persister, String...)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
 <div class="block">Verifies that the scheduler's list of tasks in the state store matches the provided set.</div>
@@ -6471,6 +6475,8 @@
 <dd>
 <div class="block">Sets whether the service has previously completed deployment.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#setDriver-SchedulerDriver-">setDriver(SchedulerDriver)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setEnableReplacement-boolean-">setEnableReplacement(boolean)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setEndpointProducer-java.lang.String-com.mesosphere.sdk.http.types.EndpointProducer-">setEndpointProducer(String, EndpointProducer)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></dt>
@@ -6683,10 +6689,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html#setTaskId-java.lang.String-">setTaskId(String)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/SendTaskStatus.Builder.html" title="class in com.mesosphere.sdk.testing">SendTaskStatus.Builder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller(TaskKiller)</a></span> - Method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http">PodResource</a></dt>
-<dd>
-<div class="block">Configures the <a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html#setTokenProvider-com.mesosphere.sdk.dcos.auth.TokenProvider-">setTokenProvider(TokenProvider)</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosHttpClientBuilder.html" title="class in com.mesosphere.sdk.dcos">DcosHttpClientBuilder</a></dt>
 <dd>
 <div class="block">Assigns a token provider which will produce HTTP auth tokens to be included in requests.</div>
@@ -6736,6 +6738,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#shouldLaunch--">shouldLaunch()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CustomExecutor.html#shutdown-ExecutorDriver-">shutdown(ExecutorDriver)</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CustomExecutor.html" title="class in com.mesosphere.sdk.executor">CustomExecutor</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#shutdownScheduling--">shutdownScheduling()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html#sign-byte:A-">sign(byte[])</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a></dt>
 <dd>
@@ -6796,6 +6800,8 @@
 <dd>
 <div class="block">Idempotently starts a plan.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#startScheduling--">startScheduling()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">StateResource</span></a> - Class in <a href="com/mesosphere/sdk/http/package-summary.html">com.mesosphere.sdk.http</a></dt>
 <dd>
 <div class="block">An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
@@ -7062,7 +7068,7 @@
 <dd>
 <div class="block">This class kills unexpected Tasks which are not in a terminal state.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskCleaner.html#TaskCleaner-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.TaskKiller-boolean-">TaskCleaner(StateStore, TaskKiller, boolean)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler">TaskCleaner</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskCleaner.html#TaskCleaner-com.mesosphere.sdk.state.StateStore-boolean-">TaskCleaner(StateStore, boolean)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler">TaskCleaner</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html#TaskConfig-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">TaskConfig(String, String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult.TaskConfig</a></dt>
 <dd>&nbsp;</dd>
@@ -7125,10 +7131,8 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">TaskKiller</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
-<div class="block">This class is a default implementation of the TaskKiller interface.</div>
+<div class="block">This class implements reliable task killing in conjunction with the <a href="com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskCleaner</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#TaskKiller-SchedulerDriver-">TaskKiller(SchedulerDriver)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#taskKillGracePeriodSeconds-java.lang.Integer-">taskKillGracePeriodSeconds(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>taskKillGracePeriodSeconds</code> and returns a reference to this Builder so that methods
@@ -7138,7 +7142,7 @@
 <dd>
 <div class="block">Step which issues a kill command for a given task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html#TaskKillStep-Protos.TaskID-com.mesosphere.sdk.scheduler.TaskKiller-">TaskKillStep(Protos.TaskID, TaskKiller)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TaskKillStep</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html#TaskKillStep-Protos.TaskID-">TaskKillStep(Protos.TaskID)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TaskKillStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TaskKillStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">TaskLabelReader</span></a> - Class in <a href="com/mesosphere/sdk/offer/taskdata/package-summary.html">com.mesosphere.sdk.offer.taskdata</a></dt>
 <dd>
@@ -7660,7 +7664,7 @@
 <dd>
 <div class="block">Step which marks a task as being decommissioned and kills it.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/TriggerDecommissionStep.html#TriggerDecommissionStep-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.TaskKiller-Protos.TaskInfo-">TriggerDecommissionStep(StateStore, TaskKiller, Protos.TaskInfo)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/TriggerDecommissionStep.html" title="class in com.mesosphere.sdk.scheduler.decommission">TriggerDecommissionStep</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/TriggerDecommissionStep.html#TriggerDecommissionStep-com.mesosphere.sdk.state.StateStore-Protos.TaskInfo-">TriggerDecommissionStep(StateStore, Protos.TaskInfo)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/TriggerDecommissionStep.html" title="class in com.mesosphere.sdk.scheduler.decommission">TriggerDecommissionStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TokenBucket.html#tryAcquire--">tryAcquire()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket</a></dt>
 <dd>
@@ -7815,6 +7819,8 @@
 <dd>
 <div class="block">Updates the recovery plan if necessary.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/TaskKiller.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#update-Protos.TaskStatus-">update(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>

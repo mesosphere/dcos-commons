@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -204,12 +204,6 @@ extends <a href="../../../../com/mesosphere/sdk/http/types/PrettyJsonResource.ht
 <div class="block">Restarts a pod in a normal state following a prior "pause" command.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/PodResource.html#setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">setTaskKiller</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</code>
-<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
-</td>
-</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.http.types.PrettyJsonResource">
@@ -334,21 +328,11 @@ extends <a href="../../../../com/mesosphere/sdk/http/types/PrettyJsonResource.ht
 <a name="replacePod-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>replacePod</h4>
 <pre>public&nbsp;Response&nbsp;replacePod(java.lang.String&nbsp;name)</pre>
 <div class="block">Replaces a pod instance with a new instance on a different agent.</div>
-</li>
-</ul>
-<a name="setTaskKiller-com.mesosphere.sdk.scheduler.TaskKiller-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>setTaskKiller</h4>
-<pre>public&nbsp;void&nbsp;setTaskKiller(<a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler">TaskKiller</a>&nbsp;taskKiller)</pre>
-<div class="block">Configures the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a> instance to be invoked when restart/replace operations are invoked.</div>
 </li>
 </ul>
 </li>
