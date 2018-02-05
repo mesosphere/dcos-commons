@@ -8,7 +8,6 @@ menuWeight: 40
 packageNamePretty: YOUR_SERVICE
 packageName: template
 serviceName: template
-cliPackageName: template
 ---
 
 ## Prerequisites
@@ -29,14 +28,14 @@ cliPackageName: template
 
 1. Connect a client to {{ page.packageNamePretty }}.
     ```bash
-    dcos {{ page.packageName }} endpoints
+    dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints
     [
         "_LIST_",
         "_OF_",
-        "_ENDPOINTS_
+        "_ENDPOINTS_"
     ]
 
-    dcos {{ page.packageName }} endpoints _ENDPOINT_
+    dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints _ENDPOINT_
     {
         "address": ["10.0.3.156:_PORT_", "10.0.3.84:_PORT_"],
         "dns": ["_POD_-0.{{ page.serviceName }}.mesos:_PORT_", "_POD_-1.{{ page.serviceName }}.mesos:_PORT_"]
@@ -47,4 +46,4 @@ cliPackageName: template
 
 ## See Also
 
-- [Connecting clients](https://docs.mesosphere.com/service-docs/<Template>/connecting-clients/)
+- [Connecting clients](https://docs.mesosphere.com/service-docs/{{ page.packageName }}/connecting-clients/)

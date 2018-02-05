@@ -7,7 +7,6 @@ menuWeight: 40
 
 packageName: beta-hdfs
 serviceName: hdfs
-cliPackageName: beta-hdfs --name=hdfs
 ---
 
 This tutorial will get you up and running in minutes with HDFS. You will install and configure the DC/OS HDFS package and retrieve the core-site.xml and hdfs-site.xml files. These XML files are used to configure client nodes of the HDFS cluster.
@@ -37,7 +36,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 1.  Show the currently configured HDFS nodes.
 
     ```bash
-    $ dcos {{ page.cliPackageName }} config list
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} config list
     ```
 
     The output should resemble:
@@ -130,7 +129,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `hdfs-site.xml` file.
 
         ```bash
-        $ dcos {{ page.cliPackageName }} endpoints hdfs-site.xml
+        $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints hdfs-site.xml
         ```
 
         The output should resemble:
@@ -150,7 +149,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `core-site.xml` file.
 
         ```bash
-        $ dcos {{ page.cliPackageName }} endpoints core-site.xml
+        $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints core-site.xml
         ```
 
         The output should resemble:

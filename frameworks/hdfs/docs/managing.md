@@ -11,8 +11,7 @@ menuWeight: 60
     taskType="node"
     techName="HDFS"
     packageName="beta-hdfs"
-    serviceName="hdfs"
-    cliPackageName="beta-hdfs --name=hdfs" %}
+    serviceName="hdfs" %}
 
 # Replacing Journal Nodes
 
