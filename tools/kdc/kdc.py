@@ -46,6 +46,12 @@ $ PYTHONPATH=testing ./tools/kdc/kdc.py
 will perform the following actions:
 1. Remove the KDC Marathoin application named `kdc`
 2. Remove the DC/OS secret `__dcos_base64___keytab`
+
+
+Note: The KDC this tool launches uses the following encryption key types:
+- aes256-cts-hmac-sha1-96
+- des3-cbc-sha1
+- arcfour-hmac-md5
 """
 import argparse
 import logging
