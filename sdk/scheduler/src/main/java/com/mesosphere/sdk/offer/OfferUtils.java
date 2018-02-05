@@ -67,8 +67,7 @@ public class OfferUtils {
     private static void declineOffers(Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
         Optional<SchedulerDriver> driver = Driver.getDriver();
         if (!driver.isPresent()) {
-            LOGGER.error("No driver present for declining offers.  This should never happen.");
-            return;
+            throw new IllegalStateException("No driver present for declining offers.  This should never happen.");
         }
 
         Collection<Protos.OfferID> offerIds = unusedOffers.stream()

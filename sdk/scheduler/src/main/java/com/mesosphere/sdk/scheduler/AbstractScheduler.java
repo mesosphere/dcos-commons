@@ -238,7 +238,7 @@ public abstract class AbstractScheduler {
             Driver.setDriver(driver);
 
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
-            this.reviveManager = new ReviveManager(driver);
+            this.reviveManager = new ReviveManager();
             this.reconciler = new Reconciler(stateStore);
             this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
 

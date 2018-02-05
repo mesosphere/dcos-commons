@@ -110,18 +110,6 @@ public final class TaskKiller {
         }
     }
 
-    @VisibleForTesting
-    static void killAllTasks() {
-        Set<TaskID> copy;
-        synchronized (lock) {
-            copy = new HashSet<>(tasksToKill);
-        }
-
-        for (TaskID taskId : copy) {
-            killTaskInternal(taskId);
-        }
-    }
-
     private static void killTaskInternal(TaskID taskId) {
         Optional<SchedulerDriver> driver = Driver.getDriver();
 

@@ -91,8 +91,7 @@ public class Reconciler {
 
         Optional<SchedulerDriver> driver = Driver.getDriver();
         if (!driver.isPresent()) {
-            LOGGER.error("No driver present for reconciliation.  This should never happen.");
-            return;
+            throw new IllegalStateException("No driver present for reconciliation.  This should never happen.");
         }
 
         /**

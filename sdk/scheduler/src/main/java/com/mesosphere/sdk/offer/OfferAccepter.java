@@ -44,8 +44,7 @@ public class OfferAccepter {
 
         Optional<SchedulerDriver> driver = Driver.getDriver();
         if (!driver.isPresent()) {
-            LOGGER.error("No driver present for accepting offers.  This should never happen.");
-            return Collections.emptyList();
+            throw new IllegalStateException("No driver present for accepting offers.  This should never happen.");
         }
 
         List<OfferID> offerIds = getOfferIds(recommendations);
