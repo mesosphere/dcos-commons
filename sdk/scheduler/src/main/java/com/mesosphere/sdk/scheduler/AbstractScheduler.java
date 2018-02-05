@@ -6,7 +6,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.queue.OfferQueue;
-import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
@@ -240,7 +239,7 @@ public abstract class AbstractScheduler {
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
             this.driver = driver;
             this.reviveManager = new ReviveManager(driver);
-            this.reconciler = new DefaultReconciler(stateStore);
+            this.reconciler = new Reconciler(stateStore);
             this.taskCleaner = new TaskCleaner(stateStore, new TaskKiller(driver), multithreaded);
 
             try {

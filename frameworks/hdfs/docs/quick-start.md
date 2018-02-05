@@ -1,18 +1,21 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
-title: Quickstart
+title: Quick Start
 menuWeight: 40
 
+package_name: beta-hdfs
+service_name: hdfs
+cli_package_name: beta-hdfs --name=hdfs
 ---
 
 This tutorial will get you up and running in minutes with HDFS. You will install and configure the DC/OS HDFS package and retrieve the core-site.xml and hdfs-site.xml files. These XML files are used to configure client nodes of the HDFS cluster.
 
-**Prerequisites:**
+## Prerequisites
 
--  [DC/OS and DC/OS CLI installed](https://docs.mesosphere.com/1.9/installing/) with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.
--  Depending on your [security mode](https://docs.mesosphere.com/1.9/overview/security/security-modes/), HDFS requires a service authentication token for access to DC/OS. For more information, see [Configuring DC/OS Access for HDFS](https://docs.mesosphere.com/services/hdfs/hdfs-auth/).
+-  [DC/OS and DC/OS CLI installed](https://docs.mesosphere.com/latest/installing/) with a minimum of five private agent nodes, each with at least two CPU shares and eight GB of RAM available to the HDFS service.
+-  Depending on your [security mode](https://docs.mesosphere.com/latest/overview/security/security-modes/), HDFS requires a service authentication token for access to DC/OS. For more information, see [Configuring DC/OS Access for HDFS](https://docs.mesosphere.com/services/hdfs/hdfs-auth/).
 
    | Security mode | Service Account |
    |---------------|-----------------------|
@@ -20,19 +23,21 @@ This tutorial will get you up and running in minutes with HDFS. You will install
    | Permissive    | Optional   |
    | Strict        | Required |
 
+## Steps
+
 1.  Install the HDFS package.
 
     ```bash
-    $ dcos package install beta-hdfs
+    $ dcos package install {{ page.package_name }}
     ```
 
-    **Tip:** Type `dcos beta-hdfs` to view the HDFS CLI options.
+    **Tip:** Type `dcos {{ page.package_name }}` to view the HDFS CLI options.
 
 
 1.  Show the currently configured HDFS nodes.
 
     ```bash
-    $ dcos beta-hdfs --name=hdfs config list
+    $ dcos {{ page.cli_package_name }} config list
     ```
 
     The output should resemble:
@@ -45,7 +50,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
 
 1.  Configure HDFS on your nodes.
 
-1.  [SSH](https://docs.mesosphere.com/1.9/administering-clusters/sshcluster/) to the leading master node.
+1.  [SSH](https://docs.mesosphere.com/latest/administering-clusters/sshcluster/) to the leading master node.
 
     ```bash
     $ dcos node ssh --leader --master-proxy
@@ -75,7 +80,7 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     Status: Downloaded newer image for mesosphere/hdfs-client:2.6.4
     ```
 
-    By default, the client is configured to be configured to connect to an HDFS service named `hdfs` and no further client configuration is required. If you want to configure with a different name, run this command with name (`<hdfs-name>`) specified:
+    By default, the client is configured to be configured to connect to an HDFS service named `{{ page.service_name }}` and no further client configuration is required. If you want to configure with a different name, run this command with name (`<hdfs-name>`) specified:
 
     ```bash
     $ HDFS_SERVICE_NAME=<hdfs-name> ./configure-hdfs.sh
@@ -125,12 +130,12 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `hdfs-site.xml` file.
 
         ```bash
-        $ dcos beta-hdfs --name=hdfs endpoints hdfs-site.xml
+        $ dcos {{ page.cli_package_name }} endpoints hdfs-site.xml
         ```
 
         The output should resemble:
 
-        ```
+        ```xml
         <?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <?xml-stylesheet type="text/xsl" href="configuration.xsl"?><configuration>
         <property>
@@ -145,18 +150,18 @@ This tutorial will get you up and running in minutes with HDFS. You will install
     1.  Run this command to retrieve the `core-site.xml` file.
 
         ```bash
-        $ dcos beta-hdfs --name=hdfs endpoints core-site.xml
+        $ dcos {{ page.cli_package_name }} endpoints core-site.xml
         ```
 
         The output should resemble:
 
-        ```
+        ```xml
         <?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
         <configuration>
             <property>
-                <name>dfs.nameservice.id</name>
-                <value>hdfs</value>
+                <name>fs.defaultFS</name>
+                <value>hdfs://hdfs</value>
             </property>
             ...
 

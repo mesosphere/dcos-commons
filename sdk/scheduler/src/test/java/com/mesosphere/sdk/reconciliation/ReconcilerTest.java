@@ -19,9 +19,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Tests for {@link DefaultReconciler}.
+ * Tests for {@link Reconciler}.
  */
-public class DefaultReconcilerTest {
+public class ReconcilerTest {
 
     private static final Protos.TaskStatus TASK_STATUS_1 = Protos.TaskStatus.newBuilder()
             .setTaskId(Protos.TaskID.newBuilder().setValue("task-1").build())
@@ -219,9 +219,9 @@ public class DefaultReconcilerTest {
     }
 
     /**
-     * A DefaultReconciler with adjustable 'now'
+     * A Reconciler with adjustable 'now'
      */
-    private static class TestReconciler extends DefaultReconciler {
+    private static class TestReconciler extends Reconciler {
         private long nowMs;
 
         private TestReconciler(StateStore store, long nowMs) {

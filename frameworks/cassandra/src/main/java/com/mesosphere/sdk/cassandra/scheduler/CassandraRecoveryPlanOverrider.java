@@ -2,7 +2,7 @@ package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
@@ -99,7 +99,7 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
 
-        Step replaceStep = new DefaultRecoveryStep(
+        Step replaceStep = new RecoveryStep(
                 inputLaunchStep.getName(),
                 replacePodInstanceRequirement,
                 new UnconstrainedLaunchConstrainer(),
@@ -125,7 +125,7 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
                                         .recoveryType(RecoveryType.TRANSIENT)
                                         .build();
 
-                        return new DefaultRecoveryStep(
+                        return new RecoveryStep(
                                 step.getName(),
                                 restartPodInstanceRequirement,
                                 new UnconstrainedLaunchConstrainer(),

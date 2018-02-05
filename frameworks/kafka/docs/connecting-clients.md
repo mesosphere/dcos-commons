@@ -1,15 +1,14 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
-
 ---
 
 # Supported Client Libraries
 
-- The official Kafka Java library, i.e., `org.apache.kafka.clients.consumer.KafkaConsumer` and `org.apache.kafka.clients.producer.KafkaProducer`. 
+- The official Kafka Java library, i.e., `org.apache.kafka.clients.consumer.KafkaConsumer` and `org.apache.kafka.clients.producer.KafkaProducer`.
 
 Through Confluent:
 - Go
