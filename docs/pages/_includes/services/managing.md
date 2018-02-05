@@ -85,7 +85,7 @@ $ less marathon.json.mustache
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
 ```bash
-$ dcos {{ include.cliPackageName }} update start --options=options.json
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update start --options=options.json
 ```
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
@@ -137,7 +137,7 @@ $ dcos package install {{ include.packageName }} -—options=options.json
 Comprehensive information is available about every pod.  To list all pods:
 
 ```bash
-dcos {{ include.cliPackageName }} pod list
+dcos {{ include.packageName }} --name={{ include.serviceName }} pod list
 [
   "{{ include.podType }}-0",
   "{{ include.podType }}-1",
@@ -147,12 +147,12 @@ dcos {{ include.cliPackageName }} pod list
 
 To view information about a pod, run the following command from the CLI.
 ```bash
-$ dcos {{ include.cliPackageName }} pod info <{{ include.podType }}-id>
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod info <{{ include.podType }}-id>
 ```
 
 For example:
 ```bash
-$ dcos {{ include.cliPackageName }} pod info {{ include.podType }}-0
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod info {{ include.podType }}-0
 {
   ... lots of JSON ...
 }
@@ -162,13 +162,13 @@ $ dcos {{ include.cliPackageName }} pod info {{ include.podType }}-0
 Similarly, the status for any pod may also be queried.
 
 ```bash
-$ dcos {{ include.cliPackageName }} pod status <{{ include.podType }}-id>
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status <{{ include.podType }}-id>
 ```
 
 For example:
 
 ```bash
-$ dcos {{ include.cliPackageName }} pod status {{ include.podType }}-1
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status {{ include.podType }}-1
 [
   {
     "name": "{{ include.podType }}-1-{{ include.taskType}}",
@@ -192,7 +192,7 @@ After the pod has been paused, it may be started again, at which point it will b
 Here is an example session where a `{{ include.podType }}-1` pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the `{{ include.podType }}-1` pod, then uses `task exec` to repair the pod. Following this, the operator starts the pod and it resumes normal operation:
 
 ```bash
-$ dcos {{ include.cliPackageName }} debug pod pause {{ include.podType }}-1
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} debug pod pause {{ include.podType }}-1
 {
   "pod": "{{ include.podType }}-1",
   "tasks": [
@@ -200,7 +200,7 @@ $ dcos {{ include.cliPackageName }} debug pod pause {{ include.podType }}-1
   ]
 }
 
-$ dcos {{ include.cliPackageName }} pod status
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status
 {{ include.serviceName }}
 └─ {{ include.podType }}
    ├─ {{ include.podType }}-0
@@ -213,7 +213,7 @@ $ dcos {{ include.cliPackageName }} pod status
 $ dcos task exec --interactive --tty {{ include.podType }}-1-{{ include.taskType }} /bin/bash
 {{ include.podType }}-1-node$ ./repair-{{ include.podType }} && exit
 
-$ dcos {{ include.cliPackageName }} debug pod resume {{ include.podType }}-1
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} debug pod resume {{ include.podType }}-1
 {
   "pod": "{{ include.podType }}-1",
   "tasks": [
@@ -221,7 +221,7 @@ $ dcos {{ include.cliPackageName }} debug pod resume {{ include.podType }}-1
   ]
 }
 
-$ dcos {{ include.cliPackageName }} pod status
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status
 {{ include.serviceName }}
 └─ {{ include.podType }}
    ├─ {{ include.podType }}-0
@@ -232,7 +232,7 @@ $ dcos {{ include.cliPackageName }} pod status
 ... repeat "pod status" until {{ include.podType }}-1 is RUNNING ...
 ```
 
-In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos {{ include.cliPackageName }} debug pod pause {{ include.podType }}-1 -t {{ include.taskType }}` will pause only the `{{ include.taskType }}` task within the `{{ include.podType }}-1` pod.
+In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos {{ include.packageName }} --name={{ include.serviceName }} debug pod pause {{ include.podType }}-1 -t {{ include.taskType }}` will pause only the `{{ include.taskType }}` task within the `{{ include.podType }}-1` pod.
 
 # Upgrading Service Version
 
@@ -246,7 +246,7 @@ The `update package-versions` command allows you to view the versions of a servi
 
 For example, run:
 ```bash
-$ dcos {{ include.cliPackageName }} update package-versions
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update package-versions
 ```
 
 ## Upgrading or downgrading a service
@@ -258,13 +258,13 @@ $ dcos {{ include.cliPackageName }} update package-versions
    ```
 1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS {{ include.techName }} Service to version `1.1.6-5.0.7`:
    ```bash
-   $ dcos {{ include.cliPackageName }} update start --package-version="1.1.6-5.0.7"
+   $ dcos {{ include.packageName }} --name={{ include.serviceName }} update start --package-version="1.1.6-5.0.7"
    ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 
 ```bash
-$ dcos {{ include.cliPackageName }} update start --options=options.json --package-version="1.1.6-5.0.7"
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update start --options=options.json --package-version="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
@@ -284,7 +284,7 @@ Once the Scheduler has been restarted, it will begin a new deployment plan as in
 You can query the status of the update as follows:
 
 ```bash
-$ dcos {{ include.cliPackageName }} update status
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update status
 ```
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
@@ -294,7 +294,7 @@ If the Scheduler is still restarting, DC/OS will not be able to route to it and 
 To pause an ongoing update, issue a pause command:
 
 ```bash
-$ dcos {{ include.cliPackageName }} update pause
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update pause
 ```
 
 You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
@@ -304,7 +304,7 @@ You will receive an error message if the plan has already completed or has been 
 If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
 
 ```bash
-$ dcos {{ include.cliPackageName }} update resume
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update resume
 ```
 
 You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
@@ -314,7 +314,7 @@ You will receive an error message if you attempt to `resume` a plan that is alre
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
 ```bash
-$ dcos {{ include.cliPackageName }} update force-complete service-phase {{ include.podType }}-0:[task]
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-complete service-phase {{ include.podType }}-0:[task]
 ```
 
 ## Force Restart
@@ -323,17 +323,17 @@ Similar to force complete, you can also force a restart. This can either be done
 
 To restart the entire plan:
 ```bash
-$ dcos {{ include.cliPackageName }} update force-restart
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-restart
 ```
 
 Or for all steps in a single phase:
 ```bash
-$ dcos {{ include.cliPackageName }} update force-restart service-phase
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-restart service-phase
 ```
 
 Or for a specific step within a specific phase:
 ```bash
-$ dcos {{ include.cliPackageName }} update force-restart service-phase {{ include.podType }}-0:[task]
+$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-restart service-phase {{ include.podType }}-0:[task]
 ```
 
 <!-- END DUPLICATE BLOCK -->

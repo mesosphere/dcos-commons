@@ -1,9 +1,9 @@
 ---
 layout: layout.pug
 navigationTitle:
+excerpt:
 title: Overview
 menuWeight: 10
-excerpt:
 ---
 
 DC/OS Elastic Service is an automated service that makes it easy to deploy and manage Elastic on Mesosphere DC/OS, eliminating nearly all of the complexity traditionally associated with managing an Elasticsearch cluster. Elasticsearch is a distributed, multitenant-capable, full-text search engine with an HTTP web interface and schema-free JSON documents. Elasticsearch clusters are highly available, fault tolerant, and durable. For more information on Elasticsearch, visit the [Elastic](https://www.elastic.co/) site. Multiple Elasticsearch clusters can be installed on DC/OS and managed independently, so you can offer Elasticsearch as a managed service to your organization with or without the commercial X-Pack capabilities.

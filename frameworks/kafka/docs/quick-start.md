@@ -7,7 +7,6 @@ menuWeight: 40
 
 packageName: beta-kafka
 serviceName: kafka
-cliPackageName: beta-kafka --name=kafka
 ---
 
 ## Prerequisites
@@ -29,17 +28,17 @@ cliPackageName: beta-kafka --name=kafka
 1. Create a new topic.
 
     ```bash
-    $ dcos {{ page.cliPackageName }} topic create topic1
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} topic create topic1
     ```
 
 
 1. Find Zookeeper and broker endpoint information.
 
     ```bash
-    $ dcos {{ page.cliPackageName }} endpoints zookeeper
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints zookeeper
     master.mesos:2181/dcos-service-{{ page.serviceName }}
 
-    $ dcos {{ page.cliPackageName }} endpoints broker
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
     {
       "address": [
         "10.0.3.226:1000",

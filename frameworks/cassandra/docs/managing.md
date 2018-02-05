@@ -11,8 +11,7 @@ menuWeight: 60
     taskType="server"
     techName="Apache Cassandra"
     packageName="beta-cassandra"
-    serviceName="cassandra"
-    cliPackageName="beta-cassandra --name=cassandra" %}
+    serviceName="cassandra" %}
 
 ## Performing Cassandra Cleanup and Repair Operations
 

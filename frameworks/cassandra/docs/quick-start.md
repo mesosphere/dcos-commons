@@ -28,12 +28,12 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
 1. Connect a client to the DC/OS Apache Cassandra service.
 
     ```bash
-    $ dcos {{ page.cliPackageName }} endpoints
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints
     [
       "native-client"
     ]
 
-    $ dcos {{ page.cliPackageName }} endpoints native-client
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints native-client
     {
       "address": [
         "10.0.1.125:9042",

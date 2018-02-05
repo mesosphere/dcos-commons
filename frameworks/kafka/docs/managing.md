@@ -11,8 +11,7 @@ menuWeight: 60
     taskType="broker"
     techName="Apache Kafka"
     packageName="beta-kafka"
-    serviceName="kafka"
-    cliPackageName="beta-kafka --name=kafka" %}
+    serviceName="kafka" %}
 
 # Graceful Shutdown
 

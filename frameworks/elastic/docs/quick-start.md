@@ -7,7 +7,6 @@ menuWeight: 40
 
 packageName: beta-elastic
 serviceName: elastic
-cliPackageName: beta-elastic --name=elastic
 ---
 
 ## Steps
@@ -18,13 +17,13 @@ cliPackageName: beta-elastic --name=elastic
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
 
     ```bash
-    $ dcos {{ page.cliPackageName }} plan show deploy
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} plan show deploy
     ```
 
 1. Retrieve client endpoint information by running the `endpoints` command:
 
     ```bash
-    $ dcos {{ page.cliPackageName }} endpoints coordinator-http
+    $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints coordinator-http
     {
         "vip": "coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200",
         "address": [

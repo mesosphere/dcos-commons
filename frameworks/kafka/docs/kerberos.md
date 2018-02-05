@@ -4,7 +4,6 @@ navigationTitle:
 excerpt:
 title: Kerberos
 menuWeight: 22
-
 ---
 
 # Setting up Apache Kafka with Kerberos

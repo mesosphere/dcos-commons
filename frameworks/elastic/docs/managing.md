@@ -11,8 +11,7 @@ menuWeight: 60
     taskType="node"
     techName="Elastic"
     packageName="beta-elastic"
-    serviceName="elastic"
-    cliPackageName="beta-elastic --name=elastic" %}
+    serviceName="elastic" %}
 
 # Add a Data/Ingest/Coordinator Node
 
