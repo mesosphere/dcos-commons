@@ -528,11 +528,11 @@
 
 <h2 id="connection-info-using-the-dcos-cli">Connection Info Using the DC/OS CLI</h2>
 
-<p>Executed the following command from the DC/OS CLI to retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> file that client applications can use to connect to the cluster.</p>
+<p>Execute the following command from the DC/OS CLI to retrieve the <code class="highlighter-rouge">hdfs-site.xml</code> file that client applications can use to connect to the HDFS instance, in this case named “hdfs”.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; endpoints hdfs-site.xml
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs endpoints hdfs-site.xml
 ...
-<span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>&lt;service-name&gt; endpoints core-site.xml
+<span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs endpoints core-site.xml
 ...
 </code></pre></div></div>
 

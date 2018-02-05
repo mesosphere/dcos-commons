@@ -560,7 +560,7 @@
 
 <p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service, including any default values that were applied during installation. For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos  describe <span class="o">&gt;</span> options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template describe <span class="o">&gt;</span> options.json
 </code></pre></div></div>
 
 <p>Make any configuration changes to this <code class="highlighter-rouge">options.json</code> file.</p>
@@ -613,7 +613,7 @@
 
 <p>Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated <code class="highlighter-rouge">options.json</code> file:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update start <span class="nt">--options</span><span class="o">=</span>options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update start <span class="nt">--options</span><span class="o">=</span>options.json
 </code></pre></div></div>
 
 <p>You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.</p>
@@ -671,7 +671,7 @@
 
 <p>Comprehensive information is available about every pod.  To list all pods:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos template pod list
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos template <span class="nt">--name</span><span class="o">=</span>template pod list
 <span class="o">[</span>
   <span class="s2">"template-0"</span>,
   <span class="s2">"template-1"</span>,
@@ -680,11 +680,11 @@
 </code></pre></div></div>
 
 <p>To view information about a pod, run the following command from the CLI.</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template pod info &lt;template-id&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod info &lt;template-id&gt;
 </code></pre></div></div>
 
 <p>For example:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template pod info template-0
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod info template-0
 <span class="o">{</span>
   ... lots of JSON ...
 <span class="o">}</span>
@@ -693,12 +693,12 @@
 <h1 id="pod-status">Pod Status</h1>
 <p>Similarly, the status for any pod may also be queried.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template pod status &lt;template-id&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod status &lt;template-id&gt;
 </code></pre></div></div>
 
 <p>For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template pod status template-1
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod status template-1
 <span class="o">[</span>
   <span class="o">{</span>
     <span class="s2">"name"</span>: <span class="s2">"template-1-node"</span>,
@@ -723,7 +723,7 @@ Being able to put the pod in an offline but accessible state makes it easier to 
 
 <p>Here is an example session where a <code class="highlighter-rouge">template-1</code> pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the <code class="highlighter-rouge">template-1</code> pod, then uses <code class="highlighter-rouge">task exec</code> to repair the pod. Following this, the operator starts the pod and it resumes normal operation:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template debug pod pause template-1
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template debug pod pause template-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"template-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -731,7 +731,7 @@ Being able to put the pod in an offline but accessible state makes it easier to 
   <span class="o">]</span>
 <span class="o">}</span>
 
-<span class="nv">$ </span>dcos template pod status
+<span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod status
 template
 └─ template
    ├─ template-0
@@ -744,7 +744,7 @@ template
 <span class="nv">$ </span>dcos task <span class="nb">exec</span> <span class="nt">--interactive</span> <span class="nt">--tty</span> template-1-node /bin/bash
 template-1-node<span class="nv">$ </span>./repair-template <span class="o">&amp;&amp;</span> <span class="nb">exit</span>
 
-<span class="nv">$ </span>dcos template debug pod resume template-1
+<span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template debug pod resume template-1
 <span class="o">{</span>
   <span class="s2">"pod"</span>: <span class="s2">"template-1"</span>,
   <span class="s2">"tasks"</span>: <span class="o">[</span>
@@ -752,7 +752,7 @@ template-1-node<span class="nv">$ </span>./repair-template <span class="o">&amp;
   <span class="o">]</span>
 <span class="o">}</span>
 
-<span class="nv">$ </span>dcos template pod status
+<span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template pod status
 template
 └─ template
    ├─ template-0
@@ -763,7 +763,7 @@ template
 ... repeat <span class="s2">"pod status"</span> <span class="k">until </span>template-1 is RUNNING ...
 </code></pre></div></div>
 
-<p>In the above example, all tasks in the pod were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos template debug pod pause template-1 -t node</code> will pause only the <code class="highlighter-rouge">node</code> task within the <code class="highlighter-rouge">template-1</code> pod.</p>
+<p>In the above example, all tasks in the pod were being paused and started, but it’s worth noting that the commands also support pausing and starting individual tasks within a pod. For example, <code class="highlighter-rouge">dcos template --name=template debug pod pause template-1 -t node</code> will pause only the <code class="highlighter-rouge">node</code> task within the <code class="highlighter-rouge">template-1</code> pod.</p>
 
 <h1 id="upgrading-service-version">Upgrading Service Version</h1>
 
@@ -776,7 +776,7 @@ template
 <p>The <code class="highlighter-rouge">update package-versions</code> command allows you to view the versions of a service that you can upgrade or downgrade to. These are specified by the service maintainer and depend on the semantics of the service (i.e. whether or not upgrades are reversal).</p>
 
 <p>For example, run:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update package-versions
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update package-versions
 </code></pre></div></div>
 
 <h2 id="upgrading-or-downgrading-a-service">Upgrading or downgrading a service</h2>
@@ -788,14 +788,14 @@ template
 </code></pre></div>    </div>
   </li>
   <li>Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS TEMPLATE_SERVICE Service to version <code class="highlighter-rouge">1.1.6-5.0.7</code>:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update start <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update start <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre></div>    </div>
   </li>
 </ol>
 
 <p>If you are missing mandatory configuration parameters, the <code class="highlighter-rouge">update</code> command will return an error. To supply missing values, you can also provide an <code class="highlighter-rouge">options.json</code> file (see <a href="#updating-configuration">Updating configuration</a>):</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update start <span class="nt">--options</span><span class="o">=</span>options.json <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update start <span class="nt">--options</span><span class="o">=</span>options.json <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre></div></div>
 
 <p>See <a href="#advanced-update-actions">Advanced update actions</a> for commands you can use to inspect and manipulate an update after it has started.</p>
@@ -814,7 +814,7 @@ template
 
 <p>You can query the status of the update as follows:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update status
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update status
 </code></pre></div></div>
 
 <p>If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.</p>
@@ -823,7 +823,7 @@ template
 
 <p>To pause an ongoing update, issue a pause command:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update pause
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update pause
 </code></pre></div></div>
 
 <p>You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the <code class="highlighter-rouge">WAITING</code> state.</p>
@@ -832,7 +832,7 @@ template
 
 <p>If a plan is in a <code class="highlighter-rouge">WAITING</code> state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the <code class="highlighter-rouge">resume</code> command to continue the plan:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update resume
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update resume
 </code></pre></div></div>
 
 <p>You will receive an error message if you attempt to <code class="highlighter-rouge">resume</code> a plan that is already in progress or has already completed.</p>
@@ -841,7 +841,7 @@ template
 
 <p>In order to manually “complete” a step (such that the Scheduler stops attempting to launch a task), you can issue a <code class="highlighter-rouge">force-complete</code> command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update force-complete service-phase template-0:[task]
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update force-complete service-phase template-0:[task]
 </code></pre></div></div>
 
 <h2 id="force-restart">Force Restart</h2>
@@ -849,15 +849,15 @@ template
 <p>Similar to force complete, you can also force a restart. This can either be done for an entire plan, a phase, or just for a specific step.</p>
 
 <p>To restart the entire plan:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update force-restart
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update force-restart
 </code></pre></div></div>
 
 <p>Or for all steps in a single phase:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update force-restart service-phase
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update force-restart service-phase
 </code></pre></div></div>
 
 <p>Or for a specific step within a specific phase:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template update force-restart service-phase template-0:[task]
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update force-restart service-phase template-0:[task]
 </code></pre></div></div>
 
 <!-- END DUPLICATE BLOCK -->

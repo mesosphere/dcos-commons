@@ -709,7 +709,7 @@
 
 <h1 id="connection-information">Connection Information</h1>
 
-<p>The HDFS service exposes contents of <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> for use by clients. Those contents may be requested as follows:</p>
+<p>The HDFS service exposes contents of <code class="highlighter-rouge">hdfs-site.xml</code> and <code class="highlighter-rouge">core-site.xml</code> for use by clients. Those contents may be requested as follows (assuming your service is named “hdfs”):</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> dcos_url/service/hdfs/v1/endpoints/hdfs-site.xml
 </code></pre></div></div>

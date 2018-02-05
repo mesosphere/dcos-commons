@@ -547,7 +547,7 @@ AWS_ACCESS_KEY_ID=&lt;my_access_key_id&gt;
 AWS_SECRET_ACCESS_KEY=&lt;my_secret_access_key&gt;
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start backup-s3 \
+dcos beta-cassandra --name=cassandra plan start backup-s3 \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
     -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
@@ -561,7 +561,7 @@ dcos cassandra plan start backup-s3 \
 <p><strong>IMPORTANT</strong>: To ensure that sensitive information, such as your AWS secret access key, remains secure, make sure that you’ve set the <code class="highlighter-rouge">core.dcos_url</code> configuration property in the DC/OS CLI to an HTTPS URL.</p>
 
 <p>To view the status of this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status backup-s3
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan status backup-s3
 backup-s3 (IN_PROGRESS)
 ├─ backup-schema (COMPLETE)
 │  ├─ node-0:[backup-schema] (COMPLETE)
@@ -599,7 +599,7 @@ backup-s3 (IN_PROGRESS)
 </ul>
 
 <p>You can initiate this plan from the command line in the same way as the Amazon S3 backup plan:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan start backup-azure \
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan start backup-azure \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
     -p CLIENT_ID=$CLIENT_ID \
@@ -611,7 +611,7 @@ backup-s3 (IN_PROGRESS)
 </code></pre></div></div>
 
 <p>To view the status of this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status backup-azure
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan status backup-azure
 backup-azure (IN_PROGRESS)
 ├─ backup-schema (COMPLETE)
 │  ├─ node-0:[backup-schema] (COMPLETE)
@@ -655,7 +655,7 @@ AWS_ACCESS_KEY_ID=&lt;my_access_key_id&gt;
 AWS_SECRET_ACCESS_KEY=&lt;my_secret_access_key&gt;
 AWS_REGION=us-west-2
 S3_BUCKET_NAME=backups
-dcos cassandra plan start restore-s3 \
+dcos beta-cassandra --name=cassandra plan start restore-s3 \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p "CASSANDRA_KEYSPACES=$CASSANDRA_KEYSPACES" \
     -p AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
@@ -665,7 +665,7 @@ dcos cassandra plan start restore-s3 \
 </code></pre></div></div>
 
 <p>To view the status of this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status restore-s3
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan status restore-s3
 restore-s3 (IN_PROGRESS)
 ├─ fetch-s3 (COMPLETE)
 │  ├─ node-0:[fetch-s3] (COMPLETE)
@@ -698,7 +698,7 @@ restore-s3 (IN_PROGRESS)
 </ul>
 
 <p>You can initiate this plan from the command line in the same way as the Amazon S3 restore plan:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan start restore-azure \
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan start restore-azure \
     -p SNAPSHOT_NAME=$SNAPSHOT_NAME \
     -p CLIENT_ID=$CLIENT_ID \
     -p TENANT_ID=$TENANT_ID \
@@ -709,7 +709,7 @@ restore-s3 (IN_PROGRESS)
 </code></pre></div></div>
 
 <p>To view the status of this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status restore-azure
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan status restore-azure
 restore-azure (IN_PROGRESS)
 ├─ fetch-azure (COMPLETE)
 │  ├─ node-0:[fetch-azure] (COMPLETE)

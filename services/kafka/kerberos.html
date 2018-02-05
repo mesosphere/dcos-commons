@@ -563,7 +563,7 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 <p>Note the specification of the secret name as created in the previous step.</p>
 
 <p>The kerberized Apache Kafka service is then deployed by running:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>kafka <span class="nt">--options</span><span class="o">=</span>kerberos-options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>kerberos-options.json
 </code></pre></div></div>
 
 <h2 id="deploy-with-kerberized-zookeeper">Deploy with kerberized ZooKeeper</h2>
@@ -571,7 +571,7 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 <p>If a kerberized <code class="highlighter-rouge">kafka-zookeeper</code> ensemble is available for use with this Apache Kafka cluster, the authentication between Kafka and ZooKeeper can also be secured using Kerberos.</p>
 
 <p>In order to determine the endpoints for the ZooKeeper ensemble, the following command can be used:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos kafka-zookeeper endpoint clientport
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos kafka-zookeeper <span class="nt">--name</span><span class="o">=</span>kafka-zookeeper endpoint clientport
 </code></pre></div></div>
 <p>resulting in output resembling:</p>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
@@ -613,7 +613,7 @@ kafka/kafka-2-broker.kafka.autoip.dcos.thisdcos.directory@LOCAL
 <p>Note that <code class="highlighter-rouge">service.security.kerberos.enabled_for_zookeeper</code> is now set to true and that <code class="highlighter-rouge">kafka.kafka_zookeeper_uri</code> is set to the <code class="highlighter-rouge">"dns"</code> output of the <code class="highlighter-rouge">dcos kafka-zookeeper endpoint clientport</code> command.</p>
 
 <p>Kerberized Kafka can then be deployed as follows:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>kafka <span class="nt">--options</span><span class="o">=</span>kerberos-zookeeper-options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>kerberos-zookeeper-options.json
 </code></pre></div></div>
 
 <h2 id="active-directory">Active Directory</h2>

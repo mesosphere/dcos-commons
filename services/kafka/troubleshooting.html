@@ -595,7 +595,7 @@
 
 <h2 id="partition-replication">Partition replication</h2>
 
-<p>Kafka may become unhealthy when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the <code class="highlighter-rouge">dcos beta-kafka topic under_replicated_partitions</code> and <code class="highlighter-rouge">dcos beta-kafka topic describe &lt;topic-name&gt;</code> commands to find the problem broker and determine what actions are required.</p>
+<p>Kafka may become unhealthy when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the <code class="highlighter-rouge">dcos beta-kafka --name=kafka topic under_replicated_partitions</code> and <code class="highlighter-rouge">dcos beta-kafka --name=kafka topic describe &lt;topic-name&gt;</code> commands to find the problem broker and determine what actions are required.</p>
 
 <p>Possible repair actions include <a href="#restarting-a-node">restarting the affected broker</a> and <a href="#replacing-a-permanently-failed-node">destructively replacing the affected broker</a>. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.</p>
 

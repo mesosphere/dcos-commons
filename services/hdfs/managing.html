@@ -560,7 +560,7 @@
 
 <p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service, including any default values that were applied during installation. For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos  describe <span class="o">&gt;</span> options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs describe <span class="o">&gt;</span> options.json
 </code></pre></div></div>
 
 <p>Make any configuration changes to this <code class="highlighter-rouge">options.json</code> file.</p>
@@ -870,7 +870,7 @@ refer to the unhealthy Journal Node as it’s the replaced Journal Node.</p>
 <h2 id="replace-command">Replace Command</h2>
 
 <p>Replace the Journal Node via:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs pod replace journal-0
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs pod replace journal-0
 </code></pre></div></div>
 
 <h2 id="detecting-an-unhealthy-journal-node-after-replace">Detecting an unhealthy Journal Node after <code class="highlighter-rouge">replace</code></h2>
@@ -915,7 +915,7 @@ refer to the unhealthy Journal Node as it’s the replaced Journal Node.</p>
 <code class="highlighter-rouge">journal-data/hdfs/current/VERSION</code>. Paste the copied contents into this file.</p>
   </li>
   <li>Restart the unhealthy Journal Node via:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs pod restart journal-0
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs pod restart journal-0
 </code></pre></div>    </div>
   </li>
   <li>Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the <code class="highlighter-rouge">stderr</code> log. You should see:

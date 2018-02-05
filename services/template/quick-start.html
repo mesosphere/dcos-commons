@@ -541,19 +541,19 @@
     <p>The service will now deploy with a default configuration. You can monitor its deployment via the Services tab of the DC/OS web interface.</p>
   </li>
   <li>Connect a client to YOUR_SERVICE.
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos template endpoints
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos template <span class="nt">--name</span><span class="o">=</span>template endpoints
  <span class="o">[</span>
      <span class="s2">"_LIST_"</span>,
      <span class="s2">"_OF_"</span>,
-     <span class="s2">"_ENDPOINTS_
- ]
+     <span class="s2">"_ENDPOINTS_"</span>
+ <span class="o">]</span>
 
- dcos template endpoints _ENDPOINT_
- {
-     "</span>address<span class="s2">": ["</span>10.0.3.156:_PORT_<span class="s2">", "</span>10.0.3.84:_PORT_<span class="s2">"],
-     "</span>dns<span class="s2">": ["</span>_POD_-0.template.mesos:_PORT_<span class="s2">", "</span>_POD_-1.template.mesos:_PORT_<span class="s2">"]
- }
-</span></code></pre></div>    </div>
+ dcos template <span class="nt">--name</span><span class="o">=</span>template endpoints _ENDPOINT_
+ <span class="o">{</span>
+     <span class="s2">"address"</span>: <span class="o">[</span><span class="s2">"10.0.3.156:_PORT_"</span>, <span class="s2">"10.0.3.84:_PORT_"</span><span class="o">]</span>,
+     <span class="s2">"dns"</span>: <span class="o">[</span><span class="s2">"_POD_-0.template.mesos:_PORT_"</span>, <span class="s2">"_POD_-1.template.mesos:_PORT_"</span><span class="o">]</span>
+ <span class="o">}</span>
+</code></pre></div>    </div>
   </li>
   <li><em>PROVIDE A SIMPLE EXAMPLE OF HOW TO CONNECT A CLIENT AND INTERACT WITH YOUR PRODUCT (E.G., WRITE DATA, READ DATA).</em></li>
 </ol>
@@ -561,7 +561,7 @@
 <h2 id="see-also">See Also</h2>
 
 <ul>
-  <li><a href="https://docs.mesosphere.com/service-docs/&lt;Template&gt;/connecting-clients/">Connecting clients</a></li>
+  <li><a href="https://docs.mesosphere.com/service-docs/template/connecting-clients/">Connecting clients</a></li>
 </ul>
 
 </div>

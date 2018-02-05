@@ -560,7 +560,7 @@
 
 <p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service, including any default values that were applied during installation. For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos  describe <span class="o">&gt;</span> options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra describe <span class="o">&gt;</span> options.json
 </code></pre></div></div>
 
 <p>Make any configuration changes to this <code class="highlighter-rouge">options.json</code> file.</p>
@@ -874,11 +874,11 @@ cassandra
 </ul>
 
 <p>To initiate this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan start cleanup -p CASSANDRA_KEYSPACE=space1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan start cleanup -p CASSANDRA_KEYSPACE=space1
 </code></pre></div></div>
 
 <p>To view the status of this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status cleanup
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan status cleanup
 cleanup (IN_PROGRESS)
 └─ cleanup-deploy (IN_PROGRESS)
    ├─ node-0:[cleanup] (COMPLETE)
@@ -900,11 +900,11 @@ cleanup (IN_PROGRESS)
 </ul>
 
 <p>To initiate this command from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan start repair -p CASSANDRA_KEYSPACE=space1
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan start repair -p CASSANDRA_KEYSPACE=space1
 </code></pre></div></div>
 
 <p>To view the status of this plan from the command line:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra plan status repair
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra plan status repair
 repair (STARTING)
 └─ repair-deploy (STARTING)
    ├─ node-0:[repair] (STARTING)
@@ -927,7 +927,7 @@ operation is performed automatically.</p>
 
 <p>For example if <code class="highlighter-rouge">node-0</code> needed to be replaced we would execute:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra pod replace node-0
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra pod replace node-0
 </code></pre></div></div>
 
 <p>which would result in a recovery plan like the following:</p>
@@ -938,7 +938,6 @@ recovery <span class="o">(</span>IN_PROGRESS<span class="o">)</span>
    ├─ node-0:[server] <span class="o">(</span>COMPLETE<span class="o">)</span>
    ├─ node-1:[server] <span class="o">(</span>STARTING<span class="o">)</span>
    └─ node-2:[server] <span class="o">(</span>PENDING<span class="o">)</span>
-
 </code></pre></div></div>
 
 <p><strong>Note:</strong> Only the seed node is being placed on a new node, all other nodes are restarted in place with no loss of data.</p>

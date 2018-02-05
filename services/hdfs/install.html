@@ -547,9 +547,9 @@ Each agent node must have eight GiB of memory and ten GiB of disk, and each must
 
 <p>This command creates a new instance with the default name <code class="highlighter-rouge">hdfs</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-hdfs</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. <code class="highlighter-rouge">beta-hdfs</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span> hdfs &lt;cmd&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs &lt;cmd&gt;
 </code></pre></div></div>
 
 <p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
@@ -662,7 +662,7 @@ Each agent node must have eight GiB of memory and ten GiB of disk, and each must
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-hdfs.json</code>:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--options</span><span class="o">=</span>sample-hdfs.json hdfs
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-hdfs <span class="nt">--options</span><span class="o">=</span>sample-hdfs.json
 </code></pre></div></div>
 
 <p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
@@ -690,7 +690,7 @@ See the Configuration section for a list of fields that can be customized via a 
 <span class="nv">$ </span>dcos package <span class="nb">install </span>beta-hdfs <span class="nt">--options</span><span class="o">=</span>hdfs1.json
 </code></pre></div></div>
 
-<p>Use the <code class="highlighter-rouge">--name</code> argument after install time to specify which HDFS instance to query. All <code class="highlighter-rouge">dcos hdfs</code> CLI commands accept the <code class="highlighter-rouge">--name</code> argument. If you do not specify a service name, the CLI assumes the default value, <code class="highlighter-rouge">hdfs</code>.</p>
+<p>Use the <code class="highlighter-rouge">--name</code> argument after install time to specify which HDFS instance to query. All <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands accept the <code class="highlighter-rouge">--name</code> argument. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. <code class="highlighter-rouge">beta-hdfs</code>.</p>
 
 <h1 id="zones">Zones</h1>
 

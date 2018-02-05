@@ -547,9 +547,9 @@
 
 <p>This command creates a new instance with the default name <code class="highlighter-rouge">elastic</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos beta-elastic</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-elastic</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos beta-elastic</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. <code class="highlighter-rouge">beta-elastic</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span> elastic &lt;cmd&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic &lt;cmd&gt;
 </code></pre></div></div>
 
 <p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
@@ -762,7 +762,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic describe <span class="o">&gt;</span> options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic describe <span class="o">&gt;</span> options.json
 </code></pre></div></div>
 
 <p>Make any configuration changes to this <code class="highlighter-rouge">options.json</code> file.</p>
@@ -780,7 +780,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 <ol>
   <li>Ensure you have <a href="https://stedolan.github.io/jq/">jq</a> installed.</li>
   <li>Set the service name that you’re using, for example:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ SERVICE_NAME</span><span class="o">=</span>beta-elastic
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ SERVICE_NAME</span><span class="o">=</span>elastic
 </code></pre></div>    </div>
   </li>
   <li>Get the version of the package that is currently installed:
@@ -812,14 +812,14 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>less marathon.json.mustache
 </code></pre></div>    </div>
   </li>
-  <li>Use the variable names (e.g. ``) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
+  <li>Use the variable names (e.g. <code class="highlighter-rouge">service.name</code>) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
 </ol>
 
 <h3 id="starting-the-update">Starting the update</h3>
 
 <p>Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated <code class="highlighter-rouge">options.json</code> file:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic update start <span class="nt">--options</span><span class="o">=</span>options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update start <span class="nt">--options</span><span class="o">=</span>options.json
 </code></pre></div></div>
 
 <p>You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.</p>

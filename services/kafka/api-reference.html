@@ -709,7 +709,7 @@
 
 <h1 id="connection-information">Connection Information</h1>
 
-<p>Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the <code class="highlighter-rouge">/endpoints</code> endpoint:</p>
+<p>Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the <code class="highlighter-rouge">/endpoints</code> endpoint (assuming your service is named “kafka”):</p>
 
 <pre><code class="language-bssh">$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"
 {
@@ -727,7 +727,7 @@
 
 <p>The same information can be retrieved through the DC/OS CLI:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos betai-kafka endpoints broker
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka endpoints broker
 <span class="o">{</span>
   <span class="s2">"vip"</span>: <span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span>,
   <span class="s2">"address"</span>: <span class="o">[</span>

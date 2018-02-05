@@ -524,7 +524,7 @@
 
 <p>After a configuration change, the service may enter an unhealthy state. This commonly occurs when an invalid configuration change was made by the user. Certain configuration values may not be changed, or may not be decreased. To verify whether this is the case, check the service’s <code class="highlighter-rouge">deploy</code> plan for any errors.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev plan show deploy
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev plan show deploy
 </code></pre></div></div>
 
 <h2 id="accessing-logs">Accessing Logs</h2>
@@ -561,17 +561,17 @@
 
 <p>The following command should be used to get a list of available pods. In this example we are querying a service named <code class="highlighter-rouge">template-dev</code>.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev pod list
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev pod list
 </code></pre></div></div>
 
 <p>The following command should then be used to replace the pod residing on the failed machine, using the appropriate <code class="highlighter-rouge">pod_name</code> provided in the above list.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev pod replace &lt;pod_name&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev pod replace &lt;pod_name&gt;
 </code></pre></div></div>
 
 <p>The pod recovery may then be monitored via the <code class="highlighter-rouge">recovery</code> plan.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev plan show recovery
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev plan show recovery
 </code></pre></div></div>
 
 <h2 id="restarting-a-node">Restarting a Node</h2>
@@ -580,17 +580,17 @@
 
 <p>The following command should be used to get a list of available pods. In this example we are querying a service named <code class="highlighter-rouge">template-dev</code>.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev pod list
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev pod list
 </code></pre></div></div>
 
 <p>The following command should then be used to restart the pod, using the appropriate <code class="highlighter-rouge">pod_name</code> provided in the above list.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev pod restart &lt;pod_name&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev pod restart &lt;pod_name&gt;
 </code></pre></div></div>
 
 <p>The pod recovery may then be monitored via the <code class="highlighter-rouge">recovery</code> plan.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span><span class="o">=</span>template-dev plan show recovery
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev plan show recovery
 </code></pre></div></div>
 
 

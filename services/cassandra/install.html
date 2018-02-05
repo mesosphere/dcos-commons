@@ -547,9 +547,9 @@
 
 <p>This command creates a new instance with the default name <code class="highlighter-rouge">cassandra</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-cassandra</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. <code class="highlighter-rouge">beta-cassandra</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span> cassandra &lt;cmd&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra &lt;cmd&gt;
 </code></pre></div></div>
 
 <p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
@@ -659,7 +659,7 @@
 
 <p>Get the list of seed node addresses for the first cluster:</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra endpoints node
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra endpoints node
 </code></pre></div></div>
 
 <p>Alternatively, you can get this information from the scheduler HTTP API:</p>
@@ -688,12 +688,12 @@
 
 <p>Run the same command for your second Cassandra cluster and note the IPs in the <code class="highlighter-rouge">address</code> field:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra endpoints node --name=cassandra2
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra2 endpoints node
 </code></pre></div></div>
 
 <h2 id="update-configuration-for-both-clusters">Update configuration for both clusters</h2>
 
-<p>Create an <code class="highlighter-rouge">options.json</code> file with the IP addresses of the first cluster (<code class="highlighter-rouge">cassandra</code>):</p>
+<p>Create an <code class="highlighter-rouge">options2.json</code> file with the IP addresses of the first cluster (<code class="highlighter-rouge">cassandra</code>):</p>
 
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -704,16 +704,21 @@
 
 <p>Update the configuration of the second cluster:</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra update start --options=options.json --name=cassandra2
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra --name=cassandra2 update start --options=options2.json
 </code></pre></div></div>
 
-<p>Perform the same operation on the first cluster, adding the IP addresses of the second cluster’s seed nodes to the <code class="highlighter-rouge">service.remote_seeds</code> field. Then, update the first cluster’s configuration: <code class="highlighter-rouge">dcos cassandra update start --options=options.json</code>.</p>
+<p>Perform the same operation on the first cluster, creating an <code class="highlighter-rouge">options.json</code> which contains the IP addresses of the second cluster (<code class="highlighter-rouge">cassandra2</code>)’s seed nodes in the <code class="highlighter-rouge">service.remote_seeds</code> field. Then, update the first cluster’s configuration: <code class="highlighter-rouge">dcos beta-cassandra --name=cassandra update start --options=options.json</code>.</p>
 
-<p>Both schedulers will restart after the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add.</p>
+<p>Both schedulers will restart after each receives the configuration update, and each cluster will communicate with the seed nodes from the other cluster to establish a multi-data-center topology. Repeat this process for each new cluster you add.</p>
 
-<p>You can monitor the progress of the update:</p>
+<p>You can monitor the progress of the update for the first cluster:</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos cassandra <span class="nt">--name</span><span class="o">=</span>cassandra update status
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra update status
+</code></pre></div></div>
+
+<p>Or for the second cluster:</p>
+
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra2 update status
 </code></pre></div></div>
 
 <p>Your output will resemble:</p>

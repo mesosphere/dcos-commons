@@ -542,19 +542,19 @@ Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
 
 <p>To start a basic test cluster  with some master nodes, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">More information about installing TEMPLATE SERVICE on Enterprise DC/OS</a>.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-template
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>template
 </code></pre></div></div>
 
 <p>This command creates a new instance with the default name <code class="highlighter-rouge">template</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos beta-template</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-template</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos template</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. <code class="highlighter-rouge">template</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-template <span class="nt">--name</span> template &lt;cmd&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template &lt;cmd&gt;
 </code></pre></div></div>
 
 <p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-template <span class="nt">--cli</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>template <span class="nt">--cli</span>
 </code></pre></div></div>
 
 <h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
@@ -576,7 +576,7 @@ Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
   dcos:adminrouter:ops:slave full
 </code></pre></div>    </div>
   </li>
-  <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>beta-template</strong>.</li>
+  <li>Install your service into a folder called <code class="highlighter-rouge">test</code>. Go to <strong>Catalog</strong>, then search for <strong>template</strong>.</li>
   <li>
     <p>Click <strong>CONFIGURE</strong> and change the service name to <code class="highlighter-rouge">/testing/template</code>, then deploy.</p>
 

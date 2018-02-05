@@ -528,8 +528,8 @@
 <ul>
   <li>CLI:
     <ul>
-      <li>List endpoint types: <code class="highlighter-rouge">dcos beta-cassandra endpoints</code></li>
-      <li>View endpoints for an endpoint type: <code class="highlighter-rouge">dcos beta-cassandra endpoints &lt;endpoint&gt;</code></li>
+      <li>List endpoint types: <code class="highlighter-rouge">dcos beta-cassandra --name=cassandra endpoints</code></li>
+      <li>View endpoints for an endpoint type: <code class="highlighter-rouge">dcos beta-cassandra --name=cassandra endpoints &lt;endpoint&gt;</code></li>
     </ul>
   </li>
   <li>Web:
@@ -540,7 +540,7 @@
   </li>
 </ul>
 
-<p>By default, the DC/OS Apache Cassandra Service exposes only the <code class="highlighter-rouge">native-client</code> endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a <code class="highlighter-rouge">thrift-client</code> endpoint will also be listed. To see node addresses for use by native clients, such as <code class="highlighter-rouge">cqlsh</code>, run <code class="highlighter-rouge">dcos beta-cassandra endpoints native-client</code>. A typical response will look like the following:</p>
+<p>By default, the DC/OS Apache Cassandra Service exposes only the <code class="highlighter-rouge">native-client</code> endpoint type, which shows the locations for all Cassandra nodes in the cluster. If you have enabled the Thrift protocol in your service configuration, a <code class="highlighter-rouge">thrift-client</code> endpoint will also be listed. To see node addresses for use by native clients, such as <code class="highlighter-rouge">cqlsh</code>, run <code class="highlighter-rouge">dcos beta-cassandra --name=cassandra endpoints native-client</code>. A typical response will look like the following:</p>
 
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="s2">"address"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">

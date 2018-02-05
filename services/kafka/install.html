@@ -547,9 +547,9 @@
 
 <p>This command creates a new instance with the default name <code class="highlighter-rouge">kafka</code>. Two instances cannot share the same name, so installing additional instances beyond the default instance requires <a href="#custom-installation">customizing the <code class="highlighter-rouge">name</code> at install time</a> for each additional instance.</p>
 
-<p>All <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value, <code class="highlighter-rouge">beta-kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
+<p>All <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands have a <code class="highlighter-rouge">--name</code> argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. <code class="highlighter-rouge">beta-kafka</code>. The default value for <code class="highlighter-rouge">--name</code> can be customized via the DC/OS CLI configuration:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span> kafka &lt;cmd&gt;
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka &lt;cmd&gt;
 </code></pre></div></div>
 
 <p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
@@ -647,7 +647,7 @@
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-kafka-minimal.json</code>:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--options</span><span class="o">=</span>sample-kafka-minimal.json beta-kafka
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>sample-kafka-minimal.json
 </code></pre></div></div>
 
 <h3 id="custom-installation">Custom Installation</h3>
@@ -674,7 +674,7 @@
 
 <p>The command below creates a cluster using <code class="highlighter-rouge">sample-kafka.json</code>:</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--options</span><span class="o">=</span>sample-kafka-custom.json beta-kafka
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>sample-kafka-custom.json
 </code></pre></div></div>
 
 <p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
@@ -695,6 +695,11 @@
 <span class="o">}</span>
 
 <span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>kafka1.json
+</code></pre></div></div>
+
+<p>To query this service using the CLI, you may provide the <code class="highlighter-rouge">--name</code> parameter:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka1 ...
 </code></pre></div></div>
 
 <h3 id="alternate-zookeeper">Alternate ZooKeeper</h3>
@@ -720,14 +725,14 @@
   <li>Install Kafka with the options file.</li>
 </ol>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>kafka <span class="nt">--options</span><span class="o">=</span><span class="s2">"options.json"</span>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span><span class="s2">"options.json"</span>
 </code></pre></div></div>
 
 <p>You can also update an already-running Kafka instance from the DC/OS CLI, in case you need to migrate your ZooKeeper data elsewhere.</p>
 
 <p><strong>Note:</strong> The ZooKeeper ensemble you point to must have the same data as the previous ZooKeeper ensemble.</p>
 
-<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos kafka <span class="nt">--name</span><span class="o">=</span>/kafka update start <span class="nt">--options</span><span class="o">=</span>options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka update start <span class="nt">--options</span><span class="o">=</span>options.json
 </code></pre></div></div>
 
 </div>
