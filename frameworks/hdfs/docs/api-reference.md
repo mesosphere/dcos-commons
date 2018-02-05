@@ -7,9 +7,9 @@ menuWeight: 70
 ---
 
 {% include services/api-reference.md
-    tech_name="HDFS"
-    package_name="beta-hdfs"
-    service_name="hdfs" %}
+    techName="HDFS"
+    packageName="beta-hdfs"
+    serviceName="hdfs" %}
 
 # Connection Information
 

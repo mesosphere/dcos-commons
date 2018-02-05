@@ -5,9 +5,9 @@ excerpt:
 title: Quick Start
 menuWeight: 40
 
-package_name: beta-elastic
-service_name: elastic
-cli_package_name: beta-elastic --name=elastic
+packageName: beta-elastic
+serviceName: elastic
+cliPackageName: beta-elastic --name=elastic
 ---
 
 ## Steps
@@ -18,22 +18,22 @@ cli_package_name: beta-elastic --name=elastic
 1. Wait until the cluster is deployed and the nodes are all running. This may take 5-10 minutes. You can monitor the deployment via the CLI:
 
     ```bash
-    $ dcos {{ page.cli_package_name }} plan show deploy
+    $ dcos {{ page.cliPackageName }} plan show deploy
     ```
 
 1. Retrieve client endpoint information by running the `endpoints` command:
 
     ```bash
-    $ dcos {{ page.cli_package_name }} endpoints coordinator-http
+    $ dcos {{ page.cliPackageName }} endpoints coordinator-http
     {
-        "vip": "coordinator.{{ page.service_name }}.l4lb.thisdcos.directory:9200",
+        "vip": "coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200",
         "address": [
             "10.0.2.88:1026",
             "10.0.2.88:1027"
         ],
         "dns": [
-            "coordinator-0-node.{{ page.service_name }}.autoip.dcos.thisdcos.directory:1026",
-            "coordinator-0-node.{{ page.service_name }}.autoip.dcos.thisdcos.directory:1027"
+            "coordinator-0-node.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1026",
+            "coordinator-0-node.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1027"
         ],
     }
     ```
@@ -49,14 +49,14 @@ cli_package_name: beta-elastic --name=elastic
 1. Create an index:
 
     ```bash
-    $ curl -s -u elastic:changeme -XPUT 'coordinator.{{ page.service_name }}.l4lb.thisdcos.directory:9200/customer?pretty'
+    $ curl -s -u elastic:changeme -XPUT 'coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/customer?pretty'
     ```
 
 1. Store data in your index:
 
     ```bash
     $ curl -s -u elastic:changeme -XPUT \
-        'coordinator.{{ page.service_name }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty' \
+        'coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty' \
         -d '{ "name": "John Doe" }'
     ```
 
@@ -64,5 +64,5 @@ cli_package_name: beta-elastic --name=elastic
 
     ```bash
     $ curl -s -u elastic:changeme -XGET \
-        'coordinator.{{ page.service_name }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
+        'coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
     ```

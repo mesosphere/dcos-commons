@@ -7,6 +7,6 @@ excerpt:
 ---
 
 {% include services/supported-versions.md
-    tech_name="Apache Cassandra"
-    tech_policy_desc="[Cassandra](http://cassandra.apache.org/download/)"
-    tech_version="3.0.13" %}
+    techName="Apache Cassandra"
+    techPolicyDesc="[Cassandra](http://cassandra.apache.org/download/)"
+    techVersion="3.0.13" %}

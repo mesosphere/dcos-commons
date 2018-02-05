@@ -7,12 +7,12 @@ menuWeight: 60
 ---
 
 {% include services/managing.md
-    pod_type="data"
-    task_type="node"
-    tech_name="Elastic"
-    package_name="beta-elastic"
-    service_name="elastic"
-    cli_package_name="beta-elastic --name=elastic" %}
+    podType="data"
+    taskType="node"
+    techName="Elastic"
+    packageName="beta-elastic"
+    serviceName="elastic"
+    cliPackageName="beta-elastic --name=elastic" %}
 
 # Add a Data/Ingest/Coordinator Node
 

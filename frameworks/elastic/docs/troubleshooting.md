@@ -7,5 +7,5 @@ menuWeight: 90
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-elastic"
-    service_name="elastic" %}
+    packageName="beta-elastic"
+    serviceName="elastic" %}

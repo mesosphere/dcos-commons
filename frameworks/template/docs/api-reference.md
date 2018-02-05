@@ -7,6 +7,6 @@ menuWeight: 70
 ---
 
 {% include services/api-reference.md
-    tech_name="TEMPLATE SERVICE"
-    package_name="template"
-    service_name="template" %}
+    techName="TEMPLATE SERVICE"
+    packageName="template"
+    serviceName="template" %}

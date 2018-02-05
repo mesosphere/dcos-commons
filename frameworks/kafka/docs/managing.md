@@ -7,12 +7,12 @@ menuWeight: 60
 ---
 
 {% include services/managing.md
-    pod_type="kafka"
-    task_type="broker"
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka"
-    cli_package_name="beta-kafka --name=kafka" %}
+    podType="kafka"
+    taskType="broker"
+    techName="Apache Kafka"
+    packageName="beta-kafka"
+    serviceName="kafka"
+    cliPackageName="beta-kafka --name=kafka" %}
 
 # Graceful Shutdown
 

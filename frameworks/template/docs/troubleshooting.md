@@ -7,6 +7,6 @@ menuWeight: 90
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-template"
-    service_name="template" %}
+    packageName="beta-template"
+    serviceName="template" %}
 

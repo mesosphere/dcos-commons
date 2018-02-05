@@ -7,14 +7,14 @@ menuWeight: 20
 ---
 
 {% include services/install.md
-    tech_name="HDFS"
-    package_name="beta-hdfs"
-    service_name="hdfs"
-    min_node_count="five"
-    default_install_description=" with three master nodes, two data nodes, and one coordinator node"
-    agent_requirements="Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007."
-    service_account_instructions_url="https://docs.mesosphere.com/services/hdfs/hdfs-auth/"
-    enterprise_install_url="" %}
+    techName="HDFS"
+    packageName="beta-hdfs"
+    serviceName="hdfs"
+    minNodeCount="five"
+    defaultInstallDescription=" with three master nodes, two data nodes, and one coordinator node"
+    agentRequirements="Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007."
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/hdfs/hdfs-auth/"
+    enterpriseInstallUrl="" %}
 
 # Installation
 

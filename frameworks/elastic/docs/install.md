@@ -7,13 +7,13 @@ menuWeight: 20
 ---
 
 {% include services/install.md
-    tech_name="Elastic"
-    package_name="beta-elastic"
-    service_name="elastic"
-    min_node_count="three"
-    default_install_description="with three master nodes, two data nodes, and one coordinator node"
-    service_account_instructions_url=""
-    enterprise_install_url="" %}
+    techName="Elastic"
+    packageName="beta-elastic"
+    serviceName="elastic"
+    minNodeCount="three"
+    defaultInstallDescription="with three master nodes, two data nodes, and one coordinator node"
+    serviceAccountInstructionsUrl=""
+    enterpriseInstallUrl="" %}
 
 # Custom Installation
 

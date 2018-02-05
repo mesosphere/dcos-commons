@@ -7,6 +7,6 @@ menuWeight: 70
 ---
 
 {% include services/api-reference.md
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra" %}
+    techName="Apache Cassandra"
+    packageName="beta-cassandra"
+    serviceName="cassandra" %}

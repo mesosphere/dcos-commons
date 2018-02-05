@@ -5,9 +5,9 @@ excerpt:
 title: Quick Start
 menuWeight: 40
 
-package_name: beta-cassandra
-service_name: cassandra
-cli_package_name: beta-cassandra --name=cassandra
+packageName: beta-cassandra
+serviceName: cassandra
+cliPackageName: beta-cassandra --name=cassandra
 ---
 
 ## Prerequisites
@@ -16,7 +16,7 @@ cli_package_name: beta-cassandra --name=cassandra
 1. If you are using open source DC/OS, install DC/OS Apache Cassandra with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for more information.
 
     ```bash
-    $ dcos package install {{ page.package_name }}
+    $ dcos package install {{ page.packageName }}
     ```
 
 You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
@@ -28,12 +28,12 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
 1. Connect a client to the DC/OS Apache Cassandra service.
 
     ```bash
-    $ dcos {{ page.cli_package_name }} endpoints
+    $ dcos {{ page.cliPackageName }} endpoints
     [
       "native-client"
     ]
 
-    $ dcos {{ page.cli_package_name }} endpoints native-client
+    $ dcos {{ page.cliPackageName }} endpoints native-client
     {
       "address": [
         "10.0.1.125:9042",
@@ -41,9 +41,9 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
         "10.0.1.22:9042"
       ],
       "dns": [
-        "node-1-server.{{ page.service_name }}.autoip.dcos.thisdcos.directory:9042",
-        "node-0-server.{{ page.service_name }}.autoip.dcos.thisdcos.directory:9042",
-        "node-2-server.{{ page.service_name }}.autoip.dcos.thisdcos.directory:9042"
+        "node-1-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042",
+        "node-0-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042",
+        "node-2-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042"
       ]
     }
     ```
@@ -54,8 +54,8 @@ You can also install DC/OS Apache Cassandra from [the DC/OS web interface](https
 
     ```bash
     $ dcos node ssh --master-proxy --leader
-    $ docker run -it cassandra:3.0.14 cqlsh node-0-server.{{ page.service_name }}.autoip.dcos.thisdcos.directory
-    node-0-server.{{ page.service_name }}.autoip.dcos.thisdcos.directory:9042
+    $ docker run -it cassandra:3.0.14 cqlsh node-0-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory
+    node-0-server.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:9042
     > CREATE KEYSPACE space1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };
     > USE space1;
     > CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));

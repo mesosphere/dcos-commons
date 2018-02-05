@@ -7,9 +7,9 @@ menuWeight: 70
 ---
 
 {% include services/api-reference.md
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka" %}
+    techName="Apache Kafka"
+    packageName="beta-kafka"
+    serviceName="kafka" %}
 
 # Connection Information
 

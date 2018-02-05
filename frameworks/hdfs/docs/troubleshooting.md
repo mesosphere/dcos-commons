@@ -7,5 +7,5 @@ menuWeight: 90
 ---
 
 {% include services/troubleshooting.md
-    package_name="beta-hdfs"
-    service_name="hdfs" %}
+    packageName="beta-hdfs"
+    serviceName="hdfs" %}
