@@ -1,0 +1,39 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    pre-reserved-role: slave_public
+    count: {{HELLO_COUNT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
+    volume:
+      path: pod-container-path
+      type: ROOT
+      size: {{HELLO_DISK}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: echo hello >> hello-container-path/output && echo hello >> pod-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+      sidecar:
+        goal: FINISHED
+        cmd: echo sidecar >> pod-container-path/output
+        cpus: 0.1
+        memory: 256
+
+plans:
+  deploy:
+    phases:
+      hello:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[server], [sidecar]]
