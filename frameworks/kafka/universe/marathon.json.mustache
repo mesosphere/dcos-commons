@@ -47,7 +47,15 @@
     "PLACEMENT_CONSTRAINTS": "{{{service.placement_constraint}}}",
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
     "BROKER_COUNT": "{{brokers.count}}",
+    {{^service.security.kerberos.enabled}}
+    {{#service.security.transport_encryption.enabled}}
+    {{#service.security.ssl_authentication.enabled}}
+    {{#service.security.authorization.enabled}}
     "TASKCFG_ALL_BROKER_COUNT": "{{brokers.count}}",
+    {{/service.security.authorization.enabled}}
+    {{/service.security.ssl_authentication.enabled}}
+    {{/service.security.transport_encryption.enabled}}
+    {{/service.security.kerberos.enabled}}
     "BROKER_CPUS": "{{brokers.cpus}}",
     "BROKER_MEM": "{{brokers.mem}}",
     "BROKER_DISK_SIZE": "{{brokers.disk}}",
