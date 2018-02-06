@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.SchedulerDriver;
 
 import java.util.*;
 
@@ -22,7 +21,7 @@ public class ResourceCleanerScheduler {
         this.offerAccepter = offerAccepter;
     }
 
-    public List<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers) {
+    public List<OfferID> resourceOffers(List<Offer> offers) {
         final List<OfferRecommendation> recommendations = resourceCleaner.evaluate(offers);
 
         // Recommendations should be grouped by agent, as Mesos enforces processing of acceptOffers Operations
@@ -32,7 +31,7 @@ public class ResourceCleanerScheduler {
 
         final List<OfferID> processedOffers = new ArrayList<>(offers.size());
         for (Map.Entry<Protos.SlaveID, List<OfferRecommendation>> entry : recommendationsGroupedByAgents.entrySet()) {
-            processedOffers.addAll(offerAccepter.accept(driver, recommendationsGroupedByAgents.get(entry.getKey())));
+            processedOffers.addAll(offerAccepter.accept(recommendationsGroupedByAgents.get(entry.getKey())));
         }
 
         return processedOffers;

@@ -3,7 +3,7 @@ package com.mesosphere.sdk.http;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
@@ -119,7 +119,7 @@ public class PodResourceTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         resource = new PodResource(mockStateStore, TestConstants.SERVICE_NAME, mockTaskFailureListener);
     }
 

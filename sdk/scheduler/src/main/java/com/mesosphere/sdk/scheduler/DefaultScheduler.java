@@ -24,7 +24,6 @@ import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,7 +127,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
+    protected PlanCoordinator getPlanCoordinator() throws Exception {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
 
@@ -244,10 +243,10 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         // See which offers are useful to the plans.
         List<Protos.OfferID> planOffers = new ArrayList<>();
-        planOffers.addAll(planScheduler.resourceOffers(driver, offers, steps));
+        planOffers.addAll(planScheduler.resourceOffers(offers, steps));
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, planOffers);
 
         // Resource Cleaning:
@@ -261,12 +260,12 @@ public class DefaultScheduler extends AbstractScheduler {
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
         ResourceCleanerScheduler cleanerScheduler =
                 new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
-        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
+        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
         // Decline remaining offers.
         if (!unusedOffers.isEmpty()) {
-            OfferUtils.declineLong(driver, unusedOffers);
+            OfferUtils.declineLong(unusedOffers);
         }
 
         if (offers.isEmpty()) {
@@ -314,10 +313,5 @@ public class DefaultScheduler extends AbstractScheduler {
                 LOGGER.warn("Unable to store network info for status update: " + status, e);
             }
         }
-    }
-
-    @VisibleForTesting
-    PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
     }
 }

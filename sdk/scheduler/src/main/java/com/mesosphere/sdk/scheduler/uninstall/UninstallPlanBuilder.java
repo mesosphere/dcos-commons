@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +50,6 @@ class UninstallPlanBuilder {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
-            SchedulerDriver driver,
             Optional<SecretsClient> customSecretsClientForTests) {
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
@@ -134,7 +132,7 @@ class UninstallPlanBuilder {
         // We don't have access to the SchedulerDriver yet. That will be set via setSchedulerDriver() below.
         phases.add(new DefaultPhase(
                 DEREGISTER_PHASE,
-                Collections.singletonList(new DeregisterStep(stateStore, driver)),
+                Collections.singletonList(new DeregisterStep(stateStore)),
                 new SerialStrategy<>(),
                 Collections.emptyList()));
 
