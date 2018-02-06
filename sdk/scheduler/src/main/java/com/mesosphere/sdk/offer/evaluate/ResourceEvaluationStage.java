@@ -1,10 +1,16 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import org.apache.mesos.Protos.Resource;
 
+import java.util.Collections;
 import java.util.Optional;
+
+import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
@@ -31,6 +37,24 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+        boolean isRunningExecutor =
+                OfferEvaluationUtils.isRunningExecutor(podInfoBuilder, mesosResourcePool.getOffer());
+        if (taskName == null && isRunningExecutor && requiredResourceId.isPresent()) {
+            // This is a resource on a running executor, so it isn't present in the offer, but we need to make sure to
+            // add it to the ExecutorInfo.
+
+            OfferEvaluationUtils.setProtos(
+                    podInfoBuilder,
+                    ResourceBuilder.fromSpec(resourceSpec, requiredResourceId).build(),
+                    Optional.ofNullable(taskName));
+            return pass(
+                    this,
+                    Collections.emptyList(),
+                    "Setting info for already running Executor with existing resource with resourceId: '%s'",
+                    requiredResourceId)
+                    .build();
+        }
+
         OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                 OfferEvaluationUtils.evaluateSimpleResource(this, resourceSpec, requiredResourceId, mesosResourcePool);
 

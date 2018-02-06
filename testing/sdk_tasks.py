@@ -6,11 +6,11 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import logging
+import retrying
 
 import shakedown
-
 import dcos.errors
-import retrying
+import sdk_cmd
 import sdk_plan
 
 
@@ -54,6 +54,97 @@ def get_task_ids(service_name, task_prefix):
     tasks = shakedown.get_service_tasks(service_name)
     matching_tasks = [t for t in tasks if t['name'].startswith(task_prefix)]
     return [t['id'] for t in matching_tasks]
+
+
+class Task(object):
+    '''Entry value returned by get_summary()'''
+
+    @staticmethod
+    def parse(cli_task_line):
+        # Example:
+        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4
+        # FYI: the state value is just the first character of the task state (e.g. STAGING => S)
+        cli_task_tokens = cli_task_line.split()
+        if len(cli_task_tokens) < 6:
+            log.warning('Invalid task line from CLI: {}'.format(cli_task_tokens))
+            return None
+        return Task(
+            cli_task_tokens[0],
+            cli_task_tokens[1],
+            cli_task_tokens[2],
+            cli_task_tokens[3],
+            cli_task_tokens[4],
+            cli_task_tokens[5])
+
+
+    def __init__(self, name, host, user, state_char, id, agent):
+        self.name = name
+        self.host = host
+        self.user = user
+        self.state_char = state_char
+        self.id = id
+        self.agent = agent
+
+
+    def __repr__(self):
+        return 'Task[name={} host={} user={} state_char={} id={} agent={}]'.format(
+            self.name, self.host, self.user, self.state_char, self.id, self.agent)
+
+
+def get_status_history(task_name: str) -> list:
+    '''Returns a list of task status values (of the form 'TASK_STARTING', 'TASK_KILLED', etc) for a given task.
+    The returned values are ordered chronologically from first to last.
+    '''
+    cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
+    statuses = []
+    for cluster_task in cluster_tasks['tasks']:
+        if cluster_task['name'] != task_name:
+            continue
+        statuses += cluster_task['statuses']
+    history = [entry['state'] for entry in sorted(statuses, key=lambda x: x['timestamp'])]
+    log.info('Status history for task {}: {}'.format(task_name, ', '.join(history)))
+    return history
+
+
+def get_summary(with_completed=False):
+    '''Returns a summary of task information as returned by the DC/OS CLI.
+    This may be used instead of invoking 'dcos task [--all]' directly.
+
+    Returns a list of Task objects.
+    '''
+
+    # Note: We COULD use --json, but there appears to be some fancy handling done in the CLI for the
+    # non-json version, particularly around the running user. Just grab the non-"--json" version of things.
+    task_lines = sdk_cmd.run_cli('task --all' if with_completed else 'task', print_output=False).split('\n')
+    output = []
+    for task_line in task_lines[1:]:  # First line is the header line
+        task = Task.parse(task_line)
+        if task is not None:
+            output.append(task)
+    log.info('Task summary (with_completed={}):\n- {}'.format(
+        with_completed, '\n- '.join([str(e) for e in output])))
+    return output
+
+
+def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
+    '''Returns a list of tasks which are not located on the Scheduler's machine.
+
+    Avoid also killing the system that the scheduler is on. This is just to speed up testing.
+    In practice, the scheduler would eventually get relaunched on a different node by Marathon and
+    we'd be able to proceed with repairing the service from there. However, it takes 5-20 minutes
+    for Mesos to decide that the agent is dead. This is also why we perform a manual 'ls' check to
+    verify the host is down, rather than waiting for Mesos to tell us.
+    '''
+    scheduler_ip = shakedown.get_service_ips('marathon', service_name).pop()
+    log.info('Scheduler IP: {}'.format(scheduler_ip))
+
+    server_tasks = [
+        task for task in get_summary()
+        if task_name_pattern.match(task.name)]
+
+    avoid_tasks = [task for task in server_tasks if task.host != scheduler_ip]
+    log.info('Found tasks avoiding scheduler at {}: {}'.format(scheduler_ip, avoid_tasks))
+    return avoid_tasks
 
 
 def get_completed_task_id(task_name):

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import org.apache.mesos.Protos;
@@ -75,7 +76,8 @@ public class OfferUtilsTest {
     public void testDeclineOffers() {
         final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
         final List<Protos.OfferID> offerIds = offers.stream().map(Protos.Offer::getId).collect(Collectors.toList());
-        OfferUtils.declineLong(mockSchedulerDriver, offers);
+        Driver.setDriver(mockSchedulerDriver);
+        OfferUtils.declineLong(offers);
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
     }

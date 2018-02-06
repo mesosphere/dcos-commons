@@ -4,7 +4,7 @@ import pytest
 import retrying
 import sdk_install
 import sdk_marathon
-import shakedown
+import sdk_tasks
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -31,32 +31,26 @@ def configure_package(configure_security):
 def test_deploy():
     wait_time = 30
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
-    # sdk_marathon.json.mustache. verify that tasks are failing for 30s before continuing.
-    log.info('Checking that tasks are failing to launch for at least {}s'.format(wait_time))
+    # sdk_marathon.json.mustache. verify that the tasks are failing before continuing.
+    task_name = 'hello-0-server'
+    log.info('Checking that {} is failing to launch within {}s'.format(task_name, wait_time))
 
-    # we can get brief blips of TASK_RUNNING but they shouldnt last more than 2-3s:
-    consecutive_task_running = 0
+    original_statuses = sdk_tasks.get_status_history(task_name)
 
+    # wait for new TASK_FAILEDs to appear:
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=1000*wait_time,
         retry_on_result=lambda res: not res)
-    def wait():
-        nonlocal consecutive_task_running
-        svc_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
-        states = [t['state'] for t in svc_tasks]
-        log.info('Task states: {}'.format(states))
-        if 'TASK_RUNNING' in states:
-            consecutive_task_running += 1
-            assert consecutive_task_running <= 3
-        else:
-            consecutive_task_running = 0
-        return False
+    def wait_for_new_failures():
+        new_statuses = sdk_tasks.get_status_history(task_name)
+        assert len(new_statuses) >= len(original_statuses)
 
-    try:
-        wait()
-    except retrying.RetryError:
-        log.info('Timeout reached as expected')
+        added_statuses = new_statuses[len(original_statuses):]
+        log.info('New {} statuses: {}'.format(task_name, ', '.join(added_statuses)))
+        return 'TASK_FAILED' in added_statuses
+
+    wait_for_new_failures()
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)

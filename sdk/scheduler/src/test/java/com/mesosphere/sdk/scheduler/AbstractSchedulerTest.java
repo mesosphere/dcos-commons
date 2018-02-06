@@ -179,17 +179,17 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        protected Collection<Object> getResources() {
+        public Collection<Object> getResources() {
             return Collections.emptyList();
         }
 
         @Override
-        protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
+        protected PlanCoordinator getPlanCoordinator() throws Exception {
             return mockPlanCoordinator;
         }
 
         @Override
-        protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+        protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
             receivedOfferIds.addAll(offers.stream()
                     .map(o -> o.getId().getValue())
                     .collect(Collectors.toList()));

@@ -52,7 +52,7 @@ pods:
                 set -e
 
                 ./bootstrap
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -78,7 +78,7 @@ pods:
             dest: s3config.json
         readiness-check:
           cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 export TASK_IP=$(./bootstrap --get-task-ip) &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
@@ -91,11 +91,11 @@ pods:
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       cleanup:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       backup-schema:
         goal: ONCE
@@ -122,7 +122,7 @@ pods:
       snapshot:
         goal: ONCE
         cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
 
                 for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
@@ -154,7 +154,7 @@ pods:
       cleanup-snapshot:
         goal: ONCE
         cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
@@ -203,7 +203,7 @@ pods:
         goal: ONCE
         cmd: >
                 ./bootstrap --resolve=false ;
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \

@@ -5,10 +5,25 @@
       "type": "object",
       "description": "DC/OS service configuration properties",
       "properties": {
-        "name" : {
+        "name": {
           "description": "The name of the service instance",
           "type": "string",
           "default": "hdfs"
+        },
+        "user": {
+          "description": "The linux user used to run the scheduler and all executors.",
+          "type": "string",
+          "default": "nobody"
+        },
+        "service_account": {
+          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
+          "type": "string",
+          "default": ""
+        },
+        "service_account_secret": {
+          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "type": "string",
+          "default": ""
         },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
@@ -25,43 +40,47 @@
           "type": "string",
           "default": ""
         },
-        "user": {
-          "type": "string",
-          "description": "The linux user used to run the scheduler and all executors.",
-          "default": "nobody"
-        },
-        "service_account" : {
-          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
-          "type": "string",
-          "default": ""
-        },
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
+          "enum": [
+            "V0",
+            "V1"
+          ],
           "default": "V1"
-        },
-        "service_account_secret": {
-          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-          "type": "string",
-          "default": ""
-        },
-        "deploy_strategy": {
-          "description": "HDFS deployment strategy. [parallel, serial]",
-          "type": "string",
-          "default": "parallel",
-          "enum" : ["parallel", "serial"]
-        },
-        "update_strategy": {
-          "description": "HDFS update strategy. [parallel, serial]",
-          "type": "string",
-          "default": "serial",
-          "enum" : ["parallel", "serial"]
         },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
-          "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
+          "enum": [
+            "OFF",
+            "FATAL",
+            "ERROR",
+            "WARN",
+            "INFO",
+            "DEBUG",
+            "TRACE",
+            "ALL"
+          ],
           "default": "INFO"
+        },
+        "deploy_strategy": {
+          "description": "HDFS deployment strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "parallel"
+        },
+        "update_strategy": {
+          "description": "HDFS update strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "serial"
         },
         "security": {
           "description": "HDFS security settings.",
@@ -76,31 +95,32 @@
                   "type": "boolean",
                   "default": false
                 },
-                "kdc" : {
+                "kdc": {
                   "description": "KDC settings for Kerberos",
                   "type": "object",
                   "properties": {
                     "hostname": {
                       "type": "string",
-                      "description": "The name or address of a host running a KDC for the realm.",
-                      "default": "kdc.marathon.autoip.dcos.thisdcos.directory"
+                      "description": "The name or address of a host running a KDC for the realm."
                     },
                     "port": {
                       "type": "integer",
-                      "description": "The port of the host running a KDC for that realm.",
-                      "default": 2500
+                      "description": "The port of the host running a KDC for that realm."
                     }
                   }
                 },
                 "realm": {
                   "type": "string",
-                  "description": "The Kerberos realm used to render the principal of HDFS tasks.",
-                  "default": "LOCAL"
+                  "description": "The Kerberos realm used to render the principal of HDFS tasks."
                 },
                 "keytab_secret": {
                   "type": "string",
-                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
-                  "default": "__dcos_base64__hdfs_keytab"
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."
+                },
+                "debug": {
+                  "type": "boolean",
+                  "description": "Turn debug Kerberos logging on or off to assist in diagnosing issues with Kerberos authentication.",
+                  "default": false
                 }
               }
             },
@@ -125,7 +145,7 @@
       }
     },
     "journal_node": {
-      "description":"HDFS configuration properties.",
+      "description": "HDFS configuration properties.",
       "type": "object",
       "properties": {
         "cpus": {
@@ -165,6 +185,11 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "hadoop_journalnode_opts": {
+          "type": "string",
+          "description": "JVM options to specify when running the journal node. This overrides HADOOP_HEAPSIZE Xmx value for the journal nodes.",
+          "default": ""
         }
       },
       "required": [
@@ -200,7 +225,7 @@
         },
         "hadoop_namenode_opts": {
           "type": "string",
-          "description": "Options to specify when running the name node.",
+          "description": "JVM options to specify when running the name node. This overrides HADOOP_HEAPSIZE Xmx value for the name nodes.",
           "default": ""
         },
         "logging_level": {
@@ -588,7 +613,7 @@
       ]
     },
     "zkfc_node": {
-      "description":"HDFS configuration properties.",
+      "description": "HDFS configuration properties.",
       "type": "object",
       "properties": {
         "cpus": {
@@ -607,33 +632,33 @@
         "mem"
       ]
     },
-    "data_node":{
-      "description":"HDFS configuration properties.",
-      "type":"object",
-      "properties":{
-        "count":{
-          "description":"Data node count requirement",
-          "type":"number",
+    "data_node": {
+      "description": "HDFS configuration properties.",
+      "type": "object",
+      "properties": {
+        "count": {
+          "description": "Data node count requirement",
+          "type": "number",
           "default": 3
         },
-        "cpus":{
-          "description":"Data node CPU requirement",
-          "type":"number",
+        "cpus": {
+          "description": "Data node CPU requirement",
+          "type": "number",
           "default": 0.3
         },
-        "mem":{
-          "description":"Data node memory requirement",
-          "type":"number",
+        "mem": {
+          "description": "Data node memory requirement",
+          "type": "number",
           "default": 2048
         },
-        "disk":{
-          "description":"Data node disk size requirement in MB",
-          "type":"number",
+        "disk": {
+          "description": "Data node disk size requirement in MB",
+          "type": "number",
           "default": 5000
         },
-        "disk_type":{
-          "description":"Data node disk type",
-          "type":"string",
+        "disk_type": {
+          "description": "Data node disk type",
+          "type": "string",
           "default": "ROOT"
         },
         "handler_count": {
@@ -711,6 +736,11 @@
           "description": "Boolean which enables backend datanode-side support for the experimental DistributedFileSystem#getFileVBlockStorageLocations API.",
           "default": false
         },
+        "fsdataset_volume_choosing_policy": {
+          "type": "string",
+          "description": "The class name of the policy for choosing volumes in the list of directories. If you would like to take into account available disk space, set the value to 'org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy'.",
+          "default": "org.apache.hadoop.hdfs.server.datanode.fsdataset.RoundRobinVolumeChoosingPolicy"
+        },
         "available-space-volume-choosing-policy_balanced-space-threshold": {
           "type": "string",
           "description": "Only used when the dfs.datanode.fsdataset.volume.choosing.policy is set to org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy. This setting controls how much DN volumes are allowed to differ in terms of bytes of free disk space before they are considered imbalanced. If the free space of all the volumes are within this range of each other, the volumes will be considered balanced and block assignments will be done on a pure round robin basis.",
@@ -758,6 +788,11 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "hadoop_datanode_opts": {
+          "type": "string",
+          "description": "JVM options to specify when running the data node. This overrides HADOOP_HEAPSIZE Xmx value for the data nodes.",
+          "default": ""
         }
       },
       "required": [
@@ -855,8 +890,13 @@
         },
         "hadoop_opts": {
           "type": "string",
-          "description": "Extra Java runtime options.",
+          "description": "Extra Java runtime options for all Hadoop nodes.",
           "default": ""
+        },
+        "hadoop_heapsize": {
+          "type": "integer",
+          "description": "The maximum amount of heap to use, in MB.",
+          "default": 1000
         },
         "permissions_enabled": {
           "type": "boolean",

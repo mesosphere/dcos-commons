@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import org.apache.mesos.Protos.TaskID;
+import org.apache.mesos.Protos;
 
 import java.util.Collection;
 
@@ -11,7 +11,7 @@ public interface TaskFailureListener {
     /**
      * Handles task failure notifications.
      *
-     * @param taskIds The IDs of the tasks which have failed
+     * @param taskInfos The tasks which have failed
      */
-    void tasksFailed(Collection<TaskID> taskIds);
+    void tasksFailed(Collection<Protos.TaskInfo> taskInfos);
 }

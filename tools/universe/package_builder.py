@@ -16,20 +16,20 @@ import urllib.request
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = 'https://downloads.mesosphere.com/java/jre-8u152-linux-x64.tar.gz'
-_jre_jce_unlimited_url = 'https://downloads.mesosphere.com/java/jre-8u152-linux-x64-jce-unlimited.tar.gz'
-_libmesos_bundle_url = 'https://downloads.mesosphere.io/libmesos-bundle/libmesos-bundle-master-28f8827.tar.gz'
+_jre_url = 'https://downloads.mesosphere.com/java/server-jre-8u162-linux-x64.tar.gz'
+_libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-master-28f8827.tar.gz'
 
 _docs_root = "https://docs.mesosphere.com"
 
-_command_json_filename = 'command.json'
 _config_json_filename = 'config.json'
 _marathon_json_filename = 'marathon.json.mustache'
 _package_json_filename = 'package.json'
 _resource_json_filename = 'resource.json'
 _expected_package_filenames = [
-    _command_json_filename, _config_json_filename, _marathon_json_filename,
-    _package_json_filename, _resource_json_filename
+    _config_json_filename,
+    _marathon_json_filename,
+    _package_json_filename,
+    _resource_json_filename
 ]
 
 
@@ -153,7 +153,6 @@ class UniversePackageBuilder(object):
             'documentation-path': self._get_documentation_path(),
             'issues-path': self._get_issues_path(),
             'jre-url': _jre_url,
-            'jre-jce-unlimited-url': _jre_jce_unlimited_url,
             'libmesos-bundle-url': _libmesos_bundle_url
         }
 
@@ -207,7 +206,7 @@ class UniversePackageBuilder(object):
             logger.info('  {{%s}} => %s' % (key, template_mapping[key]))
         logger.info('Resulting diff:')
         logger.info('\n'.join(
-            difflib.ndiff(orig_content.split('\n'), new_content.split('\n'))))
+            difflib.unified_diff(orig_content.split('\n'), new_content.split('\n'), lineterm='')))
         return new_content
 
     def _generate_packages_dict(self, package_files):
@@ -215,11 +214,6 @@ class UniversePackageBuilder(object):
             package_files[_package_json_filename],
             object_pairs_hook=collections.OrderedDict)
         package_json['releaseVersion'] = 0
-
-        command_json = package_files.get(_command_json_filename)
-        if command_json is not None:
-            package_json['command'] = json.loads(
-                command_json, object_pairs_hook=collections.OrderedDict)
 
         config_json = package_files.get(_config_json_filename)
         if config_json is not None:

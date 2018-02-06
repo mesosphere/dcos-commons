@@ -19,13 +19,11 @@ public class TriggerDecommissionStep extends UninstallStep {
     private static final Logger LOGGER = LoggerFactory.getLogger(DecommissionPlanFactory.class);
 
     private final StateStore stateStore;
-    private final TaskKiller taskKiller;
     private final Protos.TaskInfo taskInfo;
 
-    public TriggerDecommissionStep(StateStore stateStore, TaskKiller taskKiller, Protos.TaskInfo taskInfo) {
+    public TriggerDecommissionStep(StateStore stateStore,  Protos.TaskInfo taskInfo) {
         super("kill-" + taskInfo.getName(), Status.PENDING);
         this.stateStore = stateStore;
-        this.taskKiller = taskKiller;
         this.taskInfo = taskInfo;
     }
 
@@ -34,7 +32,7 @@ public class TriggerDecommissionStep extends UninstallStep {
         LOGGER.info("Marking task for decommissioning: {}", taskInfo.getName());
         setStatus(Status.IN_PROGRESS);
         stateStore.storeGoalOverrideStatus(taskInfo.getName(), DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        taskKiller.killTask(taskInfo.getTaskId());
+        TaskKiller.killTask(taskInfo.getTaskId());
         setStatus(Status.COMPLETE);
         return getPodInstanceRequirement();
     }

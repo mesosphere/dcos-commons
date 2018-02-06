@@ -10,11 +10,6 @@
           "type": "string",
           "default": "elastic"
         },
-        "service_account_secret": {
-          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
-          "type": "string",
-          "default": ""
-        },
         "user": {
           "description": "The user that runs the Elasticsearch services and owns the Mesos sandbox.",
           "type": "string",
@@ -22,6 +17,11 @@
         },
         "service_account": {
           "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
+          "type": "string",
+          "default": ""
+        },
+        "service_account_secret": {
+          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
           "default": ""
         },
@@ -40,28 +40,47 @@
           "type": "string",
           "default": ""
         },
-        "deploy_strategy": {
-          "description": "Elasticsearch deploy strategy. [parallel, serial]",
-          "type": "string",
-          "default": "parallel",
-          "enum" : ["parallel", "serial"]
-        },
-        "update_strategy": {
-          "description": "Elasticsearch update strategy. [parallel, serial]",
-          "type": "string",
-          "default": "serial",
-          "enum" : ["parallel", "serial"]
-        },
         "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
+          "enum": [
+            "V0",
+            "V1"
+          ],
           "default": "V1"
         },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
-          "enum": ["OFF", "FATAL", "ERROR", "WARN", "INFO", "DEBUG", "TRACE", "ALL"],
+          "enum": [
+            "OFF",
+            "FATAL",
+            "ERROR",
+            "WARN",
+            "INFO",
+            "DEBUG",
+            "TRACE",
+            "ALL"
+          ],
           "default": "INFO"
+        },
+        "deploy_strategy": {
+          "description": "Elasticsearch deploy strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "parallel"
+        },
+        "update_strategy": {
+          "description": "Elasticsearch update strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "serial"
         },
         "security": {
           "description": "Elastic security settings",
@@ -73,11 +92,6 @@
               "properties": {
                 "enabled": {
                   "description": "Enable transport encryption (TLS)",
-                  "type": "boolean",
-                  "default": false
-                },
-                "allow_plaintext": {
-                  "description": "Allow plaintext alongside encrypted traffic",
                   "type": "boolean",
                   "default": false
                 }
@@ -466,7 +480,7 @@
           "default": false
         },
         "http_cors_allow_origin": {
-          "description": "Which origins to allow. Defaults to no origins allowed. If you prepend and append a / to the value, this will be treated as a regular expression, allowing you to support HTTP and HTTPs. * is a valid value but is considered a security risk as your elasticsearch instance is open to cross origin requests from anywhere.",
+          "description": "Which origins to allow. Defaults to no origins allowed. If you prepend and append a '/' to the value, this will be treated as a regular expression, allowing you to support HTTP and HTTPs. * is a valid value but is considered a security risk as your elasticsearch instance is open to cross origin requests from anywhere.",
           "type": "string",
           "default": ""
         },
@@ -481,12 +495,12 @@
           "default": false
         },
         "http_cors_allow_headers": {
-          "description": "Which headers to allow. Defaults to X-Requested-With, Content-Type, Content-Length.",
+          "description": "Which headers to allow. Defaults to X-Requested-With, Content-Type, Content-Length.",
           "type": "string",
           "default": "X-Requested-With,Content-Type,Content-Length"
         },
         "http_cors_allow_methods": {
-          "description": "Which methods to allow. Defaults to OPTIONS, HEAD, GET, POST, PUT, DELETE.",
+          "description": "Which methods to allow. Defaults to OPTIONS, HEAD, GET, POST, PUT, DELETE.",
           "type": "string",
           "default": "OPTIONS,HEAD,GET,POST,PUT,DELETE"
         },
@@ -503,7 +517,7 @@
         "http_pipelining_max_events": {
           "description": "The maximum number of events to be queued up in memory before a HTTP connection is closed, defaults to 10000.",
           "type": "integer",
-          "default":  10000
+          "default": 10000
         },
         "thread_pool_search_size": {
           "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicity set.",
@@ -736,7 +750,7 @@
           "default": ""
         },
         "cluster_indices_tombstones_size": {
-          "description": "Index tombstones prevent nodes that are not part of the cluster when a delete occurs from joining the cluster and reimporting the index as though the delete was never issued. To keep the cluster state from growing huge we only keep the last cluster.indices.tombstones.size deletes, which defaults to 500. You can increase it if you expect nodes to be absent from the cluster and miss more than 500 deletes. We think that is rare, thus the default. Tombstones don’t take up much space, but we also think that a number like 50,000 is probably too big. Empty means do not explicitly set.",
+          "description": "Index tombstones prevent nodes that are not part of the cluster when a delete occurs from joining the cluster and reimporting the index as though the delete was never issued. To keep the cluster state from growing huge we only keep the last cluster.indices.tombstones.size deletes, which defaults to 500. You can increase it if you expect nodes to be absent from the cluster and miss more than 500 deletes. We think that is rare, thus the default. Tombstones don't take up much space, but we also think that a number like 50,000 is probably too big. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -776,7 +790,7 @@
           "default": ""
         },
         "cluster_routing_allocation_disk_include_relocations": {
-          "description": "Defaults to true, which means that Elasticsearch will take into account shards that are currently being relocated to the target node when computing a node’s disk usage. Taking relocating shards' sizes into account may, however, mean that the disk usage for a node is incorrectly estimated on the high side, since the relocation could be 90% complete and a recently retrieved disk usage would include the total size of the relocating shard as well as the space already used by the running relocation. Empty means do not explicitly set.",
+          "description": "Defaults to true, which means that Elasticsearch will take into account shards that are currently being relocated to the target node when computing a node's disk usage. Taking relocating shards' sizes into account may, however, mean that the disk usage for a node is incorrectly estimated on the high side, since the relocation could be 90% complete and a recently retrieved disk usage would include the total size of the relocating shard as well as the space already used by the running relocation. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },

@@ -38,9 +38,11 @@ pods:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
             advertise: true
+            {{^TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
             vip:
               prefix: broker
               port: 9092
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
@@ -48,17 +50,21 @@ pods:
             port: {{BROKER_PORT}}
             env-key: KAFKA_BROKER_PORT
             advertise: true
+            {{^TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
             vip:
               prefix: broker
               port: 9092
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT}}
           broker-tls:
             port: {{BROKER_PORT_TLS}}
             env-key: KAFKA_BROKER_PORT_TLS
             advertise: true
+            {{^TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
             vip:
               prefix: broker-tls
               port: 9093
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
           {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         volume:
           path: {{BROKER_DISK_PATH}}
@@ -72,10 +78,13 @@ pods:
           # Exit on any error.
           set -e
 
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
-        {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
-          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf -Dsun.security.krb5.debug=true $KAFKA_OPTS"
-        {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+      {{#TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
+          export KAFKA_OPTS="-Djava.security.auth.login.config=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/kafka_server_jaas.conf -Djava.security.krb5.conf=$MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/krb5.conf $KAFKA_OPTS"
+        {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export KAFKA_OPTS="-Dsun.security.krb5.debug=true $KAFKA_OPTS"
+        {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+      {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
           ./setup-helper
@@ -93,6 +102,8 @@ pods:
           #
           # Additionally, we include a custom principal builder
           mv -v *statsd*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
+          # Clean up any pre-existing zookeeper library
+          rm $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/zookeeper*.jar
           mv -v zookeeper*.jar $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
           mv -v kafka-custom-principal-builder* $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/libs/
 

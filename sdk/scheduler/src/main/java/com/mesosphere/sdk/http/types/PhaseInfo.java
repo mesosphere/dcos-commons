@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.http.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Status;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,16 +22,21 @@ class PhaseInfo {
     private final Status status;
 
     public static PhaseInfo forPhase(final Phase phase) {
-        List<StepInfo> stepInfos = phase.getChildren().stream()
+        // Calculate the status of the phase based on the steps, THEN generate the StepInfos for those steps.
+        // This ordering is a workaround for potential inconsistency when step statuses change while we're rendering the
+        // plan. By fetching step statuses after the phase status, inconsistencies should typically appear as e.g. a
+        // phase that's IN_PROGRESS when the steps are COMPLETE. If we did the phase status last, then we'd risk getting
+        // the opposite of that, which is less intuitive to an end user.
+        Status phaseStatus = phase.getStatus(); // phase status first ...
+        List<StepInfo> stepInfos = phase.getChildren().stream() // ... then steps
                 .map(step -> StepInfo.forStep(step))
                 .collect(Collectors.toList());
-
         return new PhaseInfo(
                 phase.getId().toString(),
                 phase.getName(),
                 stepInfos,
                 phase.getStrategy().getName(),
-                phase.getStatus());
+                phaseStatus);
     }
 
     private PhaseInfo(

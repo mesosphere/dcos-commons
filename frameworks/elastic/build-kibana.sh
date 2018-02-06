@@ -29,6 +29,6 @@ case "$PUBLISH_STEP" in
 esac
 
 if [ -n "$PUBLISH_SCRIPT" ]; then
-    TEMPLATE_DOCUMENTATION_PATH="https://docs.mesosphere.com/services/beta-elastic/" \
+    TEMPLATE_DOCUMENTATION_PATH="https://docs.mesosphere.com/services/elastic/" \
         $PUBLISH_SCRIPT kibana ${UNIVERSE_DIR}
 fi

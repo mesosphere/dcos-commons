@@ -28,7 +28,7 @@ public class NotRule implements PlacementRule {
         EvaluationOutcome child = rule.filter(offer, podInstance, tasks);
         String reason = "Returning opposite of child rule";
         if (child.isPassing()) {
-            return EvaluationOutcome.fail(this, reason).build();
+            return EvaluationOutcome.fail(this, reason).addChild(child).build();
         } else {
             return EvaluationOutcome.pass(this, reason).addChild(child).build();
         }

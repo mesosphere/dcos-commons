@@ -7,15 +7,14 @@ import java.util.Set;
  * Various utilities for spec validation.
  */
 public class ValidationUtils {
+    private static final Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
 
     private ValidationUtils() {
         // do not instantiate
     }
 
     public static <T> void validate(T object) {
-        ValidatorFactory validatorFactory = Validation.buildDefaultValidatorFactory();
-        Set<ConstraintViolation<T>> violations = validatorFactory.getValidator().validate(object);
-        validatorFactory.close();
+        Set<ConstraintViolation<T>> violations = validator.validate(object);
 
         if (!violations.isEmpty()) {
             throw new ConstraintViolationException(

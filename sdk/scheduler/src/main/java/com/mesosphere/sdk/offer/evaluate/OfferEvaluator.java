@@ -64,27 +64,9 @@ public class OfferEvaluator {
                 .filter(taskInfo -> taskInfo != null)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
-        boolean noTasksRunning = thisPodTasks.values().stream()
-                .map(taskInfo -> taskInfo.getName())
-                .map(taskName -> stateStore.fetchStatus(taskName))
-                .filter(Optional::isPresent)
-                .map(taskStatus -> taskStatus.get())
-                .noneMatch(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_RUNNING));
-
-        Optional<Protos.ExecutorInfo> executorInfo = Optional.empty();
-        if (!thisPodTasks.isEmpty()) {
-            Protos.ExecutorInfo.Builder execInfoBuilder =
-                    thisPodTasks.values().stream().findFirst().get().getExecutor().toBuilder();
-            if (noTasksRunning) {
-                execInfoBuilder.setExecutorId(Protos.ExecutorID.newBuilder().setValue(""));
-            }
-
-            executorInfo = Optional.of(execInfoBuilder.build());
-        }
-
         for (int i = 0; i < offers.size(); ++i) {
             List<OfferEvaluationStage> evaluationStages =
-                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks, executorInfo);
+                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
 
             Protos.Offer offer = offers.get(i);
 
@@ -168,8 +150,7 @@ public class OfferEvaluator {
     public List<OfferEvaluationStage> getEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Collection<Protos.TaskInfo> allTasks,
-            Map<String, Protos.TaskInfo> thisPodTasks,
-            Optional<Protos.ExecutorInfo> executorInfo) throws IOException {
+            Map<String, Protos.TaskInfo> thisPodTasks) throws IOException {
 
         boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
@@ -179,8 +160,9 @@ public class OfferEvaluator {
                 .filter(resourceId -> !resourceId.isEmpty())
                 .count() == 0;
 
-        boolean allTasksFailed = thisPodTasks.values().stream()
-                .allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
+        boolean allTasksFailed =
+                thisPodTasks.size() > 0 &&
+                thisPodTasks.values().stream().allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
 
         final String description;
         final boolean shouldGetNewRequirement;
@@ -212,23 +194,50 @@ public class OfferEvaluator {
             evaluationPipeline.add(new ExecutorEvaluationStage(Optional.empty()));
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
         } else {
-            evaluationPipeline.add(new ExecutorEvaluationStage(getExecutorInfo(thisPodTasks.values())));
+            Protos.ExecutorInfo executorInfo = getExecutorInfo(podInstanceRequirement, thisPodTasks.values());
+
+            // An empty ExecutorID indicates we should use a new Executor, otherwise we should attempt to launch
+            // tasks on an already running Executor.
+            String executorIdString = executorInfo.getExecutorId().getValue();
+            Optional<Protos.ExecutorID> executorID = executorIdString.isEmpty() ?
+                    Optional.empty() :
+                    Optional.of(executorInfo.getExecutorId());
+
+            evaluationPipeline.add(new ExecutorEvaluationStage(executorID));
             evaluationPipeline.addAll(getExistingEvaluationPipeline(
-                    podInstanceRequirement, thisPodTasks, allTasks, executorInfo.get(), tlsStageBuilder));
+                    podInstanceRequirement, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
         }
 
         return evaluationPipeline;
     }
 
-    private Optional<Protos.ExecutorInfo> getExecutorInfo(Collection<Protos.TaskInfo> taskInfos) {
-        for (Protos.TaskInfo taskInfo : taskInfos) {
+    private Protos.ExecutorInfo getExecutorInfo(
+            PodInstanceRequirement podInstanceRequirement,
+            Collection<Protos.TaskInfo> taskInfos) {
+        // Filter which tasks are candidates for executor reuse.  Don't try to reuse your own executor.
+        List<String> taskNames = TaskUtils.getTaskNames(
+                podInstanceRequirement.getPodInstance(),
+                podInstanceRequirement.getTasksToLaunch());
+        Collection<Protos.TaskInfo> executorReuseCandidates = taskInfos.stream()
+                .filter(taskInfo -> !taskNames.contains(taskInfo.getName()))
+                .collect(Collectors.toList());
+
+        for (Protos.TaskInfo taskInfo : executorReuseCandidates) {
             if (taskHasReusableExecutor(taskInfo)) {
-                logger.info("Using existing executor: {}", taskInfo.getExecutor().getExecutorId().getValue());
-                return Optional.of(taskInfo.getExecutor());
+                logger.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
+                return taskInfo.getExecutor();
             }
         }
 
-        return Optional.empty();
+        // We set an empty ExecutorID to indicate that we are launching a new Executor, NOT reusing a currently running
+        // one.
+        Protos.ExecutorInfo executorInfo = taskInfos.stream().findFirst().get()
+                .getExecutor().toBuilder()
+                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
+                .build();
+        logger.info("Using old executor: {}", TextFormat.shortDebugString(executorInfo));
+
+        return executorInfo;
     }
 
     private boolean taskHasReusableExecutor(Protos.TaskInfo taskInfo) {
@@ -377,39 +386,37 @@ public class OfferEvaluator {
         List<ResourceSpec> resources = new ArrayList<>();
 
         resources.add(DefaultResourceSpec.newBuilder()
-                .name("cpus")
+                .name(Constants.CPUS_RESOURCE_TYPE)
                 .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(0.1))
-                        .build())
+                .value(scalar(Constants.DEFAULT_EXECUTOR_CPUS))
                 .build());
 
         resources.add(DefaultResourceSpec.newBuilder()
-                .name("mem")
+                .name(Constants.MEMORY_RESOURCE_TYPE)
                 .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(32.0))
-                        .build())
+                .value(scalar(Constants.DEFAULT_EXECUTOR_MEMORY))
                 .build());
 
         resources.add(DefaultResourceSpec.newBuilder()
-                .name("disk")
+                .name(Constants.DISK_RESOURCE_TYPE)
                 .preReservedRole(preReservedRole)
                 .role(role)
                 .principal(principal)
-                .value(Protos.Value.newBuilder()
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(256.0))
-                        .build())
+                .value(scalar(Constants.DEFAULT_EXECUTOR_DISK))
                 .build());
 
         return resources;
+    }
+
+    private static Protos.Value scalar(double val) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.SCALAR);
+        builder.getScalarBuilder().setValue(val);
+        return builder.build();
     }
 
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(

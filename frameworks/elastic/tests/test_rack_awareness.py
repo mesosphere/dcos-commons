@@ -41,16 +41,16 @@ def test_zones_referenced_in_placement_constraints():
         config.DEFAULT_TASK_COUNT,
         additional_options={
             "master_nodes": {
-                "placement": "@zone:GROUP_BY"
+                "placement": "[[\"@zone\", \"GROUP_BY\"]]"
             },
             "data_nodes": {
-                "placement": "@zone:GROUP_BY"
+                "placement": "[[\"@zone\", \"GROUP_BY\"]]"
             },
             "ingest_nodes": {
-                "placement": "@zone:GROUP_BY"
+                "placement": "[[\"@zone\", \"GROUP_BY\"]]"
             },
             "coordinator_nodes": {
-                "placement": "@zone:GROUP_BY"
+                "placement": "[[\"@zone\", \"GROUP_BY\"]]"
             }
         })
 

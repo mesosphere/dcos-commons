@@ -10,7 +10,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,27 +27,17 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
     private final StateStore stateStore;
-    private final TaskKiller taskKiller;
 
-    public DefaultPlanScheduler(
-            OfferAccepter offerAccepter,
-            OfferEvaluator offerEvaluator,
-            StateStore stateStore,
-            TaskKiller taskKiller) {
+    public DefaultPlanScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, StateStore stateStore) {
         this.offerAccepter = offerAccepter;
         this.offerEvaluator = offerEvaluator;
         this.stateStore = stateStore;
-        this.taskKiller = taskKiller;
     }
 
     @Override
-    public Collection<OfferID> resourceOffers(
-            final SchedulerDriver driver,
-            final List<Offer> offers,
-            final Collection<? extends Step> steps) {
-        if (driver == null || offers == null || steps == null) {
-            logger.error("Unexpected null argument(s) encountered: driver='{}' offers='{}', steps='{}'",
-                    driver, offers, steps);
+    public Collection<OfferID> resourceOffers(final List<Offer> offers, final Collection<? extends Step> steps) {
+        if (offers == null || steps == null) {
+            logger.error("Unexpected null argument(s) encountered: offers='{}', steps='{}'", offers, steps);
             return Collections.emptyList();
         }
 
@@ -56,17 +45,17 @@ public class DefaultPlanScheduler implements PlanScheduler {
         List<Offer> availableOffers = new ArrayList<>(offers);
 
         for (Step step : steps) {
-            acceptedOfferIds.addAll(resourceOffers(driver, availableOffers, step));
+            acceptedOfferIds.addAll(resourceOffers(availableOffers, step));
             availableOffers = PlanUtils.filterAcceptedOffers(availableOffers, acceptedOfferIds);
         }
 
         return acceptedOfferIds;
     }
 
-    private Collection<OfferID> resourceOffers(SchedulerDriver driver, List<Offer> offers, Step step) {
+    private Collection<OfferID> resourceOffers(List<Offer> offers, Step step) {
 
-        if (driver == null || offers == null) {
-            logger.error("Unexpected null argument encountered: driver='{}' offers='{}'", driver, offers);
+        if (offers == null) {
+            logger.error("Unexpected null argument: 'offers'");
             return Collections.emptyList();
         }
 
@@ -113,7 +102,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
             return Collections.emptyList();
         }
 
-        List<OfferID> acceptedOffers = offerAccepter.accept(driver, recommendations);
+        List<OfferID> acceptedOffers = offerAccepter.accept(recommendations);
 
         // Notify step of offer outcome:
         if (acceptedOffers.isEmpty()) {
@@ -165,7 +154,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
                 }
 
                 if (!TaskUtils.isTerminal(state)) {
-                    taskKiller.killTask(taskInfo.getTaskId());
+                    TaskKiller.killTask(taskInfo.getTaskId());
                 }
             }
         }

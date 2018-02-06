@@ -1,10 +1,10 @@
 import logging
-import pytest
 import uuid
+
+import pytest
 
 import sdk_auth
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_utils
@@ -19,42 +19,12 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_principals():
-    fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
-                                                 host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    brokers = [
-        "kafka-0-broker",
-        "kafka-1-broker",
-        "kafka-2-broker",
-    ]
-
-    principals = []
-    for b in brokers:
-        principals.append("kafka/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=fqdn,
-            realm=sdk_auth.REALM))
-
-    clients = [
-        "client",
-        "authorized",
-        "unauthorized",
-        "super"
-    ]
-    for c in clients:
-        principals.append("{client}@{realm}".format(client=c, realm=sdk_auth.REALM))
-
-    yield principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals):
+def kerberos(configure_security):
     try:
-        principals = []
-        principals.extend(kafka_principals)
-
         kerberos_env = sdk_auth.KerberosEnvironment()
+
+        principals = auth.get_service_principals(config.SERVICE_NAME,
+                                                 kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -84,6 +54,7 @@ def kafka_server(kerberos):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
+                    "realm": sdk_auth.REALM,
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
                 "authorization": {
@@ -164,7 +135,7 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(kafka_client, kafka_server):
+def test_authz_acls_required(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
@@ -179,16 +150,16 @@ def test_authz_acls_required(kafka_client, kafka_server):
     message = str(uuid.uuid4())
 
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("authorized", client_id, topic_name, message)
+    assert not write_to_topic("authorized", client_id, topic_name, message, kerberos)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, message)
+    assert write_to_topic("super", client_id, topic_name, message, kerberos)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1))
+    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1, kerberos))
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    assert message in read_from_topic("super", client_id, topic_name, 1)
+    assert message in read_from_topic("super", client_id, topic_name, 1, kerberos)
 
     zookeeper_endpoint = sdk_cmd.svc_cli(
         kafka_server["package_name"],
@@ -201,38 +172,38 @@ def test_authz_acls_required(kafka_client, kafka_server):
     # Send a second message which should not be authorized
     second_message = str(uuid.uuid4())
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert write_to_topic("authorized", client_id, topic_name, second_message)
+    assert write_to_topic("authorized", client_id, topic_name, second_message, kerberos)
 
     log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, second_message)
+    assert write_to_topic("super", client_id, topic_name, second_message, kerberos)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    topic_output = read_from_topic("authorized", client_id, topic_name, 3)
+    topic_output = read_from_topic("authorized", client_id, topic_name, 3, kerberos)
     assert message in topic_output
     assert second_message in topic_output
 
     log.info("Writing and reading: Reading from the topic, as super user")
-    topic_output = read_from_topic("super", client_id, topic_name, 3)
+    topic_output = read_from_topic("super", client_id, topic_name, 3, kerberos)
     assert message in topic_output
     assert second_message in topic_output
 
     # Check that the unauthorized client can still not read or write from the topic.
     log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("unauthorized", client_id, topic_name, second_message)
+    assert not write_to_topic("unauthorized", client_id, topic_name, second_message, kerberos)
 
     log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1))
+    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1, kerberos))
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
+def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
 
     return auth.write_to_topic(cn, task, topic, message,
                                auth.get_kerberos_client_properties(ssl_enabled=False),
-                               auth.setup_env(cn, task))
+                               auth.setup_krb5_env(cn, task, krb5))
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
+def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
 
     return auth.read_from_topic(cn, task, topic, messages,
                                 auth.get_kerberos_client_properties(ssl_enabled=False),
-                                auth.setup_env(cn, task))
+                                auth.setup_krb5_env(cn, task, krb5))

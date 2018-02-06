@@ -25,11 +25,11 @@ def configure_package(configure_security):
 
 
 def _escape_placement_for_1_9(options: dict) -> dict:
-    # 1.9 requires `\"` to be escped to `\\\"`
+    # 1.9 requires `\"` to be escaped to `\\\"`
     # when submitting placement constraints
     log.info(options)
-    if not sdk_utils.dcos_version_less_than("1.10"):
-        log.info("DC/OS version > 1.10")
+    if sdk_utils.dcos_version_at_least("1.10"):
+        log.info("DC/OS version >= 1.10")
         return options
 
     def escape_section_placement(section: str, options: dict) -> dict:
@@ -477,9 +477,26 @@ def setup_constraint_switch():
 
 def get_task_host(task_name):
     out = sdk_cmd.run_cli('task {} --json'.format(task_name))
+    task_info = json.loads(out)[0]
 
-    for label in json.loads(out)[0]['labels']:
+    host = None
+    for label in task_info['labels']:
         if label['key'] == 'offer_hostname':
-            return label['value']
+            host = label['value']
+            break
 
-    raise Exception("offer_hostname label is not present!")
+    if host is None:
+        raise Exception("offer_hostname label is not present!: {}".format(task_info))
+
+    # Validation: Check that label matches summary returned by CLI
+    for task in sdk_tasks.get_summary():
+        if task.name == task_name:
+            if task.host == host:
+                # OK!
+                return host
+            else:
+                # CLI's hostname doesn't match the TaskInfo labels. Bug!
+                raise Exception("offer_hostname label {} doesn't match CLI output!\nTask:\n{}".format(task_info))
+
+    # Unable to find desired task in CLI!
+    raise Exception("Unable to find task named {} in CLI".format(task_name))

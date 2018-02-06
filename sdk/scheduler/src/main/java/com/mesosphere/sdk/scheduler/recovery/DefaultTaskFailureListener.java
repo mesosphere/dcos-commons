@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -30,21 +28,22 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
     }
 
     @Override
-    public void tasksFailed(Collection<Protos.TaskID> taskIds) {
-        getPods(taskIds).forEach(podInstance -> FailureUtils.setPermanentlyFailed(stateStore, podInstance));
+    public void tasksFailed(Collection<Protos.TaskInfo> taskInfos) {
+        getPods(taskInfos).forEach(podInstance -> FailureUtils.setPermanentlyFailed(stateStore, podInstance));
     }
 
-    private Set<PodInstance> getPods(Collection<Protos.TaskID> taskIds) {
+    private Set<PodInstance> getPods(Collection<Protos.TaskInfo> taskInfos) {
         Set<PodInstance> podInstances = new HashSet<>();
-        for (Protos.TaskID taskId : taskIds) {
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            if (taskInfo.getTaskId().getValue().isEmpty()) {
+                // Skip marking 'stub' tasks which haven't been launched as permanently failed:
+                logger.info("Not marking task {} as failed due to empty taskId", taskInfo.getName());
+                continue;
+            }
             try {
-                Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(CommonIdUtils.toTaskName(taskId));
-                if (taskInfo.isPresent()) {
-                    PodInstance podInstance = TaskUtils.getPodInstance(configStore, taskInfo.get());
-                    podInstances.add(podInstance);
-                }
+                podInstances.add(TaskUtils.getPodInstance(configStore, taskInfo));
             } catch (TaskException e) {
-                logger.error("Failed to fetch/store Task for taskId: " + taskId + " with exception:", e);
+                logger.error(String.format("Failed to get pod for task %s", taskInfo.getTaskId().getValue()), e);
             }
         }
 

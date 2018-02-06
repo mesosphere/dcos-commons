@@ -44,6 +44,7 @@ public class Main {
         }
 
         return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
+                .setCustomConfigValidators(Arrays.asList(new ElasticZoneValidator()))
                 .setPlansFrom(rawServiceSpec);
     }
 }

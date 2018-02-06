@@ -167,13 +167,15 @@ public class PodInfoBuilder {
     }
 
     public static Protos.Resource getExistingExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar());
+            VolumeSpec volumeSpec, String resourceId, String persistenceId, boolean useDefaultExecutor) {
+        Protos.Resource.Builder builder;
+        if (useDefaultExecutor) {
+            builder = getExistingDefaultExecutorVolume(volumeSpec, resourceId, persistenceId);
+        } else {
+            builder = getExistingCustomExecutorVolume(volumeSpec, resourceId, persistenceId);
+        }
 
-        Protos.Resource.DiskInfo.Builder diskInfoBuilder = resourceBuilder.getDiskBuilder();
+        Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
         diskInfoBuilder.getPersistenceBuilder()
                 .setId(persistenceId)
                 .setPrincipal(volumeSpec.getPrincipal());
@@ -181,13 +183,39 @@ public class PodInfoBuilder {
                 .setContainerPath(volumeSpec.getContainerPath())
                 .setMode(Protos.Volume.Mode.RW);
 
+        return builder.build();
+    }
+
+    private static Protos.Resource.Builder getExistingCustomExecutorVolume(
+            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
+        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
+                .setName("disk")
+                .setType(Protos.Value.Type.SCALAR)
+                .setScalar(volumeSpec.getValue().getScalar())
+                .setRole(volumeSpec.getRole());
+
+        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.getReservationBuilder();
+        reservationBuilder.setPrincipal(volumeSpec.getPrincipal());
+        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+
+        return resourceBuilder;
+    }
+
+    private static Protos.Resource.Builder getExistingDefaultExecutorVolume(
+            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
+        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
+                .setName("disk")
+                .setType(Protos.Value.Type.SCALAR)
+                .setScalar(volumeSpec.getValue().getScalar());
+
         Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
         reservationBuilder
+                .setType(Protos.Resource.ReservationInfo.Type.DYNAMIC)
                 .setPrincipal(volumeSpec.getPrincipal())
                 .setRole(volumeSpec.getRole());
         AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
 
-        return resourceBuilder.build();
+        return resourceBuilder;
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {
@@ -323,7 +351,7 @@ public class PodInfoBuilder {
             Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
                     "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                     "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
-                    "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
+                    "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && " +
                     // Remove Xms/Xmx if +UseCGroupMemoryLimitForHeap or equivalent detects cgroups memory limit
                     "export JAVA_OPTS=\"-Xms128M -Xmx128M\" && " +
                     "$MESOS_SANDBOX/executor/bin/executor");

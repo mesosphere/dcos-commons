@@ -1,13 +1,15 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.config.TaskEnvRouter;
+import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawPort;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
+import com.mesosphere.sdk.testing.ConfigValidatorUtils;
 import com.mesosphere.sdk.testing.CosmosRenderer;
-import com.mesosphere.sdk.testing.ServiceTestRunner;
-
 import com.mesosphere.sdk.testing.ServiceTestResult;
+import com.mesosphere.sdk.testing.ServiceTestRunner;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -19,16 +21,11 @@ import java.util.Collections;
 import java.util.Map;
 
 public class ServiceTest {
+    private static final ConfigValidator<ServiceSpec> validator = new HDFSZoneValidator();
 
     @Test
     public void testSpec() throws Exception {
-        // Our Main.java only defines SERVICE_ZK_ROOT in our name nodes.
-        // However, the test utilities are strict about missing template params so we set something for all pods:
-        new ServiceTestRunner()
-                .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
-                .setPodEnv("data", "SERVICE_ZK_ROOT", "")
-                .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
-                .run();
+        getDefaultRunner().run();
     }
 
     @Test
@@ -95,6 +92,27 @@ public class ServiceTest {
         renderEndpointTemplate(ServiceTestRunner.getDistFile(Main.CORE_SITE_XML));
     }
 
+    @Test
+    public void rejectRackEnablement() throws Exception {
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "JOURNAL_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "NAME_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackEnablement(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
+    }
+
+    @Test
+    public void rejectRackDisablement() throws Exception {
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "JOURNAL_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "NAME_NODE_PLACEMENT");
+        ConfigValidatorUtils.rejectRackDisablement(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
+    }
+
+    @Test
+    public void allowRackChanges() throws Exception {
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "JOURNAL_NODE_PLACEMENT");
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "NAME_NODE_PLACEMENT");
+        ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
+    }
+
     private void renderEndpointTemplate(File templateFile) throws IOException {
         String fileStr = new String(Files.readAllBytes(templateFile.toPath()), StandardCharsets.UTF_8);
 
@@ -109,5 +127,14 @@ public class ServiceTest {
 
         // Validate by throwing if any values are missing:
         TemplateUtils.renderMustacheThrowIfMissing(templateFile.getName(), fileStr, taskEnv);
+    }
+
+    private ServiceTestRunner getDefaultRunner() throws Exception {
+        // Our Main.java only defines SERVICE_ZK_ROOT in our name nodes.
+        // However, the test utilities are strict about missing template params so we set something for all pods:
+        return new ServiceTestRunner()
+                .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
+                .setPodEnv("data", "SERVICE_ZK_ROOT", "")
+                .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk");
     }
 }

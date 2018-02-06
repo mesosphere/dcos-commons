@@ -4,19 +4,16 @@ import os
 import retrying
 import shakedown
 
-import sdk_auth
 import sdk_cmd
-import sdk_hosts
 import sdk_plan
 import sdk_tasks
 import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'beta-hdfs'
-SERVICE_NAME = 'hdfs'
+PACKAGE_NAME = sdk_utils.get_package_name("hdfs")
+SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
-FOLDERED_DNS_NAME = sdk_hosts.get_foldered_dns_name(SERVICE_NAME)
 
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
@@ -27,11 +24,6 @@ DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
 KEYTAB = "hdfs.keytab"
-CLIENT_PRINCIPALS = {
-    "hdfs": "hdfs@{}".format(sdk_auth.REALM),
-    "alice": "alice@{}".format(sdk_auth.REALM),
-    "bob": "bob@{}".format(sdk_auth.REALM)
-}
 
 
 def get_kerberized_hdfs_client_app():

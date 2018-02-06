@@ -15,8 +15,6 @@ import os
 import os.path
 
 log = logging.getLogger(__name__)
-# The index to use when constructing the test log directory.
-test_index = -1
 
 
 def get_package_name(default: str) -> str:
@@ -59,55 +57,26 @@ def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
 
-def set_test_index(index):
-    '''Assigns the index to use for a test within a given test suite.
-    Should start at 1 for the first test in the suite.'''
-    global test_index
-    test_index = index
+def dcos_version_at_least(version):
+    return not dcos_version_less_than(version)
 
 
-def get_test_suite_name(pytest_node):
-    '''Returns the test suite name to use for a given test.'''
-    # frameworks/template/tests/test_sanity.py => test_sanity_py
-    # tests/test_sanity.py => test_sanity_py
-    return os.path.basename(pytest_node.parent.name).replace('.','_')
+def check_dcos_min_version_mark(item: pytest.Item):
+    '''Enforces the dcos_min_version pytest annotation, which should be used like this:
 
+    @pytest.mark.dcos_min_version('1.10')
+    def your_test_here(): ...
 
-def get_test_suite_log_directory(pytest_node):
-    '''Returns the parent directory for the logs across a suite of tests.
-    For individual tests within this directory, see get_test_log_directory().'''
-    return os.path.join('logs', get_test_suite_name(pytest_node))
-
-
-def get_test_log_directory(pytest_node):
-    '''Returns the directory for the logs of a single test.
-    For the parent test suite directory, see get_test_suite_log_directory().'''
-    # full item.listchain() is e.g.:
-    # - ['build', 'frameworks/template/tests/test_sanity.py', 'test_install']
-    # - ['build', 'tests/test_sanity.py', 'test_install']
-    # we want to turn both cases into: 'logs/test_sanity_py/test_install'
-    global test_index
-    if test_index > 0:
-        # test_index is defined: get name like "05__test_placement_rules"
-        test_name = '{:02d}__{}'.format(test_index, pytest_node.name)
-    else:
-        # test_index is not defined: fall back to just "test_placement_rules"
-        test_name = pytest_node.name
-    return os.path.join(get_test_suite_log_directory(pytest_node), test_name)
-
-
-def is_test_failure(pytest_request):
-    '''Determine if the test run failed using the request object from pytest.
-    The reports being evaluated are set in conftest.py:pytest_runtest_makereport()
-    https://docs.pytest.org/en/latest/builtin.html#_pytest.fixtures.FixtureRequest
+    In order for this annotation to take effect, this function must be called by a pytest_runtest_setup() hook.
     '''
-    for report in ('rep_setup', 'rep_call', 'rep_teardown'):
-        if not hasattr(pytest_request.node, report):
-            continue
-        if not getattr(pytest_request.node, report).failed:
-            continue
-        return True
-    return False
+    min_version_mark = item.get_marker('dcos_min_version')
+    if min_version_mark:
+        min_version = min_version_mark.args[0]
+        message = 'Feature only supported in DC/OS {} and up'.format(min_version)
+        if 'reason' in min_version_mark.kwargs:
+            message += ': {}'.format(min_version_mark.kwargs['reason'])
+        if dcos_version_less_than(min_version):
+            pytest.skip(message)
 
 
 def is_open_dcos():

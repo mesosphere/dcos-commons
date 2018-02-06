@@ -1,4 +1,4 @@
-@import url('gh-basic.css');
+@import url('layout.css');
 
 /* root list gets no margins, no border: */
 #content ul { margin-left: 0; padding-left: 0 }

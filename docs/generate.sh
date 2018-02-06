@@ -71,7 +71,7 @@ for dir in $(ls -d $PAGES_FRAMEWORKS_PATH_PATTERN); do
     ln -s -v $dir services/$framework
 done
 # Errors? Do this!:
-# sudo gem install jekyll jekyll-redirect-from
+# sudo gem install jekyll jekyll-redirect-from jekyll-toc
 run_cmd jekyll build --destination ${DOCS_DIR}/${OUTPUT_DIR}
 popd
 
@@ -126,13 +126,15 @@ else
         HTTP_PORT=$DEFAULT_HTTP_PORT
     fi
     FAILED=""
-    echo "> http://localhost:${HTTP_PORT}/dcos-commons < is now serving $DOCS_DIR/$OUTPUT_DIR"
-    python $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="yes"
-    if [ -n "$FAILED" ]; then
-        echo "-----"
-        echo "Failed to listen on HTTP_PORT=$HTTP_PORT."
-        echo "Wait for that port to free up, or specify a different port like this:"
-        echo "HTTP_PORT=<custom port> $0 $@"
-        echo "Alternately just run '$0 exit' to skip running a test server."
-    fi
+    while [ 1 ]; do
+        $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="$?"
+        if [ -n "$FAILED" ]; then
+            echo "Failed to listen on HTTP_PORT=$HTTP_PORT (exit code $FAILED)".
+            HTTP_PORT=$((HTTP_PORT + 1))
+            echo "Trying HTTP_PORT=$HTTP_PORT, or alternately just run '$0 exit' to skip running a test server."
+        else
+            # When user invokes KeyboardInterrupt, exit code should be 0
+            break
+        fi
+    done
 fi

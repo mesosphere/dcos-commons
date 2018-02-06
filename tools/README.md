@@ -56,7 +56,7 @@ For example, instead of `http://example.com/artifacts/1.1/scheduler.zip`, you sh
 
 Note that this only applies to the files that you expect to be built, uploaded, and included in every release of your service. External resources that aren't included in the main build, such as icons, JVM packages, or external libraries should instead be uploaded to a fixed location, and their paths in the packaging should point to that location without any templating.
 
-For some examples of this, take a look at `resource.json` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/universe/resource.json) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/universe/resource.json).
+For an example of this, take a look at `resource.json` for [Hello World](../frameworks/helloworld/universe/resource.json).
 
 #### Version label placeholder
 
@@ -72,33 +72,33 @@ After:
   "version": "{{package-version}}",
 ```
 
-For some examples of this, take a look at `package.json` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/universe/package.json) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/universe/package.json).
+For an example of this, take a look at `package.json` for [Hello World](../frameworks/helloworld/universe/package.json).
 
 #### Binary CLI module SHA placeholders
 
 If you are providing binary CLI modules with your service, the tooling supports automatically populating the package template with any required `sha256sum` values.
 
-The expected placeholder format is `{{sha256:yourfile.ext}}`, where `yourfile.ext` is one of the files which was passed to `publish_aws.py` or `publish_http.py`. Multiple files of the same name are not supported, as they all get uploaded to the same directory anyway. For example:
+The expected placeholder format is `{{sha256:yourfile.ext}}` or `{{sha256:yourfile.ext@http://example.com/SHA256SUMS}}`. In the first case, the local path to `yourfile.ext` must have been passed to `publish_aws.py` or `publish_http.py`, so that a SHA-256 can be generated. In the latter case, the URL should point to a SHA256SUMS file which lists `yourfile.ext`. Multiple files of the same name are not supported, as they all get uploaded to the same directory anyway. For example:
 
 Before:
 ```
   "x86-64":{
     "contentHash":[ { "algo":"sha256", "value":"6b6f79f0c5e055a19db188989f9bbf40b834e620914edc98b358fe1438caac42" } ],
     "kind":"executable",
-    "url":"{{artifact-dir}}/dcos-kafka-linux"
+    "url":"{{artifact-dir}}/dcos-service-cli-linux"
   }
 ```
 
 After:
 ```
   "x86-64":{
-    "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-kafka-linux}}" } ],
+    "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-linux@https://downloads.mesosphere.com/dcos-commons/artifacts/SDK_VERSION/SHA256SUMS}}" } ],
     "kind":"executable",
-    "url":"{{artifact-dir}}/dcos-kafka-linux"
+    "url":"{{artifact-dir}}/dcos-service-cli-linux"
   }
 ```
 
-For some examples of this, take a look at `resource.json` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/universe/resource.json) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/universe/resource.json).
+For an example of this, take a look at `resource.json` for [Hello World](../frameworks/helloworld/universe/resource.json).
 
 #### Custom placeholders
 
@@ -112,7 +112,7 @@ Ideally you should have some script in your project repository which defines how
 
 We specifically recommend including this script in the project repository alongside your code. This will allow adding/modifying/removing artifacts from your build on a per-commit basis in lockstep with code changes, whereas a single external script would cause synchronization issues between branches which may each have different artifacts.
 
-For some examples of instantiation, take a look at `build.sh` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/build.sh) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/build.sh).
+For an example of instantiation, take a look at `build.sh` for [Hello World](../frameworks/helloworld/build.sh).
 
 #### Downloading the latest tools
 
@@ -162,11 +162,11 @@ S3_DIR_PATH=dcosArtifacts/dev \
 ./build_package.sh \
     kafka \
     /path/to/dcos-commons/frameworks/kafka
-    -a dcos-kafka-service/scheduler.zip \
-    -a dcos-kafka-service/executor.zip \
-    -a dcos-kafka-service/cli/dcos-kafka.exe \
-    -a dcos-kafka-service/cli/dcos-kafka-dawin \
-    -a dcos-kafka-service/cli/dcos-kafka-linux
+    -a kafka/scheduler.zip \
+    -a kafka/executor.zip \
+    -a kafka/cli/dcos-service-cli.exe \
+    -a kafka/cli/dcos-service-cli-dawin \
+    -a kafka/cli/dcos-service-cli-linux
     aws
 [...]
 ---
@@ -326,44 +326,6 @@ $ ./print_package_tag.py spark
 1.0.2-2.0.0
 ```
 
-### github_update.py
-
-Updates the correct GitHub PR with a status message about the progress of the build.
-This is mainly meant to be invoked by CI during a build/test run, rather than being invoked manually by the developer. Outside of CI environments it just prints out the provided status.
-
-#### Usage
-
-```
-$ ./github_update.py <state: pending|success|error|failure> <context_label> <status message>
-```
-
-Example:
-
-```
-$ GITHUB_TOKEN=yourGithubAuthToken \
-GITHUB_COMMIT_STATUS_URL=http://example.com/detailsLinkGoesHere.html \
-./github_update.py \
-    pending \
-    build \
-    Building CLI
-```
-
-For other examples of usage, take a look at the `build.sh` for [Kafka](https://github.com/mesosphere/dcos-kafka-service/blob/master/build.sh) or [Cassandra](https://github.com/mesosphere/dcos-cassandra-service/blob/master/build.sh).
-
-#### Environment variables
-
-Much of the logic for detecting the CI environment is handled automatically by checking one or more environment variables:
-
-- Detecting a CI environment: Non-empty `WORKSPACE`
-- GitHub [auth token](https://github.com/settings/tokens): `GITHUB_TOKEN_REPO_STATUS`, or `GITHUB_TOKEN`
-- git commit SHA: `ghprbActualCommit`, `GIT_COMMIT`, `${${GIT_COMMIT_ENV_NAME}}`, or finally by checking `git` directly.
-- GitHub repository path: `GITHUB_REPO_PATH`, or by checking `git` directly.
-- Detecting the link to include as a details link in the update: `GITHUB_COMMIT_STATUS_URL`, or `BUILD_URL/console`
-- Disabling the notification to GitHub (eg in out-of-band tests where updating the repo doesn't make sense): non-empty `GITHUB_DISABLE`
-
-Of these, `GITHUB_TOKEN` is the main one that needs to be set in a CI environment, while the others are generally autodetected.
-Meanwhile `GITHUB_COMMIT_STATUS_URL` is useful for providing custom links in status messages.
-
 ### universe_builder.py
 
 Builds a self-contained Universe 2.x-format package ('stub-universe') which may be used to add/test a given build directly on a DC/OS cluster. The resulting zip file's path is printed to stdout, while all other logging goes to stderr.
@@ -375,7 +337,7 @@ The provided universe files may contain template parameters of the form `{{some-
 
 In addition to these default template parameters, the caller may also provide environment variables of the form `TEMPLATE_SOME_PARAM` whose value will automatically be inserted into template fields named `{{some-param}}`. For example, running `TEMPLATE_DOCKER_IMAGE=mesosphere/docker-image ./universe_builder.py` would result in any `{{docker-image}}` parameters being replaced with `mesosphere/docker-image`.
 
-A universe template is effectively a directory with the JSON files that you want to include in your Universe package, with template paramters provided in the above format. For some real-world examples of universe templates, take a look at [Kafka's](https://github.com/mesosphere/dcos-kafka-service/tree/master/universe/) or [Cassandra's](https://github.com/mesosphere/dcos-cassandra-service/tree/master/universe/) templates.
+A universe template is effectively a directory with the JSON files that you want to include in your Universe package, with template paramters provided in the above format. For some real-world examples of universe templates, take a look the `universe` directories for the various frameworks in [frameworks/](../frameworks).
 
 #### Usage
 

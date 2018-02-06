@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     python-software-properties \
     libssl-dev \
+    upx-ucl \
     wget \
     zip && \
     rm -rf /var/lib/apt/lists/*

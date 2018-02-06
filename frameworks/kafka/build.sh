@@ -17,7 +17,7 @@ $FRAMEWORK_DIR/setup-helper/build.sh
 
 # Build package with our scheduler.zip/CLIs/setup-helper.zip and the SDK artifacts we built:
 $REPO_ROOT_DIR/tools/build_package.sh \
-    beta-kafka \
+    kafka \
     $FRAMEWORK_DIR \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
     -a "$FRAMEWORK_DIR/cli/dcos-service-cli-linux" \

@@ -11,10 +11,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -79,8 +76,7 @@ public class ExecutorResourceMapper {
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
         remainingResourceSpecs.addAll(volumeSpecs);
-
-        if (useDefaultExecutor && executorInfo.getExecutorId().getValue().isEmpty()) {
+        if (useDefaultExecutor) {
             remainingResourceSpecs.addAll(resourceSpecs);
         }
 
@@ -102,6 +98,7 @@ public class ExecutorResourceMapper {
                 }
                 matchingResources.add(matchingResource.get());
             } else {
+                LOGGER.warn("Failed to find match for resource: {}", TextFormat.shortDebugString(resource));
                 if (resource.hasDisk()) {
                     orphanedResources.add(resource);
                 }
@@ -116,13 +113,14 @@ public class ExecutorResourceMapper {
         }
 
         if (!matchingResources.isEmpty()) {
+            LOGGER.info("Matching executor resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(resourceLabels));
             }
         }
 
         if (!remainingResourceSpecs.isEmpty()) {
-            LOGGER.info("Missing volumes not found in executor: {}", remainingResourceSpecs);
+            LOGGER.info("Missing resources not found in executor: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
                 stages.add(newCreateEvaluationStage(missingResource));
             }

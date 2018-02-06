@@ -218,4 +218,18 @@ class OfferEvaluationUtils {
             return pool.consumeReserved(resourceSpec.getName(), resourceSpec.getValue(), resourceId.get());
         }
     }
+
+    public static boolean isRunningExecutor(PodInfoBuilder podInfoBuilder, Protos.Offer offer) {
+        if (!podInfoBuilder.getExecutorBuilder().isPresent()) {
+            return false;
+        }
+
+        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
+            if (execId.equals(podInfoBuilder.getExecutorBuilder().get().getExecutorId())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

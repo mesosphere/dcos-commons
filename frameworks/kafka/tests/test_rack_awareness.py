@@ -58,7 +58,7 @@ def test_zones_referenced_in_placement_constraints():
         additional_options={
             "service": {
                 "name": foldered_name,
-                "placement_constraint": "@zone:GROUP_BY"
+                "placement_constraint": "[[\"@zone\", \"GROUP_BY\"]]"
             }
         })
 

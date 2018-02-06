@@ -5,7 +5,12 @@
 DEFAULT_HOST = 'localhost'
 
 import os, os.path, socket, sys
-import SimpleHTTPServer, SocketServer
+try:
+    import SimpleHTTPServer, SocketServer
+except KeyboardInterrupt:
+    # for whatever reason, it gets stuck here sometimes...
+    print('Exiting1...')
+    sys.exit(0)
 
 
 def serve_http(host, port, rootdir):
@@ -18,11 +23,11 @@ def serve_http(host, port, rootdir):
 
     os.chdir(rootdir)
     httpd = SocketServer.TCPServer((host, port), SimpleHTTPServer.SimpleHTTPRequestHandler)
+    print('Visit >>> http://{}:{}/dcos-commons/ <<< to view {}'.format(host, port, rootdir))
     print('Ctrl+C to exit.')
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
-        print('Exiting...')
         httpd.shutdown()
         httpd.server_close()
 
@@ -45,7 +50,12 @@ def main(argv):
         print('Path must be a directory')
         return 1
     serve_http(host, port, os.path.abspath(path))
+    return 0
 
 
 if __name__ == '__main__':
-    sys.exit(main(sys.argv))
+    try:
+        exitcode = main(sys.argv)
+    except KeyboardInterrupt:
+        exitcode = 0
+    print('Exiting2...')

@@ -1,12 +1,9 @@
 ---
 title: SDK Developer Guide
-menu_order: 1
+menuWeight: 1
 redirect_from: "/dev-guide/developer-guide"
+toc: true
 ---
-
-<!-- Generate TOC. Both of the following lines are required: https://kramdown.gettalong.org/converter/html.html#toc -->
-* LOOKING FOR THE DEVELOPER GUIDE? [GO HERE](https://mesosphere.github.io/dcos-commons/developer-guide.html). (THIS LINE IS A STUB FOR RENDERING THE TOC AUTOMATICALLY)
-{:toc}
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
@@ -14,13 +11,13 @@ This developer guide explains how to create a stateful DC/OS service using the D
 
 # DC/OS Component Overview
 
-The four major components are Mesos, Marathon, Universe, and ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
+The four major components are Apache Mesos, Marathon, Universe, and Apache ZooKeeper. These components have different responsibilities and must cooperate. To develop a service, you should have a high level understanding of these components and their responsibilities.
 
-## Mesos
+## Apache Mesos
 
 DC/OS is modeled on an operating system with Mesos as its kernel. Mesos provides an abstraction to enable consumption of the resources a datacenter provides.  In a typical case, these resources are CPU, memory, disk space, and ports. Tasks are launched in the datacenter and consume particular subsets of resources. The programs that can receive resource offers and launch tasks that consume are called **frameworks**. The component of a framework that receives offers and launches tasks is called the **scheduler**.
 
-Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include *staging, running, failed*,* *etc.  To learn more about Mesos, consult the  "[Mesos Advanced Course](https://open.mesosphere.com/advanced-course/)".
+Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include *staging, running, failed*,* *etc.  To learn more about Mesos, consult "[Apache Mesos](http://mesos.apache.org/)".
 
 ## Marathon
 
@@ -40,7 +37,7 @@ Every DC/OS service must provide a package definition in the format expected by 
 
 Several DC/OS components, including Mesos and Marathon, require a persistent metadata store. ZooKeeper fulfills this role for those components as well as for services written using the SDK. As noted previously, any service written using the SDK is a Mesos scheduler. In order to accurately communicate with Mesos, every scheduler must keep a record of the state of its tasks. ZooKeeper provides persistent storage for this information.
 
-Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/config/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
+Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The [ConfigStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/ConfigStore.java) and [StateStore](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java) interfaces are generic and unopinionated about the backing persistent metadata store.
 
 They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
 
@@ -542,6 +539,28 @@ $ dcos myservice plan start backup-s3 \
 ```
 
 Any parameters passed via `-p` are automatically passed though to the invoked Tasks as environment variables. Service developers must separately document any such parameters so that users know what to provide.
+
+### Programmatic Plan Modification
+
+There are some scenarios which cannot be modeled given the YAML plan specifications described above.  In these scenarios it is possible to programmatically modify plans through implementation of the `PlanCustomizer` interface.  For example one could reverse the order of the deploy plan's phases based on an environment variable.
+```java
+public class ReverseDeployPhases implements PlanCustomizer {
+    @Override
+    public Plan updatePlan(Plan plan) {
+        if (plan.isDeployPlan() && Boolean.valueOf(System.getenv("REVERSE"))) {
+            Collections.reverse(plan.getChildren());
+        }
+
+        return plan;
+    }
+}
+```
+
+Implementations of this interface are called once for each plan at scheduler startup time before plans begin execution.  If no modification of a particular plan is desired it should be returned unaltered.  A `PlanCustomizer` implementation may be specified when building a scheduler with a `SchedulerBuilder`.
+```java
+SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv())
+    .setPlanCustomizer(new ReverseDeployPhases());
+```
 
 ## Packaging
 
@@ -1509,9 +1528,7 @@ The SDK provides assistance for writing both unit and integration tests.
 
 ## Unit tests
 
-Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceSpecTest.java).
-
-**Important:** In order to avoid unintentional execution of other framework tests, you must include [a test filter similar to the one defined by the hello-world framework](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/build.gradle#L40-L45).
+Unit tests enable you to make sure that changes to your dependencies do not result in breaking changes to your frameworks. The SDK uses the standard JUnit testing system. The hello-world framework provides [some example unit tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/test/java/com/mesosphere/sdk/helloworld/scheduler/ServiceTest.java).
 
 Unit tests that follow the pattern described above will be automatically run on all pull requests, and test failures will block merges. Unit tests can be manually executed either through standard IDE test integrations or through standard gradle commands.
 
@@ -1526,7 +1543,7 @@ Within the context of the SDK, integration tests validate expected service behav
 You can run integration tests manually using `py.test`.  The
 integration tests assume you have a running DC/OS cluster, and have
 installed the
-[DC/OS CLI](https://docs.mesosphere.com/1.8/usage/cli/install/).
+[DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/).
 
 Here's an example of running the tests for the `helloworld` framework:
 
@@ -1631,7 +1648,7 @@ This option is only relevant for pods containing multiple `goal: RUNNING` tasks.
 ### Containers
 
 Each pod runs inside a single container. The `ServiceSpec` specifies the following:
-  * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://dcos.io/docs/latest/deploying-services/containerizers/ucr/).
+  * We can specify the `image` that we want to use, for example, a Docker image. The image is run in the Mesos [Universal Container Runtime](https://docs.mesosphere.com/latest/deploying-services/containerizers/ucr/).
   * The `networks` field specifies the virtual networks to join. For a container to have its own IP address, it must join a virtual network. One example of a supported virtual network is the `dcos` overlay network.
   * The `rlimits` field allows you to set POSIX resource limits for every task that runs inside the container.
 
@@ -1663,14 +1680,14 @@ pods:
         memory: 256
 ```
 
-For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/posix_rlimits.md).
+For a full list of which rlimits are supported, refer to [the Mesos documentation on rlimits](https://github.com/apache/mesos/blob/master/docs/isolators/posix-rlimits.md).
 
 **Virtual networks**
 The SDK supports having pods join virtual neworks (including the `dcos` overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the [documentation](https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns). When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining `dcos` we ignore the `ports` resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is `<task_name>.<framework_name>.autoip.dcos.thisdcos.directory`. Note that this DNS will also work for pods on the host network. **Because the `ports` resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa**. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.
 
 ### Placement Rules
 
-Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using either of the following formats: `["field", "operator"[, "parameter"]]`, or `field:operator[:parameter]`. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#placement-rules).
+Pods specifications may be configured with placement rules which describe where and how those pods may be deployed in the cluster. This setting supports all [Marathon-style placement operators](https://mesosphere.github.io/marathon/docs/constraints.html), using the following format: `["field", "operator"[, "parameter"]]`. If you require placement logic that isn’t offered by the default Marathon-style placement operators, you should consider using [PlacementRules in Java](#placement-rules).
 
 We recommend exposing placement constraints as templated out configuration settings, so that they may be easily customized by end-users. For example, your YAML specification may contain the following:
 
@@ -1689,7 +1706,7 @@ pods:
 ```
 
 
-In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `"hostname:UNIQUE"` to ensure that no two hello instances are on the same agent at a time, or `“rack_id:LIKE:rack-foo-.*”` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `“rack-foo-”`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `“hostname:UNIQUE,rack_id:LIKE:rack-foo-.*”`.
+In this example your configuration would expose a `HELLO_PLACEMENT` configuration setting with some default value. You may then provide a default value for that setting, such as `[["hostname", "UNIQUE"]]` to ensure that no two hello instances are on the same agent at a time, or `[["rack_id", "LIKE", "rack-foo-.*"]]` to ensure that hello instances are only placed on agents with a `rack_id` that starts with `"rack-foo-"`. Multiple placement rules may be ANDed together by separating them with a comma, e.g. `[["hostname", "UNIQUE"], ["rack_id", "LIKE", "rack-foo-.*"]]`.
 
 ### Resource Sets
 
@@ -1825,7 +1842,7 @@ plans:
           - default: [[initialize], [server]]
 ```
 
-The plan defined above, the instance of the hello pod with index 0 should first have the initialize task run, followed by the server task. Because they refer to the same resource set and their commands print to the same file in the same volume, the sequencing of tasks has a cumulative effect on the container context. For a fully featured practical example of this pattern, [see the HDFS service here](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/hdfs/src/main/dist/hdfs_svc.yml).
+The plan defined above, the instance of the hello pod with index 0 should first have the initialize task run, followed by the server task. Because they refer to the same resource set and their commands print to the same file in the same volume, the sequencing of tasks has a cumulative effect on the container context. For a fully featured practical example of this pattern, [see the HDFS service here](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/hdfs/src/main/dist/svc.yml).
 
 ### Sidecar Plans
 
@@ -2194,3 +2211,5 @@ The path is relative to the sandbox path if not preceded by a leading "/". The s
 ### Proxy Fallback
 
 Applications may not work properly behind adminrouter. In that case, one may use [Repoxy](https://gist.github.com/nlsun/877411115f7e3b885b5e9daa8821722f).
+
+<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

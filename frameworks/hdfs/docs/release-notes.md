@@ -1,16 +1,19 @@
 ---
 layout: layout.pug
-navigationTitle: 
+navigationTitle:
 excerpt:
 title: Release Notes
 menuWeight: 120
-
 ---
+
+## Version 2.0.4-2.6.0-cdh5.11.0
+
+### Bug Fixes
+- Placement constraints are now exposed.
 
 ## Version 2.1.1-2.6.0-cdh5.11.0-beta
 
-## NOTICE
-
+### NOTICE
 This is a beta release of the DC/OS Apache HDFS framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### New Features
@@ -23,8 +26,7 @@ This is a beta release of the DC/OS Apache HDFS framework. It contains multiple 
 
 ## Verion 3.0.0-2.6.0-cdh5.11.0-beta
 
-## NOTICE
-
+### NOTICE
 This is a beta release of the DC/OS HDFS framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### New features

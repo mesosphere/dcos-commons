@@ -3,11 +3,12 @@ defaults:
     scope:
       path: ""
     values:
-      layout: "gh-basic"
-      stylesheet: "gh-basic.css"
-      menu_order: 999
-gems:
+      layout: "layout.pug"
+      stylesheet: "layout.css"
+      menuWeight: 999
+plugins:
   - jekyll-redirect-from
+  - jekyll-toc
 sass:
   sass_dir: _sass
   style: :compressed

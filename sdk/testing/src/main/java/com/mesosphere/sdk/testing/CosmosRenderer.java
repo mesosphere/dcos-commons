@@ -34,7 +34,6 @@ public class CosmosRenderer {
         RESOURCE_TEMPLATE_PARAMS = new HashMap<>();
         RESOURCE_TEMPLATE_PARAMS.put("artifact-dir", "https://test-url/artifacts");
         RESOURCE_TEMPLATE_PARAMS.put("jre-url", "https://test-url/jre.tgz");
-        RESOURCE_TEMPLATE_PARAMS.put("jre-jce-unlimited-url", "https://test-url/jre-jce-unlimited.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("libmesos-bundle-url", "https://test-url/libmesos-bundle.tgz");
     }
 

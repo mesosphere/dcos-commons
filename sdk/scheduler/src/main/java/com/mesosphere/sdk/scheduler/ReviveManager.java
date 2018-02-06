@@ -19,16 +19,14 @@ import java.util.stream.Collectors;
  */
 public class ReviveManager {
     private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final SchedulerDriver driver;
     private final TokenBucket tokenBucket;
     private Set<WorkItem> candidates = new HashSet<>();
 
-    public ReviveManager(SchedulerDriver driver) {
-        this(driver, TokenBucket.newBuilder().build());
+    public ReviveManager() {
+        this(TokenBucket.newBuilder().build());
     }
 
-    public ReviveManager(SchedulerDriver driver, TokenBucket tokenBucket) {
-        this.driver = driver;
+    public ReviveManager(TokenBucket tokenBucket) {
         this.tokenBucket = tokenBucket;
     }
 
@@ -80,7 +78,13 @@ public class ReviveManager {
                         this.candidates,
                         currCandidates,
                         newCandidates);
-                driver.reviveOffers();
+                Optional<SchedulerDriver> driver = Driver.getDriver();
+                if (driver.isPresent()) {
+                    driver.get().reviveOffers();
+                } else {
+                    throw new IllegalStateException(
+                            "No driver present for reviving offers.  This should never happen.");
+                }
                 Metrics.incrementRevives();
             } else {
                 logger.warn("Revive attempt has been throttled.");

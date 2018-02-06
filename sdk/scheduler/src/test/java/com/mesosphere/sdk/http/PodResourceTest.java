@@ -3,17 +3,17 @@ package com.mesosphere.sdk.http;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskState;
 import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.SchedulerDriver;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Before;
@@ -110,17 +110,17 @@ public class PodResourceTest {
             POD_1_STATUS_B,
             POD_2_STATUS_A);
 
-    @Mock private TaskKiller mockTaskKiller;
     @Mock private StateStore mockStateStore;
     @Mock private TaskFailureListener mockTaskFailureListener;
+    @Mock private SchedulerDriver driver;
 
     private PodResource resource;
 
     @Before
-    public void beforeAll() {
+    public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        Driver.setDriver(driver);
         resource = new PodResource(mockStateStore, TestConstants.SERVICE_NAME, mockTaskFailureListener);
-        resource.setTaskKiller(mockTaskKiller);
     }
 
     @Test
@@ -407,11 +407,11 @@ public class PodResourceTest {
         assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
         assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId());
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId());
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId());
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
-        verifyNoMoreInteractions(mockTaskKiller);
+        verify(driver).killTask(POD_0_TASK_A.getTaskId());
+        verify(driver).killTask(POD_0_TASK_B.getTaskId());
+        verify(driver).killTask(POD_0_TASK_C.getTaskId());
+        verify(driver).killTask(POD_0_TASK_D.getTaskId());
+        verifyNoMoreInteractions(driver);
 
         verify(mockTaskFailureListener, never()).tasksFailed(any());
     }
@@ -430,9 +430,9 @@ public class PodResourceTest {
         assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
         assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId());
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
-        verifyNoMoreInteractions(mockTaskKiller);
+        verify(driver).killTask(POD_1_TASK_A.getTaskId());
+        verify(driver).killTask(POD_1_TASK_B.getTaskId());
+        verifyNoMoreInteractions(driver);
 
         verify(mockTaskFailureListener, never()).tasksFailed(any());
     }
@@ -467,16 +467,16 @@ public class PodResourceTest {
         assertEquals(podInstanceName + "-c", json.getJSONArray("tasks").get(2));
         assertEquals(podInstanceName + "-d", json.getJSONArray("tasks").get(3));
 
-        verify(mockTaskKiller).killTask(POD_0_TASK_A.getTaskId());
-        verify(mockTaskKiller).killTask(POD_0_TASK_B.getTaskId());
-        verify(mockTaskKiller).killTask(POD_0_TASK_C.getTaskId());
-        verify(mockTaskKiller).killTask(POD_0_TASK_D.getTaskId());
-        verifyNoMoreInteractions(mockTaskKiller);
+        verify(driver).killTask(POD_0_TASK_A.getTaskId());
+        verify(driver).killTask(POD_0_TASK_B.getTaskId());
+        verify(driver).killTask(POD_0_TASK_C.getTaskId());
+        verify(driver).killTask(POD_0_TASK_D.getTaskId());
+        verifyNoMoreInteractions(driver);
 
-        List<Protos.TaskID> expectedFailedTaskIds = TASK_INFOS.stream()
+        List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
-                .map(TaskInfo::getTaskId).collect(Collectors.toList());
-        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTaskIds);
+                .collect(Collectors.toList());
+        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTasks);
         verifyNoMoreInteractions(mockTaskFailureListener);
     }
 
@@ -496,14 +496,14 @@ public class PodResourceTest {
         assertEquals(podInstanceName + "-a", json.getJSONArray("tasks").get(0));
         assertEquals(podInstanceName + "-b", json.getJSONArray("tasks").get(1));
 
-        verify(mockTaskKiller).killTask(POD_1_TASK_A.getTaskId());
-        verify(mockTaskKiller).killTask(POD_1_TASK_B.getTaskId());
-        verifyNoMoreInteractions(mockTaskKiller);
+        verify(driver).killTask(POD_1_TASK_A.getTaskId());
+        verify(driver).killTask(POD_1_TASK_B.getTaskId());
+        verify(driver, times(2)).killTask(any());
 
-        List<Protos.TaskID> expectedFailedTaskIds = TASK_INFOS.stream()
+        List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
-                .map(TaskInfo::getTaskId).collect(Collectors.toList());
-        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTaskIds);
+                .collect(Collectors.toList());
+        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTasks);
         verifyNoMoreInteractions(mockTaskFailureListener);
     }
 }

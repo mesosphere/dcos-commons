@@ -1,21 +1,14 @@
 package com.mesosphere.sdk.testing;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.Persister;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
@@ -24,11 +17,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.Persister;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 
 /**
@@ -84,26 +77,39 @@ public interface Expect extends SimulationTick {
                 Collection<String> launchedTaskNames = new ArrayList<>();
                 // A single acceptOffers() call may contain multiple LAUNCH/LAUNCH_GROUP operations.
                 // We want to ensure they're all counted as a unit when tallying the pod.
+                Protos.ExecutorInfo launchedExecutor = null;
                 Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
                 for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
                     if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                        // Old-style launch with custom executor
-                        launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
+                        // Old-style custom executor launch: each TaskInfo gets a nested copy of the ExecutorInfo. Grab
+                        // the first one we can find, as they should all be identical.
+                        Collection<Protos.TaskInfo> taskInfos = operation.getLaunch().getTaskInfosList();
+                        launchedExecutor = taskInfos.iterator().next().getExecutor();
+
+                        launchedTaskNames.addAll(taskInfos.stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
-                        launchedTaskInfos.addAll(operation.getLaunch().getTaskInfosList().stream()
+                        // Old-style custom executor launches also use packed TaskInfos. Unpack them.
+                        launchedTaskInfos.addAll(taskInfos.stream()
                                 .map(task -> TaskPackingUtils.unpack(task))
                                 .collect(Collectors.toList()));
                     } else if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH_GROUP)) {
-                        // New-style launch with default executor
-                        launchedTaskNames.addAll(operation.getLaunch().getTaskInfosList().stream()
+                        // New-style default executor launch: TaskInfos lack the ExecutorInfo. Instead, the ExecutorInfo
+                        // is in the parent LaunchGroup operation.
+                        launchedExecutor = operation.getLaunchGroup().getExecutor();
+
+                        Collection<Protos.TaskInfo> taskInfos =
+                                operation.getLaunchGroup().getTaskGroup().getTasksList();
+
+                        launchedTaskNames.addAll(taskInfos.stream()
                                 .map(task -> task.getName())
                                 .collect(Collectors.toList()));
-                        launchedTaskInfos.addAll(operation.getLaunchGroup().getTaskGroup().getTasksList());
+                        // New-style default executor launches no longer need to pack TaskInfos, so don't unpack.
+                        launchedTaskInfos.addAll(taskInfos);
                     }
                 }
-                if (!launchedTaskInfos.isEmpty()) {
-                    state.addLaunchedPod(launchedTaskInfos);
+                if (launchedExecutor != null) {
+                    state.addLaunchedPod(new LaunchedPod(launchedExecutor, launchedTaskInfos));
                 }
                 Assert.assertTrue(
                         String.format("Expected launched tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
@@ -139,11 +145,12 @@ public interface Expect extends SimulationTick {
                 verify(mockDriver, atLeastOnce())
                         .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
                 Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
-                Collection<String> expectedResourceIds = taskNames.stream()
-                        .map(taskName ->
-                                ResourceUtils.getResourceIds(state.getLastLaunchedTask(taskName).getResourcesList()))
-                        .flatMap(List::stream)
-                        .collect(Collectors.toList());
+                Collection<String> expectedResourceIds = new ArrayList<>();
+                for (String taskName : taskNames) {
+                    LaunchedTask task = state.getLastLaunchedTask(taskName);
+                    expectedResourceIds.addAll(ResourceUtils.getResourceIds(task.getTask().getResourcesList()));
+                    expectedResourceIds.addAll(ResourceUtils.getResourceIds(task.getExecutor().getResourcesList()));
+                }
                 Assert.assertFalse(String.format("Expected some resource ids for tasks: %s, got none", taskNames),
                         expectedResourceIds.isEmpty());
                 Collection<String> unreservedResourceIds = new ArrayList<>();
@@ -299,6 +306,63 @@ public interface Expect extends SimulationTick {
             @Override
             public String getDescription() {
                 return "All plans complete";
+            }
+        };
+    }
+
+    public static Expect planStatus(String planName, Status status) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+                Plan plan = state.getPlans().stream()
+                        .filter(p -> p.getName().equals(planName))
+                        .findFirst().get();
+                Assert.assertEquals(status, plan.getStatus());
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Plan %s has status %s", planName, status);
+            }
+        };
+    }
+
+    /**
+     * Verifies that the indicated recovery phase.step has the expected status.
+     */
+    public static Expect recoveryStepStatus(String phaseName, String stepName, Status expectedStatus) {
+        return stepStatus(DefaultRecoveryPlanManager.DEFAULT_RECOVERY_PLAN_NAME, phaseName, stepName, expectedStatus);
+    }
+
+    /**
+     * Verifies that the indicated plan.phase.step has the expected status.
+     */
+    public static Expect stepStatus(
+            String planName,
+            String phaseName,
+            String stepName,
+            Status expectedStatus) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                Plan recoveryPlan = state.getPlans().stream()
+                        .filter(plan -> plan.getName().equals(planName))
+                        .findAny().get();
+
+                Phase phase = recoveryPlan.getChildren().stream()
+                        .filter(p -> p.getName().equals(phaseName))
+                        .findAny().get();
+
+                Step step = phase.getChildren().stream()
+                        .filter(s -> s.getName().equals(stepName))
+                        .findAny().get();
+
+                Assert.assertEquals(expectedStatus, step.getStatus());
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("For Phase: %s, Step: %s, Status is %s", phaseName, stepName, expectedStatus);
             }
         };
     }

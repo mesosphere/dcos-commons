@@ -1,6 +1,6 @@
 ---
 title: Glossary
-menu_order: 4
+menuWeight: 4
 ---
 
 ## D
