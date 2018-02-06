@@ -118,7 +118,7 @@ public class PlanUtils {
      * @param isInterrupted whether the parent element is interrupted
      * @return the Status to display for the parent element
      */
-    public static <C extends Element> Status getParentStatus(
+    public static <C extends Element> Status getAggregateStatus(
             String parentName,
             Collection<Status> childStatuses,
             Collection<Status> candidateStatuses,
@@ -158,8 +158,8 @@ public class PlanUtils {
         } else if (anyMatch(Status.COMPLETE, childStatuses) && anyMatch(Status.STARTED, candidateStatuses)) {
             result = Status.IN_PROGRESS;
             LOGGER.debug("({} status={}) At least one child has status '{}' and at least one candidate has status '{}'",
-                    parentName, result, Status.COMPLETE, Status.STARTING);
-        } else if (!candidateStatuses.isEmpty() && anyMatch(Status.PENDING, candidateStatuses)) {
+                    parentName, result, Status.COMPLETE, Status.STARTED);
+        } else if (anyMatch(Status.PENDING, candidateStatuses)) {
             result = Status.PENDING;
             LOGGER.debug("({} status={}) At least one candidate has status: {}", parentName, result, Status.PENDING);
         } else if (anyMatch(Status.WAITING, childStatuses)) {
@@ -185,6 +185,6 @@ public class PlanUtils {
     }
 
     private static boolean anyMatch(Status status, Collection<Status> statuses) {
-        return statuses.stream().anyMatch(s-> s == status);
+        return statuses.stream().anyMatch(s -> s == status);
     }
 }

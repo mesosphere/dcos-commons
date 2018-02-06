@@ -48,6 +48,64 @@ public class PlanUtilsTest {
     }
 
     @Test
+    public void testAggregateStatusError() {
+        Assert.assertEquals(Status.ERROR, PlanUtils.getAggregateStatus("foo",
+                Collections.emptyList(), Collections.emptyList(), Arrays.asList("err"), false));
+        Assert.assertEquals(Status.ERROR, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.ERROR), Collections.emptyList(), Collections.emptyList(), false));
+    }
+
+    @Test
+    public void testAggregateStatusComplete() {
+        Assert.assertEquals(Status.COMPLETE, PlanUtils.getAggregateStatus("foo",
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false));
+        Assert.assertEquals(Status.COMPLETE, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.COMPLETE), Collections.emptyList(), Collections.emptyList(), false));
+    }
+
+    @Test
+    public void testAggregateStatusWaiting() {
+        Assert.assertEquals(Status.WAITING, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.PENDING), Collections.emptyList(), Collections.emptyList(), true));
+        Assert.assertEquals(Status.WAITING, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.WAITING), Collections.emptyList(), Collections.emptyList(), false));
+        Assert.assertEquals(Status.WAITING, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.WAITING), Arrays.asList(Status.WAITING), Collections.emptyList(), false));
+    }
+
+    @Test
+    public void testAggregateStatusInProgress() {
+        Assert.assertEquals(Status.IN_PROGRESS, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.PREPARED, Status.WAITING), Collections.emptyList(), Collections.emptyList(), false));
+        Assert.assertEquals(Status.IN_PROGRESS, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.IN_PROGRESS), Arrays.asList(Status.IN_PROGRESS), Collections.emptyList(), false));
+        Assert.assertEquals(Status.IN_PROGRESS, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.PENDING), Arrays.asList(Status.PENDING), Collections.emptyList(), false));
+        Assert.assertEquals(Status.IN_PROGRESS, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.STARTING), Arrays.asList(Status.STARTING), Collections.emptyList(), false));
+        Assert.assertEquals(Status.IN_PROGRESS, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.COMPLETE, Status.STARTED), Arrays.asList(Status.STARTED), Collections.emptyList(), false));
+    }
+
+    @Test
+    public void testAggregateStatusPending() {
+        Assert.assertEquals(Status.PENDING, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.PENDING, Status.PENDING), Arrays.asList(Status.PENDING), Collections.emptyList(), false));
+    }
+
+    @Test
+    public void testAggregateStatusStarting() {
+        Assert.assertEquals(Status.STARTING, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.STARTING, Status.PENDING), Arrays.asList(Status.STARTING), Collections.emptyList(), false));
+    }
+
+    @Test
+    public void testAggregateStatusStarted() {
+        Assert.assertEquals(Status.STARTED, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.STARTED, Status.PENDING), Arrays.asList(Status.STARTED), Collections.emptyList(), false));
+    }
+
+    @Test
     public void testStepNoDirtyAssets() {
         Assert.assertTrue(PlanUtils.isEligible(step, Collections.emptyList()));
     }

@@ -99,7 +99,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
                 getStrategy().getCandidates(getChildren(), Collections.emptyList()).stream()
                         .map(cc -> cc.getStatus())
                         .collect(Collectors.toList());
-        return PlanUtils.getParentStatus(
+        return PlanUtils.getAggregateStatus(
                 getName(), childStatuses, candidateStatuses, getErrors(), isInterrupted());
     }
 }
