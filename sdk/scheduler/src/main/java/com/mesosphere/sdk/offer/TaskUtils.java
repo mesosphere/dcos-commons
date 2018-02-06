@@ -531,7 +531,9 @@ public class TaskUtils {
         // Tasks with a goal state of finished should never leave the purview of their original
         // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
         // which reached their goal state of RUNNING and then later failed.
-        if (taskSpec.getGoal().equals(GoalState.ONCE) || taskSpec.getGoal().equals(GoalState.FINISH)) {
+        if (taskSpec.getGoal().equals(GoalState.ONCE)
+                || taskSpec.getGoal().equals(GoalState.FINISH)
+                || taskSpec.getGoal().equals(GoalState.FINISHED)) {
             return false;
         } else {
             return isRecoveryNeeded(taskStatus);
