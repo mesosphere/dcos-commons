@@ -4,9 +4,9 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
@@ -344,6 +344,150 @@ public class ServiceTest {
         runner.run(ticks);
     }
 
+
+    @Test
+    public void startedTaskIsPendingAfterRestartWithDefaultExecutor() throws Exception {
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod then 2 world pods.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        // Send another offer before hello-0 is finished:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Now world-0 will deploy:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.launchedTasks("world-0-server"));
+
+        // world-0 has a readiness check, so the scheduler is waiting for that.
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(1).build());
+
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.STARTED));
+
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        ServiceTestRunner runner = new ServiceTestRunner();
+        ServiceTestResult result = runner.run(ticks);
+
+        // Start a new scheduler:
+        ticks.clear();
+
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+
+        // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.PENDING));
+
+        ServiceTestResult restarted = new ServiceTestRunner().setState(result).run(ticks);
+    }
+
+    @Test
+    public void runningTaskIsCompleteAfterRestartWithDefaultExecutor() throws Exception {
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod then 2 world pods.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        // Send another offer before hello-0 is finished:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Now world-0 will deploy:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.launchedTasks("world-0-server"));
+
+        // world-0 has a readiness check, so the scheduler is waiting for that.
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
+
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.COMPLETE));
+
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        ServiceTestRunner runner = new ServiceTestRunner();
+        ServiceTestResult result = runner.run(ticks);
+
+        // Start a new scheduler:
+        ticks.clear();
+
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+
+        // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.COMPLETE));
+
+        ServiceTestResult restarted = new ServiceTestRunner().setState(result).run(ticks);
+    }
+
+
+    @Test
+    public void startedTaskIsCompleteAfterRestartWithCustomExecutor() throws Exception {
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod then 2 world pods.
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+
+        // Send another offer before hello-0 is finished:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        // Running, no readiness check is applicable:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Now world-0 will deploy:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.launchedTasks("world-0-server"));
+
+        // world-0 has a readiness check, so the scheduler is waiting for that.
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(1).build());
+
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.STARTED));
+
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        ServiceTestRunner runner = new ServiceTestRunner().setUseCustomExecutor();
+        ServiceTestResult result = runner.run(ticks);
+
+        // Start a new scheduler:
+        ticks.clear();
+
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+
+        // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
+        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.COMPLETE));
+
+        ServiceTestResult restarted = new ServiceTestRunner().setState(result).setUseCustomExecutor().run(ticks);
+    }
+
+
     @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
         Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
@@ -353,9 +497,9 @@ public class ServiceTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addResources(
                         Protos.Resource.newBuilder()
-                        .setName("mem")
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
+                                .setName("mem")
+                                .setType(Protos.Value.Type.SCALAR)
+                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
                 .build();
 
         Collection<SimulationTick> ticks = new ArrayList<>();
