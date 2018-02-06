@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -11,7 +12,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.ConfigTargetStore;
 import com.mesosphere.sdk.state.StateStore;
-
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -161,7 +161,12 @@ public class DefaultStepFactory implements StepFactory {
         if (goalState.equals(GoalState.RUNNING)) {
             switch (status.get().getState()) {
                 case TASK_RUNNING:
-                    return new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status.get());
+                    if (Capabilities.getInstance().supportsDefaultExecutor()) {
+                        return new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status.get());
+                    }
+                    // INFINITY-2837: Clusters running the default executor (1.9 and older) don't support resending
+                    // readiness checks on restart.
+                    return true;
                 default:
                     return false;
             }

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.collect.ImmutableList;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -15,6 +16,7 @@ import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import java.util.Arrays;
 import java.util.List;
@@ -59,7 +61,11 @@ public class DefaultStepFactoryTest {
     }
 
     @Test
-    public void testInitialStateDependsOnReadinessCheck() throws Exception {
+    public void testInitialStateForRunningTaskOnDefaultExecutorDependsOnReadinessCheck() throws Exception {
+
+        Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(true);
+        Capabilities.overrideCapabilities(mockCapabilities);
 
         PodInstance podInstance = getPodInstanceWithASingleTask();
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
@@ -96,10 +102,76 @@ public class DefaultStepFactoryTest {
 
         assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(false));
 
-        final Step step = stepFactory.getStep(podInstance, tasksToLaunch);
+        Step step = stepFactory.getStep(podInstance, tasksToLaunch);
 
         assertThat(step.isComplete(), is(false));
         assertThat(step.isPending(), is(true));
+
+
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_RUNNING)
+                        .setTaskId(taskInfo.getTaskId())
+                        .setLabels(Protos.Labels.newBuilder().addLabels(Protos.Label.newBuilder().setKey("readiness_check_passed").setValue("true").build()).build())
+                        .build());
+
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(true));
+
+        step = stepFactory.getStep(podInstance, tasksToLaunch);
+
+        assertThat(step.isComplete(), is(true));
+        assertThat(step.isPending(), is(false));
+
+    }
+
+
+    @Test
+    public void testInitialStateForRunningTaskOnCustomExecutorIsRunning() throws Exception {
+
+        Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(false);
+        Capabilities.overrideCapabilities(mockCapabilities);
+
+        PodInstance podInstance = getPodInstanceWithASingleTask();
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+        UUID configId = UUID.randomUUID();
+
+        configStore.setTargetConfig(configId);
+
+        String taskName = podInstance.getName() + '-' + tasksToLaunch.get(0);
+        stateStore.storeTasks(ImmutableList.of(
+                Protos.TaskInfo.newBuilder()
+                        .setName(taskName)
+                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setSlaveId(Protos.SlaveID.newBuilder()
+                                .setValue("proto-field-required")
+                        )
+                        .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                                .setTargetConfiguration(configId)
+                                .setReadinessCheck(Protos.HealthCheck.newBuilder().build())
+                                .toProto())
+                        .build()));
+
+
+        Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_RUNNING)
+                        .setTaskId(taskInfo.getTaskId())
+                        .setLabels(Protos.Labels.newBuilder().addLabels(Protos.Label.newBuilder().setKey("readiness_check_passed").setValue("false").build()).build())
+                        .build());
+
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(true));
+
+        final Step step = stepFactory.getStep(podInstance, tasksToLaunch);
+
+        assertThat(step.isComplete(), is(true));
+        assertThat(step.isPending(), is(false));
 
     }
 
