@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.SchedulerDriver;
 
 import java.util.Collection;
 import java.util.List;
@@ -21,7 +20,6 @@ public interface PlanScheduler {
      *         requirements returned by the {@link Step}
      */
     Collection<OfferID> resourceOffers(
-            final SchedulerDriver driver,
             final List<Offer> offers,
             final Collection<? extends Step> steps);
 }

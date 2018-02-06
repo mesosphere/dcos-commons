@@ -47,7 +47,7 @@ public class CanaryStrategyTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
 
-        // (re)initialize as pending:
+        // (re)getPlanCoordinator as pending:
         step0 = new TestStep("step0", podInstanceRequirements.get(0));
         step1 = new TestStep("step1", podInstanceRequirements.get(1));
         step2 = new TestStep("step2", podInstanceRequirements.get(2));

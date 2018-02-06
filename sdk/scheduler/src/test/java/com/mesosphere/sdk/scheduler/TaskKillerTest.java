@@ -31,13 +31,12 @@ public class TaskKillerTest {
     @Before
     public void beforeEach() throws InterruptedException {
         MockitoAnnotations.initMocks(this);
-        TaskKiller.setDriver(null);
+        Driver.setDriver(null);
     }
 
     @Test
     public void emptyTaskId() {
-        // Set the driver
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         TaskKiller.killTask(Protos.TaskID.newBuilder().setValue("").build());
@@ -52,8 +51,7 @@ public class TaskKillerTest {
         // Enqueue a task to kill, but it shouldn't be killed since no driver exists
         TaskKiller.killTask(TestConstants.TASK_ID);
 
-        // Set the driver
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Perform an iteration of task killing
@@ -65,8 +63,7 @@ public class TaskKillerTest {
 
     @Test
     public void normalDriverSet() {
-        // Set the driver
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Enqueue a task to kill, and it should have a kill call issued immediately
@@ -78,8 +75,7 @@ public class TaskKillerTest {
 
     @Test
     public void multipleKillAttempts() {
-        // Set the driver
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Enqueue a task to kill, and it should have a kill call issued immediately
@@ -96,8 +92,7 @@ public class TaskKillerTest {
 
     @Test
     public void multipleKillAttemptsWithNonTerminalStatus() {
-        // Set the driver
-        TaskKiller.setDriver(driver);
+        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Enqueue a task to kill, and it should have a kill call issued immediately

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,7 +30,6 @@ public final class TaskKiller {
 
     private static ScheduledExecutorService executor;
     private static TaskKiller taskKiller = new TaskKiller();
-    private static SchedulerDriver driver;
 
     private TaskKiller() {
         startScheduling();
@@ -54,10 +54,6 @@ public final class TaskKiller {
                 killInterval.toMillis(),
                 killInterval.toMillis(),
                 TimeUnit.MILLISECONDS);
-    }
-
-    public static void setDriver(SchedulerDriver schedulerDriver) {
-        driver = schedulerDriver;
     }
 
     /**
@@ -115,9 +111,11 @@ public final class TaskKiller {
     }
 
     private static void killTaskInternal(TaskID taskId) {
-        if (driver != null) {
+        Optional<SchedulerDriver> driver = Driver.getDriver();
+
+        if (driver.isPresent()) {
             LOGGER.info("Killing task: {}", taskId.getValue());
-            driver.killTask(taskId);
+            driver.get().killTask(taskId);
         } else {
             LOGGER.warn("Can't kill '{}', driver not yet set.", taskId.getValue());
         }
