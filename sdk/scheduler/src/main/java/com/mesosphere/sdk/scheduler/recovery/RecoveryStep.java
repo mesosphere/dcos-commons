@@ -16,11 +16,11 @@ import java.util.Optional;
 /**
  * An extension of {@link DeploymentStep} meant for use with {@link DefaultRecoveryPlanManager}.
  */
-public class DefaultRecoveryStep extends DeploymentStep {
+public class RecoveryStep extends DeploymentStep {
 
     private final LaunchConstrainer launchConstrainer;
 
-    public DefaultRecoveryStep(
+    public RecoveryStep(
             String name,
             PodInstanceRequirement podInstanceRequirement,
             LaunchConstrainer launchConstrainer,

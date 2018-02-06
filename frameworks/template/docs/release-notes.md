@@ -1,7 +1,9 @@
 ---
+layout: layout.pug
+navigationTitle:
+excerpt:
 title: Release Notes
 menuWeight: 120
-enterprise: 'no'
 ---
 
 ## Version _PACKAGEVERSION_-_SERVICEVERSION_

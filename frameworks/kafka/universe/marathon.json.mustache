@@ -47,7 +47,15 @@
     "PLACEMENT_CONSTRAINTS": "{{{service.placement_constraint}}}",
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
     "BROKER_COUNT": "{{brokers.count}}",
+    {{^service.security.kerberos.enabled}}
+    {{#service.security.transport_encryption.enabled}}
+    {{#service.security.ssl_authentication.enabled}}
+    {{#service.security.authorization.enabled}}
     "TASKCFG_ALL_BROKER_COUNT": "{{brokers.count}}",
+    {{/service.security.authorization.enabled}}
+    {{/service.security.ssl_authentication.enabled}}
+    {{/service.security.transport_encryption.enabled}}
+    {{/service.security.kerberos.enabled}}
     "BROKER_CPUS": "{{brokers.cpus}}",
     "BROKER_MEM": "{{brokers.mem}}",
     "BROKER_DISK_SIZE": "{{brokers.disk}}",
@@ -195,12 +203,12 @@
     "TASKCFG_ALL_KAFKA_LOG_CLEANER_IO_MAX_BYTES_PER_SECOND": "{{kafka.log_cleaner_io_max_bytes_per_second}}",
     "TASKCFG_ALL_KAFKA_COMPRESSION_TYPE": "{{kafka.compression_type}}"
   },
-  "uris": [
-    "{{resource.assets.uris.bootstrap-zip}}",
-    "{{resource.assets.uris.kafka-scheduler-zip}}",
-    "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "{{resource.assets.uris.kafka-tgz}}",
-    "{{resource.assets.uris.jre-tar-gz}}"
+  "fetch": [
+    { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.kafka-scheduler-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true },
+    { "uri": "{{resource.assets.uris.kafka-tgz}}", "cache": true },
+    { "uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

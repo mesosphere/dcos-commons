@@ -1,7 +1,6 @@
 """
 Authnz specifics for HDFS tests
 """
-import itertools
 import logging
 import base64
 
@@ -44,10 +43,10 @@ def get_service_principals(service_name: str, realm: str) -> list:
     principals = kerberos.generate_principal_list(primaries, instances, realm)
     principals.extend(kerberos.generate_principal_list(USERS, [None, ], realm))
 
-    http_instance = "api.{}.marathon.l4lb.thisdcos.directory".format(service_name)
+    http_instance = sdk_hosts.vip_host("marathon", ".".join(["api", service_name]))
     http_principal = kerberos.genererate_principal("HTTP", http_instance, realm)
-
     principals.append(http_principal)
+
     return principals
 
 

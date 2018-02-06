@@ -12,19 +12,17 @@ import java.util.Optional;
  */
 public class TaskKillStep extends UninstallStep {
 
-    private final TaskKiller taskKiller;
     private final Protos.TaskID taskID;
 
-    public TaskKillStep(Protos.TaskID taskID, TaskKiller taskKiller) {
+    public TaskKillStep(Protos.TaskID taskID) {
         super("kill-task-" + taskID.getValue(), Status.PENDING);
-        this.taskKiller = taskKiller;
         this.taskID = taskID;
     }
 
     @Override
     public Optional<PodInstanceRequirement> start() {
         setStatus(Status.IN_PROGRESS);
-        taskKiller.killTask(taskID);
+        TaskKiller.killTask(taskID);
         setStatus(Status.COMPLETE);
 
         return getPodInstanceRequirement();

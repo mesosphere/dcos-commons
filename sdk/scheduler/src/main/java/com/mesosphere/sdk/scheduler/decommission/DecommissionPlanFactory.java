@@ -23,7 +23,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -72,8 +71,8 @@ public class DecommissionPlanFactory {
 
     private final PlanInfo planInfo;
 
-    public DecommissionPlanFactory(ServiceSpec serviceSpec, StateStore stateStore, TaskKiller taskKiller) {
-        this.planInfo = buildPlanInfo(serviceSpec, stateStore, taskKiller);
+    public DecommissionPlanFactory(ServiceSpec serviceSpec, StateStore stateStore) {
+        this.planInfo = buildPlanInfo(serviceSpec, stateStore);
     }
 
     /**
@@ -105,7 +104,7 @@ public class DecommissionPlanFactory {
     /**
      * Returns a {@link Plan} for decommissioning tasks, or an empty {@link Optional} if no decommission is necessary.
      */
-    private static PlanInfo buildPlanInfo(ServiceSpec serviceSpec, StateStore stateStore, TaskKiller taskKiller) {
+    private static PlanInfo buildPlanInfo(ServiceSpec serviceSpec, StateStore stateStore) {
         // Determine which tasks should be decommissioned (and which shouldn't)
         Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
         SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission =
@@ -148,7 +147,7 @@ public class DecommissionPlanFactory {
 
             // 1. Kill pod's tasks
             steps.addAll(entry.getValue().stream()
-                    .map(task -> new TriggerDecommissionStep(stateStore, taskKiller, task))
+                    .map(task -> new TriggerDecommissionStep(stateStore, task))
                     .collect(Collectors.toList()));
 
             // 2. Unreserve pod's resources

@@ -65,6 +65,7 @@ def test_all_partition():
 
 
 @pytest.mark.recovery
+@pytest.mark.skip(reason="BLOCKED-INFINITY-3047")
 def test_config_update_while_partitioned():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")

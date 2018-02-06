@@ -463,6 +463,10 @@
         <value>{{DATANODE_HDFS_BLOCKS_METADATA_ENABLED}}</value>
     </property>
     <property>
+        <name>dfs.datanode.fsdataset.volume.choosing.policy</name>
+        <value>{{DATANODE_FSDATASET_VOLUME_CHOOSING_POLICY}}</value>
+    </property>
+    <property>
         <name>dfs.datanode.available-space-volume-choosing-policy.balanced-space-threshold</name>
         <value>{{DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_THRESHOLD}}</value>
     </property>

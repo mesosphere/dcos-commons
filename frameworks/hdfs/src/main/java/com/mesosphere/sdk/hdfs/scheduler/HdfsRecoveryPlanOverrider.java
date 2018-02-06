@@ -2,7 +2,7 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryStep;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
@@ -85,7 +85,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
         Step bootstrapStep =
-                new DefaultRecoveryStep(
+                new RecoveryStep(
                         inputBootstrapStep.getName(),
                         bootstrapPodInstanceRequirement,
                         new UnconstrainedLaunchConstrainer(),
@@ -100,7 +100,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 .recoveryType(RecoveryType.TRANSIENT)
                 .build();
         Step nodeStep =
-                new DefaultRecoveryStep(
+                new RecoveryStep(
                         inputNodeStep.getName(),
                         nameNodePodInstanceRequirement,
                         new UnconstrainedLaunchConstrainer(),

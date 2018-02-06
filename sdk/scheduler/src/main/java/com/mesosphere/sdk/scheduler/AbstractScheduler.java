@@ -6,7 +6,6 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.queue.OfferQueue;
-import com.mesosphere.sdk.reconciliation.DefaultReconciler;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
@@ -240,8 +239,8 @@ public abstract class AbstractScheduler {
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
             this.driver = driver;
             this.reviveManager = new ReviveManager(driver);
-            this.reconciler = new DefaultReconciler(stateStore);
-            this.taskCleaner = new TaskCleaner(stateStore, new TaskKiller(driver), multithreaded);
+            this.reconciler = new Reconciler(stateStore);
+            this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
 
             try {
                 this.planCoordinator = initialize(driver);
@@ -271,7 +270,7 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            postRegister(masterInfo);
+            postRegister(driver, masterInfo);
 
             isInitialized.set(true);
         }
@@ -279,11 +278,12 @@ public abstract class AbstractScheduler {
         @Override
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-            postRegister(masterInfo);
+            postRegister(driver, masterInfo);
         }
 
-        private void postRegister(Protos.MasterInfo masterInfo) {
+        private void postRegister(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             restartReconciliation();
+            TaskKiller.setDriver(driver);
             if (masterInfo.hasDomain()) {
                 IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
             }
@@ -342,6 +342,7 @@ public abstract class AbstractScheduler {
             try {
                 processStatusUpdate(status);
                 reconciler.update(status);
+                TaskKiller.update(status);
 
                 Metrics.record(status);
             } catch (Exception e) {

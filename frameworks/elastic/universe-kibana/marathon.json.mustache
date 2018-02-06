@@ -22,9 +22,9 @@
     "KIBANA_USER": "{{kibana.user}}",
     "KIBANA_PASSWORD": "{{kibana.password}}"
   },
-  "uris": [
-    "{{resource.assets.uris.kibana-tar-gz}}",
-    "{{resource.assets.uris.xpack-zip}}"
+  "fetch": [
+    { "uri": "{{resource.assets.uris.kibana-tar-gz}}", "cache": true },
+    { "uri": "{{resource.assets.uris.xpack-zip}}", "cache": true }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,
