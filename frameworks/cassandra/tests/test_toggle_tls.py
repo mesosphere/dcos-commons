@@ -139,7 +139,7 @@ def test_disable_tls(cassandra_service):
 @sdk_utils.dcos_ee_only
 def test_enabling_then_disabling_tls(cassandra_service, dcos_ca_bundle):
     # Write data.
-    write_data_job = config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    write_data_job = config.get_write_data_job()
     with sdk_jobs.InstallJobContext([write_data_job]):
         sdk_jobs.run_job(write_data_job)
 
@@ -152,7 +152,7 @@ def test_enabling_then_disabling_tls(cassandra_service, dcos_ca_bundle):
         cassandra_service, enabled=False, allow_plaintext=False)
 
     # Make sure data is still there.
-    verify_data_job = config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle)
+    verify_data_job = config.get_verify_data_job()
     with sdk_jobs.InstallJobContext([verify_data_job]):
         sdk_jobs.run_job(verify_data_job)
 
