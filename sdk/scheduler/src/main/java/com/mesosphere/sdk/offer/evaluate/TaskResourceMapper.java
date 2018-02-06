@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.*;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
  * Handles cross-referencing a preexisting {@link Protos.TaskInfo}'s current {@link Protos.Resource}s against a set
  * of expected {@link ResourceSpec}s for that task.
  */
-class TaskResourceMapper {
+public class TaskResourceMapper {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
@@ -26,30 +25,6 @@ class TaskResourceMapper {
     private final TaskPortLookup taskPortFinder;
     private final Collection<Protos.Resource> resources;
     private final boolean useDefaultExecutor;
-
-    /**
-     * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
-     */
-    static class ResourceLabels {
-        private final ResourceSpec resourceSpec;
-        private final String resourceId;
-        private final Optional<String> persistenceId;
-
-        private ResourceLabels(ResourceSpec resourceSpec, String resourceId) {
-            this(resourceSpec, resourceId, Optional.empty());
-        }
-
-        private ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> persistenceId) {
-            this.resourceSpec = resourceSpec;
-            this.resourceId = resourceId;
-            this.persistenceId = persistenceId;
-        }
-
-        @Override
-        public String toString() {
-            return ToStringBuilder.reflectionToString(this);
-        }
-    }
 
     public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo, boolean useDefaultExecutor) {
         this.taskSpecName = taskSpec.getName();
@@ -91,9 +66,9 @@ class TaskResourceMapper {
                     break;
             }
             if (matchingResource.isPresent()) {
-                if (!remainingResourceSpecs.remove(matchingResource.get().resourceSpec)) {
+                if (!remainingResourceSpecs.remove(matchingResource.get().getResourceSpec())) {
                     throw new IllegalStateException(String.format("Didn't find %s in %s",
-                            matchingResource.get().resourceSpec, remainingResourceSpecs));
+                            matchingResource.get().getResourceSpec(), remainingResourceSpecs));
                 }
                 matchingResources.add(matchingResource.get());
             } else {
@@ -126,7 +101,8 @@ class TaskResourceMapper {
     }
 
     private Optional<ResourceLabels> findMatchingDiskSpec(
-            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
+            Protos.Resource taskResource,
+            Collection<ResourceSpec> resourceSpecs) {
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (!(resourceSpec instanceof VolumeSpec)) {
                 continue;
@@ -143,7 +119,8 @@ class TaskResourceMapper {
                 return Optional.of(new ResourceLabels(
                         resourceSpec,
                         resourceId.get(),
-                        Optional.of(taskResource.getDisk().getPersistence().getId())));
+                        Optional.of(taskResource.getDisk().getPersistence().getId()),
+                        ResourceUtils.getSourceRoot(taskResource)));
             }
         }
 
@@ -213,26 +190,31 @@ class TaskResourceMapper {
     }
 
     private OfferEvaluationStage newUpdateEvaluationStage(String taskSpecName, ResourceLabels resourceLabels) {
-        return toEvaluationStage(taskSpecName, resourceLabels.resourceSpec, Optional.of(resourceLabels.resourceId),
-                resourceLabels.persistenceId);
+        return toEvaluationStage(
+                taskSpecName,
+                resourceLabels.getResourceSpec(),
+                Optional.of(resourceLabels.getResourceId()),
+                resourceLabels.getPersistenceId(),
+                resourceLabels.getSourceRoot());
     }
 
     private OfferEvaluationStage newCreateEvaluationStage(String taskSpecName, ResourceSpec resourceSpec) {
-        return toEvaluationStage(taskSpecName, resourceSpec, Optional.empty(), Optional.empty());
+        return toEvaluationStage(taskSpecName, resourceSpec, Optional.empty(), Optional.empty(), Optional.empty());
     }
 
     private OfferEvaluationStage toEvaluationStage(
             String taskSpecName,
             ResourceSpec resourceSpec,
             Optional<String> resourceId,
-            Optional<String> persistenceId) {
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot) {
         if (resourceSpec instanceof NamedVIPSpec) {
             return new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskSpecName, resourceId);
         } else if (resourceSpec instanceof PortSpec) {
             return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecName, resourceId);
         } else if (resourceSpec instanceof VolumeSpec) {
-            return new VolumeEvaluationStage(
-                    (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, useDefaultExecutor);
+            return VolumeEvaluationStage.getExisting(
+                    (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, sourceRoot, useDefaultExecutor);
         } else {
             return new ResourceEvaluationStage(resourceSpec, resourceId, taskSpecName);
         }

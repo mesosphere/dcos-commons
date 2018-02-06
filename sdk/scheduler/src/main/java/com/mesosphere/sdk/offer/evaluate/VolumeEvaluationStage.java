@@ -26,11 +26,38 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final Optional<String> resourceId;
     private final boolean useDefaultExecutor;
 
-    public VolumeEvaluationStage(
+    public static VolumeEvaluationStage getNew(VolumeSpec volumeSpec, String taskName, boolean useDefaultExecutor) {
+        return new VolumeEvaluationStage(
+                volumeSpec,
+                taskName,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                useDefaultExecutor);
+    }
+
+    public static VolumeEvaluationStage getExisting(
             VolumeSpec volumeSpec,
             String taskName,
             Optional<String> resourceId,
             Optional<String> persistenceId,
+            Optional<String> sourceRoot,
+            boolean useDefaultExecutor) {
+        return new VolumeEvaluationStage(
+                volumeSpec,
+                taskName,
+                resourceId,
+                persistenceId,
+                sourceRoot,
+                useDefaultExecutor);
+    }
+
+    private VolumeEvaluationStage(
+            VolumeSpec volumeSpec,
+            String taskName,
+            Optional<String> resourceId,
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
@@ -41,6 +68,22 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private boolean createsVolume() {
         return !persistenceId.isPresent();
+    }
+
+    private static boolean isMountVolume(MesosResource mesosResource) {
+       return mesosResource.getResource().hasDisk()
+               && mesosResource.getResource().getDisk().hasSource()
+               && mesosResource.getResource().getDisk().getSource().hasType()
+               && mesosResource.getResource().getDisk().getSource().getType()
+               .equals(Resource.DiskInfo.Source.Type.MOUNT);
+    }
+
+    private String getSourceRoot(MesosResource mesosResource) {
+        if (isMountVolume(mesosResource)) {
+            return mesosResource.getResource().getDisk().getSource().getMount().getRoot();
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -58,10 +101,13 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             // add it to the ExecutorInfo.
             podInfoBuilder.setExecutorVolume(volumeSpec);
 
+            String sourceRoot = null;
+
             Resource volume = PodInfoBuilder.getExistingExecutorVolume(
                     volumeSpec,
-                    resourceId.get(),
-                    persistenceId.get(),
+                    resourceId,
+                    persistenceId,
+                    Optional.ofNullable(sourceRoot),
                     useDefaultExecutor);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
