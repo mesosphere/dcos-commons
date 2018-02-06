@@ -4,9 +4,12 @@ navigationTitle:
 excerpt:
 title: Uninstall
 menuWeight: 30
+
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 {% include services/uninstall.md
-    tech_name="an Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka" %}
+    techName="an Apache Kafka"
+    packageName=page.packageName
+    serviceName=page.serviceName %}

@@ -4,9 +4,12 @@ navigationTitle:
 excerpt:
 title: Uninstall
 menuWeight: 30
+
+packageName: beta-hdfs
+serviceName: hdfs
 ---
 
 {% include services/uninstall.md
-    tech_name="an HDFS"
-    package_name="beta-hdfs"
-    service_name="hdfs" %}
+    techName="an HDFS"
+    packageName=page.packageName
+    serviceName=page.serviceName %}

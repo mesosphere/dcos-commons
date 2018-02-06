@@ -6,9 +6,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -18,11 +21,11 @@ import static org.mockito.Mockito.when;
 
 public class PlanInfoTest {
 
-    @Mock Step mockStep0;
-    @Mock Step mockStep1;
-    @Mock Phase mockPhase0; // 2 steps
-    @Mock Phase mockPhase1; // no steps
-    @Mock Plan mockPlan; // 2 phases
+    @Mock private Step mockStep0;
+    @Mock private Step mockStep1;
+    @Mock private Phase mockPhase0; // 2 steps
+    @Mock private Phase mockPhase1; // no steps
+    @Mock private Plan mockPlan; // 2 phases
 
     @Before
     public void beforeAll() {
@@ -121,5 +124,36 @@ public class PlanInfoTest {
         assertTrue(stepInfo.equals(stepInfo));
         assertEquals(stepInfo.hashCode(), stepInfo.hashCode());
         assertEquals(stepInfo.toString(), stepInfo.toString());
+    }
+
+    @Test
+    public void testChangingPhase() {
+        // A plan whose phase went from IN_PROGRESS to COMPLETE while the PlanInfo was being generated.
+        // Ideally, we should display this as an IN_PROGRESS plan with a COMPLETE phase.
+        when(mockPhase0.getId()).thenReturn(UUID.randomUUID());
+        when(mockPhase0.getName()).thenReturn("phase-0");
+        when(mockPhase0.getStatus()).thenAnswer(new Answer<Status>() {
+            private int count = 0;
+
+            @Override
+            public Status answer(InvocationOnMock invocation) throws Throwable {
+                // Expected calls:
+                // 1+2: PlanInfo.forPlan() gets plan status, which gets phase status twice:
+                //         once as a child, and the other as a candidate
+                // 3: PhaseInfo.forPhase() gets phase status
+                if (++count < 3) {
+                    return Status.IN_PROGRESS;
+                }
+                return Status.COMPLETE;
+            }
+        });
+        when(mockPhase0.getStrategy()).thenReturn(new SerialStrategy<>());
+        when(mockPhase0.getChildren()).thenReturn(Collections.emptyList());
+
+        PlanInfo planInfo = PlanInfo.forPlan(new DefaultPlan("deploy", Arrays.asList(mockPhase0)));
+
+        // Plan shows IN_PROGRESS, phase shows COMPLETE:
+        assertEquals(planInfo.toString(), Status.IN_PROGRESS, planInfo.getStatus());
+        assertEquals(planInfo.toString(), Status.COMPLETE, planInfo.getPhases().get(0).getStatus());
     }
 }

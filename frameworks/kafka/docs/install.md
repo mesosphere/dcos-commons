@@ -4,16 +4,19 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
+
+packageName: beta-kafka
+serviceName: kafka
 ---
 
 {% include services/install.md
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka"
-    min_node_count="three"
-    default_install_description="with three brokers"
-    service_account_instructions_url="https://docs.mesosphere.com/services/kafka/kafka-auth/"
-    enterprise_install_url="" %}
+    techName="Apache Kafka"
+    packageName=page.packageName
+    serviceName=page.serviceName
+    minNodeCount="three"
+    defaultInstallDescription="with three brokers"
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/kafka/kafka-auth/"
+    enterpriseInstallUrl="" %}
 
 ## Alternate install configurations
 
@@ -36,7 +39,7 @@ To start a minimal cluster with a single broker, create a JSON options file name
 The command below creates a cluster using `sample-kafka-minimal.json`:
 
 ```bash
-$ dcos package install --options=sample-kafka-minimal.json beta-kafka
+$ dcos package install {{ page.packageName }} --options=sample-kafka-minimal.json
 ```
 
 ### Custom Installation
@@ -65,7 +68,7 @@ Sample JSON options file named `sample-kafka-custom.json`:
 The command below creates a cluster using `sample-kafka.json`:
 
 ```bash
-$ dcos package install --options=sample-kafka-custom.json beta-kafka
+$ dcos package install {{ page.packageName }} --options=sample-kafka-custom.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
@@ -82,11 +85,17 @@ Installing multiple Kafka clusters is identical to installing Kafka clusters wit
 $ cat kafka1.json
 {
   "service": {
-  "name": "kafka1"
+  "name": "{{ page.serviceName }}1"
   }
 }
 
-$ dcos package install beta-kafka --options=kafka1.json
+$ dcos package install {{ page.packageName }} --options=kafka1.json
+```
+
+To query this service using the CLI, you may provide the `--name` parameter:
+
+```bash
+$ dcos {{ page.packageName }} --name={{ page.serviceName }}1 ...
 ```
 
 ### Alternate ZooKeeper
@@ -109,14 +118,14 @@ To configure it:
 
 1. Install Kafka with the options file.
 
-```shell
-dcos package install kafka --options="options.json"
+```bash
+$ dcos package install {{ page.packageName }} --options="options.json"
 ```
 
 You can also update an already-running Kafka instance from the DC/OS CLI, in case you need to migrate your ZooKeeper data elsewhere.
 
 **Note:** The ZooKeeper ensemble you point to must have the same data as the previous ZooKeeper ensemble.
 
-```shell
-dcos kafka --name=/kafka update start --options=options.json
+```bash
+$ dcos {{ page.packageName }} --name={{ page.serviceName }} update start --options=options.json
 ```

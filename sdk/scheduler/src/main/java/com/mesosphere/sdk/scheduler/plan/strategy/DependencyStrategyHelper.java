@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
 import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,10 +17,6 @@ public class DependencyStrategyHelper<C extends Element> {
      * Mapping of elements to their prerequisites which must be {@link Element#isComplete()}.
      */
     private final Map<C, Set<C>> dependencies;
-
-    public DependencyStrategyHelper() {
-        this(Collections.emptyList());
-    }
 
     public DependencyStrategyHelper(Collection<C> elements) {
         this.dependencies = new HashMap<>();
@@ -54,7 +50,7 @@ public class DependencyStrategyHelper<C extends Element> {
             return Collections.emptyList();
         }
         return dependencies.entrySet().stream()
-                .filter(entry -> entry.getKey().isEligible(dirtyAssets))
+                .filter(entry -> PlanUtils.isEligible(entry.getKey(), dirtyAssets))
                 .filter(entry -> dependenciesFulfilled(entry.getValue()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());
@@ -65,11 +61,7 @@ public class DependencyStrategyHelper<C extends Element> {
     }
 
     private static <C extends Element> boolean dependenciesFulfilled(Set<C> deps) {
-        if (deps.isEmpty()) {
-            return true;
-        } else {
-            return deps.stream().allMatch(c -> c.isComplete());
-        }
+        return deps.isEmpty() || deps.stream().allMatch(c -> c.isComplete());
     }
 
     /**

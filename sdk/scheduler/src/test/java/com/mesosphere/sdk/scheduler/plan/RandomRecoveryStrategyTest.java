@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -30,13 +29,11 @@ public class RandomRecoveryStrategyTest {
         when(pendingStep.getName()).thenReturn("mock-step");
         when(pendingStep.getPodInstanceRequirement()).thenReturn(Optional.of(podInstancePending));
         when(pendingStep.isPending()).thenReturn(true);
-        when(pendingStep.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         when(completeStep.getName()).thenReturn("mock-step");
         when(completeStep.getPodInstanceRequirement()).thenReturn(Optional.of(podInstanceComplete));
         when(completeStep.isPending()).thenReturn(false);
         when(completeStep.isComplete()).thenReturn(true);
-        when(completeStep.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
     }
 
 
