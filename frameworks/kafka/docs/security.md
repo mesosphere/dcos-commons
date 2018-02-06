@@ -4,7 +4,6 @@ navigationTitle:
 excerpt:
 title: Security
 menuWeight: 22
-
 ---
 
 # DC/OS Apache Kafka Security
@@ -19,7 +18,7 @@ A good overview of these features can be found [here](https://www.confluent.io/b
 
 With transport encryption enabled, DC/OS Apache Kafka will automatically deploy all brokers with the correct configuration to communicate via SSL. The Brokers will communicate securely between themselves using SSL. Optionally, plaintext communication can be left open to clients.
 
-The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate theSSLartifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
+The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
 
 *Note*: Enabling transport encryption is _required_ to use [SSL Auth](#ssl-auth) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
 
@@ -35,9 +34,10 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 - In DC/OS 1.10, the required permission is `dcos:superuser full`.
 - In DC/OS 1.11+ the required permissions are:
 ```
-dcos:secrets:default:<service name>/* full
-dcos:secrets:list:default:/<service name> full
+dcos:secrets:default:/<service name>/* full
+dcos:secrets:list:default:/<service name> read
 dcos:adminrouter:ops:ca:rw full
+dcos:adminrouter:ops:ca:ro full
 ```
 where `<service name>` is the name of the service to be installed.
 
@@ -47,7 +47,7 @@ Install the DC/OS Apache Kafka service including the following options in additi
 {
     "service": {
         "service_account": "<your service account name>",
-        "service_account_secret": "<full path of secret>",
+        "service_account_secret": "<full path of service secret>",
         "security": {
             "transport_encryption": {
                 "enabled": true,
