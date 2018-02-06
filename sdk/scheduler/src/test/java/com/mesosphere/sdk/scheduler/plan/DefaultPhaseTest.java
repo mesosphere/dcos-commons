@@ -9,8 +9,8 @@ import org.mockito.Mockito;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 public class DefaultPhaseTest {
@@ -27,17 +27,16 @@ public class DefaultPhaseTest {
                 new SerialStrategy<>(),
                 Collections.emptyList());
 
+        when(step1.getPodInstanceRequirement()).thenReturn(Optional.empty());
+        when(step2.getPodInstanceRequirement()).thenReturn(Optional.empty());
+
         when(step1.getStatus()).thenReturn(Status.PENDING);
         when(step2.getStatus()).thenReturn(Status.WAITING);
-        when(step1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-        when(step2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         Assert.assertEquals(Status.PENDING, serialPhase.getStatus());
 
         when(step1.getStatus()).thenReturn(Status.WAITING);
         when(step2.getStatus()).thenReturn(Status.WAITING);
-        when(step1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-        when(step2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
 
         final DefaultPhase canaryPhase = new DefaultPhase(
                 "canary-phase",

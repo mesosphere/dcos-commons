@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
+import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 
@@ -75,7 +76,7 @@ public class CanaryStrategy implements Strategy<Step> {
         if (getNextCanaryStep() != null) {
             // Still in canary. Only return subset of canary steps which are now eligible due to proceed() calls.
             return canarySteps.stream()
-                    .filter(step -> step.isEligible(dirtyAssets))
+                    .filter(step -> PlanUtils.isEligible(step, dirtyAssets))
                     .collect(Collectors.toList());
         }
 
