@@ -189,21 +189,20 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></span>()</code>
+<div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a>.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.Object&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getResources--">getResources</a></span>()</code>
 <div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#initialize-SchedulerDriver-">initialize</a></span>(SchedulerDriver&nbsp;driver)</code>
-<div class="block">Performs any additional Scheduler initialization after registration has completed.</div>
-</td>
-</tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processOffers-SchedulerDriver-java.util.List-java.util.Collection-">processOffers</a></span>(SchedulerDriver&nbsp;driver,
-             java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processOffers-java.util.List-java.util.Collection-">processOffers</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
              java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</code>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </td>
@@ -220,7 +219,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableApiServer--">disableApiServer</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableThreading--">disableThreading</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlans--">getPlans</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#setOfferQueueSize-int-">setOfferQueueSize</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#start--">start</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableApiServer--">disableApiServer</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableThreading--">disableThreading</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlans--">getPlans</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#markApiServerStarted--">markApiServerStarted</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#setOfferQueueSize-int-">setOfferQueueSize</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#start--">start</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -304,47 +303,44 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <pre>public&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">AbstractScheduler</a></code></span></div>
 <div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.
- This may be called before <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#initialize-SchedulerDriver-"><code>AbstractScheduler.initialize(SchedulerDriver)</code></a> has been called.</div>
+ This may be called before <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--"><code>AbstractScheduler.getPlanCoordinator()</code></a> has been called.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">getResources</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 </dl>
 </li>
 </ul>
-<a name="initialize-SchedulerDriver-">
+<a name="getPlanCoordinator--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>initialize</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;initialize(SchedulerDriver&nbsp;driver)
-                              throws java.lang.InterruptedException</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#initialize-SchedulerDriver-">AbstractScheduler</a></code></span></div>
-<div class="block">Performs any additional Scheduler initialization after registration has completed. The provided
- <code>SchedulerDriver</code> may be used to talk to Mesos. Returns a <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a> which will be used to
- select candidate workloads.</div>
+<h4>getPlanCoordinator</h4>
+<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()
+                                      throws java.lang.InterruptedException</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">AbstractScheduler</a></code></span></div>
+<div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#initialize-SchedulerDriver-">initialize</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.InterruptedException</code></dd>
 </dl>
 </li>
 </ul>
-<a name="processOffers-SchedulerDriver-java.util.List-java.util.Collection-">
+<a name="processOffers-java.util.List-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>processOffers</h4>
-<pre>protected&nbsp;void&nbsp;processOffers(SchedulerDriver&nbsp;driver,
-                             java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+<pre>protected&nbsp;void&nbsp;processOffers(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
                              java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-SchedulerDriver-java.util.List-java.util.Collection-">AbstractScheduler</a></code></span></div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.List-java.util.Collection-">AbstractScheduler</a></code></span></div>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-SchedulerDriver-java.util.List-java.util.Collection-">processOffers</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.List-java.util.Collection-">processOffers</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 </dl>
 </li>
 </ul>
