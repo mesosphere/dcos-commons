@@ -519,6 +519,11 @@
           "type": "integer",
           "default": 10000
         },
+        "http_content_type_required": {
+          "description": "THIS FIELD IS DEPRECATED AND IS NOT BEING USED IN ANY OF THE TEMPLATE FILES. Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
+          "type": "boolean",
+          "default": false
+        },
         "thread_pool_search_size": {
           "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicity set.",
           "type": "string",
