@@ -12,7 +12,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,10 +46,6 @@ public class SerialStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        when(el0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-        when(el1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-        when(el2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-
         steps = Arrays.asList(el0, el1, el2);
     }
 
@@ -61,17 +56,14 @@ public class SerialStrategyTest {
         Assert.assertEquals(el0, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
 
         when(el0.isComplete()).thenReturn(true);
-        when(el0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
         Assert.assertEquals(el1, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
 
         when(el1.isComplete()).thenReturn(true);
-        when(el1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
         Assert.assertEquals(el2, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
 
         when(el2.isComplete()).thenReturn(true);
-        when(el2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertTrue(strategy.getCandidates(steps, Collections.emptyList()).isEmpty());
     }
 
