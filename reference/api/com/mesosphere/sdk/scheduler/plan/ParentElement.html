@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":18,"i1":6,"i2":18,"i3":18,"i4":6,"i5":18,"i6":18,"i7":18,"i8":18,"i9":18,"i10":18,"i11":18};
+var methods = {"i0":18,"i1":6,"i2":18,"i3":18,"i4":6,"i5":18,"i6":18,"i7":18,"i8":18,"i9":18,"i10":18};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -194,36 +194,30 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>default boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#isEligible-java.util.Collection-">isEligible</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
-<div class="block">Indicates whether this Element is capable of being started.</div>
-</td>
-</tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code>default boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#isInterrupted--">isInterrupted</a></span>()</code>
 <div class="block">Indicates whether the object is interrupted or not.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>default void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#proceed--">proceed</a></span>()</code>
 <div class="block">A call to proceed indicates to an <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Interruptible</code></a> that it should may cancel a previous <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Interruptible.html#interrupt--"><code>Interruptible.interrupt()</code></a>
  call and resume with any in-progress work.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>default void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#restart--">restart</a></span>()</code>
 <div class="block">Restarts children.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>default void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Updates children.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>default void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.html#updateParameters-java.util.Map-">updateParameters</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;parameters)</code>
 <div class="block">Provides the Element with a set of named string parameters that it can either use on start or provide to
@@ -351,21 +345,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">updateParameters</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="isEligible-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isEligible</h4>
-<pre>default&nbsp;boolean&nbsp;isEligible(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">Element</a></code></span></div>
-<div class="block">Indicates whether this Element is capable of being started.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">isEligible</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></code></dd>
 </dl>
 </li>
 </ul>

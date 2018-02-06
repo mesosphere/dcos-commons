@@ -160,8 +160,6 @@
 <div class="block">This rule enforces that a task be placed on a provided agent ID, or enforces that the task avoid
  that agent ID, depending on the factory method used.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#allHaveStatus-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">allHaveStatus(Status, Collection&lt;? extends Element&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">AllLaunchConstrainer</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
 <dd>
 <div class="block">A <a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><code>LaunchConstrainer</code></a> combinator that ensures that all the given constrainers are satisfied before launching a
@@ -195,8 +193,6 @@
 <dd>
 <div class="block">The "any role" wildcard resource role.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#anyHaveStatus-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">anyHaveStatus(Status, Collection&lt;? extends Element&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/AnyMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AnyMatcher</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
 <div class="block">Implements passthrough support for string comparisons by matching any string.</div>
@@ -1351,8 +1347,6 @@
 <div class="block">The <a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><code>DependencyStrategyHelper</code></a> exists to aid in the construction of <a href="com/mesosphere/sdk/scheduler/plan/strategy/Strategy.html" title="interface in com.mesosphere.sdk.scheduler.plan.strategy"><code>Strategy</code></a> objects which describe a
  set of dependencies between constituent elements.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#DependencyStrategyHelper--">DependencyStrategyHelper()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#DependencyStrategyHelper-java.util.Collection-">DependencyStrategyHelper(Collection&lt;C&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html#dependencyStrategyHelper">dependencyStrategyHelper</a></span> - Variable in class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/SerialStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">SerialStrategy</a></dt>
@@ -2069,6 +2063,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getAgentPlacementRule-java.util.List-java.util.List-">getAgentPlacementRule(List&lt;String&gt;, List&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>
 <div class="block">Returns the appropriate placement rule, given a set of agents to avoid or colocate with.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getAggregateStatus-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-boolean-">getAggregateStatus(String, Collection&lt;Status&gt;, Collection&lt;Status&gt;, Collection&lt;String&gt;, boolean)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
+<dd>
+<div class="block">Returns the overall status to display by a parent element of the provided children.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterUtils.html#getAllData-com.mesosphere.sdk.storage.Persister-">getAllData(Persister)</a></span> - Static method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></dt>
 <dd>
@@ -4279,10 +4277,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/ProcessTask.html#isAlive--">isAlive()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/ProcessTask.html" title="class in com.mesosphere.sdk.executor">ProcessTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty()</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
-<dd>
-<div class="block">Reports whether the Asset associated with this Step is dirty.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#isAssignedOverlayPort-long-">isAssignedOverlayPort(long)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/MesosResource.html#isAtomic--">isAtomic()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/MesosResource.html" title="class in com.mesosphere.sdk.offer">MesosResource</a></dt>
@@ -4295,14 +4289,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/LaunchedTask.html#isDone--">isDone()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/LaunchedTask.html" title="class in com.mesosphere.sdk.executor">LaunchedTask</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html#isEligible-com.mesosphere.sdk.scheduler.plan.Element-java.util.Collection-">isEligible(Element, Collection&lt;PodInstanceRequirement&gt;)</a></span> - Static method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanUtils</a></dt>
 <dd>
-<div class="block">Indicates whether this Element is capable of being started.</div>
+<div class="block">Returns whether the provided Plan <a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a> is eligible for work.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/queue/OfferQueue.html#isEmpty--">isEmpty()</a></span> - Method in class com.mesosphere.sdk.queue.<a href="com/mesosphere/sdk/queue/OfferQueue.html" title="class in com.mesosphere.sdk.queue">OfferQueue</a></dt>
 <dd>
 <div class="block">This method specifies whether any offers are in the queue.</div>
@@ -5400,7 +5390,7 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/PlanUtils.html" title="class in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">PlanUtils</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
-<div class="block">Common utility methods for <a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s.</div>
+<div class="block">Common utility methods for <a href="com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a> elements.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#POD_INSTANCE_INDEX_TASKENV">POD_INSTANCE_INDEX_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>

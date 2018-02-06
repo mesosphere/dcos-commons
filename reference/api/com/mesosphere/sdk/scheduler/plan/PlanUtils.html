@@ -109,7 +109,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">PlanUtils</span>
 extends java.lang.Object</pre>
-<div class="block">Common utility methods for <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s.</div>
+<div class="block">Common utility methods for <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a> elements.</div>
 </li>
 </ul>
 </div>
@@ -130,42 +130,49 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#allHaveStatus-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">allHaveStatus</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
-             java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;elements)</code>&nbsp;</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#anyHaveStatus-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">anyHaveStatus</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
-             java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;elements)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#assetConflicts-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">assetConflicts</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;asset,
               java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
 <div class="block">Determines whether the specified asset refers to the same pod instance and tasks other assets.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;Offer&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#filterAcceptedOffers-java.util.List-java.util.Collection-">filterAcceptedOffers</a></span>(java.util.List&lt;Offer&gt;&nbsp;offers,
                     java.util.Collection&lt;OfferID&gt;&nbsp;acceptedOfferIds)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getActivePlanManagers-java.util.List-">getActivePlanManagers</a></span>(java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>static &lt;C extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;<br><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getAggregateStatus-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-boolean-">getAggregateStatus</a></span>(java.lang.String&nbsp;parentName,
+                  java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;childStatuses,
+                  java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;candidateStatuses,
+                  java.util.Collection&lt;java.lang.String&gt;&nbsp;errors,
+                  boolean&nbsp;isInterrupted)</code>
+<div class="block">Returns the overall status to display by a parent element of the provided children.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getDirtyAssets-com.mesosphere.sdk.scheduler.plan.Plan-">getDirtyAssets</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.Set&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getLaunchableTasks-java.util.Collection-">getLaunchableTasks</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#hasOperations-com.mesosphere.sdk.scheduler.plan.Plan-">hasOperations</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</code>
 <div class="block">Indicates whether a plan has any work left to do.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#isEligible-com.mesosphere.sdk.scheduler.plan.Element-java.util.Collection-">isEligible</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&nbsp;element,
+          java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
+<div class="block">Returns whether the provided Plan <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a> is eligible for work.</div>
 </td>
 </tr>
 </table>
@@ -190,26 +197,6 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="allHaveStatus-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>allHaveStatus</h4>
-<pre>public static&nbsp;boolean&nbsp;allHaveStatus(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
-                                    java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;elements)</pre>
-</li>
-</ul>
-<a name="anyHaveStatus-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>anyHaveStatus</h4>
-<pre>public static&nbsp;boolean&nbsp;anyHaveStatus(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status,
-                                    java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;elements)</pre>
-</li>
-</ul>
 <a name="filterAcceptedOffers-java.util.List-java.util.Collection-">
 <!--   -->
 </a>
@@ -269,10 +256,53 @@ extends java.lang.Object</pre>
 <a name="getDirtyAssets-com.mesosphere.sdk.scheduler.plan.Plan-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getDirtyAssets</h4>
 <pre>public static&nbsp;java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getDirtyAssets(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</pre>
+</li>
+</ul>
+<a name="isEligible-com.mesosphere.sdk.scheduler.plan.Element-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isEligible</h4>
+<pre>public static&nbsp;boolean&nbsp;isEligible(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&nbsp;element,
+                                 java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
+<div class="block">Returns whether the provided Plan <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a> is eligible for work.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>element</code> - the element to be checked</dd>
+<dd><code>dirtyAssets</code> - list of current dirty assets which are already being worked on</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>whether this element may proceed with work</dd>
+</dl>
+</li>
+</ul>
+<a name="getAggregateStatus-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-boolean-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getAggregateStatus</h4>
+<pre>public static&nbsp;&lt;C extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;getAggregateStatus(java.lang.String&nbsp;parentName,
+                                                            java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;childStatuses,
+                                                            java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;candidateStatuses,
+                                                            java.util.Collection&lt;java.lang.String&gt;&nbsp;errors,
+                                                            boolean&nbsp;isInterrupted)</pre>
+<div class="block">Returns the overall status to display by a parent element of the provided children.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>parentName</code> - the name of the parent element, used for logging</dd>
+<dd><code>childStatuses</code> - the statuses of the parent element's children</dd>
+<dd><code>candidateStatuses</code> - the statuses of the parent element's candidate children, as selected by the parent
+      element's Strategy</dd>
+<dd><code>errors</code> - any errors from the parent element</dd>
+<dd><code>isInterrupted</code> - whether the parent element is interrupted</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the Status to display for the parent element</dd>
+</dl>
 </li>
 </ul>
 </li>

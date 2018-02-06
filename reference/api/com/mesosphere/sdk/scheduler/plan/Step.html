@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":18,"i1":18,"i2":6,"i3":18,"i4":18,"i5":6,"i6":6};
+var methods = {"i0":18,"i1":18,"i2":6,"i3":6,"i4":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -152,24 +152,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 </td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>default boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isAssetDirty--">isAssetDirty</a></span>()</code>
-<div class="block">Reports whether the Asset associated with this Step is dirty.</div>
-</td>
-</tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>default boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#isEligible-java.util.Collection-">isEligible</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>
-<div class="block">Indicates whether this Element is capable of being started.</div>
-</td>
-</tr>
-<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
 <div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
@@ -260,31 +248,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" 
 <pre>default&nbsp;java.lang.String&nbsp;getDisplayStatus()</pre>
 <div class="block">Returns a user-facing display status of this step, which may provide additional context on the work being
  performed beyond the underlying progress <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> returned by <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#getStatus--"><code>Element.getStatus()</code></a>.</div>
-</li>
-</ul>
-<a name="isAssetDirty--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isAssetDirty</h4>
-<pre>default&nbsp;boolean&nbsp;isAssetDirty()</pre>
-<div class="block">Reports whether the Asset associated with this Step is dirty.</div>
-</li>
-</ul>
-<a name="isEligible-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isEligible</h4>
-<pre>default&nbsp;boolean&nbsp;isEligible(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">Element</a></code></span></div>
-<div class="block">Indicates whether this Element is capable of being started.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isEligible-java.util.Collection-">isEligible</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a></code></dd>
-</dl>
 </li>
 </ul>
 <a name="getMessage--">
