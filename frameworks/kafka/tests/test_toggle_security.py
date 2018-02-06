@@ -165,7 +165,7 @@ def kafka_client(kerberos):
 
 
 @pytest.mark.incremental
-def test_no_security(kafka_client, kafka_server):
+def test_initial_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     """
     Check the default no-security state is sane.
     """
@@ -178,7 +178,7 @@ def test_no_security(kafka_client, kafka_server):
 
 
 @pytest.mark.incremental
-def test_enable_kerberos(kafka_client, kafka_server, kerberos):
+def test_forward_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
@@ -212,7 +212,7 @@ def test_enable_kerberos(kafka_client, kafka_server, kerberos):
 
 
 @pytest.mark.incremental
-def test_enable_tls_with_plaintext(kafka_client, kafka_server, kerberos):
+def test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
@@ -250,7 +250,7 @@ def test_enable_tls_with_plaintext(kafka_client, kafka_server, kerberos):
 
 
 @pytest.mark.incremental
-def test_disable_plaintext(kafka_client, kafka_server, kerberos):
+def test_forward_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
@@ -279,7 +279,7 @@ def test_disable_plaintext(kafka_client, kafka_server, kerberos):
 
 
 @pytest.mark.incremental
-def test_disable_kerberos(kafka_client, kafka_server):
+def test_forward_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server):
     update_options = {
         "service": {
             "security": {
@@ -307,7 +307,7 @@ def test_disable_kerberos(kafka_client, kafka_server):
 
 
 @pytest.mark.incremental
-def test_enable_tls_enable_plaintext(kafka_client, kafka_server):
+def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server):
     update_options = {
         "service": {
             "security": {
@@ -345,7 +345,7 @@ def test_enable_tls_enable_plaintext(kafka_client, kafka_server):
 
 
 @pytest.mark.incremental
-def test_disable_tls(kafka_client, kafka_server):
+def test_forward_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     update_options = {
         "service": {
             "security": {
@@ -375,17 +375,17 @@ def test_disable_tls(kafka_client, kafka_server):
 
 # We now run the tests in the oposite direction
 @pytest.mark.incremental
-def test_reverse_enable_tls_with_plaintext(kafka_client, kafka_server, kerberos):
-    test_enable_tls_with_plaintext(kafka_client, kafka_server, None)
+def test_reverse_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server, kerberos):
+    test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, None)
 
 
 @pytest.mark.incremental
-def test_reverse_disable_plaintext(kafka_client, kafka_server, kerberos):
-    test_disable_plaintext(kafka_client, kafka_server, None)
+def test_reverse_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server, kerberos):
+    test_forward_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, None)
 
 
 @pytest.mark.incremental
-def test_reverse_enable_kerberos(kafka_client, kafka_server, kerberos):
+def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
@@ -419,7 +419,7 @@ def test_reverse_enable_kerberos(kafka_client, kafka_server, kerberos):
 
 
 @pytest.mark.incremental
-def test_reverse_enable_tls_enable_plaintext(kafka_client, kafka_server, kerberos):
+def test_reverse_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
@@ -457,7 +457,7 @@ def test_reverse_enable_tls_enable_plaintext(kafka_client, kafka_server, kerbero
 
 
 @pytest.mark.incremental
-def test_reverse_disable_tls(kafka_client, kafka_server, kerberos):
+def test_reverse_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
@@ -486,7 +486,7 @@ def test_reverse_disable_tls(kafka_client, kafka_server, kerberos):
 
 
 @pytest.mark.incremental
-def test_reverse_disable_kerberos(kafka_client, kafka_server):
+def test_reverse_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     update_options = {
         "service": {
             "security": {
