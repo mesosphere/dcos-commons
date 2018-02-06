@@ -37,3 +37,11 @@ plans:
         pod: hello
         steps:
           - default: [[server], [sidecar]]
+  sidecar:
+    strategy: serial
+    phases:
+      sidecar-deploy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[sidecar]]
