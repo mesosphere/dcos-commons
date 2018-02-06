@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.*;
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.GoalState;
@@ -73,7 +75,7 @@ public class DefaultStepFactory implements StepFactory {
         if (hasDuplicates(resourceSetIds)) {
             throw new Exception(String.format(
                     "Attempted to simultaneously launch tasks: %s in pod: %s using the same resource set id: %s. " +
-                    "These tasks should either be run in separate steps or use different resource set ids",
+                            "These tasks should either be run in separate steps or use different resource set ids",
                     tasksToLaunch, podInstance.getName(), resourceSetIds));
         }
 
@@ -103,7 +105,7 @@ public class DefaultStepFactory implements StepFactory {
         List<Status> statuses = new ArrayList<>();
         UUID targetConfigId = configTargetStore.getTargetConfig();
         for (Protos.TaskInfo taskInfo : taskInfos) {
-           statuses.add(getStatus(podInstance, taskInfo, targetConfigId));
+            statuses.add(getStatus(podInstance, taskInfo, targetConfigId));
         }
 
         for (Status status : statuses) {
@@ -148,7 +150,8 @@ public class DefaultStepFactory implements StepFactory {
         return targetConfigId.equals(taskConfigId);
     }
 
-    private boolean hasReachedGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo) throws TaskException {
+    @VisibleForTesting
+    protected boolean hasReachedGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo) throws TaskException {
         GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
         Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInfo.getName());
         if (!status.isPresent()) {
@@ -158,7 +161,7 @@ public class DefaultStepFactory implements StepFactory {
         if (goalState.equals(GoalState.RUNNING)) {
             switch (status.get().getState()) {
                 case TASK_RUNNING:
-                    return true;
+                    return new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status.get());
                 default:
                     return false;
             }
