@@ -349,10 +349,12 @@ class KerberosEnvironment:
 
                 log.info("Finished base64-encoding secret content (%d bytes): %s", len(base64_encoding), base64_encoding)
 
+                return ["--value-file", base64_encoded_keytab_path, ]
             except Exception as e:
                 raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
 
-        return keytab_path
+        log.info("Creating binary secret from %s", keytab_path)
+        return ["-f", keytab_path]
 
     def __create_and_upload_secret(self, keytab_path: str):
         """
@@ -361,16 +363,22 @@ class KerberosEnvironment:
         """
         log.info("Creating and uploading the keytab file %s to the secret store", keytab_path)
 
-        encoded_path = self.__encode_secret(keytab_path)
+        encoding_options = self.__encode_secret(keytab_path)
 
         sdk_security.install_enterprise_cli()
         # try to delete any preexisting secret data:
         sdk_security.delete_secret(self.keytab_secret_path)
         # create new secret:
-        create_secret_cmd = "security secrets create {keytab_secret_path} --value-file {encoded_keytab_path}".format(
-            keytab_secret_path=self.keytab_secret_path,
-            encoded_keytab_path=encoded_path)
-        log.info("Creating secret named %s from file %s: %s", self.keytab_secret_path, encoded_path, create_secret_cmd)
+
+        cmd_list = ["security",
+                    "secrets",
+                    "create",
+                    self.get_keytab_path(),
+                    ]
+        cmd_list.extend(encoding_options)
+
+        create_secret_cmd = " ".join(cmd_list)
+        log.info("Creating secret %s: %s", self.get_keytab_path(), create_secret_cmd)
         rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
         if rc != 0:
             raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(rc, create_secret_cmd, stdout, stderr))
@@ -409,7 +417,7 @@ class KerberosEnvironment:
         else:
             prefix = DCOS_BASE64_PREFIX
 
-        self.keytab_secret_path = "{}_keytab".format(prefix)
+        self.keytab_secret_path = "{}{}".format(prefix, secret_path)
 
     def get_realm(self) -> str:
         return self.kdc_realm
