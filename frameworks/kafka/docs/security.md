@@ -123,9 +123,9 @@ example/kafka-2-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 
 The DC/OS Apache Kafka service uses a keytab containing all broker principals (service keytab) to simplify orchestration. After creating the principals above, generate the service keytab making sure to include all the broker principals. This will be stored as a secret in the DC/OS Secret Store.
 
-*Note*: DC/OS 1.10 does not support adding binary secrets directly to the secret store, only text files are supported. Instead, first base64 encode the file, and save it to the secret store as `/desired/path/__dcos_base_64__secret_name`. The DC/OS security modules will handle decoding the file when it is used by the service. More details [here](https://docs.mesosphere.com/services/ops-guide/overview/#binary-secrets).
+*Note*: DC/OS 1.10 does not support adding binary secrets directly to the secret store, only text files are supported. Instead, first base64 encode the file, and save it to the secret store as `/desired/path/__dcos_base64__secret_name`. The DC/OS security modules will handle decoding the file when it is used by the service. More details [here](https://docs.mesosphere.com/services/ops-guide/overview/#binary-secrets).
 
-The service keytab should be stored at `service/path/service.keytab` (as noted above for 1.10, it would be `__dcos_base_64__service.keytab`), where `service/path` matches the path of the service. For example, if installing with the options
+The service keytab should be stored at `service/path/service.keytab` (as noted above for 1.10, it would be `__dcos_base64__service.keytab`), where `service/path` matches the path of the service. For example, if installing with the options
 ```json
 {
     "service": {
