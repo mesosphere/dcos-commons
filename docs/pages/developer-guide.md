@@ -562,16 +562,22 @@ SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerCon
     .setPlanCustomizer(new ReverseDeployPhases());
 ```
 
-Note: As stated, *all* plans are run through the interface. This includes the "deploy" plan used during uninstall. It is easy to check within a PlanCustomizer whether uninstall is active before modifying the deploy plan.
+The uninstall plan may also be modified by overriding PlanCustomizer.updateUninstallPlan.
 ```java
 public class ReverseDeployPhases implements PlanCustomizer {
     @Override
     public Plan updatePlan(Plan plan) {
-        if (!SchedulerConfig.fromEnv().isUninstallEnabled() &&
-            plan.isDeployPlan() &&
+        if (plan.isDeployPlan() &&
             Boolean.valueOf(System.getenv("REVERSE"))) {
             Collections.reverse(plan.getChildren());
         }
+
+        return plan;
+    }
+
+    @Override
+    public Plan updateUninstallPlan(Plan uninstallPlan) {
+        // Do some clever things
 
         return plan;
     }

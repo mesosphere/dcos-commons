@@ -72,7 +72,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
 
         // Have the mock plan customizer default to returning the plan unchanged.
-        when(mockPlanCustomizer.updatePlan(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
+        when(mockPlanCustomizer.updateUninstallPlan(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @Test
@@ -323,10 +323,18 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static PlanCustomizer getReversingPlanCustomizer() {
-        return (plan -> {
-            Collections.reverse(plan.getChildren());
+        return (new PlanCustomizer() {
+            @Override
+            public Plan updatePlan(Plan plan) {
+                return plan;
+            }
 
-            return plan;
+            @Override
+            public Plan updateUninstallPlan(Plan uninstallPlan) {
+                Collections.reverse(uninstallPlan.getChildren());
+
+                return uninstallPlan;
+            }
         });
     }
 }

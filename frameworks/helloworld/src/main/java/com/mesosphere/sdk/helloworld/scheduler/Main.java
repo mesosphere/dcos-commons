@@ -48,7 +48,7 @@ public class Main {
                         .newGenerator(yamlSpecFile, SchedulerConfig.fromEnv())
                         .build();
                 SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv());
-                builder.setPlanCustomizer(new ReversePhasesCustomizer(SchedulerConfig.fromEnv()));
+                builder.setPlanCustomizer(new ReversePhasesCustomizer());
                 runner = SchedulerRunner.fromSchedulerBuilder(builder);
                 break;
             default:

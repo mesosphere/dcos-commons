@@ -69,7 +69,7 @@ public class UninstallScheduler extends AbstractScheduler {
                 .build();
 
         // Allow for customization to the uninstall plan.
-        plan = planCustomizer.isPresent() ? planCustomizer.get().updatePlan(plan) : plan;
+        plan = planCustomizer.isPresent() ? planCustomizer.get().updateUninstallPlan(plan) : plan;
 
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
         this.resources = Arrays.asList(
