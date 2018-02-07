@@ -1,0 +1,569 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>HDFS: Uninstall</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/service-settings/">Service Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/node-settings/">Node Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/custom-elasticsearch-yaml/">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/kerberos/">Kerberos</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/security/">Security</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>HDFS: Uninstall</h1>
+<div id="content">
+
+<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
+
+<h3 id="dcos-110">DC/OS 1.10</h3>
+
+<p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
+
+<ol>
+  <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; beta-hdfs</code>.</li>
+</ol>
+
+<p>For example, to uninstall an HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>hdfs-dev beta-hdfs
+</code></pre></div></div>
+
+<h3 id="older-versions">Older versions</h3>
+
+<p>If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:</p>
+
+<ol>
+  <li>Stop the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; &lt;packagename&gt;</code>.
+For example, <code class="highlighter-rouge">dcos package uninstall --app-id=hdfs-dev beta-hdfs</code>.</li>
+  <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
+</ol>
+
+<p>For example, to uninstall an HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ MY_SERVICE_NAME</span><span class="o">=</span>hdfs-dev
+<span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-hdfs<span class="sb">`</span><span class="nb">.</span>
+<span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--leader</span> <span class="s2">"docker run mesosphere/janitor /janitor.py </span><span class="se">\</span><span class="s2">
+    -r </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-role </span><span class="se">\</span><span class="s2">
+    -p </span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">-principal </span><span class="se">\</span><span class="s2">
+    -z dcos-service-</span><span class="nv">$MY_SERVICE_NAME</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<!-- END DUPLICATE BLOCK -->
+
+
+</div>
+</div>
+</body>
+
+</html>

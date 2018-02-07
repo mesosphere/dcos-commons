@@ -1,0 +1,994 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>Kafka: API Reference</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/service-settings/">Service Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/node-settings/">Node Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/custom-elasticsearch-yaml/">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/kerberos/">Kerberos</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/security/">Security</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: API Reference</h1>
+<div id="content">
+
+<p>The DC/OS Apache Kafka Service implements a REST API that may be accessed from outside the cluster. The <dcos_url> parameter referenced below indicates the base URL of the DC/OS cluster on which the Apache Kafka Service is deployed.</dcos_url></p>
+
+<h1 id="rest-api-authentication">REST API Authentication</h1>
+
+<p>REST API requests must be authenticated. This authentication is only applicable for interacting with the Apache Kafka REST API directly. You do not need the token to access the Apache Kafka nodes themselves.</p>
+
+<p>If you are using Enterprise DC/OS, follow these instructions to <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">create a service account and an authentication token</a>. You can then configure your service to automatically refresh the authentication token when it expires. To get started more quickly, you can also <a href="https://docs.mesosphere.com/latest/security/iam-api/">get the authentication token without a service account</a>, but you will need to manually refresh the token.</p>
+
+<p>If you are using open source DC/OS, follow these instructions to [pass your HTTP API token to the DC/OS endpoint]https://dcos.io/docs/latest/security/iam-api/).</p>
+
+<p>Once you have the authentication token, you can store it in an environment variable and reference it in your REST API calls:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">export </span><span class="nv">auth_token</span><span class="o">=</span>uSeR_t0k3n
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">curl</code> examples in this document assume that an auth token has been stored in an environment variable named <code class="highlighter-rouge">auth_token</code>.</p>
+
+<p>If you are using Enterprise DC/OS, the security mode of your installation may also require the <code class="highlighter-rouge">--ca-cert</code> flag when making REST calls. Refer to <a href="https://docs.mesosphere.com/latest/networking/tls-ssl/#get-dcos-cert">Obtaining and passing the DC/OS certificate in cURL requests</a> for information on how to use the <code class="highlighter-rouge">--cacert</code> flag. <a href="https://docs.mesosphere.com/latest/networking/tls-ssl/">If your security mode is <code class="highlighter-rouge">disabled</code></a>, do not use the <code class="highlighter-rouge">--ca-cert</code> flag.</p>
+
+<h1 id="plan-api">Plan API</h1>
+
+<p>The Plan API provides endpoints for monitoring and controlling service installation and configuration updates.</p>
+
+<h2 id="list-plans">List plans</h2>
+
+<p>You may list the configured plans for the service. By default, all services at least have a <code class="highlighter-rouge">deploy</code> plan and a <code class="highlighter-rouge">recovery</code> plan. Some services may have additional custom plans defined.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan list
+</code></pre></div></div>
+
+<h2 id="view-plan">View plan</h2>
+
+<p>You may view the current state of a listed plan:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans/&lt;plan&gt;
+</code></pre></div></div>
+
+<p>The CLI may be used to show a formatted tree of the plan (default), or the underlying JSON data as retrieved from the above HTTP endpoint:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan show &lt;plan&gt;
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan show &lt;plan&gt; <span class="nt">--json</span>
+</code></pre></div></div>
+
+<h2 id="pause-installation">Pause Installation</h2>
+
+<p>The installation will pause after completing installation of the current node and wait for user input.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans/deploy/interrupt
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan pause deploy
+</code></pre></div></div>
+
+<h2 id="resume-installation">Resume Installation</h2>
+
+<p>The REST API request below will resume installation at the next pending node.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT &lt;dcos_surl&gt;/service/kafka/v1/plans/deploy/continue
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan <span class="k">continue </span>deploy
+</code></pre></div></div>
+
+<h1 id="nodes-api">Nodes API</h1>
+
+<p>The pod API provides endpoints for retrieving information about nodes, restarting them, and replacing them.</p>
+
+<h2 id="list-nodes">List Nodes</h2>
+
+<p>A list of available node ids can be retrieved by sending a GET request to <code class="highlighter-rouge">/v1/pod</code>:</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod list
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod
+</code></pre></div></div>
+
+<h2 id="node-info">Node Info</h2>
+
+<p>You can retrieve node information by sending a GET request to <code class="highlighter-rouge">/v1/pod/&lt;node-id&gt;/info</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/info
+</code></pre></div></div>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod info journalnode-0
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/journalnode-0/info
+</code></pre></div></div>
+
+<h2 id="replace-a-node">Replace a Node</h2>
+
+<p>The replace endpoint can be used to replace a node with an instance running on another agent node.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod replace &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/replace
+</code></pre></div></div>
+
+<p>If the operation succeeds, a <code class="highlighter-rouge">200 OK</code> is returned.</p>
+
+<h2 id="restart-a-node">Restart a Node</h2>
+
+<p>The restart endpoint can be used to restart a node in place on the same agent node.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka pod restart &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/restart
+</code></pre></div></div>
+
+<p>If the operation succeeds a <code class="highlighter-rouge">200 OK</code> is returned.</p>
+
+<h2 id="pause-a-node">Pause a Node</h2>
+
+<p>The pause endpoint can be used to relaunch a node in an idle command state for debugging purposes.</p>
+
+<p>CLI example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka debug pod pause &lt;node-id&gt;
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod/&lt;node-id&gt;/pause
+</code></pre></div></div>
+
+<h1 id="configuration-api">Configuration API</h1>
+
+<p>The configuration API provides an endpoint to view current and previous configurations of the cluster.</p>
+
+<h2 id="view-target-config">View Target Config</h2>
+
+<p>You can view the current target configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/target</code>.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config target
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/configurations/target
+</code></pre></div></div>
+
+<h2 id="list-configs">List Configs</h2>
+
+<p>You can list all configuration IDs by sending a GET request to <code class="highlighter-rouge">/v1/configurations</code>.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config list
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/configurations
+<span class="o">[</span>
+  <span class="s2">"319ebe89-42e2-40e2-9169-8568e2421023"</span>,
+  <span class="s2">"294235f2-8504-4194-b43d-664443f2132b"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<h2 id="view-specified-config">View Specified Config</h2>
+
+<p>You can view a specific configuration by sending a GET request to <code class="highlighter-rouge">/v1/configurations/&lt;config-id&gt;</code>.</p>
+
+<p>CLI Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka config show 9a8d4308-ab9d-4121-b460-696ec3368ad6
+</code></pre></div></div>
+
+<p>HTTP Example</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/configurations/9a8d4308-ab9d-4121-b460-696ec3368ad6
+</code></pre></div></div>
+
+<h1 id="connection-information">Connection Information</h1>
+
+<p>Kafka comes with many useful tools of its own that often require either Zookeeper connection information or the list of broker endpoints. This information can be retrieved in an easily consumable format from the <code class="highlighter-rouge">/endpoints</code> endpoint (assuming your service is named “kafka”):</p>
+
+<pre><code class="language-bssh">$ curl -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/endpoints/broker"
+{
+  "vip": "broker.kafka.l4lb.thisdcos.directory:9092",
+  "address": [
+    "10.0.0.35:1028",
+    "10.0.1.249:1030"
+  ],
+  "dns": [
+    "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028",
+    "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"
+  ],
+}
+</code></pre>
+
+<p>The same information can be retrieved through the DC/OS CLI:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka endpoints broker
+<span class="o">{</span>
+  <span class="s2">"vip"</span>: <span class="s2">"broker.kafka.l4lb.thisdcos.directory:9092"</span>,
+  <span class="s2">"address"</span>: <span class="o">[</span>
+    <span class="s2">"10.0.0.35:1028"</span>,
+    <span class="s2">"10.0.1.249:1030"</span>
+  <span class="o">]</span>,
+  <span class="s2">"dns"</span>: <span class="o">[</span>
+    <span class="s2">"kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1028"</span>,
+    <span class="s2">"kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1030"</span>
+  <span class="o">]</span>,
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h1 id="topic-operations">Topic Operations</h1>
+
+<p>These operations mirror what is available with <code class="highlighter-rouge">bin/kafka-topics.sh</code>.</p>
+
+<h2 id="list-topics">List Topics</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic list
+<span class="o">[</span>
+  <span class="s2">"topic1"</span>,
+  <span class="s2">"topic0"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics"</span>
+<span class="o">[</span>
+  <span class="s2">"topic1"</span>,
+  <span class="s2">"topic0"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<h2 id="describe-topic">Describe Topic</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic describe topic1
+<span class="o">{</span>
+  <span class="s2">"partitions"</span>: <span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        0,
+        1,
+        2
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 0,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        1,
+        2,
+        0
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 1,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        2,
+        0,
+        1
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 2,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"</span>
+<span class="o">{</span>
+  <span class="s2">"partitions"</span>: <span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        0,
+        1,
+        2
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 0,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        1,
+        2,
+        0
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 1,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="o">{</span>
+      <span class="s2">"controller_epoch"</span>: 1,
+      <span class="s2">"isr"</span>: <span class="o">[</span>
+        2,
+        0,
+        1
+      <span class="o">]</span>,
+      <span class="s2">"leader"</span>: 2,
+      <span class="s2">"leader_epoch"</span>: 0,
+      <span class="s2">"version"</span>: 1
+    <span class="o">}</span>
+  <span class="o">}</span>
+  <span class="o">]</span>
+<span class="o">}</span>
+
+</code></pre></div></div>
+
+<h2 id="create-topic">Create Topic</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic create topic1 <span class="nt">--partitions</span><span class="o">=</span>3 <span class="nt">--replication</span><span class="o">=</span>3
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Output: Created topic </span><span class="se">\"</span><span class="s2">topic1</span><span class="se">\"\n</span><span class="s2">"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?partitions=3&amp;replication=3"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Output: Created topic </span><span class="se">\"</span><span class="s2">topic1</span><span class="se">\"\n</span><span class="s2">"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="view-topic-offsets">View Topic Offsets</h2>
+
+<p>There is an optional <code class="highlighter-rouge">--time</code> parameter which may be set to either “first”, “last”, or a timestamp in milliseconds as [described in the Kafka documentation][15].</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic offsets topic1 <span class="nt">--time</span><span class="o">=</span>last
+<span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="s2">"334"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1/offsets?time=-1"</span>
+<span class="o">[</span>
+  <span class="o">{</span>
+    <span class="s2">"2"</span>: <span class="s2">"334"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"1"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>,
+  <span class="o">{</span>
+    <span class="s2">"0"</span>: <span class="s2">"333"</span>
+  <span class="o">}</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<h2 id="alter-topic-partition-count">Alter Topic Partition Count</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos beta-kafka --name=kafka topic partitions topic1 2
+{
+  "message": "Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"
+}
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=partitions&amp;partitions=2"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Output: WARNING: If partitions are increased for a topic that has a key, the partition logic or ordering of the messages will be affectednAdding partitions succeeded!n"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="run-producer-test-on-topic">Run Producer Test on Topic</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos beta-kafka --name=kafka topic producer_test topic1 10
+{
+  "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+}
+
+```bash
+$ curl -X PUT -H "Authorization: token=$auth_token" "&lt;dcos_url&gt;/service/kafka/v1/topics/topic1?operation=producer-test&amp;messages=10"
+{
+  "message": "10 records sent, 70.422535 records/sec (0.07 MB/sec), 24.20 ms avg latency, 133.00 ms max latency, 13 ms 50th, 133 ms 95th, 133 ms 99th, 133 ms 99.9th.n"
+}
+</code></pre></div></div>
+
+<p>This runs the equivalent of the following command from the machine running the Kafka Scheduler:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>kafka-producer-perf-test.sh <span class="se">\</span>
+  <span class="nt">--topic</span> &lt;topic&gt; <span class="se">\</span>
+  <span class="nt">--num-records</span> &lt;messages&gt; <span class="se">\</span>
+  <span class="nt">--throughput</span> 100000 <span class="se">\</span>
+  <span class="nt">--record-size</span> 1024 <span class="se">\</span>
+  <span class="nt">--producer-props</span> bootstrap.servers<span class="o">=</span>&lt;current broker endpoints&gt;
+</code></pre></div></div>
+
+<h2 id="delete-topic">Delete Topic</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic delete topic1
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> DELETE <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/topic1"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Topic topic1 is marked for deletion.nNote: This will have no impact if delete.topic.enable is not set to true.n"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Note the warning in the output from the commands above. You can change the indicated “delete.topic.enable” configuration value as a configuration change.</p>
+
+<h2 id="list-under-replicated-partitions">List Under Replicated Partitions</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic under_replicated_partitions
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/under_replicated_partitions"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="list-unavailable-partitions">List Unavailable Partitions</h2>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka topic unavailable_partitions
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$auth_token</span><span class="s2">"</span> <span class="s2">"&lt;dcos_url&gt;/service/kafka/v1/topics/unavailable_partitions"</span>
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">""</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+</div>
+</div>
+</body>
+
+</html>

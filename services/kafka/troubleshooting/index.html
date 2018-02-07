@@ -1,0 +1,615 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>Kafka: Troubleshooting</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/service-settings/">Service Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/node-settings/">Node Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/custom-elasticsearch-yaml/">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/kerberos/">Kerberos</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/security/">Security</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Kafka: Troubleshooting</h1>
+<div id="content">
+
+<h2 id="configuration-update-errors">Configuration update errors</h2>
+
+<p>After a configuration change, the service may enter an unhealthy state. This commonly occurs when an invalid configuration change was made by the user. Certain configuration values may not be changed, or may not be decreased. To verify whether this is the case, check the service’s <code class="highlighter-rouge">deploy</code> plan for any errors.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev plan show deploy
+</code></pre></div></div>
+
+<h2 id="accessing-logs">Accessing Logs</h2>
+
+<p>Logs for the scheduler and all service nodes can be viewed from the DC/OS web interface.</p>
+
+<ul>
+  <li>Scheduler logs are useful for determining why a node isn’t being launched (this is under the purview of the Scheduler).</li>
+  <li>Node logs are useful for examining problems in the service itself.</li>
+</ul>
+
+<p>In all cases, logs are generally piped to files named <code class="highlighter-rouge">stdout</code> and/or <code class="highlighter-rouge">stderr</code>.</p>
+
+<p>To view logs for a given node, perform the following steps:</p>
+<ol>
+  <li>Visit <dcos-url> to access the DC/OS web interface.</dcos-url></li>
+  <li>Navigate to <code class="highlighter-rouge">Services</code> and click on the service to be examined (default <code class="highlighter-rouge">kafka</code>).</li>
+  <li>In the list of tasks for the service, click on the task to be examined (scheduler is named after the service, nodes are each named e.g. <code class="highlighter-rouge">node-&lt;#&gt;-server</code> depending on their type).</li>
+  <li>In the task details, click on the <code class="highlighter-rouge">Logs</code> tab to go into the log viewer. By default, you will see <code class="highlighter-rouge">stdout</code>, but <code class="highlighter-rouge">stderr</code> is also useful. Use the pull-down in the upper right to select the file to be examined.</li>
+</ol>
+
+<p>You can also access the logs via the Mesos UI:</p>
+<ol>
+  <li>Visit <code class="highlighter-rouge">&lt;dcos-url&gt;/mesos</code> to view the Mesos UI.</li>
+  <li>Click the <code class="highlighter-rouge">Frameworks</code> tab in the upper left to get a list of services running in the cluster.</li>
+  <li>Navigate into the correct framework for your needs. The scheduler runs under <code class="highlighter-rouge">marathon</code> with a task name matching the service name (default kafka). Service nodes run under a framework whose name matches the service name (default kafka).</li>
+  <li>You should now see two lists of tasks. <code class="highlighter-rouge">Active Tasks</code> are tasks currently running, and <code class="highlighter-rouge">Completed Tasks</code> are tasks that have exited. Click the <code class="highlighter-rouge">Sandbox</code> link for the task you wish to examine.</li>
+  <li>The <code class="highlighter-rouge">Sandbox</code> view will list files named <code class="highlighter-rouge">stdout</code> and <code class="highlighter-rouge">stderr</code>. Click the file names to view the files in the browser, or click <code class="highlighter-rouge">Download</code> to download them to your system for local examination. Note that very old tasks will have their Sandbox automatically deleted to limit disk space usage.</li>
+</ol>
+
+<h2 id="replacing-a-permanently-failed-node">Replacing a Permanently Failed Node</h2>
+
+<p>The DC/OS Elastic Service is resilient to temporary pod failures, automatically relaunching them in-place if they stop running. However, if a machine hosting a pod is permanently lost, manual intervention is required to discard the downed pod and reconstruct it on a new machine.</p>
+
+<p>The following command should be used to get a list of available pods. In this example we are querying a service named <code class="highlighter-rouge">kafka-dev</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev pod list
+</code></pre></div></div>
+
+<p>The following command should then be used to replace the pod residing on the failed machine, using the appropriate <code class="highlighter-rouge">pod_name</code> provided in the above list.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev pod replace &lt;pod_name&gt;
+</code></pre></div></div>
+
+<p>The pod recovery may then be monitored via the <code class="highlighter-rouge">recovery</code> plan.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev plan show recovery
+</code></pre></div></div>
+
+<h2 id="restarting-a-node">Restarting a Node</h2>
+
+<p>If you must forcibly restart a pod’s processes but do not wish to clear that pod’s data, use the following command to restart the pod on the same agent machine where it currently resides. This will not result in an outage or loss of data.</p>
+
+<p>The following command should be used to get a list of available pods. In this example we are querying a service named <code class="highlighter-rouge">kafka-dev</code>.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev pod list
+</code></pre></div></div>
+
+<p>The following command should then be used to restart the pod, using the appropriate <code class="highlighter-rouge">pod_name</code> provided in the above list.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev pod restart &lt;pod_name&gt;
+</code></pre></div></div>
+
+<p>The pod recovery may then be monitored via the <code class="highlighter-rouge">recovery</code> plan.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka-dev plan show recovery
+</code></pre></div></div>
+
+<h2 id="partition-replication">Partition replication</h2>
+
+<p>Kafka may become unhealthy when it detects any underreplicated partitions. This error condition usually indicates a malfunctioning broker. Use the <code class="highlighter-rouge">dcos beta-kafka --name=kafka topic under_replicated_partitions</code> and <code class="highlighter-rouge">dcos beta-kafka --name=kafka topic describe &lt;topic-name&gt;</code> commands to find the problem broker and determine what actions are required.</p>
+
+<p>Possible repair actions include <a href="#restarting-a-node">restarting the affected broker</a> and <a href="#replacing-a-permanently-failed-node">destructively replacing the affected broker</a>. The replace operation is destructive and will irrevocably lose all data associated with the broker. The restart operation is not destructive and indicates an attempt to restart a broker process.</p>
+
+<h2 id="extending-the-kill-grace-period">Extending the Kill Grace Period</h2>
+
+<p>If the Kafka brokers are not completing the clean shutdown within the configured
+<code class="highlighter-rouge">brokers.kill_grace_period</code> (Kill Grace Period), extend the Kill Grace Period, see <a href="../managing/#extend-the-kill-grace-period">Managing - Extend the Kill Grace Period</a>.</p>
+
+</div>
+</div>
+</body>
+
+</html>

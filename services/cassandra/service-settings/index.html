@@ -1,0 +1,645 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>Cassandra: Service Settings</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/service-settings/">Service Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/node-settings/">Node Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/custom-elasticsearch-yaml/">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/kerberos/">Kerberos</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/security/">Security</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Cassandra: Service Settings</h1>
+<div id="content">
+
+<h1 id="service-name">Service Name</h1>
+
+<p>You must configure each instance of DC/OS Apache Cassandra in a given DC/OS cluster with a different service name. You can configure the service name in the <strong>service</strong> section of the advanced installation section of the DC/OS web interface. The default service name (used in many examples here) is <code class="highlighter-rouge">cassandra</code>.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">name</code>: string (default: <code class="highlighter-rouge">cassandra</code>)</li>
+  <li><strong>DC/OS web interface</strong>: The service name cannot be changed after the cluster has started.</li>
+</ul>
+
+<h1 id="data-center">Data Center</h1>
+
+<p>You can configure the name of the logical data center that this Cassandra cluster runs in. This sets the <code class="highlighter-rouge">dc</code> property in the <code class="highlighter-rouge">cassandra-rackdc.properties</code> file.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">data_center</code>: string (default: <code class="highlighter-rouge">dc1</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">CASSANDRA_LOCATION_DATA_CENTER</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
+
+<h1 id="rack">Rack</h1>
+
+<p>You can configure the name of the rack that this Cassandra cluster runs in. This sets the <code class="highlighter-rouge">rack</code> property in the <code class="highlighter-rouge">cassandra-rackdc.properties</code> file.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">rack</code>: string (default: <code class="highlighter-rouge">rac1</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">CASSANDRA_LOCATION_RACK</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
+
+<h1 id="remote-seeds">Remote Seeds</h1>
+
+<p>You can configure the remote seeds from another Cassandra cluster that this cluster should communicate with to establish cross-data-center replication. This should be a comma-separated list of node hostnames, such as <code class="highlighter-rouge">node-0-server.cassandra.autoip.dcos.thisdcos.directory,node-1-server.cassandra.autoip.dcos.thisdcos.directory</code>. For more information on multi-data-center configuration, see <a href="#configuring-multi-data-center-deployments">Configuring Multi-data-center Deployments</a>.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">remote_seeds</code>: string (default: <code class="highlighter-rouge">""</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">TASKCFG_ALL_REMOTE_SEEDS</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
+
+<h1 id="backuprestore-strategy">Backup/Restore Strategy</h1>
+
+<p>You can configure whether the creation, transfer, and restoration of backups occurs in serial or in parallel across nodes. This option must be set to either <code class="highlighter-rouge">serial</code> or <code class="highlighter-rouge">parallel</code>. Running backups and restores in parallel has the potential to saturate your network. For this reason, we recommend that you use the default configuration for backup strategy.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">backup_restore_strategy</code>: string (default: <code class="highlighter-rouge">"serial"</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">BACKUP_RESTORE_STRATEGY</code>: <code class="highlighter-rouge">string</code></li>
+</ul>
+
+<h1 id="virtual-networks">Virtual networks</h1>
+
+<p>The Cassandra service can be run on a virtual network such as the DC/OS overlay network, affording each node its own IP address (IP per container). For details about virtual networks on DC/OS see the <a href="/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. For the Cassandra service, using a virtual network means that nodes no longer use reserved port resources on the Mesos agents.  This allows nodes to share machines with other applications that may need to use the same ports that Cassandra does. That means, however, that we cannot guarantee that the ports on the agents containing the reserved resources for Cassandra will be available, therefore we do not allow a service to change from a virtual network to the host network. <strong>Once the service is deployed on a virtual network it must remain on that virtual network</strong>. The only way to move your data to Cassandra on the host network is through a migration.</p>
+
+<h1 id="zones">Zones</h1>
+
+<p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint <code class="highlighter-rouge">[["@zone", "GROUP_BY", "3"]]</code>.</p>
+
+<!--
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
+-->
+<h2 id="example">Example</h2>
+
+<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
+
+<h2 id="balanced-placement-for-a-single-region">Balanced Placement for a Single Region</h2>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
+  ...
+  "count": 6,
+  "placement_constraint": "[[\"@zone\", \"GROUP_BY\", \"3\"]]"
+}
+</code></pre></div></div>
+
+<ul>
+  <li>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</li>
+</ul>
+
+<h1 id="tls">TLS</h1>
+
+<p>The Cassandra service can be launched with TLS encryption. Enabling TLS will use TLS connections for inter-node communication between all the Cassandra nodes. Cassandra will be still available on the same configured client port (default: <code class="highlighter-rouge">9042</code>).</p>
+
+<p>Enabling TLS is possible only in <code class="highlighter-rouge">permissive</code> and <code class="highlighter-rouge">strict</code> cluster security modes. Both modes require a <a href="https://docs.mesosphere.com/services/cassandra/cass-auth/">service account</a>. Additionally, a service account must have the <code class="highlighter-rouge">dcos:superuser</code> permission. If the permission is missing the Cassandra scheduler will not abe able to provision TLS artifacts.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">service.security.transport_encryption.enabled</code>: boolean (default: <code class="highlighter-rouge">false</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED</code>: <code class="highlighter-rouge">boolean</code></li>
+</ul>
+
+<p>To enable support for both TLS encrypted and non-TLS plaintext connections set the <code class="highlighter-rouge">tls_allow_plaintext</code> option to <code class="highlighter-rouge">true</code>. This option is disabled by default, so when the TLS is enabled, the non-encrypted connections would get refused.</p>
+
+<ul>
+  <li><strong>In DC/OS CLI options.json</strong>: <code class="highlighter-rouge">service.security.transport_encryption.allow_plaintext</code>: boolean (default: <code class="highlighter-rouge">false</code>)</li>
+  <li><strong>DC/OS web interface</strong>: <code class="highlighter-rouge">TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT</code>: <code class="highlighter-rouge">boolean</code></li>
+</ul>
+
+<h2 id="clients">Clients</h2>
+
+<p>Clients connecting to the Cassandra service are required to use <a href="https://docs.mesosphere.com/1.10/networking/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the TLS connections.</p>
+
+<h2 id="cqlsh">cqlsh</h2>
+
+<p>TLS can be configured for <code class="highlighter-rouge">cqlsh</code> in the <a href="https://github.com/apache/cassandra/blob/652d9f64f14d8375a8412561271a7abf27722f20/conf/cqlshrc.sample#L103">ssl section</a> of the <code class="highlighter-rouge">cqlshrc</code> file. Connecting over TLS requires passing the <code class="highlighter-rouge">--ssl</code> flag.</p>
+
+<div class="language-sh highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cqlsh <span class="nt">--ssl</span> <span class="o">[</span>node-name] 9042
+</code></pre></div></div>
+
+<h2 id="tls-version-and-ciphers">TLS version and ciphers</h2>
+
+<p>Only <a href="https://www.ietf.org/rfc/rfc5246.txt"><code class="highlighter-rouge">TLS version 1.2</code></a> is supported with the following cipher suites:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256</code></li>
+  <li><code class="highlighter-rouge">TLS_RSA_WITH_AES_128_CBC_SHA256</code></li>
+  <li><code class="highlighter-rouge">TLS_RSA_WITH_AES_128_CBC_SHA</code></li>
+</ul>
+
+<p>For more information about TLS in the SDK see <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#tls">the TLS documentation</a>.</p>
+
+</div>
+</div>
+</body>
+
+</html>

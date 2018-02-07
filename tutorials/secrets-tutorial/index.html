@@ -1,0 +1,771 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+
+<head>
+<title>Tutorials: Secrets Tutorial</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/service-settings/">Service Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/node-settings/">Node Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/custom-elasticsearch-yaml/">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/kerberos/">Kerberos</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/security/">Security</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Tutorials: Secrets Tutorial</h1>
+<div id="content">
+
+<!--  disable mustache templating in this file: retain templated examples as-is -->
+
+<p>The SDK enables you to integrate DC/OS secrets using both a declarative YAML API and flexible JAVA API. In YAML, secrets are declared within the <code class="highlighter-rouge">secret:</code> section in a pod specification. Similarly, in JAVA API, a <code class="highlighter-rouge">SecretSpec</code> is added to the <code class="highlighter-rouge">PodSpec</code> object.</p>
+
+<p>Refer to the <a href="../../developer-guide/">Developer Guide</a> for more information about the JAVA API. Refer to the <a href="../../operations-guide/">Operations Guide</a> for a detailed explaination of how to use DC/OS secrets in your SDK-based service.</p>
+
+<p>In this tutorial, we will use the existing <code class="highlighter-rouge">hello-world</code> service to experiment with secrets. First, create a DC/OS Enterprise 1.10 cluster (at least 3 nodes is recommended).</p>
+
+<p><strong>Note</strong>: Secrets integration is only supported in DC/OS Enterprise 1.10 and above.</p>
+
+<h2 id="create-secrets">Create Secrets</h2>
+
+<p>Use the DC/OS CLI to create a secret.  You must have the Enterprise DC/OS CLI installed.</p>
+
+<p>Install DC/OS Enterprise CLI:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos package install --cli dcos-enterprise-cli
+</code></pre></div></div>
+
+<p>Create a secret with path <code class="highlighter-rouge">hello-world/secret1</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos security secrets  create -v "the value of secret1" hello-world/secret1
+</code></pre></div></div>
+
+<p>Now, create a key and add its private key to a secret with path <code class="highlighter-rouge">hello-world/secret2</code> and its public key to another secret with path <code class="highlighter-rouge">hello-world/secret3</code>.</p>
+
+<p>Create key and cert:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$openssl genrsa -out privatekey.pem 1024
+$openssl req -new -x509 -key privatekey.pem -out publickey.cer -days 1825
+</code></pre></div></div>
+
+<p>Create secrets with the values from the private and public key files:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos security secrets  create -f privatekey.pem  hello-world/secret2
+</code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos security secrets  create -f publickey.cer  hello-world/secret3
+</code></pre></div></div>
+
+<p>You can list secrets and view the content of a secret as follow:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos security secrets list  hello-world
+</code></pre></div></div>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos security secrets get hello-world/secret3
+</code></pre></div></div>
+
+<h2 id="install-the-service-with-secrets">Install the Service with Secrets</h2>
+
+<p>The <code class="highlighter-rouge">hello-world</code> package includes a sample YAML file for secrets. The <code class="highlighter-rouge">examples/secrets.yml</code> file demonstrates how secrets are declared:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    image: ubuntu:14.04
+    count: {{HELLO_COUNT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
+    secrets:
+      s1:
+        secret: {{HELLO_SECRET1}}
+        env-key: HELLO_SECRET1_ENV
+        file: HELLO_SECRET1_FILE
+      s2:
+        secret: {{HELLO_SECRET2}}
+        file: HELLO_SECRET2_FILE
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: &gt;
+               env &amp;&amp;
+               ls -la &amp;&amp;
+               cat HELLO_SECRET*_FILE &amp;&amp;
+        ................
+  world:
+    count: {{WORLD_COUNT}}
+    placement: '{{{WORLD_PLACEMENT}}}'
+    secrets:
+      s1:
+        secret: {{WORLD_SECRET1}}
+        env-key: WORLD_SECRET1_ENV
+      s2:
+        secret: {{WORLD_SECRET2}}
+        file: WORLD_SECRET2_FILE
+      s3:
+        secret: {{WORLD_SECRET3}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: &gt;
+               env &amp;&amp;
+               ls -la &amp;&amp;
+               cat WORLD_SECRET*_FILE &amp;&amp;
+        ................
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">hello</code> pod has two secrets. The first secret, with path <code class="highlighter-rouge">hello-world/secret1</code>, is exposed both as an environment variable and as a file. The second one is exposed only as a file. The value of the second secret with path <code class="highlighter-rouge">hello-world/secret2</code>, which is the private key, will be copied to the <code class="highlighter-rouge">HELLO_SECRET2_FILE</code> file located in the sandbox.</p>
+
+<p>The <code class="highlighter-rouge">world</code> pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All <code class="highlighter-rouge">server</code> tasks in the <code class="highlighter-rouge">world</code> pod will have access to the values of these three secrets, either as a file and/or as an evironment variable.</p>
+
+<p><em>Note</em>: The secret path is the default file path if no <code class="highlighter-rouge">file</code> keyword is given. Therefore, the file path for the third secret is same as the secret path.</p>
+
+<p>Next, install the <code class="highlighter-rouge">hello-world</code> package using the following “<code class="highlighter-rouge">option.json</code>” file:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos package install --options=option.json hello-world
+
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ cat option.json
+{
+      "service":{
+          "spec_file" : "examples/secrets.yml"
+      },
+      "hello":{
+          "secret1": "hello-world/secret1",
+          "secret2": "hello-world/secret2"
+      },
+      "world":{
+          "secret1": "hello-world/secret1",
+          "secret2": "hello-world/secret2",
+          "secret3": "hello-world/secret3"
+          }
+}
+</code></pre></div></div>
+
+<p>Here, we use <code class="highlighter-rouge">examples/secrets.yml</code> spec file. And, we also overwrite several <code class="highlighter-rouge">hello</code> and <code class="highlighter-rouge">world</code> options -  <code class="highlighter-rouge">secret1</code>, <code class="highlighter-rouge">secret2</code>, and <code class="highlighter-rouge">secret3</code> parameters are set to specific secret paths.  Examine <code class="highlighter-rouge">universe/config.json</code> for more information about the <code class="highlighter-rouge">hello-world</code> package configuration.</p>
+
+<h2 id="verify-secrets">Verify Secrets</h2>
+
+<p>Use the <code class="highlighter-rouge">dcos task exec</code> command to attach to the container that is running the task you want to examine.</p>
+
+<p><em>Note</em>: The tasks of the <code class="highlighter-rouge">hello</code> pod in our example are running inside a docker image (<code class="highlighter-rouge">ubuntu:14.04</code>).</p>
+
+<p>Run the following command to attach to the same container that is running the first task of the <code class="highlighter-rouge">hello</code> pod, that is <code class="highlighter-rouge">hello-0-server</code> (task name is <code class="highlighter-rouge">server</code>):</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos task exec -it hello-0-server bash
+
+&gt; $ echo $HELLO_SECRET1_ENV
+the value of secret1
+
+&gt; $ ls
+HELLO_SECRET1_FILE  executor.zip	   stdout
+HELLO_SECRET2_FILE  hello-container-path   stdout.logrotate.conf
+containers	    stderr		   stdout.logrotate.state
+executor	    stderr.logrotate.conf
+
+$ cat HELLO_SECRET1_FILE
+the value of secret1
+
+&gt; $ cat HELLO_SECRET2_FILE
+..............................................
+..............................................
+  &lt;KEY value created via openssl&gt;
+..............................................
+..............................................
+</code></pre></div></div>
+
+<p>Similarly, you can verify the content of secrets defined for any task of the <code class="highlighter-rouge">world</code> pod as follows:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos task exec -it world-0-server bash
+
+&gt; $ echo $WORLD_SECRET1_ENV
+the value of secret1
+
+&gt; $ ls
+WORLD_SECRET2_FILE  executor.zip  stderr.logrotate.conf  stdout.logrotate.state
+containers	    hello-world   stdout		 world-container-path1
+executor	    stderr	  stdout.logrotate.conf  world-container-path2
+
+&gt; $ cat WORLD_SECRET2_FILE
+..............................................
+..............................................
+  &lt;KEY value created via openssl&gt;
+..............................................
+..............................................
+
+&gt; $ ls hello-world/
+secret3
+&gt; $ cat hello-world/secret3
+..............................................
+..............................................
+  &lt;CERT value created via openssl&gt;
+..............................................
+..............................................
+</code></pre></div></div>
+
+<p>The third secret for the <code class="highlighter-rouge">word</code> pod does not have a specific <code class="highlighter-rouge">file</code> keyword. Therefore, its secret path <code class="highlighter-rouge">hello-world/secret3</code> is also used as the file path by default. As can be seen in the output, <code class="highlighter-rouge">hello-world</code> directory is created and the content of the third secret is copied to the <code class="highlighter-rouge">secret3</code> file.</p>
+
+<h1 id="update-secret-value">Update Secret Value</h1>
+
+<p>We can update the content of a secret as follows:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos security secrets update -v "This is the NEW value for secret1" hello-world/secret1
+</code></pre></div></div>
+
+<p>The secret value is securely copied from the secret store to a file and/or to an environment variable. A secret file is an in-memory file and it disappears when all tasks of the pod terminate.</p>
+
+<p>Since we updated the value of <code class="highlighter-rouge">hello-world/secret1</code>,  we need to restart all associated pods to copy the new value from the secret store.</p>
+
+<p>Lets restart the first <code class="highlighter-rouge">hello</code> pod. All tasks (there is only one task called <code class="highlighter-rouge">server</code> in our example) in the pod will be restarted.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos hello-world pod restart hello-0
+</code></pre></div></div>
+
+<p>As can be seen in the output, the <code class="highlighter-rouge">hello-0-server</code> task is already updated after the restart.</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos task exec -it hello-0-server bash
+
+&gt; $ echo $HELLO_SECRET1_ENV
+This is the NEW value for secret1
+
+&gt; $ cat HELLO_SECRET1_FILE
+This is the NEW value for secret1
+</code></pre></div></div>
+
+<p>Since we did not restart the <code class="highlighter-rouge">world</code> pods, their tasks still have the old value.  Run the following commands to examine the <code class="highlighter-rouge">world-0-server</code> task:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos task exec -it world-0-server bash
+
+&gt; $ echo $WORLD_SECRET1_ENV
+the value of secret1
+</code></pre></div></div>
+
+<p>Now, restart all remaining pods in order to get the new value of <code class="highlighter-rouge">hello-world/secret1</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos hello-world pod list
+[
+  "hello-0",
+  "world-0",
+  "world-1"
+]
+
+$ dcos hello-world pod restart world-0
+$ dcos hello-world pod restart world-1
+</code></pre></div></div>
+
+<!--  disable mustache templating in this file: retain templated examples as-is -->
+
+
+</div>
+</div>
+</body>
+
+</html>
