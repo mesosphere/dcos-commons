@@ -389,7 +389,7 @@ public class ServiceTest {
         // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
         ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.PENDING));
 
-        ServiceTestResult restarted = new ServiceTestRunner().setState(result).run(ticks);
+        new ServiceTestRunner().setState(result).run(ticks);
     }
 
     @Test
@@ -436,7 +436,7 @@ public class ServiceTest {
         // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
         ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.COMPLETE));
 
-        ServiceTestResult restarted = new ServiceTestRunner().setState(result).run(ticks);
+        new ServiceTestRunner().setState(result).run(ticks);
     }
 
 
@@ -484,7 +484,7 @@ public class ServiceTest {
         // Since the readiness check of the task did not pass, we expect it to remain in the PENDING state
         ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.COMPLETE));
 
-        ServiceTestResult restarted = new ServiceTestRunner().setState(result).setUseCustomExecutor().run(ticks);
+        new ServiceTestRunner().setState(result).setUseCustomExecutor().run(ticks);
     }
 
 
