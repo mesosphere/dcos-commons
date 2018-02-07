@@ -3,13 +3,8 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.TransportEncryptionSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -22,11 +17,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.any;
