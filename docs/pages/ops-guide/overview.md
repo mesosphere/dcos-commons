@@ -310,27 +310,37 @@ The path of a secret defines which service IDs can have access to it. You can th
 
 ### Binary Secrets
 
-You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. Your file must be Base64-encoded as specified in RFC 4648.
+You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. In DC/OS 1.11+ you can create secrets from binary files directly, while in DC/OS 1.10 or lower, files must be base64-encoded as specified in RFC 4648 prior to being stored as secrets.
 
-You can use standard `base64` command line utility. The following example uses the BSD `base64` command.
-```
-$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
-```
+#### DC/OS 1.11+
 
-The `base64` command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping with the `-w 0` argument. Here is a sample base64 command in Linux.
-```
-$  base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded
-```
-
-Prefix the secret name with `__dcos_base64__`. For example  `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically.
+To create a secret called `mysecret` with the binary contents of `kerb5.keytab` run:
 
 ```
-$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
+$ dcos security secrets create --file kerb5.keytab mysecret
 ```
 
-When you reference the `__dcos_base64__mysecret` secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to the [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
-only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
+#### DC/OS 1.10 or lower
 
+To create a secret called `mysecret` with the binary contents of `kerb5.keytab`, first encode it using the `base64` command line utility. The following example uses BSD `base64` (default on macOS).
+
+```
+$ base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
+```
+
+Alternatively, GNU `base64` (the default on Linux) inserts line-feeds in the encoded data by default. Disable line-wrapping with the `-w 0` argument.
+
+```
+$ base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded
+```
+
+Now that the file is encoded it can be stored as a secret. There's one important detail: the secret name **must** be prefixed with `__dcos_base64__`. For example `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically by DC/OS.
+
+```
+$ dcos security secrets create --value-file kerb5.keytab.base64-encoded some/path/__dcos_base64__mysecret
+```
+
+When the `some/path/__dcos_base64__mysecret` secret is referenced in your service, its contents will be first base64-decoded, and then copied and made available to your service. Refer to the [Developer Guide](developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret only as a file such that it will be automatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
 
 ## Placement Constraints
 
