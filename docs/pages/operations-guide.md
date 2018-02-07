@@ -2,6 +2,7 @@
 title: SDK Operations Guide
 menuWeight: 0
 toc: true
+redirect_from: /operations-guide.html
 ---
 
 <!-- this file just includes the per-section ops-guide files in one single page -->

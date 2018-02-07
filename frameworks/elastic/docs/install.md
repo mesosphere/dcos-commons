@@ -83,7 +83,7 @@ The Elastic service can be launched with TLS encryption. Enabling TLS will switc
 
 Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Elastic scheduler will not abe able to provision TLS artifacts.
 
-Installing Elastic with TLS support requires enabling the [X-Pack](x-pack.md).
+Installing Elastic with TLS support requires [enabling X-Pack functionality](../elastic-x-pack/).
 
 Sample JSON options file named `elastic-tls.json`:
 ```json
@@ -125,7 +125,7 @@ Sample JSON options file named `kibana-tls.json`:
 }
 ```
 
-Similarly to Elastic, Kibana requires [X-Pack](x-pack.md) to be installed. The Kibana package itself doesn't support exposing itself over a TLS connection.
+Similarly to Elastic, Kibana requires [X-Pack](../elastic-x-pack/) to be installed. The Kibana package itself doesn't support exposing itself over a TLS connection.
 
 # Changing Configuration at Runtime
 
@@ -277,8 +277,8 @@ Each task in the cluster performs one and only one of the following roles: maste
 
 The default placement strategy specifies no constraint except that all the master nodes are distributed to different agents. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers.
 
-![agent](img/private-nodes-by-agent.png)
-![vip](img/private-node-by-vip.png)
+![agent](../img/private-nodes-by-agent.png)
+![vip](../img/private-node-by-vip.png)
 
 No matter how big or small the cluster is, there will always be exactly 3 master-only nodes with `minimum_master_nodes = 2`.
 

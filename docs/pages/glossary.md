@@ -1,6 +1,7 @@
 ---
 title: Glossary
 menuWeight: 4
+redirect_from: /glossary.html
 ---
 
 ## D
