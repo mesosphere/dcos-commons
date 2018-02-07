@@ -7,9 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-
-import static com.mesosphere.sdk.scheduler.plan.PlanUtils.allHaveStatus;
-import static com.mesosphere.sdk.scheduler.plan.PlanUtils.anyHaveStatus;
+import java.util.stream.Collectors;
 
 
 /**
@@ -40,6 +38,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
         getStrategy().proceed();
     }
 
+    @Override
     default boolean isInterrupted() {
         return getStrategy().isInterrupted();
     }
@@ -49,11 +48,6 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
         for (C child : getChildren()) {
             child.updateParameters(parameters);
         }
-    }
-
-    @Override
-    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
-        return Element.super.isEligible(dirtyAssets) && !isInterrupted();
     }
 
     /**
@@ -98,78 +92,14 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
 
     @Override
     default Status getStatus() {
-        // Ordering matters throughout this method.  Modify with care.
-        // Also note that this function MUST NOT call parent.getStatus() as that creates a circular call.
-
-        final List<C> children = getChildren();
-        if (children == null) {
-            LOGGER.error("Parent element returned null list of children: {}", getName());
-            return Status.ERROR;
-        }
-
-        final Collection<? extends Element> candidateChildren =
-                getStrategy().getCandidates(children, Collections.emptyList());
-
-        Status result;
-        if (!getErrors().isEmpty() || anyHaveStatus(Status.ERROR, children)) {
-            result = Status.ERROR;
-            LOGGER.debug("({} status={}) Elements contain errors.", getName(), result);
-        } else if (allHaveStatus(Status.COMPLETE, children)) {
-            result = Status.COMPLETE;
-            LOGGER.debug("({} status={}) All elements have status: {}",
-                    getName(), result, Status.COMPLETE);
-        } else if (isInterrupted()) {
-            result = Status.WAITING;
-            LOGGER.debug("({} status={}) Parent element is interrupted", getName(), result);
-        } else if (anyHaveStatus(Status.PREPARED, children)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.debug("({} status={}) At least one phase has status: {}",
-                    getName(), result, Status.PREPARED);
-        }  else if (anyHaveStatus(Status.WAITING, candidateChildren)) {
-            result = Status.WAITING;
-            LOGGER.debug("({} status={}) At least one element has status: {}",
-                    getName(), result, Status.WAITING);
-        } else if (anyHaveStatus(Status.IN_PROGRESS, candidateChildren)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.debug("({} status={}) At least one phase has status: {}",
-                    getName(), result, Status.IN_PROGRESS);
-        } else if (anyHaveStatus(Status.COMPLETE, children) &&
-                anyHaveStatus(Status.PENDING, candidateChildren)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
-                    getName(), result, Status.COMPLETE, Status.PENDING);
-        } else if (anyHaveStatus(Status.COMPLETE, children) &&
-                anyHaveStatus(Status.STARTING, candidateChildren)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
-                    getName(), result, Status.COMPLETE, Status.STARTING);
-        } else if (anyHaveStatus(Status.COMPLETE, children) &&
-                anyHaveStatus(Status.STARTED, candidateChildren)) {
-            result = Status.IN_PROGRESS;
-            LOGGER.debug("({} status={}) At least one element has status '{}' and one has status '{}'",
-                    getName(), result, Status.COMPLETE, Status.STARTING);
-        } else if (!candidateChildren.isEmpty() && anyHaveStatus(Status.PENDING, candidateChildren)) {
-            result = Status.PENDING;
-            LOGGER.debug("({} status={}) At least one element has status: {}",
-                    getName(), result, Status.PENDING);
-        } else if (anyHaveStatus(Status.WAITING, children)) {
-            result = Status.WAITING;
-            LOGGER.debug("({} status={}) At least one element has status: {}",
-                    getName(), result, Status.WAITING);
-        } else if (anyHaveStatus(Status.STARTING, candidateChildren)) {
-            result = Status.STARTING;
-            LOGGER.debug("({} status={}) At least one element has status '{}'",
-                    getName(), result, Status.STARTING);
-        } else if (anyHaveStatus(Status.STARTED, candidateChildren)) {
-            result = Status.STARTED;
-            LOGGER.debug("({} status={}) At least one element has status '{}'",
-                    getName(), result, Status.STARTED);
-        } else {
-            result = Status.ERROR;
-            LOGGER.warn("({} status={}) Unexpected state. children: {}",
-                    getName(), result, children);
-        }
-
-        return result;
+        Collection<Status> childStatuses = getChildren().stream()
+                .map(c -> c.getStatus())
+                .collect(Collectors.toList());
+        Collection<Status> candidateStatuses =
+                getStrategy().getCandidates(getChildren(), Collections.emptyList()).stream()
+                        .map(cc -> cc.getStatus())
+                        .collect(Collectors.toList());
+        return PlanUtils.getAggregateStatus(
+                getName(), childStatuses, candidateStatuses, getErrors(), isInterrupted());
     }
 }

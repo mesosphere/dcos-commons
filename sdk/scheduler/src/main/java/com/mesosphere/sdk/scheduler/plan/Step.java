@@ -48,21 +48,6 @@ public interface Step extends Element, Interruptible {
         return getStatus().toString();
     }
 
-    /**
-     * Reports whether the Asset associated with this Step is dirty.
-     */
-    default boolean isAssetDirty() {
-        return isPrepared() || isStarting();
-    }
-
-    @Override
-    default boolean isEligible(Collection<PodInstanceRequirement> dirtyAssets) {
-        return Element.super.isEligible(dirtyAssets) &&
-                !isInterrupted() &&
-                !(getPodInstanceRequirement().isPresent()
-                        && PlanUtils.assetConflicts(getPodInstanceRequirement().get(), dirtyAssets));
-    }
-
     @Override
     default String getMessage() {
         if (!getStatus().toString().equals(getDisplayStatus())) {

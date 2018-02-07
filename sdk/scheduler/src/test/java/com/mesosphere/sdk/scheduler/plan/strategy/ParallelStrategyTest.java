@@ -12,7 +12,6 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.*;
 
-import static org.mockito.Matchers.anyCollectionOf;
 import static org.mockito.Mockito.when;
 
 /**
@@ -47,10 +46,6 @@ public class ParallelStrategyTest {
         when(el1.isPending()).thenReturn(true);
         when(el2.isPending()).thenReturn(true);
 
-        when(el0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-        when(el1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-        when(el2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(true);
-
         steps = Arrays.asList(el0, el1, el2);
     }
 
@@ -59,16 +54,13 @@ public class ParallelStrategyTest {
         Assert.assertEquals(3, getCandidates().size());
 
         when(el0.isComplete()).thenReturn(true);
-        when(el0.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertEquals(2, getCandidates().size());
 
         when(el1.isComplete()).thenReturn(true);
-        when(el1.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertEquals(1, getCandidates().size());
         Assert.assertEquals(el2, getCandidates().iterator().next());
 
         when(el2.isComplete()).thenReturn(true);
-        when(el2.isEligible(anyCollectionOf(PodInstanceRequirement.class))).thenReturn(false);
         Assert.assertTrue(getCandidates().isEmpty());
     }
 
