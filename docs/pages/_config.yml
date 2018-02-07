@@ -23,5 +23,3 @@ source: .
 # Render pages in directories, to avoid .html file endings.
 # This matches docs.mesosphere.com's layout.
 permalink: pretty
-# Used within pages to link to things, like images
-baseurl: /dcos-commons
