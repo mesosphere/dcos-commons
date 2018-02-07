@@ -26,7 +26,7 @@ SWAGGER_JAR=swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar
 SWAGGER_URL=http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/${SWAGGER_JAR}
 
 # Default value, override with "HTTP_PORT" envvar:
-DEFAULT_HTTP_PORT=4000
+DEFAULT_HTTP_PORT=8888
 
 # abort script at first error:
 set -eu
@@ -125,5 +125,5 @@ else
     if [ -z "${HTTP_PORT+x}" ]; then
         HTTP_PORT=$DEFAULT_HTTP_PORT
     fi
-    run_cmd jekyll serve --port $HTTP_PORT --baseurl /dcos-commons --skip-initial-build --destination $DOCS_DIR/$OUTPUT_DIR
+    run_cmd jekyll serve --port $HTTP_PORT --baseurl /dcos-commons --skip-initial-build --no-watch --destination $DOCS_DIR/$OUTPUT_DIR
 fi
