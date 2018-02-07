@@ -3,10 +3,8 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.plan.Element;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
-import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -73,6 +71,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private SecretsClient mockSecretsClient;
+    @Mock private PlanCustomizer mockPlanCustomizer;
 
     @Before
     public void beforeEach() throws Exception {
@@ -80,6 +79,9 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(new MemPersister());
         stateStore.storeTasks(Collections.singletonList(TASK_A));
         stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+
+        // Have the mock plan customizer default to returning the plan unchanged.
+        when(mockPlanCustomizer.updatePlan(any())).thenAnswer(invocation -> invocation.getArguments()[0]);
     }
 
     @Test
@@ -206,7 +208,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 new StateStore(new MemPersister()),
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Optional.of(mockSecretsClient));
+                Optional.empty(), Optional.of(mockSecretsClient));
         // Returns a simple placeholder plan with status COMPLETE
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
@@ -266,6 +268,24 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(plan.isComplete());
     }
 
+    @Test
+    public void testUninstallPlanCustomizer() throws Exception {
+        UninstallScheduler uninstallScheduler = new UninstallScheduler(
+                getServiceSpec(),
+                stateStore,
+                mockConfigStore,
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                Optional.of(getReversingPlanCustomizer()), Optional.of(mockSecretsClient));
+
+        Plan plan = uninstallScheduler.getPlanCoordinator().getPlanManagers().stream().findFirst().get().getPlan();
+
+        // The standard order is kill-tasks, unreserve-resources, deregister-service. Verify the inverse
+        // is now true.
+        Assert.assertEquals("deregister-service", plan.getChildren().get(0).getName());
+        Assert.assertEquals("unreserve-resources", plan.getChildren().get(1).getName());
+        Assert.assertEquals("kill-tasks", plan.getChildren().get(2).getName());
+    }
+
     private static Protos.Offer getOffer() {
         return getOffer(UUID.randomUUID().toString());
     }
@@ -289,7 +309,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 stateStore,
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Optional.of(mockSecretsClient));
+                Optional.of(mockPlanCustomizer), Optional.of(mockSecretsClient));
         uninstallScheduler
                 .disableApiServer()
                 .start()
@@ -309,5 +329,13 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 .flatMap(phase -> phase.getChildren().stream())
                 .map(Element::getStatus)
                 .collect(Collectors.toList());
+    }
+
+    private static PlanCustomizer getReversingPlanCustomizer() {
+        return (plan -> {
+            Collections.reverse(plan.getChildren());
+
+            return plan;
+        });
     }
 }

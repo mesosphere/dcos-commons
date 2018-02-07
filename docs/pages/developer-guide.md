@@ -562,6 +562,22 @@ SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerCon
     .setPlanCustomizer(new ReverseDeployPhases());
 ```
 
+Note: As stated, *all* plans are run through the interface. This includes the "deploy" plan used during uninstall. It is easy to check within a PlanCustomizer whether uninstall is active before modifying the deploy plan.
+```java
+public class ReverseDeployPhases implements PlanCustomizer {
+    @Override
+    public Plan updatePlan(Plan plan) {
+        if (!SchedulerConfig.fromEnv().isUninstallEnabled() &&
+            plan.isDeployPlan() &&
+            Boolean.valueOf(System.getenv("REVERSE"))) {
+            Collections.reverse(plan.getChildren());
+        }
+
+        return plan;
+    }
+}
+```
+
 ## Packaging
 
 A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: `marathon.json.mustache`, `config.json`, `resource.json`, and `package.json`. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).

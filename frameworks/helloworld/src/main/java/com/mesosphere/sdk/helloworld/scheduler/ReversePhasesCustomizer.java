@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 
 import java.util.Collections;
@@ -12,7 +13,8 @@ import java.util.Collections;
 public class ReversePhasesCustomizer implements PlanCustomizer {
     @Override
     public Plan updatePlan(Plan plan) {
-        if (plan.getName().equals(Constants.DEPLOY_PLAN_NAME)) {
+        // Definitely don't reverse the uninstall plan!
+        if (!SchedulerConfig.fromEnv().isUninstallEnabled() && plan.getName().equals(Constants.DEPLOY_PLAN_NAME)) {
             plan.getChildren().forEach(phase -> Collections.reverse(phase.getChildren()));
         }
         return plan;
