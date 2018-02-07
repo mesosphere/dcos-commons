@@ -5,24 +5,17 @@ excerpt:
 title: Install and Customize
 menuWeight: 20
 
+techName: Apache Kafka
 packageName: beta-kafka
 serviceName: kafka
+zookeeperPackageName: beta-kafka-zookeeper
+zookeeperServiceName: kafka-zookeeper
 ---
 
-{% include services/install.md
-    techName="Apache Kafka"
-    packageName=page.packageName
-    serviceName=page.serviceName
-    minNodeCount="three"
-    defaultInstallDescription="with three brokers"
-    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/kafka/kafka-auth/"
-    enterpriseInstallUrl="" %}
+{% capture customInstallConfigurations %}
+### Minimal installation
 
-## Alternate install configurations
-
-### Minimal Installation
-
-For development purposes, you may wish to install Kafka on a local DC/OS cluster. For this, you can use [dcos-vagrant](https://github.com/mesosphere/dcos-vagrant).
+For development purposes, you may wish to install {{ page.techName }} on a local DC/OS cluster. For this, you can use [dcos-docker](https://github.com/dcos/dcos-docker) or [dcos-vagrant](https://github.com/dcos/dcos-vagrant).
 
 To start a minimal cluster with a single broker, create a JSON options file named `sample-kafka-minimal.json`:
 
@@ -42,7 +35,7 @@ The command below creates a cluster using `sample-kafka-minimal.json`:
 $ dcos package install {{ page.packageName }} --options=sample-kafka-minimal.json
 ```
 
-### Custom Installation
+### Example custom installation
 
 Customize the defaults by creating a JSON file. Then, pass it to `dcos package install` using the `--options` parameter.
 
@@ -73,59 +66,48 @@ $ dcos package install {{ page.packageName }} --options=sample-kafka-custom.json
 
 **Recommendation:** Store your custom configuration in source control.
 
-See [Configuration Options](https://docs.mesosphere.com/services/kafka/configure/#configuration-options) for a list of fields that can be customized via an options JSON file when the Kafka cluster is created.
+See [Configuration Options](https://docs.mesosphere.com/services/kafka/configure/#configuration-options) for a list of fields that can be customized via an options JSON file when the {{ page.techName }} cluster is created.
 
 Alternatively, you can perform a custom installation from the DC/OS web interface. Choose `ADVANCED INSTALLATION` at install time.
 
-### Multiple Kafka cluster installation
-
-Installing multiple Kafka clusters is identical to installing Kafka clusters with custom configurations as described above. The only requirement on the operator is that a unique `name` be specified for each installation. For example:
-
-```bash
-$ cat kafka1.json
-{
-  "service": {
-  "name": "{{ page.serviceName }}1"
-  }
-}
-
-$ dcos package install {{ page.packageName }} --options=kafka1.json
-```
-
-To query this service using the CLI, you may provide the `--name` parameter:
-
-```bash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }}1 ...
-```
-
 ### Alternate ZooKeeper
 
-By default, the Kafka services uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster. You can configure an alternate ZooKeeper at install time. This enables you to increase Kafka's capacity and removes the system ZooKeeper's involvment in the service.
+{{ page.techName }} requires a running ZooKeeper ensemble to perform its own internal accounting. By default, the DC/OS {{ page.techName }} Service uses the ZooKeeper ensemble made available on the Mesos masters of a DC/OS cluster at `master.mesos:2181/dcos-service-<servicename>`. At install time, you can configure an alternate ZooKeeper for {{ page.techName }} to use. This enables you to increase {{ page.techName }}'s capacity and removes the DC/OS System ZooKeeper ensemble's involvement in running it.
 
-To configure it:
+To configure an alternate Zookeeper instance:
 
 1. Create a file named `options.json` with the following contents.
 
-**Note:** If you are using the [DC/OS Apache ZooKeeper service](https://docs.mesosphere.com/services/kafka-zookeeper), use the DNS addresses provided by the `dcos kafka-zookeeper endpoints clientport` command as the value of `kafka_zookeeper_uri`.
+**Note:** If you are using the [DC/OS Apache ZooKeeper service](https://docs.mesosphere.com/services/{{ page.zookeeperPackageName }}), use the DNS addresses provided by the `dcos {{ page.zookeeperPackageName }} endpoints clientport` command as the value of `kafka_zookeeper_uri`. Here is an example `options.json` which points to a `{{ page.zookeeperPackageName }}` instance named `{{ page.zookeeperServiceName }}`:
 
 ```json
 {
-    "kafka": {
-      "kafka_zookeeper_uri": "zookeeper-0-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140,zookeeper-1-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140,zookeeper-2-server.kafka-zookeeper.autoip.dcos.thisdcos.directory:1140"
-    }
+  "kafka": {
+    "kafka_zookeeper_uri": "zookeeper-0-server.{{ page.zookeeperServiceName }}.autoip.dcos.thisdcos.directory:1140,zookeeper-1-server.{{ page.zookeeperServiceName }}.autoip.dcos.thisdcos.directory:1140,zookeeper-2-server.{{ page.zookeeperServiceName }}.autoip.dcos.thisdcos.directory:1140"
+  }
 }
 ```
 
-1. Install Kafka with the options file.
+1. Install {{ page.techName }} with the options file you created.
 
 ```bash
 $ dcos package install {{ page.packageName }} --options="options.json"
 ```
 
-You can also update an already-running Kafka instance from the DC/OS CLI, in case you need to migrate your ZooKeeper data elsewhere.
+You can also update an already-running {{ page.techName }} instance from the DC/OS CLI, in case you need to migrate your ZooKeeper data elsewhere.
 
-**Note:** The ZooKeeper ensemble you point to must have the same data as the previous ZooKeeper ensemble.
+**Note:** Before performing this configuration change, you must first copy the data from your current ZooKeeper ensemble to the new ZooKeeper ensemble. The new location must have the same data as the previous location during the migration.
 
 ```bash
 $ dcos {{ page.packageName }} --name={{ page.serviceName }} update start --options=options.json
 ```
+{% endcapture %}
+
+{% include services/install.md
+    techName=page.techName
+    packageName=page.packageName
+    serviceName=page.serviceName
+    minNodeCount="three"
+    defaultInstallDescription="with three brokers"
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/kafka/kafka-auth/"
+    customInstallConfigurations=customInstallConfigurations %}
