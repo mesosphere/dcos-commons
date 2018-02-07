@@ -21,6 +21,7 @@ public class MarathonConstraintParser {
     private static final char ESCAPE_CHAR = '\\';
 
     private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+
     static {
         SUPPORTED_OPERATORS.put("UNIQUE", new UniqueOperator());
         SUPPORTED_OPERATORS.put("CLUSTER", new ClusterOperator());
@@ -40,15 +41,15 @@ public class MarathonConstraintParser {
      * {@link PlacementRule}, or returns the provided {@link PlacementRule} as-is if the
      * marathon-style constraint is {@code null} or empty.
      *
-     * @param podName The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
-     * in a service is not supported.
-     * @param rule The hard-coded {@link PlacementRule}
+     * @param podName             The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
+     *                            in a service is not supported.
+     * @param rule                The hard-coded {@link PlacementRule}
      * @param marathonConstraints the marathon-style constraint string, containing one or more
-     * nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
-     * or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
-     * or a {@code null} or empty value if no constraint is defined
+     *                            nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
+     *                            or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
+     *                            or a {@code null} or empty value if no constraint is defined
      * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
-     * content isn't valid or supported
+     *                     content isn't valid or supported
      */
     public static PlacementRule parseWith(String podName, PlacementRule rule, String marathonConstraints)
             throws IOException {
@@ -64,41 +65,47 @@ public class MarathonConstraintParser {
      * constraint string. Returns a {@link PassthroughRule} if the provided constraint string is
      * {@code null} or empty.
      *
-     *
-     * @param podName The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
-     *     in a service is not supported.
+     * @param podName             The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
+     *                            in a service is not supported.
      * @param marathonConstraints the marathon-style constraint string, containing one or more
-     *     nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
-     *     or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
-     *     or a {@code null} or empty value if no constraint is defined
+     *                            nested json list entries of the form {@code [["multi","list","value"],["hello","hi"]]},
+     *                            or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
+     *                            or a {@code null} or empty value if no constraint is defined
      * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
-     *     content isn't valid or supported
+     *                     content isn't valid or supported
      */
     public static PlacementRule parse(String podName, String marathonConstraints) throws IOException {
         if (marathonConstraints == null || marathonConstraints.isEmpty() || marathonConstraints.equals("[]")) {
             // nothing to enforce
             return new PassthroughRule();
         }
-        List<List<String>> rows = splitConstraints(marathonConstraints);
-        StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
-        if (rows.size() == 1) {
-            // skip AndRule:
-            return parseRow(taskFilter, rows.get(0));
+
+        try {
+            List<List<String>> rows = splitConstraints(marathonConstraints);
+            StringMatcher taskFilter = RegexMatcher.create(podName + "-.*");
+            if (rows.size() == 1) {
+                // skip AndRule:
+                return parseRow(taskFilter, rows.get(0));
+            }
+            List<PlacementRule> rowRules = new ArrayList<>();
+            for (List<String> row : rows) {
+                rowRules.add(parseRow(taskFilter, row));
+            }
+            return new AndRule(rowRules);
+
+        } catch (Exception e) {
+            LOGGER.error("Failed to parse marathon constraints", podName, marathonConstraints);
+            return new InvalidPlacementRule(marathonConstraints, e.getMessage());
         }
-        List<PlacementRule> rowRules = new ArrayList<>();
-        for (List<String> row : rows) {
-            rowRules.add(parseRow(taskFilter, row));
-        }
-        return new AndRule(rowRules);
+
     }
 
     /**
      * Converts the provided marathon constraint entry to a PlacementRule.
      *
-     *
      * @param taskFilter The filter to apply across all tasks to limit the scope of the constraints
-     * (e.g. to a particular task type)
-     * @param row a list with size 2 or 3
+     *                   (e.g. to a particular task type)
+     * @param row        a list with size 2 or 3
      * @throws IOException if the provided constraint entry is invalid
      */
     private static PlacementRule parseRow(StringMatcher taskFilter, List<String> row) throws IOException {
@@ -115,7 +122,7 @@ public class MarathonConstraintParser {
         if (operator == null) {
             throw new IOException(String.format(
                     "Unsupported operator: '%s' in constraint: %s " +
-                    "(expected one of: UNIQUE, CLUSTER, GROUP_BY, LIKE, UNLIKE, or MAX_PER)",
+                            "(expected one of: UNIQUE, CLUSTER, GROUP_BY, LIKE, UNLIKE, or MAX_PER)",
                     operatorName, row));
         }
         PlacementRule rule = operator.run(taskFilter, fieldName, operatorName, parameter);
@@ -135,17 +142,26 @@ public class MarathonConstraintParser {
         try {
             // First try: ["a", "b", "c"]
             // This format technically isn't present in the Marathon docs, but we're being lenient here.
-            List<String> row = mapper.readValue(marathonConstraints, new TypeReference<List<String>>(){});
+            List<String> row = mapper.readValue(marathonConstraints, new TypeReference<List<String>>() {
+            });
             LOGGER.debug("Flat list '{}' => single row: '{}'", marathonConstraints, row);
             return Arrays.asList(row);
         } catch (IOException | ClassCastException e1) {
             try {
                 // Then try: [["a", "b", "c"], ["d", "e"]]
                 List<List<String>> rows =
-                        mapper.readValue(marathonConstraints, new TypeReference<List<List<String>>>(){});
+                        mapper.readValue(marathonConstraints, new TypeReference<List<List<String>>>() {
+                        });
                 LOGGER.debug("Nested list '{}' => {} rows: '{}'", marathonConstraints, rows.size(), rows);
                 return rows;
             } catch (IOException | ClassCastException e2) { // May throw ClassCastException as well as IOException
+
+                // A common reason for incorrect placement is over-escaping.
+                String strippedConstraints = marathonConstraints.replace("\\\"", "\"");
+                if (!strippedConstraints.equals(marathonConstraints)) {
+                    return splitConstraints(strippedConstraints);
+                }
+
                 // Finally try: a:b:c,d:e
                 // Note: We use Guava's Splitter rather than String.split(regex) in order to correctly
                 // handle empty trailing fields like 'a:b:' => ['a', 'b', ''] (shouldn't come up but just in case).
@@ -163,7 +179,7 @@ public class MarathonConstraintParser {
     /**
      * Tokenizes the provided string using the provided split character. Honors any backslash
      * escaping within the provided string. Tokens in the returned list are automatically trimmed.
-     *
+     * <p>
      * This is equivalent to calling {@code Splitter.on(split).trimResults().split(str)}, except
      * with the addition of support for escaping the 'split' value with backslashes.
      */
@@ -280,7 +296,7 @@ public class MarathonConstraintParser {
      * {@code CLUSTER} allows you to run all tasks of a given task type on agent nodes that share a certain
      * attribute. This is useful for example if you have apps with special hardware needs, or if you
      * want to run them on the same rack for low latency: {@code [["rack_id", "CLUSTER", "rack-1"]]}
-     *
+     * <p>
      * You can also use this attribute to tie a task type to a specific node by using the
      * hostname property: {@code [["hostname", "CLUSTER", "a.specific.node.com"]]}
      */
@@ -313,16 +329,16 @@ public class MarathonConstraintParser {
     /**
      * {@code GROUP_BY} can be used to distribute tasks of a given task type evenly across racks or datacenters for high
      * availability: {@code [["rack_id", "GROUP_BY"]]}
-     *
+     * <p>
      * Marathon only knows about different values of the attribute (e.g. "rack_id") by analyzing
      * incoming offers from Mesos. If tasks are not already spread across all possible values,
      * specify the number of values in constraints. If you don't specify the number of values, you
      * might find that the tasks are only distributed in one value, even though you are using the
      * {@code GROUP_BY} constraint. For example, if you are spreading across 3 racks, use:
      * {@code [["rack_id", "GROUP_BY", "3"]]}
-     *
+     * <p>
      * ---
-     *
+     * <p>
      * TLDR: The idea is to round-robin tasks during rollout across N distinct values (with N
      * provided by the user). For example, avoid placing 2 instances against a given rack value
      * until *all* racks have 1 instance. If N is unspecified, we will just make a best-effort
@@ -365,7 +381,7 @@ public class MarathonConstraintParser {
      * {@code LIKE} accepts a regular expression as parameter, and allows you to run your tasks only
      * on the agent nodes whose field values match the regular expression:
      * {@code [["rack_id", "LIKE", "rack-[1-3]"]]}
-     *
+     * <p>
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class LikeOperator implements Operator {
@@ -396,7 +412,7 @@ public class MarathonConstraintParser {
     /**
      * Just like {@code LIKE} operator, but only run tasks on agent nodes whose field values don't
      * match the regular expression: {@code [["rack_id", "UNLIKE", "rack-[7-9]"]]}
-     *
+     * <p>
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class UnlikeOperator implements Operator {
@@ -427,7 +443,7 @@ public class MarathonConstraintParser {
      * {@code MAX_PER} accepts a number as parameter which specifies the maximum size of each group.
      * It can be used to limit tasks of a given task type across racks or
      * datacenters: {@code [["rack_id", "MAX_PER", "2"]]}
-     *
+     * <p>
      * Note, the parameter is required, or you'll get a warning.
      */
     private static class MaxPerOperator implements Operator {

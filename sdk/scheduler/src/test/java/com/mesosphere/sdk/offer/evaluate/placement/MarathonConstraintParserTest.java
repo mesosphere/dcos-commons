@@ -36,6 +36,13 @@ public class MarathonConstraintParserTest {
                 MarathonConstraintParser.splitConstraints(" a : b : c , : d : e , : f : "));
         assertEquals(Arrays.asList(Arrays.asList("", "", ""), Arrays.asList("", "")),
                 MarathonConstraintParser.splitConstraints("::,:"));
+
+    }
+
+    @Test
+    public void testSplitOverEscapedConstraint() throws IOException {
+        assertEquals(MarathonConstraintParser.splitConstraints("[[\"a\"]]"),
+                MarathonConstraintParser.splitConstraints("[[\\\"a\\\"]]"));
     }
 
     @Test
@@ -97,6 +104,22 @@ public class MarathonConstraintParserTest {
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['hostname', 'GROUP_BY', '3']")).toString());
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "hostname:GROUP_BY:3").toString());
     }
+
+    @Test
+    public void testValidOverEscapedRule() throws IOException {
+        String expectedString = MarathonConstraintParser.parse(POD_NAME, "[[\"hostname\",\"MAX_PER\",\"1\"]]").toString();
+        String overEscapedString = MarathonConstraintParser.parse(POD_NAME, "[[\\\"hostname\\\",\\\"MAX_PER\\\",\\\"1\\\"]]").toString();
+
+        assertEquals(expectedString, overEscapedString);
+    }
+
+    @Test
+    public void testInvalidRule() throws IOException {
+        String invalidPlacementRuleString = MarathonConstraintParser.parse(POD_NAME, "[[\"hostname\",]]").toString();
+
+        assertEquals("InvalidPlacementRule{constraint=[[\"hostname\",]], exception=Invalid number of entries in rule. Expected 2 or 3, got 1: [[[\"hostname\"]}", invalidPlacementRuleString);
+    }
+
 
     @Test
     public void testLikeOperator() throws IOException {
@@ -168,11 +191,11 @@ public class MarathonConstraintParserTest {
     public void testManyOperators() throws IOException {
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape(
                 "[['hostname', 'UNIQUE'], "
-                + "['rack-id', 'CLUSTER', 'rack-1'], "
-                + "['rack-id', 'GROUP_BY'], "
-                + "['rack-id', 'LIKE', 'rack-[1-3]'], "
-                + "['rack-id', 'UNLIKE', 'rack-[7-9]'],"
-                + "['rack-id', 'MAX_PER', '2']]")).toString();
+                        + "['rack-id', 'CLUSTER', 'rack-1'], "
+                        + "['rack-id', 'GROUP_BY'], "
+                        + "['rack-id', 'LIKE', 'rack-[1-3]'], "
+                        + "['rack-id', 'UNLIKE', 'rack-[7-9]'],"
+                        + "['rack-id', 'MAX_PER', '2']]")).toString();
         assertEquals("AndRule{"
                 + "rules=[MaxPerHostnameRule{max=1, task-filter=RegexMatcher{pattern='hello-.*'}}, "
                 + "AttributeRule{matcher=ExactMatcher{str='rack-id:rack-1'}}, "
@@ -184,23 +207,23 @@ public class MarathonConstraintParserTest {
                 + "MaxPerAttributeRule{max=2, matcher=RegexMatcher{pattern='rack-id:.*'}, task-filter=RegexMatcher{pattern='hello-.*'}}]}]}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(
                 POD_NAME, "hostname:UNIQUE,"
-                + "rack-id:CLUSTER:rack-1,"
-                + "rack-id:GROUP_BY,"
-                + "rack-id:LIKE:rack-[1-3],"
-                + "rack-id:UNLIKE:rack-[7-9],"
-                + "rack-id:MAX_PER:2").toString());
+                        + "rack-id:CLUSTER:rack-1,"
+                        + "rack-id:GROUP_BY,"
+                        + "rack-id:LIKE:rack-[1-3],"
+                        + "rack-id:UNLIKE:rack-[7-9],"
+                        + "rack-id:MAX_PER:2").toString());
     }
 
     @Test
     public void testEscapedCommaRegex() throws IOException {
         assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack-id:rack-{1,3}'}}",
-            MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:rack-{1\\,3}").toString());
+                MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:rack-{1\\,3}").toString());
     }
 
     @Test
     public void testEscapedColonRegex() throws IOException {
         assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack-id:foo:bar:baz'}}",
-            MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:foo\\:bar\\:baz").toString());
+                MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:foo\\:bar\\:baz").toString());
     }
 
     @Test
@@ -213,14 +236,20 @@ public class MarathonConstraintParserTest {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "[]").toString());
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testBadListConstraint() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'MAX_PER', '2'")); // missing ']]'
+        String ruleString = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'MAX_PER', '2'")).toString(); // missing ']]'
+
+        assertEquals("InvalidPlacementRule{constraint=[[\"rack-id\", \"MAX_PER\", \"2\", exception=Invalid number of entries in rule. Expected 2 or 3, got 1: [[[\"rack-id\"]}",
+                ruleString);
     }
 
     @Test(expected = IOException.class)
     public void testBadFlatConstraint() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER:,"); // missing last elem
+        String ruleString = MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER:,").toString(); // missing last elem
+
+        new InvalidPlacementRule("rack-id:MAX_PER")
+        assertEquals(ex);
     }
 
     @Test(expected = IOException.class)
