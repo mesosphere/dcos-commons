@@ -11,10 +11,17 @@ import java.util.Collections;
  * in reverse order.
  */
 public class ReversePhasesCustomizer implements PlanCustomizer {
+
+    private final SchedulerConfig schedulerConfig;
+
+    public ReversePhasesCustomizer(SchedulerConfig schedulerConfig) {
+        this.schedulerConfig = schedulerConfig;
+    }
+
     @Override
     public Plan updatePlan(Plan plan) {
         // Definitely don't reverse the uninstall plan!
-        if (!SchedulerConfig.fromEnv().isUninstallEnabled() && plan.getName().equals(Constants.DEPLOY_PLAN_NAME)) {
+        if (!schedulerConfig.isUninstallEnabled() && plan.getName().equals(Constants.DEPLOY_PLAN_NAME)) {
             plan.getChildren().forEach(phase -> Collections.reverse(phase.getChildren()));
         }
         return plan;
