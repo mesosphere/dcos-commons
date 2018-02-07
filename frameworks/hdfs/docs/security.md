@@ -6,17 +6,17 @@ title: Security
 menuWeight: 22
 ---
 
-# DC/OS Apache Kafka Security
+# DC/OS Apache HDFS Security
 
-The DC/OS Apache Kafka service supports Kafka's native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.
+The DC/OS Apache HDFS service supports HDFS's native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.
 
-A good overview of these features can be found [here](https://www.confluent.io/blog/apache-kafka-security-authorization-authentication-encryption/), and Kafka's security documentation can be found [here](http://kafka.apache.org/documentation/#security).
+A good overview of these features can be found [here](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html).
 
 *Note*: These security features are only available on DC/OS Enterprise 1.10 and above.
 
 ## Transport Encryption
 
-With transport encryption enabled, DC/OS Apache Kafka will automatically deploy all brokers with the correct configuration to communicate via SSL. The Brokers will communicate securely between themselves using SSL. Optionally, plaintext communication can be left open to clients.
+With transport encryption enabled, DC/OS Apache HDFS will automatically deploy all nodes with the correct configuration to encrypt communication via TLS. The nodes will communicate securely between themselves using TLS. Optionally, plaintext communication can be left open to clients.
 
 The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
 
@@ -25,34 +25,35 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 {% include services/configure-transport-encryption.md
     techName="Apache HDFS" %}
 
-*Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
+<!--
+TO BE CONFIRMED
+*Note*: It is possible to update a running DC/OS Apache HDFS service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your HDFS clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true. -->
 
 #### Verify Transport Encryption Enabled
 
-After service deployment completes, check the list of [Kafka endpoints](api-reference.md#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
+???
+<!-- After service deployment completes, check the list of [HDFS endpoints](api-reference.md#connection-information) for the endpoints `broker-tls`. -->
 
 ## Authentication
 
-DC/OS Apache Kafka supports two authentication (authn) mechanisms, SSL and Kerberos. The two are supported indpendently but may not be combined. If both are SSL and Kerberos are enabled, the service will use Kerberos authentication.
-
-*Note*: Kerberos can, however, be combined with transport encryption.
+DC/OS Apache HDFS supports Kerberos authentication.
 
 ### Kerberos Authentication
 
-Kerberos authentication relies on a central authority to verify that Kafka clients (be it broker, consumer, or producer) are who they say they are. DC/OS Apache Kafka integrates with your existing Kerberos infrastructure to verify the identity of clients.
+Kerberos authentication relies on a central authority to verify that Kafka clients (be it broker, consumer, or producer) are who they say they are. DC/OS Apache HDFS integrates with your existing Kerberos infrastructure to verify the identity of clients.
 
 #### Prerequisites
 - The hostname and port of a KDC reachable from your DC/OS cluster
 - Sufficient access to the KDC to create Kerberos principals
 - Sufficient access to the KDC to retrieve a keytab for the generated principals
-- [The DC/OS Enterprise CLI](https://docs.mesosphere.com/1.10/cli/enterprise-cli/#installing-the-dcos-enterprise-cli)
+- [The DC/OS Enterprise CLI](https://docs.mesosphere.com/latest/cli/enterprise-cli/#installing-the-dcos-enterprise-cli)
 - DC/OS Superuser permissions
 
 #### Configure Kerberos Authentication
 
 #### Create principals
 
-The DC/OS Apache Kafka service requires a Kerberos principal for each broker to be deployed. Each principal must be of the form
+The DC/OS Apache HDFS service requires Kerberos principals for each node to be deployed.
 ```
 <service primary>/kafka-<broker index>-broker.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 ```
