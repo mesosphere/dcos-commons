@@ -86,4 +86,4 @@ serviceName: kafka
     ```
 
 
-See also [Connecting clients](https://docs.mesosphere.com/services/kafka/connecting-clients/)
+See also [Connecting clients](../connecting-clients/)
