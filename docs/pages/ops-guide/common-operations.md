@@ -288,7 +288,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 1. Click the three dots on the right hand side of the page for your Scheduler, then choose **Edit**.
 
-[<img src="img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](img/ops-guide-edit-scheduler.png)
+[<img src="../img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](../img/ops-guide-edit-scheduler.png)
 
 1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service. See [finding the correct environment variable](#finding-the-correct-environment-variable) for more information on determining the correct value to be updated.
 
@@ -298,7 +298,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 1. We can see the result by looking at the Mesos task list. At the top we see the new `dse` Scheduler and new OpsCenter instance. At the bottom we see the previous `dse` Scheduler and OpsCenter instance which were replaced due to our change:
 
-[<img src="img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400"/>](img/ops-guide-mesos-tasks-reconfigured.png)
+[<img src="../img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400"/>](../img/ops-guide-mesos-tasks-reconfigured.png)
 
    If we look at the Scheduler logs, we can even see where it detected the change. The `api-port` value is random on each Scheduler restart, so it tends to always display as 'different' in this log. Because of this, the Scheduler automatically ignores changes to `api-port`, and so the change can be ignored here:
 
