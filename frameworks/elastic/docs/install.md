@@ -83,7 +83,7 @@ The Elastic service can be launched with TLS encryption. Enabling TLS will switc
 
 Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Elastic scheduler will not abe able to provision TLS artifacts.
 
-Installing Elastic with TLS support requires enabling the [X-Pack](x-pack.md).
+Installing Elastic with TLS support requires [enabling X-Pack functionality](../elastic-x-pack/).
 
 Sample JSON options file named `elastic-tls.json`:
 ```json
@@ -125,7 +125,7 @@ Sample JSON options file named `kibana-tls.json`:
 }
 ```
 
-Similarly to Elastic, Kibana requires [X-Pack](x-pack.md) to be installed. The Kibana package itself doesn't support exposing itself over a TLS connection.
+Similarly to Elastic, Kibana requires [X-Pack](../elastic-x-pack/) to be installed. The Kibana package itself doesn't support exposing itself over a TLS connection.
 
 # Changing Configuration at Runtime
 

@@ -9,9 +9,9 @@ redirect_from:
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](developer-guide.html#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](developer-guide.html).
+This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](../developer-guide/#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](../developer-guide/).
 
-This documentation effectively reflects the Java object tree under [RawServiceSpec](api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html), which is what's used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the [SDK Developer Guide](developer-guide.html).
+This documentation effectively reflects the Java object tree under [RawServiceSpec](../reference/api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html), which is what's used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the [SDK Developer Guide](../developer-guide/).
 
 ## Fields
 
@@ -21,7 +21,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `web-url`
 
-  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](developer-guide.html#proxy-fallback) in your service so that the scheduler API endpoints are still available.
+  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](../developer-guide/#proxy-fallback) in your service so that the scheduler API endpoints are still available.
 
 * `scheduler`
 
@@ -303,7 +303,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         HTTP_ROOT: {{WEB_ROOT_DIR}}
       ```
 
-      See the [SDK Developer Guide](developer-guide.html) more information on each of these files.
+      See the [SDK Developer Guide](../developer-guide/) more information on each of these files.
 
       * `template`
 
@@ -468,11 +468,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         A type or format of delivered TLS artifacts.
         This can be set either to `TLS` for PEM encoded private key file, certificate and CA bundle or `KEYSTORE` for certificate and private key to be delivered in a separate keystore file and CA bundle in other truststore file.
 
-      For detailed information see the [SDK Developer Guide](developer-guide.html#tls).
+      For detailed information see the [SDK Developer Guide](../developer-guide/#tls).
 
 * `plans`
 
-  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, replacing the default `update` plan (otherwise `deploy` is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on customizing Plans.
+  This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, replacing the default `update` plan (otherwise `deploy` is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](../developer-guide/#plans) for some examples and additional information on customizing Plans.
 
   * `strategy`
 
@@ -492,6 +492,6 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `steps`
 
-      This section allows specifying non-default behavior for completing Steps. It may be used for e.g. defining custom init operations to be performed in the `deploy` plan, or for defining entirely custom plans for things like Backup and Restore. See the [SDK Developer Guide](developer-guide.html#plans) for some examples and additional information on specifying custom steps.
+      This section allows specifying non-default behavior for completing Steps. It may be used for e.g. defining custom init operations to be performed in the `deploy` plan, or for defining entirely custom plans for things like Backup and Restore. See the [SDK Developer Guide](../developer-guide/#plans) for some examples and additional information on specifying custom steps.
 
 <!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->

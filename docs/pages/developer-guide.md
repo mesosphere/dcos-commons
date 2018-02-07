@@ -9,7 +9,7 @@ toc: true
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services. For information about running DC/OS SDK services in an operational context, look at the [Operations Guide](operations-guide.html).
+This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services. For information about running DC/OS SDK services in an operational context, look at the [Operations Guide](../operations-guide/).
 
 # DC/OS Component Overview
 
@@ -172,7 +172,7 @@ pods:
 
             * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
-For a full listing of available fields and what they mean, see the [YAML Reference](reference/yaml-reference.html).
+For a full listing of available fields and what they mean, see the [YAML Reference](../yaml-reference/).
 
 ### Summary
 
@@ -1279,7 +1279,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
-Refer to the [Secrets Tutorial](tutorials/secrets-tutorial.md) for an
+Refer to the [Secrets Tutorial](../tutorials/secrets-tutorial/) for an
 SDK-based example service using DC/OS secrets.
 
 ### Authorization for Secrets
@@ -1409,7 +1409,7 @@ Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PE
 
 ## Provisioning
 
-TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](operations-guide.html#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
+TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](../operations-guide/#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
 
 The scheduler will generate and store TLS artfiacts for both possible formats (`TLS`, `KEYSTORE`). Changing the format will not create a new private key.
 

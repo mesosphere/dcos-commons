@@ -36,7 +36,7 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 ## Version 2.1.0-5.6.2
 
 ### New Features
-* Custom configuration can now be passed to Elastic plugins. See [the documentation](custom-elasticsearch-yaml.md).
+* Custom configuration can now be passed to Elastic plugins. See [the documentation](../custom-elasticsearch-yaml/).
 
 ### Bugs
 * Uninstall now handles failed tasks correctly.
@@ -85,7 +85,7 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 ## Version 1.0.11-5.4.0-beta
 
 ### Breaking Changes
-- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](connecting.md)' section for instructions on how to provision and connect Kibana on DC/OS.
+- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](../connecting-clients/)' section for instructions on how to provision and connect Kibana on DC/OS.
 
 ### Improvements/Features
 - Added an option to toggle installation of commercial X-Pack plugin (disabled by default).

@@ -62,7 +62,7 @@ Install the DC/OS Apache Kafka service including the following options in additi
 
 #### Verify Transport Encryption Enabled
 
-After service deployment completes, check the list of [Kafka endpoints](api-reference.md#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
+After service deployment completes, check the list of [Kafka endpoints](../api-reference/#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
 
 ## Authentication
 
