@@ -67,8 +67,8 @@ public class ServiceTest {
                         "some.thing=true",
                         "ZONE", "us-east-1a")
                 .setBuildTemplateParams(
-                        "elastic-version", "1.2.3",
-                        "elastic-statsd-version", "1.2.3",
-                        "support-diagnostics-version", "4.5.6");
+                        "elastic-version", "6.1.3",
+                        "elastic-statsd-version", "6.1.3.0",
+                        "support-diagnostics-version", "6.3");
     }
 }
