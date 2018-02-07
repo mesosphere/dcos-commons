@@ -246,10 +246,7 @@ public class MarathonConstraintParserTest {
 
     @Test(expected = IOException.class)
     public void testBadFlatConstraint() throws IOException {
-        String ruleString = MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER:,").toString(); // missing last elem
-
-        new InvalidPlacementRule("rack-id:MAX_PER")
-        assertEquals(ex);
+        MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER:,"); // missing last elem
     }
 
     @Test(expected = IOException.class)
