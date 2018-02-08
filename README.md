@@ -3,7 +3,7 @@
 </p>
 
 [__Quick Start__](README.md#quick-start) |
-[__Developer Guide__](https://mesosphere.github.io/dcos-commons/developer-guide.html) |
+[__Developer Guide__](https://mesosphere.github.io/dcos-commons/developer-guide/) |
 [__FAQ__](docs/pages/faq.md) |
 [__Javadocs__](https://mesosphere.github.io/dcos-commons/reference/api/) |
 [__Contributing__](CONTRIBUTING.md) |
