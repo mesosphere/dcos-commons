@@ -11,6 +11,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 
+/**
+ * A {@link ConfigValidator} that checks for valid placement constraints.
+ */
 public class PlacementRuleIsValid implements ConfigValidator<ServiceSpec> {
     @Override
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {

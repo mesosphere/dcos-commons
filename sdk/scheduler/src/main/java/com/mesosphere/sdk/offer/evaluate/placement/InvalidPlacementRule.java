@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * Wrapper for a placement rule that is ALWAYS invalid
+ * An implementation of a {@PlacementRule} that is ALWAYS invalid.
  */
 public class InvalidPlacementRule implements PlacementRule {
     private final String constraints;
