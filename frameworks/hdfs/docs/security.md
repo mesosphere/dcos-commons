@@ -22,7 +22,7 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 
 *Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
 
-{% include services/configure-transport-encryption.md
+{% include services/security-configure-transport-encryption.md
     techName="Apache HDFS" %}
 
 <!--
@@ -40,7 +40,7 @@ DC/OS Apache HDFS supports Kerberos authentication.
 
 ### Kerberos Authentication
 
-Kerberos authentication relies on a central authority to verify that Kafka clients (be it broker, consumer, or producer) are who they say they are. DC/OS Apache HDFS integrates with your existing Kerberos infrastructure to verify the identity of clients.
+Kerberos authentication relies on a central authority to verify that HDFS clients are who they say they are. DC/OS Apache HDFS integrates with your existing Kerberos infrastructure to verify the identity of clients.
 
 #### Prerequisites
 - The hostname and port of a KDC reachable from your DC/OS cluster
@@ -53,13 +53,28 @@ Kerberos authentication relies on a central authority to verify that Kafka clien
 
 #### Create principals
 
-The DC/OS Apache HDFS service requires Kerberos principals for each node to be deployed.
+The DC/OS Apache HDFS service requires Kerberos principals for each node to be deployed. The overall topology of the HDFS service is:
+- 3 journal nodes
+- 2 name nodes (with ZKFC)
+- A configurable number of data nodes
+
+As such the required Kerberos principals will have the form:
 ```
-<service primary>/kafka-<broker index>-broker.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+<service primary>/name-0-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+<service primary>/name-0-zkfc.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+<service primary>/name-1-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+<service primary>/name-1-zkfc.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+
+<service primary>/journal-0-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+<service primary>/journal-1-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+<service primary>/journal-2-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+
+<service primary>/data-<data-index>-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+
 ```
 with:
 - `service primary = service.security.kerberos.primary`
-- `broker index = 0 up to kafka.brokers.count - 1`
+- `data index = 0 up to data_node.brokers.count - 1`
 - `service subdomain = service.name with all `/`'s removed`
 - `service realm = service.security.kerberos.realm`
 
@@ -73,55 +88,43 @@ For example, if installing with these options:
             "realm": "EXAMPLE"
         }
     },
-    "kafka": {
-        "brokers": {
-            "count": 3
-        }
+    "data_node": {
+        "count": 3
     }
 }
 ```
 then the principals to create would be:
 ```
-example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
-example/kafka-1-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
-example/kafka-2-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/name-0-zkfc.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/name-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/name-1-zkfc.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+
+example/journal-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/journal-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/journal-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+
+example/data-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/data-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+example/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
 
-#### Place Service Keytab in DC/OS Secret Store
-
-The DC/OS Apache Kafka service uses a keytab containing all broker principals (service keytab) to simplify orchestration. After creating the principals above, generate the service keytab making sure to include all the broker principals. This will be stored as a secret in the DC/OS Secret Store.
-
-*Note*: DC/OS 1.10 does not support adding binary secrets directly to the secret store, only text files are supported. Instead, first base64 encode the file, and save it to the secret store as `/desired/path/__dcos_base64__secret_name`. The DC/OS security modules will handle decoding the file when it is used by the service. More details [here](https://docs.mesosphere.com/services/ops-guide/overview/#binary-secrets).
-
-The service keytab should be stored at `service/path/service.keytab` (as noted above for 1.10, it would be `__dcos_base64__service.keytab`), where `service/path` matches the path of the service. For example, if installing with the options
-```json
-{
-    "service": {
-        "name": "a/good/example"
-    }
-}
-```
-then the service keytab should be stored at `a/good/service.keytab`.
-
-Documentation for adding a file to the secret store can be found [here](https://docs.mesosphere.com/latest/security/ent/secrets/create-secrets/#creating-secrets-from-a-file-via-the-dcos-enterprise-cli).
-
-*Note*: Secrets access is controlled by [DC/OS Spaces](https://docs.mesosphere.com/latest/security/ent/#spaces-for-secrets), which function like namespaces. Technically, any secret path in the same space as that of the service will be accessible by the service. Matching the two paths is, however, the most secure option. Additionally the secret name `service.keytab` is a convention and not a requirement.
-
+{% include services/security-configure-transport-encryption.md
+    techName="Apache HDFS" %}
 
 #### Install the Service
 
-Install the DC/OS Apache Kafka service with the following options in addition to your own:
+Install the DC/OS Apache HDFS service with the following options in addition to your own:
 ```json
 {
     "service": {
         "kerberos": {
             "enabled": true,
-            "enabled_for_zookeeper": <true|false default false>,
             "kdc": {
                 "hostname": "<kdc host>",
                 "port": <kdc port>
             },
-            "primary": "<service primary default kafka>",
+            "primary": "<service primary default hdfs>",
             "realm": "<realm>",
             "keytab_secret": "<path to keytab secret>",
             "debug": <true|false default false>
@@ -130,84 +133,13 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 }
 ```
 
-*Note*: If `service.kerberos.enabled_for_zookeeper` is set to true, then the additional setting `kafka.kafka_zookeeper_uri` must be configured to point at a kerberized Apache ZooKeeper as follows:
-```json
-{
-    "kafka": {
-        "kafka_zookeeper_uri": <list of zookeeper hosts>
-    }
-}
-```
-The DC/OS Apache ZooKeeper service is intended for this purpose and supports Kerberos.
-
-*Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured.
-
-
-### SSL Authentication
-
-SSL authentication requires that all clients be they brokers, producers, or consumers present a valid certificate from which their identity can be derived. DC/OS Apache Kafka uses the `CN` of the SSL certificate as the principal for a given client. For example, the certificate `CN=bob@example.com,OU=,O=Example,L=London,ST=London,C=GB` will be considered as the principal `bob@example.com`.
-
-#### Prerequisites
-- Completion of the section [Transport Encryption](#transport-encryption) above
-
-#### Install the Service
-
-Install the DC/OS Apache Kafka service with the following options in addition to your own:
-```json
-{
-    "service": {
-        "service_account": "<service-account>",
-        "service_account_secret": "<secret path>",
-        "security": {
-            "transport_encryption": {
-                "enabled": true
-            },
-            "ssl_authentication": {
-                "enabled": true
-            }
-        }
-    }
-}
-```
-
-*Note*: It is possible to enable SSL authentication after initial installation, but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured.
-
-#### Authenticating a Client
-
-To authenticate a client against DC/OS Apache Kafka, you will need to configure it to use a certificate signed by the DC/OS CA. After generating a certificate signing request, you can issue it to the DC/OS CA by calling the API `<dcos-cluster>/ca/api/v2/sign`. Using the `curl` command the request would look like:
-```bash
-$ curl -X POST \
-    -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
-    <dcos-cluster>/ca/api/v2/sign \
-    -d '{"certificate_request": "<json-encoded-value-of-request.csr>"}'
-```
-
-The response will contain a signed public certificate. Full details on the DC/OS CA API can be found [here](https://docs.mesosphere.com/latest/security/ent/tls-ssl/ca-api/).
+<!-- TO BE DETERMINED *Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your HDFS clients will need to be reconfigured. -->
 
 ## Authorization
 
-The DC/OS Apache Kafka Service supports Kafka's ACL-based authorization (authz) system. To use Kafka's authz, either SSL Auth or Kerberos must be enabled as detailed above.
+The DC/OS Apache HDFS service supports HDFS's native authorization primitives. If Keberos is enabled as detailed [above](#kerberos-authentication), then
 
 ### Enable Authorization
 
 #### Prerequisites
-- Completion of either [SSL Authentication](#ssl-authentication) or [Kerberos](#kerberos-authn) above.
-
-#### Install the Service
-
-Install the DC/OS Apache Kafka service with the following options in addition to your own (remember, either SSL authentication or Kerberos _must_ be enabled):
-```json
-{
-    "service": {
-        "security": {
-            "authorization": {
-                "enabled": true,
-                "super_users": "<list of super users>",
-                "allow_everyone_if_no_acl_found": <true|false default false>
-            }
-        }
-    }
-}
-```
-
-`service.security.authorization.super_users` should be set to a semi-colon delimited list of principals to treat as super users (all permissions). The format of the list is `User:<user1>;User:<user2>;...`. Using Kerberos authentication, the "user" value is the Kerberos primary, and for SSL authentication the "user" value is the `CN` of the certificate. The Kafka brokers themselves are automatically designated as super users.
+- Completion of  [Kerberos authentication](#kerberos-authentication) above.

@@ -20,9 +20,9 @@ With transport encryption enabled, DC/OS Apache Kafka will automatically deploy 
 
 The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
 
-*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
+*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authentication](#kerberos-authentication).
 
-{% include services/configure-transport-encryption.md
+{% include services/security-configure-transport-encryption.md
     techName="Apache Kafka" %}
 
 *Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
@@ -84,26 +84,8 @@ example/kafka-1-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-2-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
 
-#### Place Service Keytab in DC/OS Secret Store
-
-The DC/OS Apache Kafka service uses a keytab containing all broker principals (service keytab) to simplify orchestration. After creating the principals above, generate the service keytab making sure to include all the broker principals. This will be stored as a secret in the DC/OS Secret Store.
-
-*Note*: DC/OS 1.10 does not support adding binary secrets directly to the secret store, only text files are supported. Instead, first base64 encode the file, and save it to the secret store as `/desired/path/__dcos_base64__secret_name`. The DC/OS security modules will handle decoding the file when it is used by the service. More details [here](https://docs.mesosphere.com/services/ops-guide/overview/#binary-secrets).
-
-The service keytab should be stored at `service/path/service.keytab` (as noted above for 1.10, it would be `__dcos_base64__service.keytab`), where `service/path` matches the path of the service. For example, if installing with the options
-```json
-{
-    "service": {
-        "name": "a/good/example"
-    }
-}
-```
-then the service keytab should be stored at `a/good/service.keytab`.
-
-Documentation for adding a file to the secret store can be found [here](https://docs.mesosphere.com/latest/security/ent/secrets/create-secrets/#creating-secrets-from-a-file-via-the-dcos-enterprise-cli).
-
-*Note*: Secrets access is controlled by [DC/OS Spaces](https://docs.mesosphere.com/latest/security/ent/#spaces-for-secrets), which function like namespaces. Technically, any secret path in the same space as that of the service will be accessible by the service. Matching the two paths is, however, the most secure option. Additionally the secret name `service.keytab` is a convention and not a requirement.
-
+{% include services/security-configure-transport-encryption.md
+    techName="Apache Kafka" %}
 
 #### Install the Service
 
@@ -183,12 +165,12 @@ The response will contain a signed public certificate. Full details on the DC/OS
 
 ## Authorization
 
-The DC/OS Apache Kafka Service supports Kafka's ACL-based authorization (authz) system. To use Kafka's authz, either SSL Auth or Kerberos must be enabled as detailed above.
+The DC/OS Apache Kafka service supports Kafka's ACL-based authorization (authz) system. To use Kafka's authz, either SSL Auth or Kerberos must be enabled as detailed above.
 
 ### Enable Authorization
 
 #### Prerequisites
-- Completion of either [SSL Authentication](#ssl-authentication) or [Kerberos](#kerberos-authn) above.
+- Completion of either [SSL Authentication](#ssl-authentication) or [Kerberos](#kerberos-authentication) above.
 
 #### Install the Service
 
