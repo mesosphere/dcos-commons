@@ -32,6 +32,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private final ServiceSpec serviceSpec;
     private final Optional<SecretsClient> secretsClient;
+    private final Optional<PlanCustomizer> planCustomizer;
 
     private PlanManager uninstallPlanManager;
     private Collection<Object> resources = Collections.emptyList();
@@ -46,8 +47,9 @@ public class UninstallScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerConfig schedulerConfig) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, Optional.empty());
+            SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer) {
+        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
     }
 
     protected UninstallScheduler(
@@ -55,10 +57,12 @@ public class UninstallScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(stateStore, configStore, schedulerConfig);
         this.serviceSpec = serviceSpec;
         this.secretsClient = customSecretsClientForTests;
+        this.planCustomizer = planCustomizer;
     }
 
     @Override
@@ -88,8 +92,12 @@ public class UninstallScheduler extends AbstractScheduler {
                 driver,
                 secretsClient)
                 .build();
-        uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
-        resources = Arrays.asList(
+
+        // Allow for customization to the uninstall plan.
+        plan = planCustomizer.isPresent() ? planCustomizer.get().updateUninstallPlan(plan) : plan;
+
+        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
+        this.resources = Arrays.asList(
                 new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
                 new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
         List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
