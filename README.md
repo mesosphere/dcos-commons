@@ -115,7 +115,7 @@ volume:
 
 ---
 ### References
-* [Developer Guide](https://mesosphere.github.io/dcos-commons/developer-guide.html)
+* [Developer Guide](https://mesosphere.github.io/dcos-commons/developer-guide/)
 * [Javadocs](https://mesosphere.github.io/dcos-commons/reference/api/)
 
 ---
