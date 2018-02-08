@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests for {@link MarathonConstraintParser}.
@@ -238,55 +239,52 @@ public class MarathonConstraintParserTest {
 
     @Test
     public void testBadListConstraint() throws IOException {
-        String ruleString = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'MAX_PER', '2'")).toString(); // missing ']]'
-
-        assertEquals("InvalidPlacementRule{constraint=[[\"rack-id\", \"MAX_PER\", \"2\", exception=Invalid number of entries in rule. Expected 2 or 3, got 1: [[[\"rack-id\"]}",
-                ruleString);
+        assertTrue("missing ']]'", isInvalidConstraints(unescape("[['rack-id', 'MAX_PER', '2'")));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testBadFlatConstraint() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER:,"); // missing last elem
+        assertTrue("Missing last element", isInvalidConstraints("rack-id:MAX_PER:,"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testBadParamGroupBy() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:GROUP_BY:foo"); // expected int
+        assertTrue("Expected integer", isInvalidConstraints("rack-id:GROUP_BY:foo"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testBadParamMaxPer() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER:foo"); // expected int
+        assertTrue("Expected integer", isInvalidConstraints("rack-id:MAX_PER:foo"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testMissingParamCluster() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:CLUSTER"); // expected param
+        assertTrue("Expected parameter", isInvalidConstraints("rack-id:CLUSTER"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testMissingParamLike() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE"); // expected param
+        assertTrue("Expected parameter", isInvalidConstraints("rack-id:LIKE"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testMissingParamUnlike() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:UNLIKE"); // expected param
+        assertTrue("Expected parameter", isInvalidConstraints("rack-id:UNLIKE"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testMissingParamMaxPer() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:MAX_PER"); // expected param
+        assertTrue("Expected parameter", isInvalidConstraints("rack-id:MAX_PER"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testUnknownCommand() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:FOO:foo");
+        assertTrue(isInvalidConstraints("rack-id:FOO:foo"));
     }
 
-    @Test(expected = IOException.class)
+    @Test
     public void testTooManyElemenents() throws IOException {
-        MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:foo:bar");
+        assertTrue(isInvalidConstraints("rack-id:LIKE:foo:bar"));
     }
 
     @Test
@@ -327,5 +325,9 @@ public class MarathonConstraintParserTest {
     // Avoid needing \"'s throughout json strings:
     private static String unescape(String s) {
         return s.replace('\'', '"');
+    }
+
+    private boolean isInvalidConstraints(String constraints) throws IOException {
+        return MarathonConstraintParser.parse(POD_NAME, constraints) instanceof InvalidPlacementRule;
     }
 }
