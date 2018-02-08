@@ -76,6 +76,36 @@ public class AndRuleTest {
                 SerializationUtils.toJsonString(rule), PlacementRule.class, TestPlacementUtils.OBJECT_MAPPER));
     }
 
+    @Test
+    public void testEmptyAndRuleIsNotValid() {
+        PlacementRule rule = new AndRule(Collections.emptyList());
+        assertFalse(rule.isValid());
+    }
+
+    @Test
+    public void testSingleAndRuleIsValid() {
+        PlacementRule rule = new AndRule(TestPlacementUtils.PASS);
+        assertTrue(rule.isValid());
+    }
+
+    @Test
+    public void testMultipleAndRuleIsValid() {
+        PlacementRule rule = new AndRule(TestPlacementUtils.PASS, TestPlacementUtils.FAIL);
+        assertTrue(rule.isValid());
+    }
+
+    @Test
+    public void testSingleInvalidRuleIsNotValid() {
+        PlacementRule rule = new AndRule(TestPlacementUtils.INVALID);
+        assertFalse(rule.isValid());
+    }
+
+    @Test
+    public void testAnyInvalidRuleIsNotValid() {
+        PlacementRule rule = new AndRule(TestPlacementUtils.PASS, TestPlacementUtils.INVALID);
+        assertFalse(rule.isValid());
+    }
+
     private static Offer offerWith(Collection<Resource> resources) {
         Offer.Builder o = OfferTestUtils.getEmptyOfferBuilder();
         for (Resource r : resources) {

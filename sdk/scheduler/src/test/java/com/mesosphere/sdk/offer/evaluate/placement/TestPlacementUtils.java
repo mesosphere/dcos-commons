@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
+import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -11,9 +14,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.Value;
-import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -54,8 +54,10 @@ public class TestPlacementUtils {
 
     public static final PlacementRule PASS = new PassTestRule();
     public static final PlacementRule FAIL = new FailTestRule();
+    public static final PlacementRule INVALID = new InvalidTestRule();
 
     public static final ObjectMapper OBJECT_MAPPER;
+
     static {
         OBJECT_MAPPER = SerializationUtils.registerDefaultModules(new ObjectMapper());
         for (Class<?> c : DefaultServiceSpec.ConfigFactory.getDefaultRegisteredSubtypes()) {
@@ -67,7 +69,8 @@ public class TestPlacementUtils {
 
     private static class PassTestRule implements PlacementRule {
         @JsonCreator
-        public PassTestRule() { }
+        public PassTestRule() {
+        }
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
@@ -80,15 +83,20 @@ public class TestPlacementUtils {
         }
 
         @Override
-        public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
 
         @Override
-        public int hashCode() { return HashCodeBuilder.reflectionHashCode(this); }
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
     }
 
     private static class FailTestRule implements PlacementRule {
         @JsonCreator
-        public FailTestRule() { }
+        public FailTestRule() {
+        }
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
@@ -101,11 +109,47 @@ public class TestPlacementUtils {
         }
 
         @Override
-        public boolean equals(Object o) { return EqualsBuilder.reflectionEquals(this, o); }
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
 
         @Override
-        public int hashCode() { return HashCodeBuilder.reflectionHashCode(this); }
-    };
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+    }
+
+    private static class InvalidTestRule implements PlacementRule {
+        @JsonCreator
+        public InvalidTestRule() {
+        }
+
+        @Override
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.fail(this, "invalid rule").build();
+        }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
+
+        @Override
+        public boolean isValid() {
+            return false;
+        }
+
+    }
 
     private TestPlacementUtils() {
         // do not instantiate

@@ -87,4 +87,14 @@ public class AndRule implements PlacementRule {
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
     }
+
+    @Override
+    public boolean isValid() {
+        if (rules.isEmpty()) {
+            return false;
+        }
+
+        return rules.stream().allMatch(PlacementRule::isValid);
+
+    }
 }

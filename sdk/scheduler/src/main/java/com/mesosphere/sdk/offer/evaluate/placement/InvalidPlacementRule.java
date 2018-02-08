@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -15,24 +16,26 @@ import java.util.Collections;
  * Wrapper for a placement rule that is ALWAYS invalid
  */
 public class InvalidPlacementRule implements PlacementRule {
-    private String constraint;
-    private String exception;
+    private final String constraints;
+    private final String exception;
 
     @JsonCreator
-    public InvalidPlacementRule(String constraintString, String exception) {
-        this.constraint = constraintString;
+    public InvalidPlacementRule(
+            @JsonProperty("constraints ") String constraints,
+            @JsonProperty("exception") String exception) {
+        this.constraints = constraints;
         this.exception = exception;
     }
 
     @Override
     public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
         return EvaluationOutcome.fail(this,
-                String.format("Invalid placement constraint for %s: %s", podInstance.getName(), constraint)).build();
+                String.format("Invalid placement constraints for %s: %s", podInstance.getName(), constraints)).build();
     }
 
     @Override
     public String toString() {
-        return String.format("InvalidPlacementRule{constraint=%s, exception=%s}", constraint, exception);
+        return String.format("InvalidPlacementRule{constraints=%s, exception=%s}", constraints, exception);
     }
 
     @Override
@@ -43,6 +46,16 @@ public class InvalidPlacementRule implements PlacementRule {
     @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
+    }
+
+    @JsonProperty("constraints")
+    public String getConstraints() {
+        return constraints;
+    }
+
+    @JsonProperty("exception")
+    public String getException() {
+        return exception;
     }
 
     @Override

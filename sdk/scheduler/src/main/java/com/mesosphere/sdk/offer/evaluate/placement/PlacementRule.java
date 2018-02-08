@@ -12,11 +12,11 @@ import java.util.Collection;
 /**
  * Implements placement constraint logic on an offer, filtering out the Resources which are not
  * to be used according to the filter logic.
- *
+ * <p>
  * Accepts an Offer and returns a copy of that Offer with any disallowed Resources filtered out, or
  * may return the original Offer without copying if everything passes the filter. If the entire
  * Offer is rejected, the return value will be a non-{@code null} Offer with zero Resources.
- *
+ * <p>
  * PlacementRules may contain multiple internal checks, and may even be a composition of other
  * PlacementRules.
  */
@@ -46,7 +46,7 @@ public interface PlacementRule {
      * Must be explicitly implemented by all PlacementRules.
      *
      * @see com.mesosphere.sdk.offer.TaskUtils#areDifferent(
-     * com.mesosphere.sdk.specification.TaskSpec,
+     *com.mesosphere.sdk.specification.TaskSpec,
      * com.mesosphere.sdk.specification.TaskSpec)
      */
     boolean equals(Object o);
@@ -55,6 +55,7 @@ public interface PlacementRule {
      * All placement rules are valid by default. This can be overridden as
      * required.
      */
+    @JsonIgnore
     default boolean isValid() {
         return true;
     }

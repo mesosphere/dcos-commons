@@ -1,20 +1,49 @@
 package com.mesosphere.sdk.template.scheduler;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
+import com.mesosphere.sdk.scheduler.plan.Status;
+import com.mesosphere.sdk.testing.*;
 import org.apache.mesos.Protos;
 import org.junit.Test;
 
-import com.mesosphere.sdk.testing.Expect;
-import com.mesosphere.sdk.testing.Send;
-import com.mesosphere.sdk.testing.ServiceTestRunner;
-import com.mesosphere.sdk.testing.SimulationTick;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class ServiceTest {
 
+    private static final String VALID_HOSTNAME_CONSTRAINT = "[[\"hostname\", \"UNIQUE\"]]";
+    private static final String INVALID_HOSTNAME_CONSTRAINT = "[[\\\"hostname\\\", \"UNIQUE\"]]";
+
     @Test
     public void testSpec() throws Exception {
+        new ServiceTestRunner().run(getDeploymentTicks());
+    }
+
+
+    @Test
+    public void testValidPlacementConstraint() throws Exception {
+        ServiceTestRunner serviceTestRunner = new ServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", VALID_HOSTNAME_CONSTRAINT);
+        serviceTestRunner.run(getDeploymentTicks());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInvalidPlacementConstraint() throws Exception {
+        new ServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT).run(getDeploymentTicks());
+    }
+
+    @Test
+    public void testSwitchToInvalidPlacementConstraint() throws Exception {
+        ServiceTestResult initial = new ServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", VALID_HOSTNAME_CONSTRAINT).run(getDeploymentTicks());
+
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+        ticks.add(Send.register());
+        ticks.add(Expect.planStatus("deploy", Status.ERROR));
+
+        new ServiceTestRunner().setState(initial).setSchedulerEnv("NODE_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT).run(ticks);
+
+    }
+
+    private static Collection<SimulationTick> getDeploymentTicks() {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
@@ -41,6 +70,8 @@ public class ServiceTest {
 
         ticks.add(Expect.allPlansComplete());
 
-        new ServiceTestRunner().run(ticks);
+        return ticks;
     }
+
+
 }

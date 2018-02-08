@@ -24,7 +24,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -34,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -126,10 +124,10 @@ public class DefaultServiceSpec implements ServiceSpec {
     /**
      * Returns a new generator with the provided configuration.
      *
-     * @param rawServiceSpec The object model representation of a Service Specification YAML file
-     * @param schedulerConfig Scheduler configuration containing operator-facing knobs
+     * @param rawServiceSpec    The object model representation of a Service Specification YAML file
+     * @param schedulerConfig   Scheduler configuration containing operator-facing knobs
      * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
-     *     directory as the Service Specification YAML file
+     *                          directory as the Service Specification YAML file
      */
     public static Generator newGenerator(
             RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir) {
@@ -157,7 +155,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             SchedulerConfig schedulerConfig,
             Map<String, String> schedulerEnvironment,
             File configTemplateDir)
-                    throws Exception {
+            throws Exception {
         return new Generator(
                 rawServiceSpec, schedulerConfig, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
     }
@@ -325,6 +323,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultVolumeSpec.class,
                 ExactMatcher.class,
                 HostnameRule.class,
+                InvalidPlacementRule.class,
                 IsLocalRegionRule.class,
                 MaxPerAttributeRule.class,
                 MaxPerHostnameRule.class,
