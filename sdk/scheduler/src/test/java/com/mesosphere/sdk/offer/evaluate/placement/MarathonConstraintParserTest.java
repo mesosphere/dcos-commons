@@ -41,12 +41,6 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testSplitOverEscapedConstraint() throws IOException {
-        assertEquals(MarathonConstraintParser.splitConstraints("[[\"a\"]]"),
-                MarathonConstraintParser.splitConstraints("[[\\\"a\\\"]]"));
-    }
-
-    @Test
     public void testUniqueOperator() throws IOException {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['hostname', 'UNIQUE']]")).toString();
@@ -105,22 +99,6 @@ public class MarathonConstraintParserTest {
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['hostname', 'GROUP_BY', '3']")).toString());
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "hostname:GROUP_BY:3").toString());
     }
-
-    @Test
-    public void testValidOverEscapedRule() throws IOException {
-        String expectedString = MarathonConstraintParser.parse(POD_NAME, "[[\"hostname\",\"MAX_PER\",\"1\"]]").toString();
-        String overEscapedString = MarathonConstraintParser.parse(POD_NAME, "[[\\\"hostname\\\",\\\"MAX_PER\\\",\\\"1\\\"]]").toString();
-
-        assertEquals(expectedString, overEscapedString);
-    }
-
-    @Test
-    public void testInvalidRule() throws IOException {
-        String invalidPlacementRuleString = MarathonConstraintParser.parse(POD_NAME, "[[\"hostname\",]]").toString();
-
-        assertEquals("InvalidPlacementRule{constraint=[[\"hostname\",]], exception=Invalid number of entries in rule. Expected 2 or 3, got 1: [[[\"hostname\"]}", invalidPlacementRuleString);
-    }
-
 
     @Test
     public void testLikeOperator() throws IOException {
@@ -235,6 +213,11 @@ public class MarathonConstraintParserTest {
     @Test
     public void testEmptyArrayConstraint() throws IOException {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "[]").toString());
+    }
+
+    @Test
+    public void testOverEscapedConstraintIsInvalid() throws IOException {
+        assertTrue("too many \\'s", isInvalidConstraints("[[\\\"hostname\\\",\\\"MAX_PER\\\",\\\"1\\\"]]"));
     }
 
     @Test

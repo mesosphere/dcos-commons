@@ -155,13 +155,6 @@ public class MarathonConstraintParser {
                 LOGGER.debug("Nested list '{}' => {} rows: '{}'", marathonConstraints, rows.size(), rows);
                 return rows;
             } catch (IOException | ClassCastException e2) { // May throw ClassCastException as well as IOException
-
-                // A common reason for incorrect placement is over-escaping.
-                String strippedConstraints = marathonConstraints.replace("\\\"", "\"");
-                if (!strippedConstraints.equals(marathonConstraints)) {
-                    return splitConstraints(strippedConstraints);
-                }
-
                 // Finally try: a:b:c,d:e
                 // Note: We use Guava's Splitter rather than String.split(regex) in order to correctly
                 // handle empty trailing fields like 'a:b:' => ['a', 'b', ''] (shouldn't come up but just in case).
