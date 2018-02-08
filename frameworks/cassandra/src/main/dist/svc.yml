@@ -73,9 +73,6 @@ pods:
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
-          s3:
-            template: s3config.json
-            dest: s3config.json
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
