@@ -7,13 +7,11 @@ The default DC/OS {{ include.techName }} installation provides reasonable defaul
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
 - Your cluster must have at least {{ include.minNodeCount }} private nodes.
-{{ #include.agentRequirements }}
-- {{ include.agentRequirements }}
-{{ /include.agentRequirements }}
+{{ include.customInstallRequirements }}
 
 ## Default Installation
 
-To start a basic test cluster {{ include.defaultInstallDescription }}, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. [More information about installing {{ include.techName }} on Enterprise DC/OS]({{ include.enterpriseInstallUrl }}).
+To start a basic test cluster {{ include.defaultInstallDescription }}, run the following command on the DC/OS CLI. Enterprise DC/OS users may need to follow [additional instructions]({{ include.serviceAccountInstructionsUrl }}), depending on the security mode of the Enterprise DC/OS cluster.
 
 ```bash
 $ dcos package install {{ include.packageName }}
@@ -27,11 +25,109 @@ All `dcos {{ include.packageName }}` CLI commands have a `--name` argument allow
 $ dcos {{ include.packageName }} --name={{ include.serviceName }} <cmd>
 ```
 
-**Note:** Alternatively, you can [install from the DC/OS web interface](https://docs.mesosphere.com/latest/deploying-services/install/). If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:
+**Note:** Alternatively, you can [install from the DC/OS web interface](https://docs.mesosphere.com/latest/deploying-services/install/). If you install {{ include.techName }} from the DC/OS web interface, the `dcos {{ include.packageName }}` CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:
 
 ```bash
 dcos package install {{ include.packageName }} --cli
 ```
+
+## Alternate install configurations
+
+The following are some examples of how to customize the installation of your {{ include.techName }} instance.
+
+In each case, you would create a new {{ instance.techName }} instance using the custom configuration as follows:
+
+```bash
+$ dcos package install {{ include.packageName }} --options=sample-{{ include.serviceName }}.json
+```
+
+**Recommendation:** Store your custom configuration in source control.
+
+### Installing multiple instances
+
+By default, the {{ include.techName }} service is installed with a service name of `{{ include.serviceName }}`. You may specify a different name using a custom service configuration as follows:
+
+```json
+{
+  "service": {
+    "name": "{{ include.serviceName }}-other"
+  }
+}
+```
+
+When the above JSON configuration is passed to the `package install {{ include.packageName }}` command via the `--options` argument, the new service will use the name specified in that JSON configuration:
+
+```bash
+$ dcos package install {{ include.packageName }} --options={{ include.serviceName }}-other.json
+```
+
+Multiple instances of {{ install.techName }} may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of {{ install.techName }} named `{{ include.serviceName }}-staging` and another named `{{ include.serviceName }}-prod`, each with its own custom configuration.
+
+After specifying a custom name for your instance, it can be reached using `dcos {{ include.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
+
+**Note:** The service name _cannot_ be changed after initial install. Changing the service name would require installing a new instance of the service against the new name, then copying over any data as necessary to the new instance.
+
+### Installing into folders
+
+In DC/OS 1.10 and above, services may be installed into _folders_ by specifying a slash-delimited service name. For example:
+
+```json
+{
+  "service": {
+    "name": "/foldered/path/to/{{ include.serviceName }}"
+  }
+}
+```
+
+The above example will install the service under a path of `foldered` => `path` => `to` => `{{ include.serviceName }}`. It can then be reached using `dcos {{ include.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
+
+**Note:** The service folder location _cannot_ be changed after initial install. Changing the service location would require installing a new instance of the service against the new location, then copying over any data as necessary to the new instance.
+
+### Addressing named instances
+
+After you've installed the service under a custom name or under a folder, it may be accessed from all `dcos {{ package.packageName }}` CLI commands using the `--name` argument. By default, the `--name` value defaults to the name of the package, or `{{ include.packageName }}`.
+
+For example, if you had an instance named `{{ include.serviceName }}-dev`, the following command would invoke a `pod list` command against it:
+
+```bash
+$ dcos {{ include.packageName }} --name={{ include.serviceName }}-dev pod list
+```
+
+The same query would be over HTTP as follows:
+
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.serviceName }}-dev/v1/pod
+```
+
+Likewise, if you had an instance in a folder like `/foldered/path/to/{{ include.serviceName }}`, the following command would invoke a `pod list` command against it:
+
+```bash
+$ dcos {{ include.packageName }} --name=/foldered/path/to/{{ include.serviceName }} pod list
+```
+
+Similarly, it could be queried directly over HTTP as follows:
+
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/foldered/path/to/{{ include.serviceName }}-dev/v1/pod
+```
+
+**Note:** You may add a `-v` (verbose) argument to any `dcos {{ include.packageName }}` command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, `dcos {{ include.packageName }}` commands are a thin wrapper around an HTTP interface provided by the DC/OS {{ include.techName }} Service itself.
+
+### Virtual networks
+
+DC/OS {{ include.techName }} supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:
+
+```json
+{
+  "service": {
+    "virtual_network_enabled": true
+  }
+}
+```
+
+**Note:** Once the service is deployed on a virtual network, it cannot be updated to use the host network.
+
+{{ include.customInstallConfigurations }}
 
 ## Integration with DC/OS access controls
 
@@ -76,7 +172,7 @@ A common task is to specify a list of whitelisted systems to deploy to. To achie
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
 
-## Regions and Zones
+### Regions and Zones
 
 Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
 ```
@@ -85,10 +181,9 @@ Placement constraints can be applied to zones by referring to the `@zone` key. F
 
 When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
+#### Example
 
-### Example
-
-Suppose we have a Mesos cluster with zones `a`,`b`,`c`. For balanced Placement for a Single Region:
+Suppose we have a Mesos cluster with three zones. For balanced placement across those three zones, we would have a configuration like this:
 
 ```
 {
@@ -98,4 +193,4 @@ Suppose we have a Mesos cluster with zones `a`,`b`,`c`. For balanced Placement f
 }
 ```
 
-Instances will all be evenly divided between zones `a`,`b`,`c`.
+Instances will all be evenly divided between those three zones.
