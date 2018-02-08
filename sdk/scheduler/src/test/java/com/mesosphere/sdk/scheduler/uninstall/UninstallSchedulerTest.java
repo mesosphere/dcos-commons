@@ -266,7 +266,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 stateStore,
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Optional.of(getReversingPlanCustomizer()), Optional.of(mockSecretsClient));
+                Optional.of(getReversingPlanCustomizer()),
+                Optional.of(mockSecretsClient));
 
         Plan plan = uninstallScheduler.getPlanCoordinator().getPlanManagers().stream().findFirst().get().getPlan();
 
@@ -300,7 +301,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 stateStore,
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Optional.of(mockPlanCustomizer), Optional.of(mockSecretsClient));
+                Optional.of(mockPlanCustomizer),
+                Optional.of(mockSecretsClient));
         uninstallScheduler
                 .disableApiServer()
                 .start()

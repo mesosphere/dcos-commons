@@ -226,7 +226,7 @@ public class SchedulerBuilder {
             }
 
             return new UninstallScheduler(serviceSpec, stateStore, configStore,
-                    schedulerConfig, Optional.of(planCustomizer));
+                    schedulerConfig, Optional.ofNullable(planCustomizer));
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
