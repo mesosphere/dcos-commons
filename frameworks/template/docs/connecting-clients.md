@@ -4,10 +4,8 @@ navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
-
-packageName: template
-serviceName: template
 ---
+{% assign data = site.data.services.template %}
 
 # Connecting Clients
 One of the benefits of running containerized services is that they can be placed anywhere in the cluster. Because they can be deployed anywhere on the cluster, clients need a way to find the service. This is where service discovery comes in.
@@ -16,11 +14,11 @@ One of the benefits of running containerized services is that they can be placed
 
 Once the service is running, you may view information about its endpoints via either of the following methods:
 - CLI:
-  - List endpoint types: `dcos {{ page.packageName }} --name={{ page.serviceName }}endpoints`
-  - View endpoints for an endpoint type: `dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints <endpoint>`
+  - List endpoint types: `dcos {{ data.packageName }} --name={{ data.serviceName }}endpoints`
+  - View endpoints for an endpoint type: `dcos {{ data.packageName }} --name={{ data.serviceName }} endpoints <endpoint>`
 - API:
-  - List endpoint types: `<dcos-url>/service/{{ page.serviceName }}/v1/endpoints`
-  - View endpoints for an endpoint type: `<dcos-url>/service/{{ page.serviceName }}/v1/endpoints/<endpoint>`
+  - List endpoint types: `<dcos-url>/service/{{ data.serviceName }}/v1/endpoints`
+  - View endpoints for an endpoint type: `<dcos-url>/service/{{ data.serviceName }}/v1/endpoints/<endpoint>`
 
 Returned endpoints will include the following:
 - `.autoip.dcos.thisdcos.directory` hostnames for each instance that will follow them if they're moved within the DC/OS cluster.

@@ -4,10 +4,8 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
-
-packageName: template
-serviceName: template
 ---
+{% assign data = site.data.services.template %}
 
 {% capture customInstallRequirements %}
 - Each agent node must have some quantity of cpu, memory, disk, and ports.
@@ -24,11 +22,6 @@ A COMMON WAY OF CUSTOMIZING YOUR SERVICE'S CONFIG THAT YOU'D LIKE TO POINT OUT I
 {% endcapture %}
 
 {% include services/install.md
-    techName="TEMPLATE SERVICE"
-    packageName=page.packageName
-    serviceName=page.serviceName
-    minNodeCount="some"
-    defaultInstallDescription="with SOME QUANTITY OF NODES"
+    data=data
     customInstallRequirements=customInstallRequirements
-    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/TEMPLATE/TEMPLATE-auth/"
-    customInstallConfigurations=customInstallConfigurations%}
+    customInstallConfigurations=customInstallConfigurations %}

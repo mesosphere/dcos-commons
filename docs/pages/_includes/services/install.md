@@ -1,69 +1,69 @@
-The default DC/OS {{ include.techName }} installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.
+The default DC/OS {{ include.data.techName }} installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.
 
 ## Prerequisites
 
-- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account]({{ include.serviceAccountInstructionsUrl }}) before installing. Only someone with `superuser` permission can create the service account.
+- Depending on your security mode in Enterprise DC/OS, you may [need to provision a service account]({{ include.data.install.serviceAccountInstructionsUrl }}) before installing. Only someone with `superuser` permission can create the service account.
 	- `strict` [security mode](https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security) requires a service account.
 	- `permissive` security mode a service account is optional.
 	- `disabled` security mode does not require a service account.
-- Your cluster must have at least {{ include.minNodeCount }} private nodes.
+- Your cluster must have at least {{ include.data.install.minNodeCount }} private nodes.
 {{ include.customInstallRequirements }}
 
 ## Default Installation
 
-To start a basic test cluster {{ include.defaultInstallDescription }}, run the following command on the DC/OS CLI. Enterprise DC/OS users may need to follow [additional instructions]({{ include.serviceAccountInstructionsUrl }}), depending on the security mode of the Enterprise DC/OS cluster.
+To start a basic test cluster {{ include.data.install.nodeDescription }}, run the following command on the DC/OS CLI. Enterprise DC/OS users may need to follow [additional instructions]({{ include.data.install.serviceAccountInstructionsUrl }}), depending on the security mode of the Enterprise DC/OS cluster.
 
 ```bash
-$ dcos package install {{ include.packageName }}
+$ dcos package install {{ include.data.packageName }}
 ```
 
-This command creates a new instance with the default name `{{ include.serviceName }}`. Two instances cannot share the same name, so installing additional instances beyond the default instance requires [customizing the `name` at install time](#custom-installation) for each additional instance.
+This command creates a new instance with the default name `{{ include.data.serviceName }}`. Two instances cannot share the same name, so installing additional instances beyond the default instance requires [customizing the `name` at install time](#custom-installation) for each additional instance.
 
-All `dcos {{ include.packageName }}` CLI commands have a `--name` argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. `{{ include.packageName }}`. The default value for `--name` can be customized via the DC/OS CLI configuration:
+All `dcos {{ include.data.packageName }}` CLI commands have a `--name` argument allowing the user to specify which instance to query. If you do not specify a service name, the CLI assumes a default value matching the package name, i.e. `{{ include.data.packageName }}`. The default value for `--name` can be customized via the DC/OS CLI configuration:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} <cmd>
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} <cmd>
 ```
 
-**Note:** Alternatively, you can [install from the DC/OS web interface](https://docs.mesosphere.com/latest/deploying-services/install/). If you install {{ include.techName }} from the DC/OS web interface, the `dcos {{ include.packageName }}` CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:
+**Note:** Alternatively, you can [install from the DC/OS web interface](https://docs.mesosphere.com/latest/deploying-services/install/). If you install {{ include.data.techName }} from the DC/OS web interface, the `dcos {{ include.data.packageName }}` CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:
 
 ```bash
-dcos package install {{ include.packageName }} --cli
+dcos package install {{ include.data.packageName }} --cli
 ```
 
 ## Alternate install configurations
 
-The following are some examples of how to customize the installation of your {{ include.techName }} instance.
+The following are some examples of how to customize the installation of your {{ include.data.techName }} instance.
 
-In each case, you would create a new {{ instance.techName }} instance using the custom configuration as follows:
+In each case, you would create a new {{ include.data.techName }} instance using the custom configuration as follows:
 
 ```bash
-$ dcos package install {{ include.packageName }} --options=sample-{{ include.serviceName }}.json
+$ dcos package install {{ include.data.packageName }} --options=sample-{{ include.data.serviceName }}.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
 
 ### Installing multiple instances
 
-By default, the {{ include.techName }} service is installed with a service name of `{{ include.serviceName }}`. You may specify a different name using a custom service configuration as follows:
+By default, the {{ include.data.techName }} service is installed with a service name of `{{ include.data.serviceName }}`. You may specify a different name using a custom service configuration as follows:
 
 ```json
 {
   "service": {
-    "name": "{{ include.serviceName }}-other"
+    "name": "{{ include.data.serviceName }}-other"
   }
 }
 ```
 
-When the above JSON configuration is passed to the `package install {{ include.packageName }}` command via the `--options` argument, the new service will use the name specified in that JSON configuration:
+When the above JSON configuration is passed to the `package install {{ include.data.packageName }}` command via the `--options` argument, the new service will use the name specified in that JSON configuration:
 
 ```bash
-$ dcos package install {{ include.packageName }} --options={{ include.serviceName }}-other.json
+$ dcos package install {{ include.data.packageName }} --options={{ include.data.serviceName }}-other.json
 ```
 
-Multiple instances of {{ install.techName }} may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of {{ install.techName }} named `{{ include.serviceName }}-staging` and another named `{{ include.serviceName }}-prod`, each with its own custom configuration.
+Multiple instances of {{ include.data.techName }} may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of {{ include.data.techName }} named `{{ include.data.serviceName }}-staging` and another named `{{ include.data.serviceName }}-prod`, each with its own custom configuration.
 
-After specifying a custom name for your instance, it can be reached using `dcos {{ include.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
+After specifying a custom name for your instance, it can be reached using `dcos {{ include.data.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
 
 **Note:** The service name _cannot_ be changed after initial install. Changing the service name would require installing a new instance of the service against the new name, then copying over any data as necessary to the new instance.
 
@@ -74,48 +74,48 @@ In DC/OS 1.10 and above, services may be installed into _folders_ by specifying 
 ```json
 {
   "service": {
-    "name": "/foldered/path/to/{{ include.serviceName }}"
+    "name": "/foldered/path/to/{{ include.data.serviceName }}"
   }
 }
 ```
 
-The above example will install the service under a path of `foldered` => `path` => `to` => `{{ include.serviceName }}`. It can then be reached using `dcos {{ include.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
+The above example will install the service under a path of `foldered` => `path` => `to` => `{{ include.data.serviceName }}`. It can then be reached using `dcos {{ include.data.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
 
 **Note:** The service folder location _cannot_ be changed after initial install. Changing the service location would require installing a new instance of the service against the new location, then copying over any data as necessary to the new instance.
 
 ### Addressing named instances
 
-After you've installed the service under a custom name or under a folder, it may be accessed from all `dcos {{ package.packageName }}` CLI commands using the `--name` argument. By default, the `--name` value defaults to the name of the package, or `{{ include.packageName }}`.
+After you've installed the service under a custom name or under a folder, it may be accessed from all `dcos {{ include.data.packageName }}` CLI commands using the `--name` argument. By default, the `--name` value defaults to the name of the package, or `{{ include.data.packageName }}`.
 
-For example, if you had an instance named `{{ include.serviceName }}-dev`, the following command would invoke a `pod list` command against it:
+For example, if you had an instance named `{{ include.data.serviceName }}-dev`, the following command would invoke a `pod list` command against it:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }}-dev pod list
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }}-dev pod list
 ```
 
 The same query would be over HTTP as follows:
 
 ```bash
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.serviceName }}-dev/v1/pod
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.data.serviceName }}-dev/v1/pod
 ```
 
-Likewise, if you had an instance in a folder like `/foldered/path/to/{{ include.serviceName }}`, the following command would invoke a `pod list` command against it:
+Likewise, if you had an instance in a folder like `/foldered/path/to/{{ include.data.serviceName }}`, the following command would invoke a `pod list` command against it:
 
 ```bash
-$ dcos {{ include.packageName }} --name=/foldered/path/to/{{ include.serviceName }} pod list
+$ dcos {{ include.data.packageName }} --name=/foldered/path/to/{{ include.data.serviceName }} pod list
 ```
 
 Similarly, it could be queried directly over HTTP as follows:
 
 ```bash
-$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/foldered/path/to/{{ include.serviceName }}-dev/v1/pod
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/foldered/path/to/{{ include.data.serviceName }}-dev/v1/pod
 ```
 
-**Note:** You may add a `-v` (verbose) argument to any `dcos {{ include.packageName }}` command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, `dcos {{ include.packageName }}` commands are a thin wrapper around an HTTP interface provided by the DC/OS {{ include.techName }} Service itself.
+**Note:** You may add a `-v` (verbose) argument to any `dcos {{ include.data.packageName }}` command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, `dcos {{ include.data.packageName }}` commands are a thin wrapper around an HTTP interface provided by the DC/OS {{ include.data.techName }} Service itself.
 
 ### Virtual networks
 
-DC/OS {{ include.techName }} supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:
+DC/OS {{ include.data.techName }} supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:
 
 ```json
 {
@@ -131,7 +131,7 @@ DC/OS {{ include.techName }} supports deployment on virtual networks on DC/OS (i
 
 ## Integration with DC/OS access controls
 
-In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/{{ include.serviceName }}` and `production/{{ include.serviceName }}`.
+In Enterprise DC/OS 1.10 and above, you can integrate your SDK-based service with DC/OS ACLs to grant users and groups access to only certain services. You do this by installing your service into a folder, and then restricting access to some number of folders. Folders also allow you to namespace services. For instance, `staging/{{ include.data.serviceName }}` and `production/{{ include.data.serviceName }}`.
 
 Steps:
 
@@ -147,10 +147,10 @@ Steps:
      dcos:adminrouter:ops:slave full
      ```
 
-1. Install your service into a folder called `test`. Go to **Catalog**, then search for **{{ include.packageName }}**.
-1. Click **CONFIGURE** and change the service name to `/testing/{{ include.serviceName }}`, then deploy.
+1. Install your service into a folder called `test`. Go to **Catalog**, then search for **{{ include.data.packageName }}**.
+1. Click **CONFIGURE** and change the service name to `/testing/{{ include.data.serviceName }}`, then deploy.
 
-     The slashes in your service name are interpreted as folders. You are deploying `{{ include.serviceName }}` in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
+     The slashes in your service name are interpreted as folders. You are deploying `{{ include.data.serviceName }}` in the `/testing` folder. Any user with access to the `/testing` folder will have access to the service.
 
 **Important:**
 - Services cannot be renamed. Because the location of the service is specified in the name, you cannot move services between folders.
@@ -159,7 +159,7 @@ Steps:
 ## Interacting with your foldered service
 
 - Interact with your foldered service via the DC/OS CLI with this flag: `--name=/path/to/myservice`.
-- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/{{ include.serviceName }}/v1/endpoints`.
+- To interact with your foldered service over the web directly, use `http://<dcos-url>/service/path/to/myservice`. E.g., `http://<dcos-url>/service/testing/{{ include.data.serviceName }}/v1/endpoints`.
 
 ## Placement Constraints
 

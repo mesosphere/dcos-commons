@@ -1,0 +1,20 @@
+# Common values:
+
+packageName: beta-cassandra
+serviceName: cassandra
+techName: Apache Cassandra
+
+# Values specific to certain templates:
+
+install:
+  minNodeCount: three
+  nodeDescription: with three Apache Cassandra nodes
+  serviceAccountInstructionsUrl: https://docs.mesosphere.com/services/cassandra/cass-auth/
+
+managing:
+  podType: node
+  taskType: server
+
+supportedVersions:
+  techExampleVersion: 3.0.13
+  techLink: "[Cassandra](http://cassandra.apache.org/download/)"

@@ -4,12 +4,7 @@ navigationTitle:
 excerpt:
 title: Uninstall
 menuWeight: 30
-
-packageName: beta-elastic
-serviceName: elastic
 ---
+{% assign data = site.data.services.elastic %}
 
-{% include services/uninstall.md
-    techName="an Elastic"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/uninstall.md data=data %}

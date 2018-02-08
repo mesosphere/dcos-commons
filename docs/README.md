@@ -12,20 +12,59 @@ The following describe what's needed to manually generate the docs on your syste
 
 Paths are relative to the root of `dcos-commons`:
 
-- `frameworks/*/docs/`: Service docs. `generate.sh` automatically creates symlinks to these in `docs/pages/services/`.
-- `docs/pages/_includes/services`: Templates used for service docs. **Most content should go here unless it's specific to a single service.**
+Service docs:
+- `frameworks/*/docs/`: Service docs. `generate.sh` will automatically create symlinks to these from `docs/pages/services/` so that Jekyll will see them.
+- `docs/pages/_includes/services/`: Service doc templates. **Most content should go here unless it's specific to a single service.**
+- `docs/pages/_data/services/`: Data used for service docs and service doc templates. **Service-specific values for templates go here to simplify overriding.**
+
+SDK docs:
 - `docs/pages/ops-guide/*.md`: Individual sections of the Ops Guide. These are rendered as a single page by `docs/pages/operations-guide.md`. **This may be removed in favor of the service doc templates?**
-- `docs/pages/*.md`: Other guides/tutorials like the Dev guide and YAML reference. Unlike the service docs, these mainly center around service developers using the SDK itself.
+- `docs/pages/*.md`: SDK guides/tutorials like the Dev guide and YAML reference. Unlike the service docs, these mainly center around service developers using the SDK itself.
 - `docs/reference/swagger-api/swagger-spec.yaml`: The swagger specification used to generate the Scheduler API reference.
 
 ## Template parameters
 
-The pages in `docs/pages/_includes/services` are templates containing content shared across multiple services. As such, these pages typically have some template parameters so that they can be portable between services. Many of these parameters are custom to the template in question, but the templates will often have one or more of the following parameters as a convention:
+All service-specific template parameters are stored in YAML files within `docs/pages/_data/services/`. This data is then used by the service docs and the service doc templates. Breaking this information into separate files has two benefits:
+- Catalog all the available template parameters across services in a single place.
+- Allow easy overriding when releasing documentation for a package, by editing the content of the appropriate YAML file(s). For example, `s/packageName: beta-cassandra/packageName: cassandra/` or `s/techName: Apache Kafka/techName: Confluent Kafka/`.
+
+Some parameters are common across templates, while others are only applicable to a single template. The common parameters are:
 - `packageName`: The name of the package, e.g. `cassandra` or `beta-kafka`.
 - `serviceName`: The default name of the service when installed, e.g. `hdfs`.
 - `techName`: The user-friendly name of the underlying technology, e.g. `Apache Cassandra` or `Elastic`.
 
-To see the parameters that a given template has, you can search the template content for `include.`. A value named `include.foo` within the template should be provided as a parameter named `foo`. For more information about template parameters, see the [Jekyll docs](https://jekyllrb.com/docs/includes/) on templating.
+### From service docs
+
+To access YAML template data in e.g. `MYSERVICE.yml` from a service doc in `frameworks/*/docs/`, do the following:
+  ```
+  {% assign data = site.data.services.MYSERVICE %}
+  Hello, {{ data.packageName }}!
+  ```
+
+**Note:** To see all existing parameters used in the service docs (and check for bad or missing parameters), do this:
+
+```
+egrep -Roh "\{\{([a-zA-Z0-9. ]+)\}\}" frameworks/*/docs/ | sort | uniq
+```
+
+### From service doc templates
+
+To access this `MYSERVICE.yml` template data from a service doc template in `docs/pages/_includes/services/`, do the following:
+- In the service doc that's using the template, point to the desired YAML file, and pass its content into the template:
+  ```
+  {% assign data = site.data.services.MYSERVICE %} <!-- may have this already, per above -->
+  {% include services/mytemplate.md data=data %}
+  ```
+- In the template, use the data in the passed `data` parameter:
+  ```
+  Hello, common value {{ include.data.packageName }}, template-specific value {{ include.data.THISTEMPLATE.someParam }}!
+  ```
+
+**Note:** To see all existing parameters used in the templates (and check for bad or missing parameters), do this:
+
+```
+egrep -Roh "\{\{([a-zA-Z0-9. ]+)\}\}" docs/pages/_includes/services/ | sort | uniq
+```
 
 ## Build requirements
 

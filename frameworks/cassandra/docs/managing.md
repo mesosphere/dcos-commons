@@ -4,17 +4,10 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
-
-packageName: beta-cassandra
-serviceName: cassandra
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/managing.md
-    podType="node"
-    taskType="server"
-    techName="Apache Cassandra"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/managing.md data=data %}
 
 ## Performing Cassandra Cleanup and Repair Operations
 
@@ -27,12 +20,12 @@ You may trigger a `nodetool cleanup` operation across your Cassandra nodes using
 
 To initiate this plan from the command line:
 ```
-dcos {{ page.packageName }} --name={{ page.serviceName }} plan start cleanup -p CASSANDRA_KEYSPACE=space1
+dcos {{ data.packageName }} --name={{ data.serviceName }} plan start cleanup -p CASSANDRA_KEYSPACE=space1
 ```
 
 To view the status of this plan from the command line:
 ```
-dcos {{ page.packageName }} --name={{ page.serviceName }} plan status cleanup
+dcos {{ data.packageName }} --name={{ data.serviceName }} plan status cleanup
 cleanup (IN_PROGRESS)
 └─ cleanup-deploy (IN_PROGRESS)
    ├─ node-0:[cleanup] (COMPLETE)
@@ -53,12 +46,12 @@ You may trigger a `nodetool repair` operation across your Cassandra nodes using 
 
 To initiate this command from the command line:
 ```
-dcos {{ page.packageName }} --name={{ page.serviceName }} plan start repair -p CASSANDRA_KEYSPACE=space1
+dcos {{ data.packageName }} --name={{ data.serviceName }} plan start repair -p CASSANDRA_KEYSPACE=space1
 ```
 
 To view the status of this plan from the command line:
 ```
-dcos {{ page.packageName }} --name={{ page.serviceName }} plan status repair
+dcos {{ data.packageName }} --name={{ data.serviceName }} plan status repair
 repair (STARTING)
 └─ repair-deploy (STARTING)
    ├─ node-0:[repair] (STARTING)
@@ -82,13 +75,13 @@ operation is performed automatically.
 For example if `node-0` needed to be replaced we would execute:
 
 ```bash
-dcos {{ page.packageName }} --name={{ page.serviceName }} pod replace node-0
+dcos {{ data.packageName }} --name={{ data.serviceName }} pod replace node-0
 ```
 
 which would result in a recovery plan like the following:
 
 ```bash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }} plan show recovery
+$ dcos {{ data.packageName }} --name={{ data.serviceName }} plan show recovery
 recovery (IN_PROGRESS)
 └─ permanent-node-failure-recovery (IN_PROGRESS)
    ├─ node-0:[server] (COMPLETE)
