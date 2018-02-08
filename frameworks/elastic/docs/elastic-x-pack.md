@@ -8,7 +8,7 @@ menuWeight: 21
 
 [X-Pack](https://www.elastic.co/guide/en/x-pack/current/xpack-introduction.html) is an Elastic Stack extension that bundles security, alerting, monitoring, reporting, and graph capabilities into one easy-to-install package. X-Pack is a commercial product of Elastic that requires a license. By default, X-Pack is not installed as part of the DC/OS Elastic service. However, it's easy to enable X-Pack as part of the service configuration:
 
-![x-pack](img/x-pack.png)
+![x-pack](../img/x-pack.png)
 
 You must set the update strategy to `parallel` when you toggle X-Pack in order to force a full cluster restart.
 Afterwards, you should set the update strategy back to `serial` for future updates.

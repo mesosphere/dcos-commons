@@ -15,11 +15,10 @@ serviceName: cassandra
     packageName=page.packageName
     serviceName=page.serviceName
     minNodeCount="three"
-    defaultInstallDescription="with three cassandra nodes"
-    serviceAccountInstructionsUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/"
-    enterpriseInstallUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/" %}
+    defaultInstallDescription="with three Apache Cassandra nodes"
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/cassandra/cass-auth/" %}
 
-# Multi-datacenter Deployment
+# Multi-datacenter deployment
 
 To replicate data across data centers, {{ page.techName }} requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here's what starting a multi-data-center {{ page.techName }} deployment would look like, running inside of a single DC/OS cluster.
 
@@ -44,7 +43,7 @@ Create an `options.json` file for the second cluster that specifies a different 
 
 Launch the second cluster with these custom options:
 ```
-dcos package install {{ page.packageName }} --options=<options>.json
+dcos package install {{ page.packageName }} --options=<options.json>
 ```
 
 ## Get the seed node IP addresses
@@ -135,4 +134,4 @@ deploy (IN_PROGRESS)
 
 ## Test your multi-datacenter configuration
 
-Follow the [quick start guide](quick-start.md) to write data to one cluster. Then, use the client on the other cluster to ensure the data has propagated.
+Follow the [quick start guide](../quick-start/) to write data to one cluster. Then, use the client on the other cluster to ensure the data has propagated.

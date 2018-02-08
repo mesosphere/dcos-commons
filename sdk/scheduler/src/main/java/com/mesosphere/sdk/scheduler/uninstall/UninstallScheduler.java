@@ -45,8 +45,9 @@ public class UninstallScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerConfig schedulerConfig) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, Optional.empty());
+            SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer) {
+        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
     }
 
     protected UninstallScheduler(
@@ -54,6 +55,7 @@ public class UninstallScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(stateStore, configStore, schedulerConfig);
         this.serviceSpec = serviceSpec;
@@ -66,6 +68,10 @@ public class UninstallScheduler extends AbstractScheduler {
                 schedulerConfig,
                 secretsClient)
                 .build();
+
+        // Allow for customization to the uninstall plan.
+        plan = planCustomizer.isPresent() ? planCustomizer.get().updateUninstallPlan(plan) : plan;
+
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
         this.resources = Arrays.asList(
                 new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),

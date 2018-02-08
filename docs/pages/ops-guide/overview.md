@@ -266,19 +266,19 @@ Configuring `ROOT` vs `MOUNT` volumes may depend on the service. Some services w
 
 ## Virtual networks
 
-The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by using the `networks` keyword in your YAML definition. Refer to [Developers Guide](../developer-guide.md) for more information about how to define virtual networks in your service.
+The SDK allows pods to join virtual networks, with the `dcos` virtual network available by defualt. You can specify that a pod should join the virtual network by using the `networks` keyword in your YAML definition. Refer to the [Developer Guide](../developer-guide/) for more information about how to define virtual networks in your service.
 
 When a pod is on a virtual network such as the `dcos`:
   * Every pod gets its own IP address and its own array of ports.
   * Pods do not use the ports on the host machine.
   * Pod IP addresses can be resolved with the DNS: `<task_name>.<service_name>.autoip.dcos.thisdcos.directory`.
-  * You can also pass labels while invoking CNI plugins. Refer to [Developers Guide](../developer-guide.md) for more information about adding CNI labels.
+  * You can also pass labels while invoking CNI plugins. Refer to the [Developer Guide](../developer-guide/) for more information about adding CNI labels.
 
 ## Secrets
 
 Enterprise DC/OS provides a secrets store to enable access to sensitive data such as database passwords, private keys, and API tokens. DC/OS manages secure transportation of secret data, access control and authorization, and secure storage of secret content.
 
-The content of a secret is copied and made available within the pod. The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to [Developer Guide](../developer-guide.md) for more information about how DC/OS secrets are integration in SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
+The content of a secret is copied and made available within the pod. The SDK allows secrets to be exposed to pods as a file and/or as an environment variable. Refer to the [Developer Guide](../developer-guide/) for more information about how DC/OS secrets are integrated into SDK-based services. If the content of the secret is changed, the relevant pod needs to be restarted so that it can get updated content from the secret store.
 
 **Note:** Secrets are available only in Enterprise DC/OS 1.10 onwards. [Learn more about the secrets store](https://docs.mesosphere.com/1.10/security/secrets/).
 
@@ -342,7 +342,7 @@ $ dcos security secrets create --value-file kerb5.keytab.base64-encoded some/pat
 
 **Note:** The secret name **must** be prefixed with `__dcos_base64__`.
 
-When the `some/path/__dcos_base64__mysecret` secret is [referenced in your service definition](../developer-guide.md#secrets), its base64-decoded contents will be made available as a [temporary file](http://mesos.apache.org/documentation/latest/secrets/#file-based-secrets) in your service task containers. **Note:** Make sure to only refer to binary secrets as files since holding binary content in environment variables is discouraged.
+When the `some/path/__dcos_base64__mysecret` secret is [referenced in your service definition](../developer-guide/#secrets), its base64-decoded contents will be made available as a [temporary file](http://mesos.apache.org/documentation/latest/secrets/#file-based-secrets) in your service task containers. **Note:** Make sure to only refer to binary secrets as files since holding binary content in environment variables is discouraged.
 
 ## Placement Constraints
 
