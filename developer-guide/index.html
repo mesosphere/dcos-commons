@@ -1288,6 +1288,27 @@ now, you must manually run the janitor script as shown above.</p>
     <span class="o">.</span><span class="na">setPlanCustomizer</span><span class="o">(</span><span class="k">new</span> <span class="n">ReverseDeployPhases</span><span class="o">());</span>
 </code></pre></div></div>
 
+<p>The uninstall plan may also be modified by overriding PlanCustomizer.updateUninstallPlan.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ReverseDeployPhases</span> <span class="kd">implements</span> <span class="n">PlanCustomizer</span> <span class="o">{</span>
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Plan</span> <span class="nf">updatePlan</span><span class="o">(</span><span class="n">Plan</span> <span class="n">plan</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">if</span> <span class="o">(</span><span class="n">plan</span><span class="o">.</span><span class="na">isDeployPlan</span><span class="o">()</span> <span class="o">&amp;&amp;</span>
+            <span class="n">Boolean</span><span class="o">.</span><span class="na">valueOf</span><span class="o">(</span><span class="n">System</span><span class="o">.</span><span class="na">getenv</span><span class="o">(</span><span class="s">"REVERSE"</span><span class="o">)))</span> <span class="o">{</span>
+            <span class="n">Collections</span><span class="o">.</span><span class="na">reverse</span><span class="o">(</span><span class="n">plan</span><span class="o">.</span><span class="na">getChildren</span><span class="o">());</span>
+        <span class="o">}</span>
+
+        <span class="k">return</span> <span class="n">plan</span><span class="o">;</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="n">Plan</span> <span class="nf">updateUninstallPlan</span><span class="o">(</span><span class="n">Plan</span> <span class="n">uninstallPlan</span><span class="o">)</span> <span class="o">{</span>
+        <span class="c1">// Do some clever things</span>
+
+        <span class="k">return</span> <span class="n">plan</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
 <h2 id="packaging">
 <a id="packaging" class="anchor" href="#packaging" aria-hidden="true"><span class="octicon octicon-link"></span></a>Packaging</h2>
 

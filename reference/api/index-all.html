@@ -7712,12 +7712,12 @@
 <dd>
 <div class="block">This scheduler uninstalls the framework and releases all of its resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>UninstallScheduler</code></a> based on the provided API port and initialization timeout, and a
  <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;SecretsClient&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;SecretsClient&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallStep</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
 <dd>
@@ -7863,7 +7863,9 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html#updateParameters-java.util.Map-">updateParameters(Map&lt;String, String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/ParentElement.html" title="interface in com.mesosphere.sdk.scheduler.plan">ParentElement</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html#updatePlan-com.mesosphere.sdk.scheduler.plan.Plan-">updatePlan(Plan)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Takes a reference to a plan, returning a reference to a modified plan derived from the original.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#updatePlan-java.util.Collection-">updatePlan(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html#updatePodPlacement-com.mesosphere.sdk.specification.PodSpec-">updatePodPlacement(PodSpec)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></dt>
@@ -7876,6 +7878,10 @@
 <dd>
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares
  their resource-set is launched.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html#updateUninstallPlan-com.mesosphere.sdk.scheduler.plan.Plan-">updateUninstallPlan(Plan)</a></span> - Method in interface com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a></dt>
+<dd>
+<div class="block">Takes a reference to the uninstall plan, returning a reference to a modified plan derived from the original.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/StateResource.html#UPLOAD_TOO_BIG_ERROR_MESSAGE">UPLOAD_TOO_BIG_ERROR_MESSAGE</a></span> - Static variable in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http">StateResource</a></dt>
 <dd>&nbsp;</dd>
