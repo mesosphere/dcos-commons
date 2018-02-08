@@ -1,6 +1,7 @@
 ---
 title: Frequently Asked Questions
 menuWeight: 3
+redirect_from: /faq.html
 ---
 
 #### __What is the DC/OS SDK?__

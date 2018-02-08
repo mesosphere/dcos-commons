@@ -22,4 +22,4 @@ Possible repair actions include [restarting the affected broker](#restarting-a-n
 ## Extending the Kill Grace Period
 
 If the Kafka brokers are not completing the clean shutdown within the configured
-`brokers.kill_grace_period` (Kill Grace Period), extend the Kill Grace Period, see [Managing - Extend the Kill Grace Period](managing.md#extend-the-kill-grace-period).
+`brokers.kill_grace_period` (Kill Grace Period), extend the Kill Grace Period, see [Managing - Extend the Kill Grace Period](../managing/#extend-the-kill-grace-period).

@@ -29,7 +29,7 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 
 #### Verify Transport Encryption Enabled
 
-After service deployment completes, check the list of [Kafka endpoints](api-reference.md#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
+After service deployment completes, check the list of [Kafka endpoints](../api-reference/#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
 
 ## Authentication
 
