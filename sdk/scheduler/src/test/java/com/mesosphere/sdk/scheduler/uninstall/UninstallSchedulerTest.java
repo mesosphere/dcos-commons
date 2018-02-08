@@ -269,7 +269,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.of(getReversingPlanCustomizer()),
                 Optional.of(mockSecretsClient));
 
-        Plan plan = uninstallScheduler.getPlanCoordinator().getPlanManagers().stream().findFirst().get().getPlan();
+        Plan plan = uninstallScheduler.initialize(mockSchedulerDriver)
+                .getPlanManagers().stream().findFirst().get().getPlan();
 
         // The standard order is kill-tasks, unreserve-resources, deregister-service. Verify the inverse
         // is now true.
