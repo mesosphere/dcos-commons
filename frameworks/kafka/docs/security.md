@@ -23,7 +23,7 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 *Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
 
 {% include services/configure-transport-encryption.md
-    techName="Apache HDFS" %}
+    techName="Apache Kafka" %}
 
 *Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
 
@@ -58,7 +58,7 @@ The DC/OS Apache Kafka service requires a Kerberos principal for each broker to 
 ```
 with:
 - `service primary = service.security.kerberos.primary`
-- `broker index = 0 up to kafka.brokers.count - 1`
+- `broker index = 0 up to brokers.count - 1`
 - `service subdomain = service.name with all `/`'s removed`
 - `service realm = service.security.kerberos.realm`
 
@@ -72,10 +72,8 @@ For example, if installing with these options:
             "realm": "EXAMPLE"
         }
     },
-    "kafka": {
-        "brokers": {
-            "count": 3
-        }
+    "brokers": {
+        "count": 3
     }
 }
 ```
