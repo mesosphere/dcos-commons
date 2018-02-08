@@ -14,17 +14,17 @@ The first step to diagnosing a problem is typically to take a look at the logs. 
 
 As of this writing, the best and fastest way to view and download logs is via the Mesos UI at `<dcos-url>/mesos`. On the Mesos front page you will see two lists: A list of currently running tasks, followed by a list of completed tasks (whether successful or failed).
 
-[<img src="img/ops-guide-all-tasks.png" alt="mesos frontpage showing all tasks in the cluster" width="400"/>](img/ops-guide-all-tasks.png)
+[<img src="../img/ops-guide-all-tasks.png" alt="mesos frontpage showing all tasks in the cluster" width="400"/>](../img/ops-guide-all-tasks.png)
 
 The `Sandbox` link for one of these tasks shows a list of files from within the task itself. For example, here's a sandbox view of a `broker-2` task from the above list:
 
-[<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
+[<img src="../img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](../img/ops-guide-task-sandbox.png)
 
 If the task is based on a Docker image, this list will only show the contents of `/mnt/sandbox`, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use `dcos task exec` or `nsenter` as described below under [Running commands within containers](#running-commands-within-containers).
 
 In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of `confluent-kafka` and they're each running a `broker-0`. As the cluster grows, this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click "Frameworks" on the upper left to see a list of all the installed frameworks (mapping to our services):
 
-[<img src="img/ops-guide-frameworks-list.png" alt="listing of frameworks installed to the cluster" width="400"/>](img/ops-guide-frameworks-list.png)
+[<img src="../img/ops-guide-frameworks-list.png" alt="listing of frameworks installed to the cluster" width="400"/>](../img/ops-guide-frameworks-list.png)
 
 We then need to decide which framework to select from this list. This depends on what task we want to view:
 
@@ -34,11 +34,11 @@ If the issue is one of deployment or management, e.g. a service is 'stuck' in in
 
 From Mesos's perspective, the Scheduler is being run as a Marathon app. Therefore we should pick `marathon` from this list and then find our Scheduler in the list of tasks.
 
-[<img src="img/ops-guide-framework-tasks-marathon.png" alt="listing of tasks running in the marathon framework (Marathon apps)" width="400"/>](img/ops-guide-framework-tasks-marathon.png)
+[<img src="../img/ops-guide-framework-tasks-marathon.png" alt="listing of tasks running in the marathon framework (Marathon apps)" width="400"/>](../img/ops-guide-framework-tasks-marathon.png)
 
 Scheduler logs can be found either via the main Mesos frontpage in small clusters (possibly using the filter box at the top right), or by navigating into the list of tasks registered against the `marathon` framework in large clusters. In SDK services, the Scheduler is typically given the same name as the service. For example a `kafka-dev` service's Scheduler would be named `kafka-dev`. We click the `Sandbox` link to view the Sandbox portion of the Scheduler filesystem, which contains files named `stdout` and `stderr`. These files respectively receive the stdout/stderr output of the Scheduler process, and can be examined to see what the Scheduler is doing.
 
-[<img src="img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400"/>](img/ops-guide-scheduler-sandbox.png)
+[<img src="../img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400"/>](../img/ops-guide-scheduler-sandbox.png)
 
 For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of [Tasks not deploying / Resource starvation](#tasks-not-deploying--resource-starvation).
 
@@ -46,15 +46,15 @@ For a good example of the kind of diagnosis you can perform using SDK Scheduler 
 
 When the issue being diagnosed has to do with the service tasks, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore, we should pick `<service-name>` from this list to view a list of tasks specific to that service.
 
-[<img src="img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400"/>](img/ops-guide-framework-tasks-service.png)
+[<img src="../img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400"/>](../img/ops-guide-framework-tasks-service.png)
 
 In the above list, we see separate lists of Active and Completed tasks:
 - Active tasks are still running. These give a picture of the current activity of the service.
 - Completed tasks have exited for some reason, whether successfully or due to a failure. These give a picture of recent activity of the service. **Note:** Older completed tasks will be automatically garbage collected and their data may no longer be available here.
 
-Either or both of these lists may be useful depending on the context. Click on the `Sandbox` link for one of these tasks and then start looking at sandbox content. Files named `stderr` and `stdout` hold logs produced both by the SDK Executor process (a small wrapper around the service task) as well as any logs produced by the task itself. These files are automatically paginated at 2MB increments, so older logs may also be examined until they are automatically pruned. For an example of this behavior, see the [scheduler sandbox](img/ops-guide-scheduler-sandbox.png) linked earlier.
+Either or both of these lists may be useful depending on the context. Click on the `Sandbox` link for one of these tasks and then start looking at sandbox content. Files named `stderr` and `stdout` hold logs produced both by the SDK Executor process (a small wrapper around the service task) as well as any logs produced by the task itself. These files are automatically paginated at 2MB increments, so older logs may also be examined until they are automatically pruned. For an example of this behavior, see the [scheduler sandbox](../img/ops-guide-scheduler-sandbox.png) linked earlier.
 
-[<img src="img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](img/ops-guide-task-sandbox.png)
+[<img src="../img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400"/>](../img/ops-guide-task-sandbox.png)
 
 ### Mesos Agent logs
 
@@ -64,7 +64,7 @@ Navigate to the agent you want to view either directly from a task by clicking t
 
 In the Agent view, you'll see a list of frameworks with a presence on that Agent. In the left pane you'll see a plain link named "LOG". Click that link to view the agent logs.
 
-[<img src="img/ops-guide-agent.png" alt="view of tasks running on a given agent" width="400"/>](img/ops-guide-agent.png)
+[<img src="../img/ops-guide-agent.png" alt="view of tasks running on a given agent" width="400"/>](../img/ops-guide-agent.png)
 
 ### Logs via the CLI
 
@@ -351,4 +351,4 @@ $ dcos datastax-dse --name=mydse -v pod list
 
 DC/OS comes with Exhibitor, a commonly used frontend for viewing ZooKeeper. Exhibitor may be accessed at `<dcos-url>/exhibitor`. A given SDK service will have a node named `dcos-service-<svcname>` visible here. This is where the Scheduler puts its state, so that it isn't lost if the Scheduler is restarted. In practice it's far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.
 
-[<img src="img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400"/>](img/ops-guide-exhibitor-view-taskstatus.png)
+[<img src="../img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400"/>](../img/ops-guide-exhibitor-view-taskstatus.png)

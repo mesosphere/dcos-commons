@@ -6,7 +6,7 @@ title: Secrets Tutorial
 
 The SDK enables you to integrate DC/OS secrets using both a declarative YAML API and flexible JAVA API. In YAML, secrets are declared within the `secret:` section in a pod specification. Similarly, in JAVA API, a `SecretSpec` is added to the `PodSpec` object.
 
-Refer to the [Developer Guide](../developer-guide.md) for more information about the JAVA API. Refer to the [Operations Guide](../operations-guide.md) for a detailed explaination of how to use DC/OS secrets in your SDK-based service.
+Refer to the [Developer Guide](../../developer-guide/) for more information about the JAVA API. Refer to the [Operations Guide](../../operations-guide/) for a detailed explaination of how to use DC/OS secrets in your SDK-based service.
 
 In this tutorial, we will use the existing `hello-world` service to experiment with secrets. First, create a DC/OS Enterprise 1.10 cluster (at least 3 nodes is recommended).
 
