@@ -75,7 +75,7 @@ def test_pause_single_task():
     assert len(pause_result['tasks']) == 1
     assert pause_result['tasks'][0] == 'hello-0-server'
     sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check agent didn't move, and that the command has changed:
     pod_info = sdk_cmd.svc_cli(
@@ -115,7 +115,7 @@ def test_pause_single_task():
     assert len(resume_result['tasks']) == 1
     assert resume_result['tasks'][0] == 'hello-0-server'
     sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check again that the agent didn't move:
     task_info = sdk_cmd.svc_cli(
@@ -189,7 +189,7 @@ def test_pause_all_pod_tasks():
     assert 'hello-0-server' in pause_result['tasks']
     assert 'hello-0-companion' in pause_result['tasks']
     sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check agent didn't move, and that the commands have changed:
     pod_info = sdk_cmd.svc_cli(
@@ -234,7 +234,7 @@ def test_pause_all_pod_tasks():
     assert 'hello-0-server' in resume_result['tasks']
     assert 'hello-0-companion' in resume_result['tasks']
     sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check again that the agent didn't move:
     pod_info = sdk_cmd.svc_cli(
@@ -337,7 +337,7 @@ def test_multiple_pod_pause():
         sdk_tasks.check_tasks_updated(
             FRAMEWORK_NAME, 'hello-{}-server'.format(i), pod_task_ids[i]
         )
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # verify that they're on the agents, and with different commands
     for i in range(10):
@@ -411,7 +411,7 @@ def test_multiple_pod_pause():
         sdk_tasks.check_tasks_updated(
             FRAMEWORK_NAME, 'hello-{}-server'.format(i), paused_pod_task_ids[i]
         )
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # verify that the agents are still the same, and the commands are restored
     for i in range(10):
