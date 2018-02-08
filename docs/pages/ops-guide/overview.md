@@ -334,13 +334,15 @@ Alternatively, GNU `base64` (the default on Linux) inserts line-feeds in the enc
 $ base64 -w 0 krb5.keytab > kerb5.keytab.base64-encoded
 ```
 
-Now that the file is encoded it can be stored as a secret. There's one important detail: the secret name **must** be prefixed with `__dcos_base64__`. For example `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically by DC/OS.
+Now that the file is encoded it can be stored as a secret.
 
 ```bash
 $ dcos security secrets create --value-file kerb5.keytab.base64-encoded some/path/__dcos_base64__mysecret
 ```
 
-When the `some/path/__dcos_base64__mysecret` secret is referenced in your service, its contents will be first base64-decoded, and then copied and made available to your service. Refer to the [Developer Guide](../developer-guide.md) for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret only as a file such that it will be automatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).
+**Note:** The secret name **must** be prefixed with `__dcos_base64__`.
+
+When the `some/path/__dcos_base64__mysecret` secret is [referenced in your service definition](../developer-guide.md#secrets), its base64-decoded contents will be made available as a [temporary file](http://mesos.apache.org/documentation/latest/secrets/#file-based-secrets) in your service task containers. **Note:** Make sure to only refer to binary secrets as files since holding binary content in environment variables is discouraged.
 
 ## Placement Constraints
 
