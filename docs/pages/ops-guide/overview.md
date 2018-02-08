@@ -316,7 +316,7 @@ You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. 
 
 To create a secret called `mysecret` with the binary contents of `kerb5.keytab` run:
 
-```
+```bash
 $ dcos security secrets create --file kerb5.keytab mysecret
 ```
 
@@ -324,19 +324,19 @@ $ dcos security secrets create --file kerb5.keytab mysecret
 
 To create a secret called `mysecret` with the binary contents of `kerb5.keytab`, first encode it using the `base64` command line utility. The following example uses BSD `base64` (default on macOS).
 
-```
-$ base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
+```bash
+$ base64 --input krb5.keytab > kerb5.keytab.base64-encoded
 ```
 
 Alternatively, GNU `base64` (the default on Linux) inserts line-feeds in the encoded data by default. Disable line-wrapping with the `-w 0` argument.
 
-```
-$ base64 -w 0 -i krb5.keytab > kerb5.keytab.base64-encoded
+```bash
+$ base64 -w 0 krb5.keytab > kerb5.keytab.base64-encoded
 ```
 
 Now that the file is encoded it can be stored as a secret. There's one important detail: the secret name **must** be prefixed with `__dcos_base64__`. For example `some/path/__dcos_base64__mysecret` and `__dcos_base64__mysecret` will be base64-decoded automatically by DC/OS.
 
-```
+```bash
 $ dcos security secrets create --value-file kerb5.keytab.base64-encoded some/path/__dcos_base64__mysecret
 ```
 
