@@ -29,7 +29,6 @@ import sdk_security
 log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = "kdc"
-KERBEROS_KEYTAB_FILE_NAME = "keytab"
 DCOS_BASE64_PREFIX = "__dcos_base64__"
 LINUX_USER = "core"
 KERBEROS_CONF = "krb5.conf"
@@ -167,7 +166,6 @@ class KerberosEnvironment:
 
         # Kerberos-specific information
         self.principals = []
-        self.keytab_file_name = KERBEROS_KEYTAB_FILE_NAME
         self.kdc_realm = REALM
 
         self.set_keytab_path("_keytab", is_binary=False)
@@ -261,12 +259,11 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
-    def create_remote_keytab(self, name: str, principals: list=[]) -> str:
+    def create_remote_keytab(self, keytab_id: str, principals: list=[]) -> str:
         """
         Create a remote keytab for the specified list of principals
         """
-        if not name:
-            name = "{}.keytab".format(str(uuid.uuid4()))
+        name = "{}.{}.keytab".format(keytab_id, str(uuid.uuid4()))
 
         log.info("Creating keytab: %s", name)
 
@@ -295,12 +292,14 @@ class KerberosEnvironment:
         return keytab_absolute_path
 
     @retrying.retry(stop_max_attempt_number=2, wait_fixed=5000)
-    def get_keytab_for_principals(self, principals: list, output_filename: str):
+    def get_keytab_for_principals(self, keytab_id: str, principals: list):
         """
         Download a generated keytab for the specified list of principals
         """
-        remote_keytab_path = self.create_remote_keytab(self.keytab_file_name, principals=principals)
-        _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, output_filename)
+        remote_keytab_path = self.create_remote_keytab(keytab_id, principals=principals)
+        local_keytab_path = self.get_working_file_path(os.path.basename(remote_keytab_path))
+
+        _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, local_keytab_path)
 
         # In a fun twist, at least in the HDFS tests, we sometimes wind up with a _bad_ keytab. I know, right?
         # We can validate if it is good or bad by checking it with some internal Java APIs.
@@ -311,7 +310,7 @@ class KerberosEnvironment:
                          "security",
                          "keytab-validator",
                          "keytab-validator.jar"),
-            output_filename)
+            local_keytab_path)
         result = subprocess.run(command,
                                 shell=True,
                                 stdout=subprocess.PIPE,
@@ -325,16 +324,16 @@ class KerberosEnvironment:
                             "We're going to retry generating this keytab with reversed principals. "
                             "What fun.")
 
+        return local_keytab_path
+
     def __create_and_fetch_keytab(self):
         """
         Creates the keytab file that holds the info about all the principals
         that have been added to the KDC. It also fetches it locally so that
         the keytab can be uploaded to the secret store later.
         """
-        local_keytab_filename = self.get_working_file_path(self.keytab_file_name)
-        self.get_keytab_for_principals(self.principals, local_keytab_filename)
-
-        return local_keytab_filename
+        keytab_id = self.get_keytab_path().replace("/", "_")
+        return self.get_keytab_for_principals(keytab_id, self.principals)
 
     def __encode_secret(self, keytab_path: str) -> str:
         if self.get_keytab_path().startswith(DCOS_BASE64_PREFIX):
