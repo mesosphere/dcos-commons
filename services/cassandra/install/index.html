@@ -529,22 +529,19 @@
 <h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
-  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/services/cassandra/cass-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
     <ul>
       <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
       <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
       <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
     </ul>
   </li>
-  <li>
-    <p>Your cluster must have at least three private nodes.</p>
-  </li>
-  <li></li>
+  <li>Your cluster must have at least three private nodes.</li>
 </ul>
 
 <h2 id="default-installation">Default Installation</h2>
 
-<p>To start a basic test cluster with three cassandra nodes, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">More information about installing Apache Cassandra on Enterprise DC/OS</a>.</p>
+<p>To start a basic test cluster with three Apache Cassandra nodes, run the following command on the DC/OS CLI. Enterprise DC/OS users may need to follow <a href="https://docs.mesosphere.com/services/cassandra/cass-auth/">additional instructions</a>, depending on the security mode of the Enterprise DC/OS cluster.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra
 </code></pre></div></div>
@@ -556,10 +553,97 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra &lt;cmd&gt;
 </code></pre></div></div>
 
-<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install Apache Cassandra from the DC/OS web interface, the <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-cassandra <span class="nt">--cli</span>
 </code></pre></div></div>
+
+<h2 id="alternate-install-configurations">Alternate install configurations</h2>
+
+<p>The following are some examples of how to customize the installation of your Apache Cassandra instance.</p>
+
+<p>In each case, you would create a new  instance using the custom configuration as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra <span class="nt">--options</span><span class="o">=</span>sample-cassandra.json
+</code></pre></div></div>
+
+<p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
+
+<h3 id="installing-multiple-instances">Installing multiple instances</h3>
+
+<p>By default, the Apache Cassandra service is installed with a service name of <code class="highlighter-rouge">cassandra</code>. You may specify a different name using a custom service configuration as follows:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"cassandra-other"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>When the above JSON configuration is passed to the <code class="highlighter-rouge"><span class="k">package</span> <span class="n">install</span> <span class="n">beta</span><span class="p">-</span><span class="n">cassandra</span></code> command via the <code class="highlighter-rouge">--options</code> argument, the new service will use the name specified in that JSON configuration:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra <span class="nt">--options</span><span class="o">=</span>cassandra-other.json
+</code></pre></div></div>
+
+<p>Multiple instances of  may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of  named <code class="highlighter-rouge">cassandra-staging</code> and another named <code class="highlighter-rouge">cassandra-prod</code>, each with its own custom configuration.</p>
+
+<p>After specifying a custom name for your instance, it can be reached using <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
+
+<p><strong>Note:</strong> The service name <em>cannot</em> be changed after initial install. Changing the service name would require installing a new instance of the service against the new name, then copying over any data as necessary to the new instance.</p>
+
+<h3 id="installing-into-folders">Installing into folders</h3>
+
+<p>In DC/OS 1.10 and above, services may be installed into <em>folders</em> by specifying a slash-delimited service name. For example:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/foldered/path/to/cassandra"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The above example will install the service under a path of <code class="highlighter-rouge">foldered</code> =&gt; <code class="highlighter-rouge">path</code> =&gt; <code class="highlighter-rouge">to</code> =&gt; <code class="highlighter-rouge">cassandra</code>. It can then be reached using <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
+
+<p><strong>Note:</strong> The service folder location <em>cannot</em> be changed after initial install. Changing the service location would require installing a new instance of the service against the new location, then copying over any data as necessary to the new instance.</p>
+
+<h3 id="addressing-named-instances">Addressing named instances</h3>
+
+<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos </code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-cassandra</code>.</p>
+
+<p>For example, if you had an instance named <code class="highlighter-rouge">cassandra-dev</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra-dev pod list
+</code></pre></div></div>
+
+<p>The same query would be over HTTP as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/cassandra-dev/v1/pod
+</code></pre></div></div>
+
+<p>Likewise, if you had an instance in a folder like <code class="highlighter-rouge">/foldered/path/to/cassandra</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>/foldered/path/to/cassandra pod list
+</code></pre></div></div>
+
+<p>Similarly, it could be queried directly over HTTP as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/foldered/path/to/cassandra-dev/v1/pod
+</code></pre></div></div>
+
+<p><strong>Note:</strong> You may add a <code class="highlighter-rouge">-v</code> (verbose) argument to any <code class="highlighter-rouge">dcos beta-cassandra</code> command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, <code class="highlighter-rouge">dcos beta-cassandra</code> commands are a thin wrapper around an HTTP interface provided by the DC/OS Apache Cassandra Service itself.</p>
+
+<h3 id="virtual-networks">Virtual networks</h3>
+
+<p>DC/OS Apache Cassandra supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"virtual_network_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p><strong>Note:</strong> Once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
 
 <h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
 
@@ -611,7 +695,7 @@
 
 <p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
 
-<h2 id="regions-and-zones">Regions and Zones</h2>
+<h3 id="regions-and-zones">Regions and Zones</h3>
 
 <p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
@@ -619,9 +703,9 @@
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
 
-<h3 id="example">Example</h3>
+<h4 id="example">Example</h4>
 
-<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>. For balanced Placement for a Single Region:</p>
+<p>Suppose we have a Mesos cluster with three zones. For balanced placement across those three zones, we would have a configuration like this:</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
   ...
@@ -630,9 +714,9 @@
 }
 </code></pre></div></div>
 
-<p>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
+<p>Instances will all be evenly divided between those three zones.</p>
 
-<h1 id="multi-datacenter-deployment">Multi-datacenter Deployment</h1>
+<h1 id="multi-datacenter-deployment">Multi-datacenter deployment</h1>
 
 <p>To replicate data across data centers, Apache Cassandra requires that you configure each cluster with the addresses of the seed nodes from every remote cluster. Here’s what starting a multi-data-center Apache Cassandra deployment would look like, running inside of a single DC/OS cluster.</p>
 
@@ -654,7 +738,7 @@
 </span></code></pre></div></div>
 
 <p>Launch the second cluster with these custom options:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package install beta-cassandra --options=&lt;options&gt;.json
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package install beta-cassandra --options=&lt;options.json&gt;
 </code></pre></div></div>
 
 <h2 id="get-the-seed-node-ip-addresses">Get the seed node IP addresses</h2>

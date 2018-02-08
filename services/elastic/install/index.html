@@ -524,27 +524,25 @@
 <h1>Elastic: Install and Customize</h1>
 <div id="content">
 
+
 <p>The default DC/OS Elastic installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
-  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/services/elastic/elastic-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
     <ul>
       <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
       <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
       <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
     </ul>
   </li>
-  <li>
-    <p>Your cluster must have at least three private nodes.</p>
-  </li>
-  <li></li>
+  <li>Your cluster must have at least three private nodes.</li>
 </ul>
 
 <h2 id="default-installation">Default Installation</h2>
 
-<p>To start a basic test cluster with three master nodes, two data nodes, and one coordinator node, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="">More information about installing Elastic on Enterprise DC/OS</a>.</p>
+<p>To start a basic test cluster with three master nodes, two data nodes, and one coordinator node, run the following command on the DC/OS CLI. Enterprise DC/OS users may need to follow <a href="https://docs.mesosphere.com/services/elastic/elastic-auth/">additional instructions</a>, depending on the security mode of the Enterprise DC/OS cluster.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic
 </code></pre></div></div>
@@ -556,10 +554,121 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic &lt;cmd&gt;
 </code></pre></div></div>
 
-<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install Elastic from the DC/OS web interface, the <code class="highlighter-rouge">dcos beta-elastic</code> CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--cli</span>
 </code></pre></div></div>
+
+<h2 id="alternate-install-configurations">Alternate install configurations</h2>
+
+<p>The following are some examples of how to customize the installation of your Elastic instance.</p>
+
+<p>In each case, you would create a new  instance using the custom configuration as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--options</span><span class="o">=</span>sample-elastic.json
+</code></pre></div></div>
+
+<p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
+
+<h3 id="installing-multiple-instances">Installing multiple instances</h3>
+
+<p>By default, the Elastic service is installed with a service name of <code class="highlighter-rouge">elastic</code>. You may specify a different name using a custom service configuration as follows:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"elastic-other"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>When the above JSON configuration is passed to the <code class="highlighter-rouge"><span class="k">package</span> <span class="n">install</span> <span class="n">beta</span><span class="p">-</span><span class="n">elastic</span></code> command via the <code class="highlighter-rouge">--options</code> argument, the new service will use the name specified in that JSON configuration:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--options</span><span class="o">=</span>elastic-other.json
+</code></pre></div></div>
+
+<p>Multiple instances of  may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of  named <code class="highlighter-rouge">elastic-staging</code> and another named <code class="highlighter-rouge">elastic-prod</code>, each with its own custom configuration.</p>
+
+<p>After specifying a custom name for your instance, it can be reached using <code class="highlighter-rouge">dcos beta-elastic</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
+
+<p><strong>Note:</strong> The service name <em>cannot</em> be changed after initial install. Changing the service name would require installing a new instance of the service against the new name, then copying over any data as necessary to the new instance.</p>
+
+<h3 id="installing-into-folders">Installing into folders</h3>
+
+<p>In DC/OS 1.10 and above, services may be installed into <em>folders</em> by specifying a slash-delimited service name. For example:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/foldered/path/to/elastic"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The above example will install the service under a path of <code class="highlighter-rouge">foldered</code> =&gt; <code class="highlighter-rouge">path</code> =&gt; <code class="highlighter-rouge">to</code> =&gt; <code class="highlighter-rouge">elastic</code>. It can then be reached using <code class="highlighter-rouge">dcos beta-elastic</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
+
+<p><strong>Note:</strong> The service folder location <em>cannot</em> be changed after initial install. Changing the service location would require installing a new instance of the service against the new location, then copying over any data as necessary to the new instance.</p>
+
+<h3 id="addressing-named-instances">Addressing named instances</h3>
+
+<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos </code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-elastic</code>.</p>
+
+<p>For example, if you had an instance named <code class="highlighter-rouge">elastic-dev</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic-dev pod list
+</code></pre></div></div>
+
+<p>The same query would be over HTTP as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/elastic-dev/v1/pod
+</code></pre></div></div>
+
+<p>Likewise, if you had an instance in a folder like <code class="highlighter-rouge">/foldered/path/to/elastic</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>/foldered/path/to/elastic pod list
+</code></pre></div></div>
+
+<p>Similarly, it could be queried directly over HTTP as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/foldered/path/to/elastic-dev/v1/pod
+</code></pre></div></div>
+
+<p><strong>Note:</strong> You may add a <code class="highlighter-rouge">-v</code> (verbose) argument to any <code class="highlighter-rouge">dcos beta-elastic</code> command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, <code class="highlighter-rouge">dcos beta-elastic</code> commands are a thin wrapper around an HTTP interface provided by the DC/OS Elastic Service itself.</p>
+
+<h3 id="virtual-networks">Virtual networks</h3>
+
+<p>DC/OS Elastic supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"virtual_network_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p><strong>Note:</strong> Once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
+
+<h3 id="example-custom-installation">Example custom installation</h3>
+
+<p>You can customize the Elastic cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"another-cluster"</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="s2">"master_nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"transport_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">19300</span><span class="w">
+  </span><span class="p">},</span><span class="w">
+  </span><span class="s2">"elasticsearch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis-icu,analysis-kuromoji"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The command below creates a cluster using a <code class="highlighter-rouge">options.json</code> file:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--options</span><span class="o">=</span>options.json
+</code></pre></div></div>
+
+<p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
 
 <h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
 
@@ -611,7 +720,7 @@
 
 <p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
 
-<h2 id="regions-and-zones">Regions and Zones</h2>
+<h3 id="regions-and-zones">Regions and Zones</h3>
 
 <p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
@@ -619,9 +728,9 @@
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
 
-<h3 id="example">Example</h3>
+<h4 id="example">Example</h4>
 
-<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>. For balanced Placement for a Single Region:</p>
+<p>Suppose we have a Mesos cluster with three zones. For balanced placement across those three zones, we would have a configuration like this:</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
   ...
@@ -630,61 +739,7 @@
 }
 </code></pre></div></div>
 
-<p>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
-
-<h1 id="custom-installation">Custom Installation</h1>
-
-<p>You can customize the Elastic cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:</p>
-
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"another-cluster"</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"master_nodes"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-          </span><span class="s2">"transport_port"</span><span class="p">:</span><span class="w"> </span><span class="mi">19300</span><span class="w">
-    </span><span class="p">},</span><span class="w">
-    </span><span class="s2">"elasticsearch"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"plugins"</span><span class="p">:</span><span class="w"> </span><span class="s2">"analysis-icu,analysis-kuromoji"</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<p>The command below creates a cluster using a <code class="highlighter-rouge">options.json</code> file:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--options</span><span class="o">=</span>options.json
-</code></pre></div></div>
-
-<p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
-
-<h1 id="multiple-elastic-cluster-installation">Multiple Elastic Cluster Installation</h1>
-
-<p>Installing multiple Elastic clusters is identical to installing Elastic clusters with custom configurations as described above. The only requirement on the operator is that a unique <code class="highlighter-rouge">name</code> is specified for each installation.</p>
-
-<p>Sample JSON options file named <code class="highlighter-rouge">another-cluster.json</code>:</p>
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"another-cluster"</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-
-<p>The command below creates a cluster using <code class="highlighter-rouge">another-cluster.json</code>:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-elastic <span class="nt">--options</span><span class="o">=</span>another-cluster.json
-</code></pre></div></div>
-
-<p>See the Configuring section for a list of fields that can be customized via an options JSON file when the Elastic cluster is created.</p>
-
-<h2 id="virtual-networks">Virtual networks</h2>
-
-<p>Elastic supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:</p>
-<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-    </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"virtual_network_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-    </span><span class="p">}</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div></div>
-<p>As mentioned in the <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html">developer guide</a> once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
+<p>Instances will all be evenly divided between those three zones.</p>
 
 <h2 id="tls">TLS</h2>
 
@@ -713,13 +768,13 @@
 
 <p>For more information about TLS in the SDK see <a href="https://mesosphere.github.io/dcos-commons/developer-guide.html#tls">the TLS documentation</a>.</p>
 
-<h3 id="clients">Clients</h3>
+<h3 id="clients-when-tls-is-enabled">Clients when TLS is enabled</h3>
 
 <p>Clients connecting to the Elastic service are required to use <a href="https://docs.mesosphere.com/1.10/networking/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the TLS connections.</p>
 
-<h3 id="kibana">Kibana</h3>
+<h3 id="kibana-when-tls-is-enabled">Kibana when TLS is enabled</h3>
 
-<p>When the Elastic service is deployed on DC/OS with TLS support Kibana, acting as an Elastic client, must be configured to verify TLS with the DC/OS CA bundle. To install the DC/OS CA bundle launch Kibana with the following configuration.</p>
+<p>When the Elastic service has been deployed on DC/OS with TLS support, Kibana, acting as an Elastic client, must be configured to verify TLS with the DC/OS CA bundle. To install the DC/OS CA bundle, launch Kibana with the following configuration.</p>
 
 <p>Sample JSON options file named <code class="highlighter-rouge">kibana-tls.json</code>:</p>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
@@ -734,119 +789,7 @@
 
 <p>Similarly to Elastic, Kibana requires <a href="../elastic-x-pack/">X-Pack</a> to be installed. The Kibana package itself doesn’t support exposing itself over a TLS connection.</p>
 
-<h1 id="changing-configuration-at-runtime">Changing Configuration at Runtime</h1>
-
-<!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
-
-<p>The instructions below describe how to update the configuration for a running DC/OS service.</p>
-
-<h2 id="enterprise-dcos-110">Enterprise DC/OS 1.10</h2>
-
-<p>Enterprise DC/OS 1.10 introduces a convenient command line option that allows for easier updates to a service’s configuration, as well as allowing users to inspect the status of an update, to pause and resume updates, and to restart or complete steps if necessary.</p>
-
-<h3 id="prerequisites-1">Prerequisites</h3>
-
-<ul>
-  <li>Enterprise DC/OS 1.10 or newer.</li>
-  <li>Service with a version greater than 2.0.0-x.</li>
-  <li><a href="https://docs.mesosphere.com/latest/cli/install/">The DC/OS CLI</a> installed and available.</li>
-  <li>The service’s subcommand available and installed on your local machine.
-    <ul>
-      <li>You can install just the subcommand CLI by running <code class="highlighter-rouge">dcos package install --cli beta-elastic</code>.</li>
-      <li>If you are running an older version of the subcommand CLI that doesn’t have the <code class="highlighter-rouge">update</code> command, uninstall and reinstall your CLI.
-        <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--cli</span> beta-elastic
-dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-elastic
-</code></pre></div>        </div>
-      </li>
-    </ul>
-  </li>
-</ul>
-
-<h3 id="preparing-configuration">Preparing configuration</h3>
-
-<p>If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service (including any default values that were applied during installation). For example:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic describe <span class="o">&gt;</span> options.json
-</code></pre></div></div>
-
-<p>Make any configuration changes to this <code class="highlighter-rouge">options.json</code> file.</p>
-
-<p>If you installed this service with a prior version of DC/OS, this configuration will not have been persisted by the the DC/OS package manager. You can instead use the <code class="highlighter-rouge">options.json</code> file that was used when <a href="#initial-service-configuration">installing the service</a>.</p>
-
-<p><strong>Note:</strong> You must specify all configuration values in the <code class="highlighter-rouge">options.json</code> file when performing a configuration update. Any unspecified values will be reverted to the default values specified by the DC/OS service. See the “Recreating <code class="highlighter-rouge">options.json</code>” section below for information on recovering these values.</p>
-
-<h4 id="recreating-optionsjson-optional">Recreating <code class="highlighter-rouge">options.json</code> (optional)</h4>
-
-<p>If the <code class="highlighter-rouge">options.json</code> from when the service was last installed or updated is not available, you will need to manually recreate it using the following steps.</p>
-
-<p>First, we’ll fetch the default application’s environment, current application’s environment, and the actual template that maps config values to the environment:</p>
-
-<ol>
-  <li>Ensure you have <a href="https://stedolan.github.io/jq/">jq</a> installed.</li>
-  <li>Set the service name that you’re using, for example:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ SERVICE_NAME</span><span class="o">=</span>elastic
-</code></pre></div>    </div>
-  </li>
-  <li>Get the version of the package that is currently installed:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ PACKAGE_VERSION</span><span class="o">=</span><span class="k">$(</span>dcos package list | <span class="nb">grep</span> <span class="nv">$SERVICE_NAME</span> | <span class="nb">awk</span> <span class="s1">'{print $2}'</span><span class="k">)</span>
-</code></pre></div>    </div>
-  </li>
-  <li>Then fetch and save the environment variables that have been set for the service:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos marathon app show <span class="nv">$SERVICE_NAME</span> | jq .env <span class="o">&gt;</span> current_env.json
-</code></pre></div>    </div>
-  </li>
-  <li>To identify those values that are custom, we’ll get the default environment variables for this version of the service:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package describe <span class="nt">--package-version</span><span class="o">=</span><span class="nv">$PACKAGE_VERSION</span> <span class="nt">--render</span> <span class="nt">--app</span> <span class="nv">$SERVICE_NAME</span> | jq .env <span class="o">&gt;</span> default_env.json
-</code></pre></div>    </div>
-  </li>
-  <li>We’ll also get the entire application template:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package describe <span class="nv">$SERVICE_NAME</span> <span class="nt">--app</span> <span class="o">&gt;</span> marathon.json.mustache
-</code></pre></div>    </div>
-  </li>
-</ol>
-
-<p>Now that you have these files, we’ll attempt to recreate the <code class="highlighter-rouge">options.json</code>.</p>
-
-<ol>
-  <li>Use JQ and <code class="highlighter-rouge">diff</code> to compare the two:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>diff &lt;<span class="o">(</span>jq <span class="nt">-S</span> <span class="nb">.</span> default_env.json<span class="o">)</span> &lt;<span class="o">(</span>jq <span class="nt">-S</span> <span class="nb">.</span> current_env.json<span class="o">)</span>
-</code></pre></div>    </div>
-  </li>
-  <li>Now compare these values to the values contained in the <code class="highlighter-rouge">env</code> section in application template:
-    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>less marathon.json.mustache
-</code></pre></div>    </div>
-  </li>
-  <li>Use the variable names (e.g. <code class="highlighter-rouge">service.name</code>) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
-</ol>
-
-<h3 id="starting-the-update">Starting the update</h3>
-
-<p>Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated <code class="highlighter-rouge">options.json</code> file:</p>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-elastic <span class="nt">--name</span><span class="o">=</span>elastic update start <span class="nt">--options</span><span class="o">=</span>options.json
-</code></pre></div></div>
-
-<p>You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.</p>
-
-<p>See <a href="#advanced-update-actions">Advanced update actions</a> for commands you can use to inspect and manipulate an update after it has started.</p>
-
-<h3 id="open-source-dcos-enterprise-dcos-19-and-earlier">Open Source DC/OS, Enterprise DC/OS 1.9 and earlier</h3>
-
-<p>If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are not available. For Open Source DC/OS of any version, or Enterprise DC/OS 1.9 and earlier, you can perform changes from the DC/OS GUI.</p>
-
-<!-- END DUPLICATE BLOCK -->
-
-<p>These are the general steps to follow:</p>
-
-<ol>
-  <li>View your DC/OS dashboard at <code class="highlighter-rouge">http://$DCOS_URI/#/services/overview</code></li>
-  <li>In the list of <code class="highlighter-rouge">Applications</code>, click the name of the Elastic service to be updated.</li>
-  <li>Within the Elastic instance details view, click the <code class="highlighter-rouge">Configuration</code> tab, then click <code class="highlighter-rouge">Edit</code>.</li>
-  <li>In the dialog that appears, expand the <code class="highlighter-rouge">Environment Variables</code> section and update any field(s) to their desired value(s). For example, to increase the number of data nodes, edit the value for <code class="highlighter-rouge">DATA_NODE_COUNT</code>. Do not edit the value for <code class="highlighter-rouge">FRAMEWORK_NAME</code>, <code class="highlighter-rouge">MASTER_NODE_TRANSPORT_PORT</code>, or any of the disk type/size fields.</li>
-  <li>Click <code class="highlighter-rouge">Change and deploy configuration</code> to apply any changes and cleanly reload the Elastic service scheduler. The Elastic cluster itself will persist across the change.</li>
-</ol>
-
-<h1 id="configuration-guidelines">Configuration Guidelines</h1>
+<h2 id="configuration-guidelines">Configuration Guidelines</h2>
 
 <ul>
   <li>Service name: This needs to be unique for each instance of the service that is running. It is also used as your cluster name.</li>
@@ -862,7 +805,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
   <li>Custom YAML can be appended to <code class="highlighter-rouge">elasticsearch.yml</code> on each node</li>
 </ul>
 
-<h2 id="immutable-settings-at-cluster-creation-time-via-elastic-package-ui-or-json-options-file-via-cli">Immutable settings (at cluster creation time via Elastic package UI or JSON options file via CLI)</h2>
+<h3 id="immutable-settings-at-cluster-creation-time-via-elastic-package-ui-or-json-options-file-via-cli">Immutable settings (at cluster creation time via Elastic package UI or JSON options file via CLI)</h3>
 
 <p>These setting cannot be changed after installation.</p>
 
@@ -872,7 +815,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
   <li>Disk sizes/types.</li>
 </ul>
 
-<h2 id="modifiable-settings-at-runtime-via-marathon-env-vars">Modifiable settings (at runtime via Marathon env vars):</h2>
+<h3 id="modifiable-settings">Modifiable settings</h3>
 
 <ul>
   <li>Plugins</li>
@@ -888,11 +831,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <p>Any other modifiable settings are covered by the various Elasticsearch APIs (cluster settings, index settings, templates, aliases, scripts). It’s possible that some of the more common cluster settings will get exposed in future versions of the Elastic DC/OS Service.</p>
 
-<h1 id="viewing-plans-via-the-cli">Viewing Plans via the CLI</h1>
-
-<p>You can view the deploy plan for the DC/OS Elastic Service via the service URL: <code class="highlighter-rouge">http://$DCOS_URL/service/$SERVICE_NAME/v1/plans</code></p>
-
-<h1 id="topology">Topology</h1>
+<h2 id="topology">Topology</h2>
 
 <p>Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator.</p>
 
@@ -903,7 +842,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <p>No matter how big or small the cluster is, there will always be exactly 3 master-only nodes with <code class="highlighter-rouge">minimum_master_nodes = 2</code>.</p>
 
-<h2 id="default-topology-with-minimum-resources-to-run-on-3-agents">Default Topology (with minimum resources to run on 3 agents)</h2>
+<h3 id="default-topology-with-minimum-resources-to-run-on-3-agents">Default Topology (with minimum resources to run on 3 agents)</h3>
 
 <ul>
   <li>3 master-only nodes</li>
@@ -914,7 +853,7 @@ dcos package <span class="nb">install</span> <span class="nt">--cli</span> beta-
 
 <p>The master/data/ingest/coordinator nodes are set up to only perform their one role. That is, master nodes do not store data, and ingest nodes do not store cluster state.</p>
 
-<h2 id="minimal-topology">Minimal Topology</h2>
+<h3 id="minimal-topology">Minimal Topology</h3>
 
 <p>You can set up a minimal development/staging cluster without ingest nodes, or coordinator nodes. You’ll still get 3 master nodes placed on 3 separate hosts. If you don’t care about replication, you can even use just 1 data node. By default, Elasticsearch creates indices with a replication factor of 1 (i.e., 1 primary shard + 1 replica), so with 1 data node, your cluster will be stuck in a ‘yellow’ state unless you change the replication factor.</p>
 

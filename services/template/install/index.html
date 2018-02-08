@@ -524,27 +524,28 @@
 <h1>Template: Install and Customize</h1>
 <div id="content">
 
+
 <p>The default DC/OS TEMPLATE SERVICE installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
-  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
+  <li>Depending on your security mode in Enterprise DC/OS, you may <a href="https://docs.mesosphere.com/services/TEMPLATE/TEMPLATE-auth/">need to provision a service account</a> before installing. Only someone with <code class="highlighter-rouge">superuser</code> permission can create the service account.
     <ul>
       <li><code class="highlighter-rouge">strict</code> <a href="https://docs.mesosphere.com/latest/installing/custom/configuration-parameters/#security">security mode</a> requires a service account.</li>
       <li><code class="highlighter-rouge">permissive</code> security mode a service account is optional.</li>
       <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
     </ul>
   </li>
-  <li>Your cluster must have at least some private nodes.
-Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
-  <li>Each agent node must have some quantity of cpu, memory, disk, and ports.
-Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
+  <li>
+    <p>Your cluster must have at least some private nodes.</p>
+  </li>
+  <li>Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
 </ul>
 
 <h2 id="default-installation">Default Installation</h2>
 
-<p>To start a basic test cluster  with some master nodes, run the following command on the DC/OS CLI. Enterprise DC/OS users must follow additional instructions. <a href="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/">More information about installing TEMPLATE SERVICE on Enterprise DC/OS</a>.</p>
+<p>To start a basic test cluster with SOME QUANTITY OF NODES, run the following command on the DC/OS CLI. Enterprise DC/OS users may need to follow <a href="https://docs.mesosphere.com/services/TEMPLATE/TEMPLATE-auth/">additional instructions</a>, depending on the security mode of the Enterprise DC/OS cluster.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>template
 </code></pre></div></div>
@@ -556,10 +557,105 @@ Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template &lt;cmd&gt;
 </code></pre></div></div>
 
-<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install from the web interface, you must install the DC/OS CLI subcommands separately. From the DC/OS CLI, enter:</p>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install TEMPLATE SERVICE from the DC/OS web interface, the <code class="highlighter-rouge">dcos template</code> CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>template <span class="nt">--cli</span>
 </code></pre></div></div>
+
+<h2 id="alternate-install-configurations">Alternate install configurations</h2>
+
+<p>The following are some examples of how to customize the installation of your TEMPLATE SERVICE instance.</p>
+
+<p>In each case, you would create a new  instance using the custom configuration as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>template <span class="nt">--options</span><span class="o">=</span>sample-template.json
+</code></pre></div></div>
+
+<p><strong>Recommendation:</strong> Store your custom configuration in source control.</p>
+
+<h3 id="installing-multiple-instances">Installing multiple instances</h3>
+
+<p>By default, the TEMPLATE SERVICE service is installed with a service name of <code class="highlighter-rouge">template</code>. You may specify a different name using a custom service configuration as follows:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"template-other"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>When the above JSON configuration is passed to the <code class="highlighter-rouge"><span class="k">package</span> <span class="n">install</span> <span class="n">template</span></code> command via the <code class="highlighter-rouge">--options</code> argument, the new service will use the name specified in that JSON configuration:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>template <span class="nt">--options</span><span class="o">=</span>template-other.json
+</code></pre></div></div>
+
+<p>Multiple instances of  may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of  named <code class="highlighter-rouge">template-staging</code> and another named <code class="highlighter-rouge">template-prod</code>, each with its own custom configuration.</p>
+
+<p>After specifying a custom name for your instance, it can be reached using <code class="highlighter-rouge">dcos template</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
+
+<p><strong>Note:</strong> The service name <em>cannot</em> be changed after initial install. Changing the service name would require installing a new instance of the service against the new name, then copying over any data as necessary to the new instance.</p>
+
+<h3 id="installing-into-folders">Installing into folders</h3>
+
+<p>In DC/OS 1.10 and above, services may be installed into <em>folders</em> by specifying a slash-delimited service name. For example:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/foldered/path/to/template"</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The above example will install the service under a path of <code class="highlighter-rouge">foldered</code> =&gt; <code class="highlighter-rouge">path</code> =&gt; <code class="highlighter-rouge">to</code> =&gt; <code class="highlighter-rouge">template</code>. It can then be reached using <code class="highlighter-rouge">dcos template</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
+
+<p><strong>Note:</strong> The service folder location <em>cannot</em> be changed after initial install. Changing the service location would require installing a new instance of the service against the new location, then copying over any data as necessary to the new instance.</p>
+
+<h3 id="addressing-named-instances">Addressing named instances</h3>
+
+<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos </code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">template</code>.</p>
+
+<p>For example, if you had an instance named <code class="highlighter-rouge">template-dev</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template-dev pod list
+</code></pre></div></div>
+
+<p>The same query would be over HTTP as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/template-dev/v1/pod
+</code></pre></div></div>
+
+<p>Likewise, if you had an instance in a folder like <code class="highlighter-rouge">/foldered/path/to/template</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>/foldered/path/to/template pod list
+</code></pre></div></div>
+
+<p>Similarly, it could be queried directly over HTTP as follows:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/foldered/path/to/template-dev/v1/pod
+</code></pre></div></div>
+
+<p><strong>Note:</strong> You may add a <code class="highlighter-rouge">-v</code> (verbose) argument to any <code class="highlighter-rouge">dcos template</code> command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, <code class="highlighter-rouge">dcos template</code> commands are a thin wrapper around an HTTP interface provided by the DC/OS TEMPLATE SERVICE Service itself.</p>
+
+<h3 id="virtual-networks">Virtual networks</h3>
+
+<p>DC/OS TEMPLATE SERVICE supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:</p>
+
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+  </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+    </span><span class="s2">"virtual_network_enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+  </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p><strong>Note:</strong> Once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
+
+<h3 id="minimal-installation">Minimal installation</h3>
+
+<p>DESCRIBE HOW TO RUN YOUR SERVICE IN THE SMALLEST FEASIBLE SPACE FOR DEMO PURPOSES</p>
+
+<h3 id="example-custom-configuration">Example custom configuration</h3>
+
+<p>A COMMON WAY OF CUSTOMIZING YOUR SERVICE’S CONFIG THAT YOU’D LIKE TO POINT OUT IN DOCUMENTATION</p>
 
 <h2 id="integration-with-dcos-access-controls">Integration with DC/OS access controls</h2>
 
@@ -611,7 +707,7 @@ Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
 
 <p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
 
-<h2 id="regions-and-zones">Regions and Zones</h2>
+<h3 id="regions-and-zones">Regions and Zones</h3>
 
 <p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["@zone", "GROUP_BY", "3"]]
@@ -619,9 +715,9 @@ Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
 
-<h3 id="example">Example</h3>
+<h4 id="example">Example</h4>
 
-<p>Suppose we have a Mesos cluster with zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>. For balanced Placement for a Single Region:</p>
+<p>Suppose we have a Mesos cluster with three zones. For balanced placement across those three zones, we would have a configuration like this:</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{
   ...
@@ -630,7 +726,7 @@ Each agent node must have some quantity of cpu, memory, disk, and ports.</li>
 }
 </code></pre></div></div>
 
-<p>Instances will all be evenly divided between zones <code class="highlighter-rouge">a</code>,<code class="highlighter-rouge">b</code>,<code class="highlighter-rouge">c</code>.</p>
+<p>Instances will all be evenly divided between those three zones.</p>
 
 
 </div>

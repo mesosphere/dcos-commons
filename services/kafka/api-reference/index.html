@@ -572,9 +572,9 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan show &lt;plan&gt; <span class="nt">--json</span>
 </code></pre></div></div>
 
-<h2 id="pause-installation">Pause Installation</h2>
+<h2 id="pause-plan">Pause plan</h2>
 
-<p>The installation will pause after completing installation of the current node and wait for user input.</p>
+<p>The installation will pause after completing the operation of the current node and wait for user input before proceeding further.</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> POST <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/plans/deploy/interrupt
 </code></pre></div></div>
@@ -582,11 +582,11 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan pause deploy
 </code></pre></div></div>
 
-<h2 id="resume-installation">Resume Installation</h2>
+<h2 id="resume-plan">Resume plan</h2>
 
-<p>The REST API request below will resume installation at the next pending node.</p>
+<p>The REST API request below will resume the operation at the next pending node.</p>
 
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT &lt;dcos_surl&gt;/service/kafka/v1/plans/deploy/continue
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-X</span> PUT <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_surl&gt;/service/kafka/v1/plans/deploy/continue
 </code></pre></div></div>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-kafka <span class="nt">--name</span><span class="o">=</span>kafka plan <span class="k">continue </span>deploy
@@ -605,7 +605,7 @@
 </code></pre></div></div>
 
 <p>HTTP Example</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl  <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/kafka/v1/pod
 </code></pre></div></div>
 
 <h2 id="node-info">Node Info</h2>
