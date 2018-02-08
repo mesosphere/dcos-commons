@@ -567,7 +567,12 @@
 <li class="toc-entry toc-h2"><a href="#secrets">Secrets</a>
 <ul>
 <li class="toc-entry toc-h3"><a href="#authorization-for-secrets">Authorization for Secrets</a></li>
-<li class="toc-entry toc-h3"><a href="#binary-secrets">Binary Secrets</a></li>
+<li class="toc-entry toc-h3"><a href="#binary-secrets">Binary Secrets</a>
+<ul>
+<li class="toc-entry toc-h4"><a href="#dcos-111">DC/OS 1.11+</a></li>
+<li class="toc-entry toc-h4"><a href="#dcos-110-or-lower">DC/OS 1.10 or lower</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-entry toc-h2"><a href="#placement-constraints">Placement Constraints</a>
@@ -1220,23 +1225,37 @@ Agent 3: X B
 <h3 id="binary-secrets">
 <a id="binary-secrets" class="anchor" href="#binary-secrets" aria-hidden="true"><span class="octicon octicon-link"></span></a>Binary Secrets</h3>
 
-<p>You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. Your file must be Base64-encoded as specified in RFC 4648.</p>
+<p>You can store binary files, like a Kerberos keytab, in the DC/OS secrets store. In DC/OS 1.11+ you can create secrets from binary files directly, while in DC/OS 1.10 or lower, files must be base64-encoded as specified in RFC 4648 prior to being stored as secrets.</p>
 
-<p>You can use standard <code class="highlighter-rouge">base64</code> command line utility. The following example uses the BSD <code class="highlighter-rouge">base64</code> command.</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$  base64 -i krb5.keytab -o kerb5.keytab.base64-encoded
+<h4 id="dcos-111">
+<a id="dcos-111" class="anchor" href="#dcos-111" aria-hidden="true"><span class="octicon octicon-link"></span></a>DC/OS 1.11+</h4>
+
+<p>To create a secret called <code class="highlighter-rouge">mysecret</code> with the binary contents of <code class="highlighter-rouge">kerb5.keytab</code> run:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos security secrets create <span class="nt">--file</span> kerb5.keytab mysecret
 </code></pre></div></div>
 
-<p>The <code class="highlighter-rouge">base64</code> command line utility in Linux inserts line-feeds in the encoded data by default. Disable line-wrapping with the <code class="highlighter-rouge">-w 0</code> argument. Here is a sample base64 command in Linux.</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$  base64 -w 0 -i krb5.keytab &gt; kerb5.keytab.base64-encoded
+<h4 id="dcos-110-or-lower">
+<a id="dcos-110-or-lower" class="anchor" href="#dcos-110-or-lower" aria-hidden="true"><span class="octicon octicon-link"></span></a>DC/OS 1.10 or lower</h4>
+
+<p>To create a secret called <code class="highlighter-rouge">mysecret</code> with the binary contents of <code class="highlighter-rouge">kerb5.keytab</code>, first encode it using the <code class="highlighter-rouge">base64</code> command line utility. The following example uses BSD <code class="highlighter-rouge">base64</code> (default on macOS).</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">base64</span> <span class="nt">--input</span> krb5.keytab <span class="o">&gt;</span> kerb5.keytab.base64-encoded
 </code></pre></div></div>
 
-<p>Prefix the secret name with <code class="highlighter-rouge">__dcos_base64__</code>. For example  <code class="highlighter-rouge">some/path/__dcos_base64__mysecret</code> and <code class="highlighter-rouge">__dcos_base64__mysecret</code> will be base64-decoded automatically.</p>
+<p>Alternatively, GNU <code class="highlighter-rouge">base64</code> (the default on Linux) inserts line-feeds in the encoded data by default. Disable line-wrapping with the <code class="highlighter-rouge">-w 0</code> argument.</p>
 
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$  dcos security secrets  create -f kerb5.keytab.base64-encoded  some/path/__dcos_base64__mysecret
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">base64</span> <span class="nt">-w</span> 0 krb5.keytab <span class="o">&gt;</span> kerb5.keytab.base64-encoded
 </code></pre></div></div>
 
-<p>When you reference the <code class="highlighter-rouge">__dcos_base64__mysecret</code> secret in your service, the content of the secret will be first base64-decoded, and then copied and made available to your service. Refer to the <a href="../developer-guide/">Developer Guide</a> for more information on how to reference DC/OS secrets as a file in SDK-based services. Refer to a binary secret
-only as a file such that it will be autoatically decoded and made available as a temporary in-memory file mounted within your container (file-based secrets).</p>
+<p>Now that the file is encoded it can be stored as a secret.</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos security secrets create <span class="nt">--value-file</span> kerb5.keytab.base64-encoded some/path/__dcos_base64__mysecret
+</code></pre></div></div>
+
+<p><strong>Note:</strong> The secret name <strong>must</strong> be prefixed with <code class="highlighter-rouge">__dcos_base64__</code>.</p>
+
+<p>When the <code class="highlighter-rouge">some/path/__dcos_base64__mysecret</code> secret is <a href="../developer-guide/#secrets">referenced in your service definition</a>, its base64-decoded contents will be made available as a <a href="http://mesos.apache.org/documentation/latest/secrets/#file-based-secrets">temporary file</a> in your service task containers. <strong>Note:</strong> Make sure to only refer to binary secrets as files since holding binary content in environment variables is discouraged.</p>
 
 <h2 id="placement-constraints">
 <a id="placement-constraints" class="anchor" href="#placement-constraints" aria-hidden="true"><span class="octicon octicon-link"></span></a>Placement Constraints</h2>
