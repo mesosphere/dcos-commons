@@ -106,7 +106,7 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
 
         sdk_jobs.run_job(config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
 
-        # Run backup plan, uploading snapshots and schema to the cloudddd
+        # Run restore plan, downloading snapshots and schema from the cloudddd
         sdk_plan.start_plan(config.SERVICE_NAME, 'restore-s3', parameters=plan_parameters)
         sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'restore-s3')
 

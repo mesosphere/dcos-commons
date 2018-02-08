@@ -66,8 +66,6 @@ $ dcos package install {{ page.packageName }} --options=sample-kafka-custom.json
 
 **Recommendation:** Store your custom configuration in source control.
 
-See [Configuration Options](https://docs.mesosphere.com/services/kafka/configure/#configuration-options) for a list of fields that can be customized via an options JSON file when the {{ page.techName }} cluster is created.
-
 Alternatively, you can perform a custom installation from the DC/OS web interface. Choose `ADVANCED INSTALLATION` at install time.
 
 ### Alternate ZooKeeper

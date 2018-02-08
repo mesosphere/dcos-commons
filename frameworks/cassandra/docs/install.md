@@ -134,4 +134,4 @@ deploy (IN_PROGRESS)
 
 ## Test your multi-datacenter configuration
 
-Follow the [quick start guide](quick-start.md) to write data to one cluster. Then, use the client on the other cluster to ensure the data has propagated.
+Follow the [quick start guide](../quick-start/) to write data to one cluster. Then, use the client on the other cluster to ensure the data has propagated.

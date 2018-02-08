@@ -72,7 +72,7 @@ This command launches a new Kibana application with the default name `kibana` an
   ```
   http://<dcos_url>/service/kibana/login
   ```
-  and log in with `elastic`/`changeme`. [More information on installing X-Pack](https://docs.mesosphere.com/services/elastic/v2.0.0-5.5.1/elastic-x-pack/).
+  and log in with `elastic`/`changeme`. [More information on installing X-Pack](../elastic-x-pack/).
 
   Otherwise go to
   ```
@@ -83,7 +83,7 @@ This command launches a new Kibana application with the default name `kibana` an
 
 - Service name: This needs to be unique for each instance of the service that is running.
 - Service user: This must be a non-root user that already exists on each agent. The default user is `nobody`.
-- The Kibana X-Pack plugin is not installed by default, but you can enable it. See the [X-Pack documentation](x-pack.md) to learn more about X-Pack in the Elastic package. This setting must match the corresponding setting in the Elastic package (i.e., if you have X-Pack enabled in Kibana, you must also have it enabled in Elastic).
+- The Kibana X-Pack plugin is not installed by default, but you can enable it. See the [X-Pack documentation](../elastic-x-pack/) to learn more about X-Pack in the Elastic package. This setting must match the corresponding setting in the Elastic package (i.e., if you have X-Pack enabled in Kibana, you must also have it enabled in Elastic).
 - Elasticsearch credentials: If you have X-Pack enabled, Kibana will use these credentials for authorization. The default user is  `kibana`.
 - Elasticsearch URL: This is a required configuration parameter. The default value `http://coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200` corresponds to the named VIP that exists when the Elastic package is launched with its own default configuration.
 

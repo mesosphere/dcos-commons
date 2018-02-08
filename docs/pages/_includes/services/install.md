@@ -45,33 +45,77 @@ $ dcos package install {{ include.packageName }} --options=sample-{{ include.ser
 
 ### Installing multiple instances
 
-By default, the {{ include.techName }} service installed with a service name of `{{ include.serviceName }}`. You may specify a custom name using a custom configuration as follows:
+By default, the {{ include.techName }} service is installed with a service name of `{{ include.serviceName }}`. You may specify a different name using a custom service configuration as follows:
 
 ```json
 {
   "service": {
-    "name": "{{ include.serviceName }}-custom"
+    "name": "{{ include.serviceName }}-other"
   }
 }
 ```
 
-When the above JSON configuration is passed to the `package install {{ include.packageName }}` command via the `--options` argument, the new service will be named `{{ include.serviceName }}-custom`.
+When the above JSON configuration is passed to the `package install {{ include.packageName }}` command via the `--options` argument, the new service will use the name specified in that JSON configuration:
 
-Multiple instances of {{ install.techName }} may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of {{ install.techName }} named `{{ include.serviceName }}-staging` and another named `{{ include.serviceName }}-prod`, each with its own custom configuration. Note that this name cannot be changed after initial install, you must instead uninstall and reinstall the service (backing up any data as necessary).
+```bash
+$ dcos package install {{ include.packageName }} --options={{ include.serviceName }}-other.json
+```
 
-#### Addressing multiple instances using the CLI
+Multiple instances of {{ install.techName }} may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of {{ install.techName }} named `{{ include.serviceName }}-staging` and another named `{{ include.serviceName }}-prod`, each with its own custom configuration.
 
-After you've installed the service under a custom name, it may be accessed from all `dcos {{ package.packageName }}` CLI commands using the `--name` argument. By default, the `--name` value defaults to the name of the package, or `{{ include.packageName }}`.
+After specifying a custom name for your instance, it can be reached using `dcos {{ include.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
 
-For example, if you had an instance named `{{ include.serviceName }}-dev`, you would invoke the following to perform a `pod list` command against it:
+**Note:** The service name _cannot_ be changed after initial install. Changing the service name would require installing a new instance of the service against the new name, then copying over any data as necessary to the new instance.
+
+### Installing into folders
+
+In DC/OS 1.10 and above, services may be installed into _folders_ by specifying a slash-delimited service name. For example:
+
+```json
+{
+  "service": {
+    "name": "/foldered/path/to/{{ include.serviceName }}"
+  }
+}
+```
+
+The above example will install the service under a path of `foldered` => `path` => `to` => `{{ include.serviceName }}`. It can then be reached using `dcos {{ include.packageName }}` CLI commands or directly over HTTP as described [below](#addressing-named-instances).
+
+**Note:** The service folder location _cannot_ be changed after initial install. Changing the service location would require installing a new instance of the service against the new location, then copying over any data as necessary to the new instance.
+
+### Addressing named instances
+
+After you've installed the service under a custom name or under a folder, it may be accessed from all `dcos {{ package.packageName }}` CLI commands using the `--name` argument. By default, the `--name` value defaults to the name of the package, or `{{ include.packageName }}`.
+
+For example, if you had an instance named `{{ include.serviceName }}-dev`, the following command would invoke a `pod list` command against it:
 
 ```bash
 $ dcos {{ include.packageName }} --name={{ include.serviceName }}-dev pod list
 ```
 
+The same query would be over HTTP as follows:
+
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.serviceName }}-dev/v1/pod
+```
+
+Likewise, if you had an instance in a folder like `/foldered/path/to/{{ include.serviceName }}`, the following command would invoke a `pod list` command against it:
+
+```bash
+$ dcos {{ include.packageName }} --name=/foldered/path/to/{{ include.serviceName }} pod list
+```
+
+Similarly, it could be queried directly over HTTP as follows:
+
+```bash
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/foldered/path/to/{{ include.serviceName }}-dev/v1/pod
+```
+
+**Note:** You may add a `-v` (verbose) argument to any `dcos {{ include.packageName }}` command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, `dcos {{ include.packageName }}` commands are a thin wrapper around an HTTP interface provided by the DC/OS {{ include.techName }} Service itself.
+
 ### Virtual networks
 
-{{ include.techName }} supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:
+DC/OS {{ include.techName }} supports deployment on virtual networks on DC/OS (including the `dcos` overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:
 
 ```json
 {
