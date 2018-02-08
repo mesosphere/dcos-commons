@@ -581,7 +581,7 @@ public class ReverseDeployPhases implements PlanCustomizer {
     public Plan updateUninstallPlan(Plan uninstallPlan) {
         // Do some clever things
 
-        return plan;
+        return uninstallPlan;
     }
 }
 ```
