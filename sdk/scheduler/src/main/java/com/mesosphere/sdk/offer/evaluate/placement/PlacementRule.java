@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import java.util.Collection;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
+import java.util.Collection;
 
 /**
  * Implements placement constraint logic on an offer, filtering out the Resources which are not
@@ -50,4 +50,12 @@ public interface PlacementRule {
      * com.mesosphere.sdk.specification.TaskSpec)
      */
     boolean equals(Object o);
+
+    /**
+     * All placement rules are valid by default. This can be overridden as
+     * required.
+     */
+    default boolean isValid() {
+        return true;
+    }
 }

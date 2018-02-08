@@ -25,6 +25,7 @@ public class DefaultConfigValidators {
                 new PreReservationCannotChange(),
                 new UserCannotChange(),
                 new TLSRequiresServiceAccount(schedulerConfig),
-                new DomainCapabilityValidator());
+                new DomainCapabilityValidator(),
+                new PlacementRuleIsValid());
     }
 }
