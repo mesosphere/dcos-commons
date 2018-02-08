@@ -16,8 +16,7 @@ PAGES_FRAMEWORKS_PATH_PATTERN=${DOCS_DIR}/../frameworks/*/docs/
 JAVADOC_SDK_PATH_PATTERN=${DOCS_DIR}/../sdk/*/src/main/
 
 # Output directory:
-OUTPUT_BASE_DIR=dcos-commons-gh-pages
-OUTPUT_DIR=${OUTPUT_BASE_DIR}/dcos-commons
+OUTPUT_DIR=dcos-commons-gh-pages/dcos-commons
 
 # Swagger build to fetch if needed:
 SWAGGER_CODEGEN_VERSION=2.2.2
