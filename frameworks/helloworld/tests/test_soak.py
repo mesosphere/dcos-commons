@@ -38,7 +38,7 @@ def get_task_info(pod_info, task_name):
 @retrying.retry(wait_fixed=1000, stop_max_delay=30 * 1000)
 def wait_for_state(state, pod_name, task_names):
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status {} --json'.format(pod_name), json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status {} --json'.format(pod_name), json=True
     )
 
     for task_name in task_names:
