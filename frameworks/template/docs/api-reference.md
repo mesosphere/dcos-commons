@@ -4,12 +4,7 @@ navigationTitle:
 excerpt:
 title: API Reference
 menuWeight: 70
-
-packageName: template
-serviceName: template
 ---
+{% assign data = site.data.services.template %}
 
-{% include services/api-reference.md
-    techName="TEMPLATE SERVICE"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/api-reference.md data=data %}

@@ -4,12 +4,7 @@ navigationTitle:
 excerpt:
 title: Uninstall
 menuWeight: 30
-
-packageName: beta-cassandra
-serviceName: cassandra
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/uninstall.md
-    techName="an Apache Cassandra"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/uninstall.md data=data %}

@@ -4,10 +4,8 @@ navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
-
-packageName: beta-kafka
-serviceName: kafka
 ---
+{% assign data = site.data.services.kafka %}
 
 # Supported Client Libraries
 
@@ -30,7 +28,7 @@ Through Confluent:
 The following command can be executed from the cli in order to retrieve a set of brokers to connect to.
 
 ```bash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
+$ dcos {{ data.packageName }} --name={{ data.serviceName }} endpoints broker
 ```
 
 <a name="using-the-rest-api"></a>
@@ -41,7 +39,7 @@ REST API requests must be authenticated. See the REST API Authentication part of
 The following `curl` example demonstrates how to retrive connection a set of brokers to connect to using the REST API.
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/endpoints/broker"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ data.serviceName }}/v1/endpoints/broker"
 ```
 
 ## User token authentication
@@ -61,7 +59,7 @@ $ export auth_token=uSeR_t0k3n
 Then, use this token to authenticate requests to the Kafka Service:
 
 ```bash
-$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ page.serviceName }}/v1/endpoints/broker"
+$ curl -H "Authorization: token=$auth_token" "<dcos_url>/service/{{ data.serviceName }}/v1/endpoints/broker"
 ```
 
 You do not need the token to access the Kafka brokers themselves.
@@ -78,11 +76,11 @@ The response, for both the CLI and the REST API is as below.
     "10.0.1.27:1025"
   ],
   "dns": [
-    "kafka-2-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
-    "kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
-    "kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025"
+    "kafka-2-broker.{{ data.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-0-broker.{{ data.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-1-broker.{{ data.serviceName }}.autoip.dcos.thisdcos.directory:1025"
   ],
-  "vip": "broker.{{ page.serviceName }}.l4lb.thisdcos.directory:9092"
+  "vip": "broker.{{ data.serviceName }}.l4lb.thisdcos.directory:9092"
 }
 ```
 
@@ -175,7 +173,7 @@ The code snippet below demonstrates how to connect a Kafka Consumer to the clust
 The following code connects to a DC/OS-hosted Kafka instance using `bin/kafka-console-producer.sh` and `bin/kafka-console-consumer.sh` as an example:
 
 ```bvash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
+$ dcos {{ data.packageName }} --name={{ data.serviceName }} endpoints broker
 {
   "address": [
     "10.0.0.49:1025",
@@ -183,11 +181,11 @@ $ dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints broker
     "10.0.1.27:1025"
   ],
   "dns": [
-    "kafka-2-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
-    "kafka-0-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025",
-    "kafka-1-broker.{{ page.serviceName }}.autoip.dcos.thisdcos.directory:1025"
+    "kafka-2-broker.{{ data.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-0-broker.{{ data.serviceName }}.autoip.dcos.thisdcos.directory:1025",
+    "kafka-1-broker.{{ data.serviceName }}.autoip.dcos.thisdcos.directory:1025"
   ],
-  "vip": "broker.{{ page.serviceName }}.l4lb.thisdcos.directory:9092"
+  "vip": "broker.{{ data.serviceName }}.l4lb.thisdcos.directory:9092"
 }
 
 $ dcos node ssh --master-proxy --leader
@@ -196,6 +194,6 @@ core@ip-10-0-6-153 ~ $ docker run -it mesosphere/kafka-client
 
 root@7d0aed75e582:/bin# echo "Hello, World." | ./kafka-console-producer.sh --broker-list 10.0.0.49:1025, 10.0.2.253:1025, 10.0.1.27:1025 --topic topic1
 
-root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-{{ page.serviceName }} --topic topic1 --from-beginning
+root@7d0aed75e582:/bin# ./kafka-console-consumer.sh --zookeeper master.mesos:2181/dcos-service-{{ data.serviceName }} --topic topic1 --from-beginning
     Hello, World.
 ```

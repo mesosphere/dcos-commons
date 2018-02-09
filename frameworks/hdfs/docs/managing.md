@@ -4,17 +4,10 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
-
-packageName: beta-hdfs
-serviceName: hdfs
 ---
+{% assign data = site.data.services.hdfs %}
 
-{% include services/managing.md
-    podType="data"
-    taskType="node"
-    techName="HDFS"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/managing.md data=data %}
 
 # Replacing Journal Nodes
 
@@ -25,7 +18,7 @@ refer to the unhealthy Journal Node as it's the replaced Journal Node.
 
 Replace the Journal Node via:
 ```bash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }} pod replace journal-0
+$ dcos {{ data.packageName }} --name={{ data.serviceName }} pod replace journal-0
 ```
 
 ## Detecting an unhealthy Journal Node after `replace`
@@ -66,7 +59,7 @@ $ mkdir -p journal-data/hdfs/current
 
 5. Restart the unhealthy Journal Node via:
 ```bash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }} pod restart journal-0
+$ dcos {{ data.packageName }} --name={{ data.serviceName }} pod restart journal-0
 ```
 
 6. Once the restarted Journal Node is up and running, confirm that it is now healthy again by inspecting the `stderr` log. You should see:

@@ -4,10 +4,8 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
-
-packageName: beta-elastic
-serviceName: elastic
 ---
+{% assign data = site.data.services.elastic %}
 
 {% capture customInstallConfigurations %}
 ### Example custom installation
@@ -31,19 +29,14 @@ You can customize the Elastic cluster in a variety of ways by specifying a JSON 
 The command below creates a cluster using a `options.json` file:
 
 ```bash
-$ dcos package install {{ page.packageName }} --options=options.json
+$ dcos package install {{ data.packageName }} --options=options.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
 {% endcapture %}
 
 {% include services/install.md
-    techName="Elastic"
-    packageName=page.packageName
-    serviceName=page.serviceName
-    minNodeCount="three"
-    defaultInstallDescription="with three master nodes, two data nodes, and one coordinator node"
-    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/elastic/elastic-auth/"
+    data=data
     customInstallConfigurations=customInstallConfigurations %}
 
 ## TLS
@@ -87,7 +80,7 @@ Sample JSON options file named `kibana-tls.json`:
 {
     "kibana": {
         "xpack_enabled": true,
-        "elasticsearch_url": "https://coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200",
+        "elasticsearch_url": "https://coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200",
         "elasticsearch_tls": true,
         "...": "..."
     }
@@ -159,7 +152,7 @@ You can set up a minimal development/staging cluster without ingest nodes, or co
 Note that with X-Pack installed, the default monitoring behavior is to try to write to an ingest node every few seconds. Without an ingest node, you will see frequent warnings in your master node error logs. While they can be ignored, you can turn them off by disabling X-Pack monitoring in your cluster, like this:
 
 ```bash
-$ curl -XPUT -u elastic:changeme master.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/_cluster/settings -d '{
+$ curl -XPUT -u elastic:changeme master.{{ data.serviceName }}.l4lb.thisdcos.directory:9200/_cluster/settings -d '{
     "persistent" : {
         "xpack.monitoring.collection.interval" : -1
     }

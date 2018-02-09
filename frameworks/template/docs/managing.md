@@ -4,14 +4,7 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
-
-packageName: template
-serviceName: template
 ---
+{% assign data = site.data.services.template %}
 
-{% include services/managing.md
-    podType="template"
-    taskType="node"
-    techName="TEMPLATE_SERVICE"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/managing.md data=data %}
