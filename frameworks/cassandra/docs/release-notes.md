@@ -6,6 +6,23 @@ title: Release Notes
 menuWeight: 120
 ---
 
+## Version 2.1.2-3.0.15-beta
+
+## NOTICE
+
+This is a beta release of the DC/OS Apache Cassandra service. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Improvements
+- Remove the dependency on a docker image and allow the service to run as nobody in CentOS distros. ([#2067](https://github.com/mesosphere/dcos-commons/pull/2067))
+- Moved scheduler health-checks from HTTP to ([Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks)).
+- Bump JRE to 1.8u162.  ([#2135](https://github.com/mesosphere/dcos-commons/pull/2135))
+- Improvements to the pod pause feature. ([#1989](https://github.com/mesosphere/dcos-commons/pull/1989))
+- Improve handling of unexpected task statuses. ([#2087](https://github.com/mesosphere/dcos-commons/pull/2087))
+
+### Documentation
+- Added limitation section for backup/restore with authentication enabled. ([#2125](https://github.com/mesosphere/dcos-commons/pull/2125))
+- Added documentation for placement constraints referencing zones. ([#1906](https://github.com/mesosphere/dcos-commons/pull/1906))
+
 ## Version 2.1.1-3.0.15-beta
 
 ### NOTICE
