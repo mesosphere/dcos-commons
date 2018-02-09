@@ -13,12 +13,10 @@ import (
 	"crypto/x509"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
-	"time"
 
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
@@ -119,7 +117,14 @@ func HTTPServicePutJSON(urlPath, jsonPayload string) ([]byte, error) {
 
 // HTTPQuery does a HTTP query
 func HTTPQuery(request *http.Request) *http.Response {
-	client := &http.Client{Transport: buildHTTPTransport()}
+	client := &http.Client{
+		Transport: &http.Transport {
+			// Support for 'HTTP[S]_PROXY'/'NO_PROXY' envvars
+			Proxy:           http.ProxyFromEnvironment,
+			// Support main CLI's 'core.ssl_verify' setting
+			TLSClientConfig: buildTLSConfig(),
+		},
+	}
 	var err interface{}
 	response, err := client.Do(request)
 	switch err.(type) {
@@ -219,33 +224,6 @@ func CreateHTTPURLRequest(method string, url *url.URL, payload, accept, contentT
 		PrintVerbose("HTTP Query: %s %s", method, url)
 	}
 	return request
-}
-
-// buildHTTPTransport returns a new http.Transport object which honors the CLI 'ssl_verify' setting,
-// but otherwise uses reasonable defaults as specified in net/http.
-func buildHTTPTransport() http.RoundTripper {
-	// Use reasonable defaults specified by the definition of http.DefaultTransport, with one tweak
-	// to use the TLS config specified via 'core.ssl_verify'.
-	// Note: We specifically do this instead of building an empty Transport in order to pick up its
-	//       usage of ProxyFromEnvironment, i.e. support for "HTTP[S]_PROXY"/"NO_PROXY" envvars.
-	//       It also seems like a good idea to use these reasonable default settings in general.
-	return &http.Transport{
-		// Copy of reasonable default values used by http.DefaultTransport
-		// (from https://golang.org/pkg/net/http/#RoundTripper )
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{
-			Timeout:   30 * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		TLSHandshakeTimeout:   10 * time.Second,
-		ExpectContinueTimeout: 1 * time.Second,
-
-		// Our custom TLS config from 'core.ssl_verify'
-		TLSClientConfig:       buildTLSConfig(),
-	}
 }
 
 // buildTLSConfig returns a new tls.Config object which honors the CLI 'ssl_verify' setting.
