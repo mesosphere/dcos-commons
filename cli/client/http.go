@@ -137,7 +137,8 @@ func HTTPQuery(request *http.Request) *http.Response {
 		default:
 			PrintMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
 			PrintMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
-			PrintMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			PrintMessage("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			PrintMessageAndExit("- Are any needed proxy settings set correctly via HTTP_PROXY/HTTPS_PROXY/NO_PROXY? Check with your network administrator.")
 		}
 	}
 	return response
