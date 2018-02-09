@@ -16,6 +16,7 @@ import dcos.packagemanager
 import dcos.subcommand
 import retrying
 import shakedown
+import traceback
 
 import sdk_cmd
 import sdk_marathon
@@ -167,41 +168,38 @@ def _uninstall(
     if sdk_utils.dcos_version_less_than('1.10'):
         log.info('Uninstalling/janitoring {}'.format(service_name))
         try:
-            shakedown.uninstall_package_and_wait(
-                package_name, service_name=service_name)
+            shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+
+            janitor_start = time.time()
+
+            # leading slash removed, other slashes converted to double underscores:
+            deslashed_service_name = service_name.lstrip('/').replace('/', '__')
+            if role is None:
+                role = deslashed_service_name + '-role'
+            if service_account is None:
+                service_account = service_name + '-principal'
+            if zk is None:
+                zk = 'dcos-service-' + deslashed_service_name
+            janitor_cmd = ('docker run mesosphere/janitor /janitor.py '
+                          '-r {role} -p {service_account} -z {zk} --auth_token={auth}')
+            shakedown.run_command_on_master(
+                janitor_cmd.format(
+                    role=role,
+                    service_account=service_account,
+                    zk=zk,
+                    auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()))
+
+            finish = time.time()
+
+            log.info(
+                'Uninstall done after pkg({}) + janitor({}) = total({})'.format(
+                    shakedown.pretty_duration(janitor_start - start),
+                    shakedown.pretty_duration(finish - janitor_start),
+                    shakedown.pretty_duration(finish - start)))
         except (dcos.errors.DCOSException, ValueError) as e:
-            log.info('Got exception when uninstalling package, ' +
-                          'continuing with janitor anyway: {}'.format(e))
-            if 'marathon' in str(e):
-                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
-                raise
-
-        janitor_start = time.time()
-
-        # leading slash removed, other slashes converted to double underscores:
-        deslashed_service_name = service_name.lstrip('/').replace('/', '__')
-        if role is None:
-            role = deslashed_service_name + '-role'
-        if service_account is None:
-            service_account = service_name + '-principal'
-        if zk is None:
-            zk = 'dcos-service-' + deslashed_service_name
-        janitor_cmd = ('docker run mesosphere/janitor /janitor.py '
-                       '-r {role} -p {service_account} -z {zk} --auth_token={auth}')
-        shakedown.run_command_on_master(
-            janitor_cmd.format(
-                role=role,
-                service_account=service_account,
-                zk=zk,
-                auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()))
-
-        finish = time.time()
-
-        log.info(
-            'Uninstall done after pkg({}) + janitor({}) = total({})'.format(
-                shakedown.pretty_duration(janitor_start - start),
-                shakedown.pretty_duration(finish - janitor_start),
-                shakedown.pretty_duration(finish - start)))
+            log.info('Got exception when trying to uninstall/janitor {}'.format(service_name))
+            log.info(traceback.format_exc())
+            raise
     else:
         log.info('Uninstalling {}'.format(service_name))
         try:
@@ -228,11 +226,9 @@ def _uninstall(
             shakedown.time_wait(marathon_dropped_service, timeout_seconds=TIMEOUT_SECONDS)
 
         except (dcos.errors.DCOSException, ValueError) as e:
-            log.info(
-                'Got exception when uninstalling package: {}'.format(e))
-            if 'marathon' in str(e):
-                log.info('Detected a probable marathon flake. Raising so retry will trigger.')
-                raise
+            log.info('Got exception when trying to uninstall {}'.format(service_name))
+            log.info(traceback.format_exc())
+            raise
         finally:
             sdk_utils.list_reserved_resources()
 
