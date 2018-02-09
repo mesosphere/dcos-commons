@@ -523,9 +523,31 @@
 <h1>Elastic: Release Notes</h1>
 <div id="content">
 
+<h2 id="version-212-565">Version 2.1.2-5.6.5</h2>
+
+<h2 id="notice">NOTICE</h2>
+
+<p>This is a beta release of the DC/OS Elastic service. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
+
+<h3 id="improvements">Improvements</h3>
+<ul>
+  <li>Before launching tasks, only download X-Pack artifact if <code class="highlighter-rouge">xpack_enabled</code> is true.</li>
+  <li>Removed unused <code class="highlighter-rouge">service.security.allow_plaintext</code> configuration property.</li>
+  <li>Moved Elastic and Kibana scheduler health-checks from HTTP to <a href="https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks">Mesos-level health checks</a>.</li>
+  <li>Bump JRE to 1.8u162.  (<a href="https://github.com/mesosphere/dcos-commons/pull/2135">#2135</a>)</li>
+  <li>Improvements to the pod pause feature. (<a href="https://github.com/mesosphere/dcos-commons/pull/1989">#1989</a>)</li>
+  <li>Improve handling of unexpected task statuses. (<a href="https://github.com/mesosphere/dcos-commons/pull/2087">#2087</a>)</li>
+</ul>
+
+<h3 id="documentation">Documentation</h3>
+<ul>
+  <li>Added instructions for configuring placement constraints.</li>
+  <li>Added instructions for pausing nodes.</li>
+</ul>
+
 <h2 id="version-211-565">Version 2.1.1-5.6.5</h2>
 
-<h3 id="notice">NOTICE</h3>
+<h3 id="notice-1">NOTICE</h3>
 <p>This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
 
 <h3 id="updates">Updates</h3>
@@ -543,7 +565,7 @@
 
 <h2 id="version-300-564-beta">Version 3.0.0-5.6.4-beta</h2>
 
-<h3 id="notice-1">NOTICE</h3>
+<h3 id="notice-2">NOTICE</h3>
 <p>This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
 
 <h3 id="new-features">New features</h3>
@@ -572,7 +594,7 @@
 
 <h2 id="version-200-551">Version 2.0.0-5.5.1</h2>
 
-<h3 id="improvements">Improvements</h3>
+<h3 id="improvements-1">Improvements</h3>
 <ul>
   <li>Default to 0 ingest nodes.</li>
   <li>Automatic management of gateway settings.</li>
@@ -586,7 +608,7 @@
 
 <h2 id="version-1015-551-beta">Version 1.0.15-5.5.1-beta</h2>
 
-<h3 id="improvements-1">Improvements</h3>
+<h3 id="improvements-2">Improvements</h3>
 <ul>
   <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.20.1">dcos-commons 0.20.1</a></li>
   <li>Upgrade to Elastic 5.5.1</li>
@@ -600,7 +622,7 @@
   <li>Use of a CNI network is supported</li>
 </ul>
 
-<h3 id="improvements-2">Improvements</h3>
+<h3 id="improvements-3">Improvements</h3>
 <ul>
   <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.20.0">dcos-commons 0.20.0</a></li>
   <li>Upgrade to Elastic 5.5.0</li>
