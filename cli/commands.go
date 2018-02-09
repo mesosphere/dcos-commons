@@ -63,11 +63,11 @@ func New() *kingpin.Application {
 		}
 	}
 
-	modName, err := GetModuleName()
+	var err error
+	config.ModuleName, err = GetModuleName()
 	if err != nil {
 		client.PrintMessageAndExit(err.Error())
 	}
-	config.ModuleName = modName
 	app := kingpin.New(fmt.Sprintf("dcos %s", config.ModuleName), "")
 
 	app.GetFlag("help").Short('h') // in addition to default '--help'
@@ -107,9 +107,13 @@ func New() *kingpin.Application {
 	app.Flag("custom-cluster-config", "Path to DC/OS config .toml file, if no clusters are configured").Hidden().Envar("DCOS_CONFIG").PlaceHolder("DCOS_CONFIG").StringVar(&config.DcosConfigPath)
 
 	// Default to --name <name> : use provided framework name (default to <modulename>.service_name, if available)
-	serviceName := client.OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", os.Args[1]))
+	serviceName := client.OptionalCLIConfigValue(fmt.Sprintf("%s.service_name", config.ModuleName))
 	if len(serviceName) == 0 {
-		serviceName = modName
+		// No <modulename>.service_name setting was found.
+		// Guess the default service name based off the module/package name itself.
+		// In particular, if the module/package is named 'beta-foo', then use a default of 'foo'.
+		// This aligns with the convention for service names used by 'beta-' packages.
+		serviceName = strings.TrimPrefix(config.ModuleName, "beta-")
 	}
 	app.Flag("name", "Name of the service instance to query").Default(serviceName).StringVar(&config.ServiceName)
 

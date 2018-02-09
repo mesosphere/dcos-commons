@@ -15,7 +15,7 @@ var (
 	// ModuleName represents the name of this CLI module (e.g. "hello-world") and is read in from the $1 argument.
 	ModuleName string
 	// ServiceName represents the name of this instantiation of the service.
-	// This defaults to the value of ModuleName unless overridden by the user.
+	// This defaults to a sanitized version of ModuleName unless overridden by the user.
 	ServiceName string
 
 	// Verbose will print additional messages to aid with debugging if set to true.
