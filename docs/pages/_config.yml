@@ -20,6 +20,7 @@ kramdown:
   hard_wrap: false
   extensions: [tables]
 source: .
+baseurl: /dcos-commons
 # Render pages in directories, to avoid .html file endings.
 # This matches docs.mesosphere.com's layout.
 permalink: pretty
