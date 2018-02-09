@@ -3,6 +3,7 @@ import os
 import time
 
 import pytest
+import retrying
 
 import sdk_cmd
 import sdk_plan
@@ -32,6 +33,17 @@ def get_task_status(pod_status, task_name):
 
 def get_task_info(pod_info, task_name):
     return [t for t in pod_info if t['info']['name'] == task_name][0]['info']
+
+
+@retrying.retry(wait_fixed=1000, stop_max_delay=30 * 1000)
+def wait_for_state(state, pod_name, task_names):
+    pod_status = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status {} --json'.format(pod_name), json=True
+    )
+
+    for task_name in task_names:
+        task_status = get_task_status(pod_status, '{}-{}'.format(pod_name, task_name))
+        assert task_status['status'] == state
 
 
 @pytest.mark.soak_pod_pause
@@ -90,16 +102,12 @@ def test_pause_single_task():
     readiness_check = task_info['check']['command']['command']['value']
     assert 'exit 1' == readiness_check
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(2)
-
     # check PAUSED state
     pod_status = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['status'] == 'PAUSED'
+    wait_for_state('PAUSED', 'hello-0', ['server'])
 
     # check companion is still running
     task_status = get_task_status(pod_status, 'hello-0-companion')
@@ -124,17 +132,12 @@ def test_pause_single_task():
     assert old_agent == task_info['slaveId']['value']
     assert old_cmd == task_info['command']['value']
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(2)
-
     # check that the pod/plan status is back to normal:
     pod_status = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['name'] == 'hello-0-server'
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phase = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
@@ -210,18 +213,12 @@ def test_pause_all_pod_tasks():
     readiness_check = task_info['check']['command']['command']['value']
     assert 'exit 1' == readiness_check
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(3)
-
     # check PAUSED state
     pod_status = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['status'] == 'PAUSED'
-    task_status = get_task_status(pod_status, 'hello-0-companion')
-    assert task_status['status'] == 'PAUSED'
+    wait_for_state('PAUSED', 'hello-0', ['server', 'companion'])
 
     # resume the pod again, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
@@ -248,18 +245,12 @@ def test_pause_all_pod_tasks():
     assert old_agent == task_info['slaveId']['value']
     assert old_companion_cmd == task_info['command']['value']
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(2)
-
     # check that the pod/plan status is back to normal:
     pod_status = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['status'] == 'RUNNING'
-    task_status = get_task_status(pod_status, 'hello-0-companion')
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server', 'companion'])
 
     phase = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
@@ -362,11 +353,8 @@ def test_multiple_pod_pause():
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))
-        assert task_status['status'] == 'PAUSED'
-
-        task_status = get_task_status(pod_status, 'hello-{}-companion'.format(i))
-        assert task_status['status'] == 'RUNNING'
+        wait_for_state('PAUSED', 'hello-{}'.format(i), ['server'])
+        wait_for_state('RUNNING', 'hello-{}'.format(i), ['companion'])
 
     # verify that the 11th hello pod is unaffacted
     pod_status = sdk_cmd.svc_cli(
@@ -437,8 +425,7 @@ def test_multiple_pod_pause():
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))
-        assert task_status['status'] == 'RUNNING'
+        wait_for_state('RUNNING', 'hello-{}'.format(i), ['server'])
 
         assert phase['steps'][i * 2]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][i * 2]['status'] == 'COMPLETE'
