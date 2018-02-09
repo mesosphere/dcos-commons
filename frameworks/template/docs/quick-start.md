@@ -4,11 +4,8 @@ navigationTitle:
 excerpt:
 title: Quick Start
 menuWeight: 40
-
-packageNamePretty: YOUR_SERVICE
-packageName: template
-serviceName: template
 ---
+{% assign data = site.data.services.template %}
 
 ## Prerequisites
 
@@ -16,29 +13,29 @@ serviceName: template
 
 ## Steps
 
-1. If you are using open source DC/OS, install {{ page.packageNamePretty }} cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.
+1. If you are using open source DC/OS, install {{ data.techName }} cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.
 
     ```bash
-    dcos package install {{ page.packageName }}
+    dcos package install {{ data.packageName }}
     ```
 
-    Alternatively, you can install {{ page.packageNamePretty }} from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
+    Alternatively, you can install {{ data.techName }} from [the DC/OS web interface](https://docs.mesosphere.com/latest/usage/webinterface/).
 
 1. The service will now deploy with a default configuration. You can monitor its deployment via the Services tab of the DC/OS web interface.
 
-1. Connect a client to {{ page.packageNamePretty }}.
+1. Connect a client to {{ data.techName }}.
     ```bash
-    dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints
+    dcos {{ data.packageName }} --name={{ data.serviceName }} endpoints
     [
         "_LIST_",
         "_OF_",
         "_ENDPOINTS_"
     ]
 
-    dcos {{ page.packageName }} --name={{ page.serviceName }} endpoints _ENDPOINT_
+    dcos {{ data.packageName }} --name={{ data.serviceName }} endpoints _ENDPOINT_
     {
         "address": ["10.0.3.156:_PORT_", "10.0.3.84:_PORT_"],
-        "dns": ["_POD_-0.{{ page.serviceName }}.mesos:_PORT_", "_POD_-1.{{ page.serviceName }}.mesos:_PORT_"]
+        "dns": ["_POD_-0.{{ data.serviceName }}.mesos:_PORT_", "_POD_-1.{{ data.serviceName }}.mesos:_PORT_"]
     }
     ```
 
@@ -46,4 +43,4 @@ serviceName: template
 
 ## See Also
 
-- [Connecting clients](https://docs.mesosphere.com/service-docs/{{ page.packageName }}/connecting-clients/)
+- [Connecting clients](https://docs.mesosphere.com/service-docs/{{ data.packageName }}/connecting-clients/)

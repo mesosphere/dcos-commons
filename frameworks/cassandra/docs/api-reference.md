@@ -4,12 +4,7 @@ navigationTitle:
 excerpt:
 title: API Reference
 menuWeight: 70
-
-packageName: beta-cassandra
-serviceName: cassandra
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/api-reference.md
-    techName="Apache Cassandra"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/api-reference.md data=data %}

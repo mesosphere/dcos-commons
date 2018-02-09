@@ -4,11 +4,7 @@ navigationTitle:
 excerpt:
 title: Troubleshooting
 menuWeight: 90
-
-packageName: beta-elastic
-serviceName: elastic
 ---
+{% assign data = site.data.services.elastic %}
 
-{% include services/troubleshooting.md
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/troubleshooting.md data=data %}

@@ -5,9 +5,6 @@ title: Supported Versions
 menuWeight: 110
 excerpt:
 ---
+{% assign data = site.data.services.kafka %}
 
-{% include services/supported-versions.md
-    techName="Apache Kafka"
-    techPolicyDesc="[Apache Kafka](https://kafka.apache.org/downloads)"
-    techVersion="0.11.0.2" %}
-
+{% include services/supported-versions.md data=data %}
