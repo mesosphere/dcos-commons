@@ -353,9 +353,9 @@ public class ServiceTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addResources(
                         Protos.Resource.newBuilder()
-                        .setName("mem")
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
+                                .setName("mem")
+                                .setType(Protos.Value.Type.SCALAR)
+                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
                 .build();
 
         Collection<SimulationTick> ticks = new ArrayList<>();
