@@ -523,9 +523,10 @@
 <h1>Template: Managing</h1>
 <div id="content">
 
+
 <h1 id="updating-configuration">Updating Configuration</h1>
 
-<p>You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying TEMPLATE_SERVICE itself.</p>
+<p>You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying TEMPLATE SERVICE itself.</p>
 
 <p>After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to <code class="highlighter-rouge">template-0</code>, then <code class="highlighter-rouge">template-1</code>, and so on.</p>
 
@@ -772,7 +773,7 @@ template
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
-<p>The instructions below show how to safely update one version of DC/OS TEMPLATE_SERVICE Service to the next.</p>
+<p>The instructions below show how to safely update one version of DC/OS TEMPLATE SERVICE Service to the next.</p>
 
 <h2 id="viewing-available-versions">Viewing available versions</h2>
 
@@ -790,7 +791,7 @@ template
 <span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--cli</span> template <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre></div>    </div>
   </li>
-  <li>Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS TEMPLATE_SERVICE Service to version <code class="highlighter-rouge">1.1.6-5.0.7</code>:
+  <li>Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS TEMPLATE SERVICE Service to version <code class="highlighter-rouge">1.1.6-5.0.7</code>:
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos template <span class="nt">--name</span><span class="o">=</span>template update start <span class="nt">--package-version</span><span class="o">=</span><span class="s2">"1.1.6-5.0.7"</span>
 </code></pre></div>    </div>
   </li>

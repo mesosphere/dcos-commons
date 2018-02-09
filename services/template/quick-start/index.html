@@ -523,6 +523,7 @@
 <h1>Template: Quick Start</h1>
 <div id="content">
 
+
 <h2 id="prerequisites">Prerequisites</h2>
 
 <ul>
@@ -533,17 +534,17 @@
 
 <ol>
   <li>
-    <p>If you are using open source DC/OS, install YOUR_SERVICE cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.</p>
+    <p>If you are using open source DC/OS, install TEMPLATE SERVICE cluster with the following command from the DC/OS CLI. If you are using Enterprise DC/OS, you may need to follow additional instructions. See the Install and Customize section for information.</p>
 
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos package <span class="nb">install </span>template
 </code></pre></div>    </div>
 
-    <p>Alternatively, you can install YOUR_SERVICE from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
+    <p>Alternatively, you can install TEMPLATE SERVICE from <a href="https://docs.mesosphere.com/latest/usage/webinterface/">the DC/OS web interface</a>.</p>
   </li>
   <li>
     <p>The service will now deploy with a default configuration. You can monitor its deployment via the Services tab of the DC/OS web interface.</p>
   </li>
-  <li>Connect a client to YOUR_SERVICE.
+  <li>Connect a client to TEMPLATE SERVICE.
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code> dcos template <span class="nt">--name</span><span class="o">=</span>template endpoints
  <span class="o">[</span>
      <span class="s2">"_LIST_"</span>,

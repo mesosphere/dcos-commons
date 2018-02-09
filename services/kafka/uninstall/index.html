@@ -523,22 +523,25 @@
 <h1>Kafka: Uninstall</h1>
 <div id="content">
 
+
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
-<h3 id="dcos-110">DC/OS 1.10</h3>
+<p>Support for an improved uninstall process was introduced in DC/OS 1.10. In order to take advantage of this new support, changes were required to the <code class="highlighter-rouge">beta-kafka</code> package, which were included as of versions 2.0.0-x and greater.</p>
 
-<p>If you are using DC/OS 1.10 and the installed service has a version greater than 2.0.0-x:</p>
+<h3 id="dcos-110-and-newer-and-package-200-x-and-newer">DC/OS 1.10 and newer, and package 2.0.0-x and newer</h3>
+
+<p>If you are using DC/OS 1.10 or newer and the installed service has a version greater than 2.0.0-x:</p>
 
 <ol>
   <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; beta-kafka</code>.</li>
 </ol>
 
-<p>For example, to uninstall an Apache Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
+<p>For example, to uninstall the Apache Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>kafka-dev beta-kafka
 </code></pre></div></div>
 
-<h3 id="older-versions">Older versions</h3>
+<h3 id="dcos-19-and-older-or-package-older-than-200-x">DC/OS 1.9 and older, or package older than 2.0.0-x</h3>
 
 <p>If you are running DC/OS 1.9 or older, or a version of the service that is older than 2.0.0-x, follow these steps:</p>
 
@@ -548,7 +551,7 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=kaf
   <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
 </ol>
 
-<p>For example, to uninstall an Apache Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
+<p>For example, to uninstall Apache Kafka instance named <code class="highlighter-rouge">kafka-dev</code>, run:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ MY_SERVICE_NAME</span><span class="o">=</span>kafka-dev
 <span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-kafka<span class="sb">`</span><span class="nb">.</span>

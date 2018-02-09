@@ -562,7 +562,7 @@
 
 <p>The following are some examples of how to customize the installation of your Apache Kafka instance.</p>
 
-<p>In each case, you would create a new  instance using the custom configuration as follows:</p>
+<p>In each case, you would create a new Apache Kafka instance using the custom configuration as follows:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>sample-kafka.json
 </code></pre></div></div>
@@ -585,7 +585,7 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>kafka-other.json
 </code></pre></div></div>
 
-<p>Multiple instances of  may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of  named <code class="highlighter-rouge">kafka-staging</code> and another named <code class="highlighter-rouge">kafka-prod</code>, each with its own custom configuration.</p>
+<p>Multiple instances of Apache Kafka may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of Apache Kafka named <code class="highlighter-rouge">kafka-staging</code> and another named <code class="highlighter-rouge">kafka-prod</code>, each with its own custom configuration.</p>
 
 <p>After specifying a custom name for your instance, it can be reached using <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
 
@@ -608,7 +608,7 @@
 
 <h3 id="addressing-named-instances">Addressing named instances</h3>
 
-<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos </code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-kafka</code>.</p>
+<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos beta-kafka</code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-kafka</code>.</p>
 
 <p>For example, if you had an instance named <code class="highlighter-rouge">kafka-dev</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
 

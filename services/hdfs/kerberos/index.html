@@ -523,6 +523,7 @@
 <h1>HDFS: Kerberos</h1>
 <div id="content">
 
+
 <h2 id="setting-up-apache-hadoop-distributed-file-system-hdfs-with-kerberos">Setting up Apache Hadoop Distributed File System (HDFS) with Kerberos</h2>
 
 <p>The utility tool <code class="highlighter-rouge">kinit</code> needs to be installed on the agents and be accessible from within the tasks’ containers in order for the system to deploy correctly.</p>
@@ -530,41 +531,41 @@
 <h2 id="create-principals">Create principals</h2>
 
 <p>In order to run Apache HDFS with Kerberos security enabled, a principal needs to be added for every service component in the cluster. The following principals are required (although the realm can be modified):</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/name-0-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/name-0-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/name-0-zkfc.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/name-0-zkfc.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/name-1-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/name-1-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/name-1-zkfc.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/name-1-zkfc.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/journal-0-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/journal-0-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/journal-1-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/journal-1-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/journal-2-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/journal-2-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/data-0-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/data-0-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/data-1-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/data-1-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-hdfs/data-2-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/data-2-node.kafka.autoip.dcos.thisdcos.directory@LOCAL
-HTTP/api.kafka.marathon.l4lb.thisdcos.directory@LOCAL
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/name-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/data-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/data-0-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/data-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/data-1-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@LOCAL
+HTTP/api.hdfs.marathon.l4lb.thisdcos.directory@LOCAL
 </code></pre></div></div>
 <p>This cluster has 3 data nodes, though the correct number of principals should be added up to N data nodes.
-(assuming a default service name of <code class="highlighter-rouge">kafka</code>)</p>
+(assuming a default service name of <code class="highlighter-rouge">hdfs</code>)</p>
 
 <p>Note that the service name is part of the instance in the principal. The template of a principal with <code class="highlighter-rouge">hdfs</code> primary is:</p>
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/&lt;pod-type&gt;-&lt;pod-index&gt;-&lt;task-type&gt;.&lt;service-name&gt;.autoip.dcos.thisdcos.directory@&lt;REALM&gt;
 </code></pre></div></div>
-<p>Given a service name of <code class="highlighter-rouge">kafka-demo</code>, the principal for a name node becomes:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/name-0-node.kafka-demo.autoip.dcos.thisdcos.directory@LOCAL
+<p>Given a service name of <code class="highlighter-rouge">hdfs-demo</code>, the principal for a name node becomes:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/name-0-node.hdfs-demo.autoip.dcos.thisdcos.directory@LOCAL
 </code></pre></div></div>
 
-<p>Also note that if the service name is foldered, such as <code class="highlighter-rouge">myfolder/kafka</code>, then the FQDN in the instance of the principal
-becomes <code class="highlighter-rouge">myfolderkafka</code>. For example:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/name-0-node.myfolderkafka.autoip.dcos.thisdcos.directory@LOCAL
+<p>Also note that if the service name is foldered, such as <code class="highlighter-rouge">myfolder/hdfs</code>, then the FQDN in the instance of the principal
+becomes <code class="highlighter-rouge">myfolderhdfs</code>. For example:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hdfs/name-0-node.myfolderhdfs.autoip.dcos.thisdcos.directory@LOCAL
 </code></pre></div></div>
 
 <h2 id="create-the-keytab-secret">Create the keytab secret</h2>
@@ -581,7 +582,7 @@ becomes <code class="highlighter-rouge">myfolderkafka</code>. For example:</p>
 <p>Create the following <code class="highlighter-rouge">kerberos-options.json</code> file:</p>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="s2">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
                 </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
@@ -600,7 +601,7 @@ becomes <code class="highlighter-rouge">myfolderkafka</code>. For example:</p>
 <p>Note the specification of the secret name as created in the previous step.</p>
 
 <p>The kerberized Apache HDFS service is then deployed by running:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-kafka <span class="nt">--options</span><span class="o">=</span>kerberos-options.json
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-hdfs <span class="nt">--options</span><span class="o">=</span>kerberos-options.json
 </code></pre></div></div>
 
 <h2 id="active-directory">Active Directory</h2>
@@ -608,27 +609,27 @@ becomes <code class="highlighter-rouge">myfolderkafka</code>. For example:</p>
 <p>Kerberized Apache HDFS also supports Active Directory as a KDC. Here the generation of principals and the relevant keytab should be adapted for the tools made available by the Active Directory installation.</p>
 
 <p>As an example, the <code class="highlighter-rouge">ktpass</code> utility can be used to generate the keytab for the Apache HDFS principals as follows:</p>
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ktpass.exe                    /princ hdfs/name-0-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-00.keytab
-ktpass.exe /in hdfs-00.keytab /princ HTTP/name-0-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-01.keytab
-ktpass.exe /in hdfs-01.keytab /princ hdfs/name-0-zkfc.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-0-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-02.keytab
-ktpass.exe /in hdfs-02.keytab /princ HTTP/name-0-zkfc.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-0-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-03.keytab
-ktpass.exe /in hdfs-03.keytab /princ hdfs/name-1-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-04.keytab
-ktpass.exe /in hdfs-04.keytab /princ HTTP/name-1-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-05.keytab
-ktpass.exe /in hdfs-05.keytab /princ hdfs/name-1-zkfc.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-1-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-06.keytab
-ktpass.exe /in hdfs-06.keytab /princ HTTP/name-1-zkfc.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-1-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-07.keytab
-ktpass.exe /in hdfs-07.keytab /princ hdfs/journal-0-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-08.keytab
-ktpass.exe /in hdfs-08.keytab /princ HTTP/journal-0-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-09.keytab
-ktpass.exe /in hdfs-09.keytab /princ hdfs/journal-1-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-10.keytab
-ktpass.exe /in hdfs-10.keytab /princ HTTP/journal-1-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-11.keytab
-ktpass.exe /in hdfs-11.keytab /princ hdfs/journal-2-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-12.keytab
-ktpass.exe /in hdfs-12.keytab /princ HTTP/journal-2-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-13.keytab
-ktpass.exe /in hdfs-13.keytab /princ hdfs/data-0-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-14.keytab
-ktpass.exe /in hdfs-14.keytab /princ HTTP/data-0-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-15.keytab
-ktpass.exe /in hdfs-15.keytab /princ hdfs/data-1-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-16.keytab
-ktpass.exe /in hdfs-16.keytab /princ HTTP/data-1-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-17.keytab
-ktpass.exe /in hdfs-17.keytab /princ hdfs/data-2-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-18.keytab
-ktpass.exe /in hdfs-18.keytab /princ HTTP/data-2-node.kafka.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-19.keytab
-ktpass.exe /in hdfs-19.keytab /princ HTTP/api.kafka.l4lb.thisdcos.directory@EXAMPLE.COM /mapuser http-api@example.com /ptype KRB5_NT_PRINCIPAL +rndPass                              /out hdfs.keytab
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ktpass.exe                    /princ hdfs/name-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-00.keytab
+ktpass.exe /in hdfs-00.keytab /princ HTTP/name-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-01.keytab
+ktpass.exe /in hdfs-01.keytab /princ hdfs/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-0-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-02.keytab
+ktpass.exe /in hdfs-02.keytab /princ HTTP/name-0-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-0-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-03.keytab
+ktpass.exe /in hdfs-03.keytab /princ hdfs/name-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-04.keytab
+ktpass.exe /in hdfs-04.keytab /princ HTTP/name-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-05.keytab
+ktpass.exe /in hdfs-05.keytab /princ hdfs/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser name-1-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-06.keytab
+ktpass.exe /in hdfs-06.keytab /princ HTTP/name-1-zkfc.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-name-1-zkfc@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-07.keytab
+ktpass.exe /in hdfs-07.keytab /princ hdfs/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-08.keytab
+ktpass.exe /in hdfs-08.keytab /princ HTTP/journal-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-09.keytab
+ktpass.exe /in hdfs-09.keytab /princ hdfs/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-10.keytab
+ktpass.exe /in hdfs-10.keytab /princ HTTP/journal-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-11.keytab
+ktpass.exe /in hdfs-11.keytab /princ hdfs/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser journal-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass      /out hdfs-12.keytab
+ktpass.exe /in hdfs-12.keytab /princ HTTP/journal-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-journal-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass /out hdfs-13.keytab
+ktpass.exe /in hdfs-13.keytab /princ hdfs/data-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-14.keytab
+ktpass.exe /in hdfs-14.keytab /princ HTTP/data-0-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-0-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-15.keytab
+ktpass.exe /in hdfs-15.keytab /princ hdfs/data-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-16.keytab
+ktpass.exe /in hdfs-16.keytab /princ HTTP/data-1-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-1-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-17.keytab
+ktpass.exe /in hdfs-17.keytab /princ hdfs/data-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser data-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass            /out hdfs-18.keytab
+ktpass.exe /in hdfs-18.keytab /princ HTTP/data-2-node.hdfs.autoip.dcos.thisdcos.directory@EXAMPLE.COM /mapuser http-data-2-node@example.com /ptype KRB5_NT_PRINCIPAL +rndPass       /out hdfs-19.keytab
+ktpass.exe /in hdfs-19.keytab /princ HTTP/api.hdfs.l4lb.thisdcos.directory@EXAMPLE.COM /mapuser http-api@example.com /ptype KRB5_NT_PRINCIPAL +rndPass                              /out hdfs.keytab
 </code></pre></div></div>
 <p>Here it is assumed that the domain <code class="highlighter-rouge">example.com</code> exists and that the domain users (<code class="highlighter-rouge">name-0-node</code>, <code class="highlighter-rouge">http-name-0-node</code> etc.) have been created (using the <code class="highlighter-rouge">net user</code> command, for example).</p>
 
@@ -640,7 +641,7 @@ ktpass.exe /in hdfs-19.keytab /princ HTTP/api.kafka.l4lb.thisdcos.directory@EXAM
 <p>Kerberized Apache HDFS can then be deployed using the following configuration options:</p>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"kafka"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"hdfs"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="s2">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
                 </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">

@@ -523,6 +523,7 @@
 <h1>Cassandra: Install and Customize</h1>
 <div id="content">
 
+
 <p>The default DC/OS Apache Cassandra installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
@@ -561,7 +562,7 @@
 
 <p>The following are some examples of how to customize the installation of your Apache Cassandra instance.</p>
 
-<p>In each case, you would create a new  instance using the custom configuration as follows:</p>
+<p>In each case, you would create a new Apache Cassandra instance using the custom configuration as follows:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra <span class="nt">--options</span><span class="o">=</span>sample-cassandra.json
 </code></pre></div></div>
@@ -584,7 +585,7 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-cassandra <span class="nt">--options</span><span class="o">=</span>cassandra-other.json
 </code></pre></div></div>
 
-<p>Multiple instances of  may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of  named <code class="highlighter-rouge">cassandra-staging</code> and another named <code class="highlighter-rouge">cassandra-prod</code>, each with its own custom configuration.</p>
+<p>Multiple instances of Apache Cassandra may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of Apache Cassandra named <code class="highlighter-rouge">cassandra-staging</code> and another named <code class="highlighter-rouge">cassandra-prod</code>, each with its own custom configuration.</p>
 
 <p>After specifying a custom name for your instance, it can be reached using <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
 
@@ -607,7 +608,7 @@
 
 <h3 id="addressing-named-instances">Addressing named instances</h3>
 
-<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos </code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-cassandra</code>.</p>
+<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos beta-cassandra</code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-cassandra</code>.</p>
 
 <p>For example, if you had an instance named <code class="highlighter-rouge">cassandra-dev</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
 

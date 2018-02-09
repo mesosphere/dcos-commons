@@ -524,7 +524,7 @@
 <div id="content">
 
 
-<p>The default DC/OS Apache HDFS installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
+<p>The default DC/OS HDFS installation provides reasonable defaults for trying out the service, but may not be sufficient for production use. You may require a different configuration depending on the context of the deployment.</p>
 
 <h2 id="prerequisites">Prerequisites</h2>
 
@@ -556,16 +556,16 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-hdfs <span class="nt">--name</span><span class="o">=</span>hdfs &lt;cmd&gt;
 </code></pre></div></div>
 
-<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install Apache HDFS from the DC/OS web interface, the <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:</p>
+<p><strong>Note:</strong> Alternatively, you can <a href="https://docs.mesosphere.com/latest/deploying-services/install/">install from the DC/OS web interface</a>. If you install HDFS from the DC/OS web interface, the <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands are not automatically installed to your workstation. They may be manually installed using the DC/OS CLI:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package <span class="nb">install </span>beta-hdfs <span class="nt">--cli</span>
 </code></pre></div></div>
 
 <h2 id="alternate-install-configurations">Alternate install configurations</h2>
 
-<p>The following are some examples of how to customize the installation of your Apache HDFS instance.</p>
+<p>The following are some examples of how to customize the installation of your HDFS instance.</p>
 
-<p>In each case, you would create a new  instance using the custom configuration as follows:</p>
+<p>In each case, you would create a new HDFS instance using the custom configuration as follows:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-hdfs <span class="nt">--options</span><span class="o">=</span>sample-hdfs.json
 </code></pre></div></div>
@@ -574,7 +574,7 @@
 
 <h3 id="installing-multiple-instances">Installing multiple instances</h3>
 
-<p>By default, the Apache HDFS service is installed with a service name of <code class="highlighter-rouge">hdfs</code>. You may specify a different name using a custom service configuration as follows:</p>
+<p>By default, the HDFS service is installed with a service name of <code class="highlighter-rouge">hdfs</code>. You may specify a different name using a custom service configuration as follows:</p>
 
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
@@ -588,7 +588,7 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>beta-hdfs <span class="nt">--options</span><span class="o">=</span>hdfs-other.json
 </code></pre></div></div>
 
-<p>Multiple instances of  may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of  named <code class="highlighter-rouge">hdfs-staging</code> and another named <code class="highlighter-rouge">hdfs-prod</code>, each with its own custom configuration.</p>
+<p>Multiple instances of HDFS may be installed into your DC/OS cluster by customizing the name of each instance. For example, you might have one instance of HDFS named <code class="highlighter-rouge">hdfs-staging</code> and another named <code class="highlighter-rouge">hdfs-prod</code>, each with its own custom configuration.</p>
 
 <p>After specifying a custom name for your instance, it can be reached using <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands or directly over HTTP as described <a href="#addressing-named-instances">below</a>.</p>
 
@@ -611,7 +611,7 @@
 
 <h3 id="addressing-named-instances">Addressing named instances</h3>
 
-<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos </code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-hdfs</code>.</p>
+<p>After you’ve installed the service under a custom name or under a folder, it may be accessed from all <code class="highlighter-rouge">dcos beta-hdfs</code> CLI commands using the <code class="highlighter-rouge">--name</code> argument. By default, the <code class="highlighter-rouge">--name</code> value defaults to the name of the package, or <code class="highlighter-rouge">beta-hdfs</code>.</p>
 
 <p>For example, if you had an instance named <code class="highlighter-rouge">hdfs-dev</code>, the following command would invoke a <code class="highlighter-rouge">pod list</code> command against it:</p>
 
@@ -633,11 +633,11 @@
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>curl <span class="nt">-H</span> <span class="s2">"Authorization:token=</span><span class="nv">$auth_token</span><span class="s2">"</span> &lt;dcos_url&gt;/service/foldered/path/to/hdfs-dev/v1/pod
 </code></pre></div></div>
 
-<p><strong>Note:</strong> You may add a <code class="highlighter-rouge">-v</code> (verbose) argument to any <code class="highlighter-rouge">dcos beta-hdfs</code> command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, <code class="highlighter-rouge">dcos beta-hdfs</code> commands are a thin wrapper around an HTTP interface provided by the DC/OS Apache HDFS Service itself.</p>
+<p><strong>Note:</strong> You may add a <code class="highlighter-rouge">-v</code> (verbose) argument to any <code class="highlighter-rouge">dcos beta-hdfs</code> command to see the underlying HTTP queries that are being made. This can be a useful tool to see where the CLI is getting its information. In practice, <code class="highlighter-rouge">dcos beta-hdfs</code> commands are a thin wrapper around an HTTP interface provided by the DC/OS HDFS Service itself.</p>
 
 <h3 id="virtual-networks">Virtual networks</h3>
 
-<p>DC/OS Apache HDFS supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:</p>
+<p>DC/OS HDFS supports deployment on virtual networks on DC/OS (including the <code class="highlighter-rouge">dcos</code> overlay network), allowing each container (task) to have its own IP address and not use port resources on the agent machines. This can be specified by passing the following configuration during installation:</p>
 
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
   </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">

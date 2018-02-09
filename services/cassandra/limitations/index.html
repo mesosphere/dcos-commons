@@ -523,6 +523,7 @@
 <h1>Cassandra: Limitations</h1>
 <div id="content">
 
+
 <h2 id="out-of-band-configuration">Out-of-band configuration</h2>
 
 <p>Out-of-band configuration modifications are not supported. The service’s core responsibility is to deploy and maintain the service with a specified configuration. In order to do this, the service assumes that it has ownership of task configuration. If an end-user makes modifications to individual tasks through out-of-band configuration operations, the service will override those modifications at a later time. For example:</p>
@@ -557,7 +558,7 @@
 
 <h2 id="node-count">Node Count</h2>
 
-<p>The DC/OS Cassandra Service must be deployed with at least 3 nodes.</p>
+<p>The DC/OS Apache Cassandra Service must be deployed with at least 3 nodes.</p>
 
 <h2 id="security">Security</h2>
 
@@ -565,7 +566,7 @@
 
 <h2 id="data-center-name">Data Center Name</h2>
 
-<p>The name of the data center cannot be changed after installation. <code class="highlighter-rouge">service.data_center</code> and <code class="highlighter-rouge">service.rack</code> options are not allowed to be modified once Cassandra is installed.</p>
+<p>The name of the data center cannot be changed after installation. <code class="highlighter-rouge">service.data_center</code> and <code class="highlighter-rouge">service.rack</code> options are not allowed to be modified once Apache Cassandra is installed.</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>"service": {
 ...
