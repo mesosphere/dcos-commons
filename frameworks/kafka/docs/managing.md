@@ -4,33 +4,20 @@ navigationTitle:
 excerpt:
 title: Managing
 menuWeight: 60
-
-packageName: beta-kafka
-serviceName: kafka
 ---
+{% assign data = site.data.services.kafka %}
 
-{% include services/managing.md
-    podType="kafka"
-    taskType="broker"
-    techName="Apache Kafka"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/managing.md data=data %}
 
 # Graceful Shutdown
 
 ## Extend the Kill Grace Period
 
-Increase the `brokers.kill_grace_period` value via the DC/OS CLI, i.e.,  to `60`
-seconds. This example assumes that the Kafka service instance is named `kafka`.
+When performing a requested restart or replace of a running broker, the Kafka service will wait a default of `30` seconds for a broker to exit, before killing the process. This grace period may be customized via the `brokers.kill_grace_period` setting. In this example we will use the DC/OS CLI to increase the grace period delay to `60` seconds. This example assumes that the Kafka service instance is named `{{ data.serviceName }}`.
 
-During the configuration update, each of the Kafka broker tasks are restarted. During
-the shutdown portion of the task restart, the previous configuration value for
-`brokers.kill_grace_period` is in effect. Following the shutdown, each broker
-task is launched with the new effective configuration value. Take care to monitor
-the amount of time Kafka brokers take to cleanly shutdown. Find the relevant log
-entries in the [Configure](configure.md) section.
+During the configuration update, each of the Kafka broker tasks are restarted. During the shutdown portion of the task restart, the previous configuration value for `brokers.kill_grace_period` is in effect. Following the shutdown, each broker task is launched with the new effective configuration value. Take care to monitor the amount of time Kafka brokers take to cleanly shut down by observing their logs.
 
-Create an options file `kafka-options.json` with the following content:
+Create an options file `kafka-options.json` with the following content. If you have other customized settings for your Kafka service, those settings must also be included here:
 
 ```json
 {
@@ -43,7 +30,7 @@ Create an options file `kafka-options.json` with the following content:
 Issue the following command:
 
 ```bash
-$ dcos {{ page.packageName }} --name={{ page.serviceName }} update --options=kafka-options.json
+$ dcos {{ data.packageName }} --name={{ data.serviceName }} update --options=kafka-options.json
 ```
 
 ## Restart a Broker with Grace

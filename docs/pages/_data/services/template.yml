@@ -1,0 +1,20 @@
+# Common values:
+
+packageName: template
+serviceName: template
+techName: TEMPLATE SERVICE
+
+# Values specific to certain templates:
+
+install:
+  minNodeCount: some
+  nodeDescription: with SOME QUANTITY OF NODES
+  serviceAccountInstructionsUrl: https://docs.mesosphere.com/services/TEMPLATE/TEMPLATE-auth/
+
+managing:
+  podType: template
+  taskType: node
+
+supportedVersions:
+  techExampleVersion: 1.2.3.4
+  techLink: "[LINK TO UNDERLYING TECH](http://example.com)"

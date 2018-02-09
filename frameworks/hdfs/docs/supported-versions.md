@@ -5,8 +5,6 @@ title: Supported Versions
 menuWeight: 110
 excerpt:
 ---
+{% assign data = site.data.services.hdfs %}
 
-{% include services/supported-versions.md
-    techName="HDFS"
-    techPolicyDesc="[HDFS](http://hadoop.apache.org/releases.html)"
-    techVersion="2.9.0" %}
+{% include services/supported-versions.md data=data %}

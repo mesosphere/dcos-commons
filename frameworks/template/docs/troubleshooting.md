@@ -4,12 +4,8 @@ navigationTitle:
 excerpt:
 title: Troubleshooting
 menuWeight: 90
-
-packageName: template
-serviceName: template
 ---
+{% assign data = site.data.services.template %}
 
-{% include services/troubleshooting.md
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/troubleshooting.md data=data %}
 

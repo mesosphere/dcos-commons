@@ -43,8 +43,8 @@ public class ServiceTest {
     private ServiceTestRunner getDefaultRunner() {
         // `CLUSTER_NAME` and `CUSTOM_YAML_BLOCK` are set in our Main.java.
         // `ZONE` is set during offer evaluation.
-        // `elastic-version` and `support-diagnostics-version` would normally be provided via elastic's
-        // build.sh/versions.sh.
+        // `elastic-version`, `elastic-statsd-version` and `support-diagnostics-version` would normally be provided via
+        // elastic's build.sh/versions.sh.
         return new ServiceTestRunner()
                 .setPodEnv(
                         "master", "CLUSTER_NAME",
@@ -67,7 +67,8 @@ public class ServiceTest {
                         "some.thing=true",
                         "ZONE", "us-east-1a")
                 .setBuildTemplateParams(
-                        "elastic-version", "1.2.3",
-                        "support-diagnostics-version", "4.5.6");
+                        "elastic-version", "6.1.3",
+                        "elastic-statsd-version", "6.1.3.0", // NOPMD
+                        "support-diagnostics-version", "6.3");
     }
 }

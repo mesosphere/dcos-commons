@@ -4,11 +4,7 @@ navigationTitle:
 excerpt:
 title: Troubleshooting
 menuWeight: 90
-
-packageName: beta-hdfs
-serviceName: hdfs
 ---
+{% assign data = site.data.services.hdfs %}
 
-{% include services/troubleshooting.md
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/troubleshooting.md data=data %}

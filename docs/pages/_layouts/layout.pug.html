@@ -1,20 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-{% comment %}
-  Determine the root path to use in URLs.
-  If we're in a subdir like 'tutorials' then it's '..'
-{% endcomment %}
 {% assign pageurltokens = page.url | split: "/" %}
 {% case pageurltokens.size %}
   {% when 4 %}
-    {% assign rootdir = "../.." %}
     {% assign sectiontitle = pageurltokens[2] %}
   {% when 3 %}
-    {% assign rootdir = ".." %}
     {% assign sectiontitle = pageurltokens[1] %}
-  {% else %}
-    {% assign rootdir = "." %}
 {% endcase %}
 {% if sectiontitle == "hdfs" %}
   {% assign sectiontitle = "HDFS" %}
@@ -47,11 +39,11 @@
 
 <head>
 <title>{{ title }}</title>
-<link rel="stylesheet" type="text/css" media="all" href="{{ rootdir }}/style/{{ page.stylesheet }}" />
+<link rel="stylesheet" type="text/css" media="all" href="{{ site.baseurl }}/style/{{ page.stylesheet }}" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
-<link rel="stylesheet" type="text/css" media="all" href="{{ rootdir }}/style/Dropdown.css" />
-<script src="{{ rootdir }}/style/Dropdown.js"></script>
+<link rel="stylesheet" type="text/css" media="all" href="{{ site.baseurl }}/style/Dropdown.css" />
+<script src="{{ site.baseurl }}/style/Dropdown.js"></script>
 <style type="text/css">
 /* set the background color of menu items */
 .dropdown, .dropdown ul { background: #555555; clear: both; }
@@ -70,14 +62,14 @@
 <body>
 <div id="wrapper">
 
-<a href="{{ rootdir }}">
+<a href="{{ site.baseurl }}">
 <img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
 </a>
 <img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
 
 <ul class="dropdown" style="clear: both">
   <li>
-    <a href="{{ rootdir }}">Home</a>
+    <a href="{{ site.baseurl }}">Home</a>
   </li>
   <li>
     <span>Documentation</span>
@@ -86,11 +78,11 @@
       {% assign sorted_pages = site.pages | sort:"menuWeight" %}
       {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}
       {% if urltokens.size < 3 and p.url != "/" and p.title != nil %}
-      <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
+      <li><a href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}
       {% endfor %}
-      <li><a href="{{ rootdir }}/reference/api">Javadoc Reference</a></li>
-      <li><a href="{{ rootdir }}/reference/swagger-api">REST APIs</a></li>
+      <li><a href="{{ site.baseurl }}/reference/api">Javadoc Reference</a></li>
+      <li><a href="{{ site.baseurl }}/reference/swagger-api">REST APIs</a></li>
     </ul>
   </li>
   <li>
@@ -99,7 +91,7 @@
       {% comment %}List only the tutorials, ordered by menuWeight if any.{% endcomment %}
       {% assign sorted_pages = site.pages | sort:"menuWeight" %}
       {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens[1] == "tutorials" %}
-      <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
+      <li><a href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a></li>
       {% endif %}{% endfor %}
     </ul>
   </li>
@@ -120,9 +112,9 @@
           {% comment %}List the pages for this service, ordered by menuWeight if any:{% endcomment %}
           {% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}{% if urltokens.size == 4 and urltokens[1] == "services" and urltokens[2] == service %}
           {% if p.navigationTitle %}
-          <li><a href="{{ rootdir }}{{ p.url }}">{{ p.navigationTitle }}</a></li>
+          <li><a href="{{ site.baseurl }}{{ p.url }}">{{ p.navigationTitle }}</a></li>
           {% else %}
-          <li><a href="{{ rootdir }}{{ p.url }}">{{ p.title }}</a></li>
+          <li><a href="{{ site.baseurl }}{{ p.url }}">{{ p.title }}</a></li>
           {% endif %}
           {% endif %}{% endfor %}
         </ul>

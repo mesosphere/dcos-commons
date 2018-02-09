@@ -1,13 +1,15 @@
 ---
 title: SDK Developer Guide
 menuWeight: 1
-redirect_from: "/dev-guide/developer-guide"
+redirect_from:
+- /dev-guide/developer-guide
+- /developer-guide.html
 toc: true
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services. For information about running DC/OS SDK services in an operational context, look at the [Operations Guide](operations-guide.html).
+This developer guide explains how to create a stateful DC/OS service using the DC/OS SDK. The DC/OS SDK is a collection of tools, libraries, and documentation that facilitates the creation of DC/OS services. For information about running DC/OS SDK services in an operational context, look at the [Operations Guide](../operations-guide/).
 
 # DC/OS Component Overview
 
@@ -170,7 +172,7 @@ pods:
 
             * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
-For a full listing of available fields and what they mean, see the [YAML Reference](reference/yaml-reference.html).
+For a full listing of available fields and what they mean, see the [YAML Reference](../yaml-reference/).
 
 ### Summary
 
@@ -273,7 +275,7 @@ plans:
 
 A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.
 
-![plans vs services](img/dev-guide-plans-vs-services.png)
+![plans vs services](../img/dev-guide-plans-vs-services.png)
 
 A phase encapsulates a pod type and a step encapsulates an instance of a pod.  So in this case we have two phases: hello-phase and world-phase.  They are clearly associated with their particular pod definitions from the ServiceSpec. In the example above, we do not need to specifically define steps to accomplish our deployment strategy goal, so they are omitted.
 
@@ -296,7 +298,7 @@ The pod parameter references the pod definition earlier in the `ServiceSpec`. Th
 
 The strategy associated with the deployment plan as a whole is serial, so the phases should be deployed one at a time. This dependency graph illustrates the deployment.
 
-![deployment steps](img/dev-guide-deployment-steps.png)
+![deployment steps](../img/dev-guide-deployment-steps.png)
 
 The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
 
@@ -562,6 +564,28 @@ SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerCon
     .setPlanCustomizer(new ReverseDeployPhases());
 ```
 
+The uninstall plan may also be modified by overriding PlanCustomizer.updateUninstallPlan.
+```java
+public class ReverseDeployPhases implements PlanCustomizer {
+    @Override
+    public Plan updatePlan(Plan plan) {
+        if (plan.isDeployPlan() &&
+            Boolean.valueOf(System.getenv("REVERSE"))) {
+            Collections.reverse(plan.getChildren());
+        }
+
+        return plan;
+    }
+
+    @Override
+    public Plan updateUninstallPlan(Plan uninstallPlan) {
+        // Do some clever things
+
+        return uninstallPlan;
+    }
+}
+```
+
 ## Packaging
 
 A DC/OS service must provide a package definition in order to be installed on a DC/OS cluster. At a minimum, a package definition is composed of four files: `marathon.json.mustache`, `config.json`, `resource.json`, and `package.json`. [Examples of all these files](https://github.com/mesosphere/dcos-commons/tree/master/frameworks/helloworld/universe) are provided in the example helloworld DC/OS service.  A detailed explanation of the format and purpose of each of these files is [available here](https://github.com/mesosphere/universe#creating-a-package).
@@ -711,7 +735,7 @@ The `marathon.json.mustache` template pulls values from `config.json` and `resou
 
 The following is the typical flow of configuration values as represented by environment variables:
 
-![configuration values across files](img/dev-guide-configuration-values-across-files.png)
+![configuration values across files](../img/dev-guide-configuration-values-across-files.png)
 
 Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
 
@@ -1277,7 +1301,7 @@ All tasks defined in the pod will have access to secret data. If the content of 
 
 **Note:** Secrets are available only in Enterprise DC/OS, not in OSS DC/OS.
 
-Refer to the [Secrets Tutorial](tutorials/secrets-tutorial.md) for an
+Refer to the [Secrets Tutorial](../tutorials/secrets-tutorial/) for an
 SDK-based example service using DC/OS secrets.
 
 ### Authorization for Secrets
@@ -1407,7 +1431,7 @@ Here, the file `server.crt` contains an end-entity certificate in the OpenSSL PE
 
 ## Provisioning
 
-TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](operations-guide.html#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
+TLS artifacts are provisioned by the **scheduler** based on the service configuration. Generated artifacts are stored as secrets in the `default` secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task's `DCOS_SPACE` path. This approach ensures that tasks launched by the scheduler [will get access](../operations-guide/#authorization-for-secrets) to all necessary secrets. If the secret exists for a single artifact, then it is **not** overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.
 
 The scheduler will generate and store TLS artfiacts for both possible formats (`TLS`, `KEYSTORE`). Changing the format will not create a new private key.
 

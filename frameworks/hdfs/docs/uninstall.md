@@ -4,12 +4,7 @@ navigationTitle:
 excerpt:
 title: Uninstall
 menuWeight: 30
-
-packageName: beta-hdfs
-serviceName: hdfs
 ---
+{% assign data = site.data.services.hdfs %}
 
-{% include services/uninstall.md
-    techName="an HDFS"
-    packageName=page.packageName
-    serviceName=page.serviceName %}
+{% include services/uninstall.md data=data %}

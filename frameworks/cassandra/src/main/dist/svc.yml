@@ -19,7 +19,6 @@ pods:
       - {{CASSANDRA_JAVA_URI}}
       - {{CASSANDRA_PYTHON_URI}}
       - {{CASSANDRA_OPENSSL_URI}}
-      - {{SCHEDULER_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
     resource-sets:
@@ -73,9 +72,6 @@ pods:
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
-          s3:
-            template: s3config.json
-            dest: s3config.json
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;

@@ -1,0 +1,20 @@
+# Common values:
+
+packageName: beta-hdfs
+serviceName: hdfs
+techName: HDFS
+
+# Values specific to certain templates:
+
+install:
+  minNodeCount: five
+  nodeDescription: with three journal nodes, two name nodes, and three data nodes
+  serviceAccountInstructionsUrl: https://docs.mesosphere.com/services/hdfs/hdfs-auth/
+
+managing:
+  podType: data
+  taskType: node
+
+supportedVersions:
+  techExampleVersion: 2.9.0
+  techLink: "[HDFS](http://hadoop.apache.org/releases.html)"

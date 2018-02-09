@@ -6,6 +6,24 @@ title: Release Notes
 menuWeight: 120
 ---
 
+## Version 2.1.2-5.6.5
+
+## NOTICE
+
+This is a beta release of the DC/OS Elastic service. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Improvements
+- Before launching tasks, only download X-Pack artifact if `xpack_enabled` is true.
+- Removed unused `service.security.allow_plaintext` configuration property.
+- Moved Elastic and Kibana scheduler health-checks from HTTP to [Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks).
+- Bump JRE to 1.8u162.  ([#2135](https://github.com/mesosphere/dcos-commons/pull/2135))
+- Improvements to the pod pause feature. ([#1989](https://github.com/mesosphere/dcos-commons/pull/1989))
+- Improve handling of unexpected task statuses. ([#2087](https://github.com/mesosphere/dcos-commons/pull/2087))
+
+### Documentation
+- Added instructions for configuring placement constraints.
+- Added instructions for pausing nodes.
+
 ## Version 2.1.1-5.6.5
 
 ### NOTICE
@@ -36,7 +54,7 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 ## Version 2.1.0-5.6.2
 
 ### New Features
-* Custom configuration can now be passed to Elastic plugins. See [the documentation](custom-elasticsearch-yaml.md).
+* Custom configuration can now be passed to Elastic plugins. See [the documentation](../custom-elasticsearch-yaml/).
 
 ### Bugs
 * Uninstall now handles failed tasks correctly.
@@ -85,7 +103,7 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 ## Version 1.0.11-5.4.0-beta
 
 ### Breaking Changes
-- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](connecting.md)' section for instructions on how to provision and connect Kibana on DC/OS.
+- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](../connecting-clients/)' section for instructions on how to provision and connect Kibana on DC/OS.
 
 ### Improvements/Features
 - Added an option to toggle installation of commercial X-Pack plugin (disabled by default).

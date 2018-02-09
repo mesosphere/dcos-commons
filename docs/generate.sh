@@ -16,8 +16,7 @@ PAGES_FRAMEWORKS_PATH_PATTERN=${DOCS_DIR}/../frameworks/*/docs/
 JAVADOC_SDK_PATH_PATTERN=${DOCS_DIR}/../sdk/*/src/main/
 
 # Output directory:
-OUTPUT_BASE_DIR=dcos-commons-gh-pages
-OUTPUT_DIR=${OUTPUT_BASE_DIR}/dcos-commons
+OUTPUT_DIR=dcos-commons-gh-pages/dcos-commons
 
 # Swagger build to fetch if needed:
 SWAGGER_CODEGEN_VERSION=2.2.2
@@ -77,7 +76,7 @@ popd
 
 # 2. Generate javadocs to api/ subdir
 javadoc -quiet -notimestamp -package -d ${OUTPUT_DIR}/reference/api/ \
-    $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) 2>&1 | /dev/null || echo "Ignoring javadoc exit code. Disregard errors about /dev/null."
+    $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) &> /dev/null || echo "Ignoring javadoc exit code."
 
 # 3. Generate swagger html to swagger-api/ subdir
 if [ ! -f ${SWAGGER_JAR} ]; then
@@ -125,16 +124,5 @@ else
     if [ -z "${HTTP_PORT+x}" ]; then
         HTTP_PORT=$DEFAULT_HTTP_PORT
     fi
-    FAILED=""
-    while [ 1 ]; do
-        $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="$?"
-        if [ -n "$FAILED" ]; then
-            echo "Failed to listen on HTTP_PORT=$HTTP_PORT (exit code $FAILED)".
-            HTTP_PORT=$((HTTP_PORT + 1))
-            echo "Trying HTTP_PORT=$HTTP_PORT, or alternately just run '$0 exit' to skip running a test server."
-        else
-            # When user invokes KeyboardInterrupt, exit code should be 0
-            break
-        fi
-    done
+    run_cmd jekyll serve --port $HTTP_PORT --baseurl /dcos-commons --skip-initial-build --no-watch --destination $DOCS_DIR/$OUTPUT_DIR
 fi

@@ -1,12 +1,12 @@
 # Updating Configuration
 
-You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying {{ include.techName }} itself.
+You can make changes to the service after it has been launched. Configuration management is handled by the scheduler process, which in turn handles deploying {{ include.data.techName }} itself.
 
-After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `{{ include.podType }}-0`, then `{{ include.podType }}-1`, and so on.
+After making a change, the scheduler will be restarted and will automatically deploy any detected changes to the service, one node at a time. For example, a given change will first be applied to `{{ include.data.managing.podType }}-0`, then `{{ include.data.managing.podType }}-1`, and so on.
 
 Nodes are configured with a "readiness check" to ensure that the underlying service appears to be in a healthy state before continuing with applying a given change to the next node in the sequence. However, this basic check is not foolproof and reasonable care should be taken to ensure that a given configuration change will not negatively affect the behavior of the service.
 
-Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](limitations.md).
+Some changes, such as decreasing the number of nodes or changing volume requirements, are not supported after initial deployment. See [Limitations](../limitations/).
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
@@ -22,11 +22,11 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 + Service with a version greater than 2.0.0-x.
 + [The DC/OS CLI](https://docs.mesosphere.com/latest/cli/install/) installed and available.
 + The service's subcommand available and installed on your local machine.
-  + You can install just the subcommand CLI by running `dcos package install --cli {{ include.packageName }}`.
+  + You can install just the subcommand CLI by running `dcos package install --cli {{ include.data.packageName }}`.
   + If you are running an older version of the subcommand CLI that doesn't have the `update` command, uninstall and reinstall your CLI.
     ```bash
-    $ dcos package uninstall --cli {{ include.packageName }}
-    $ dcos package install --cli {{ include.packageName }}
+    $ dcos package uninstall --cli {{ include.data.packageName }}
+    $ dcos package install --cli {{ include.data.packageName }}
     ```
 
 ### Preparing configuration
@@ -34,7 +34,7 @@ Enterprise DC/OS 1.10 introduces a convenient command line option that allows fo
 If you installed this service with Enterprise DC/OS 1.10, you can fetch the full configuration of a service, including any default values that were applied during installation. For example:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} describe > options.json
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} describe > options.json
 ```
 
 Make any configuration changes to this `options.json` file.
@@ -52,19 +52,19 @@ First, we'll fetch the default application's environment, current application's 
 1. Ensure you have [jq](https://stedolan.github.io/jq/) installed.
 1. Get the version of the package that is currently installed:
 ```bash
-$ PACKAGE_VERSION=$(dcos package list | grep {{ include.packageName }} | awk '{print $2}')
+$ PACKAGE_VERSION=$(dcos package list | grep {{ include.data.packageName }} | awk '{print $2}')
 ```
 1. Then fetch and save the environment variables that have been set for the service:
 ```bash
-$ dcos marathon app show {{ include.serviceName }} | jq .env > current_env.json
+$ dcos marathon app show {{ include.data.serviceName }} | jq .env > current_env.json
 ```
 1. To identify those values that are custom, we'll get the default environment variables for this version of the service:
 ```bash
-$ dcos package describe --package-version=$PACKAGE_VERSION --render --app {{ include.serviceName }} | jq .env > default_env.json
+$ dcos package describe --package-version=$PACKAGE_VERSION --render --app {{ include.data.serviceName }} | jq .env > default_env.json
 ```
 1. We'll also get the entire application template:
 ```bash
-$ dcos package describe {{ include.serviceName }} --app > marathon.json.mustache
+$ dcos package describe {{ include.data.serviceName }} --app > marathon.json.mustache
 ```
 
 With these files, `options.json` can be recreated.
@@ -85,7 +85,7 @@ $ less marathon.json.mustache
 Once you are ready to begin, initiate an update using the DC/OS CLI, passing in the updated `options.json` file:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update start --options=options.json
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update start --options=options.json
 ```
 
 You will receive an acknowledgement message and the DC/OS package manager will restart the Scheduler in Marathon.
@@ -100,18 +100,18 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 To make configuration changes via scheduler environment updates, perform the following steps:
 1. Visit `<dcos-url>` to access the DC/OS web interface.
-1. Navigate to `Services` and click on the service to be configured (default `{{ include.serviceName }}`).
+1. Navigate to `Services` and click on the service to be configured (default `{{ include.data.serviceName }}`).
 1. Click `Edit` in the upper right. On DC/OS 1.9.x, the `Edit` button is in a menu made up of three dots.
 1. Navigate to `Environment` (or `Environment variables`) and search for the option to be updated.
 1. Update the option value and click `Review and run` (or `Deploy changes`).
 1. The Scheduler process will be restarted with the new configuration and will validate any detected changes.
 1. If the detected changes pass validation, the relaunched Scheduler will deploy the changes by sequentially relaunching affected tasks as described above.
 
-To see a full listing of available options, run `dcos package describe --config {{ include.packageName }}` in the CLI, or browse the {{ include.packageName }} package install dialog in the DC/OS web interface.
+To see a full listing of available options, run `dcos package describe --config {{ include.data.packageName }}` in the CLI, or browse the {{ include.data.packageName }} package install dialog in the DC/OS web interface.
 
 # Upgrade Software
 
-1.  In the DC/OS web interface, destroy the `{{ include.serviceName }}` scheduler to be updated.
+1.  In the DC/OS web interface, destroy the `{{ include.data.serviceName }}` scheduler to be updated.
 
 1.  Verify that you no longer see it in the DC/OS web interface.
 
@@ -126,10 +126,10 @@ To see a full listing of available options, run `dcos package describe --config 
 ```
 
 
-1.  Install the latest version of the {{ include.packageName }} package with the specified options:
+1.  Install the latest version of the {{ include.data.packageName }} package with the specified options:
 
 ```bash
-$ dcos package install {{ include.packageName }} -—options=options.json
+$ dcos package install {{ include.data.packageName }} -—options=options.json
 ```
 
 # Pod Info
@@ -137,22 +137,22 @@ $ dcos package install {{ include.packageName }} -—options=options.json
 Comprehensive information is available about every pod.  To list all pods:
 
 ```bash
-dcos {{ include.packageName }} --name={{ include.serviceName }} pod list
+dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod list
 [
-  "{{ include.podType }}-0",
-  "{{ include.podType }}-1",
+  "{{ include.data.managing.podType }}-0",
+  "{{ include.data.managing.podType }}-1",
   ...
 ]
 ```
 
 To view information about a pod, run the following command from the CLI.
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod info <{{ include.podType }}-id>
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod info <{{ include.data.managing.podType }}-id>
 ```
 
 For example:
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod info {{ include.podType }}-0
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod info {{ include.data.managing.podType }}-0
 {
   ... lots of JSON ...
 }
@@ -162,17 +162,17 @@ $ dcos {{ include.packageName }} --name={{ include.serviceName }} pod info {{ in
 Similarly, the status for any pod may also be queried.
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status <{{ include.podType }}-id>
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod status <{{ include.data.managing.podType }}-id>
 ```
 
 For example:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status {{ include.podType }}-1
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod status {{ include.data.managing.podType }}-1
 [
   {
-    "name": "{{ include.podType }}-1-{{ include.taskType}}",
-    "id": "{{ include.podType }}-1-{{ include.taskType}}__b31a70f4-73c5-4065-990c-76c0c704b8e4",
+    "name": "{{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }}",
+    "id": "{{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }}__b31a70f4-73c5-4065-990c-76c0c704b8e4",
     "state": "TASK_RUNNING"
   }
 ]
@@ -189,56 +189,56 @@ Being able to put the pod in an offline but accessible state makes it easier to 
 
 After the pod has been paused, it may be started again, at which point it will be restarted and will resume running task(s) where it left off.
 
-Here is an example session where a `{{ include.podType }}-1` pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the `{{ include.podType }}-1` pod, then uses `task exec` to repair the pod. Following this, the operator starts the pod and it resumes normal operation:
+Here is an example session where a `{{ include.data.managing.podType }}-1` pod is crash looping due to some corrupted data in a persistent volume. The operator pauses the `{{ include.data.managing.podType }}-1` pod, then uses `task exec` to repair the pod. Following this, the operator starts the pod and it resumes normal operation:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} debug pod pause {{ include.podType }}-1
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} debug pod pause {{ include.data.managing.podType }}-1
 {
-  "pod": "{{ include.podType }}-1",
+  "pod": "{{ include.data.managing.podType }}-1",
   "tasks": [
-    "{{ include.podType }}-1-{{ include.taskType }}"
+    "{{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }}"
   ]
 }
 
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status
-{{ include.serviceName }}
-└─ {{ include.podType }}
-   ├─ {{ include.podType }}-0
-   │  └─ {{ include.podType }}-0-{{ include.taskType }} (RUNNING)
-   └─ {{ include.podType }}-1
-      └─ {{ include.podType }}-1-{{ include.taskType }} (PAUSING)
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod status
+{{ include.data.serviceName }}
+└─ {{ include.data.managing.podType }}
+   ├─ {{ include.data.managing.podType }}-0
+   │  └─ {{ include.data.managing.podType }}-0-{{ include.data.managing.taskType }} (RUNNING)
+   └─ {{ include.data.managing.podType }}-1
+      └─ {{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }} (PAUSING)
 
-... repeat "pod status" until {{ include.podType }}-1 is PAUSED ...
+... repeat "pod status" until {{ include.data.managing.podType }}-1 is PAUSED ...
 
-$ dcos task exec --interactive --tty {{ include.podType }}-1-{{ include.taskType }} /bin/bash
-{{ include.podType }}-1-node$ ./repair-{{ include.podType }} && exit
+$ dcos task exec --interactive --tty {{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }} /bin/bash
+{{ include.data.managing.podType }}-1-node$ ./repair-{{ include.data.managing.podType }} && exit
 
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} debug pod resume {{ include.podType }}-1
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} debug pod resume {{ include.data.managing.podType }}-1
 {
-  "pod": "{{ include.podType }}-1",
+  "pod": "{{ include.data.managing.podType }}-1",
   "tasks": [
-    "{{ include.podType }}-1-{{ include.taskType }}"
+    "{{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }}"
   ]
 }
 
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} pod status
-{{ include.serviceName }}
-└─ {{ include.podType }}
-   ├─ {{ include.podType }}-0
-   │  └─ {{ include.podType }}-0-{{ include.taskType }} (RUNNING)
-   └─ {{ include.podType }}-1
-      └─ {{ include.podType }}-1-{{ include.taskType }} (STARTING)
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} pod status
+{{ include.data.serviceName }}
+└─ {{ include.data.managing.podType }}
+   ├─ {{ include.data.managing.podType }}-0
+   │  └─ {{ include.data.managing.podType }}-0-{{ include.data.managing.taskType }} (RUNNING)
+   └─ {{ include.data.managing.podType }}-1
+      └─ {{ include.data.managing.podType }}-1-{{ include.data.managing.taskType }} (STARTING)
 
-... repeat "pod status" until {{ include.podType }}-1 is RUNNING ...
+... repeat "pod status" until {{ include.data.managing.podType }}-1 is RUNNING ...
 ```
 
-In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos {{ include.packageName }} --name={{ include.serviceName }} debug pod pause {{ include.podType }}-1 -t {{ include.taskType }}` will pause only the `{{ include.taskType }}` task within the `{{ include.podType }}-1` pod.
+In the above example, all tasks in the pod were being paused and started, but it's worth noting that the commands also support pausing and starting individual tasks within a pod. For example, `dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} debug pod pause {{ include.data.managing.podType }}-1 -t {{ include.data.managing.taskType }}` will pause only the `{{ include.data.managing.taskType }}` task within the `{{ include.data.managing.podType }}-1` pod.
 
 # Upgrading Service Version
 
 <!-- THIS CONTENT DUPLICATES THE DC/OS OPERATION GUIDE -->
 
-The instructions below show how to safely update one version of DC/OS {{ include.techName }} Service to the next.
+The instructions below show how to safely update one version of DC/OS {{ include.data.techName }} Service to the next.
 
 ## Viewing available versions
 
@@ -246,25 +246,25 @@ The `update package-versions` command allows you to view the versions of a servi
 
 For example, run:
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update package-versions
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update package-versions
 ```
 
 ## Upgrading or downgrading a service
 
 1. Before updating the service itself, update its CLI subcommand to the new version:
    ```bash
-   $ dcos package uninstall --cli {{ include.packageName }}
-   $ dcos package install --cli {{ include.packageName }} --package-version="1.1.6-5.0.7"
+   $ dcos package uninstall --cli {{ include.data.packageName }}
+   $ dcos package install --cli {{ include.data.packageName }} --package-version="1.1.6-5.0.7"
    ```
-1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS {{ include.techName }} Service to version `1.1.6-5.0.7`:
+1. Once the CLI subcommand has been updated, call the update start command, passing in the version. For example, to update DC/OS {{ include.data.techName }} Service to version `1.1.6-5.0.7`:
    ```bash
-   $ dcos {{ include.packageName }} --name={{ include.serviceName }} update start --package-version="1.1.6-5.0.7"
+   $ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update start --package-version="1.1.6-5.0.7"
    ```
 
 If you are missing mandatory configuration parameters, the `update` command will return an error. To supply missing values, you can also provide an `options.json` file (see [Updating configuration](#updating-configuration)):
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update start --options=options.json --package-version="1.1.6-5.0.7"
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update start --options=options.json --package-version="1.1.6-5.0.7"
 ```
 
 See [Advanced update actions](#advanced-update-actions) for commands you can use to inspect and manipulate an update after it has started.
@@ -284,7 +284,7 @@ Once the Scheduler has been restarted, it will begin a new deployment plan as in
 You can query the status of the update as follows:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update status
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update status
 ```
 
 If the Scheduler is still restarting, DC/OS will not be able to route to it and this command will return an error message. Wait a short while and try again. You can also go to the Services tab of the DC/OS GUI to check the status of the restart.
@@ -294,7 +294,7 @@ If the Scheduler is still restarting, DC/OS will not be able to route to it and 
 To pause an ongoing update, issue a pause command:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update pause
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update pause
 ```
 
 You will receive an error message if the plan has already completed or has been paused. Once completed, the plan will enter the `WAITING` state.
@@ -304,7 +304,7 @@ You will receive an error message if the plan has already completed or has been 
 If a plan is in a `WAITING` state, as a result of being paused or reaching a breakpoint that requires manual operator verification, you can use the `resume` command to continue the plan:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update resume
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update resume
 ```
 
 You will receive an error message if you attempt to `resume` a plan that is already in progress or has already completed.
@@ -314,7 +314,7 @@ You will receive an error message if you attempt to `resume` a plan that is alre
 In order to manually "complete" a step (such that the Scheduler stops attempting to launch a task), you can issue a `force-complete` command. This will instruct to Scheduler to mark a specific step within a phase as complete. You need to specify both the phase and the step, for example:
 
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-complete service-phase {{ include.podType }}-0:[task]
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update force-complete service-phase {{ include.data.managing.podType }}-0:[task]
 ```
 
 ## Force Restart
@@ -323,17 +323,17 @@ Similar to force complete, you can also force a restart. This can either be done
 
 To restart the entire plan:
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-restart
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update force-restart
 ```
 
 Or for all steps in a single phase:
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-restart service-phase
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update force-restart service-phase
 ```
 
 Or for a specific step within a specific phase:
 ```bash
-$ dcos {{ include.packageName }} --name={{ include.serviceName }} update force-restart service-phase {{ include.podType }}-0:[task]
+$ dcos {{ include.data.packageName }} --name={{ include.data.serviceName }} update force-restart service-phase {{ include.data.managing.podType }}-0:[task]
 ```
 
 <!-- END DUPLICATE BLOCK -->

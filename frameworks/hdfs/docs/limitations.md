@@ -5,8 +5,9 @@ excerpt:
 title: Limitations
 menuWeight: 100
 ---
+{% assign data = site.data.services.hdfs %}
 
-{% include services/limitations.md %}
+{% include services/limitations.md data=data %}
 
 ## Zones
 
