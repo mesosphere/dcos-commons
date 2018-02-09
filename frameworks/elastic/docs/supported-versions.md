@@ -5,8 +5,6 @@ title: Supported Versions
 menuWeight: 110
 excerpt:
 ---
+{% assign data = site.data.services.elastic %}
 
-{% include services/supported-versions.md
-    techName="Elastic"
-    techPolicyDesc="the [Elastic Stack](https://www.elastic.co/downloads/elasticsearch) and [X-Pack](https://www.elastic.co/downloads/x-pack)"
-    techVersion="6.1.3" %}
+{% include services/supported-versions.md data=data %}

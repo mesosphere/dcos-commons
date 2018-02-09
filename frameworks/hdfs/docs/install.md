@@ -4,10 +4,8 @@ navigationTitle:
 excerpt:
 title: Install and Customize
 menuWeight: 20
-
-packageName: beta-hdfs
-serviceName: hdfs
 ---
+{% assign data = site.data.services.hdfs %}
 
 {% capture customInstallRequirements %}
 - Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
@@ -18,7 +16,7 @@ serviceName: hdfs
 
 If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to `dcos package install` using the `--options` parameter.
 
-Sample JSON options file named `sample-{{ page.serviceName }}.json`:
+Sample JSON options file named `sample-{{ data.serviceName }}.json`:
 
 ```json
 {
@@ -37,13 +35,8 @@ Many of the other Infinity services currently support deployment in DC/OS Vagran
 {% endcapture %}
 
 {% include services/install.md
-    techName="Apache HDFS"
-    packageName=page.packageName
-    serviceName=page.serviceName
-    minNodeCount="five"
-    defaultInstallDescription="with three journal nodes, two name nodes, and three data nodes"
+    data=data
     customInstallRequirements=customInstallRequirements
-    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/hdfs/hdfs-auth/"
     customInstallConfigurations=customInstallConfigurations %}
 
 ## Topology
@@ -93,8 +86,8 @@ The service configuration object contains properties that MUST be specified duri
 ```json
 {
   "service": {
-    "name": "{{ page.serviceName }}",
-    "service_account": "{{ page.serviceName }}-principal",
+    "name": "{{ data.serviceName }}",
+    "service_account": "{{ data.serviceName }}-principal",
   }
 }
 ```
