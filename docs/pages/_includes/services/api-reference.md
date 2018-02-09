@@ -52,9 +52,9 @@ $ dcos {{ include.packageName }} --name={{ include.serviceName }} plan show <pla
 $ dcos {{ include.packageName }} --name={{ include.serviceName }} plan show <plan> --json
 ```
 
-## Pause Installation
+## Pause plan
 
-The installation will pause after completing installation of the current node and wait for user input.
+The installation will pause after completing the operation of the current node and wait for user input before proceeding further.
 
 ```bash
 $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.serviceName }}/v1/plans/deploy/interrupt
@@ -64,12 +64,12 @@ $ curl -X POST -H "Authorization:token=$auth_token" <dcos_url>/service/{{ includ
 $ dcos {{ include.packageName }} --name={{ include.serviceName }} plan pause deploy
 ```
 
-## Resume Installation
+## Resume plan
 
-The REST API request below will resume installation at the next pending node.
+The REST API request below will resume the operation at the next pending node.
 
 ```bash
-$ curl -X PUT <dcos_surl>/service/{{ include.serviceName }}/v1/plans/deploy/continue
+$ curl -X PUT -H "Authorization:token=$auth_token" <dcos_surl>/service/{{ include.serviceName }}/v1/plans/deploy/continue
 ```
 
 ```bash
@@ -91,7 +91,7 @@ $ dcos {{ include.packageName }} --name={{ include.serviceName }} pod list
 
 HTTP Example
 ```bash
-$ curl  -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.serviceName }}/v1/pod
+$ curl -H "Authorization:token=$auth_token" <dcos_url>/service/{{ include.serviceName }}/v1/pod
 ```
 
 ## Node Info

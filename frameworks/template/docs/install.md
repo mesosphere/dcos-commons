@@ -9,12 +9,26 @@ packageName: template
 serviceName: template
 ---
 
+{% capture customInstallRequirements %}
+- Each agent node must have some quantity of cpu, memory, disk, and ports.
+{% endcapture %}
+
+{% capture customInstallConfigurations %}
+### Minimal installation
+
+DESCRIBE HOW TO RUN YOUR SERVICE IN THE SMALLEST FEASIBLE SPACE FOR DEMO PURPOSES
+
+### Example custom configuration
+
+A COMMON WAY OF CUSTOMIZING YOUR SERVICE'S CONFIG THAT YOU'D LIKE TO POINT OUT IN DOCUMENTATION
+{% endcapture %}
+
 {% include services/install.md
     techName="TEMPLATE SERVICE"
     packageName=page.packageName
     serviceName=page.serviceName
     minNodeCount="some"
-    defaultInstallDescription=" with some master nodes"
-    agentRequirements="Each agent node must have some quantity of cpu, memory, disk, and ports."
-    serviceAccountInstructionsUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/"
-    enterpriseInstallUrl="https://docs.mesosphere.com/latest/security/service-auth/custom-service-auth/" %}
+    defaultInstallDescription="with SOME QUANTITY OF NODES"
+    customInstallRequirements=customInstallRequirements
+    serviceAccountInstructionsUrl="https://docs.mesosphere.com/services/TEMPLATE/TEMPLATE-auth/"
+    customInstallConfigurations=customInstallConfigurations%}
