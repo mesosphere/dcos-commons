@@ -109,7 +109,7 @@ The service configuration object contains properties that MUST be specified duri
   <tr>
     <td>name</td>
     <td>string</td>
-    <td>The name of the HDFS service installation. This must be unique for each DC/OS HDFS service instance deployed on a DC/OS cluster. It will determine the ID of the HDFS nameservice, which must be unique within a DC/OS cluster.</td>
+    <td>The name of the HDFS service installation. This must be unique for each DC/OS service instance deployed on a DC/OS cluster. It will determine the ID of the HDFS service. See [Alternate install configurations](#alternate-install-configurations) for more information on configuring the service name.</td>
   </tr>
 
   <tr>
