@@ -41,9 +41,11 @@ def wait_for_state(state, pod_name, task_names):
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status {} --json'.format(pod_name), json=True
     )
 
-    for task_name in task_names:
-        task_status = get_task_status(pod_status, '{}-{}'.format(pod_name, task_name))
-        assert task_status['status'] == state
+    task_statuses = [
+        get_task_status(pod_status, '{}-{}'.format(pod_name, task_name))
+        for task_name in task_names
+    ]
+    assert all([task_status['status'] == state for task_status in task_statuses])
 
 
 @pytest.mark.soak_pod_pause
