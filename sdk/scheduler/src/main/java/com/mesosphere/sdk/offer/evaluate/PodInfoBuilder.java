@@ -113,10 +113,6 @@ public class PodInfoBuilder {
         return Optional.ofNullable(executorBuilder);
     }
 
-    public void setExecutorBuilder(Protos.ExecutorInfo.Builder executorBuilder) {
-        this.executorBuilder = executorBuilder;
-    }
-
     /**
      * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
      * it on task relaunch.
@@ -173,12 +169,10 @@ public class PodInfoBuilder {
             Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
 
-        Protos.Resource.Builder builder;
-        if (useDefaultExecutor) {
-            builder = getExistingDefaultExecutorVolume(volumeSpec, resourceId, persistenceId, sourceRoot);
-        } else {
-            builder = getExistingCustomExecutorVolume(volumeSpec, resourceId, persistenceId);
-        }
+        Protos.Resource.Builder builder = ResourceBuilder
+                .fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot)
+                .build()
+                .toBuilder();
 
         Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
         diskInfoBuilder.getPersistenceBuilder()
@@ -189,31 +183,6 @@ public class PodInfoBuilder {
                 .setMode(Protos.Volume.Mode.RW);
 
         return builder.build();
-    }
-
-    private static Protos.Resource.Builder getExistingCustomExecutorVolume(
-            VolumeSpec volumeSpec,
-            Optional<String> resourceId,
-            Optional<String> persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar())
-                .setRole(volumeSpec.getRole());
-
-        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.getReservationBuilder();
-        reservationBuilder.setPrincipal(volumeSpec.getPrincipal());
-        AuxLabelAccess.setResourceId(reservationBuilder, resourceId.get());
-
-        return resourceBuilder;
-    }
-
-    private static Protos.Resource.Builder getExistingDefaultExecutorVolume(
-            VolumeSpec volumeSpec,
-            Optional<String> resourceId,
-            Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
-        return ResourceBuilder.fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot).build().toBuilder();
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {

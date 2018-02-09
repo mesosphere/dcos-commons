@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * Handles cross-referencing a preexisting {@link Protos.TaskInfo}'s current {@link Protos.Resource}s against a set
  * of expected {@link ResourceSpec}s for that task.
  */
-public class TaskResourceMapper {
+class TaskResourceMapper {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
@@ -66,9 +66,9 @@ public class TaskResourceMapper {
                     break;
             }
             if (matchingResource.isPresent()) {
-                if (!remainingResourceSpecs.remove(matchingResource.get().getResourceSpec())) {
+                if (!remainingResourceSpecs.remove(matchingResource.get().getOriginal())) {
                     throw new IllegalStateException(String.format("Didn't find %s in %s",
-                            matchingResource.get().getResourceSpec(), remainingResourceSpecs));
+                            matchingResource.get().getOriginal(), remainingResourceSpecs));
                 }
                 matchingResources.add(matchingResource.get());
             } else {
@@ -116,8 +116,12 @@ public class TaskResourceMapper {
                     continue;
                 }
 
+                double diskSize = taskResource.getScalar().getValue();
+                VolumeSpec updatedSpec = OfferEvaluationUtils.updateVolumeSpec((VolumeSpec) resourceSpec, diskSize);
+
                 return Optional.of(new ResourceLabels(
                         resourceSpec,
+                        updatedSpec,
                         resourceId.get(),
                         Optional.of(taskResource.getDisk().getPersistence().getId()),
                         ResourceUtils.getSourceRoot(taskResource)));
@@ -192,7 +196,7 @@ public class TaskResourceMapper {
     private OfferEvaluationStage newUpdateEvaluationStage(String taskSpecName, ResourceLabels resourceLabels) {
         return toEvaluationStage(
                 taskSpecName,
-                resourceLabels.getResourceSpec(),
+                resourceLabels.getUpdated(),
                 Optional.of(resourceLabels.getResourceId()),
                 resourceLabels.getPersistenceId(),
                 resourceLabels.getSourceRoot());

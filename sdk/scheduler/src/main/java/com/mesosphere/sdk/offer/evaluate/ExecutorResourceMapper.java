@@ -65,11 +65,11 @@ public class ExecutorResourceMapper {
             }
 
             if (matchingResource.isPresent()) {
-                if (!remainingResourceSpecs.remove(matchingResource.get().getResourceSpec())) {
+                if (!remainingResourceSpecs.remove(matchingResource.get().getOriginal())) {
                     throw new IllegalStateException(
                             String.format(
                                     "Didn't find %s in %s",
-                                    matchingResource.get().getResourceSpec(), remainingResourceSpecs));
+                                    matchingResource.get().getOriginal(), remainingResourceSpecs));
                 }
                 matchingResources.add(matchingResource.get());
             } else {
@@ -119,8 +119,12 @@ public class ExecutorResourceMapper {
                     continue;
                 }
 
+                double diskSize = executorResource.getScalar().getValue();
+                VolumeSpec updatedSpec = OfferEvaluationUtils.updateVolumeSpec((VolumeSpec) resourceSpec, diskSize);
+
                 return Optional.of(new ResourceLabels(
                         resourceSpec,
+                        updatedSpec,
                         resourceId.get(),
                         Optional.of(executorResource.getDisk().getPersistence().getId()),
                         ResourceUtils.getSourceRoot(executorResource)));
@@ -147,36 +151,23 @@ public class ExecutorResourceMapper {
     }
 
     private OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
-        return toEvaluationStageForExisting(
-                resourceLabels.getResourceSpec(),
-                Optional.of(resourceLabels.getResourceId()),
-                resourceLabels.getPersistenceId(),
-                resourceLabels.getSourceRoot());
-    }
+        ResourceSpec resourceSpec = resourceLabels.getUpdated();
+        Optional<String> resourceId = Optional.of(resourceLabels.getResourceId());
 
-    private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
-        return toEvaluationStageForNew(resourceSpec);
-    }
-
-    private OfferEvaluationStage toEvaluationStageForExisting(
-            ResourceSpec resourceSpec,
-            Optional<String> resourceId,
-            Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getExisting(
                     (VolumeSpec) resourceSpec,
                     null,
                     resourceId,
-                    persistenceId,
-                    sourceRoot,
+                    resourceLabels.getPersistenceId(),
+                    resourceLabels.getSourceRoot(),
                     useDefaultExecutor);
         } else {
             return new ResourceEvaluationStage(resourceSpec, resourceId, null);
         }
     }
 
-    private OfferEvaluationStage toEvaluationStageForNew(ResourceSpec resourceSpec) {
+    private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getNew((VolumeSpec) resourceSpec, null, useDefaultExecutor);
         } else {
