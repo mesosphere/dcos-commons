@@ -4,9 +4,9 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
@@ -343,7 +343,7 @@ public class ServiceTest {
         }
         runner.run(ticks);
     }
-
+    
     @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
         Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
@@ -353,9 +353,9 @@ public class ServiceTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addResources(
                         Protos.Resource.newBuilder()
-                        .setName("mem")
-                        .setType(Protos.Value.Type.SCALAR)
-                        .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
+                                .setName("mem")
+                                .setType(Protos.Value.Type.SCALAR)
+                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
                 .build();
 
         Collection<SimulationTick> ticks = new ArrayList<>();
