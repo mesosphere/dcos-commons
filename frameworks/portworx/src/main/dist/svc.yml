@@ -51,10 +51,14 @@ pods:
                     USR_SRC_MOUNT="-v /usr/src:/usr/src"
                 fi
 
+                docker pull {{{PORTWORX_IMAGE_NAME}}}
+
+                systemctl stop portworx
+
                 docker run --entrypoint /runc-entry-point.sh \
                    --rm -i --privileged=true \
                    -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                   {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
+                   {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade &&
 
                 echo "[Unit]
                     Description=Portworx Container
