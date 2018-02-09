@@ -11,15 +11,15 @@ menuWeight: 120
 
 ## NOTICE
 
-This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+This is a beta release of the DC/OS Elastic service. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### Improvements
 - Before launching tasks, only download X-Pack artifact if `xpack_enabled` is true.
 - Removed unused `service.security.allow_plaintext` configuration property.
 - Moved Elastic and Kibana scheduler health-checks from HTTP to [Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks).
-- Bump JRE to 1.8u162.
-- Improvements to the pod pause feature.
-- Improve handling of unexpected task statuses.
+- Bump JRE to 1.8u162.  ([#2135](https://github.com/mesosphere/dcos-commons/pull/2135))
+- Improvements to the pod pause feature. ([#1989](https://github.com/mesosphere/dcos-commons/pull/1989))
+- Improve handling of unexpected task statuses. ([#2087](https://github.com/mesosphere/dcos-commons/pull/2087))
 
 ### Documentation
 - Added instructions for configuring placement constraints.
