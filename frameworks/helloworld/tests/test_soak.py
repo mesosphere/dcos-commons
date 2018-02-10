@@ -62,8 +62,7 @@ def test_pause_single_task():
 		config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
 	)
     assert len(pod_status['tasks']) == 2
-    server_task = get_task_status(pod_status, 'hello-0-server')
-    assert server_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phases = sdk_cmd.svc_cli(
 		config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
@@ -76,8 +75,7 @@ def test_pause_single_task():
     assert phase['steps'][1]['name'] == 'hello-0:[companion]'
     assert phase['steps'][1]['status'] == 'COMPLETE'
 
-    companion_task = get_task_status(pod_status, 'hello-0-companion')
-    assert companion_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['companion'])
 
     # pause the task, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
@@ -112,8 +110,7 @@ def test_pause_single_task():
     wait_for_state('PAUSED', 'hello-0', ['server'])
 
     # check companion is still running
-    task_status = get_task_status(pod_status, 'hello-0-companion')
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['companion'])
 
     # resume the pod again, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
@@ -167,8 +164,7 @@ def test_pause_all_pod_tasks():
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    server_task = get_task_status(pod_status, 'hello-0-server')
-    assert server_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phase = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
@@ -180,8 +176,7 @@ def test_pause_all_pod_tasks():
     assert phase['steps'][1]['name'] == 'hello-0:[companion]'
     assert phase['steps'][1]['status'] == 'COMPLETE'
 
-    companion_task = get_task_status(pod_status, 'hello-0-companion')
-    assert companion_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['companion'])
 
     # pause the pod, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
@@ -293,11 +288,7 @@ def test_multiple_pod_pause():
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))['status']
-        assert task_status == 'RUNNING'
-
-        task_status = get_task_status(pod_status, 'hello-{}-companion'.format(i))['status']
-        assert task_status == 'RUNNING'
+        wait_for_state('RUNNING', 'hello-{}'.format(i), ['server', 'companion'])
 
         assert phase['steps'][i * 2]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][i * 2]['status'] == 'COMPLETE'
@@ -363,11 +354,7 @@ def test_multiple_pod_pause():
         config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-10 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-10-server')
-    assert task_status['status'] == 'RUNNING'
-
-    task_status = get_task_status(pod_status, 'hello-10-companion')
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-10', ['server', 'companion'])
 
     assert phase['steps'][20]['name'] == 'hello-10:[server]'
     assert phase['steps'][20]['status'] == 'COMPLETE'
