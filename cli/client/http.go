@@ -117,31 +117,14 @@ func HTTPServicePutJSON(urlPath, jsonPayload string) ([]byte, error) {
 
 // HTTPQuery does a HTTP query
 func HTTPQuery(request *http.Request) *http.Response {
-	rawTLSSetting := OptionalCLIConfigValue("core.ssl_verify")
-	var tlsConfig *tls.Config
-	if strings.EqualFold(rawTLSSetting, "false") {
-		// 'false': disable cert validation
-		tlsConfig = &tls.Config{InsecureSkipVerify: true}
-	} else if strings.EqualFold(rawTLSSetting, "true") {
-		// 'true': require validation against default CAs
-		tlsConfig = &tls.Config{InsecureSkipVerify: false}
-	} else if len(rawTLSSetting) != 0 {
-		// '<other string>': path to local/custom cert file
-		tlsConfig = &tls.Config{InsecureSkipVerify: false}
-		cert, err := ioutil.ReadFile(rawTLSSetting)
-		if err != nil {
-			PrintMessageAndExit("Unable to read from CA certificate file %s: %s", rawTLSSetting, err)
-		}
-		certPool := x509.NewCertPool()
-		certPool.AppendCertsFromPEM(cert)
-		tlsConfig.RootCAs = certPool
-	} else { // len(rawTLSSetting) == 0
-		// this shouldn't happen: 'dcos auth login' requires a non-empty setting.
-		// play it safe and leave cert verification enabled by default (verify='true')
-		tlsConfig = &tls.Config{InsecureSkipVerify: false}
+	client := &http.Client{
+		Transport: &http.Transport {
+			// Support for 'HTTP[S]_PROXY'/'NO_PROXY' envvars
+			Proxy:           http.ProxyFromEnvironment,
+			// Support main CLI's 'core.ssl_verify' setting
+			TLSClientConfig: buildTLSConfig(),
+		},
 	}
-
-	client := &http.Client{Transport: &http.Transport{TLSClientConfig: tlsConfig}}
 	var err interface{}
 	response, err := client.Do(request)
 	switch err.(type) {
@@ -159,7 +142,8 @@ func HTTPQuery(request *http.Request) *http.Response {
 		default:
 			PrintMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
 			PrintMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
-			PrintMessageAndExit("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			PrintMessage("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
+			PrintMessageAndExit("- Are any needed proxy settings set correctly via HTTP_PROXY/HTTPS_PROXY/NO_PROXY? Check with your network administrator.")
 		}
 	}
 	return response
@@ -185,7 +169,7 @@ func CreateServiceHTTPRequest(method, urlPath string) *http.Request {
 	return CreateHTTPRawRequest(method, CreateServiceURL(urlPath, ""), "", "", "")
 }
 
-// CreateHTTPRawRequest creates a HTTP request
+// CreateHTTPRawRequest creates an HTTP request
 func CreateHTTPRawRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	return CreateHTTPURLRequest(method, url, payload, accept, contentType)
 }
@@ -200,13 +184,13 @@ func GetDCOSURL() string {
 		"#/")
 }
 
-// CreateServiceURL creates a service URL
+// CreateServiceURL creates a service URL of the form http://clusterurl.com/service/<servicename>/<urlPath>[?urlQuery]
 func CreateServiceURL(urlPath, urlQuery string) *url.URL {
 	joinedURLPath := path.Join("service", config.ServiceName, urlPath)
 	return CreateURL(GetDCOSURL(), joinedURLPath, urlQuery)
 }
 
-// CreateURL creates a URL
+// CreateURL creates a URL of the form <baseURL>/<urlPath>[?urlQuery]
 func CreateURL(baseURL, urlPath, urlQuery string) *url.URL {
 	parsedURL, err := url.Parse(baseURL)
 	if err != nil {
@@ -217,7 +201,7 @@ func CreateURL(baseURL, urlPath, urlQuery string) *url.URL {
 	return parsedURL
 }
 
-// CreateHTTPURLRequest creates a HTTP url request
+// CreateHTTPURLRequest creates a HTTP url request which includes cluster auth headers as needed.
 func CreateHTTPURLRequest(method string, url *url.URL, payload, accept, contentType string) *http.Request {
 	request, err := http.NewRequest(method, url.String(), bytes.NewReader([]byte(payload)))
 	if err != nil {
@@ -240,4 +224,32 @@ func CreateHTTPURLRequest(method string, url *url.URL, payload, accept, contentT
 		PrintVerbose("HTTP Query: %s %s", method, url)
 	}
 	return request
+}
+
+// buildTLSConfig returns a new tls.Config object which honors the CLI 'ssl_verify' setting.
+func buildTLSConfig() *tls.Config {
+	rawTLSSetting := OptionalCLIConfigValue("core.ssl_verify")
+	if strings.EqualFold(rawTLSSetting, "false") {
+		// 'false' (case insensitive): disable cert validation
+		return &tls.Config{InsecureSkipVerify: true}
+	} else if strings.EqualFold(rawTLSSetting, "true") {
+		// 'true' (case insensitive): require validation against default CAs
+		return &tls.Config{InsecureSkipVerify: false}
+	} else if len(rawTLSSetting) != 0 {
+		// '<other string>': path to local/custom cert file
+		cert, err := ioutil.ReadFile(rawTLSSetting)
+		if err != nil {
+			PrintMessageAndExit("Unable to read from CA certificate file %s: %s", rawTLSSetting, err)
+		}
+		certPool := x509.NewCertPool()
+		certPool.AppendCertsFromPEM(cert)
+		return &tls.Config{
+			InsecureSkipVerify: false,
+			RootCAs:            certPool,
+		}
+	} else { // len(rawTLSSetting) == 0
+		// This shouldn't happen: 'dcos auth login' requires a non-empty setting.
+		// Play it safe and leave cert verification enabled by default (equivalent to 'true' case)
+		return &tls.Config{InsecureSkipVerify: false}
+	}
 }
