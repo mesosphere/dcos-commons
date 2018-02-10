@@ -5,8 +5,6 @@ excerpt:
 title: Overview
 menuWeight: 70
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/overview.md
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra" %}
+{% include services/overview.md data=data %}

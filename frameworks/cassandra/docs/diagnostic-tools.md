@@ -5,8 +5,6 @@ excerpt:
 title: Diagnostic Tools
 menuWeight: 70
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/diagnostic-tools.md
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra" %}
+{% include services/diagnostic-tools.md data=data %}

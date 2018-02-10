@@ -5,8 +5,6 @@ excerpt:
 title: Common Operations
 menuWeight: 70
 ---
+{% assign data = site.data.services.template %}
 
-{% include services/common-operations.md
-    tech_name="TEMPLATE SERVICE"
-    package_name="template"
-    service_name="template" %}
+{% include services/common-operations.md data=data %}

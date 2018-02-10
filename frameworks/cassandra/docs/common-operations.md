@@ -5,8 +5,6 @@ excerpt:
 title: Common Operations
 menuWeight: 70
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/common-operations.md
-    tech_name="Apache Cassandra"
-    package_name="beta-cassandra"
-    service_name="cassandra" %}
+{% include services/common-operations.md data=data %}

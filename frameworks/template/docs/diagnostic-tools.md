@@ -5,8 +5,6 @@ excerpt:
 title: Diagnostic Tools
 menuWeight: 70
 ---
+{% assign data = site.data.services.template %}
 
-{% include services/diagnostic-tools.md
-    tech_name="TEMPLATE SERVICE"
-    package_name="template"
-    service_name="template" %}
+{% include services/diagnostic-tools.md data=data %}

@@ -5,8 +5,6 @@ excerpt:
 title: Overview
 menuWeight: 70
 ---
+{% assign data = site.data.services.elastic %}
 
-{% include services/overview.md
-    tech_name="Elastic"
-    package_name="beta-elastic"
-    service_name="elastic" %}
+{% include services/overview.md data=data %}

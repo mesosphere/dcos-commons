@@ -5,8 +5,6 @@ excerpt:
 title: Common Operations
 menuWeight: 70
 ---
+{% assign data = site.data.services.kafka %}
 
-{% include services/common-operations.md
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka" %}
+{% include services/common-operations.md data=data %}

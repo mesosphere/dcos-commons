@@ -5,8 +5,6 @@ excerpt:
 title: Overview
 menuWeight: 70
 ---
+{% assign data = site.data.services.template %}
 
-{% include services/overview.md
-    tech_name="TEMPLATE SERVICE"
-    package_name="template"
-    service_name="template" %}
+{% include services/overview.md data=data %}

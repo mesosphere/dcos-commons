@@ -5,8 +5,6 @@ excerpt:
 title: Overview
 menuWeight: 70
 ---
+{% assign data = site.data.services.hdfs %}
 
-{% include services/overview.md
-    tech_name="HDFS"
-    package_name="beta-hdfs"
-    service_name="hdfs" %}
+{% include services/overview.md data=data %}

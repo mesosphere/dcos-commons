@@ -32,15 +32,15 @@ The following components work together to deploy and maintain the service.
 
 - Packaging
 
-  {{ include.techName }} is packaged for deployment on DC/OS. DC/OS packages follow the [Universe schema](https://github.com/mesosphere/universe), which defines how packages expose customization options at initial installation. When a package is installed on the cluster, the packaging service (named 'Cosmos') creates a Marathon app that contains a rendered version of the `marathon.json.mustache` template provided by the package. For DC/OS {{ include.techName }}, this Marathon app is the scheduler for the service.
+  {{ include.data.techName }} is packaged for deployment on DC/OS. DC/OS packages follow the [Universe schema](https://github.com/mesosphere/universe), which defines how packages expose customization options at initial installation. When a package is installed on the cluster, the packaging service (named 'Cosmos') creates a Marathon app that contains a rendered version of the `marathon.json.mustache` template provided by the package. For DC/OS {{ include.data.techName }}, this Marathon app is the scheduler for the service.
 
 For further discussion of DC/OS components, see the [architecture documentation](https://docs.mesosphere.com/1.9/overview/architecture/components/).
 
 ## Deployment
 
-Internally, {{ include.packageName }} treats "Deployment" as moving from one state to another state. By this definition, "Deployment" applies to many scenarios:
+Internally, {{ include.data.packageName }} treats "Deployment" as moving from one state to another state. By this definition, "Deployment" applies to many scenarios:
 
-- When {{ include.packageName }} is first installed, deployment is moving from a null configuration to a deployed configuration.
+- When {{ include.data.packageName }} is first installed, deployment is moving from a null configuration to a deployed configuration.
 - When the deployed configuration is changed by editing an environment variable in the scheduler, deployment is moving from an initial running configuration to a new proposed configuration.
 
 In this section, we'll describe how these scenarios are handled by the scheduler.
@@ -51,19 +51,19 @@ This is the flow for deploying a new service:
 
 #### Steps handled by the DC/OS cluster
 
-1. The user runs `dcos package install {{ include.packageName }}` in the DC/OS CLI or clicks `Install` for a given package on the DC/OS Dashboard.
+1. The user runs `dcos package install {{ include.data.packageName }}` in the DC/OS CLI or clicks `Install` for a given package on the DC/OS Dashboard.
 
 1. A request is sent to the Cosmos packaging service to deploy the requested package along with a set of configuration options.
 
-1. Cosmos creates a Marathon app definition by rendering {{ include.packageName }}'s `marathon.json.mustache` with the configuration options provided in the request, which represents {{ include.packageName }}'s Scheduler. Cosmos queries Marathon to create the app.
+1. Cosmos creates a Marathon app definition by rendering {{ include.data.packageName }}'s `marathon.json.mustache` with the configuration options provided in the request, which represents {{ include.data.packageName }}'s Scheduler. Cosmos queries Marathon to create the app.
 
-1. Marathon launches the {{ include.packageName }}'s scheduler somewhere in the cluster using the rendered app definition provided by Cosmos.
+1. Marathon launches the {{ include.data.packageName }}'s scheduler somewhere in the cluster using the rendered app definition provided by Cosmos.
 
-1. {{ include.packageName }}'s scheduler is launched. From this point onwards, the SDK handles deployment.
+1. {{ include.data.packageName }}'s scheduler is launched. From this point onwards, the SDK handles deployment.
 
 #### Steps handled by the Scheduler
 
-{{ include.packageName }}'s `main()` function is run like any other Java application. The scheduler starts with the following state:
+{{ include.data.packageName }}'s `main()` function is run like any other Java application. The scheduler starts with the following state:
 
 - A `svc.yml` template that represents the service configuration.
 - Environment variables provided by Marathon, to be applied onto the `svc.yml` template.
@@ -79,7 +79,7 @@ This is the flow for deploying a new service:
 
   - If the Framework ID is not present, the Scheduler will attempt to register with Mesos as a Framework. Assuming this is successful, the resulting Framework ID is then immediately stored.
 
-1. Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, the scheduler will begin running the [Offer Cycle](#offer-cycle) and deploying {{ include.packageName }}. See that section for more information.
+1. Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, the scheduler will begin running the [Offer Cycle](#offer-cycle) and deploying {{ include.data.packageName }}. See that section for more information.
 
 1. The Scheduler retrieves its deployed task state from ZooKeeper and finds that there are tasks that should be launched. This is the first launch, so all tasks need to be launched.
 
@@ -123,7 +123,7 @@ Scheduler reconfiguration is slightly different from initial deployment because 
 
 ### Uninstall
 
-This is the flow for uninstalling {{ include.packageName }}.
+This is the flow for uninstalling {{ include.data.packageName }}.
 
 #### Steps handled by the cluster
 
@@ -143,13 +143,13 @@ The Offer Cycle is a core Mesos concept and often a source of confusion when run
 
 Mesos will periodically notify subscribed Schedulers of resources in the cluster. Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what's being explicitly offered to them at any given time. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler's end, but it also means that the Scheduler cannot deterministically know whether it's seen everything that's available in the cluster.
 
-{{ include.packageName }} performs the following operations as Offers are received from Mesos:
+{{ include.data.packageName }} performs the following operations as Offers are received from Mesos:
 
 1. __Task Reconciliation__: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler's tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.
 1. __Offer Acceptance__: Once the Scheduler has finished Task Reconciliation, it will start evaluating the resource offers it receives to determine if any match the requirements of the next task(s) to be launched. At this point, users on small clusters may find that the Scheduler isn't launching tasks. This is generally because the Scheduler isn't able to find offered machines with enough room to fit the tasks. To fix this, add more/bigger machines to the cluster, or reduce the requirements of the service.
 1. __Resource Cleanup__: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn't know about it anymore. At this point, the Scheduler will automatically clean up those resources.
 
-{{ include.packageName }} will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task's reservation, and then launching the task against those resources once more.
+{{ include.data.packageName }} will automatically notify Mesos to stop sending offers, or "suspend" offers, when the Scheduler doesn't have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task's reservation, and then launching the task against those resources once more.
 
 ## Pods
 

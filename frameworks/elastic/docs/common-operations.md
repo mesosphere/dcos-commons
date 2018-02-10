@@ -5,8 +5,6 @@ excerpt:
 title: Common Operations
 menuWeight: 70
 ---
+{% assign data = site.data.services.elastic %}
 
-{% include services/common-operations.md
-    tech_name="Elastic"
-    package_name="beta-elastic"
-    service_name="elastic" %}
+{% include services/common-operations.md data=data %}

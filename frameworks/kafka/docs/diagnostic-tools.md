@@ -5,8 +5,6 @@ excerpt:
 title: Diagnostic Tools
 menuWeight: 70
 ---
+{% assign data = site.data.services.kafka %}
 
-{% include services/diagnostic-tools.md
-    tech_name="Apache Kafka"
-    package_name="beta-kafka"
-    service_name="kafka" %}
+{% include services/diagnostic-tools.md data=data %}
