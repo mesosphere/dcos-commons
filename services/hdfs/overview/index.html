@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Operations Guide: Overview</title>
+<title>HDFS: Overview</title>
 <link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -50,8 +50,6 @@
       
       
       <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
-      
-      
       
       
       
@@ -240,6 +238,28 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
       <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
     </ul>
@@ -250,9 +270,9 @@
       
       
       
-      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
-      
       <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
       
     </ul>
   </li>
@@ -304,6 +324,18 @@
           
           
           <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/overview/">Overview</a></li>
           
           
           
@@ -369,6 +401,18 @@
           
           
           
+          <li><a href="/dcos-commons/services/elastic/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/overview/">Overview</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
           
           
@@ -431,6 +475,18 @@
           
           
           
+          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/overview/">Overview</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
           
           
@@ -489,7 +545,19 @@
           
           
           
+          <li><a href="/dcos-commons/services/kafka/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/overview/">Overview</a></li>
           
           
           
@@ -520,8 +588,17 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Operations Guide: Overview</h1>
+<h1>HDFS: Overview</h1>
 <div id="content">
+
+
+<hr />
+<p>layout: layout.pug
+navigationTitle: Overview
+title:
+menuWeight: 0
+excerpt:
+—</p>
 
 <h2 id="components">Components</h2>
 
@@ -555,7 +632,7 @@
   <li>
     <p>Packaging</p>
 
-    <p>SDK services are packaged for deployment on DC/OS. DC/OS packages follow the <a href="https://github.com/mesosphere/universe">Universe schema</a>, which defines how packages expose customization options at initial installation. When a package is installed on the cluster, the packaging service (named ‘Cosmos’) creates a Marathon app that contains a rendered version of the <code class="highlighter-rouge">marathon.json.mustache</code> template provided by the package. For an SDK service, this Marathon app is the Scheduler for the service.</p>
+    <p>HDFS is packaged for deployment on DC/OS. DC/OS packages follow the <a href="https://github.com/mesosphere/universe">Universe schema</a>, which defines how packages expose customization options at initial installation. When a package is installed on the cluster, the packaging service (named ‘Cosmos’) creates a Marathon app that contains a rendered version of the <code class="highlighter-rouge">marathon.json.mustache</code> template provided by the package. For DC/OS HDFS, this Marathon app is the scheduler for the service.</p>
   </li>
 </ul>
 
@@ -563,14 +640,14 @@
 
 <h2 id="deployment">Deployment</h2>
 
-<p>Internally, the SDK treats “Deployment” as moving from one state to another state. By this definition, “Deployment” applies to many scenarios:</p>
+<p>Internally, beta-hdfs treats “Deployment” as moving from one state to another state. By this definition, “Deployment” applies to many scenarios:</p>
 
 <ul>
-  <li>When a service is first installed, deployment is moving from a null configuration to a deployed configuration.</li>
-  <li>When the deployed configuration is changed by editing an environment variable in the Scheduler, deployment is moving from an initial running configuration to a new proposed configuration.</li>
+  <li>When beta-hdfs is first installed, deployment is moving from a null configuration to a deployed configuration.</li>
+  <li>When the deployed configuration is changed by editing an environment variable in the scheduler, deployment is moving from an initial running configuration to a new proposed configuration.</li>
 </ul>
 
-<p>In this section, we’ll describe how these scenarios are handled by the Scheduler.</p>
+<p>In this section, we’ll describe how these scenarios are handled by the scheduler.</p>
 
 <h3 id="initial-install">Initial Install</h3>
 
@@ -580,25 +657,25 @@
 
 <ol>
   <li>
-    <p>The user runs <code class="highlighter-rouge">dcos package install &lt;package-name&gt;</code> in the DC/OS CLI or clicks <code class="highlighter-rouge">Install</code> for a given package on the DC/OS Dashboard.</p>
+    <p>The user runs <code class="highlighter-rouge">dcos package install beta-hdfs</code> in the DC/OS CLI or clicks <code class="highlighter-rouge">Install</code> for a given package on the DC/OS Dashboard.</p>
   </li>
   <li>
     <p>A request is sent to the Cosmos packaging service to deploy the requested package along with a set of configuration options.</p>
   </li>
   <li>
-    <p>Cosmos creates a Marathon app definition by rendering the package’s <code class="highlighter-rouge">marathon.json.mustache</code> with the configuration options provided in the request. In the case of an SDK service, this app represents the service’s Scheduler. Cosmos queries Marathon to create the app.</p>
+    <p>Cosmos creates a Marathon app definition by rendering beta-hdfs’s <code class="highlighter-rouge">marathon.json.mustache</code> with the configuration options provided in the request, which represents beta-hdfs’s Scheduler. Cosmos queries Marathon to create the app.</p>
   </li>
   <li>
-    <p>Marathon launches the service’s Scheduler somewhere in the cluster using the rendered app definition provided by Cosmos.</p>
+    <p>Marathon launches the beta-hdfs’s scheduler somewhere in the cluster using the rendered app definition provided by Cosmos.</p>
   </li>
   <li>
-    <p>The service Scheduler is launched. From this point onwards, the SDK handles deployment.</p>
+    <p>beta-hdfs’s scheduler is launched. From this point onwards, the SDK handles deployment.</p>
   </li>
 </ol>
 
 <h4 id="steps-handled-by-the-scheduler">Steps handled by the Scheduler</h4>
 
-<p>The service Scheduler’s <code class="highlighter-rouge">main()</code> function is run like any other Java application. The Scheduler starts with the following state:</p>
+<p>beta-hdfs’s <code class="highlighter-rouge">main()</code> function is run like any other Java application. The scheduler starts with the following state:</p>
 
 <ul>
   <li>A <code class="highlighter-rouge">svc.yml</code> template that represents the service configuration.</li>
@@ -629,7 +706,7 @@
 
 <ol>
   <li>
-    <p>Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, Schedulers using the SDK will begin running the <a href="#offer-cycle">Offer Cycle</a> and deploying the service. See that section for more information.</p>
+    <p>Now that the Scheduler has registered as a Mesos Framework, it is able to start interacting with Mesos and receiving offers. When this begins, the scheduler will begin running the <a href="#offer-cycle">Offer Cycle</a> and deploying beta-hdfs. See that section for more information.</p>
   </li>
   <li>
     <p>The Scheduler retrieves its deployed task state from ZooKeeper and finds that there are tasks that should be launched. This is the first launch, so all tasks need to be launched.</p>
@@ -697,7 +774,7 @@
 
 <h3 id="uninstall">Uninstall</h3>
 
-<p>This is the flow for uninstalling a DC/OS service.</p>
+<p>This is the flow for uninstalling beta-hdfs.</p>
 
 <h4 id="steps-handled-by-the-cluster">Steps handled by the cluster</h4>
 
@@ -724,7 +801,7 @@
 
 <p>Mesos will periodically notify subscribed Schedulers of resources in the cluster. Schedulers are expected to either accept the offered resources or decline them. In this structure, Schedulers never have a complete picture of the cluster, they only know about what’s being explicitly offered to them at any given time. This allows Mesos the option of only advertising certain resources to specific Schedulers, without requiring any changes on the Scheduler’s end, but it also means that the Scheduler cannot deterministically know whether it’s seen everything that’s available in the cluster.</p>
 
-<p>Schedulers written using the SDK perform the following operations as Offers are received from Mesos:</p>
+<p>beta-hdfs performs the following operations as Offers are received from Mesos:</p>
 
 <ol>
   <li><strong>Task Reconciliation</strong>: Mesos is the source of truth for what is running on the cluster. Task Reconciliation allows Mesos to convey the status of all tasks being managed by the service. The Scheduler will request a Task Reconciliation during initial startup, and Mesos will then send the current status of that Scheduler’s tasks. This allows the Scheduler to catch up with any potential status changes to its tasks that occurred after the Scheduler was last running. A common pattern in Mesos is to jealously guard most of what it knows about tasks, so this only contains status information, not general task information. The Scheduler keeps its own copy of what it knows about tasks in ZooKeeper. During an initial deployment this process is very fast as no tasks have been launched yet.</li>
@@ -732,7 +809,7 @@
   <li><strong>Resource Cleanup</strong>: The Offers provided by Mesos include reservation information if those resources were previously reserved by the Scheduler. The Scheduler will automatically request that any unrecognized but reserved resources be automatically unreserved. This can come up in a few situations, for example, if an agent machine went away for several days and then came back, its resources may still be considered reserved by Mesos as reserved by the service, while the Scheduler has already moved on and doesn’t know about it anymore. At this point, the Scheduler will automatically clean up those resources.</li>
 </ol>
 
-<p>SDK Schedulers will automatically notify Mesos to stop sending offers, or “suspend” offers, when the Scheduler doesn’t have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task’s reservation, and then launching the task against those resources once more.</p>
+<p>beta-hdfs will automatically notify Mesos to stop sending offers, or “suspend” offers, when the Scheduler doesn’t have any work to do. For example, once a service deployment has completed, the Scheduler will request that offers be suspended. If the Scheduler is later notified that a task has exited via a status update, the Scheduler will resume offers in order to redeploy that task back where it was. This is done by waiting for the offer that matches that task’s reservation, and then launching the task against those resources once more.</p>
 
 <h2 id="pods">Pods</h2>
 
@@ -1152,6 +1229,7 @@ dcos:adminrouter:ops:slave full
   <li>Interact with your foldered service via the DC/OS CLI with this flag: <code class="highlighter-rouge">--name=/path/to/myservice</code>.</li>
   <li>To interact with your foldered service over the web directly, use <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/path/to/myservice</code>. E.g., <code class="highlighter-rouge">http://&lt;dcos-url&gt;/service/testing/kafka/v1/endpoints</code>.</li>
 </ul>
+
 
 </div>
 </div>

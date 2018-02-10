@@ -1,0 +1,950 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+
+
+
+
+
+
+<head>
+<title>Template: Diagnostic Tools</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      
+      <li><a href="/dcos-commons/operations-guide/">SDK Operations Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+    </ul>
+  </li>
+  <li>
+    <span>Services</span>
+    <ul>
+      
+      
+      
+      
+      <li>
+        
+        <span>Cassandra</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/service-settings/">Service Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/node-settings/">Node Settings</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Elastic</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/custom-elasticsearch-yaml/">Custom Elasticsearch YAML</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/disaster-recovery/">Disaster Recovery</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>HDFS</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/kerberos/">Kerberos</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+      <li>
+        
+        <span>Kafka</span>
+        
+        <ul>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/install/">Install and Customize</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/security/">Security</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/uninstall/">Uninstall</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/quick-start/">Quick Start</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/connecting-clients/">Connecting Clients</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/managing/">Managing</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/troubleshooting/">Troubleshooting</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/limitations/">Limitations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/supported-versions/">Supported Versions</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/release-notes/">Release Notes</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/upgrade/">Upgrade</a></li>
+          
+          
+        </ul>
+      </li>
+      
+    </ul>
+  </li>
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Template: Diagnostic Tools</h1>
+<div id="content">
+
+
+<hr />
+<p>layout: layout.pug
+navigationTitle: Diagnostic Tools
+title:
+menuWeight: 20
+excerpt:
+—</p>
+
+<p>DC/OS clusters provide several tools for diagnosing problems with services running in the cluster. In addition, the SDK has its own endpoints that describe what the Scheduler is doing at any given time.</p>
+
+<h2 id="logging">Logging</h2>
+
+<p>The first step to diagnosing a problem is typically to take a look at the logs. Tasks do different things, so it takes some knowledge of the problem being diagnosed to determine which task logs are relevant.</p>
+
+<p>As of this writing, the best and fastest way to view and download logs is via the Mesos UI at <code class="highlighter-rouge">&lt;dcos-url&gt;/mesos</code>. On the Mesos front page you will see two lists: A list of currently running tasks, followed by a list of completed tasks (whether successful or failed).</p>
+
+<p><a href="../img/ops-guide-all-tasks.png"><img src="../img/ops-guide-all-tasks.png" alt="mesos frontpage showing all tasks in the cluster" width="400" /></a></p>
+
+<p>The <code class="highlighter-rouge">Sandbox</code> link for one of these tasks shows a list of files from within the task itself. For example, here’s a sandbox view of a <code class="highlighter-rouge">broker-2</code> task from the above list:</p>
+
+<p><a href="../img/ops-guide-task-sandbox.png"><img src="../img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400" /></a></p>
+
+<p>If the task is based on a Docker image, this list will only show the contents of <code class="highlighter-rouge">/mnt/sandbox</code>, and not the rest of the filesystem. If you need to view filesystem contents outside of this directory, you will need to use <code class="highlighter-rouge">dcos task exec</code> or <code class="highlighter-rouge">nsenter</code> as described below under <a href="#running-commands-within-containers">Running commands within containers</a>.</p>
+
+<p>In the above task list there are multiple services installed, resulting in a pretty large list. The list can be filtered using the text box at the upper right, but there may be duplicate names across services. For example there are two instances of <code class="highlighter-rouge">confluent-kafka</code> and they’re each running a <code class="highlighter-rouge">broker-0</code>. As the cluster grows, this confusion gets proportionally worse. We want to limit the task list to only the tasks that are relevant to the service being diagnosed. To do this, click “Frameworks” on the upper left to see a list of all the installed frameworks (mapping to our services):</p>
+
+<p><a href="../img/ops-guide-frameworks-list.png"><img src="../img/ops-guide-frameworks-list.png" alt="listing of frameworks installed to the cluster" width="400" /></a></p>
+
+<p>We then need to decide which framework to select from this list. This depends on what task we want to view:</p>
+
+<h3 id="scheduler-logs">Scheduler logs</h3>
+
+<p>If the issue is one of deployment or management, e.g. a service is ‘stuck’ in initial deployment, or a task that previously went down isn’t being brought back at all, then the Scheduler logs will likely be the place to find out why.</p>
+
+<p>From Mesos’s perspective, the Scheduler is being run as a Marathon app. Therefore we should pick <code class="highlighter-rouge">marathon</code> from this list and then find our Scheduler in the list of tasks.</p>
+
+<p><a href="../img/ops-guide-framework-tasks-marathon.png"><img src="../img/ops-guide-framework-tasks-marathon.png" alt="listing of tasks running in the marathon framework (Marathon apps)" width="400" /></a></p>
+
+<p>Scheduler logs can be found either via the main Mesos frontpage in small clusters (possibly using the filter box at the top right), or by navigating into the list of tasks registered against the <code class="highlighter-rouge">marathon</code> framework in large clusters. In SDK services, the Scheduler is typically given the same name as the service. For example a <code class="highlighter-rouge">kafka-dev</code> service’s Scheduler would be named <code class="highlighter-rouge">kafka-dev</code>. We click the <code class="highlighter-rouge">Sandbox</code> link to view the Sandbox portion of the Scheduler filesystem, which contains files named <code class="highlighter-rouge">stdout</code> and <code class="highlighter-rouge">stderr</code>. These files respectively receive the stdout/stderr output of the Scheduler process, and can be examined to see what the Scheduler is doing.</p>
+
+<p><a href="../img/ops-guide-scheduler-sandbox.png"><img src="../img/ops-guide-scheduler-sandbox.png" alt="contents of a scheduler sandbox" width="400" /></a></p>
+
+<p>For a good example of the kind of diagnosis you can perform using SDK Scheduler logs, see the below use case of <a href="#tasks-not-deploying--resource-starvation">Tasks not deploying / Resource starvation</a>.</p>
+
+<h3 id="task-logs">Task logs</h3>
+
+<p>When the issue being diagnosed has to do with the service tasks, e.g. a given task is crash looping, the task logs will likely provide more information. The tasks being run as a part of a service are registered against a framework matching the service name. Therefore, we should pick <code class="highlighter-rouge">&lt;service-name&gt;</code> from this list to view a list of tasks specific to that service.</p>
+
+<p><a href="../img/ops-guide-framework-tasks-service.png"><img src="../img/ops-guide-framework-tasks-service.png" alt="listing of tasks running in a framework (Service tasks)" width="400" /></a></p>
+
+<p>In the above list, we see separate lists of Active and Completed tasks:</p>
+<ul>
+  <li>Active tasks are still running. These give a picture of the current activity of the service.</li>
+  <li>Completed tasks have exited for some reason, whether successfully or due to a failure. These give a picture of recent activity of the service. <strong>Note:</strong> Older completed tasks will be automatically garbage collected and their data may no longer be available here.</li>
+</ul>
+
+<p>Either or both of these lists may be useful depending on the context. Click on the <code class="highlighter-rouge">Sandbox</code> link for one of these tasks and then start looking at sandbox content. Files named <code class="highlighter-rouge">stderr</code> and <code class="highlighter-rouge">stdout</code> hold logs produced both by the SDK Executor process (a small wrapper around the service task) as well as any logs produced by the task itself. These files are automatically paginated at 2MB increments, so older logs may also be examined until they are automatically pruned. For an example of this behavior, see the <a href="../img/ops-guide-scheduler-sandbox.png">scheduler sandbox</a> linked earlier.</p>
+
+<p><a href="../img/ops-guide-task-sandbox.png"><img src="../img/ops-guide-task-sandbox.png" alt="contents of a task sandbox" width="400" /></a></p>
+
+<h3 id="mesos-agent-logs">Mesos Agent logs</h3>
+
+<p>Occasionally, it can also be useful to examine what a given Mesos agent is doing. The Mesos Agent handles deployment of Mesos tasks to a given physical system in the cluster. One Mesos Agent runs on each system. These logs can be useful for determining if there’s a problem at the system level that is causing alerts across multiple services on that system.</p>
+
+<p>Navigate to the agent you want to view either directly from a task by clicking the “Agent” item in the breadcrumb when viewing a task (this will go directly to the agent hosting the task), or by navigating through the “Agents” menu item at the top of the screen (you will need to select the desired agent from the list).</p>
+
+<p>In the Agent view, you’ll see a list of frameworks with a presence on that Agent. In the left pane you’ll see a plain link named “LOG”. Click that link to view the agent logs.</p>
+
+<p><a href="../img/ops-guide-agent.png"><img src="../img/ops-guide-agent.png" alt="view of tasks running on a given agent" width="400" /></a></p>
+
+<h3 id="logs-via-the-cli">Logs via the CLI</h3>
+
+<p>You can also access logs via the <a href="https://dcos.io/docs/latest/usage/cli/install/">DC/OS CLI</a> using the <code class="highlighter-rouge">dcos task log</code> command. For example, lets assume the following list of tasks in a cluster:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos task
+NAME                  HOST        USER  STATE  ID
+broker-0              10.0.0.242  root    R    broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+broker-0              10.0.3.27   root    R    broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+broker-1              10.0.0.242  root    R    broker-1__6bf127ab-5edc-4888-9dd3-f00be92b291c
+broker-1              10.0.1.188  root    R    broker-1__d799afdb-78bf-44e9-bb63-d16cfc797d00
+broker-2              10.0.1.151  root    R    broker-2__4a293161-b89f-429e-a22e-57a1846eb271
+broker-2              10.0.3.60   root    R    broker-2__76f45cb0-4db9-41ad-835c-2cedf3d7f725
+<span class="o">[</span>...]
+</code></pre></div></div>
+
+<p>In this case we have two overlapping sets of brokers from two different Kafka installs. Given these tasks, we can do several different things by combining task filters, file selection, and the <code class="highlighter-rouge">--follow</code> argument:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos task log broker                <span class="c"># get recent stdout logs from all six 'broker-#' instances</span>
+<span class="nv">$ </span>dcos task log broker-0              <span class="c"># get recent stdout logs from two 'broker-0' instances</span>
+<span class="nv">$ </span>dcos task log broker-0__75          <span class="c"># get recent stdout logs from the 'broker-0' instance on 10.0.3.27</span>
+<span class="nv">$ </span>dcos task log <span class="nt">--follow</span> broker-0__75 <span class="c"># 'tail -f' the stdout logs from that broker instance</span>
+<span class="nv">$ </span>dcos task log broker-0__75 stderr   <span class="c"># get recent stderr logs from that broker instance</span>
+</code></pre></div></div>
+
+<h2 id="metrics">Metrics</h2>
+
+<h3 id="dcos--111">DC/OS &gt;= 1.11</h3>
+<p>The scheduler’s metrics are reported via three different mechanisms: <code class="highlighter-rouge">JSON</code>, <a href="https://prometheus.io/">prometheus</a> and <a href="https://github.com/etsy/statsd">StatsD</a>. The StatsD metrics are pushed to the address defined by the environment variables <code class="highlighter-rouge">STATSD_UDP_HOST</code> and <code class="highlighter-rouge">STATSD_UDP_PORT</code>. See <a href="https://dcos.io/docs/1.10/metrics/">DC/OS Metrics documentation</a> for more details.</p>
+
+<p>The JSON representation of the metrics is available at the <code class="highlighter-rouge">/v1/metrics</code> endpoint`.</p>
+
+<p>####### JSON</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+	</span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.1.3"</span><span class="p">,</span><span class="w">
+	</span><span class="s2">"gauges"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+	</span><span class="s2">"counters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="s2">"declines.long"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"offers.processed"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"offers.received"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"operation.create"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"operation.launch_group"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"operation.reserve"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"revives"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+		</span><span class="p">},</span><span class="w">
+		</span><span class="s2">"task_status.task_running"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="w">
+		</span><span class="p">}</span><span class="w">
+	</span><span class="p">},</span><span class="w">
+	</span><span class="s2">"histograms"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+	</span><span class="s2">"meters"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+	</span><span class="s2">"timers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+		</span><span class="s2">"offers.process"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"mean"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.15145255818999337</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.367950000000001E-4</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"p50"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0035879090000000002</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"p75"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.40317217800000005</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"p95"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"p98"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"p99"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"p999"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"stddev"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.24017017290826104</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"m15_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5944843686231079</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"m1_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5250565015924039</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"m5_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.583689104996544</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"mean_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3809369986002824</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"duration_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"seconds"</span><span class="p">,</span><span class="w">
+			</span><span class="s2">"rate_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calls/second"</span><span class="w">
+		</span><span class="p">}</span><span class="w">
+	</span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
+
+<p>The Prometheus representation of the metrics is available at the <code class="highlighter-rouge">/v1/metrics/prometheus</code> endpoint.
+####### Prometheus</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code># HELP declines_long Generated from Dropwizard metric import (metric=declines.long, type=com.codahale.metrics.Counter)
+# TYPE declines_long gauge
+declines_long 20.0
+# HELP offers_processed Generated from Dropwizard metric import (metric=offers.processed, type=com.codahale.metrics.Counter)
+# TYPE offers_processed gauge
+offers_processed 24.0
+# HELP offers_received Generated from Dropwizard metric import (metric=offers.received, type=com.codahale.metrics.Counter)
+# TYPE offers_received gauge
+offers_received 24.0
+# HELP operation_create Generated from Dropwizard metric import (metric=operation.create, type=com.codahale.metrics.Counter)
+# TYPE operation_create gauge
+operation_create 5.0
+# HELP operation_launch_group Generated from Dropwizard metric import (metric=operation.launch_group, type=com.codahale.metrics.Counter)
+# TYPE operation_launch_group gauge
+operation_launch_group 4.0
+# HELP operation_reserve Generated from Dropwizard metric import (metric=operation.reserve, type=com.codahale.metrics.Counter)
+# TYPE operation_reserve gauge
+operation_reserve 20.0
+# HELP revives Generated from Dropwizard metric import (metric=revives, type=com.codahale.metrics.Counter)
+# TYPE revives gauge
+revives 4.0
+# HELP task_status_task_finished Generated from Dropwizard metric import (metric=task_status.task_finished, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_finished gauge
+task_status_task_finished 1.0
+# HELP task_status_task_running Generated from Dropwizard metric import (metric=task_status.task_running, type=com.codahale.metrics.Counter)
+# TYPE task_status_task_running gauge
+task_status_task_running 8.0
+# HELP offers_process Generated from Dropwizard metric import (metric=offers.process, type=com.codahale.metrics.Timer)
+# TYPE offers_process summary
+offers_process{quantile="0.5",} 2.0609500000000002E-4
+offers_process{quantile="0.75",} 2.2853200000000001E-4
+offers_process{quantile="0.95",} 0.005792643
+offers_process{quantile="0.98",} 0.005792643
+offers_process{quantile="0.99",} 0.111950848
+offers_process{quantile="0.999",} 0.396119612
+offers_process_count 244.0
+</code></pre></div></div>
+
+<h2 id="running-commands-within-containers">Running commands within containers</h2>
+
+<p>An extremely useful tool for diagnosing task state is the ability to run arbitrary commands <em>within</em> the task. The available tools for doing this depend on the version of DC/OS you’re using:</p>
+
+<h3 id="dcos--19">DC/OS &gt;= 1.9</h3>
+
+<p>DC/OS 1.9 introduced the <code class="highlighter-rouge">task exec</code> command as a convenient frontend to <code class="highlighter-rouge">nsenter</code>, which is described below.</p>
+
+<h4 id="prerequisites">Prerequisites</h4>
+
+<ul>
+  <li>
+    <p>SSH keys for accessing your cluster configured (i.e. via <code class="highlighter-rouge">ssh-add</code>). SSH is used behind the scenes to get into the cluster.</p>
+  </li>
+  <li>
+    <p>A <a href="https://dcos.io/docs/latest/usage/cli/install/">recent version of the DC/OS CLI</a> with support for the <code class="highlighter-rouge">task exec</code> command.</p>
+  </li>
+</ul>
+
+<h4 id="using-dcos-task-exec">Using <code class="highlighter-rouge">dcos task exec</code></h4>
+
+<p>Once you’re set up, running commands is very straightforward. For example, let’s assume the list of tasks from the CLI logs section above, where there’s two <code class="highlighter-rouge">broker-0</code> tasks, one named <code class="highlighter-rouge">broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21</code> and another named <code class="highlighter-rouge">broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237</code>. Unlike with <code class="highlighter-rouge">task logs</code>, we can only run <code class="highlighter-rouge">task exec</code> on one command at a time, so if two tasks match the task filter then we see the following error:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos task <span class="nb">exec </span>broker-0 <span class="nb">echo </span>hello world
+There are multiple tasks with ID matching <span class="o">[</span>broker-0]. Please choose one:
+	broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+	broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+</code></pre></div></div>
+
+<p>Therefore we need to be more specific:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos task <span class="nb">exec </span>broker-0__75 <span class="nb">echo </span>hello world
+hello world
+<span class="nv">$ </span>dcos task <span class="nb">exec </span>broker-0__75 <span class="nb">pwd</span>
+/
+</code></pre></div></div>
+
+<p>We can also run interactive commands using the <code class="highlighter-rouge">-it</code> flags (short for <code class="highlighter-rouge">--interactive --tty</code>):</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos task <span class="nb">exec</span> <span class="nt">--interactive</span> <span class="nt">--tty</span> broker-0__75 /bin/bash
+broker-container# <span class="nb">echo </span>hello world
+hello world
+broker-container# <span class="nb">pwd</span>
+/
+broker-container# <span class="nb">exit</span>
+</code></pre></div></div>
+
+<p>While you could technically change the container filesystem using <code class="highlighter-rouge">dcos task exec</code>, any changes will be destroyed if the container restarts.</p>
+
+<h3 id="dcos--18">DC/OS &lt;= 1.8</h3>
+
+<p>DC/OS 1.8 and earlier do not support <code class="highlighter-rouge">dcos task exec</code>, but <code class="highlighter-rouge">dcos node ssh</code> and <code class="highlighter-rouge">nsenter</code> may be used instead to get the same thing, with a little more effort.</p>
+
+<p>First, run <code class="highlighter-rouge">dcos task</code> to get the list of tasks (and their respective IPs), and cross-reference that with <code class="highlighter-rouge">dcos node</code> to get the list of agents (and their respective IPs). For example:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos task
+NAME                  HOST        USER  STATE  ID
+broker-0              10.0.1.151  root    R    broker-0__81f56cc1-7b3d-4003-8c21-a9cd45ea6a21
+broker-0              10.0.3.27   root    R    broker-0__75bcf7fd-7831-4f70-9cb8-9cb6693f4237
+<span class="nv">$ </span>dcos node
+ HOSTNAME       IP                         ID
+10.0.0.242  10.0.0.242  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0
+10.0.1.151  10.0.1.151  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
+10.0.1.188  10.0.1.188  2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S2
+...
+</code></pre></div></div>
+
+<p>In this case we’re interested in the <code class="highlighter-rouge">broker-0</code> on <code class="highlighter-rouge">10.0.1.151</code>. We can see that <code class="highlighter-rouge">broker-0</code>’s Mesos Agent has an ID of <code class="highlighter-rouge">2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1</code>. Let’s SSH into that machine using <code class="highlighter-rouge">dcos node ssh</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos node ssh <span class="nt">--master-proxy</span> <span class="nt">--mesos-id</span><span class="o">=</span>2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S1
+agent-system<span class="err">$</span>
+</code></pre></div></div>
+
+<p>Now that we’re logged into the host Agent machine, we need to find a relevant PID for the <code class="highlighter-rouge">broker-0</code> container. This can take some guesswork:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agent-system<span class="nv">$ </span>ps aux | <span class="nb">grep</span> <span class="nt">-i</span> confluent
+...
+root      5772  0.6  3.3 6204460 520280 ?      Sl   Apr25   2:34 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0004/executors/broker-0__1eb65420-535e-477b-9ac1-797e79c15277/runs/f5377eac-3a87-4080-8b80-128434e42a25/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
+root      6059  0.7 10.3 6203432 1601008 ?     Sl   Apr25   2:43 /var/lib/mesos/slave/slaves/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-S0/frameworks/2fb7eb4d-d4fc-44b8-ab44-c858f2233675-0003/executors/broker-1__8de30046-1016-4634-b43e-45fe7ede0817/runs/19982072-08c3-4be6-9af9-efcd3cc420d3/jre1.8.0_121//bin/java ... kafka_confluent-3.2.0/config/server.properties
+...
+</code></pre></div></div>
+
+<p>As we can see above, there appear to be two likely candidates, one on PID 5772 and the other on PID 6059. The one on PID 5772 has mention of <code class="highlighter-rouge">broker-0</code> so that’s probably the one we want. Lets run the <code class="highlighter-rouge">nsenter</code> command using PID 6059:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>agent-system<span class="nv">$ </span><span class="nb">sudo </span>nsenter <span class="nt">--mount</span> <span class="nt">--uts</span> <span class="nt">--ipc</span> <span class="nt">--net</span> <span class="nt">--pid</span> <span class="nt">--target</span> 6059
+broker-container#
+</code></pre></div></div>
+
+<p>Looks like we were successful! Now we can run commands inside this container to verify that it’s the one we really want, and then proceed with the diagnosis.</p>
+
+<h2 id="querying-the-scheduler">Querying the Scheduler</h2>
+
+<p>The Scheduler exposes several HTTP endpoints that provide information on any current deployment as well as the Scheduler’s view of its tasks. For a full listing of HTTP endpoints, see the <a href="http://mesosphere.github.io/dcos-commons/reference/swagger-api/">API reference</a>. The Scheduler endpoints most useful to field diagnosis come from three sections:</p>
+
+<ul>
+  <li><strong>Plan</strong>: Describes any work that the Scheduler is currently doing, and what work it’s about to do. These endpoints also allow manually triggering Plan operations, or restarting them if they’re stuck.</li>
+  <li><strong>Pods</strong>: Describes the tasks that the Scheduler has currently deployed. The full task info describing the task environment can be retrieved, as well as the last task status received from Mesos.</li>
+  <li><strong>State</strong>: Access to other miscellaneous state information such as service-specific properties data.</li>
+</ul>
+
+<p>For full documentation of each command, see the <a href="https://mesosphere.github.io/dcos-commons/reference/swagger-api/">API Reference</a>. Here is an example of invoking one of these commands against a service named <code class="highlighter-rouge">hello-world</code> via <code class="highlighter-rouge">curl</code>:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">export </span><span class="nv">AUTH_TOKEN</span><span class="o">=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span>
+<span class="nv">$ </span>curl <span class="nt">-k</span> <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="nv">$AUTH_TOKEN</span><span class="s2">"</span> https://&lt;dcos_url&gt;/service/hello-world/v1/plans/deploy
+</code></pre></div></div>
+
+<p>These endpoints may also be conveniently accessed using the SDK CLI after installing a service. See <code class="highlighter-rouge">dcos &lt;svcname&gt; -h</code> for a list of all commands. These are wrappers around the above API.</p>
+
+<p>For example, let’s get a list of pods using the CLI, and then via the HTTP API:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos datastax-dse <span class="nt">--name</span><span class="o">=</span>mydse pod list
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+<span class="nv">$ </span>curl <span class="nt">-k</span> <span class="nt">-H</span> <span class="s2">"Authorization: token=</span><span class="k">$(</span>dcos config show core.dcos_acs_token<span class="k">)</span><span class="s2">"</span> &lt;dcos-url&gt;/service/dse/v1/pod
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">-v</code> (or <code class="highlighter-rouge">--verbose</code>) argument allows you to view and diagnose the underlying requests made by the CLI:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos datastax-dse <span class="nt">--name</span><span class="o">=</span>mydse <span class="nt">-v</span> pod list
+2017/04/25 15:03:43 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_url
+2017/04/25 15:03:44 HTTP Query: GET https://yourcluster.com/service/dse/v1/pod
+2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.dcos_acs_token
+2017/04/25 15:03:44 Running DC/OS CLI <span class="nb">command</span>: dcos config show core.ssl_verify
+<span class="o">[</span>
+  <span class="s2">"dse-0"</span>,
+  <span class="s2">"dse-1"</span>,
+  <span class="s2">"dse-2"</span>,
+  <span class="s2">"opscenter-0"</span>,
+  <span class="s2">"studio-0"</span>
+<span class="o">]</span>
+2017/04/25 15:03:44 Response: 200 OK <span class="o">(</span><span class="nt">-1</span> bytes<span class="o">)</span>
+</code></pre></div></div>
+
+<h2 id="zookeeperexhibitor">ZooKeeper/Exhibitor</h2>
+
+<p><strong>Break glass in case of emergency: This should only be used as a last resort. Modifying anything in ZooKeeper directly may cause your service to behave in inconsistent, even incomprehensible ways.</strong></p>
+
+<p>DC/OS comes with Exhibitor, a commonly used frontend for viewing ZooKeeper. Exhibitor may be accessed at <code class="highlighter-rouge">&lt;dcos-url&gt;/exhibitor</code>. A given SDK service will have a node named <code class="highlighter-rouge">dcos-service-&lt;svcname&gt;</code> visible here. This is where the Scheduler puts its state, so that it isn’t lost if the Scheduler is restarted. In practice it’s far easier to access this information via the Scheduler API (or via the service CLI) as described earlier, but direct access using Exhibitor can be useful in situations where the Scheduler itself is unavailable or otherwise unable to serve requests.</p>
+
+<p><a href="../img/ops-guide-exhibitor-view-taskstatus.png"><img src="../img/ops-guide-exhibitor-view-taskstatus.png" alt="viewing a task's most recent TaskStatus protobuf in Exhibitor" width="400" /></a></p>
+
+
+</div>
+</div>
+</body>
+
+</html>

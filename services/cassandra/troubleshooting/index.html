@@ -53,8 +53,6 @@
       
       
       
-      
-      
       <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
       
       
@@ -240,6 +238,28 @@
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
       <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
       <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
     </ul>
@@ -250,9 +270,9 @@
       
       
       
-      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
-      
       <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
       
     </ul>
   </li>
@@ -304,6 +324,18 @@
           
           
           <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/overview/">Overview</a></li>
           
           
           
@@ -369,6 +401,18 @@
           
           
           
+          <li><a href="/dcos-commons/services/elastic/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/overview/">Overview</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/elastic/api-reference/">API Reference</a></li>
           
           
@@ -431,6 +475,18 @@
           
           
           
+          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/hdfs/overview/">Overview</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
           
           
@@ -489,7 +545,19 @@
           
           
           
+          <li><a href="/dcos-commons/services/kafka/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/diagnostic-tools/">Diagnostic Tools</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/overview/">Overview</a></li>
           
           
           
@@ -596,6 +664,222 @@
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos beta-cassandra <span class="nt">--name</span><span class="o">=</span>cassandra-dev plan show recovery
 </code></pre></div></div>
+
+<h2 id="tasks-not-deploying--resource-starvation">Tasks not deploying / Resource starvation</h2>
+
+<p>When the scheduler is performing offer evaluation, it will log its decisions about offers it has received. This can be useful in the common case of determining why a task is failing to deploy.</p>
+
+<p>In recent versions of the scheduler, a scheduler endpoint at <code class="highlighter-rouge">http://yourcluster.com/service/cassandra/v1/debug/offers</code> will display an HTML table containing a summary of recently-evaluated offers. This table’s contents are currently very similar to what can be found in logs, but in a slightly more accessible format. Alternately, we can look at the scheduler’s logs in <code class="highlighter-rouge">stdout</code> (or <code class="highlighter-rouge">stderr</code> in older SDK versions).</p>
+
+<p>When looking at either the Offers debug endpoint, or at the scheduler logs directly, we find several examples of offers that were insufficient to deploy the remaining node. It’s important to remember that <em>offers will regularly be rejected</em> due to not meeting the needs of a deployed task and that this is <em>completely normal</em>. What we’re looking for is a common theme across those rejections that would indicate what we’re missing.</p>
+
+<p>The following example assumes a hypothetical task requiring a pre-determined amount of resources. From scrolling through the scheduler logs, we see a couple of patterns. First, there are failures like this, where the only thing missing is CPUs. The remaining task requires 2 CPUs but this offer apparently didn’t have enough:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO  2017-04-25 19:17:13,846 [pool-8-thread-1] com.mesosphere.sdk.offer.evaluate.OfferEvaluator:evaluate(69): Offer 1: failed 1 of 14 evaluation stages:
+  PASS(PlacementRuleEvaluationStage): No placement rule defined
+  PASS(ExecutorEvaluationStage): Offer contains the matching Executor ID
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'cpus': requirement=type: SCALAR scalar { value: 0.5 }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 500.0 }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 2.0 } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 8000.0 }
+  PASS(MultiEvaluationStage): All child stages passed
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 9042 end: 9042 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 9160 end: 9160 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7000 end: 7000 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7001 end: 7001 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8609 end: 8609 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8182 end: 8182 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7199 end: 7199 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 21621 end: 21621 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 8983 end: 8983 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7077 end: 7077 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7080 end: 7080 } }
+    PASS(PortEvaluationStage): Offer contains sufficient 'ports': requirement=type: RANGES ranges { range { begin: 7081 end: 7081 } }
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  PASS(ReservationEvaluationStage): Added reservation information to offer requirement
+</code></pre></div></div>
+
+<p>If we scroll up from this rejection summary, we find a message describing what the agent had offered in terms of CPU:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO  2017-04-25 19:17:13,834 [pool-8-thread-1] com.mesosphere.sdk.offer.MesosResourcePool:consumeUnreservedMerged(239): Offered quantity of cpus is insufficient: desired type: SCALAR scalar { value: 2.0 }, offered type: SCALAR scalar { value: 0.5 }
+</code></pre></div></div>
+
+<p>Understandably, our scheduler is refusing to launch a node on a system with 0.5 remaining CPUs when the node needs 2.0 CPUs.</p>
+
+<p>Another pattern we see is a message like this, where the offer is being rejected for several reasons:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>INFO  2017-04-25 19:17:14,849 [pool-8-thread-1] com.mesosphere.sdk.offer.evaluate.OfferEvaluator:evaluate(69): Offer 1: failed 6 of 14 evaluation stages:
+  PASS(PlacementRuleEvaluationStage): No placement rule defined
+  PASS(ExecutorEvaluationStage): Offer contains the matching Executor ID
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 0.5 } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(ResourceEvaluationStage): Offer contains sufficient 'mem': requirement=type: SCALAR scalar { value: 500.0 }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'cpus': name: "cpus" type: SCALAR scalar { value: 2.0 } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } } FAIL(ResourceEvaluationStage): Failed to satisfy required resource 'mem': name: "mem" type: SCALAR scalar { value: 8000.0 } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(MultiEvaluationStage): Failed to pass all child stages
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 9042 end: 9042 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 9160 end: 9160 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7000 end: 7000 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7001 end: 7001 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8609 end: 8609 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8182 end: 8182 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7199 end: 7199 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 21621 end: 21621 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 8983 end: 8983 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7077 end: 7077 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7080 end: 7080 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+    FAIL(PortEvaluationStage): Failed to satisfy required resource 'ports': name: "ports" type: RANGES ranges { range { begin: 7081 end: 7081 } } role: "cassandra-role" reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+  FAIL(VolumeEvaluationStage): Failed to satisfy required volume 'disk': name: "disk" type: SCALAR scalar { value: 10240.0 } role: "cassandra-role" disk { persistence { id: "" principal: "cassandra-principal" } volume { container_path: "cassandra-data" mode: RW } } reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  PASS(VolumeEvaluationStage): Offer contains sufficient 'disk'
+  FAIL(VolumeEvaluationStage): Failed to satisfy required volume 'disk': name: "disk" type: SCALAR scalar { value: 10240.0 } role: "cassandra-role" disk { persistence { id: "" principal: "cassandra-principal" } volume { container_path: "solr-data" mode: RW } } reservation { principal: "cassandra-principal" labels { labels { key: "resource_id" value: "" } } }
+  PASS(LaunchEvaluationStage): Added launch information to offer requirement
+  PASS(ReservationEvaluationStage): Added reservation information to offer requirement
+</code></pre></div></div>
+
+<p>In this case, we see that none of the ports our task needs are available on this system (not to mention the lack of sufficient CPU and RAM). This will typically happen when we’re looking at an agent that we’ve already deployed to. The agent in question here is likely running an existing node for this service, where we had already reserved those ports ourselves.</p>
+
+<p>We’re seeing that none of the remaining agents in the cluster have room to fit our third node. To resolve this, we need to either add more agents to the DC/OS cluster or we need to reduce the requirements of our service to make it fit. In the latter case, be aware of any performance issues that may result if resource usage is reduced too far. Insufficient CPU quota will result in throttled tasks, and insufficient RAM quota will result in OOMed tasks.</p>
+
+<p>This is a good example of the kind of diagnosis you can perform by skimming the scheduler logs.</p>
+
+<h2 id="accidentially-deleted-marathon-task-but-not-service">Accidentially deleted Marathon task but not service</h2>
+
+<p>A common user mistake is to remove the scheduler task from Marathon, which doesn’t do anything to uninstall the service tasks themselves. If you do this, you have two options:</p>
+
+<h3 id="uninstall-the-rest-of-the-service">Uninstall the rest of the service</h3>
+
+<p>If you really wanted to uninstall the service, you just need to complete the normal <code class="highlighter-rouge"><span class="k">package</span> <span class="n">uninstall</span></code> steps described under <a href="#uninstall">Uninstall</a>.</p>
+
+<h3 id="recover-the-scheduler">Recover the Scheduler</h3>
+
+<p>If you want to bring the scheduler back, you can do a <code class="highlighter-rouge">dcos package install</code> using the options that you had configured before. This will re-install a new scheduler that should match the previous one (assuming you got your options right), and it will resume where it left off. To ensure that you don’t forget the options your services are configured with, we recommend keeping a copy of your service’s <code class="highlighter-rouge">options.json</code> in source control so that you can easily recover it later. See also <a href="#initial-service-configuration">Initial configuration</a>.</p>
+
+<h2 id="framework-has-been-removed">‘Framework has been removed’</h2>
+
+<p>Long story short, you forgot to run <code class="highlighter-rouge">janitor.py</code> the last time you ran the service. See <a href="#uninstall">Uninstall</a> for steps on doing that. In case you’re curious, here’s what happened:</p>
+
+<ol>
+  <li>You ran <code class="highlighter-rouge">dcos package uninstall beta-cassandra --app-id cassandra</code>. This destroyed the scheduler and its associated tasks, <em>but didn’t clean up its reserved resources</em>.</li>
+  <li>Later on, you tried to reinstall the service. The scheduler came up and found an entry in ZooKeeper with the previous framework ID, which would have been cleaned up by <code class="highlighter-rouge">janitor.py</code>. The scheduler tried to re-register using that framework ID.</li>
+  <li>Mesos returned an error because it knows that framework ID is no longer valid. Hence the confusing ‘Framework has been removed’ error.</li>
+</ol>
+
+<h2 id="stuck-deployments">Stuck deployments</h2>
+
+<p>You can sometimes get into valid situations where a deployment is being blocked by a repair operation or vice versa. For example, say you were rolling out an update to a 500 node Cassandra cluster. The deployment gets paused at node #394 because it’s failing to come back, and, for whatever reason, we don’t have the time or the inclination to <code class="highlighter-rouge">pod replace</code> it and wait for it to come back.</p>
+
+<p>In this case, we can use <code class="highlighter-rouge">plan</code> commands to force the Scheduler to skip node #394 and proceed with the rest of the deployment:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos cassandra plan status deploy
+<span class="o">{</span>
+  <span class="s2">"phases"</span>: <span class="o">[</span>
+    <span class="o">{</span>
+      <span class="s2">"id"</span>: <span class="s2">"aefd33e3-af78-425e-ad2e-6cc4b0bc1907"</span>,
+      <span class="s2">"name"</span>: <span class="s2">"cassandra-phase"</span>,
+      <span class="s2">"steps"</span>: <span class="o">[</span>
+        ...
+        <span class="o">{</span> <span class="s2">"id"</span>: <span class="s2">"f108a6a8-d41f-4c49-a1c0-4a8540876f6f"</span>, <span class="s2">"name"</span>: <span class="s2">"node-393:[node]"</span>, <span class="s2">"status"</span>: <span class="s2">"COMPLETE"</span> <span class="o">}</span>,
+        <span class="o">{</span> <span class="s2">"id"</span>: <span class="s2">"83a7f8bc-f593-452a-9ceb-627d101da545"</span>, <span class="s2">"name"</span>: <span class="s2">"node-394:[node]"</span>, <span class="s2">"status"</span>: <span class="s2">"PENDING"</span> <span class="o">}</span>, <span class="c"># stuck here</span>
+        <span class="o">{</span> <span class="s2">"id"</span>: <span class="s2">"61ce9d7d-b023-4a8a-9191-bfa261ace064"</span>, <span class="s2">"name"</span>: <span class="s2">"node-395:[node]"</span>, <span class="s2">"status"</span>: <span class="s2">"PENDING"</span> <span class="o">}</span>,
+        ...
+      <span class="o">]</span>,
+      <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+    <span class="o">}</span>,
+    ...
+  <span class="o">]</span>,
+  <span class="s2">"errors"</span>: <span class="o">[]</span>,
+  <span class="s2">"status"</span>: <span class="s2">"IN_PROGRESS"</span>
+<span class="o">}</span>
+<span class="nv">$ </span>dcos plan force deploy cassandra-phase node-394:[node]
+<span class="o">{</span>
+  <span class="s2">"message"</span>: <span class="s2">"Received cmd: forceComplete"</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>After forcing the <code class="highlighter-rouge">node-394:[node]</code> step, we can then see that the Plan shows it in a <code class="highlighter-rouge">COMPLETE</code> state, and that the Plan is proceeding with <code class="highlighter-rouge">node-395</code>:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos cassandra plan status deploy
+{
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "COMPLETE" },
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "PENDING" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
+    },
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}
+</code></pre></div></div>
+
+<p>If we want to go back and fix the deployment of that node, we can simply force the scheduler to treat it as a pending operation again:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos plan restart deploy cassandra-phase node-394:[node]
+{
+  "message": "Received cmd: restart"
+}
+</code></pre></div></div>
+
+<p>Now, we see that the step is again marked as <code class="highlighter-rouge">PENDING</code> as the Scheduler again attempts to redeploy that node:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos cassandra plan status deploy
+{
+  "phases": [
+    {
+      "id": "aefd33e3-af78-425e-ad2e-6cc4b0bc1907",
+      "name": "cassandra-phase",
+      "steps": [
+        ...
+        { "id": "f108a6a8-d41f-4c49-a1c0-4a8540876f6f", "name": "node-393:[node]", "status": "COMPLETE" },
+        { "id": "83a7f8bc-f593-452a-9ceb-627d101da545", "name": "node-394:[node]", "status": "PENDING" },
+        { "id": "61ce9d7d-b023-4a8a-9191-bfa261ace064", "name": "node-395:[node]", "status": "COMPLETE" },
+        ...
+      ],
+      "status": "IN_PROGRESS"
+    },
+    ...
+  ],
+  "errors": [],
+  "status": "IN_PROGRESS"
+}
+</code></pre></div></div>
+
+<p>This example shows how steps in the deployment Plan (or any other Plan) can be manually retriggered or forced to a completed state by querying the Scheduler. This doesn’t come up often, but it can be a useful tool in certain situations.</p>
+
+<p><strong>Note:</strong> The <code class="highlighter-rouge">dcos plan</code> commands will also accept UUID <code class="highlighter-rouge">id</code> values instead of the <code class="highlighter-rouge">name</code> values for the <code class="highlighter-rouge">phase</code> and <code class="highlighter-rouge">step</code> arguments. Providing UUIDs avoids the possibility of a race condition where we view the plan, then it changes structure, then we change a plan step that isn’t the same one we were expecting (but which had the same name).</p>
+
+<h3 id="deleting-a-task-in-zookeeper-to-forcibly-wipe-that-task">Deleting a task in ZooKeeper to forcibly wipe that task</h3>
+
+<p>If the scheduler is still failing after <code class="highlighter-rouge">pod replace &lt;name&gt;</code> to clear a task, a last resort is to use <a href="#ZooKeeperexhibitor">Exhibitor</a> to delete the offending task from the scheduler’s ZooKeeper state, and then to restart the scheduler task in Marathon so that it picks up the change. After the scheduler restarts, it will do the following:</p>
+<ul>
+  <li>Automatically unreserve the task’s previous resources with Mesos because it doesn’t recognize them anymore (via the Resource Cleanup operation described earlier).</li>
+  <li>Automatically redeploy the task on a new agent.</li>
+</ul>
+
+<p><strong>Note:</strong> This operation can easily lead to a completely broken service. <strong>Do this at your own risk.</strong> <a href="img/ops-guide-exhibitor-delete-task.png">Break glass in case of emergency</a></p>
+
+<h3 id="oomed-task">OOMed task</h3>
+
+<p>Your tasks can be killed from an OOM if you didn’t give them sufficient resources. This will manifest as sudden <code class="highlighter-rouge">Killed</code> messages in <a href="#task-logs">Task logs</a>, sometimes consistently but often not. To verify that the cause is an OOM, the following places can be checked:</p>
+<ul>
+  <li>Check <a href="#scheduler-logs">Scheduler logs</a> (or <code class="highlighter-rouge">dcos &lt;svcname&gt; pod status &lt;podname&gt;)</code> to see TaskStatus updates from mesos for a given failed pod.</li>
+  <li>Check <a href="#mesos-agent-logs">Agent logs</a> directly for mention of the Mesos Agent killing a task due to excess memory usage.</li>
+</ul>
+
+<p>After you’ve been able to confirm that the problem is indeed an OOM, you can solve it by either <a href="#updating-service-configuration">updating the service configuration</a> to reserve more memory, or configuring the underlying service itself to use less memory (assuming the option is available).</p>
 
 
 </div>
