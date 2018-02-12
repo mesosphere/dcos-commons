@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
+var methods = {"i0":9,"i1":9,"i2":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -148,16 +148,6 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html#parseWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.lang.String-">parseWith</a></span>(java.lang.String&nbsp;podName,
-         <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;rule,
-         java.lang.String&nbsp;marathonConstraints)</code>
-<div class="block">ANDs the provided marathon-style constraint string onto the provided hard-coded
- <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>, or returns the provided <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a> as-is if the
- marathon-style constraint is <code>null</code> or empty.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code>(package private) static java.util.List&lt;java.util.List&lt;java.lang.String&gt;&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html#splitConstraints-java.lang.String-">splitConstraints</a></span>(java.lang.String&nbsp;marathonConstraints)</code>
 <div class="block">Splits the provided marathon constraint statement into elements.</div>
@@ -185,34 +175,6 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="parseWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>parseWith</h4>
-<pre>public static&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;parseWith(java.lang.String&nbsp;podName,
-                                      <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;rule,
-                                      java.lang.String&nbsp;marathonConstraints)
-                               throws java.io.IOException</pre>
-<div class="block">ANDs the provided marathon-style constraint string onto the provided hard-coded
- <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>, or returns the provided <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a> as-is if the
- marathon-style constraint is <code>null</code> or empty.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>podName</code> - The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
- in a service is not supported.</dd>
-<dd><code>rule</code> - The hard-coded <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a></dd>
-<dd><code>marathonConstraints</code> - the marathon-style constraint string, containing one or more
- nested json list entries of the form <code>[["multi","list","value"],["hello","hi"]]</code>,
- or one or more colon-separated entries of the form <code>multi:list:value,hello:hi</code>,
- or a <code>null</code> or empty value if no constraint is defined</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code> - if <code>marathonConstraints</code> couldn't be parsed, or if the parsed
- content isn't valid or supported</dd>
-</dl>
-</li>
-</ul>
 <a name="parse-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
@@ -227,15 +189,16 @@ extends java.lang.Object</pre>
  <code>null</code> or empty.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>podName</code> - The task type these constraints apply to (e.g. "hello"). Applying a constraint to all tasks
-     in a service is not supported.</dd>
+<dd><code>podName</code> - The task type these constraints apply to (e.g. "hello"). Applying a constraint to all
+                            tasks in a service is not supported.</dd>
 <dd><code>marathonConstraints</code> - the marathon-style constraint string, containing one or more
-     nested json list entries of the form <code>[["multi","list","value"],["hello","hi"]]</code>,
-     or one or more colon-separated entries of the form <code>multi:list:value,hello:hi</code>,
-     or a <code>null</code> or empty value if no constraint is defined</dd>
+                            nested json list entries of the form
+                            <code>[["multi","list","value"],["hello","hi"]]</code>,
+                            or one or more colon-separated entries of the form <code>multi:list:value,hello:hi</code>,
+                            or a <code>null</code> or empty value if no constraint is defined</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code> - if <code>marathonConstraints</code> couldn't be parsed, or if the parsed
-     content isn't valid or supported</dd>
+                     content isn't valid or supported</dd>
 </dl>
 </li>
 </ul>
@@ -265,7 +228,7 @@ extends java.lang.Object</pre>
                                                            char&nbsp;split)</pre>
 <div class="block">Tokenizes the provided string using the provided split character. Honors any backslash
  escaping within the provided string. Tokens in the returned list are automatically trimmed.
-
+ <p>
  This is equivalent to calling <code>Splitter.on(split).trimResults().split(str)</code>, except
  with the addition of support for escaping the 'split' value with backslashes.</div>
 </li>

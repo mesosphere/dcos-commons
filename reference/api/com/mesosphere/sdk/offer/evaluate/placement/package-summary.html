@@ -173,127 +173,133 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/InvalidPlacementRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">InvalidPlacementRule</a></td>
+<td class="colLast">
+<div class="block">An implementation of a  that is ALWAYS invalid.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/IsLocalRegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">IsLocalRegionRule</a></td>
 <td class="colLast">
 <div class="block">This rule passes if the Offer is on the local region.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MarathonConstraintParser.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MarathonConstraintParser</a></td>
 <td class="colLast">
 <div class="block">Implements support for generating <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>s from Marathon-style constraint strings.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerAttributeRule</a></td>
 <td class="colLast">
 <div class="block">Ensures that the given Offer’s attributes each have no more than N instances of tasks of a given task type
  running on them.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerHostnameRule</a></td>
 <td class="colLast">
 <div class="block">Ensures that no more than N instances of a task type are running on a given hostname (or hostname
  pattern).</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerRegionRule</a></td>
 <td class="colLast">
 <div class="block">This rules implements a placement rule for restricting the maximum number of tasks per Region.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerRule</a></td>
 <td class="colLast">
 <div class="block">This interface defines the required methods for generic application of a PlacementRule which forces a
  maximum per some key (e.g.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerZoneRule</a></td>
 <td class="colLast">
 <div class="block">This rules implements a placement rule for restricting the maximum number of tasks per Zone.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/NotRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">NotRule</a></td>
 <td class="colLast">
 <div class="block">Wrapper for another rule which returns the NOT result: Resources which the wrapped rule removed.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/OrRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">OrRule</a></td>
 <td class="colLast">
 <div class="block">Wrapper for one or more another rules which returns the OR/union of those rules.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PassthroughRule</a></td>
 <td class="colLast">
 <div class="block">A no-op rule which allows all offers.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></td>
 <td class="colLast">
 <div class="block">This class provides Utilities for commonly needed Placement rule scenarios.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegexMatcher</a></td>
 <td class="colLast">
 <div class="block">Implements fuzzy regular expression support for string comparisons.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegionRule</a></td>
 <td class="colLast">
 <div class="block">This rule enforces that a task be placed on the specified region, or enforces that the task
  avoid that region.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RegionRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegionRuleFactory</a></td>
 <td class="colLast">
 <div class="block">This class generates <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>RegionRule</code></a>s.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByAttributeRule</a></td>
 <td class="colLast">
 <div class="block">Implements logic for Marathon's GROUP_BY operator for attribute values.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByHostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByHostnameRule</a></td>
 <td class="colLast">
 <div class="block">Implements logic for Marathon's GROUP_BY operator for hostnames.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByRegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByRegionRule</a></td>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RoundRobinByZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RoundRobinByZoneRule</a></td>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcherRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">StringMatcherRule</a></td>
 <td class="colLast">
 <div class="block">This interface defines the required methods for generic application of a PlacementRule which depends on the presence
  of some key (e.g.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeLabelConverter</a></td>
 <td class="colLast">
 <div class="block">Implementation of <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeConverter.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeConverter</code></a> which expects a Label which provides the task type.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeRule</a></td>
 <td class="colLast">
 <div class="block">This rule ensures that the given Offer is colocated with (or never colocated with) the specified
@@ -301,14 +307,14 @@
  <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeConverter.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeConverter</code></a>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">ZoneRule</a></td>
 <td class="colLast">
 <div class="block">This rule enforces that a task be placed on the specified zone, or enforces that the task
  avoid that zone.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ZoneRuleFactory.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">ZoneRuleFactory</a></td>
 <td class="colLast">
 <div class="block">This class generates <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ZoneRule</code></a>s.</div>
