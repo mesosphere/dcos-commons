@@ -25,17 +25,46 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
     private final Optional<String> resourceId;
     private final boolean useDefaultExecutor;
+    private final Optional<String> sourceRoot;
 
-    public VolumeEvaluationStage(
+    public static VolumeEvaluationStage getNew(VolumeSpec volumeSpec, String taskName, boolean useDefaultExecutor) {
+        return new VolumeEvaluationStage(
+                volumeSpec,
+                taskName,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                useDefaultExecutor);
+    }
+
+    public static VolumeEvaluationStage getExisting(
             VolumeSpec volumeSpec,
             String taskName,
             Optional<String> resourceId,
             Optional<String> persistenceId,
+            Optional<String> sourceRoot,
+            boolean useDefaultExecutor) {
+        return new VolumeEvaluationStage(
+                volumeSpec,
+                taskName,
+                resourceId,
+                persistenceId,
+                sourceRoot,
+                useDefaultExecutor);
+    }
+
+    private VolumeEvaluationStage(
+            VolumeSpec volumeSpec,
+            String taskName,
+            Optional<String> resourceId,
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.persistenceId = persistenceId;
+        this.sourceRoot = sourceRoot;
         this.useDefaultExecutor = useDefaultExecutor;
     }
 
@@ -60,8 +89,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
             Resource volume = PodInfoBuilder.getExistingExecutorVolume(
                     volumeSpec,
-                    resourceId.get(),
-                    persistenceId.get(),
+                    resourceId,
+                    persistenceId,
+                    sourceRoot,
                     useDefaultExecutor);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
