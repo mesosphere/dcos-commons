@@ -135,8 +135,7 @@ def install(
 
 
 def run_janitor(service_name, role, service_account, znode):
-    # leading slash removed, other slashes converted to double underscores:
-    deslashed_service_name = service_name.lstrip('/').replace('/', '__')
+    deslashed_service_name = sdk_utils.get_deslashed_service_name(service_name)
 
     if role is None:
         role = deslashed_service_name + '-role'
