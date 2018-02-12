@@ -42,7 +42,7 @@ def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
     def marathon_dropped_app():
         app_ids = [app['id'] for app in client.get_apps()]
         log.info('Marathon app IDs: {}'.format(app_ids))
-        matching_app_ids = app_ids.filter(lambda x: x == app_id)
+        matching_app_ids = list(filter(lambda x: x == app_id, app_ids))
         if len(matching_app_ids) > 1:
             log.warning('Found multiple apps with id {}'.format(app_id))
         return len(matching_app_ids) == 0
