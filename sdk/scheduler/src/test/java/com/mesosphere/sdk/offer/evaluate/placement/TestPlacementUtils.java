@@ -119,34 +119,15 @@ public class TestPlacementUtils {
         }
     }
 
-    private static class InvalidTestRule implements PlacementRule {
+    private static class InvalidTestRule extends InvalidPlacementRule {
         @JsonCreator
         public InvalidTestRule() {
+            super("constaints", "exception");
         }
 
         @Override
         public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
             return EvaluationOutcome.fail(this, "invalid rule").build();
-        }
-
-        @Override
-        public Collection<PlacementField> getPlacementFields() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-
-        @Override
-        public boolean isValid() {
-            return false;
         }
 
     }

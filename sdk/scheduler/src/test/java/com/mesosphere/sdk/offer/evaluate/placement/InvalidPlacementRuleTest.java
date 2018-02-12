@@ -5,16 +5,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 public class InvalidPlacementRuleTest {
-
-    @Test
-    public void invalidPlacementRuleIsAlwaysInvalid() {
-        assertThat(new InvalidPlacementRule("", "").isValid(), is(false));
-    }
 
     @Test
     public void testSerializeDeserialize() throws IOException {

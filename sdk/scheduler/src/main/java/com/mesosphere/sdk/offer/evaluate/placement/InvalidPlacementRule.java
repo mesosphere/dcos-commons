@@ -63,9 +63,4 @@ public class InvalidPlacementRule implements PlacementRule {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    @Override
-    public boolean isValid() {
-        return false;
-    }
-
 }

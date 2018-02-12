@@ -51,12 +51,4 @@ public interface PlacementRule {
      */
     boolean equals(Object o);
 
-    /**
-     * All placement rules are valid by default. This can be overridden as
-     * required.
-     */
-    @JsonIgnore
-    default boolean isValid() {
-        return true;
-    }
 }

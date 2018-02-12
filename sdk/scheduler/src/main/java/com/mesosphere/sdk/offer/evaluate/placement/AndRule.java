@@ -69,7 +69,7 @@ public class AndRule implements PlacementRule {
     }
 
     @JsonProperty("rules")
-    private Collection<PlacementRule> getRules() {
+    public Collection<PlacementRule> getRules() {
         return rules;
     }
 
@@ -88,13 +88,4 @@ public class AndRule implements PlacementRule {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    @Override
-    public boolean isValid() {
-        if (rules.isEmpty()) {
-            return false;
-        }
-
-        return rules.stream().allMatch(PlacementRule::isValid);
-
-    }
 }

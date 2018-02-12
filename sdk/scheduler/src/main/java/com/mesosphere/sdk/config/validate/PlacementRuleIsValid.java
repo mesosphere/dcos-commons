@@ -1,5 +1,8 @@
 package com.mesosphere.sdk.config.validate;
 
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.InvalidPlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.OrRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -25,7 +28,7 @@ public class PlacementRuleIsValid implements ConfigValidator<ServiceSpec> {
         for (final PodSpec podSpec : podSpecs) {
             PlacementRule placementRule = podSpec.getPlacementRule().get();
 
-            if (!placementRule.isValid()) {
+            if (!isValid(placementRule)) {
                 String errMsg = String.format(
                         "The PlacementRule for PodSpec '%s' had invalid constraints",
                         podSpec.getType());
@@ -35,4 +38,18 @@ public class PlacementRuleIsValid implements ConfigValidator<ServiceSpec> {
 
         return errors;
     }
+
+    /**
+     * A placement rule is valid none of its children are invalid and it is valid.
+     */
+    private boolean isValid(final PlacementRule rule) {
+        if (rule instanceof OrRule) {
+            return ((OrRule) rule).getRules().stream().allMatch(r -> isValid(r));
+        } else if (rule instanceof AndRule) {
+            return ((AndRule) rule).getRules().stream().allMatch(r -> isValid(r));
+        } else {
+            return !(rule instanceof InvalidPlacementRule);
+        }
+    }
+
 }

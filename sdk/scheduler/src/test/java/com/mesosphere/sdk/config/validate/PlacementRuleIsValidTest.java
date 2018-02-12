@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.OrRule;
+import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -22,8 +24,6 @@ public class PlacementRuleIsValidTest {
     private ServiceSpec serviceSpec;
     @Mock
     private PodSpec podSpec;
-    @Mock
-    private PlacementRule placementRule;
 
     private static final PlacementRuleIsValid validator = new PlacementRuleIsValid();
 
@@ -41,16 +41,32 @@ public class PlacementRuleIsValidTest {
     }
 
     @Test
-    public void invalidPlacementRuleFailsValidation() throws IOException {
-        when(placementRule.isValid()).thenReturn(false);
-        when(podSpec.getPlacementRule()).thenReturn(Optional.of(placementRule));
+    public void andRuleWithoutInvalidPlacementRuleIsValid() throws IOException {
+        when(podSpec.getPlacementRule()).thenReturn(Optional.of(new AndRule(TestPlacementUtils.PASS, TestPlacementUtils.FAIL)));
+        assertThat(validator.validate(Optional.empty(), serviceSpec), hasSize(0));
+    }
+
+    @Test
+    public void andRuleWithInvalidPlacementRuleIsInvalid() throws IOException {
+        when(podSpec.getPlacementRule()).thenReturn(Optional.of(new AndRule(TestPlacementUtils.INVALID, TestPlacementUtils.FAIL)));
         assertThat(validator.validate(Optional.empty(), serviceSpec), hasSize(1));
     }
 
     @Test
-    public void validPlacementRulePassesValidation() throws IOException {
-        when(placementRule.isValid()).thenReturn(true);
-        when(podSpec.getPlacementRule()).thenReturn(Optional.of(placementRule));
+    public void orRuleWithoutInvalidPlacementRuleIsValid() throws IOException {
+        when(podSpec.getPlacementRule()).thenReturn(Optional.of(new OrRule(TestPlacementUtils.PASS, TestPlacementUtils.FAIL)));
         assertThat(validator.validate(Optional.empty(), serviceSpec), hasSize(0));
+    }
+
+    @Test
+    public void orRuleWithInvalidPlacementRuleIsInvalid() throws IOException {
+        when(podSpec.getPlacementRule()).thenReturn(Optional.of(new OrRule(TestPlacementUtils.INVALID, TestPlacementUtils.FAIL)));
+        assertThat(validator.validate(Optional.empty(), serviceSpec), hasSize(1));
+    }
+
+    @Test
+    public void invalidPlacementRuleIsInvalid() throws IOException {
+        when(podSpec.getPlacementRule()).thenReturn(Optional.of(TestPlacementUtils.INVALID));
+        assertThat(validator.validate(Optional.empty(), serviceSpec), hasSize(1));
     }
 }
