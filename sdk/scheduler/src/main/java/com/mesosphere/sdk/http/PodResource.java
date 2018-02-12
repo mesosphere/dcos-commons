@@ -354,7 +354,10 @@ public class PodResource extends PrettyJsonResource {
     private static Optional<String> getTaskStateString(
             StateStore stateStore, String taskName, Optional<Protos.TaskStatus> mesosStatus) {
         GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
-        if (!GoalStateOverride.Status.INACTIVE.equals(overrideStatus)) {
+        if (!mesosStatus.isPresent()) {
+            // This task has never been prepared -- even if its goal state is overridden, it doesn't have a run state.
+            return Optional.empty();
+        } else if (!GoalStateOverride.Status.INACTIVE.equals(overrideStatus)) {
             // This task is affected by an override. Use the override status as applicable.
             switch (overrideStatus.progress) {
             case COMPLETE:
@@ -367,9 +370,7 @@ public class PodResource extends PrettyJsonResource {
                 return Optional.empty();
             }
         }
-        if (!mesosStatus.isPresent()) {
-            return Optional.empty();
-        }
+
         String stateString = mesosStatus.get().getState().toString();
         if (stateString.startsWith("TASK_")) { // should always be the case
             // Trim "TASK_" prefix ("TASK_RUNNING" => "RUNNING"):

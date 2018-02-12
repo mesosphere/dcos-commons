@@ -5,8 +5,6 @@ title: Supported Versions
 menuWeight: 110
 excerpt:
 ---
+{% assign data = site.data.services.cassandra %}
 
-{% include services/supported-versions.md
-    techName="Apache Cassandra"
-    techPolicyDesc="[Cassandra](http://cassandra.apache.org/download/)"
-    techVersion="3.0.13" %}
+{% include services/supported-versions.md data=data %}

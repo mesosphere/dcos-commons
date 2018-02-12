@@ -2,10 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.specification.DefaultResourceSpec;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ResourceSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -231,5 +228,15 @@ class OfferEvaluationUtils {
         }
 
         return false;
+    }
+
+    public static VolumeSpec updateVolumeSpec(VolumeSpec original, double diskSize) {
+        return new DefaultVolumeSpec(
+                diskSize,
+                original.getType(),
+                original.getContainerPath(),
+                original.getRole(),
+                original.getPreReservedRole(),
+                original.getPrincipal());
     }
 }

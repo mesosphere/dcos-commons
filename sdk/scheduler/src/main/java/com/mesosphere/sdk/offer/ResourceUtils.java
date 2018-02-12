@@ -115,10 +115,18 @@ public class ResourceUtils {
     }
 
     public static Optional<String> getSourceRoot(Resource resource) {
-        if (resource.hasDisk() && resource.getDisk().hasSource()) {
-            return Optional.of(resource.getDisk().getSource().getMount().getRoot());
+        if (!isMountVolume(resource)) {
+            return Optional.empty();
         }
 
-        return Optional.empty();
+        return Optional.of(resource.getDisk().getSource().getMount().getRoot());
+    }
+
+    private static boolean isMountVolume(Resource resource) {
+        return resource.hasDisk()
+                && resource.getDisk().hasSource()
+                && resource.getDisk().getSource().hasType()
+                && resource.getDisk().getSource().getType()
+                .equals(Resource.DiskInfo.Source.Type.MOUNT);
     }
 }

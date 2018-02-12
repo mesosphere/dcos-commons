@@ -49,7 +49,17 @@ pods:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh &&  ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: |
+          set -e
+
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          ./elastic-scheduler/java-dns-ttl.sh
+          ./elastic-scheduler/install-plugins.sh
+          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
+          ./elastic-scheduler/setup-java-policy.sh
+          ./bootstrap
+
+          exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
@@ -58,6 +68,7 @@ pods:
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
@@ -118,13 +129,24 @@ pods:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: |
+          set -e
+
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          ./elastic-scheduler/java-dns-ttl.sh
+          ./elastic-scheduler/install-plugins.sh
+          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
+          ./elastic-scheduler/setup-java-policy.sh
+          ./bootstrap
+
+          exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: true
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
@@ -185,13 +207,24 @@ pods:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: |
+          set -e
+
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          ./elastic-scheduler/java-dns-ttl.sh
+          ./elastic-scheduler/install-plugins.sh
+          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
+          ./elastic-scheduler/setup-java-policy.sh
+          ./bootstrap
+
+          exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
           INGEST_ENABLED: true
           ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml
@@ -252,13 +285,24 @@ pods:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
-        cmd: "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./elastic-scheduler/java-dns-ttl.sh && ./elastic-scheduler/install-plugins.sh && ./elastic-scheduler/setup-java-policy.sh && ./bootstrap && exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch"
+        cmd: |
+          set -e
+
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          ./elastic-scheduler/java-dns-ttl.sh
+          ./elastic-scheduler/install-plugins.sh
+          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
+          ./elastic-scheduler/setup-java-policy.sh
+          ./bootstrap
+
+          exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
           INGEST_ENABLED: false
           ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
+          ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
           elasticsearch:
             template: elasticsearch.yml

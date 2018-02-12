@@ -3,6 +3,7 @@ import os
 import time
 
 import pytest
+import retrying
 
 import sdk_cmd
 import sdk_plan
@@ -34,25 +35,37 @@ def get_task_info(pod_info, task_name):
     return [t for t in pod_info if t['info']['name'] == task_name][0]['info']
 
 
+@retrying.retry(wait_fixed=1000, stop_max_delay=30 * 1000)
+def wait_for_state(state, pod_name, task_names):
+    pod_status = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status {} --json'.format(pod_name), json=True
+    )
+
+    task_statuses = [
+        get_task_status(pod_status, '{}-{}'.format(pod_name, task_name))
+        for task_name in task_names
+    ]
+    assert all([task_status['status'] == state for task_status in task_statuses])
+
+
 @pytest.mark.soak_pod_pause
 def test_pause_single_task():
     # get current agent id:
     task_info = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+		config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
 	)[0]['info']
     old_agent = task_info['slaveId']['value']
     old_cmd = task_info['command']['value']
 
     # sanity check of pod status/plan status before we pause/resume:
     pod_status = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+		config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
 	)
     assert len(pod_status['tasks']) == 2
-    server_task = get_task_status(pod_status, 'hello-0-server')
-    assert server_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phases = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+		config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
 	)['phases']
     phase = phases[0]
     assert phase['name'] == 'hello-deploy'
@@ -62,24 +75,23 @@ def test_pause_single_task():
     assert phase['steps'][1]['name'] == 'hello-0:[companion]'
     assert phase['steps'][1]['status'] == 'COMPLETE'
 
-    companion_task = get_task_status(pod_status, 'hello-0-companion')
-    assert companion_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['companion'])
 
     # pause the task, wait for it to relaunch
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
     pause_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod pause hello-0 -t server', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'debug pod pause hello-0 -t server', json=True
     )
     assert len(pause_result) == 2
     assert pause_result['pod'] == 'hello-0'
     assert len(pause_result['tasks']) == 1
     assert pause_result['tasks'][0] == 'hello-0-server'
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check agent didn't move, and that the command has changed:
     pod_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
     )
     assert len(pod_info) == 2
     task_info = get_task_info(pod_info, 'hello-0-server')
@@ -90,54 +102,44 @@ def test_pause_single_task():
     readiness_check = task_info['check']['command']['command']['value']
     assert 'exit 1' == readiness_check
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(2)
-
     # check PAUSED state
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['status'] == 'PAUSED'
+    wait_for_state('PAUSED', 'hello-0', ['server'])
 
     # check companion is still running
-    task_status = get_task_status(pod_status, 'hello-0-companion')
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['companion'])
 
     # resume the pod again, wait for it to relaunch
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
     resume_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod resume hello-0 -t server', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'debug pod resume hello-0 -t server', json=True
     )
     assert len(resume_result) == 2
     assert resume_result['pod'] == 'hello-0'
     assert len(resume_result['tasks']) == 1
     assert resume_result['tasks'][0] == 'hello-0-server'
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check again that the agent didn't move:
     task_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
     )[0]['info']
     assert old_agent == task_info['slaveId']['value']
     assert old_cmd == task_info['command']['value']
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(2)
-
     # check that the pod/plan status is back to normal:
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['name'] == 'hello-0-server'
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
     )['phases'][0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -149,7 +151,7 @@ def test_pause_single_task():
 def test_pause_all_pod_tasks():
     # get current agent id:
     pod_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
     )
     task_info = get_task_info(pod_info, 'hello-0-server')
     old_agent = task_info['slaveId']['value']
@@ -159,14 +161,13 @@ def test_pause_all_pod_tasks():
 
     # sanity check of pod status/plan status before we pause/resume:
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    server_task = get_task_status(pod_status, 'hello-0-server')
-    assert server_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
     )['phases'][0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -175,25 +176,24 @@ def test_pause_all_pod_tasks():
     assert phase['steps'][1]['name'] == 'hello-0:[companion]'
     assert phase['steps'][1]['status'] == 'COMPLETE'
 
-    companion_task = get_task_status(pod_status, 'hello-0-companion')
-    assert companion_task['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['companion'])
 
     # pause the pod, wait for it to relaunch
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
     pause_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod pause hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'debug pod pause hello-0', json=True
     )
     assert len(pause_result) == 2
     assert pause_result['pod'] == 'hello-0'
     assert len(pause_result['tasks']) == 2
     assert 'hello-0-server' in pause_result['tasks']
     assert 'hello-0-companion' in pause_result['tasks']
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check agent didn't move, and that the commands have changed:
     pod_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
     )
     assert len(pod_info) == 2
     task_info = get_task_info(pod_info, 'hello-0-server')
@@ -210,35 +210,29 @@ def test_pause_all_pod_tasks():
     readiness_check = task_info['check']['command']['command']['value']
     assert 'exit 1' == readiness_check
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(3)
-
     # check PAUSED state
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['status'] == 'PAUSED'
-    task_status = get_task_status(pod_status, 'hello-0-companion')
-    assert task_status['status'] == 'PAUSED'
+    wait_for_state('PAUSED', 'hello-0', ['server', 'companion'])
 
     # resume the pod again, wait for it to relaunch
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
+    hello_ids = sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-0')
     resume_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod resume hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'debug pod resume hello-0', json=True
     )
     assert len(resume_result) == 2
     assert resume_result['pod'] == 'hello-0'
     assert len(resume_result['tasks']) == 2
     assert 'hello-0-server' in resume_result['tasks']
     assert 'hello-0-companion' in resume_result['tasks']
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    sdk_tasks.check_tasks_updated(FRAMEWORK_NAME, 'hello-0', hello_ids)
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # check again that the agent didn't move:
     pod_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
     )
     task_info = get_task_info(pod_info, 'hello-0-server')
     assert old_agent == task_info['slaveId']['value']
@@ -248,21 +242,15 @@ def test_pause_all_pod_tasks():
     assert old_agent == task_info['slaveId']['value']
     assert old_companion_cmd == task_info['command']['value']
 
-    # Minus shakedown and a spin function, give the plan a little time to catch up
-    time.sleep(2)
-
     # check that the pod/plan status is back to normal:
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-0-server')
-    assert task_status['status'] == 'RUNNING'
-    task_status = get_task_status(pod_status, 'hello-0-companion')
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-0', ['server', 'companion'])
 
     phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
     )['phases'][0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -280,14 +268,14 @@ def test_multiple_pod_pause():
     # get agent id for each hello pod we're pausing:
     for i in range(10):
         task_info = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-{}'.format(i), json=True
+            config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-{}'.format(i), json=True
         )[0]['info']
         pod_agents.append(task_info['slaveId']['value'])
         pod_commands.append(task_info['command']['value'])
 
     # check that their respective deploy steps are complete, and their tasks are running
     phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
     )['phases'][0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -295,16 +283,12 @@ def test_multiple_pod_pause():
     for i in range(10):
         pod_status = sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            FRAMEWORK_NAME,
             'pod status hello-{} --json'.format(i),
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))['status']
-        assert task_status == 'RUNNING'
-
-        task_status = get_task_status(pod_status, 'hello-{}-companion'.format(i))['status']
-        assert task_status == 'RUNNING'
+        wait_for_state('RUNNING', 'hello-{}'.format(i), ['server', 'companion'])
 
         assert phase['steps'][i * 2]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][i * 2]['status'] == 'COMPLETE'
@@ -315,7 +299,7 @@ def test_multiple_pod_pause():
     pod_task_ids = []
     for i in range(10):
         pod_task_ids.append(
-            sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-{}-server'.format(i))
+            sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-{}-server'.format(i))
         )
 
     # pause all hello pods
@@ -323,7 +307,7 @@ def test_multiple_pod_pause():
     for i in range(10):
         pause_results.append(sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            FRAMEWORK_NAME,
             'debug pod pause hello-{} -t server'.format(i),
             json=True
         ))
@@ -335,14 +319,14 @@ def test_multiple_pod_pause():
         assert len(pause_result['tasks']) == 1
         assert pause_result['tasks'][0] == 'hello-{}-server'.format(i)
         sdk_tasks.check_tasks_updated(
-            config.SERVICE_NAME, 'hello-{}-server'.format(i), pod_task_ids[i]
+            FRAMEWORK_NAME, 'hello-{}-server'.format(i), pod_task_ids[i]
         )
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # verify that they're on the agents, and with different commands
     for i in range(10):
         pod_info = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-{}'.format(i), json=True
+            config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-{}'.format(i), json=True
         )
         assert len(pod_info) == 2
         task_info = get_task_info(pod_info, 'hello-{}-server'.format(i))
@@ -357,27 +341,20 @@ def test_multiple_pod_pause():
     for i in range(10):
         pod_status = sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            FRAMEWORK_NAME,
             'pod status hello-{} --json'.format(i),
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))
-        assert task_status['status'] == 'PAUSED'
-
-        task_status = get_task_status(pod_status, 'hello-{}-companion'.format(i))
-        assert task_status['status'] == 'RUNNING'
+        wait_for_state('PAUSED', 'hello-{}'.format(i), ['server'])
+        wait_for_state('RUNNING', 'hello-{}'.format(i), ['companion'])
 
     # verify that the 11th hello pod is unaffacted
     pod_status = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-10 --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-10 --json', json=True
     )
     assert len(pod_status['tasks']) == 2
-    task_status = get_task_status(pod_status, 'hello-10-server')
-    assert task_status['status'] == 'RUNNING'
-
-    task_status = get_task_status(pod_status, 'hello-10-companion')
-    assert task_status['status'] == 'RUNNING'
+    wait_for_state('RUNNING', 'hello-10', ['server', 'companion'])
 
     assert phase['steps'][20]['name'] == 'hello-10:[server]'
     assert phase['steps'][20]['status'] == 'COMPLETE'
@@ -389,7 +366,7 @@ def test_multiple_pod_pause():
     paused_pod_task_ids = []
     for i in range(10):
         paused_pod_task_ids.append(
-            sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-{}-server'.format(i))
+            sdk_tasks.get_task_ids(FRAMEWORK_NAME, 'hello-{}-server'.format(i))
         )
 
     # resume all pods
@@ -397,7 +374,7 @@ def test_multiple_pod_pause():
     for i in range(10):
         resume_results.append(sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            FRAMEWORK_NAME,
             'debug pod resume hello-{} -t server'.format(i),
             json=True
         ))
@@ -409,21 +386,21 @@ def test_multiple_pod_pause():
         assert len(resume_result['tasks']) == 1
         assert resume_result['tasks'][0] == 'hello-{}-server'.format(i)
         sdk_tasks.check_tasks_updated(
-            config.SERVICE_NAME, 'hello-{}-server'.format(i), paused_pod_task_ids[i]
+            FRAMEWORK_NAME, 'hello-{}-server'.format(i), paused_pod_task_ids[i]
         )
-    config.check_running()
+    config.check_running(service_name=FRAMEWORK_NAME)
 
     # verify that the agents are still the same, and the commands are restored
     for i in range(10):
         pod_info = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-{}'.format(i), json=True
+            config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-{}'.format(i), json=True
         )
         task_info = get_task_info(pod_info, 'hello-{}-server'.format(i))
         assert pod_agents[i] == task_info['slaveId']['value']
         assert pod_commands[i] == task_info['command']['value']
 
     phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
     )['phases'][0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -432,13 +409,12 @@ def test_multiple_pod_pause():
     for i in range(10):
         pod_status = sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
-            config.SERVICE_NAME,
+            FRAMEWORK_NAME,
             'pod status hello-{} --json'.format(i),
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))
-        assert task_status['status'] == 'RUNNING'
+        wait_for_state('RUNNING', 'hello-{}'.format(i), ['server'])
 
         assert phase['steps'][i * 2]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][i * 2]['status'] == 'COMPLETE'

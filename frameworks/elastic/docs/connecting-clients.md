@@ -4,10 +4,8 @@ navigationTitle:
 excerpt:
 title: Connecting Clients
 menuWeight: 50
-
-packageName: beta-elastic
-serviceName: elastic
 ---
+{% assign data = site.data.services.elastic %}
 
 # Connecting Clients
 
@@ -16,23 +14,23 @@ The Elasticsearch REST APIs are exposed using JSON over HTTP. You simply send HT
 1. Create an index.
 
   ```bash
-  curl -s -u elastic:changeme -XPUT 'coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/customer?pretty'
+  curl -s -u elastic:changeme -XPUT 'coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200/customer?pretty'
   ```
 
 1. Store and retrieve data.
 
   ```bash
-  curl -s -u elastic:changeme -XPUT 'coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
+  curl -s -u elastic:changeme -XPUT 'coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty' -d '
   {
     "name": "John Doe"
   }'
-  curl -s -u elastic:changeme -XGET 'coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
+  curl -s -u elastic:changeme -XGET 'coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200/customer/external/1?pretty'
   ```
 
 **Note:** If you did not install any coordinator nodes, you should direct all queries to your data nodes instead:
 
   ```bash
-  curl -s -u elastic:changeme 'data.{{ page.serviceName }}.l4lb.thisdcos.directory:9200/_cat/nodes?v'
+  curl -s -u elastic:changeme 'data.{{ data.serviceName }}.l4lb.thisdcos.directory:9200/_cat/nodes?v'
   ```
 
 The service address varies based on the name you assigned the framework when you installed it.
@@ -40,7 +38,7 @@ The service address varies based on the name you assigned the framework when you
 <node type>.<framework name>.l4lb.thisdcos.directory:9200
 ```
 
-The default framework name is `{{ page.serviceName }}`. If you customized the name your framework, you need to adjust the service address accordingly.
+The default framework name is `{{ data.serviceName }}`. If you customized the name your framework, you need to adjust the service address accordingly.
 
 ## Kibana
 
@@ -50,7 +48,7 @@ The default framework name is `{{ page.serviceName }}`. If you customized the na
 $ dcos package install kibana
 ```
 
-This command launches a new Kibana application with the default name `kibana` and the default Elasticsearch URL `http://coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200`. Two Kibana application instances cannot share the same name, so installing additional Kibana applications beyond the default one requires customizing the `name` at install time for each additional instance.
+This command launches a new Kibana application with the default name `kibana` and the default Elasticsearch URL `http://coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200`. Two Kibana application instances cannot share the same name, so installing additional Kibana applications beyond the default one requires customizing the `name` at install time for each additional instance.
 
 ### Access Kibana
 
@@ -85,7 +83,7 @@ This command launches a new Kibana application with the default name `kibana` an
 - Service user: This must be a non-root user that already exists on each agent. The default user is `nobody`.
 - The Kibana X-Pack plugin is not installed by default, but you can enable it. See the [X-Pack documentation](../elastic-x-pack/) to learn more about X-Pack in the Elastic package. This setting must match the corresponding setting in the Elastic package (i.e., if you have X-Pack enabled in Kibana, you must also have it enabled in Elastic).
 - Elasticsearch credentials: If you have X-Pack enabled, Kibana will use these credentials for authorization. The default user is  `kibana`.
-- Elasticsearch URL: This is a required configuration parameter. The default value `http://coordinator.{{ page.serviceName }}.l4lb.thisdcos.directory:9200` corresponds to the named VIP that exists when the Elastic package is launched with its own default configuration.
+- Elasticsearch URL: This is a required configuration parameter. The default value `http://coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200` corresponds to the named VIP that exists when the Elastic package is launched with its own default configuration.
 
 ### Custom Installation
 

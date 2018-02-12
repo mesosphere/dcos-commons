@@ -92,12 +92,25 @@ def parse_principals(principals_file: str) -> list:
 def deploy(args: dict):
     log.info("Deploying KDC")
 
-    principals = parse_principals(args.principals_file)
-
     kerberos = sdk_auth.KerberosEnvironment()
-    kerberos.keytab_secret_name = args.secret_name
 
+    if args.principals_file:
+        create_keytab_secret(args, kerberos)
+
+    log.info("KDC cluster successfully deployed")
+
+
+def create_keytab_secret(args: dict, kerberos=None):
+
+    if not kerberos:
+        kerberos = sdk_auth.KerberosEnvironment()
+
+    principals = parse_principals(args.principals_file)
     kerberos.add_principals(principals)
+
+    if args.secret_name:
+        kerberos.set_keytab_path(args.secret_name, args.binary_secret)
+
     kerberos.finalize()
 
     log.info("KDC cluster successfully deployed")
@@ -107,8 +120,12 @@ def teardown(args: dict):
     log.info("Tearing down KDC")
 
     sdk_cmd.run_cli(" ".join(["marathon", "app", "remove", "kdc"]))
-    sdk_cmd.run_cli(" ".join(["package", "install", "--yes", "--cli", "dcos-enterprise-cli"]))
-    sdk_security.delete_secret('__dcos_base64__{}'.format(args.secret_name))
+
+    sdk_security.install_enterprise_cli()
+    if args.binary_secret:
+        sdk_security.delete_secret(args.secret_name)
+    else:
+        sdk_security.delete_secret('__dcos_base64__{}'.format(args.secret_name))
 
     log.info("KDC cluster successfully torn down")
 
@@ -117,13 +134,14 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Manage a KDC instance')
 
     parser.add_argument('--secret-name', type=str, required=False,
-                        default='_keytab',
+                        default=None,
                         help='The secret name to use for the generated keytab')
-
+    parser.add_argument('--binary-secret', action='store_true',
+                        help='The secret should be stored as a binary secret')
     subparsers = parser.add_subparsers(help='deploy help')
 
     deploy_parser = subparsers.add_parser('deploy', help='deploy help')
-    deploy_parser.add_argument('principals_file', type=str,
+    deploy_parser.add_argument('principals_file', type=str, default=None,
                                help='Path to a file listing the principals as newline-separated strings')
     deploy_parser.set_defaults(func=deploy)
 

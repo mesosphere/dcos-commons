@@ -113,10 +113,6 @@ public class PodInfoBuilder {
         return Optional.ofNullable(executorBuilder);
     }
 
-    public void setExecutorBuilder(Protos.ExecutorInfo.Builder executorBuilder) {
-        this.executorBuilder = executorBuilder;
-    }
-
     /**
      * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
      * it on task relaunch.
@@ -167,55 +163,26 @@ public class PodInfoBuilder {
     }
 
     public static Protos.Resource getExistingExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId, boolean useDefaultExecutor) {
-        Protos.Resource.Builder builder;
-        if (useDefaultExecutor) {
-            builder = getExistingDefaultExecutorVolume(volumeSpec, resourceId, persistenceId);
-        } else {
-            builder = getExistingCustomExecutorVolume(volumeSpec, resourceId, persistenceId);
-        }
+            VolumeSpec volumeSpec,
+            Optional<String> resourceId,
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot,
+            boolean useDefaultExecutor) {
+
+        Protos.Resource.Builder builder = ResourceBuilder
+                .fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot)
+                .build()
+                .toBuilder();
 
         Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
         diskInfoBuilder.getPersistenceBuilder()
-                .setId(persistenceId)
+                .setId(persistenceId.get())
                 .setPrincipal(volumeSpec.getPrincipal());
         diskInfoBuilder.getVolumeBuilder()
                 .setContainerPath(volumeSpec.getContainerPath())
                 .setMode(Protos.Volume.Mode.RW);
 
         return builder.build();
-    }
-
-    private static Protos.Resource.Builder getExistingCustomExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar())
-                .setRole(volumeSpec.getRole());
-
-        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.getReservationBuilder();
-        reservationBuilder.setPrincipal(volumeSpec.getPrincipal());
-        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
-
-        return resourceBuilder;
-    }
-
-    private static Protos.Resource.Builder getExistingDefaultExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar());
-
-        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
-        reservationBuilder
-                .setType(Protos.Resource.ReservationInfo.Type.DYNAMIC)
-                .setPrincipal(volumeSpec.getPrincipal())
-                .setRole(volumeSpec.getRole());
-        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
-
-        return resourceBuilder;
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {

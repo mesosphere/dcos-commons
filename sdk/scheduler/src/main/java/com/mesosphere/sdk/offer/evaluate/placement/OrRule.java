@@ -65,7 +65,7 @@ public class OrRule implements PlacementRule {
     }
 
     @JsonProperty("rules")
-    private Collection<PlacementRule> getRules() {
+    public Collection<PlacementRule> getRules() {
         return rules;
     }
 

@@ -54,6 +54,12 @@ xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
+# FIXME: Temporarily disabling X-Pack ML module because it looks like our task containers are missing a few system
+# libraries, which breaks the ES init process.
+{{#XPACK_ENABLED}}
+xpack.ml.enabled: false
+{{/XPACK_ENABLED}}
+
 {{#SCRIPT_ALLOWED_CONTEXTS}}
 script.allowed_contexts: {{SCRIPT_ALLOWED_CONTEXTS}}
 {{/SCRIPT_ALLOWED_CONTEXTS}}
@@ -92,7 +98,6 @@ http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
 http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
 http.pipelining: {{HTTP_PIPELINING}}
 http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
-http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 {{#THREAD_POOL_SEARCH_SIZE}}
 thread_pool.search.size: {{THREAD_POOL_SEARCH_SIZE}}
 {{/THREAD_POOL_SEARCH_SIZE}}
