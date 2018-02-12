@@ -37,31 +37,6 @@ public class MarathonConstraintParser {
     }
 
     /**
-     * ANDs the provided marathon-style constraint string onto the provided hard-coded
-     * {@link PlacementRule}, or returns the provided {@link PlacementRule} as-is if the
-     * marathon-style constraint is {@code null} or empty.
-     *
-     * @param podName             The task type these constraints apply to (e.g. "hello"). Applying a constraint to all
-     *                            tasks in a service is not supported.
-     * @param rule                The hard-coded {@link PlacementRule}
-     * @param marathonConstraints the marathon-style constraint string, containing one or more
-     *                            nested json list entries of the form
-     *                            {@code [["multi","list","value"],["hello","hi"]]},
-     *                            or one or more colon-separated entries of the form {@code multi:list:value,hello:hi},
-     *                            or a {@code null} or empty value if no constraint is defined
-     * @throws IOException if {@code marathonConstraints} couldn't be parsed, or if the parsed
-     *                     content isn't valid or supported
-     */
-    public static PlacementRule parseWith(String podName, PlacementRule rule, String marathonConstraints)
-            throws IOException {
-        PlacementRule marathonRule = parse(podName, marathonConstraints);
-        if (marathonRule instanceof PassthroughRule) {
-            return rule; // pass-through original rule
-        }
-        return new AndRule(rule, marathonRule);
-    }
-
-    /**
      * Creates and returns a new {@link PlacementRule} against the provided marathon-style
      * constraint string. Returns a {@link PassthroughRule} if the provided constraint string is
      * {@code null} or empty.
