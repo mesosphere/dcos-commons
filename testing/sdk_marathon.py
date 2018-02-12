@@ -34,20 +34,20 @@ def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
     """
     Waits for application to be gone, according to Marathon.
     """
-    log.info('Waiting for no deployments for {}'.format(marathon_app_id))
-    shakedown.deployment_wait(timeout, marathon_app_id)
+    log.info('Waiting for no deployments for {}'.format(app_id))
+    shakedown.deployment_wait(timeout, app_id)
 
     client = shakedown.marathon.create_client()
 
     def marathon_dropped_service():
         app_ids = [app['id'] for app in client.get_apps()]
         log.info('Marathon app IDs: {}'.format(app_ids))
-        matching_app_ids = [app_id for app_id in app_ids if app_id == marathon_app_id]
+        matching_app_ids = app_ids.filter(lambda x: x == app_id)
         if len(matching_app_ids) > 1:
-            log.warning('Found multiple apps with id {}'.format(marathon_app_id))
+            log.warning('Found multiple apps with id {}'.format(app_id))
         return len(matching_app_ids) == 0
 
-    log.info('Waiting for no {} Marathon app'.format(marathon_app_id))
+    log.info('Waiting for no {} Marathon app'.format(app_id))
     shakedown.time_wait(marathon_dropped_service, timeout_seconds=timeout)
 
 
