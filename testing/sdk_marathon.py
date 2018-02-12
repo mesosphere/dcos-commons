@@ -25,6 +25,32 @@ def _get_config_once(app_name):
     return sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name)), retry=False)
 
 
+def get_app_id(service_name):
+    # service_name may already contain a leading slash.
+    return '/' + service_name.lstrip('/')
+
+
+def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
+    """
+    Waits for application to be gone, according to Marathon.
+    """
+    log.info('Waiting for no deployments for {}'.format(marathon_app_id))
+    shakedown.deployment_wait(timeout, marathon_app_id)
+
+    client = shakedown.marathon.create_client()
+
+    def marathon_dropped_service():
+        app_ids = [app['id'] for app in client.get_apps()]
+        log.info('Marathon app IDs: {}'.format(app_ids))
+        matching_app_ids = [app_id for app_id in app_ids if app_id == marathon_app_id]
+        if len(matching_app_ids) > 1:
+            log.warning('Found multiple apps with id {}'.format(marathon_app_id))
+        return len(matching_app_ids) == 0
+
+    log.info('Waiting for no {} Marathon app'.format(marathon_app_id))
+    shakedown.time_wait(marathon_dropped_service, timeout_seconds=timeout)
+
+
 def app_exists(app_name):
     try:
         _get_config_once(app_name)
