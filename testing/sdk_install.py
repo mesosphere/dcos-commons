@@ -135,24 +135,23 @@ def install(
 
 
 def run_janitor(service_name, role, service_account, znode):
-    deslashed_service_name = sdk_utils.get_deslashed_service_name(service_name)
-
     if role is None:
-        role = deslashed_service_name + '-role'
+        role = sdk_utils.get_deslashed_service_name(service_name) + '-role'
     if service_account is None:
         service_account = service_name + '-principal'
     if znode is None:
-        znode = 'dcos-service-' + deslashed_service_name
+        znode = sdk_utils.get_zk_path(service_name)
 
-    cmd = ('docker run mesosphere/janitor /janitor.py '
-                    '-r {role} -p {service_account} -z {znode} --auth_token={auth}')
+    auth_token = sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()
 
-    shakedown.run_command_on_master(
-        cmd.format(
-            role=role,
-            service_account=service_account,
-            znode=znode,
-            auth=sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()))
+    cmd_list = ["docker", "run", "mesosphere/janitor", "/janitor.py",
+                "-r", role,
+                "-p", service_account,
+                "-z", znode,
+                "--auth_token={}".format(auth_token)]
+    cmd = " ".join(cmd_list)
+
+    shakedown.run_command_on_master(cmd)
 
 
 @retrying.retry(stop_max_attempt_number=5,
@@ -184,35 +183,35 @@ def _uninstall(
     try:
         _installed_service_names.remove(service_name)
     except KeyError:
-        pass # allow tests to 'uninstall' up-front
+        pass  # allow tests to 'uninstall' up-front
 
     log.info('Uninstalling {}'.format(service_name))
+
     try:
         shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
     except Exception as e:
-        log.info('Got exception when trying to uninstall {}'.format(service_name))
+        log.info('Got exception when uninstalling {}'.format(service_name))
         log.info(traceback.format_exc())
         raise
+    finally:
+        sdk_utils.list_reserved_resources()
 
     cleanup_start = time.time()
 
-    if sdk_utils.dcos_version_less_than('1.10'):
-        log.info('Janitoring {}'.format(service_name))
-        try:
+    try:
+        if sdk_utils.dcos_version_less_than('1.10'):
+            log.info('Janitoring {}'.format(service_name))
             run_janitor(service_name, role, service_account, zk)
-        except Exception as e:
-            log.info('Got exception when trying to janitor {}'.format(service_name))
-            log.info(traceback.format_exc())
-            raise
-    else:
-        log.info('Cleaning up {}'.format(service_name))
-        try:
-          sdk_marathon.wait_for_deployment_and_app_removal(
-              sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS)
-        except Exception as e:
-            log.info('Got exception when waiting for service app to be removed {}'.format(service_name))
-            log.info(traceback.format_exc())
-            raise
+        else:
+            log.info('Waiting for Marathon app to be removed {}'.format(service_name))
+            sdk_marathon.wait_for_deployment_and_app_removal(
+                sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS)
+    except Exception as e:
+        log.info('Got exception when cleaning up {}'.format(service_name))
+        log.info(traceback.format_exc())
+        raise
+    finally:
+        sdk_utils.list_reserved_resources()
 
     finish = time.time()
 
@@ -222,8 +221,6 @@ def _uninstall(
             shakedown.pretty_duration(cleanup_start - start),
             shakedown.pretty_duration(finish - cleanup_start),
             shakedown.pretty_duration(finish - start)))
-
-    sdk_utils.list_reserved_resources()
 
 
 def merge_dictionaries(dict1, dict2):
