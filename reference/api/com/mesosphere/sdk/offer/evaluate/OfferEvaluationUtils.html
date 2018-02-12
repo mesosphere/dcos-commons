@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -169,6 +169,11 @@ extends java.lang.Object</pre>
          Protos.Resource&nbsp;resource,
          java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName)</code>&nbsp;</td>
 </tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#updateVolumeSpec-com.mesosphere.sdk.specification.VolumeSpec-double-">updateVolumeSpec</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;original,
+                double&nbsp;diskSize)</code>&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -226,11 +231,21 @@ extends java.lang.Object</pre>
 <a name="isRunningExecutor-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Offer-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>isRunningExecutor</h4>
 <pre>public static&nbsp;boolean&nbsp;isRunningExecutor(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a>&nbsp;podInfoBuilder,
                                         Protos.Offer&nbsp;offer)</pre>
+</li>
+</ul>
+<a name="updateVolumeSpec-com.mesosphere.sdk.specification.VolumeSpec-double-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>updateVolumeSpec</h4>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;updateVolumeSpec(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;original,
+                                          double&nbsp;diskSize)</pre>
 </li>
 </ul>
 </li>
