@@ -39,7 +39,7 @@ def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
 
     client = shakedown.marathon.create_client()
 
-    def marathon_dropped_service():
+    def marathon_dropped_app():
         app_ids = [app['id'] for app in client.get_apps()]
         log.info('Marathon app IDs: {}'.format(app_ids))
         matching_app_ids = app_ids.filter(lambda x: x == app_id)
@@ -48,7 +48,7 @@ def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
         return len(matching_app_ids) == 0
 
     log.info('Waiting for no {} Marathon app'.format(app_id))
-    shakedown.time_wait(marathon_dropped_service, timeout_seconds=timeout)
+    shakedown.time_wait(marathon_dropped_app, timeout_seconds=timeout)
 
 
 def app_exists(app_name):
