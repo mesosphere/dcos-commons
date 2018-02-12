@@ -23,7 +23,7 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 *Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
 
 {% include services/security-configure-transport-encryption.md
-    techName="Apache HDFS" %}
+    techName="Apache HDFS" plaintext="true" %}
 
 <!--
 TO BE CONFIRMED
@@ -36,7 +36,7 @@ TO BE CONFIRMED
 
 ## Authentication
 
-DC/OS Apache HDFS supports Kerberos authentication.
+DC/OS Apache HDFS only supports Kerberos authentication.
 
 ### Kerberos Authentication
 
@@ -58,18 +58,28 @@ The DC/OS Apache HDFS service requires Kerberos principals for each node to be d
 - 2 name nodes (with ZKFC)
 - A configurable number of data nodes
 
-As such the required Kerberos principals will have the form:
+*Note:* Apache HDFS requires a principal for both the `service primary` and `HTTP`. The latter is used by the HTTP api.
+
+The required Kerberos principals will have the form:
 ```
 <service primary>/name-0-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/name-0-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 <service primary>/name-0-zkfc.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/name-0-zkfc.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 <service primary>/name-1-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/name-1-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 <service primary>/name-1-zkfc.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/name-1-zkfc.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 
 <service primary>/journal-0-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/journal-0-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 <service primary>/journal-1-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/journal-1-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 <service primary>/journal-2-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/journal-2-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 
 <service primary>/data-<data-index>-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
+HTTP/data-<data-index>-node.<service subdomain>.autoip.dcos.thisdcos.directory@<service realm>
 
 ```
 with:
@@ -83,9 +93,11 @@ For example, if installing with these options:
 {
     "service": {
         "name": "a/good/example",
-        "kerberos": {
-            "primary": "example",
-            "realm": "EXAMPLE"
+        "security": {
+            "kerberos": {
+                "primary": "example",
+                "realm": "EXAMPLE"
+            }
         }
     },
     "data_node": {
@@ -96,22 +108,30 @@ For example, if installing with these options:
 then the principals to create would be:
 ```
 example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/name-0-zkfc.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/name-0-zkfc.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/name-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/name-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/name-1-zkfc.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/name-1-zkfc.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 
 example/journal-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/journal-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/journal-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/journal-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/journal-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/journal-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 
 example/data-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/data-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/data-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/data-1-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+HTTP/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
 
-{% include services/security-configure-transport-encryption.md
-    techName="Apache HDFS" %}
-
+{{ include services/security-service-keytab }}
 #### Install the Service
 
 Install the DC/OS Apache HDFS service with the following options in addition to your own:

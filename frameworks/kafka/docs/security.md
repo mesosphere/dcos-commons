@@ -23,7 +23,7 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 *Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authentication](#kerberos-authentication).
 
 {% include services/security-configure-transport-encryption.md
-    techName="Apache Kafka" %}
+    techName="Apache Kafka" plaintext="true" %}
 
 *Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
 
@@ -67,9 +67,11 @@ For example, if installing with these options:
 {
     "service": {
         "name": "a/good/example",
-        "kerberos": {
-            "primary": "example",
-            "realm": "EXAMPLE"
+        "security": {
+            "kerberos": {
+                "primary": "example",
+                "realm": "EXAMPLE"
+            }
         }
     },
     "brokers": {
@@ -93,17 +95,19 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 ```json
 {
     "service": {
-        "kerberos": {
-            "enabled": true,
-            "enabled_for_zookeeper": <true|false default false>,
-            "kdc": {
-                "hostname": "<kdc host>",
-                "port": <kdc port>
-            },
-            "primary": "<service primary default kafka>",
-            "realm": "<realm>",
-            "keytab_secret": "<path to keytab secret>",
-            "debug": <true|false default false>
+        "security": {
+            "kerberos": {
+                "enabled": true,
+                "enabled_for_zookeeper": <true|false default false>,
+                "kdc": {
+                    "hostname": "<kdc host>",
+                    "port": <kdc port>
+                },
+                "primary": "<service primary default kafka>",
+                "realm": "<realm>",
+                "keytab_secret": "<path to keytab secret>",
+                "debug": <true|false default false>
+            }
         }
     }
 }

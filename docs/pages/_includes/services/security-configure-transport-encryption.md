@@ -26,8 +26,8 @@ Install the DC/OS {{ include.techName }} service including the following options
         "service_account_secret": "<full path of service secret>",
         "security": {
             "transport_encryption": {
-                "enabled": true,
-                "allow_plaintext": <true|false default false>
+                {% if include.plaintext == "true" %}"enabled": true,
+                "allow_plaintext": <true|false default false>{% else %}"enabled": true{% endif %}
             }
         }
     }
