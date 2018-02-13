@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,30 +26,6 @@ public class ExecutorResourceMapper {
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
     private final boolean useDefaultExecutor;
-
-    /**
-     * Pairs a {@link ResourceSpec} definition with an existing task's labels associated with that resource.
-     */
-    private static class ResourceLabels {
-        private final ResourceSpec resourceSpec;
-        private final String resourceId;
-        private final Optional<String> persistenceId;
-
-        private ResourceLabels(ResourceSpec resourceSpec, String resourceId) {
-            this(resourceSpec, resourceId, Optional.empty());
-        }
-
-        private ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> persistenceId) {
-            this.resourceSpec = resourceSpec;
-            this.resourceId = resourceId;
-            this.persistenceId = persistenceId;
-        }
-
-        @Override
-        public String toString() {
-            return ToStringBuilder.reflectionToString(this);
-        }
-    }
 
     public ExecutorResourceMapper(
             PodSpec podSpec,
@@ -90,11 +65,11 @@ public class ExecutorResourceMapper {
             }
 
             if (matchingResource.isPresent()) {
-                if (!remainingResourceSpecs.remove(matchingResource.get().resourceSpec)) {
+                if (!remainingResourceSpecs.remove(matchingResource.get().getOriginal())) {
                     throw new IllegalStateException(
                             String.format(
                                     "Didn't find %s in %s",
-                                    matchingResource.get().resourceSpec, remainingResourceSpecs));
+                                    matchingResource.get().getOriginal(), remainingResourceSpecs));
                 }
                 matchingResources.add(matchingResource.get());
             } else {
@@ -144,10 +119,15 @@ public class ExecutorResourceMapper {
                     continue;
                 }
 
+                double diskSize = executorResource.getScalar().getValue();
+                VolumeSpec updatedSpec = OfferEvaluationUtils.updateVolumeSpec((VolumeSpec) resourceSpec, diskSize);
+
                 return Optional.of(new ResourceLabels(
                         resourceSpec,
+                        updatedSpec,
                         resourceId.get(),
-                        Optional.of(executorResource.getDisk().getPersistence().getId())));
+                        Optional.of(executorResource.getDisk().getPersistence().getId()),
+                        ResourceUtils.getSourceRoot(executorResource)));
             }
         }
 
@@ -171,23 +151,27 @@ public class ExecutorResourceMapper {
     }
 
     private OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
-        return toEvaluationStage(resourceLabels.resourceSpec, Optional.of(resourceLabels.resourceId),
-                resourceLabels.persistenceId);
+        ResourceSpec resourceSpec = resourceLabels.getUpdated();
+        Optional<String> resourceId = Optional.of(resourceLabels.getResourceId());
+
+        if (resourceSpec instanceof VolumeSpec) {
+            return VolumeEvaluationStage.getExisting(
+                    (VolumeSpec) resourceSpec,
+                    null,
+                    resourceId,
+                    resourceLabels.getPersistenceId(),
+                    resourceLabels.getSourceRoot(),
+                    useDefaultExecutor);
+        } else {
+            return new ResourceEvaluationStage(resourceSpec, resourceId, null);
+        }
     }
 
     private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
-        return toEvaluationStage(resourceSpec, Optional.empty(), Optional.empty());
-    }
-
-    private OfferEvaluationStage toEvaluationStage(
-            ResourceSpec resourceSpec,
-            Optional<String> resourceId,
-            Optional<String> persistenceId) {
         if (resourceSpec instanceof VolumeSpec) {
-            return new VolumeEvaluationStage(
-                    (VolumeSpec) resourceSpec, null, resourceId, persistenceId, useDefaultExecutor);
+            return VolumeEvaluationStage.getNew((VolumeSpec) resourceSpec, null, useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, resourceId, null);
+            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), null);
         }
     }
 }
