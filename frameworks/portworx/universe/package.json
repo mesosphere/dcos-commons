@@ -1,5 +1,7 @@
 {
   "packagingVersion": "4.0",
+  "upgradesFrom": ["{{upgrades-from}}"],
+  "downgradesTo": ["{{downgrades-to}}"],
   "minDcosReleaseVersion": "1.9",
   "name": "portworx",
   "version": "{{package-version}}",
