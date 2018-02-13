@@ -194,6 +194,7 @@ def _uninstall(
         log.info(traceback.format_exc())
         raise
     finally:
+        log.info('Reserved resources post uninstall:')
         sdk_utils.list_reserved_resources()
 
     cleanup_start = time.time()
@@ -211,6 +212,7 @@ def _uninstall(
         log.info(traceback.format_exc())
         raise
     finally:
+        log.info('Reserved resources post cleanup:')
         sdk_utils.list_reserved_resources()
 
     finish = time.time()
