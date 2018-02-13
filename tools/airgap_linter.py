@@ -53,6 +53,7 @@ def is_bad_uri(uri, file_name):
         ".mesos:",
         "$MESOS_CONTAINER_IP",
         "{{FRAMEWORK_HOST}}",
+        "$FRAMEWORK_HOST",
     ]
 
     # Are any of the exceptions present?
