@@ -95,7 +95,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
 
         if (recommendations.isEmpty()) {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
-            logger.warn(
+            logger.error(
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
                     step.getName(), podInstanceRequirement);
             step.updateOfferStatus(Collections.emptyList());
