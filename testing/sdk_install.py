@@ -157,21 +157,18 @@ def run_janitor(service_name, role, service_account, znode):
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
+def retried_run_janitor(*args):
+    run_janitor(*args)
+
+
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=5000,
+                retry_on_exception=lambda e: isinstance(e, Exception))
+def retried_uninstall_package_and_wait(*args):
+    shakedown.uninstall_package_and_wait(*args)
+
+
 def uninstall(
-        package_name,
-        service_name,
-        role=None,
-        service_account=None,
-        zk=None):
-    _uninstall(
-        package_name,
-        service_name,
-        role,
-        service_account,
-        zk)
-
-
-def _uninstall(
         package_name,
         service_name,
         role=None,
@@ -188,7 +185,7 @@ def _uninstall(
     log.info('Uninstalling {}'.format(service_name))
 
     try:
-        shakedown.uninstall_package_and_wait(package_name, service_name=service_name)
+        retried_uninstall_package_and_wait(package_name, service_name=service_name)
     except Exception as e:
         log.info('Got exception when uninstalling {}'.format(service_name))
         log.info(traceback.format_exc())
@@ -202,10 +199,10 @@ def _uninstall(
     try:
         if sdk_utils.dcos_version_less_than('1.10'):
             log.info('Janitoring {}'.format(service_name))
-            run_janitor(service_name, role, service_account, zk)
+            retried_run_janitor(service_name, role, service_account, zk)
         else:
             log.info('Waiting for Marathon app to be removed {}'.format(service_name))
-            sdk_marathon.wait_for_deployment_and_app_removal(
+            sdk_marathon.retried_wait_for_deployment_and_app_removal(
                 sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS)
     except Exception as e:
         log.info('Got exception when cleaning up {}'.format(service_name))

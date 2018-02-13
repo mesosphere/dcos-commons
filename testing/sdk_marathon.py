@@ -51,6 +51,13 @@ def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
     shakedown.time_wait(marathon_dropped_app, timeout_seconds=timeout)
 
 
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=5000,
+                retry_on_exception=lambda e: isinstance(e, Exception))
+def retried_wait_for_deployment_and_app_removal(*args):
+    wait_for_deployment_and_app_removal(*args)
+
+
 def app_exists(app_name):
     try:
         _get_config_once(app_name)
