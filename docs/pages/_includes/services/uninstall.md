@@ -29,7 +29,7 @@ Note that once the uninstall operation has begun, it cannot be cancelled because
 
 #### Debugging an uninstall
 
-In the vast majority of cases, this uninstall process goes off without a hitch. However in certain situations there can be snags along the way. For example, perhaps a machine in the cluster has permanently gone away, and the service being uninstalled had some resources allocated on that machine. This can result in the uninstall being stuck, because that machine's resources never being offered to the uninstalling scheduler. In turn, the uninstalling scheduler will not be able to successfully the resources it has on that machine.
+In the vast majority of cases, this uninstall process goes off without a hitch. However, in certain situations, there can be snags along the way. For example, perhaps a machine in the cluster has permanently gone away, and the service being uninstalled had some resources allocated on that machine. This can result in the uninstall becoming stuck, because Mesos will never offer those resources to the uninstalling scheduler. As such, the uninstalling scheduler will not be able to successfully unreserve the resources it had reserved on that machine.
 
 This situation is indicated by looking at `deploy` plan while the uninstall is proceeding. The `deploy` plan may be viewed using either of the following methods:
 - CLI: `dcos {{ include.data.packageName }} --name={{ include.data.serviceName}} plan show deploy` (after running `dcos package install --cli {{ include.data.packageName }}` if needed)
@@ -90,8 +90,15 @@ deploy (IN_PROGRESS)
 #### Manual uninstall
 
 If all else fails, one can simply manually perform the uninstall themselves. To do this, perform the following steps:
-- Delete the uninstalling scheduler from Marathon
-- Manually run `janitor.py`, as described in the DC/OS 1.9 instructions below, to clean up the remaining resources.
+- Delete the uninstalling scheduler from Marathon.
+- Unregister the service from Mesos using its UUID as follows:
+  ```bash
+  $ dcos service --inactive | grep {{ include.data.serviceName }}
+  {{ include.data.serviceName }}     False     3    3.3  6240.0  15768.0  97a0fd27-8f27-4e14-b2f2-fb61c36972d7-0096
+
+  $ dcos service shutdown 97a0fd27-8f27-4e14-b2f2-fb61c36972d7-0096
+  ```
+- Run `janitor.py` to clean up the remaining reserved resources, as described in the DC/OS 1.9 instructions below.
 
 ### DC/OS 1.9 and older, or package older than 2.0.0-x
 
