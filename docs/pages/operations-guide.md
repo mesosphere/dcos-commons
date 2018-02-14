@@ -5,11 +5,4 @@ toc: true
 redirect_from: /operations-guide.html
 ---
 
-<!-- this file just includes the per-section ops-guide files in one single page -->
-
-{% assign sorted_pages = site.pages | sort:"menuWeight" %}
-{% for p in sorted_pages %}{% assign urltokens = p.url | split: "/" %}
-{% if urltokens.size == 3 and urltokens[1] == "ops-guide" %}
-# {{ p.navigationTitle }}
-{{ p.content | markdownify }}
-{% endif %}{% endfor %}
+The content from the Operations Guide has been merged into individual service guides for DC/OS services that make use of the DC/OS SDK. Please visit the [DC/OS Service Docs page](https://docs.mesosphere.com/services/) to find the documentation for the service you are using.

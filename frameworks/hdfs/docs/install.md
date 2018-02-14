@@ -31,7 +31,7 @@ See the Configuration section for a list of fields that can be customized via a 
 
 ### Minimal installation
 
-Many of the other Infinity services currently support deployment in DC/OS Vagrant or DC/OS Docker for local testing a local machine. However, DC/OS HDFS currently only supports deployment with an HA name service managed by a Quorum Journal. The resource requirements for such a deployment make it prohibitive to install on a local development machine. The default deployment, is the minimal safe deployment for a DC/OS HDFS cluster. Community contributions to support deployment of a non-HA cluster, e.g. a single name node and data node with no failure detector, would be welcome.
+Many of the other Infinity services currently support deployment in DC/OS Docker for local testing a local machine. However, DC/OS HDFS currently only supports deployment with an HA name service managed by a Quorum Journal. The resource requirements for such a deployment make it prohibitive to install on a local development machine. The default deployment, is the minimal safe deployment for a DC/OS HDFS cluster. Community contributions to support deployment of a non-HA cluster, e.g. a single name node and data node with no failure detector, would be welcome.
 {% endcapture %}
 
 {% include services/install.md
