@@ -54,8 +54,8 @@ def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_wait_for_deployment_and_app_removal(*args):
-    wait_for_deployment_and_app_removal(*args)
+def retried_wait_for_deployment_and_app_removal(*args, **kwargs):
+    wait_for_deployment_and_app_removal(*args, **kwargs)
 
 
 def app_exists(app_name):

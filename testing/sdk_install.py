@@ -157,15 +157,15 @@ def run_janitor(service_name, role, service_account, znode):
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_run_janitor(*args):
-    run_janitor(*args)
+def retried_run_janitor(*args, **kwargs):
+    run_janitor(*args, **kwargs)
 
 
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_uninstall_package_and_wait(*args):
-    shakedown.uninstall_package_and_wait(*args)
+def retried_uninstall_package_and_wait(*args, **kwargs):
+    shakedown.uninstall_package_and_wait(*args, **kwargs)
 
 
 def uninstall(
