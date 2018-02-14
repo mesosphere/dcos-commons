@@ -18,7 +18,7 @@ import dcos_test_utils
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='module')
 def mount_volumes():
     script = """
 #!/bin/bash
@@ -63,7 +63,7 @@ sudo systemctl restart dcos-mesos-slave.service
 
 
 @pytest.fixture(scope='module', autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security, mount_volumes):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {
@@ -80,7 +80,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_kill_node(mount_volumes):
+def test_kill_node():
     '''kill the node task, verify that the node task is relaunched against the same executor as before'''
     verify_shared_executor('hello-0')
 
@@ -102,7 +102,7 @@ def test_kill_node(mount_volumes):
 
 
 @pytest.mark.sanity
-def test_kill_agent(mount_volumes):
+def test_kill_agent():
     '''kill the agent task, verify that the agent task is relaunched against the same executor as before'''
     verify_shared_executor('hello-0')
 
