@@ -201,10 +201,13 @@ public abstract class AbstractScheduler {
     public abstract Collection<Object> getResources();
 
     /**
-     * Provides a callback to indicate that the scheduler has registered with Mesos.
+     * Returns the {@link PlanCoordinator}.
      */
     protected abstract PlanCoordinator getPlanCoordinator();
 
+    /**
+     * Provides a callback to indicate that the scheduler has registered with Mesos.
+     */
     protected abstract void registeredWithMesos();
 
     /**
@@ -248,6 +251,7 @@ public abstract class AbstractScheduler {
             }
 
             Driver.setDriver(driver);
+            registeredWithMesos();
 
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
             this.reviveManager = new ReviveManager();
@@ -266,7 +270,6 @@ public abstract class AbstractScheduler {
 
             isInitialized.set(true);
         }
-
 
         @Override
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {

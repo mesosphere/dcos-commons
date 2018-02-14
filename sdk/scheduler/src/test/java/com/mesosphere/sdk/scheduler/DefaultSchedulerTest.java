@@ -46,6 +46,7 @@ import org.mockito.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -662,6 +663,50 @@ public class DefaultSchedulerTest {
                 .findFirst().get();
 
         Assert.assertEquals(2, deployPlan.getChildren().size());
+    }
+
+    @Test
+    public void testDecommissionPlanCustomization() throws Exception {
+
+        AtomicBoolean decommissionPlanCustomized = new AtomicBoolean(false);
+
+        PlanCustomizer planCustomizer = new PlanCustomizer() {
+            @Override
+            public Plan updatePlan(Plan plan) {
+                if (plan.isDecommissionPlan()) {
+                    decommissionPlanCustomized.set(true);
+                }
+
+                return plan;
+            }
+        };
+
+        // Launches the first instance of POD-B
+        testLaunchB();
+
+        // Launch the second instance of POD-B
+        installStep(1, 1, getSufficientOfferForTaskB());
+        Assert.assertEquals(
+                Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
+                getStepStatuses(getDeploymentPlan()));
+
+        // Construct POD-B which scales in by 1 pod instance
+        PodSpec scaledInPodB = DefaultPodSpec.newBuilder(podB)
+                .count(TASK_B_COUNT - 1)
+                .allowDecommission(true)
+                .build();
+
+        DefaultScheduler.newBuilder(
+                getServiceSpec(podA, scaledInPodB), SchedulerConfigTestUtils.getTestSchedulerConfig(), new MemPersister())
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setPlanCustomizer(planCustomizer)
+                .build()
+                .disableApiServer()
+                .disableThreading()
+                .start();
+
+        Assert.assertTrue(decommissionPlanCustomized.get());
     }
 
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
