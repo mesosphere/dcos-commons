@@ -51,6 +51,7 @@ def wait_for_brokers(client: str, brokers: list):
     bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
     assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
+    return True
 
 
 def is_not_authorized(output: str) -> bool:
@@ -133,17 +134,19 @@ def get_bash_command(cmd: str, environment: str) -> str:
 
 
 def write_to_topic(cn: str, task: str, topic: str, message: str,
-                   client_properties: list=[], environment: str=None) -> bool:
+                   client_properties: list=[], environment: str=None,
+                   broker_list: str="\$KAFKA_BROKER_LIST") -> bool:
 
     client_properties_file = write_client_properties(cn, task, client_properties)
 
-    cmd = "echo {message} | kafka-console-producer \
-            --topic {topic} \
-            --producer.config {client_properties_file} \
-            --broker-list \$KAFKA_BROKER_LIST".format(message=message,
-                                                      topic=topic,
-                                                      client_properties_file=client_properties_file)
-
+    cmd_list = ["echo", message,
+                "|",
+                "kafka-console-producer",
+                "--topic", topic,
+                "--producer.config", client_properties_file,
+                "--broker-list", broker_list,
+                ]
+    cmd = " ".join(str(c) for c in cmd_list)
     write_cmd = get_bash_command(cmd, environment)
 
     def write_failed(output) -> bool:
@@ -185,20 +188,21 @@ def write_to_topic(cn: str, task: str, topic: str, message: str,
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int,
-                    client_properties: list=[], environment: str=None) -> str:
+                    client_properties: list=[], environment: str=None,
+                    broker_list: str="\$KAFKA_BROKER_LIST") -> str:
 
     client_properties_file = write_client_properties(cn, task, client_properties)
 
-    cmd = "kafka-console-consumer \
-            --topic {topic} \
-            --consumer.config {client_properties_file} \
-            --bootstrap-server \$KAFKA_BROKER_LIST \
-            --from-beginning --max-messages {messages} \
-            --timeout-ms {timeout_ms}".format(topic=topic,
-                                              client_properties_file=client_properties_file,
-                                              messages=messages,
-                                              timeout_ms=60000)
+    cmd_list = ["kafka-console-consumer",
+                "--topic", topic,
+                "--consumer.config", client_properties_file,
+                "--bootstrap-server", broker_list,
+                "--from-beginning",
+                "--max-messages", messages,
+                "--timeout-ms", 60000,
+                ]
 
+    cmd = " ".join(str(c) for c in cmd_list)
     read_cmd = get_bash_command(cmd, environment)
 
     def read_failed(output) -> bool:
