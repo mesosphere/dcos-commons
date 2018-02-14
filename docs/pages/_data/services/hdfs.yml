@@ -7,7 +7,7 @@ techName: HDFS
 # Values specific to certain templates:
 
 install:
-  minNodeCount: three
+  minNodeCount: five
   nodeDescription: with three journal nodes, two name nodes, and three data nodes
   serviceAccountInstructionsUrl: https://docs.mesosphere.com/services/hdfs/hdfs-auth/
 
