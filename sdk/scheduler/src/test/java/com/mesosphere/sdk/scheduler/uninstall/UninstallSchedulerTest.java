@@ -268,6 +268,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(getReversingPlanCustomizer()),
                 Optional.of(mockSecretsClient));
+        uninstallScheduler.start();
 
         Plan plan = uninstallScheduler.getPlanCoordinator().getPlanManagers().stream().findFirst().get().getPlan();
 

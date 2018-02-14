@@ -14,6 +14,8 @@ public class Constants {
 
     /** The name used for the deployment plan. */
     public static final String DEPLOY_PLAN_NAME = "deploy";
+    /** The name used for the recovery plan. */
+    public static final String RECOVERY_PLAN_NAME = "recovery";
     /** The name used in specifications for the update plan. Overrides the deploy plan when relevant. */
     public static final String UPDATE_PLAN_NAME = "update";
     /** The name used for the decommission plan. */

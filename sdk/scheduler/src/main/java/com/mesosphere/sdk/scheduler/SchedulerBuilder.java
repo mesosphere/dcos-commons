@@ -14,8 +14,17 @@ import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
+import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
+import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
+import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
+import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
+import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -30,6 +39,7 @@ import com.mesosphere.sdk.storage.PersisterException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -180,8 +190,7 @@ public class SchedulerBuilder {
 
     /**
      * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
-     * {@link DefaultPlanGenerator} to handle conversion. This is overridden by any plans manually provided by
-     * {@link #setPlans(Collection)}.
+     * {@link DefaultPlanGenerator} to handle conversion.
      */
     public SchedulerBuilder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
         if (rawServiceSpec.getPlans() != null) {
@@ -234,7 +243,13 @@ public class SchedulerBuilder {
                 SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
             }
 
-            return getDefaultScheduler(stateStore, configStore);
+            try {
+                return getDefaultScheduler(stateStore, configStore);
+            } catch (ConfigStoreException e) {
+                LOGGER.error("Failed to construct scheduler.", e);
+                SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+                return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
+            }
         }
     }
 
@@ -244,7 +259,10 @@ public class SchedulerBuilder {
      * @return a new scheduler instance
      * @throws IllegalArgumentException if config validation failed when updating the target config.
      */
-    private DefaultScheduler getDefaultScheduler(StateStore stateStore, ConfigStore<ServiceSpec> configStore) {
+    private DefaultScheduler getDefaultScheduler(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
+
         // Determine whether deployment had previously completed BEFORE we update the config.
         // Plans may be generated from the config content.
         boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
@@ -297,12 +315,6 @@ public class SchedulerBuilder {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
 
-        if (planCustomizer != null) {
-            plans = plans.stream()
-                    .map(plan -> planCustomizer.updatePlan(plan))
-                    .collect(Collectors.toList());
-        }
-
         List<String> errors = configUpdateResult.getErrors().stream()
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
@@ -311,16 +323,98 @@ public class SchedulerBuilder {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
         }
 
+        PlanManager deploymentPlanManager =
+                DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
+        PlanManager recoveryPlanManager = getRecoveryPlanManager(
+                Optional.ofNullable(recoveryPlanOverriderFactory),
+                stateStore,
+                configStore,
+                plans);
+        Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(stateStore);
+        PlanCoordinator planCoordinator = buildPlanCoordinator(
+                deploymentPlanManager,
+                recoveryPlanManager,
+                decommissionPlanManager,
+                plans);
+
         return new DefaultScheduler(
                 serviceSpec,
                 schedulerConfig,
                 customResources,
-                plans,
+                planCoordinator,
+                Optional.ofNullable(planCustomizer),
                 stateStore,
                 configStore,
-                endpointProducers,
-                Optional.ofNullable(recoveryPlanOverriderFactory));
+                endpointProducers);
     }
+
+    private PlanManager getRecoveryPlanManager(
+            Optional<RecoveryPlanOverriderFactory> recoveryOverriderFactory,
+            StateStore stateStore,
+            ConfigStore configStore,
+            Collection<Plan> plans) {
+
+        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
+        if (recoveryOverriderFactory.isPresent()) {
+            LOGGER.info("Adding overriding recovery plan manager.");
+            overrideRecoveryPlanManagers.add(recoveryOverriderFactory.get().create(stateStore, plans));
+        }
+        final LaunchConstrainer launchConstrainer;
+        final FailureMonitor failureMonitor;
+        if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
+            ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
+            launchConstrainer = new TimedLaunchConstrainer(
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+            failureMonitor = new TimedFailureMonitor(
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    stateStore,
+                    configStore);
+        } else {
+            launchConstrainer = new UnconstrainedLaunchConstrainer();
+            failureMonitor = new NeverFailureMonitor();
+        }
+        return new DefaultRecoveryPlanManager(
+                stateStore,
+                configStore,
+                PlanUtils.getLaunchableTasks(plans),
+                launchConstrainer,
+                failureMonitor,
+                overrideRecoveryPlanManagers);
+    }
+
+    public Optional<PlanManager> getDecommissionPlanManager(StateStore stateStore) {
+        DecommissionPlanFactory decommissionPlanFactory = new DecommissionPlanFactory(serviceSpec, stateStore);
+        Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
+        if (decommissionPlan.isPresent()) {
+            return Optional.of(DefaultPlanManager.createProceeding(decommissionPlan.get()));
+        }
+
+        return Optional.empty();
+    }
+
+    private PlanCoordinator buildPlanCoordinator(
+            PlanManager deploymentPlanManager,
+            PlanManager recoveryPlanManager,
+            Optional<PlanManager> decommissionPlanManager,
+            Collection<Plan> plans) {
+
+        final Collection<PlanManager> planManagers = new ArrayList<>();
+        planManagers.add(deploymentPlanManager);
+        planManagers.add(recoveryPlanManager);
+
+        if (decommissionPlanManager.isPresent()) {
+            planManagers.add(decommissionPlanManager.get());
+        }
+
+        // Other custom plan managers
+        planManagers.addAll(plans.stream()
+                .filter(plan -> !plan.isDeployPlan())
+                .map(DefaultPlanManager::createInterrupted)
+                .collect(Collectors.toList()));
+
+        return new DefaultPlanCoordinator(planManagers);
+    }
+
 
     /**
      * Update pods with appropriate placement constraints to enforce user REGION intent.

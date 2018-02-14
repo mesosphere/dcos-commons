@@ -35,7 +35,7 @@ import com.mesosphere.sdk.state.StateStore;
 /**
  * Handles creation of the uninstall plan, returning information about the plan contents back to the caller.
  */
-class UninstallPlanBuilder {
+public class UninstallPlanBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(UninstallPlanBuilder.class);
 
     private static final String TASK_KILL_PHASE = "kill-tasks";
