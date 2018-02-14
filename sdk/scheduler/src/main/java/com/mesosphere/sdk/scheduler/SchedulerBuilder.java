@@ -415,7 +415,6 @@ public class SchedulerBuilder {
         return new DefaultPlanCoordinator(planManagers);
     }
 
-
     /**
      * Update pods with appropriate placement constraints to enforce user REGION intent.
      * If a pod's placement rules do not explicitly reference a REGION the assumption should be that

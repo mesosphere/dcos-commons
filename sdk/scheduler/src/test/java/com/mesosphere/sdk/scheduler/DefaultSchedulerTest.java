@@ -667,9 +667,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testDecommissionPlanCustomization() throws Exception {
-
         AtomicBoolean decommissionPlanCustomized = new AtomicBoolean(false);
-
         PlanCustomizer planCustomizer = new PlanCustomizer() {
             @Override
             public Plan updatePlan(Plan plan) {
