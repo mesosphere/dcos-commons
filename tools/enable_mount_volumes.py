@@ -174,13 +174,18 @@ def configure_mesos(stdout):
 
 
 def main(stack_id = '', stdout=sys.stdout):
+    aws_profile_key = 'AWS_PROFILE'
+    aws_region_key = 'AWS_REGION'
+    stack_id_key = 'STACK_ID'
+
     # Read inputs from environment
-    aws_profile = str(os.environ.get('AWS_PROFILE'))
-    aws_region = str(os.environ.get('AWS_REGION'))
-    stack_id = str(os.environ.get('STACK_ID'))
-    if not aws_profile or not aws_region or not stack_id:
-        logger.error('AWS_PROFILE, AWS_REGION and STACK_ID envvars are required.')
+    if aws_profile_key not in os.environ or aws_region_key not in os.environ or stack_id_key not in environ:
+        logger.error('{}, {} and {} envvars are required.'.format(aws_profile_key, aws_region_key, stack_id_key))
         return 1
+
+    aws_profile = str(os.environ.get(aws_profile_key))
+    aws_region = str(os.environ.get(aws_region_key))
+    stack_id = str(os.environ.get(stack_id_key))
 
     dev = boto3.session.Session(profile_name=aws_profile)
     # Create EC2 client
