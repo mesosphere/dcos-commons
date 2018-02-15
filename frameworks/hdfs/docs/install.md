@@ -8,7 +8,7 @@ menuWeight: 20
 {% assign data = site.data.services.hdfs %}
 
 {% capture customInstallRequirements %}
-- Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
+- Each agent node must have 4 GB of memory and 5 GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
 {% endcapture %}
 
 {% capture customInstallConfigurations %}
