@@ -76,6 +76,8 @@ def test_pod_replace_then_immediate_config_update():
 
     # ensure all nodes, especially data-0, get launched with the updated config
     config.check_plugin_installed(plugin_name, service_name=foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.sanity
@@ -87,6 +89,9 @@ def test_mesos_v0_api():
         sdk_marathon.set_mesos_api_version(foldered_name, "V0")
         sdk_marathon.set_mesos_api_version(foldered_name, prior_api_version)
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
+
 
 @pytest.mark.sanity
 def test_endpoints():
@@ -97,6 +102,9 @@ def test_endpoints():
         assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(foldered_name, host + '-0-node'))
         assert endpoints['vip'].startswith(sdk_hosts.vip_host(foldered_name, host))
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
+
 
 @pytest.mark.sanity
 def test_indexing(default_populated_index):
@@ -104,6 +112,9 @@ def test_indexing(default_populated_index):
     assert indices_stats["_all"]["primaries"]["docs"]["count"] == 1
     doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1, service_name=foldered_name)
     assert doc["_source"]["name"] == "Loren"
+
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.sanity
@@ -131,6 +142,9 @@ def test_metrics():
         config.DEFAULT_ELASTIC_TIMEOUT,
         expected_metrics_exist)
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
+
 
 @pytest.mark.sanity
 def test_custom_yaml_base64():
@@ -146,6 +160,8 @@ def test_custom_yaml_base64():
 
     config.update_app(foldered_name, {'CUSTOM_YAML_BLOCK_BASE64': base64_str}, current_expected_task_count)
     config.check_custom_elasticsearch_cluster_setting(service_name=foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.sanity
@@ -212,6 +228,9 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     # reset upgrade strategy to serial
     config.update_app(foldered_name, {'UPDATE_STRATEGY': 'serial'}, current_expected_task_count)
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
+
 
 @pytest.mark.recovery
 @pytest.mark.sanity
@@ -220,6 +239,9 @@ def test_losing_and_regaining_index_health(default_populated_index):
     shakedown.kill_process_on_host(sdk_hosts.system_host(foldered_name, "data-0-node"), "data__.*Elasticsearch")
     config.check_elasticsearch_index_health(config.DEFAULT_INDEX_NAME, "yellow", service_name=foldered_name)
     config.check_elasticsearch_index_health(config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name)
+
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery
@@ -232,6 +254,9 @@ def test_master_reelection():
     config.wait_for_expected_nodes_to_exist(service_name=foldered_name)
     new_master = config.get_elasticsearch_master(service_name=foldered_name)
     assert new_master.startswith("master") and new_master != initial_master
+
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery
@@ -277,11 +302,11 @@ def test_plugin_install_and_uninstall(default_populated_index):
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
     initial_task_ids = sdk_tasks.get_task_ids(foldered_name, '')
     shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(foldered_name), "elastic.scheduler.Main")
     sdk_tasks.check_tasks_not_updated(foldered_name, '', initial_task_ids)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery
@@ -299,6 +324,8 @@ def test_bump_node_counts():
     global current_expected_task_count
     current_expected_task_count += 2
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.recovery
@@ -318,3 +345,5 @@ def test_adding_data_node_only_restarts_masters():
     sdk_tasks.check_tasks_updated(foldered_name, "master", initial_master_task_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "data", initial_data_task_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_plan.wait_for_completed_recovery(foldered_name)
