@@ -128,7 +128,7 @@ public class DefaultScheduler extends AbstractScheduler {
         List<OperationRecorder> recorders = new ArrayList<>();
         recorders.add(new PersistentLaunchRecorder(stateStore, serviceSpec));
 
-        Optional<PlanManager> decommissionManager = getDecomissionManager(planCoordinator);
+        Optional<DecommissionPlanManager> decommissionManager = getDecomissionManager(planCoordinator);
         if (decommissionManager.isPresent()) {
             Collection<Step> steps = decommissionManager.get().getPlan().getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
@@ -151,9 +151,10 @@ public class DefaultScheduler extends AbstractScheduler {
                 .findFirst().get();
     }
 
-    private static Optional<PlanManager> getDecomissionManager(PlanCoordinator planCoordinator) {
+    private static Optional<DecommissionPlanManager> getDecomissionManager(PlanCoordinator planCoordinator) {
         return planCoordinator.getPlanManagers().stream()
                 .filter(planManager -> planManager.getPlan().isDecommissionPlan())
+                .map(planManager -> (DecommissionPlanManager) planManager)
                 .findFirst();
     }
 
@@ -169,7 +170,17 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected void registeredWithMesos() {
-        killUnneededTasks(stateStore, PlanUtils.getLaunchableTasks(getPlans()));
+        Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
+
+        Optional<DecommissionPlanManager> decomissionManager = getDecomissionManager(getPlanCoordinator());
+        if (decomissionManager.isPresent()) {
+            Collection<String> decomissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
+                    .map(taskInfo -> taskInfo.getName())
+                    .collect(Collectors.toList());
+            activeTasks.addAll(decomissionedTasks);
+        }
+
+        killUnneededTasks(stateStore, activeTasks);
     }
 
     private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {

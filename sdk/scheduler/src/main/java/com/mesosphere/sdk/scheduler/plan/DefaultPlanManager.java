@@ -27,7 +27,7 @@ public class DefaultPlanManager implements PlanManager {
         return new DefaultPlanManager(plan);
     }
 
-    private DefaultPlanManager(final Plan plan) {
+    protected DefaultPlanManager(final Plan plan) {
         this.plan = plan;
     }
 

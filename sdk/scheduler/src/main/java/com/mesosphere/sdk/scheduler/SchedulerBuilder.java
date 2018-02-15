@@ -386,7 +386,10 @@ public class SchedulerBuilder {
         DecommissionPlanFactory decommissionPlanFactory = new DecommissionPlanFactory(serviceSpec, stateStore);
         Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
         if (decommissionPlan.isPresent()) {
-            return Optional.of(DefaultPlanManager.createProceeding(decommissionPlan.get()));
+            return Optional.of(
+                    new DecommissionPlanManager(
+                            decommissionPlan.get(),
+                            decommissionPlanFactory.getTasksToDecommission()));
         }
 
         return Optional.empty();
