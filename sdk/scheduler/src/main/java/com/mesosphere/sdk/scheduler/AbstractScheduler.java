@@ -86,11 +86,15 @@ public abstract class AbstractScheduler {
         }
 
         if (planCustomizer.isPresent()) {
-            for (Plan plan : getPlans()) {
-                if (plan.isDeployPlan() && this instanceof UninstallScheduler) {
-                    planCustomizer.get().updateUninstallPlan(plan);
+            for (PlanManager planManager : getPlanCoordinator().getPlanManagers()) {
+                if (planManager.getPlan().isRecoveryPlan()) {
+                    continue;
+                }
+
+                if (planManager.getPlan().isDeployPlan() && this instanceof UninstallScheduler) {
+                    planManager.setPlan(planCustomizer.get().updateUninstallPlan(planManager.getPlan()));
                 } else {
-                    planCustomizer.get().updatePlan(plan);
+                    planManager.setPlan(planCustomizer.get().updatePlan(planManager.getPlan()));
                 }
             }
         }
