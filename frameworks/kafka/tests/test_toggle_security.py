@@ -416,7 +416,7 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
-                                                              "broker", kerberos)
+                                                              "broker-tls", kerberos)
     assert write_success, "Write failed"
     assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
 
