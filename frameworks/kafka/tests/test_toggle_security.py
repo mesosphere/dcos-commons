@@ -23,7 +23,10 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Security tests required DC/OS EE"),
+    pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                       reason="Security tests require DC/OS EE"),
+    pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                       reason="Security tests require DC/OS 1.10+"),
 ]
 
 
@@ -413,7 +416,7 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
-                                                              "broker", kerberos)
+                                                              "broker-tls", kerberos)
     assert write_success, "Write failed"
     assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
 
@@ -504,11 +507,11 @@ def test_reverse_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
     assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
-    updated_brokers = service_get_brokers(kafka_server, "broker-tls")
+    updated_brokers = service_get_brokers(kafka_server, "broker")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
-                                                              "broker-tls", None)
+                                                              "broker", None)
     assert write_success, "Write failed (TLS)"
     assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
 
