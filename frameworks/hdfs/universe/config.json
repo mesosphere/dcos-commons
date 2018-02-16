@@ -73,15 +73,6 @@
           ],
           "default": "parallel"
         },
-        "update_strategy": {
-          "description": "HDFS update strategy. [parallel, serial]",
-          "type": "string",
-          "enum": [
-            "parallel",
-            "serial"
-          ],
-          "default": "serial"
-        },
         "region": {
           "description": "All HDFS nodes will run in this region.  When no region is specified the nodes are constrained to the local region.",
           "type": "string",
