@@ -28,6 +28,8 @@ public class Main {
         final SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         final SchedulerRunner runner;
         File yamlSpecFile;
+        ServiceSpec serviceSpec;
+        SchedulerBuilder builder;
 
         Scenario scenario = getScenario();
         LOGGER.info("Scheduler operating under scenario: {}", scenario.name());
@@ -49,11 +51,20 @@ public class Main {
                 break;
             case CUSTOM_PLAN:
                 yamlSpecFile = new File(args[0]);
-                ServiceSpec serviceSpec = DefaultServiceSpec
+                serviceSpec = DefaultServiceSpec
                         .newGenerator(yamlSpecFile, SchedulerConfig.fromEnv())
                         .build();
-                SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv());
-                builder.setPlanCustomizer(new ReversePhasesCustomizer());
+                builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv())
+                        .setPlanCustomizer(new ReversePhasesCustomizer());
+                runner = SchedulerRunner.fromSchedulerBuilder(builder);
+                break;
+            case CUSTOM_DECOMMISSION:
+                yamlSpecFile = new File(args[0]);
+                serviceSpec = DefaultServiceSpec
+                        .newGenerator(yamlSpecFile, SchedulerConfig.fromEnv())
+                        .build();
+                builder = DefaultScheduler.newBuilder(serviceSpec, SchedulerConfig.fromEnv())
+                        .setPlanCustomizer(new DecomissionCustomizer());
                 runner = SchedulerRunner.fromSchedulerBuilder(builder);
                 break;
             default:
