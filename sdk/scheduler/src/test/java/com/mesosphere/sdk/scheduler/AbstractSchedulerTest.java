@@ -3,14 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.junit.Assert;
@@ -173,7 +166,7 @@ public class AbstractSchedulerTest {
 
         protected TestScheduler(
                 StateStore stateStore, ConfigStore<ServiceSpec> configStore, SchedulerConfig schedulerConfig) {
-            super(stateStore, configStore, schedulerConfig);
+            super(stateStore, configStore, schedulerConfig, Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }
@@ -184,8 +177,13 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        protected PlanCoordinator getPlanCoordinator() throws Exception {
+        protected PlanCoordinator getPlanCoordinator() {
             return mockPlanCoordinator;
+        }
+
+        @Override
+        protected void registeredWithMesos() {
+            // Intentionally empty.
         }
 
         @Override
