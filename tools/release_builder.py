@@ -24,6 +24,51 @@ universe_converter_url_prefix = 'https://universe-converter.mesosphere.com/trans
 
 class UniverseReleaseBuilder(object):
 
+    @staticmethod
+    def get_package_name(stub_universe_url: str) -> str:
+
+        package_name = os.environ.get('PACKAGE_NAME', '')
+
+        log.info("Read PACKAGE_NAME=%s", package_name)
+
+        if not package_name:
+            log.info("Getting package name from stub universe URL")
+
+            name_match = re.match('.+/stub-universe-(.+).(json)$', stub_universe_url)
+            if not name_match:
+                raise Exception('Unable to extract package name from stub universe URL. '
+                                'Expected filename of form "stub-universe-[pkgname].json"')
+
+            package_name = name_match.group(1)
+            log.info("Got package name %s from stub universe URL")
+
+        return package_name
+
+    @staticmethod
+    def apply_beta_prefix(package_name: str, is_beta: bool) -> str:
+        stripped_name = left_trim(package_name, 'beta-')
+        if is_beta:
+            log.info('Applying beta- prefix to %s', stripped_name)
+            return 'beta-{}'.format(stripped_name)
+
+        log.info('Using non-beta package name %s', stripped_name)
+        return stripped_name
+
+    @staticmethod
+    def apply_beta_version(package_version: str, is_beta: bool) -> str:
+        if is_beta:
+            stripped_version = right_trim(package_version, '-beta')
+            log.info('Applying -beta sufix to %s', stripped_version)
+            return '{}-beta'.format(stripped_version)
+        else:
+            # complain if version has '-beta' suffix but BETA mode was disabled:
+            if package_version.endswith('-beta'):
+                raise Exception(
+                    'Requested package version {} ends with "-beta", but BETA mode is disabled. '
+                    'Either remove the "-beta" suffix, or enable BETA mode.'.format(package_version))
+
+        return stripped_version
+
     def __init__(
             self,
             package_version,
@@ -38,53 +83,18 @@ class UniverseReleaseBuilder(object):
         self._force_upload = os.environ.get('FORCE_ARTIFACT_UPLOAD', '').lower() == 'true'
         self._beta_release = beta_release.lower() == 'true'
 
-        name_match = re.match('.+/stub-universe-(.+).(json)$', stub_universe_url)
-        if not name_match:
-            raise Exception('Unable to extract package name from stub universe URL. ' +
-                            'Expected filename of form "stub-universe-[pkgname].json"')
+        self._stub_universe_pkg_name = self.get_package_name(stub_universe_url)
+        self._pkg_name = self.apply_beta_prefix(self._stub_universe_pkg_name, self._beta_release)
+        self._pkg_version = self.apply_beta_version(package_version, self._beta_release)
 
-        self._stub_universe_pkg_name = name_match.group(1)
-        # update package name to reflect beta status (e.g. release 'beta-foo' as non-beta 'foo'):
-        if self._beta_release:
-            if self._stub_universe_pkg_name.startswith('beta-'):
-                self._pkg_name = self._stub_universe_pkg_name
-            else:
-                self._pkg_name = 'beta-' + self._stub_universe_pkg_name
-        else:
-            if self._stub_universe_pkg_name.startswith('beta-'):
-                self._pkg_name = self._stub_universe_pkg_name[len('beta-'):]
-            else:
-                self._pkg_name = self._stub_universe_pkg_name
-
-        # update package version to reflect beta status
-        if self._beta_release:
-            if package_version.endswith('-beta'):
-                self._pkg_version = package_version
-            else:
-                # helpfully add a '-beta' since the user likely just forgot:
-                self._pkg_version = package_version + '-beta'
-        else:
-            # complain if version has '-beta' suffix but BETA mode was disabled:
-            if package_version.endswith('-beta'):
-                raise Exception(
-                    'Requested package version {} ends with "-beta", but BETA mode is disabled. '
-                    'Either remove the "-beta" suffix, or enable BETA mode.'.format(package_version))
-            else:
-                self._pkg_version = package_version
-
-        if stub_universe_url.startswith(universe_converter_url_prefix):
-            # universe converter will return an HTTP 400 error because we aren't a DC/OS cluster. get the raw file instead.
-            self._stub_universe_url = stub_universe_url[len(universe_converter_url_prefix):]
-        else:
-            self._stub_universe_url = stub_universe_url
+        # universe converter will return an HTTP 400 error because we aren't a DC/OS cluster. get the raw file instead.
+        self._stub_universe_url = left_trim(stub_universe_url, universe_converter_url_prefix)
 
         if not release_dir_path:
             # determine release artifact directory based on (adjusted) package name
-            artifact_package_name = self._pkg_name
-            if artifact_package_name.startswith('beta-'):
-                # assets for beta-foo should always be uploaded to a 'foo' directory (with a '-beta' version)
-                artifact_package_name = artifact_package_name[len('beta-'):]
-            release_dir_path = artifact_package_name + '/assets'
+            # assets for beta-foo should always be uploaded to a 'foo' directory (with a '-beta' version)
+            release_dir_path = left_trim(self._pkg_name, 'beta-') + '/assets'
+            log.info("Uploading assets for %s to %s", self._pkg_name, release_dir_path)
 
         s3_directory_url = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
@@ -105,7 +115,6 @@ Artifact output: {}
 Upgrades from:   {}
 ###'''.format(self._stub_universe_url, self._pkg_name, self._pkg_version, self._http_directory_url, self._upgrades_from))
 
-
     def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
         if self._dry_run:
             log.info('[DRY RUN] {}'.format(cmd))
@@ -116,7 +125,6 @@ Upgrades from:   {}
             if ret != 0 and exit_on_fail:
                 raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
             return ret
-
 
     def _fetch_stub_universe(self):
         _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
@@ -129,7 +137,6 @@ Upgrades from:   {}
                 response.read().decode(response.info().get_param('charset') or 'utf-8'),
                 object_pairs_hook=collections.OrderedDict)
         return stub_universe_json
-
 
     def _unpack_stub_universe(self, stub_universe_json, scratchdir):
         '''Downloads a stub-universe.json URL and unpacks the content into a temporary directory.
@@ -177,7 +184,6 @@ Upgrades from:   {}
 
         return pkgdir
 
-
     def _update_package_json(self, package_json):
         '''Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
@@ -217,7 +223,6 @@ Upgrades from:   {}
             json.dumps(package_json, indent=2).split('\n'),
             lineterm='')))
 
-
     def _update_marathon_json(self, package_json):
         '''Updates the marathon.json definition to contain the desired name and version strings.
         '''
@@ -241,7 +246,6 @@ Upgrades from:   {}
         # Update parent package object with changes:
         package_json['marathon']['v2AppMustacheTemplate'] = base64.standard_b64encode(
             '\n'.join(marathon_lines).encode('utf-8')).decode()
-
 
     def _update_resource_json(self, package_json):
         '''Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
@@ -285,7 +289,6 @@ Upgrades from:   {}
 
         return original_artifact_urls
 
-
     def _update_package_get_artifacts(self, package_json):
         '''Updates the provided package JSON representation.
 
@@ -295,7 +298,6 @@ Upgrades from:   {}
         self._update_package_json(package_json)
         self._update_marathon_json(package_json)
         return self._update_resource_json(package_json)
-
 
     def _copy_artifacts_s3(self, scratchdir, original_artifact_urls):
         # Before we do anything else, verify that the upload directory doesn't already exist, to
@@ -344,7 +346,6 @@ Upgrades from:   {}
             # delete the local temp copy
             os.unlink(local_path)
 
-
     def move_package(self):
         '''Updates package, puts artifacts in target location, and uploads updated stub-universe.json to target location.'''
         # Download stub universe:
@@ -367,7 +368,6 @@ Upgrades from:   {}
             updated_stub_universe_path,
             content_type='application/vnd.dcos.universe.repo+json;charset=utf-8')
         return universe_converter_url_prefix + os.path.join(self._http_directory_url, stub_universe_filename)
-
 
     def release_package(self, commit_desc=''):
         '''Updates package, puts artifacts in target location, and creates Universe PR.'''
@@ -407,6 +407,23 @@ Upgrades from:   {}
                 'Failed to create PR. '
                 'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self._uploader.get_s3_directory()))
             raise
+
+
+def left_trim(string: str, prefix: str) -> str:
+    """Left trim a prefix (if present) from a string."""
+    if string.startswith(prefix):
+        return string[len(prefix):]
+
+    return string
+
+
+def right_trim(string: str, suffix: str) -> str:
+    """Right trim a suffix (if present) from a string."""
+    if string.endswith(suffix):
+        return string[:-len(suffix)]
+
+    return string
+
 
 
 def print_help(argv):
