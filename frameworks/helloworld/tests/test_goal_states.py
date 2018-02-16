@@ -25,7 +25,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name, "spec_file": "examples/finish_state.yml"}})
+            additional_options={"service": {"name": foldered_name, "yaml": "finish_state"}})
 
         yield  # let the test session execute
     finally:

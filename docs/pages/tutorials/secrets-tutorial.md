@@ -133,7 +133,7 @@ $ dcos package install --options=option.json hello-world
 $ cat option.json
 {
       "service":{
-          "spec_file" : "examples/secrets.yml"
+          "yaml" : "secrets"
       },
       "hello":{
           "secret1": "hello-world/secret1",

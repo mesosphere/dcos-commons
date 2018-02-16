@@ -14,7 +14,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {
             "service": {
-                "spec_file": "examples/executor_volume.yml"
+                "yaml": "executor_volume"
             }
         }
 

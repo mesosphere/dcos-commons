@@ -54,7 +54,7 @@ def configure_package(configure_security):
             6,
             additional_options={
                 "service": {
-                    "spec_file": "examples/tls.yml",
+                    "yaml": "tls",
                     "service_account": config.SERVICE_NAME,
                     "service_account_secret": config.SERVICE_NAME,
                     # Legacy values

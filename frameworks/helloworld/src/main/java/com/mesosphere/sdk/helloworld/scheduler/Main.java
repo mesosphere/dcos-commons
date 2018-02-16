@@ -8,14 +8,17 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * Main entry point for the Scheduler.
  */
 public class Main {
+    private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
+
     private static final Integer COUNT = Integer.valueOf(System.getenv("HELLO_COUNT"));
     private static final Double CPUS = Double.valueOf(System.getenv("HELLO_CPUS"));
     private static final String POD_TYPE = "hello";
@@ -26,7 +29,9 @@ public class Main {
         final SchedulerRunner runner;
         File yamlSpecFile;
 
-        Scenario scenario = getScenario(args);
+        Scenario scenario = getScenario();
+        LOGGER.info("Scheduler operating under scenario: {}", scenario.name());
+
         switch (scenario) {
             case Java:
                 // Create a sample config in Java
@@ -42,7 +47,7 @@ public class Main {
                         schedulerConfig,
                         yamlSpecFile.getParentFile());
                 break;
-            case CustomPlan:
+            case CUSTOM_PLAN:
                 yamlSpecFile = new File(args[0]);
                 ServiceSpec serviceSpec = DefaultServiceSpec
                         .newGenerator(yamlSpecFile, SchedulerConfig.fromEnv())
@@ -61,22 +66,30 @@ public class Main {
     private enum Scenario {
         YAML,
         Java,
-        CustomPlan
+        CUSTOM_PLAN,
+        CUSTOM_DECOMMISSION
     }
 
-    private static Scenario getScenario(String[] args) {
-        if (args.length == 0) {
-            return Scenario.Java;
-        } else if (args.length == 1) {
-            if (Boolean.valueOf(System.getenv().get("CUSTOMIZE_DEPLOY_PLAN"))) {
-                return Scenario.CustomPlan;
-            } else {
-                return Scenario.YAML;
-            }
-        } else {
-            throw new IllegalArgumentException("Expected zero or one file argument, got: " + Arrays.toString(args));
-        }
+    private static final String SCENARIO_KEY = "SCENARIO";
+    private static final String YAML_FLAG = "YAML";
+    private static final String JAVA_FLAG = "JAVA";
+    private static final String CUSTOM_PLAN_FLAG = "CUSTOM_PLAN";
+    private static final String CUSTOM_DECOMISSION_FLAG = "CUSTOM_DECOMMISSION";
 
+    private static Scenario getScenario() {
+        String flag = System.getenv().get(SCENARIO_KEY);
+        LOGGER.info("Detected flag: {}", flag);
+        switch (flag) {
+            case JAVA_FLAG:
+                return Scenario.Java;
+            case CUSTOM_PLAN_FLAG:
+                return Scenario.CUSTOM_PLAN;
+            case CUSTOM_DECOMISSION_FLAG:
+                return Scenario.CUSTOM_DECOMMISSION;
+            case YAML_FLAG:
+            default:
+                return Scenario.YAML;
+        }
     }
 
     /**

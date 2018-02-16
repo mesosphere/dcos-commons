@@ -20,7 +20,7 @@ secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
         "service": {
-            "spec_file": "examples/secrets.yml"
+            "yaml": "secrets"
         },
         "hello": {
             "count": NUM_HELLO,
@@ -37,7 +37,7 @@ secret_options = {
 
 options_dcos_space_test = {
     "service": {
-        "spec_file": "examples/secrets.yml"
+        "yaml": "secrets"
     },
     "hello": {
         "count": NUM_HELLO,
