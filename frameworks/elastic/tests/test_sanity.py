@@ -301,6 +301,7 @@ def test_plugin_install_and_uninstall(default_populated_index):
 
 @pytest.mark.recovery
 @pytest.mark.sanity
+@pytest.mark.skip(reason="INFINITY-3216")
 def test_unchanged_scheduler_restarts_without_restarting_tasks():
     initial_task_ids = sdk_tasks.get_task_ids(foldered_name, '')
     shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(foldered_name), "elastic.scheduler.Main")
