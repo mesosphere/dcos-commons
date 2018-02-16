@@ -17,7 +17,6 @@ import socket
 import subprocess
 import sys
 
-import github_update
 import universe
 
 logger = logging.getLogger(__name__)
@@ -40,21 +39,13 @@ class HTTPPublisher(object):
         self._http_host = os.environ.get('HTTP_HOST', '172.17.0.1')
         self._http_port = int(os.environ.get('HTTP_PORT', '0'))
 
-        self._github_updater = github_update.GithubStatusUpdater('upload:{}'.format(package_name))
-
         if not os.path.isdir(input_dir_path):
-            err = 'Provided package path is not a directory: {}'.format(input_dir_path)
-            self._github_updater.update('error', err)
-            raise Exception(err)
+            raise Exception('Provided package path is not a directory: {}'.format(input_dir_path))
 
         self._artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
-                raise Exception(err)
-            if artifact_path in self._artifact_paths:
-                err = 'Duplicate filename between "{}" and "{}". Artifact filenames must be unique.'.format(prior_path, artifact_path)
-                self._github_updater.update('error', err)
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
@@ -83,25 +74,11 @@ class HTTPPublisher(object):
             universe_url_file.write('{}\n'.format(universe_url))
             universe_url_file.flush()
             universe_url_file.close()
-        num_artifacts = len(self._artifact_paths)
-        if num_artifacts > 1:
-            suffix = 's'
-        else:
-            suffix = ''
-        self._github_updater.update(
-            'success',
-            'Copied stub universe and {} artifact{}'.format(num_artifacts, suffix),
-            universe_url)
 
 
     def build(self, http_url_root):
         '''copies artifacts and a new stub universe into the http root directory'''
-        try:
-            universe_path = self._package_builder.build_package()
-        except Exception as e:
-            err = 'Failed to create stub universe: {}'.format(str(e))
-            self._github_updater.update('error', err)
-            raise
+        universe_path = self._package_builder.build_package()
 
         # wipe files in dir
         if not os.path.isdir(self._http_dir):

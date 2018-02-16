@@ -15,49 +15,49 @@ BROKER_TLS_ENDPOINT = 'broker-tls'
 
 
 @pytest.fixture(scope='module')
-def service_account():
+def service_account(configure_security):
     """
     Creates service account and yields the name.
     """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+    try:
+        name = config.SERVICE_NAME
+        sdk_security.create_service_account(
+            service_account_name=name, service_account_secret=name)
+        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
+        sdk_cmd.run_cli(
+            "security org groups add_user superusers {name}".format(name=name))
+        yield name
+    finally:
+        sdk_security.delete_service_account(
+            service_account_name=name, service_account_secret=name)
 
 
 @pytest.fixture(scope='module')
 def kafka_service_tls(service_account):
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    config.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        config.DEFAULT_BROKER_COUNT,
-        additional_options={
-            "service": {
-                "service_account": service_account,
-                "service_account_secret": service_account,
-                "security": {
-                    "transport_encryption": {
-                        "enabled": True
+    try:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        config.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            config.DEFAULT_BROKER_COUNT,
+            additional_options={
+                "service": {
+                    "service_account": service_account,
+                    "service_account_secret": service_account,
+                    "security": {
+                        "transport_encryption": {
+                            "enabled": True
+                        }
                     }
                 }
             }
-        }
-    )
+        )
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    # Wait for service health check to pass
-    shakedown.service_healthy(config.SERVICE_NAME)
-
-    yield service_account
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        yield service_account
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.tls

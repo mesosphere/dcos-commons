@@ -1,6 +1,6 @@
 import logging
 
-import sdk_tasks
+import sdk_cmd
 
 
 LOG = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoi
                                                      user=user,
                                                      role=role)
     LOG.info("Running: %s", cmd)
-    output = sdk_tasks.task_exec(task, cmd)
+    output = sdk_cmd.task_exec(task, cmd)
     LOG.info(output)
 
 

@@ -14,15 +14,16 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * and setting the executor ID for a newly-launching pod.
  */
 public class ExecutorEvaluationStage implements OfferEvaluationStage {
-    private final Optional<Protos.ExecutorInfo> executorInfo;
+
+    private final Optional<Protos.ExecutorID> id;
 
     /**
      * Instantiate with an expected {@link org.apache.mesos.Protos.ExecutorID} to check for in offers. If not found,
      * the offer will be rejected by this stage.
-     * @param executorInfo the executor ID to look for in incoming offers
+     * @param id the executor ID to look for in incoming offers
      */
-    public ExecutorEvaluationStage(Optional<Protos.ExecutorInfo> executorInfo) {
-        this.executorInfo = executorInfo;
+    public ExecutorEvaluationStage(Optional<Protos.ExecutorID> id) {
+        this.id = id;
     }
 
     @Override
@@ -31,20 +32,22 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
             return pass(this, "No executor requirement defined").build();
         }
 
+        String idStr = id.isPresent() ? id.get().getValue() : "";
+
         if (!hasExpectedExecutorId(mesosResourcePool.getOffer())) {
             return fail(this,
-                    "Offer does not contain the needed Executor ID: '%s'",
-                    executorInfo.get().getExecutorId().getValue()).build();
+                    "Offer does not contain the needed Executor ID: '%s'", idStr)
+                    .build();
         }
 
-        if (executorInfo.isPresent()) {
-            podInfoBuilder.setExecutorBuilder(executorInfo.get().toBuilder());
+        Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
+        if (id.isPresent()) {
+            executorBuilder.setExecutorId(id.get());
             return pass(
                     this,
-                    "Offer contains the matching Executor ID: '%s'",
-                    executorInfo.get().getExecutorId().getValue()).build();
+                    "Offer contains the matching Executor ID: '%s'", idStr)
+                    .build();
         } else {
-            Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             Protos.ExecutorID executorID = CommonIdUtils.toExecutorId(executorBuilder.getName());
             executorBuilder.setExecutorId(executorID);
             return pass(
@@ -55,12 +58,12 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
     }
 
     private boolean hasExpectedExecutorId(Protos.Offer offer) {
-        if (!executorInfo.isPresent()) {
+        if (!id.isPresent()) {
             return true;
         }
 
         for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
-            if (execId.equals(executorInfo.get().getExecutorId())) {
+            if (execId.equals(id.get())) {
                 return true;
             }
         }

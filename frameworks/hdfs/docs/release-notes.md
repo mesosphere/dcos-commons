@@ -1,13 +1,32 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle:
+excerpt:
+title: Release Notes
+menuWeight: 120
 ---
+
+## Version 2.0.4-2.6.0-cdh5.11.0
+
+### Bug Fixes
+- Placement constraints are now exposed.
+
+## Version 2.1.1-2.6.0-cdh5.11.0-beta
+
+### NOTICE
+This is a beta release of the DC/OS Apache HDFS framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### New Features
+- Support for HDFS rack awareness using DC/OS zones on DC/OS 1.11+
+
+### Bug Fixes
+- Scheduler health check now passes during service uninstall.
+- Fixed a regression in replacing failed pods on failed agents.
+- Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.
 
 ## Verion 3.0.0-2.6.0-cdh5.11.0-beta
 
-## NOTICE
-
+### NOTICE
 This is a beta release of the DC/OS HDFS framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### New features

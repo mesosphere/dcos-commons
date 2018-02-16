@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.cassandra.scheduler;
 
-import com.mesosphere.sdk.api.EndpointUtils;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import com.mesosphere.sdk.http.EndpointUtils;
 
 /**
  * This class is a collection of useful utilities for use by Cassandra components.

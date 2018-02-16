@@ -16,8 +16,7 @@ PAGES_FRAMEWORKS_PATH_PATTERN=${DOCS_DIR}/../frameworks/*/docs/
 JAVADOC_SDK_PATH_PATTERN=${DOCS_DIR}/../sdk/*/src/main/
 
 # Output directory:
-OUTPUT_BASE_DIR=dcos-commons-gh-pages
-OUTPUT_DIR=${OUTPUT_BASE_DIR}/dcos-commons
+OUTPUT_DIR=dcos-commons-gh-pages/dcos-commons
 
 # Swagger build to fetch if needed:
 SWAGGER_CODEGEN_VERSION=2.2.2
@@ -71,13 +70,13 @@ for dir in $(ls -d $PAGES_FRAMEWORKS_PATH_PATTERN); do
     ln -s -v $dir services/$framework
 done
 # Errors? Do this!:
-# sudo gem install jekyll jekyll-redirect-from
+# sudo gem install jekyll jekyll-redirect-from jekyll-toc
 run_cmd jekyll build --destination ${DOCS_DIR}/${OUTPUT_DIR}
 popd
 
 # 2. Generate javadocs to api/ subdir
 javadoc -quiet -notimestamp -package -d ${OUTPUT_DIR}/reference/api/ \
-    $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) 2>&1 | /dev/null || echo "Ignoring javadoc exit code. Disregard errors about /dev/null."
+    $(find $JAVADOC_SDK_PATH_PATTERN -name *.java) &> /dev/null || echo "Ignoring javadoc exit code."
 
 # 3. Generate swagger html to swagger-api/ subdir
 if [ ! -f ${SWAGGER_JAR} ]; then
@@ -125,14 +124,5 @@ else
     if [ -z "${HTTP_PORT+x}" ]; then
         HTTP_PORT=$DEFAULT_HTTP_PORT
     fi
-    FAILED=""
-    echo "> http://localhost:${HTTP_PORT}/dcos-commons < is now serving $DOCS_DIR/$OUTPUT_DIR"
-    python $DOCS_DIR/httpd.py $DOCS_DIR/$OUTPUT_BASE_DIR $HTTP_PORT || FAILED="yes"
-    if [ -n "$FAILED" ]; then
-        echo "-----"
-        echo "Failed to listen on HTTP_PORT=$HTTP_PORT."
-        echo "Wait for that port to free up, or specify a different port like this:"
-        echo "HTTP_PORT=<custom port> $0 $@"
-        echo "Alternately just run '$0 exit' to skip running a test server."
-    fi
+    run_cmd jekyll serve --port $HTTP_PORT --baseurl /dcos-commons --skip-initial-build --no-watch --destination $DOCS_DIR/$OUTPUT_DIR
 fi

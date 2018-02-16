@@ -25,7 +25,7 @@ public class ClusterState {
     private final ServiceSpec serviceSpec;
     private final AbstractScheduler scheduler;
     private final List<Protos.Offer> sentOffers = new ArrayList<>();
-    private final List<Collection<Protos.TaskInfo>> createdPods = new ArrayList<>();
+    private final List<LaunchedPod> createdPods = new ArrayList<>();
 
     private ClusterState(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
         this.serviceSpec = serviceSpec;
@@ -58,6 +58,10 @@ public class ClusterState {
         return scheduler.getPlans();
     }
 
+    public Collection<Object> getResources() {
+        return scheduler.getResources();
+    }
+
     /**
      * Adds the provided offer to the list of sent offers.
      */
@@ -81,8 +85,8 @@ public class ClusterState {
     /**
      * Adds the provided pod to the list of launched pods.
      */
-    public void addLaunchedPod(Collection<Protos.TaskInfo> pod) {
-        if (pod.isEmpty()) {
+    public void addLaunchedPod(LaunchedPod pod) {
+        if (pod.getTasks().isEmpty()) {
             throw new IllegalArgumentException("Refusing to record an empty pod");
         }
         createdPods.add(pod);
@@ -95,7 +99,7 @@ public class ClusterState {
      * @throws IllegalStateException if no pods had been launched
      * @see #getLastLaunchedPod(String)
      */
-    public Collection<Protos.TaskInfo> getLastLaunchedPod() {
+    public LaunchedPod getLastLaunchedPod() {
         if (createdPods.isEmpty()) {
             throw new IllegalStateException("No pods were created yet");
         }
@@ -110,11 +114,12 @@ public class ClusterState {
      * @throws IllegalStateException if no such pod was found
      * @see #getLastLaunchedPod()
      */
-    public Collection<Protos.TaskInfo> getLastLaunchedPod(String podName) {
+    public LaunchedPod getLastLaunchedPod(String podName) {
         Set<String> allPodNames = new TreeSet<>();
-        Collection<Protos.TaskInfo> foundPod = null;
-        for (Collection<Protos.TaskInfo> pod : createdPods) {
-            final Protos.TaskInfo task = pod.iterator().next(); // sample from the first task. should all be the same.
+        LaunchedPod foundPod = null;
+        for (LaunchedPod pod : createdPods) {
+            // Sample pod info from the first task. All tasks should share the same pod info:
+            final Protos.TaskInfo task = pod.getTasks().iterator().next();
             final TaskLabelReader reader = new TaskLabelReader(task);
             final String thisPod;
             try {
@@ -142,7 +147,7 @@ public class ClusterState {
      * @return the task's info
      * @throws IllegalStateException if no such task was found
      */
-    public Protos.TaskInfo getLastLaunchedTask(String taskName) {
+    public LaunchedTask getLastLaunchedTask(String taskName) {
         // Iterate over pods in sequential order, so that the newer version of a given task (by name) takes precedence
         // over an older version.
         // For example, given two versions of podX:
@@ -152,18 +157,18 @@ public class ClusterState {
         //   {A: 2, B: 1, C: 3}
         // Note: We COULD have just filtered against the task name up-front here, but it'd be more helpful to have a
         // mapping of all tasks available for the error message below.
-        Map<String, Protos.TaskInfo> taskInfosByName = new HashMap<>();
-        for (Collection<Protos.TaskInfo> pod : createdPods) {
-            for (Protos.TaskInfo task : pod) {
-                taskInfosByName.put(task.getName(), task);
+        Map<String, LaunchedTask> tasksByName = new HashMap<>();
+        for (LaunchedPod pod : createdPods) {
+            for (Protos.TaskInfo task : pod.getTasks()) {
+                tasksByName.put(task.getName(), new LaunchedTask(pod.getExecutor(), task));
             }
         }
-        Protos.TaskInfo taskInfo = taskInfosByName.get(taskName);
-        if (taskInfo == null) {
+        LaunchedTask task = tasksByName.get(taskName);
+        if (task == null) {
             throw new IllegalStateException(String.format(
-                    "Unable to find task named %s, known tasks were: %s", taskName, taskInfosByName.keySet()));
+                    "Unable to find task named %s, known tasks were: %s", taskName, tasksByName.keySet()));
         }
-        return taskInfo;
+        return task;
     }
 
     /**
@@ -174,6 +179,6 @@ public class ClusterState {
      * @throws IllegalStateException if no such task was found
      */
     public Protos.TaskID getTaskId(String taskName) {
-        return getLastLaunchedTask(taskName).getTaskId();
+        return getLastLaunchedTask(taskName).getTask().getTaskId();
     }
 }

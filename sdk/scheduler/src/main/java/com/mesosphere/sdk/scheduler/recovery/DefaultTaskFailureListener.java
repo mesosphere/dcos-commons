@@ -1,17 +1,18 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import org.apache.mesos.Protos;
-import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class provides a default implementation of the {@link TaskFailureListener} interface.
@@ -27,17 +28,25 @@ public class DefaultTaskFailureListener implements TaskFailureListener {
     }
 
     @Override
-    public void taskFailed(Protos.TaskID taskId) {
-        try {
-            Optional<Protos.TaskInfo> optionalTaskInfo = stateStore.fetchTask(CommonIdUtils.toTaskName(taskId));
-            if (optionalTaskInfo.isPresent()) {
-                PodInstance podInstance = TaskUtils.getPodInstance(configStore, optionalTaskInfo.get());
-                FailureUtils.setPermanentlyFailed(stateStore, podInstance);
-            } else {
-                logger.error("TaskInfo for TaskID was not present in the StateStore: " + taskId);
+    public void tasksFailed(Collection<Protos.TaskInfo> taskInfos) {
+        getPods(taskInfos).forEach(podInstance -> FailureUtils.setPermanentlyFailed(stateStore, podInstance));
+    }
+
+    private Set<PodInstance> getPods(Collection<Protos.TaskInfo> taskInfos) {
+        Set<PodInstance> podInstances = new HashSet<>();
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            if (taskInfo.getTaskId().getValue().isEmpty()) {
+                // Skip marking 'stub' tasks which haven't been launched as permanently failed:
+                logger.info("Not marking task {} as failed due to empty taskId", taskInfo.getName());
+                continue;
             }
-        } catch (TaskException e) {
-            logger.error("Failed to fetch/store Task for taskId: " + taskId + " with exception:", e);
+            try {
+                podInstances.add(TaskUtils.getPodInstance(configStore, taskInfo));
+            } catch (TaskException e) {
+                logger.error(String.format("Failed to get pod for task %s", taskInfo.getTaskId().getValue()), e);
+            }
         }
+
+        return podInstances;
     }
 }

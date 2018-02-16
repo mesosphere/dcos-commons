@@ -5,22 +5,18 @@ import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_tasks
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=120*1000,
+    retry_on_result=lambda res: not res)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
-    def fun():
-        try:
-            if len(sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)) == count:
-                return True
-        except:
-            pass
-        return False
-
-    shakedown.wait_for(fun)
+    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'broker list', json=True)
+    return len(brokers) == count
 
 
 def restart_broker_pods(service_name=config.SERVICE_NAME):
@@ -51,12 +47,9 @@ def wait_for_broker_dns(package_name: str, service_name: str):
     broker_dns = list(map(lambda x: x.split(':')[0], brokers["dns"]))
 
     def get_scheduler_task_id(service_name: str) -> str:
-        raw_tasks = sdk_cmd.run_cli("task --json", )
-        if raw_tasks:
-            tasks = json.loads(raw_tasks)
-            for task in tasks:
-                if task["name"] == service_name:
-                    return task["id"]
+        for task in sdk_tasks.get_summary():
+            if task.name == service_name:
+                return task.id
 
     scheduler_task_id = get_scheduler_task_id(service_name)
     log.info("Scheduler task ID: %s", scheduler_task_id)

@@ -10,9 +10,9 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 
+import retrying
 import shakedown
 
-import sdk_api
 import sdk_cmd
 
 log = logging.getLogger(__name__)
@@ -22,17 +22,15 @@ def get_scheduler_metrics(service_name, timeout_seconds=15*60):
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
-    def fn():
-        output = sdk_api.get(service_name, '/v1/metrics')
-        try:
-            return output.json()
-        except:
-            return False
-    return shakedown.wait_for(fn, timeout_seconds)
+    return sdk_cmd.service_request('GET', service_name, '/v1/metrics').json()
 
 
 def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
     """Waits for and returns the specified counter value from the scheduler"""
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
     def check_for_value():
         try:
             sched_metrics = get_scheduler_metrics(service_name)
@@ -51,16 +49,22 @@ def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))
             return None
-    return shakedown.wait_for(check_for_value, timeout_seconds)
+
+    return check_for_value()
 
 
 def wait_for_scheduler_counter_value(service_name, counter_name, min_value, timeout_seconds=15*60):
     """Waits for the specified counter value to be reached by the scheduler
     For example, check that `offers.processed` is equal or greater to 1."""
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds*1000,
+        retry_on_result=lambda res: not res)
     def check_for_value():
         value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
         return value >= min_value
-    shakedown.wait_for(check_for_value, timeout_seconds)
+
+    return check_for_value()
 
 
 def get_metrics(package_name, service_name, task_name):
@@ -97,12 +101,8 @@ def get_metrics(package_name, service_name, task_name):
 
     # Not related to functionality but consuming this
     # endpoint to verify downstream integrity
-    containers_url = "{}/system/v1/agent/{}/metrics/v0/containers".format(shakedown.dcos_url(), agent_id)
-    containers_response = sdk_cmd.request("GET", containers_url, retry=False)
-    if containers_response.ok is None:
-        log.info("Unable to fetch containers list")
-        raise Exception(
-            "Unable to fetch containers list: {}".format(containers_url))
+    containers_response = sdk_cmd.cluster_request(
+        "GET", "/system/v1/agent/{}/metrics/v0/containers".format(agent_id), retry=False)
     reported_container_ids = json.loads(containers_response.text)
 
     container_id_reported = False
@@ -114,12 +114,8 @@ def get_metrics(package_name, service_name, task_name):
         raise ValueError("The metrics /container endpoint returned {}, expecting {} to be returned as well".format(
             reported_container_ids, task_container_id))
 
-    app_url = "{}/system/v1/agent/{}/metrics/v0/containers/{}/app".format(
-        shakedown.dcos_url(), agent_id, task_container_id)
-    app_response = sdk_cmd.request("GET", app_url, retry=False)
-    if app_response.ok is None:
-        raise ValueError("Failed to get metrics from container")
-
+    app_response = sdk_cmd.cluster_request(
+        "GET", "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(agent_id, task_container_id), retry=False)
     app_json = json.loads(app_response.text)
     if app_json['dimensions']['executor_id'] == executor_id:
         return app_json['datapoints']
@@ -153,6 +149,10 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     task_name -- the name of the task whose agent to run metrics commands from
     expected_metrics_exist -- serivce-specific callback that checks for service-specific metrics
     """
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout*1000,
+        retry_on_result=lambda res: not res)
     def check_for_service_metrics():
         try:
             log.info("verifying metrics exist for {}".format(service_name))
@@ -164,4 +164,4 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
             log.error("Caught exception trying to get metrics: {}".format(e))
             return False
 
-    shakedown.wait_for(check_for_service_metrics, timeout)
+    check_for_service_metrics()

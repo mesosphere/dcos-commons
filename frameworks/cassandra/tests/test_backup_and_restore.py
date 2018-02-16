@@ -1,5 +1,4 @@
 import os
-import tempfile
 import uuid
 
 import pytest
@@ -16,9 +15,9 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
-        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
-            sdk_jobs.remove_job(job)
+            sdk_jobs.install_job(job)
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
         # user=root because Azure CLI needs to run in root...
@@ -33,10 +32,6 @@ def configure_package(configure_security):
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
             additional_options=additional_options)
-
-        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
-        for job in test_jobs:
-            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
 
         yield # let the test session execute
     finally:
@@ -57,9 +52,9 @@ def test_backup_and_restore_to_azure():
     if not client_id:
         assert False, 'Azure credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not azure"'
     plan_parameters = {
-        'AZURE_CLIENT_ID': client_id,
-        'AZURE_CLIENT_SECRET': os.getenv('AZURE_CLIENT_SECRET'),
-        'AZURE_TENANT_ID': os.getenv('AZURE_TENANT_ID'),
+        'CLIENT_ID': client_id,
+        'CLIENT_SECRET': os.getenv('AZURE_CLIENT_SECRET'),
+        'TENANT_ID': os.getenv('AZURE_TENANT_ID'),
         'AZURE_STORAGE_ACCOUNT': os.getenv('AZURE_STORAGE_ACCOUNT'),
         'AZURE_STORAGE_KEY': os.getenv('AZURE_STORAGE_KEY'),
         'CONTAINER_NAME': os.getenv('CONTAINER_NAME', 'cassandra-test'),

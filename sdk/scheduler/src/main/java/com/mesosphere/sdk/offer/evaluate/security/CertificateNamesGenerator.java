@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
-import com.mesosphere.sdk.api.EndpointUtils;
+import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;

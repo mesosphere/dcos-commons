@@ -15,10 +15,8 @@ import (
 	"strings"
 	"time"
 
-	// TODO switch to upstream once https://github.com/hoisie/mustache/pull/57 is merged:
 	"github.com/aryann/difflib"
-	"github.com/gabrielhartmann/mustache"
-
+	"github.com/cbroglie/mustache"
 	"github.com/dcos/dcos-cni/pkg/mesos"
 )
 
@@ -27,7 +25,6 @@ import (
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
 	resolveRetryDelay    = time.Duration(1) * time.Second
-	mesos_dns            = "mesos"
 )
 
 var verbose = false
@@ -43,6 +40,9 @@ type args struct {
 	// Timeout across all hosts. Zero means timeout disabled.
 	resolveTimeout time.Duration
 
+	// Whether to wait for the task's DNS to resolve to its IP address
+	selfResolveAndVerify bool
+
 	// Whether to enable template logic
 	templateEnabled bool
 	// Max supported bytes or 0 for no limit
@@ -52,7 +52,7 @@ type args struct {
 	installCerts bool
 
 	// Get Task IP
-	getTaskIp bool
+	getTaskIP bool
 }
 
 func parseArgs() args {
@@ -65,6 +65,9 @@ func parseArgs() args {
 	flag.BoolVar(&args.resolveEnabled, "resolve", true,
 		"Whether to enable the step of waiting for hosts to resolve. "+
 			"May be disabled for faster startup when not needed.")
+	flag.BoolVar(&args.selfResolveAndVerify, "self-resolve", true,
+		"Whether (if resolution is enabled) to verify that the task DNS address "+
+			"resolves to the task IP address")
 	var rawHosts string
 	defaultHostString := "<TASK_NAME>.<FRAMEWORK_HOST>"
 	flag.StringVar(&rawHosts, "resolve-hosts", defaultHostString,
@@ -80,27 +83,38 @@ func parseArgs() args {
 	flag.BoolVar(&args.installCerts, "install-certs", true,
 		"Whether to install certs from .ssl to the JRE.")
 
-	flag.BoolVar(&args.getTaskIp, "get-task-ip", false, "Print task IP")
+	flag.BoolVar(&args.getTaskIP, "get-task-ip", false, "Print task IP")
 
 	flag.Parse()
 
 	// Note: Parse this argument AFTER flag.Parse(), in case user is just running '--help'
-	if args.resolveEnabled && rawHosts == defaultHostString && !args.getTaskIp {
+	if args.resolveEnabled && rawHosts == defaultHostString && !args.getTaskIP {
 		// Note: only build the default resolve value (requiring envvars) *after* we know
 		// the user didn't provide hosts of their own.
-		taskName, taskNameOk := os.LookupEnv("TASK_NAME")
-		frameworkHost, frameworkHostOk := os.LookupEnv("FRAMEWORK_HOST")
-		if !taskNameOk || !frameworkHostOk {
+		taskHost, err := parseTaskHost()
+		if err != nil {
 			printEnv()
 			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
 				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_HOST.")
+
 		}
-		args.resolveHosts = []string{fmt.Sprintf("%s.%s", taskName, frameworkHost)}
+
+		args.resolveHosts = []string{taskHost}
 	} else {
 		args.resolveHosts = splitAndClean(rawHosts, ",")
 	}
 
 	return args
+}
+
+func parseTaskHost() (string, error) {
+	taskName, taskNameOk := os.LookupEnv("TASK_NAME")
+	frameworkHost, frameworkHostOk := os.LookupEnv("FRAMEWORK_HOST")
+	if !taskNameOk || !frameworkHostOk {
+		return "", fmt.Errorf("Cannot determine TASK_NAME or FRAMEWORK_HOST")
+	}
+
+	return fmt.Sprintf("%s.%s", taskName, frameworkHost), nil
 }
 
 func splitAndClean(s string, sep string) []string {
@@ -123,7 +137,56 @@ func printEnv() {
 	log.Printf("Bootstrapping with environment:\n%s", strings.Join(env, "\n"))
 }
 
+// Check whether a timer is expired or not.
+func isExpired(timer *time.Timer) bool {
+	if timer == nil {
+		return false
+	}
+
+	select {
+	case _, done := <-timer.C:
+		if done {
+			return true
+		}
+
+		log.Fatalf("Internal error: Timer channel closed")
+	default:
+		// Do nothing
+	}
+
+	return false
+}
+
 // dns resolve
+func resolveHost(host string, timer *time.Timer) []string {
+	log.Printf("Waiting for '%s' to resolve...", host)
+
+	for {
+		result, err := net.LookupHost(host)
+
+		// Check result, return if suceeded
+		if err != nil {
+			if verbose {
+				log.Printf("Lookup failed: %s", err)
+			}
+		} else if len(result) == 0 {
+			if verbose {
+				log.Printf("No results for host '%s'", host)
+			}
+		} else {
+			log.Printf("Resolved '%s' => %s", host, result)
+			return result
+		}
+
+		if isExpired(timer) {
+			log.Fatalf("Time ran out while resolving '%s'. "+
+				"Customize timeout with -resolve-timeout, or use -verbose to see attempts.", host)
+		}
+
+		// Spin
+		time.Sleep(resolveRetryDelay)
+	}
+}
 
 func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 	var timer *time.Timer
@@ -132,47 +195,62 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 	} else {
 		timer = time.NewTimer(resolveTimeout)
 	}
+
 	for _, host := range resolveHosts {
-		log.Printf("Waiting for '%s' to resolve...", host)
-		for {
-			result, err := net.LookupHost(host)
-
-			// Check result, exit loop if suceeded:
-			if err != nil {
-				if verbose {
-					log.Printf("Lookup failed: %s", err)
-				}
-			} else if len(result) == 0 {
-				if verbose {
-					log.Printf("No results for host '%s'", host)
-				}
-			} else {
-				log.Printf("Resolved '%s' => %s", host, result)
-				break
-			}
-
-			// Check timeout:
-			if timer != nil {
-				select {
-				case _, ok := <-timer.C:
-					if ok {
-						log.Fatalf("Time ran out while resolving '%s'. "+
-							"Customize timeout with -resolve-timeout, or use -verbose to see attempts.", host)
-					} else {
-						log.Fatalf("Internal error: Channel closed")
-					}
-				default:
-					// do nothing
-				}
-			}
-
-			// Wait before retry:
-			time.Sleep(resolveRetryDelay)
-		}
+		resolveHost(host, timer)
 	}
 
 	if verbose {
 		log.Printf("Hosts resolved, continuing bootstrap.")
+	}
+
+	// Clean up:
+	if !timer.Stop() {
+		<-timer.C
+	}
+}
+
+func verifySelfResolution(podIP string, resolveTimeout time.Duration) {
+	taskHost, err := parseTaskHost()
+	if err != nil {
+		printEnv()
+		log.Fatalf("Missing required envvars to build task DNS address. " +
+			"Ensure that TASK_NAME and FRAMEWORK_HOST are both set or " +
+			"disable self resolution with --self-resolve=false")
+	}
+	log.Printf("Waiting for %s to resolve to %s", taskHost, podIP)
+
+	var timer *time.Timer
+	if resolveTimeout == 0 {
+		timer = nil
+	} else {
+		timer = time.NewTimer(resolveTimeout)
+	}
+
+	for {
+		resolvedIPs := resolveHost(taskHost, timer)
+		if len(resolvedIPs) != 1 {
+			if verbose {
+				log.Printf("%s resolved to multiple addresses. Retrying", taskHost)
+			}
+		} else if resolvedIPs[0] != podIP {
+			if verbose {
+				log.Printf("%s resolved to %s, which does not match the expected task ip %s",
+					taskHost, resolvedIPs[0], podIP)
+			}
+		} else {
+			// The resolved address matches the expected address
+			log.Printf("%s resolved to %s as expected.", taskHost, podIP)
+			break
+		}
+
+		if isExpired(timer) {
+			log.Fatalf("Time ran out waiting for %s to resolve to %s. "+
+				"Customize timeout with -resolve-timeout, or use -verbose to see attempts.",
+				taskHost, podIP)
+		}
+
+		time.Sleep(resolveRetryDelay)
 	}
 
 	// Clean up:
@@ -214,15 +292,20 @@ func openTemplate(inPath string, source string, templateMaxBytes int64) []byte {
 }
 
 func renderTemplate(origContent string, outPath string, envMap map[string]string, source string) {
-	dirpath, _ := path.Split(outPath)
-	template, err := mustache.ParseStringPartialsRawInDir(origContent, dirpath, nil, false)
-	if err != nil {
-		log.Fatalf("Failed to parse template content from %s at '%s': %s", source, outPath, err)
+	// Env preprocessing: map "false", "False", etc to a false bool, so that it's treated as 'falsy'.
+	varMap := make(map[string]interface{})
+	for k, v := range envMap {
+		if strings.ToLower(v) == "false" {
+			// Pass a bool. We want falsy blocks to be rendered, but we also want 'false' to be passed through for values.
+			varMap[k] = false
+		} else {
+			varMap[k] = v
+		}
 	}
 
-	newContent, err := template.Render(envMap)
+	newContent, err := mustache.Render(origContent, varMap)
 	if err != nil {
-		log.Fatalf("Failed to render template from %s to '%s': %s", source, outPath, err)
+		log.Fatalf("Failed to render template from %s at '%s': %s", source, outPath, err)
 	}
 
 	// Print a nice debuggable diff of the changes before they're written.
@@ -356,20 +439,22 @@ func getContainerIPAddress() (string, error) {
 func main() {
 	args := parseArgs()
 
-	pod_ip, err := getContainerIPAddress()
+	podIP, err := getContainerIPAddress()
 	if err != nil {
-		log.Fatalf("Cannot find the container's IP address: ", err)
+		log.Fatalf("Cannot find the container's IP address: %s", err)
 	}
 
-	err = os.Setenv("LIBPROCESS_IP", pod_ip)
-	err = os.Setenv("MESOS_CONTAINER_IP", pod_ip)
+	err = os.Setenv("LIBPROCESS_IP", podIP)
 	if err != nil {
-		log.Fatalf("Failed to SET new LIBPROCESS_IP: ", err)
+		log.Fatalf("Failed to SET new LIBPROCESS_IP: %s", err)
+	}
+	err = os.Setenv("MESOS_CONTAINER_IP", podIP)
+	if err != nil {
+		log.Fatalf("Failed to SET new MESOS_CONTAINER_IP: %s", err)
 	}
 
-	if args.getTaskIp {
-		log.Printf("Printing new task IP: %s", pod_ip)
-		fmt.Printf("%s", pod_ip)
+	if args.getTaskIP {
+		fmt.Printf("%s", podIP)
 		os.Exit(0)
 	}
 
@@ -379,6 +464,10 @@ func main() {
 
 	if args.resolveEnabled {
 		waitForResolve(args.resolveHosts, args.resolveTimeout)
+
+		if args.selfResolveAndVerify {
+			verifySelfResolution(podIP, args.resolveTimeout)
+		}
 	} else {
 		log.Printf("Resolve disabled via -resolve=false: Skipping host resolution")
 	}
@@ -393,6 +482,5 @@ func main() {
 		installDCOSCertIntoJRE()
 	}
 
-	log.Printf("Local IP --> %s", pod_ip)
 	log.Printf("SDK Bootstrap successful.")
 }

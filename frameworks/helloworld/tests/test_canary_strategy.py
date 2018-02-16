@@ -1,6 +1,7 @@
 import logging
 
 import pytest
+import retrying
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -39,11 +40,15 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_canary_init():
-    def fn():
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=600*1000,
+        retry_on_result=lambda res: not res)
+    def wait_for_empty():
         # check for empty list internally rather than returning empty list.
-        # otherwise shakedown.wait_for() will keep going...
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == []
-    assert shakedown.wait_for(fn, noisy=True, timeout_seconds=10 * 60)
+
+    wait_for_empty()
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)

@@ -6,7 +6,7 @@
       "executor-zip": "{{artifact-dir}}/executor.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/elastic-scheduler.zip",
-      "statsd-plugin-zip": "https://github.com/mesosphere/elasticsearch-statsd-plugin/releases/download/{{elastic-version}}.0/elasticsearch-statsd-{{elastic-version}}.0.zip",
+      "statsd-plugin-zip": "https://github.com/mesosphere/elasticsearch-statsd-plugin/releases/download/{{elastic-statsd-version}}/elasticsearch-statsd-{{elastic-statsd-version}}.zip",
       "elasticsearch-jre-tar-gz": "{{jre-url}}",
       "elasticsearch-tar-gz": "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{elastic-version}}.tar.gz",
       "xpack-zip": "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{elastic-version}}.zip",
@@ -14,9 +14,9 @@
     }
   },
   "images": {
-    "icon-small": "https://downloads.mesosphere.com/universe/assets/elasticsearch-small.png",
-    "icon-medium": "https://downloads.mesosphere.com/universe/assets/elasticsearch-medium.png",
-    "icon-large": "https://downloads.mesosphere.com/universe/assets/elasticsearch-large.png"
+    "icon-small": "https://downloads.mesosphere.com/assets/universe/000/elastic-icon-small.png",
+    "icon-medium": "https://downloads.mesosphere.com/assets/universe/000/elastic-icon-medium.png",
+    "icon-large": "https://downloads.mesosphere.com/assets/universe/000/elastic-icon-large.png"
   },
   "cli": {
     "binaries": {

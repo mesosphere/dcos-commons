@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.api.types.PlanInfo;
 import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * <p>
  * This is an implementation of {@code PlanManager} that performs task recovery using dynamically generated
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
- * generates a new {@link DefaultRecoveryStep} for them and adds them to the recovery Plan, if not already added.
+ * generates a new {@link RecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager implements PlanManager {
     public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
@@ -96,7 +96,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
             updatePlan(dirtyAssets);
             return getPlan().getCandidates(dirtyAssets).stream()
                     .filter(step ->
-                            launchConstrainer.canLaunch(((DefaultRecoveryStep) step).getRecoveryType()))
+                            launchConstrainer.canLaunch(((RecoveryStep) step).getRecoveryType()))
                     .collect(Collectors.toList());
         }
     }
@@ -122,10 +122,10 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
 
         synchronized (planLock) {
-            Collection<PodInstanceRequirement> podInstanceRequirements = null;
+            Collection<PodInstanceRequirement> newRequirements = null;
 
             try {
-                podInstanceRequirements = getRecoveryRequirements(dirtyAssets);
+                newRequirements = getNewRecoveryRequirements(dirtyAssets);
             } catch (TaskException e) {
                 logger.error("Failed to generate steps.", e);
                 return;
@@ -133,18 +133,17 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
             List<PodInstanceRequirement> defaultRequirements = new ArrayList<>();
             List<Phase> phases = new ArrayList<>();
-            for (PodInstanceRequirement requirement : podInstanceRequirements) {
-                boolean overriden = false;
+            for (PodInstanceRequirement requirement : newRequirements) {
+                boolean overridden = false;
                 for (RecoveryPlanOverrider overrider : recoveryPlanOverriders) {
                     Optional<Phase> override  = overrider.override(requirement);
                     if (override.isPresent()) {
-                        overriden = true;
-                        Phase phase = override.get();
-                        phases.add(phase);
+                        overridden = true;
+                        phases.add(override.get());
                     }
                 }
 
-                if (!overriden) {
+                if (!overridden) {
                     defaultRequirements.add(requirement);
                 }
             }
@@ -169,12 +168,31 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 .collect(Collectors.toList());
     }
 
+    private static boolean phaseOverriden(Phase phase, Collection<PodInstanceRequirement> newReqs) {
+        // If at least 1 new requirement conflicts with the phase's steps, the phase has been overridden
+        return phase.getChildren().stream()
+                .map(step -> step.getPodInstanceRequirement())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .filter(req -> PlanUtils.assetConflicts(req, newReqs))
+                .count() > 0;
+    }
 
     private Plan updatePhases(List<Phase> overridePhases) {
-        Map<String, Phase> phaseMap = new HashMap<>();
-        getPlan().getChildren().forEach(phase -> phaseMap.put(phase.getName(), phase));
-        overridePhases.forEach(phase -> phaseMap.put(phase.getName(), phase));
-        List<Phase> phases = new ArrayList<>(phaseMap.values());
+        Collection<PodInstanceRequirement> newReqs = overridePhases.stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .map(step -> step.getPodInstanceRequirement())
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        Collection<Phase> inProgressPhases = getPlan().getChildren().stream()
+                .filter(phase -> !phaseOverriden(phase, newReqs))
+                .collect(Collectors.toList());
+
+        List<Phase> phases = new ArrayList<>();
+        phases.addAll(inProgressPhases);
+        phases.addAll(overridePhases);
 
         return DeployPlanFactory.getPlan(DEFAULT_RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
     }
@@ -228,7 +246,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         }
     }
 
-    private List<PodInstanceRequirement> getRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
+    private List<PodInstanceRequirement> getNewRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
 
         Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(
@@ -251,7 +269,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))
                 .collect(Collectors.toList());
-        logger.info("Found tasks needing recovery: " + getPodNames(failedPods));
+        logger.info("Found pods needing recovery: " + getPodNames(failedPods));
 
         List<PodInstanceRequirement> inProgressRecoveries = getPlan().getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
@@ -266,7 +284,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, inProgressRecoveries))
                 .collect(Collectors.toList());
-        logger.info("New tasks needing recovery: " + getPodNames(failedPods));
+        logger.info("New pods needing recovery: " + getPodNames(failedPods));
 
         List<PodInstanceRequirement> recoveryRequirements = new ArrayList<>();
         for (PodInstanceRequirement failedPod : failedPods) {
@@ -320,7 +338,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     Step createStep(PodInstanceRequirement podInstanceRequirement) {
         logger.info("Creating step: {}", podInstanceRequirement);
-        return new DefaultRecoveryStep(
+        return new RecoveryStep(
                 podInstanceRequirement.getName(),
                 podInstanceRequirement,
                 launchConstrainer,

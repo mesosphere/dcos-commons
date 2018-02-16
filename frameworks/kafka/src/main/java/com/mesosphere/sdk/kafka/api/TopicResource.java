@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.kafka.api;
 
-import com.mesosphere.sdk.api.ResponseUtils;
+import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.kafka.cmd.CmdExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

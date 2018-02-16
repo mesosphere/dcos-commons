@@ -2,8 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -43,7 +43,6 @@ public class DefaultPlanSchedulerTest {
     @Mock private OfferEvaluator mockOfferEvaluator;
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private StateStore mockStateStore;
-    @Mock private TaskKiller mockTaskKiller;
     @Mock private OfferRecommendation mockRecommendation;
 
     private PodInstanceRequirement podInstanceRequirement;
@@ -53,8 +52,9 @@ public class DefaultPlanSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
+        Driver.setDriver(mockSchedulerDriver);
         mockRecommendations = Arrays.asList(mockRecommendation);
-        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockStateStore, mockTaskKiller);
+        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockStateStore);
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
@@ -69,9 +69,9 @@ public class DefaultPlanSchedulerTest {
 
     @Test
     public void testNullParams() {
-        assertTrue(scheduler.resourceOffers(null, OFFERS, Arrays.asList(new TestStep())).isEmpty());
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, null, Arrays.asList(new TestStep())).isEmpty());
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, null).isEmpty());
+        assertTrue(scheduler.resourceOffers(OFFERS, Arrays.asList(new TestStep())).isEmpty());
+        assertTrue(scheduler.resourceOffers(null, Arrays.asList(new TestStep())).isEmpty());
+        assertTrue(scheduler.resourceOffers(OFFERS, null).isEmpty());
         verifyZeroInteractions(mockOfferAccepter, mockSchedulerDriver);
     }
 
@@ -79,7 +79,7 @@ public class DefaultPlanSchedulerTest {
     public void testNonPendingStep() {
         TestStep step = new TestStep();
         step.setStatus(Status.PREPARED);
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
+        assertTrue(scheduler.resourceOffers(OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.isPrepared());
     }
 
@@ -87,7 +87,7 @@ public class DefaultPlanSchedulerTest {
     public void testStartNoRequirement() {
         TestStep step = new TestStep();
         step.setStatus(com.mesosphere.sdk.scheduler.plan.Status.PENDING);
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
+        assertTrue(scheduler.resourceOffers(OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.isPrepared());
     }
 
@@ -97,7 +97,7 @@ public class DefaultPlanSchedulerTest {
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(new ArrayList<>());
 
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
+        assertTrue(scheduler.resourceOffers(OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.recommendations.isEmpty());
         verify(mockOfferEvaluator).evaluate(podInstanceRequirement, OFFERS);
         assertTrue(step.isPrepared());
@@ -108,11 +108,11 @@ public class DefaultPlanSchedulerTest {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
-        when(mockOfferAccepter.accept(mockSchedulerDriver, mockRecommendations)).thenReturn(new ArrayList<>());
+        when(mockOfferAccepter.accept(mockRecommendations)).thenReturn(new ArrayList<>());
 
-        assertTrue(scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)).isEmpty());
+        assertTrue(scheduler.resourceOffers(OFFERS, Arrays.asList(step)).isEmpty());
         assertTrue(step.recommendations.isEmpty());
-        verify(mockOfferAccepter).accept(mockSchedulerDriver, mockRecommendations);
+        verify(mockOfferAccepter).accept(mockRecommendations);
         assertTrue(step.isPrepared());
     }
 
@@ -121,9 +121,9 @@ public class DefaultPlanSchedulerTest {
         TestOfferStep step = new TestOfferStep(podInstanceRequirement);
         step.setStatus(Status.PENDING);
         when(mockOfferEvaluator.evaluate(podInstanceRequirement, OFFERS)).thenReturn(mockRecommendations);
-        when(mockOfferAccepter.accept(mockSchedulerDriver, mockRecommendations)).thenReturn(ACCEPTED_IDS);
+        when(mockOfferAccepter.accept(mockRecommendations)).thenReturn(ACCEPTED_IDS);
 
-        assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(mockSchedulerDriver, OFFERS, Arrays.asList(step)));
+        assertEquals(ACCEPTED_IDS, scheduler.resourceOffers(OFFERS, Arrays.asList(step)));
         assertFalse(step.recommendations.isEmpty());
         assertTrue(step.isStarting());
     }

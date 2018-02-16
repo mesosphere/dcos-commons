@@ -1,12 +1,11 @@
 from xml.etree import ElementTree
 
 import pytest
+import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
-import sdk_tasks
-import sdk_utils
 import shakedown
 from tests import config
 
@@ -60,8 +59,9 @@ def test_endpoints_on_overlay():
 @pytest.mark.data_integrity
 @pytest.mark.dcos_min_version('1.9')
 def test_write_and_read_data_on_overlay():
-    config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
-    config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
+    test_filename = "test_overlay_data" # must be unique among tests in this suite
+    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
+    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
@@ -71,13 +71,15 @@ def test_integrity_on_data_node_failure():
     """
     Verifies proper data replication among data nodes.
     """
+    test_filename = "test_datanode_fail" # must be unique among tests in this suite
+
     # An HDFS write will only successfully return when the data replication has taken place
-    config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
+    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
 
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-0-node'))
-    sdk_tasks.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-1-node'))
+    sdk_cmd.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-0-node'))
+    sdk_cmd.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-1-node'))
 
-    config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_1_NAME)
+    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
 
     config.check_healthy(service_name=config.SERVICE_NAME)
 
@@ -91,7 +93,7 @@ def test_integrity_on_name_node_failure():
     so as to verify a failover sustains expected functionality.
     """
     active_name_node = config.get_active_name_node(config.SERVICE_NAME)
-    sdk_tasks.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
+    sdk_cmd.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
 
     predicted_active_name_node = "name-1-node"
     if active_name_node == "name-1-node":
@@ -99,19 +101,21 @@ def test_integrity_on_name_node_failure():
 
     wait_for_failover_to_complete(predicted_active_name_node)
 
-    config.write_data_to_hdfs(config.SERVICE_NAME, config.TEST_FILE_2_NAME)
-    config.read_data_from_hdfs(config.SERVICE_NAME, config.TEST_FILE_2_NAME)
+    test_filename = "test_namenode_fail" # must be unique among tests in this suite
+    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
+    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
 
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
 def wait_for_failover_to_complete(namenode):
     """
     Inspects the name node logs to make sure ZK signals a complete failover.
     The given namenode is the one to become active after the failover is complete.
     """
-    def failover_detection():
-        status = config.get_name_node_status(config.SERVICE_NAME, namenode)
-        return status == "active"
-
-    shakedown.wait_for(lambda: failover_detection(), timeout_seconds=config.DEFAULT_HDFS_TIMEOUT)
+    status = config.get_name_node_status(config.SERVICE_NAME, namenode)
+    return status == "active"

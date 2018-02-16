@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.api.ArtifactResource;
-import com.mesosphere.sdk.api.EndpointUtils;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.http.ArtifactResource;
+import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
@@ -113,10 +113,6 @@ public class PodInfoBuilder {
         return Optional.ofNullable(executorBuilder);
     }
 
-    public void setExecutorBuilder(Protos.ExecutorInfo.Builder executorBuilder) {
-        this.executorBuilder = executorBuilder;
-    }
-
     /**
      * This is the only carry-over from old tasks: If a port was dynamically allocated, we want to avoid reallocating
      * it on task relaunch.
@@ -167,27 +163,26 @@ public class PodInfoBuilder {
     }
 
     public static Protos.Resource getExistingExecutorVolume(
-            VolumeSpec volumeSpec, String resourceId, String persistenceId) {
-        Protos.Resource.Builder resourceBuilder = Protos.Resource.newBuilder()
-                .setName("disk")
-                .setType(Protos.Value.Type.SCALAR)
-                .setScalar(volumeSpec.getValue().getScalar());
+            VolumeSpec volumeSpec,
+            Optional<String> resourceId,
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot,
+            boolean useDefaultExecutor) {
 
-        Protos.Resource.DiskInfo.Builder diskInfoBuilder = resourceBuilder.getDiskBuilder();
+        Protos.Resource.Builder builder = ResourceBuilder
+                .fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot)
+                .build()
+                .toBuilder();
+
+        Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
         diskInfoBuilder.getPersistenceBuilder()
-                .setId(persistenceId)
+                .setId(persistenceId.get())
                 .setPrincipal(volumeSpec.getPrincipal());
         diskInfoBuilder.getVolumeBuilder()
                 .setContainerPath(volumeSpec.getContainerPath())
                 .setMode(Protos.Volume.Mode.RW);
 
-        Protos.Resource.ReservationInfo.Builder reservationBuilder = resourceBuilder.addReservationsBuilder();
-        reservationBuilder
-                .setPrincipal(volumeSpec.getPrincipal())
-                .setRole(volumeSpec.getRole());
-        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
-
-        return resourceBuilder.build();
+        return builder.build();
     }
 
     private static Protos.Volume getVolume(VolumeSpec volumeSpec) {
@@ -243,15 +238,15 @@ public class PodInfoBuilder {
             setBootstrapConfigFileEnv(taskInfoBuilder.getCommandBuilder(), taskSpec);
             extendEnv(taskInfoBuilder.getCommandBuilder(), environment);
 
+            // Always add the bootstrap URI as the paused command depends on it
+            if (override.equals(GoalStateOverride.PAUSED)) {
+                commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
+            }
+
             if (useDefaultExecutor) {
                 // Any URIs defined in PodSpec itself.
                 for (URI uri : podSpec.getUris()) {
                     commandBuilder.addUrisBuilder().setValue(uri.toString());
-                }
-
-                // Always add the bootstrap URI as the paused command depends on it
-                if (override.equals(GoalStateOverride.PAUSED)) {
-                    commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
                 }
 
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
@@ -323,7 +318,7 @@ public class PodInfoBuilder {
             Protos.CommandInfo.Builder executorCommandBuilder = executorInfoBuilder.getCommandBuilder().setValue(
                     "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH && " +
                     "export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so) && " +
-                    "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && " +
+                    "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && " +
                     // Remove Xms/Xmx if +UseCGroupMemoryLimitForHeap or equivalent detects cgroups memory limit
                     "export JAVA_OPTS=\"-Xms128M -Xmx128M\" && " +
                     "$MESOS_SANDBOX/executor/bin/executor");

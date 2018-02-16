@@ -497,6 +497,33 @@ public class StateStoreTest {
         assertEquals(taskInfo, store.fetchTasks().stream().findAny().get());
     }
 
+    @Test(expected = StateStoreException.class)
+    public void testStoreUnknownStatus() {
+        // Store initial status as RUNNING
+        store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+
+        // Create status with unknown TaskID but the same task name
+        Protos.TaskStatus status = TestConstants.TASK_STATUS.toBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .build();
+
+        store.storeStatus(TestConstants.TASK_NAME, status);
+    }
+
+    @Test
+    public void testStoreNewStagingStatus() {
+        // Store initial status as RUNNING
+        store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+
+        // Store new task with same name as STAGING
+        Protos.TaskStatus status = TestConstants.TASK_STATUS.toBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                .setState(Protos.TaskState.TASK_STAGING)
+                .build();
+
+        store.storeStatus(TestConstants.TASK_NAME, status);
+    }
+
     private static Collection<Protos.TaskInfo> createTasks(String... taskNames) {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : taskNames) {

@@ -1,13 +1,14 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
@@ -224,7 +225,8 @@ public class SchedulerBuilder {
                 StateStoreUtils.setUninstalling(stateStore);
             }
 
-            return new UninstallScheduler(serviceSpec, stateStore, configStore, schedulerConfig);
+            return new UninstallScheduler(serviceSpec, stateStore, configStore,
+                    schedulerConfig, Optional.ofNullable(planCustomizer));
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
@@ -329,7 +331,7 @@ public class SchedulerBuilder {
      * @return The updated {@link PodSpec}
      */
     static PodSpec updatePodPlacement(PodSpec podSpec) {
-        if (PlacementUtils.placementRuleReferencesRegion(podSpec)) {
+        if (!Capabilities.getInstance().supportsDomains() || PlacementUtils.placementRuleReferencesRegion(podSpec)) {
             return podSpec;
         }
 

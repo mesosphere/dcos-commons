@@ -1,23 +1,24 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.api.HealthResource;
-import com.mesosphere.sdk.api.PlansResource;
+import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.http.HealthResource;
+import com.mesosphere.sdk.http.PlansResource;
+import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.*;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,12 +27,13 @@ import java.util.stream.Collectors;
  */
 public class UninstallScheduler extends AbstractScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UninstallScheduler.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final UninstallPlanBuilder uninstallPlanBuilder;
-    private final PlanManager uninstallPlanManager;
-    private final Collection<Object> resources;
+    private final ServiceSpec serviceSpec;
+    private final Optional<SecretsClient> secretsClient;
 
+    private PlanManager uninstallPlanManager;
+    private Collection<Object> resources = Collections.emptyList();
     private OfferAccepter offerAccepter;
 
     /**
@@ -43,8 +45,9 @@ public class UninstallScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerConfig schedulerConfig) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, Optional.empty());
+            SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer) {
+        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
     }
 
     protected UninstallScheduler(
@@ -52,20 +55,47 @@ public class UninstallScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(stateStore, configStore, schedulerConfig);
-        uninstallPlanBuilder = new UninstallPlanBuilder(
-                serviceSpec, stateStore, configStore, schedulerConfig, customSecretsClientForTests);
-        uninstallPlanManager = DefaultPlanManager.createProceeding(uninstallPlanBuilder.getPlan());
-        resources = Arrays.<Object>asList(
+        this.serviceSpec = serviceSpec;
+        this.secretsClient = customSecretsClientForTests;
+
+        Plan plan = new UninstallPlanBuilder(
+                serviceSpec,
+                stateStore,
+                configStore,
+                schedulerConfig,
+                secretsClient)
+                .build();
+
+        // Allow for customization to the uninstall plan.
+        plan = planCustomizer.isPresent() ? planCustomizer.get().updateUninstallPlan(plan) : plan;
+
+        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
+        this.resources = Arrays.asList(
                 new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
                 new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
+
+        List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step instanceof ResourceCleanupStep)
+                .map(step -> (ResourceCleanupStep) step)
+                .collect(Collectors.toList());
+        this.offerAccepter = new OfferAccepter(Collections.singletonList(
+                new UninstallRecorder(stateStore, resourceCleanupSteps)));
+
+        try {
+            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
+        } catch (IOException e) {
+            logger.error("Failed to deserialize uninstall plan.");
+        }
     }
 
     @Override
     public Optional<Scheduler> getMesosScheduler() {
         if (allButStateStoreUninstalled(stateStore, schedulerConfig)) {
-            LOGGER.info("Not registering framework because there are no resources left to unreserve.");
+            logger.info("Not registering framework because there are no resources left to unreserve.");
             return Optional.empty();
         }
 
@@ -78,19 +108,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator initialize(SchedulerDriver driver) throws InterruptedException {
-        LOGGER.info("Initializing...");
-
-        // NOTE: We wait until this point to perform any work using configStore/stateStore.
-        // We specifically avoid writing any data to ZK before registered() has been called.
-
-        // Now that our SchedulerDriver has been passed in by Mesos, we can give it to the DeregisterStep in the Plan.
-        uninstallPlanBuilder.registered(driver);
-        offerAccepter = new OfferAccepter(Collections.singletonList(
-                new UninstallRecorder(stateStore, uninstallPlanBuilder.getResourceSteps())));
-
-        LOGGER.info("Done initializing.");
-
+    protected PlanCoordinator getPlanCoordinator() throws InterruptedException {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -106,11 +124,11 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
-            LOGGER.info("Attempting to process {} candidates from uninstall plan: {}",
+            logger.info("Attempting to process {} candidates from uninstall plan: {}",
                     steps.size(), steps.stream().map(Element::getName).collect(Collectors.toList()));
             steps.forEach(Step::start);
         }
@@ -120,15 +138,15 @@ public class UninstallScheduler extends AbstractScheduler {
 
         ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
 
-        offersWithReservedResources.addAll(rcs.resourceOffers(driver, localOffers));
+        offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
 
         // Decline remaining offers.
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
         if (unusedOffers.isEmpty()) {
-            LOGGER.info("No offers to be declined.");
+            logger.info("No offers to be declined.");
         } else {
-            LOGGER.info("Declining {} unused offers", unusedOffers.size());
-            OfferUtils.declineLong(driver, unusedOffers);
+            logger.info("Declining {} unused offers", unusedOffers.size());
+            OfferUtils.declineLong(unusedOffers);
         }
     }
 
@@ -151,10 +169,5 @@ public class UninstallScheduler extends AbstractScheduler {
                 ResourceUtils.getResourceIds(
                         ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                         .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
-    }
-
-    @VisibleForTesting
-    Plan getPlan() {
-        return uninstallPlanManager.getPlan();
     }
 }

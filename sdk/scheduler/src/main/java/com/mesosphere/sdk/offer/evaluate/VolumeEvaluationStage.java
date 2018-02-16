@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.VolumeSpec;
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,17 +25,46 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
     private final Optional<String> resourceId;
     private final boolean useDefaultExecutor;
+    private final Optional<String> sourceRoot;
 
-    public VolumeEvaluationStage(
+    public static VolumeEvaluationStage getNew(VolumeSpec volumeSpec, String taskName, boolean useDefaultExecutor) {
+        return new VolumeEvaluationStage(
+                volumeSpec,
+                taskName,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty(),
+                useDefaultExecutor);
+    }
+
+    public static VolumeEvaluationStage getExisting(
             VolumeSpec volumeSpec,
             String taskName,
             Optional<String> resourceId,
             Optional<String> persistenceId,
+            Optional<String> sourceRoot,
+            boolean useDefaultExecutor) {
+        return new VolumeEvaluationStage(
+                volumeSpec,
+                taskName,
+                resourceId,
+                persistenceId,
+                sourceRoot,
+                useDefaultExecutor);
+    }
+
+    private VolumeEvaluationStage(
+            VolumeSpec volumeSpec,
+            String taskName,
+            Optional<String> resourceId,
+            Optional<String> persistenceId,
+            Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.persistenceId = persistenceId;
+        this.sourceRoot = sourceRoot;
         this.useDefaultExecutor = useDefaultExecutor;
     }
 
@@ -52,22 +80,28 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         Resource resource;
         final MesosResource mesosResource;
 
-        boolean isRunningExecutor = podInfoBuilder.getExecutorBuilder().isPresent() &&
-                isRunningExecutor(podInfoBuilder.getExecutorBuilder().get().build(), mesosResourcePool.getOffer());
+        boolean isRunningExecutor =
+                OfferEvaluationUtils.isRunningExecutor(podInfoBuilder, mesosResourcePool.getOffer());
         if (taskName == null && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
-            // add it to the ExecutorInfo as well as whatever task is being launched.
+            // add it to the ExecutorInfo.
             podInfoBuilder.setExecutorVolume(volumeSpec);
-            mesosResource = new MesosResource(
-                    PodInfoBuilder.getExistingExecutorVolume(volumeSpec, resourceId.get(), persistenceId.get()));
+
+            Resource volume = PodInfoBuilder.getExistingExecutorVolume(
+                    volumeSpec,
+                    resourceId,
+                    persistenceId,
+                    sourceRoot,
+                    useDefaultExecutor);
+            podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
             return pass(
                     this,
                     Collections.emptyList(),
-                    "Offer contains executor with existing volume with resourceId: '%s' and persistenceId: '%s'",
+                    "Setting info for already running Executor with existing volume " +
+                            "with resourceId: '%s' and persistenceId: '%s'",
                     resourceId,
                     persistenceId)
-                    .mesosResource(mesosResource)
                     .build();
         }
 
@@ -152,15 +186,5 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private Optional<String> getTaskName() {
         return Optional.ofNullable(taskName);
-    }
-
-    private static boolean isRunningExecutor(Protos.ExecutorInfo executorInfo, Protos.Offer offer) {
-        for (Protos.ExecutorID execId : offer.getExecutorIdsList()) {
-            if (execId.equals(executorInfo.getExecutorId())) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

@@ -3,9 +3,10 @@ import sdk_install
 import sdk_utils
 from tests import config
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_strict_mode(),
-                                reason='resource refinement is not yet supported in strict mode')
 
+pytestmark = pytest.mark.skipif(
+    sdk_utils.is_strict_mode() and sdk_utils.dcos_version_less_than('1.11'),
+    reason="secure hierarchical roles are only supported on 1.11+")
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):

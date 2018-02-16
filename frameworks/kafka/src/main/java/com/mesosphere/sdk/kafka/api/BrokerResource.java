@@ -2,9 +2,11 @@ package com.mesosphere.sdk.kafka.api;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.http.ResponseUtils;
+
 import org.json.JSONObject;
 
-import com.mesosphere.sdk.api.ResponseUtils;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;

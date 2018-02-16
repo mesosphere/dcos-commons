@@ -4,10 +4,10 @@ import uuid
 
 import sdk_auth
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_utils
+import sdk_networks
 
 from tests import auth
 from tests import config
@@ -18,42 +18,12 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_principals():
-    fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
-                                                 host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    brokers = [
-        "kafka-0-broker",
-        "kafka-1-broker",
-        "kafka-2-broker",
-    ]
-
-    principals = []
-    for b in brokers:
-        principals.append("kafka/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=fqdn,
-            realm=sdk_auth.REALM))
-
-    clients = [
-        "client",
-        "authorized",
-        "unauthorized",
-        "super"
-    ]
-    for c in clients:
-        principals.append("{client}@{realm}".format(client=c, realm=sdk_auth.REALM))
-
-    yield principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals):
+def kerberos(configure_security):
     try:
-        principals = []
-        principals.extend(kafka_principals)
-
         kerberos_env = sdk_auth.KerberosEnvironment()
+
+        principals = auth.get_service_principals(config.SERVICE_NAME,
+                                                 kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -80,6 +50,7 @@ def kafka_server(kerberos):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
+                    "realm": sdk_auth.REALM,
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
@@ -113,7 +84,6 @@ def kafka_client(kerberos, kafka_server):
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -156,7 +126,15 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server):
+def test_no_vip(kafka_client, kafka_server, kerberos):
+    endpoints = sdk_networks.get_and_test_endpoints(kafka_server["package_name"], kafka_server["service"]["name"], "broker", 2)
+    assert "vip" not in endpoints
+
+
+@pytest.mark.dcos_min_version('1.10')
+@sdk_utils.dcos_ee_only
+@pytest.mark.sanity
+def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
@@ -170,6 +148,20 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    assert auth.write_to_topic("client", client_id, topic_name, message)
+    assert write_to_topic("client", client_id, topic_name, message, kerberos)
 
-    assert message in auth.read_from_topic("client", client_id, topic_name, 1)
+    assert message in read_from_topic("client", client_id, topic_name, 1, kerberos)
+
+
+def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
+
+    return auth.write_to_topic(cn, task, topic, message,
+                               auth.get_kerberos_client_properties(ssl_enabled=False),
+                               auth.setup_krb5_env(cn, task, krb5))
+
+
+def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
+
+    return auth.read_from_topic(cn, task, topic, messages,
+                                auth.get_kerberos_client_properties(ssl_enabled=False),
+                                auth.setup_krb5_env(cn, task, krb5))

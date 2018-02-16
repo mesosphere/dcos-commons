@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.api.*;
-import com.mesosphere.sdk.api.types.EndpointProducer;
-import com.mesosphere.sdk.api.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.http.*;
+import com.mesosphere.sdk.http.types.EndpointProducer;
+import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
+import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -23,7 +24,6 @@ import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private final Collection<Plan> plans;
     private final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
-    private final TaskKiller taskKiller;
     private final OfferAccepter offerAccepter;
 
     private final Collection<Object> resources;
@@ -54,6 +53,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
+
+    private final OfferOutcomeTracker offerOutcomeTracker;
 
     /**
      * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
@@ -92,7 +93,6 @@ public class DefaultScheduler extends AbstractScheduler {
         this.serviceSpec = serviceSpec;
         this.plans = plans;
         this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
-        this.taskKiller = new DefaultTaskKiller(new DefaultTaskFailureListener(stateStore, configStore));
         this.offerAccepter = new OfferAccepter(Arrays.asList(
                 new PersistentLaunchRecorder(stateStore, serviceSpec),
                 Metrics.OperationsCounter.getInstance()));
@@ -110,9 +110,15 @@ public class DefaultScheduler extends AbstractScheduler {
         this.resources.add(this.plansResource);
         this.healthResource = new HealthResource();
         this.resources.add(this.healthResource);
-        this.podResource = new PodResource(stateStore, serviceSpec.getName());
+        this.podResource = new PodResource(
+                stateStore,
+                serviceSpec.getName(),
+                new DefaultTaskFailureListener(stateStore, configStore));
         this.resources.add(this.podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
+
+        this.offerOutcomeTracker = new OfferOutcomeTracker();
+        this.resources.add(new OfferOutcomeResource(offerOutcomeTracker));
     }
 
     @Override
@@ -121,11 +127,9 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator initialize(SchedulerDriver driver) throws Exception {
+    protected PlanCoordinator getPlanCoordinator() throws Exception {
         // NOTE: We wait until this point to perform any work using configStore/stateStore.
         // We specifically avoid writing any data to ZK before registered() has been called.
-
-        taskKiller.setSchedulerDriver(driver);
 
         PlanManager deploymentPlanManager =
                 DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
@@ -135,22 +139,20 @@ public class DefaultScheduler extends AbstractScheduler {
                         offerAccepter,
                         new OfferEvaluator(
                                 stateStore,
+                                offerOutcomeTracker,
                                 serviceSpec.getName(),
                                 configStore.getTargetConfig(),
                                 schedulerConfig,
                                 Capabilities.getInstance().supportsDefaultExecutor()),
-                        stateStore,
-                        taskKiller);
-        killUnneededTasks(stateStore, taskKiller, PlanUtils.getLaunchableTasks(plans));
+                        stateStore);
+        killUnneededTasks(stateStore, PlanUtils.getLaunchableTasks(plans));
 
         plansResource.setPlanManagers(planCoordinator.getPlanManagers());
         healthResource.setHealthyPlanManagers(Arrays.asList(deploymentPlanManager, recoveryPlanManager));
-        podResource.setTaskKiller(taskKiller);
         return planCoordinator;
     }
 
-    private static void killUnneededTasks(
-            StateStore stateStore, TaskKiller taskKiller, Set<String> taskToDeployNames) {
+    private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
         Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
@@ -172,7 +174,7 @@ public class DefaultScheduler extends AbstractScheduler {
             stateStore.storeTasks(Arrays.asList(taskInfo));
         }
 
-        taskIds.forEach(taskID -> taskKiller.killTask(taskID, RecoveryType.NONE));
+        taskIds.forEach(taskID -> TaskKiller.killTask(taskID));
 
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
@@ -180,7 +182,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
                 // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
                 // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
-                taskKiller.killTask(taskInfo.getTaskId(), RecoveryType.TRANSIENT);
+                TaskKiller.killTask(taskInfo.getTaskId());
             }
         }
     }
@@ -223,7 +225,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // If decommissioning nodes, set up decommission plan:
         DecommissionPlanFactory decommissionPlanFactory =
-                new DecommissionPlanFactory(serviceSpec, stateStore, taskKiller);
+                new DecommissionPlanFactory(serviceSpec, stateStore);
         Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
         if (decommissionPlan.isPresent()) {
             // Set things up for a decommission operation.
@@ -241,10 +243,10 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         // See which offers are useful to the plans.
         List<Protos.OfferID> planOffers = new ArrayList<>();
-        planOffers.addAll(planScheduler.resourceOffers(driver, offers, steps));
+        planOffers.addAll(planScheduler.resourceOffers(offers, steps));
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(offers, planOffers);
 
         // Resource Cleaning:
@@ -258,12 +260,12 @@ public class DefaultScheduler extends AbstractScheduler {
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
         ResourceCleanerScheduler cleanerScheduler =
                 new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
-        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(driver, unusedOffers);
+        List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
         // Decline remaining offers.
         if (!unusedOffers.isEmpty()) {
-            OfferUtils.declineLong(driver, unusedOffers);
+            OfferUtils.declineLong(unusedOffers);
         }
 
         if (offers.isEmpty()) {
@@ -311,10 +313,5 @@ public class DefaultScheduler extends AbstractScheduler {
                 LOGGER.warn("Unable to store network info for status update: " + status, e);
             }
         }
-    }
-
-    @VisibleForTesting
-    PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
     }
 }

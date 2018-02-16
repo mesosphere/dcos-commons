@@ -4,6 +4,7 @@
       "jre-tar-gz": "{{jre-url}}",
       "cassandra-jre-tar-gz": "{{jre-url}}",
       "cassandra-python-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/python-2.7.14.tar.gz",
+      "cassandra-openssl-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/openssl-1.0.2n-libs.tar.gz",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
       "cassandra-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-3.0.15-bin-dcos.tar.gz",
@@ -12,9 +13,9 @@
     }
   },
   "images": {
-    "icon-small": "https://downloads.mesosphere.com/cassandra-mesos/assets/cassandra-small.png",
-    "icon-medium": "https://downloads.mesosphere.com/cassandra-mesos/assets/cassandra-medium.png",
-    "icon-large": "https://downloads.mesosphere.com/cassandra-mesos/assets/cassandra-large.png"
+    "icon-small": "https://downloads.mesosphere.com/assets/universe/000/cassandra-icon-small.png",
+    "icon-medium": "https://downloads.mesosphere.com/assets/universe/000/cassandra-icon-medium.png",
+    "icon-large": "https://downloads.mesosphere.com/assets/universe/000/cassandra-icon-large.png"
   },
   "cli": {
     "binaries": {

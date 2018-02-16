@@ -13,9 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
-import com.mesosphere.sdk.api.EndpointUtils;
-import com.mesosphere.sdk.api.EndpointUtils.VipInfo;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 
 /**

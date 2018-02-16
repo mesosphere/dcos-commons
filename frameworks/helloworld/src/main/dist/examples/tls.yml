@@ -42,7 +42,7 @@ pods:
         cmd: >
                 ./bootstrap -verbose -resolve=false
 
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH;
 
                 java -jar keystore-app-{{KEYSTORE_APP_VERSION}}-all.jar server integration-test.yml
         cpus: 0.5

@@ -18,7 +18,7 @@ pods:
     uris:
       - {{CASSANDRA_JAVA_URI}}
       - {{CASSANDRA_PYTHON_URI}}
-      - {{SCHEDULER_URI}}
+      - {{CASSANDRA_OPENSSL_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
     resource-sets:
@@ -51,7 +51,7 @@ pods:
                 set -e
 
                 ./bootstrap
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/)
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -72,12 +72,9 @@ pods:
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
-          s3:
-            template: s3config.json
-            dest: s3config.json
         readiness-check:
           cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 export TASK_IP=$(./bootstrap --get-task-ip) &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: 5
@@ -90,16 +87,17 @@ pods:
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       cleanup:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       backup-schema:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
@@ -120,7 +118,7 @@ pods:
       snapshot:
         goal: ONCE
         cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
 
                 for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
@@ -136,12 +134,14 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
         resource-set: sidecar-resources
       upload-azure:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 (cd container-path && tar cvhzf snapshot.tar.gz snapshot/) ;
@@ -150,7 +150,7 @@ pods:
       cleanup-snapshot:
         goal: ONCE
         cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
@@ -158,6 +158,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 mkdir container-path/snapshot ;
                 aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
         resource-set: sidecar-resources
@@ -165,6 +166,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 az login -u $CLIENT_ID --service-principal --tenant $TENANT_ID -p $CLIENT_SECRET
 
                 az storage blob download -c "$CONTAINER_NAME" -f container-path/snapshot.tar.gz -n node-${POD_INSTANCE_INDEX}.tar.gz ;
@@ -176,6 +178,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
@@ -196,7 +199,7 @@ pods:
         goal: ONCE
         cmd: >
                 ./bootstrap --resolve=false ;
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
@@ -235,6 +238,7 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 echo Using $(python --version 2>&1) in $(which python) ;
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;

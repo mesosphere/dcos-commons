@@ -1,4 +1,4 @@
-import time
+import logging
 
 import pytest
 import sdk_cmd
@@ -34,6 +34,7 @@ KEYSTORE_APP_CONFIG_NAME = 'integration-test.yml'
 # udpates.
 DISCOVERY_TASK_PREFIX = 'discovery-prefix'
 
+log = logging.getLogger(__name__)
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -111,7 +112,7 @@ def test_java_truststore():
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
             config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
-    _, output, _ = sdk_tasks.task_exec(task_id, command)
+    _, output, _ = sdk_cmd.task_exec(task_id, command)
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
     # expected output.
@@ -127,7 +128,7 @@ def test_tls_basic_artifacts():
     assert task_id
 
     # Load end-entity certificate from keystore and root CA cert from truststore
-    stdout = sdk_tasks.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
+    stdout = sdk_cmd.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
     end_entity_cert = x509.load_pem_x509_certificate(stdout, DEFAULT_BACKEND)
 
     root_ca_cert_in_truststore = _export_cert_from_task_keystore(
@@ -144,8 +145,7 @@ def test_tls_basic_artifacts():
     assert len(sans) == 1
 
     cluster_root_ca_cert = x509.load_pem_x509_certificate(
-        sdk_cmd.request(
-            'get', shakedown.dcos_url_path('/ca/dcos-ca.crt')).content,
+        sdk_cmd.cluster_request('GET', '/ca/dcos-ca.crt').content,
         DEFAULT_BACKEND)
 
     assert root_ca_cert_in_truststore.signature == cluster_root_ca_cert.signature
@@ -172,7 +172,7 @@ def test_java_keystore():
             config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
-    _, output = sdk_tasks.task_exec(task_id, curl, return_stderr_in_stdout=True)
+    _, output = sdk_cmd.task_exec(task_id, curl, return_stderr_in_stdout=True)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
@@ -206,7 +206,7 @@ def test_tls_nginx():
         'integration-test.yml '
         'https://' + sdk_hosts.vip_host(
             config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
-    _, output, _ = sdk_tasks.task_exec(task_id, command)
+    _, output, _ = sdk_cmd.task_exec(task_id, command)
 
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
@@ -230,8 +230,13 @@ def test_changing_discovery_replaces_certificate_sans():
     assert task_id
 
     # Load end-entity certificate from PEM encoded file
-    _, stdout, _ = sdk_tasks.task_exec(task_id, 'cat server.crt')
-    end_entity_cert = x509.load_pem_x509_certificate(stdout.encode('ascii'), DEFAULT_BACKEND)
+    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat server.crt')
+    log.info('first server.crt: {}'.format(stdout))
+
+    ascii_cert = stdout.encode('ascii')
+    log.info('first server.crt ascii encoded: {}'.format(ascii_cert))
+
+    end_entity_cert = x509.load_pem_x509_certificate(ascii_cert, DEFAULT_BACKEND)
 
     san_extension = end_entity_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
@@ -249,13 +254,16 @@ def test_changing_discovery_replaces_certificate_sans():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['DISCOVERY_TASK_PREFIX'] = DISCOVERY_TASK_PREFIX + '-new'
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'discovery', original_tasks)
-    sdk_tasks.check_running(config.SERVICE_NAME, 4)
-    new_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
-    assert task_id != new_task_id
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    _, stdout, _ = sdk_tasks.task_exec(new_task_id, 'cat server.crt')
-    new_cert = x509.load_pem_x509_certificate(stdout.encode('ascii'), DEFAULT_BACKEND)
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
+
+    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat server.crt')
+    log.info('second server.crt: {}'.format(stdout))
+
+    ascii_cert = stdout.encode('ascii')
+    log.info('second server.crt ascii encoded: {}'.format(ascii_cert))
+    new_cert = x509.load_pem_x509_certificate(ascii_cert, DEFAULT_BACKEND)
 
     san_extension = new_cert.extensions.get_extension_for_oid(
         ExtensionOID.SUBJECT_ALTERNATIVE_NAME)
@@ -292,9 +300,8 @@ def _export_cert_from_task_keystore(
 
     args_str = ' '.join(args)
 
-    cert_bytes = sdk_tasks.task_exec(
-        task, _keystore_export_command(keystore_path, alias, args_str)
-    )[1].encode('ascii')
+    cert_bytes = sdk_cmd.task_exec(
+        task, _keystore_export_command(keystore_path, alias, args_str))[1].encode('ascii')
 
     return x509.load_pem_x509_certificate(
         cert_bytes, DEFAULT_BACKEND)
@@ -352,7 +359,7 @@ def _java_command(command):
     """
     return (
         "bash -c ' "
-        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); "
+        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); "
         "export JAVA_HOME=${{JAVA_HOME%/}}; "
         "export PATH=$(ls -d $JAVA_HOME/bin):$PATH; "
         "{command}"

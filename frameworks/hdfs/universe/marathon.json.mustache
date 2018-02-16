@@ -4,7 +4,7 @@
   "mem": 1024,
   "instances": 1,
   "user": "{{service.user}}",
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=false && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=false && ./hdfs-scheduler/bin/hdfs ./hdfs-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_COMMONS_UNINSTALL": "true",
@@ -29,7 +29,6 @@
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "TASKCFG_ALL_HDFS_VERSION": "hadoop-2.6.0-cdh5.11.0",
-    "TASKCFG_ALL_JRE_VERSION": "jre1.8.0_131",
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "UPDATE_STRATEGY": "{{service.update_strategy}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
@@ -96,6 +95,9 @@
     "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY": "hdfs",
     "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY_HTTP": "HTTP",
     "TASKCFG_ALL_SECURITY_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
+    {{#service.security.kerberos.debug}}
+    "TASKCFG_ALL_SECURITY_KERBEROS_DEBUG": "{{service.security.kerberos.debug}}",
+    {{/service.security.kerberos.debug}}
     "TASKCFG_ALL_SECURITY_KERBEROS_KDC_HOSTNAME": "{{service.security.kerberos.kdc.hostname}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_KDC_PORT": "{{service.security.kerberos.kdc.port}}",
     {{/service.security.kerberos.enabled}}
@@ -111,6 +113,7 @@
     "TASKCFG_ALL_DATA_NODE_HTTP_PORT":"{{hdfs.data_node_http_port}}",
     "TASKCFG_ALL_DATA_NODE_IPC_PORT":"{{hdfs.data_node_ipc_port}}",
     "TASKCFG_ALL_HADOOP_OPTS":"{{hdfs.hadoop_opts}}",
+    "TASKCFG_ALL_HADOOP_HEAPSIZE":"{{hdfs.hadoop_heapsize}}",
     "TASKCFG_ALL_PERMISSIONS_ENABLED":"{{hdfs.permissions_enabled}}",
     "TASKCFG_ALL_IMAGE_COMPRESS":"{{hdfs.compress_image}}",
     "TASKCFG_ALL_IMAGE_COMPRESSION_CODEC":"{{hdfs.image_compression_codec}}",
@@ -274,6 +277,7 @@
     "TASKCFG_ALL_DATANODE_DROP_CACHE_BEHIND_WRITES": "{{data_node.drop_cache_behind_writes}}",
     "TASKCFG_ALL_DATANODE_SYNC_BEHIND_WRITES": "{{data_node.sync_behind_writes}}",
     "TASKCFG_ALL_DATANODE_USE_DATANODE_HOSTNAME": "{{data_node.use_datanode_hostname}}",
+    "TASKCFG_ALL_DATANODE_FSDATASET_VOLUME_CHOOSING_POLICY": "{{data_node.fsdataset_volume_choosing_policy}}",
     "TASKCFG_ALL_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_THRESHOLD": "{{data_node.available-space-volume-choosing-policy_balanced-space-threshold}}",
     "TASKCFG_ALL_DATANODE_AVAILABLE_SPACE_VOLUME_CHOOSING_POLICY_BALANCED_SPACE_PREFERENCE_FRACTION": "{{data_node.available-space-volume-choosing-policy_balanced-space-preference-fraction}}",
     "TASKCFG_ALL_DATANODE_HDFS_BLOCKS_METADATA_ENABLED": "{{data_node.hdfs-blocks-metadata_enabled}}",
@@ -285,7 +289,9 @@
     "TASKCFG_ALL_DATANODE_CACHE_REVOCATION_POLLING_MS": "{{data_node.cache_revocation_polling_ms}}",
     "TASKCFG_ALL_DATANODE_BLOCK_ID_LAYOUT_UPGRADE_THREADS": "{{data_node.block_id_layout_upgrade_threads}}",
 
+    "TASKCFG_ALL_HADOOP_JOURNALNODE_OPTS":"{{journal_node.hadoop_journalnode_opts}}",
     "TASKCFG_ALL_HADOOP_NAMENODE_OPTS":"{{name_node.hadoop_namenode_opts}}",
+    "TASKCFG_ALL_HADOOP_DATANODE_OPTS":"{{data_node.hadoop_datanode_opts}}",
     "TASKCFG_ALL_HADOOP_COMMON_CONFIGURATION_VERSION": "{{hdfs.common_configuration_version}}",
     "TASKCFG_ALL_HADOOP_TMP_DIR": "{{hdfs.tmp_dir}}",
     "TASKCFG_ALL_HADOOP_HTTP_FILTER_INITIALIZER": "{{hdfs.http_filter_initializer}}",
@@ -426,11 +432,11 @@
     "TASKCFG_ALL_RPC_METRICS_QUANTILE_ENABLE": "{{hdfs.rpc_metrics_quantile_enable}}",
     "TASKCFG_ALL_RPC_METRICS_PERCENTILES_INTERVALS": "{{hdfs.rpc_metrics_percentiles_intervals}}"
   },
-  "uris": [
-    "{{resource.assets.uris.bootstrap-zip}}",
-    "{{resource.assets.uris.jre-tar-gz}}",
-    "{{resource.assets.uris.scheduler-zip}}",
-    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  "fetch": [
+    { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true },
+    { "uri": "{{resource.assets.uris.scheduler-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

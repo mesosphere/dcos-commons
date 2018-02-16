@@ -4,7 +4,7 @@
   "mem": 1024,
   "instances": 1,
   "user": "{{service.user}}",
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=false && ./elastic-scheduler/bin/elastic ./elastic-scheduler/svc.yml",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=false && ./elastic-scheduler/bin/elastic ./elastic-scheduler/svc.yml",
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
     "DCOS_COMMONS_UNINSTALL": "true",
@@ -27,6 +27,7 @@
     "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
     "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "ELASTIC_VERSION": "{{elastic-version}}",
+    "ELASTIC_STATSD_VERSION": "{{elastic-statsd-version}}",
     "STATSD_URI": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
     "ELASTICSEARCH_JAVA_URI" : "{{resource.assets.uris.elasticsearch-jre-tar-gz}}",
@@ -137,7 +138,6 @@
     "TASKCFG_ALL_HTTP_DETAILED_ERRORS_ENABLED": "{{elasticsearch.http_detailed_errors_enabled}}",
     "TASKCFG_ALL_HTTP_PIPELINING": "{{elasticsearch.http_pipelining}}",
     "TASKCFG_ALL_HTTP_PIPELINING_MAX_EVENTS": "{{elasticsearch.http_pipelining_max_events}}",
-    "TASKCFG_ALL_HTTP_CONTENT_TYPE_REQUIRED": "{{elasticsearch.http_content_type_required}}",
     {{#elasticsearch.thread_pool_index_size}}
     "TASKCFG_ALL_THREAD_POOL_INDEX_SIZE": "{{elasticsearch.thread_pool_index_size}}",
     {{/elasticsearch.thread_pool_index_size}}
@@ -322,11 +322,11 @@
     {{/elasticsearch.indices_requests_cache_size}}
     "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
   },
-  "uris": [
-    "{{resource.assets.uris.bootstrap-zip}}",
-    "{{resource.assets.uris.jre-tar-gz}}",
-    "{{resource.assets.uris.scheduler-zip}}",
-    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  "fetch": [
+    { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true },
+    { "uri": "{{resource.assets.uris.scheduler-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

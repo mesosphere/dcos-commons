@@ -2,13 +2,12 @@ import json
 import os
 import uuid
 
-import dcos
 import pytest
+import sdk_cmd
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
 import sdk_upgrade
-import shakedown
 from tests import config
 
 
@@ -91,12 +90,7 @@ def test_cassandra_migration():
             's3_secret_key': plan_parameters['AWS_SECRET_ACCESS_KEY'],
             'external_location': 's3://{}'.format(plan_parameters['S3_BUCKET_NAME']),
         }
-        dcos.http.put(
-            '{}v1/backup/start'.format(
-                shakedown.dcos_service_url(backup_service_name)
-            ),
-            json=backup_parameters
-        )
+        sdk_cmd.service_request('PUT', backup_service_name, '/v1/backup/start', json=backup_parameters)
         sdk_plan.wait_for_completed_deployment(backup_service_name)
 
     # Restore data to second instance:

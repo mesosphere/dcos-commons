@@ -33,6 +33,12 @@
 			"revisionTime": "2017-07-10T04:42:30Z"
 		},
 		{
+			"checksumSHA1": "XbAKLei0JOeeB5Z3RFn4XFPBqF8=",
+			"path": "github.com/cbroglie/mustache",
+			"revision": "6b01858ec889c7240e02d553d42c238afbb62eac",
+			"revisionTime": "2017-11-28T09:32:48Z"
+		},
+		{
 			"checksumSHA1": "Kh/msV2XTuYy0UB63hhoKcKfkyY=",
 			"path": "github.com/containernetworking/cni/pkg/invoke",
 			"revision": "5da3960e2b02a83f0318ff9f4fef9872f4dad223",
@@ -86,18 +92,6 @@
 			"revision": "9fbcca53fabbd1d143b265cfd788c0455d421e05",
 			"revisionTime": "2017-09-14T16:05:16Z",
 			"tree": true
-		},
-		{
-			"checksumSHA1": "BU+lI0p8Di+hQzRQ6D9deU5IEI4=",
-			"path": "github.com/gabrielhartmann/mustache",
-			"revision": "d20021ab1d8bed0152d0d305cc613839cc86b55f",
-			"revisionTime": "2017-11-16T21:26:17Z"
-		},
-		{
-			"checksumSHA1": "AIxWUvzOjHni8IwkElJw+b1IES8=",
-			"path": "github.com/nickbp/mustache",
-			"revision": "a219940dea5cbaf16473ee0d23386def39111593",
-			"revisionTime": "2017-01-19T01:18:40Z"
 		},
 		{
 			"checksumSHA1": "uEc9/1HbYGeK7wPStF6FmUlfzGE=",

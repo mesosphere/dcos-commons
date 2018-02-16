@@ -1,10 +1,41 @@
 import logging
 import retrying
-import uuid
 
-import sdk_tasks
+import sdk_cmd
+import sdk_hosts
+
+from security import kerberos
+
 
 LOG = logging.getLogger(__name__)
+
+
+USERS = [
+        "client",
+        "authorized",
+        "unauthorized",
+        "super"
+]
+
+
+def get_service_principals(service_name: str, realm: str) -> list:
+    """
+    Sets up the appropriate principals needed for a kerberized deployment of HDFS.
+    :return: A list of said principals
+    """
+    primaries = ["kafka", ]
+
+    tasks = [
+        "kafka-0-broker",
+        "kafka-1-broker",
+        "kafka-2-broker",
+    ]
+    instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
+
+    principals = kerberos.generate_principal_list(primaries, instances, realm)
+    principals.extend(kerberos.generate_principal_list(USERS, [None, ], realm))
+
+    return principals
 
 
 def wait_for_brokers(client: str, brokers: list):
@@ -17,101 +48,106 @@ def wait_for_brokers(client: str, brokers: list):
                      '-template=false',
                      '-install-certs=false',
                      '-resolve-hosts', ','.join(brokers)]
-    bootstrap_output = sdk_tasks.task_exec(client, ' '.join(bootstrap_cmd))
+    bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
     assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
+    return True
 
 
 def is_not_authorized(output: str) -> bool:
     return "AuthorizationException: Not authorized to access" in output
 
 
-def write_client_properties(primary: str, task: str) -> str:
-    output_file = "{primary}-client.properties".format(primary=primary)
-    LOG.info("Generating %s", output_file)
+def get_kerberos_client_properties(ssl_enabled: bool) -> list:
 
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-security.protocol=SASL_PLAINTEXT
-sasl.mechanism=GSSAPI
-sasl.kerberos.service.name=kafka
-EOL\"""".format(output_file=output_file, primary=primary)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    protocol = "SASL_SSL" if ssl_enabled else "SASL_PLAINTEXT"
+
+    return ['security.protocol={protocol}'.format(protocol=protocol),
+            'sasl.mechanism=GSSAPI',
+            'sasl.kerberos.service.name=kafka', ]
+
+
+def get_ssl_client_properties(cn: str, has_kerberos: bool) -> list:
+
+    if has_kerberos:
+        client_properties = []
+    else:
+        client_properties = ["security.protocol=SSL", ]
+
+    client_properties.extend(["ssl.truststore.location = {cn}_truststore.jks".format(cn=cn),
+                              "ssl.truststore.password = changeit",
+                              "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
+                              "ssl.keystore.password = changeit", ])
+
+    return client_properties
+
+
+def write_client_properties(id: str, task: str, lines: list) -> str:
+    """Write a client properties file containing the specified lines"""
+
+    output_file = "{id}-client.properties".format(id=id)
+
+    LOG.info("Generating %s", output_file)
+    output = sdk_cmd.create_task_text_file(task, output_file, lines)
     LOG.info(output)
 
     return output_file
 
 
-def write_jaas_config_file(primary: str, task: str) -> str:
+def write_jaas_config_file(primary: str, task: str, krb5: object) -> str:
     output_file = "{primary}-client-jaas.config".format(primary=primary)
 
     LOG.info("Generating %s", output_file)
 
     # TODO: use kafka_client keytab path
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-KafkaClient {{
-    com.sun.security.auth.module.Krb5LoginModule required
-    doNotPrompt=true
-    useTicketCache=true
-    principal=\\"{primary}@LOCAL\\"
-    useKeyTab=true
-    serviceName=\\"kafka\\"
-    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"
-client=true;
-}};
-EOL\"""".format(output_file=output_file, primary=primary)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
+    jaas_file_contents = ['KafkaClient {',
+                          '    com.sun.security.auth.module.Krb5LoginModule required',
+                          '    doNotPrompt=true',
+                          '    useTicketCache=true',
+                          '    principal=\\"{primary}@{realm}\\"'.format(primary=primary, realm=krb5.get_realm()),
+                          '    useKeyTab=true',
+                          '    serviceName=\\"kafka\\"',
+                          '    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"',
+                          '    client=true;',
+                          '};', ]
+
+    output = sdk_cmd.create_task_text_file(task, output_file, jaas_file_contents)
     LOG.info(output)
 
     return output_file
 
 
-def write_krb5_config_file(task: str) -> str:
-    output_file = "krb5.config"
-
-    LOG.info("Generating %s", output_file)
-
-    # TODO: Set realm and kdc properties
-    output_cmd = """bash -c \"cat >{output_file} << EOL
-[libdefaults]
-default_realm = LOCAL
-
-[realms]
-  LOCAL = {{
-    kdc = kdc.marathon.autoip.dcos.thisdcos.directory:2500
-  }}
-EOL\"""".format(output_file=output_file)
-    LOG.info("Running: %s", output_cmd)
-    output = sdk_tasks.task_exec(task, output_cmd)
-    LOG.info(output)
-
-    return output_file
-
-
-def setup_env(primary: str, task: str) -> str:
+def setup_krb5_env(primary: str, task: str, krb5: object) -> str:
     env_setup_string = "export KAFKA_OPTS=\\\"" \
                        "-Djava.security.auth.login.config={} " \
                        "-Djava.security.krb5.conf={}" \
-                       "\\\"".format(write_jaas_config_file(primary, task), write_krb5_config_file(task))
+                       "\\\"".format(write_jaas_config_file(primary, task, krb5),
+                                     kerberos.write_krb5_config_file(task, "krb5.config", krb5))
     LOG.info("Setting environment to %s", env_setup_string)
     return env_setup_string
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) -> str:
-    if not cmd:
-        env_str = setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
+def get_bash_command(cmd: str, environment: str) -> str:
+    env_str = "{} && ".format(environment) if environment else ""
 
-        write_cmd = "bash -c \"{} && echo {} | kafka-console-producer \
-            --topic {} \
-            --producer.config {} \
-            --broker-list \$KAFKA_BROKER_LIST\"".format(env_str,
-                                                        message,
-                                                        topic,
-                                                        client_properties)
-    else:
-        write_cmd = cmd
+    return "bash -c \"{}{}\"".format(env_str, cmd)
+
+
+def write_to_topic(cn: str, task: str, topic: str, message: str,
+                   client_properties: list=[], environment: str=None,
+                   broker_list: str="\$KAFKA_BROKER_LIST") -> bool:
+
+    client_properties_file = write_client_properties(cn, task, client_properties)
+
+    cmd_list = ["echo", message,
+                "|",
+                "kafka-console-producer",
+                "--topic", topic,
+                "--producer.config", client_properties_file,
+                "--broker-list", broker_list,
+                ]
+    cmd = " ".join(str(c) for c in cmd_list)
+    write_cmd = get_bash_command(cmd, environment)
 
     def write_failed(output) -> bool:
         LOG.info("Checking write output: %s", output)
@@ -137,7 +173,7 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
                     retry_on_result=write_failed)
     def write_wrapper():
         LOG.info("Running: %s", write_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, write_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(task, write_cmd)
         LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
 
         return rc, stdout, stderr
@@ -151,20 +187,23 @@ def write_to_topic(cn: str, task: str, topic: str, message: str, cmd: str=None) 
     return rc_success and stdout_success and stderr_success
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None) -> str:
-    if not cmd:
-        env_str = setup_env(cn, task)
-        client_properties = write_client_properties(cn, task)
-        timeout_ms = 60000
-        read_cmd = "bash -c \"{} && kafka-console-consumer \
-            --topic {} \
-            --consumer.config {} \
-            --bootstrap-server \$KAFKA_BROKER_LIST \
-            --from-beginning --max-messages {} \
-            --timeout-ms {} \
-            \"".format(env_str, topic, client_properties, messages, timeout_ms)
-    else:
-        read_cmd = cmd
+def read_from_topic(cn: str, task: str, topic: str, messages: int,
+                    client_properties: list=[], environment: str=None,
+                    broker_list: str="\$KAFKA_BROKER_LIST") -> str:
+
+    client_properties_file = write_client_properties(cn, task, client_properties)
+
+    cmd_list = ["kafka-console-consumer",
+                "--topic", topic,
+                "--consumer.config", client_properties_file,
+                "--bootstrap-server", broker_list,
+                "--from-beginning",
+                "--max-messages", messages,
+                "--timeout-ms", 60000,
+                ]
+
+    cmd = " ".join(str(c) for c in cmd_list)
+    read_cmd = get_bash_command(cmd, environment)
 
     def read_failed(output) -> bool:
         LOG.info("Checking read output: %s", output)
@@ -186,7 +225,7 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int, cmd: str=None
                     retry_on_result=read_failed)
     def read_wrapper():
         LOG.info("Running: %s", read_cmd)
-        rc, stdout, stderr = sdk_tasks.task_exec(task, read_cmd)
+        rc, stdout, stderr = sdk_cmd.task_exec(task, read_cmd)
         LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
 
         return rc, stdout, stderr

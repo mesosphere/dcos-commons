@@ -5,15 +5,15 @@ import logging
 import uuid
 import pytest
 
-import shakedown
-
 import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_repository
+import sdk_security
 import sdk_utils
+
+from security import kerberos as krb5
 
 from tests import auth
 from tests import config
@@ -23,76 +23,30 @@ from tests import test_utils
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_principals():
-    fqdn = "{service_name}.{host_suffix}".format(service_name=config.SERVICE_NAME,
-                                                 host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
+def get_zookeeper_principals(service_name: str, realm: str) -> list:
+    primaries = ["zookeeper", ]
 
-    brokers = [
-        "kafka-0-broker",
-        "kafka-1-broker",
-        "kafka-2-broker",
-    ]
-
-    principals = []
-    for b in brokers:
-        principals.append("kafka/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=fqdn,
-            realm=sdk_auth.REALM))
-
-    principals.append("client@{realm}".format(realm=sdk_auth.REALM))
-
-    yield principals
-
-
-def get_node_principals():
-    """Get a list of zookeeper principals for the agent nodes in the cluster"""
-    principals = []
-
-    agent_ips = shakedown.get_private_agents()
-    agent_dashed_ips = list(map(
-        lambda ip: "ip-{dashed_ip}".format(dashed_ip="-".join(ip.split("."))), agent_ips))
-    for b in agent_dashed_ips:
-        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
-            instance=b,
-            # TODO(elezar) we need to infer the region too
-            domain="us-west-2.compute.internal",
-            realm=sdk_auth.REALM))
-
-    return principals
-
-
-@pytest.fixture(scope='module', autouse=True)
-def zookeeper_principals():
-    zk_fqdn = "{service_name}.{host_suffix}".format(service_name="kafka-zookeeper",
-                                                    host_suffix=sdk_hosts.AUTOIP_HOST_SUFFIX)
-
-    zk_ensemble = [
+    tasks = [
         "zookeeper-0-server",
         "zookeeper-1-server",
         "zookeeper-2-server",
     ]
+    instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
 
-    principals = []
-    for b in zk_ensemble:
-        principals.append("zookeeper/{instance}.{domain}@{realm}".format(
-            instance=b,
-            domain=zk_fqdn,
-            realm=sdk_auth.REALM))
-
-    principals.extend(get_node_principals())
-    yield principals
+    principals = krb5.generate_principal_list(primaries, instances, realm)
+    return principals
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kerberos(configure_security, kafka_principals, zookeeper_principals):
+def kerberos(configure_security):
     try:
-        principals = []
-        principals.extend(kafka_principals)
-        principals.extend(zookeeper_principals)
-
         kerberos_env = sdk_auth.KerberosEnvironment()
+
+        principals = auth.get_service_principals(config.SERVICE_NAME,
+                                                 kerberos_env.get_realm())
+        principals.extend(get_zookeeper_principals("kafka-zookeeper",
+                                                   kerberos_env.get_realm()))
+
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -110,22 +64,38 @@ def zookeeper_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc_host_name": kerberos.get_host(),
-                    "kdc_host_port": int(kerberos.get_port()),
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port())
+                    },
+                    "realm": sdk_auth.REALM,
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
         }
     }
 
+    zk_account = "kafka-zookeeper-service-account"
+    zk_secret = "kakfa-zookeeper-secret"
+
+    if sdk_utils.is_strict_mode():
+        service_kerberos_options = sdk_install.merge_dictionaries({
+            'service': {
+                'service_account': zk_account,
+                'service_account_secret': zk_secret,
+            }
+        }, service_kerberos_options)
+
     try:
         sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_security.setup_security("kafka-zookeeper", zk_account, zk_secret)
         sdk_install.install(
             "beta-kafka-zookeeper",
             "kafka-zookeeper",
             6,
             additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+            insert_strict_options=False)
 
         yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
 
@@ -152,6 +122,7 @@ def kafka_server(kerberos, zookeeper_server):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
+                    "realm": sdk_auth.REALM,
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
             }
@@ -188,7 +159,6 @@ def kafka_client(kerberos, kafka_server):
         client = {
             "id": client_id,
             "mem": 512,
-            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -230,8 +200,9 @@ def kafka_client(kerberos, kafka_server):
 
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
+@pytest.mark.zookeeper
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server):
+def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
@@ -245,6 +216,20 @@ def test_client_can_read_and_write(kafka_client, kafka_server):
 
     message = str(uuid.uuid4())
 
-    assert auth.write_to_topic("client", client_id, topic_name, message)
+    assert write_to_topic("client", client_id, topic_name, message, kerberos)
 
-    assert message in auth.read_from_topic("client", client_id, topic_name, 1)
+    assert message in read_from_topic("client", client_id, topic_name, 1, kerberos)
+
+
+def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
+
+    return auth.write_to_topic(cn, task, topic, message,
+                               auth.get_kerberos_client_properties(ssl_enabled=False),
+                               auth.setup_krb5_env(cn, task, krb5))
+
+
+def read_from_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> str:
+
+    return auth.read_from_topic(cn, task, topic, message,
+                                auth.get_kerberos_client_properties(ssl_enabled=False),
+                                auth.setup_krb5_env(cn, task, krb5))

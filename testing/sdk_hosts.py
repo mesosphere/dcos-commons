@@ -7,7 +7,8 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 '''
 import logging
 
-import sdk_tasks
+import sdk_cmd
+import sdk_utils
 
 LOG = logging.getLogger(__name__)
 
@@ -76,13 +77,15 @@ def resolve_hosts(task_id: str, hosts: list) -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
-    bootstrap_cmd = ['bootstrap',
-                     '-print-env=false',
-                     '-template=false',
-                     '-install-certs=false',
-                     '-resolve-hosts', ','.join(hosts)]
+    bootstrap_cmd = [
+        './bootstrap',
+        '-print-env=false',
+        '-template=false',
+        '-install-certs=false',
+        '-self-resolve=false',
+        '-resolve-hosts', ','.join(hosts)]
     LOG.info("Running bootstrap to wait for DNS resolution of %s\n\t%s", hosts, bootstrap_cmd)
-    return_code, bootstrap_stdout, bootstrap_stderr = sdk_tasks.task_exec(task_id, ' '.join(bootstrap_cmd))
+    return_code, bootstrap_stdout, bootstrap_stderr = sdk_cmd.task_exec(task_id, ' '.join(bootstrap_cmd))
 
     LOG.info("bootstrap return code: %s", return_code)
     LOG.info("bootstrap STDOUT: %s", bootstrap_stdout)
@@ -98,3 +101,9 @@ def resolve_hosts(task_id: str, hosts: list) -> bool:
                 LOG.error("Could not resolve: %s", host)
 
     return resolved
+
+
+def get_foldered_dns_name(service_name):
+    if sdk_utils.dcos_version_less_than('1.10'):
+        return service_name
+    return sdk_utils.get_foldered_name(service_name).replace("/", "")

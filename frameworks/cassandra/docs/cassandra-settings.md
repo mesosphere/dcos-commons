@@ -1,8 +1,9 @@
 ---
-post_title: Cassandra Settings
-menu_order: 24
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+navigationTitle:
+excerpt:
+title: Cassandra Settings
+menuWeight: 24
 ---
 
 You can configure most of the settings exposed in Apache Cassandra's `cassandra.yaml` configuration file in DC/OS Apache Cassandra. For information about these settings, see the Apache Cassandra [documentation](http://cassandra.apache.org/doc/latest/configuration/cassandra_config_file.html). Settings that you can configure include:

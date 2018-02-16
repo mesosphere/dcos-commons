@@ -1,13 +1,29 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle:
+excerpt:
+title: Release Notes
+menuWeight: 120
 ---
+
+## Version 2.0.4-1.0.0
+
+### Updates
+- Upgraded to Kafka v1.0.0. **Note:** Protocol and log version defaults are set to 0.11.0. After upgrading to this version, they may be set to 1.0.0.
+
+## Version 2.1.1-1.0.0-beta
+
+### NOTICE
+This is a beta release of the DC/OS Apache Kafka framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Bug Fixes
+- Scheduler health check now passes during service uninstall.
+- Fixed a regression in replacing failed pods on failed agents.
+- Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.
 
 ## Version 3.0.0-1.0.0-beta
 
-## NOTICE
-
+### NOTICE
 This is a beta release of the DC/OS Kafka framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### New features
@@ -20,6 +36,7 @@ This is a beta release of the DC/OS Kafka framework. It contains multiple improv
 - The service now uses Kafka v1.0.0. Note that the broker protocol version defaults to 1.0.0, but can be manually set to 1.0.0 if desired.
 
 ## Version 1.1.27-0.11.0-beta
+
 ### Improvements
 - Support for Kafka's graceful shutdown.
 - Update to 0.11.0.0 version of Apache Kafka.
@@ -30,6 +47,7 @@ This is a beta release of the DC/OS Kafka framework. It contains multiple improv
 - Numerous fixes and enhancements to service reliability.
 
 ## Version 1.1.26-0.10.1.0-beta
+
 ### New Features
 - Installation in folders is supported
 - Use of a CNI network is supported

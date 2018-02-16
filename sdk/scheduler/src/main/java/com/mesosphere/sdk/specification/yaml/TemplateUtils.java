@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification.yaml;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,6 +111,17 @@ public class TemplateUtils {
             String templateName, String templateContent, Map<String, String> values) throws MustacheException {
         List<MissingValue> missingValues = new ArrayList<>();
         String rendered = renderMustache(templateName, templateContent, values, missingValues);
+        validateMissingValues(templateName, values, missingValues);
+        return rendered;
+    }
+
+    /**
+     * Throws a descriptive exception if {@code missingValues} is non-empty. Exposed as a utility function to allow
+     * custom filtering of missing values before the validation occurs.
+     */
+    public static void validateMissingValues(
+            String templateName, Map<String, String> values, Collection<MissingValue> missingValues)
+                    throws MustacheException {
         if (!missingValues.isEmpty()) {
             Map<String, String> orderedValues = new TreeMap<>();
             orderedValues.putAll(values);
@@ -121,7 +133,6 @@ public class TemplateUtils {
                     missingValues,
                     orderedValues));
         }
-        return rendered;
     }
 
     /**

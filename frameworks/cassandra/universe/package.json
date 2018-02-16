@@ -3,7 +3,7 @@
   "upgradesFrom": ["{{upgrades-from}}"],
   "downgradesTo": ["{{downgrades-to}}"],
   "minDcosReleaseVersion": "1.9",
-  "name": "beta-cassandra",
+  "name": "cassandra",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
   "description": "Apache Cassandra",

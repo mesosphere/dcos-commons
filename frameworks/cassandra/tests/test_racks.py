@@ -22,6 +22,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.dcos_min_version('1.11')
+@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_rack():
     sdk_install.install(
@@ -33,11 +34,10 @@ def test_rack():
                 "name": config.get_foldered_service_name()
             },
             "nodes": {
-                "placement_constraint": "@zone:GROUP_BY:1"
+                "placement_constraint": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
             }
         })
 
-    # dcos task exec node-0-server bash -c 'JAVA_HOME=jre1.8.0_144 apache-cassandra-3.0.14/bin/nodetool status'
     raw_status = nodetool.cmd('node-0', 'status')
     log.info("raw_status: {}".format(raw_status))
     stdout = raw_status[1]

@@ -1,5 +1,3 @@
-import tempfile
-
 import pytest
 import sdk_install
 import sdk_jobs
@@ -14,9 +12,9 @@ def configure_package(configure_security):
     test_jobs = []
     try:
         test_jobs = config.get_all_jobs()
-        # destroy any leftover jobs first, so that they don't touch the newly installed service:
+        # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
-            sdk_jobs.remove_job(job)
+            sdk_jobs.install_job(job)
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
@@ -24,10 +22,6 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
-
-        tmp_dir = tempfile.mkdtemp(prefix='cassandra-test')
-        for job in test_jobs:
-            sdk_jobs.install_job(job, tmp_dir=tmp_dir)
 
         yield # let the test session execute
     finally:

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
@@ -43,8 +44,8 @@ public class OfferAccepterTest {
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
+        Driver.setDriver(driver);
         accepter.accept(
-                driver,
                 Arrays.asList(new LaunchOfferRecommendation(
                         offer,
                         taskInfoBuilder.build(),
@@ -67,8 +68,8 @@ public class OfferAccepterTest {
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
+        Driver.setDriver(driver);
         accepter.accept(
-                driver,
                 Arrays.asList(new LaunchOfferRecommendation(
                         offer,
                         taskInfoBuilder.build(),

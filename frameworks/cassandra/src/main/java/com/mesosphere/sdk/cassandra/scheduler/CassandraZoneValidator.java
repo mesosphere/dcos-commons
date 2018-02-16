@@ -16,10 +16,9 @@ import java.util.*;
  */
 public class CassandraZoneValidator implements ConfigValidator<ServiceSpec> {
     static final String POD_TYPE = "node";
-    static final String TASK_NAME = "server";
 
     @Override
     public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
-        return ZoneValidator.validate(oldConfig, newConfig, POD_TYPE, TASK_NAME);
+        return ZoneValidator.validate(oldConfig, newConfig, POD_TYPE);
     }
 }

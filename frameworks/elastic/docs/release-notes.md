@@ -1,13 +1,46 @@
 ---
-post_title: Release Notes
-menu_order: 120
-enterprise: 'no'
+layout: layout.pug
+navigationTitle:
+excerpt:
+title: Release Notes
+menuWeight: 120
 ---
 
-## Version 3.0.0-5.6.4-beta
+## Version 2.1.2-5.6.5
 
 ## NOTICE
 
+This is a beta release of the DC/OS Elastic service. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Improvements
+- Before launching tasks, only download X-Pack artifact if `xpack_enabled` is true.
+- Removed unused `service.security.allow_plaintext` configuration property.
+- Moved Elastic and Kibana scheduler health-checks from HTTP to [Mesos-level health checks](https://mesosphere.github.io/marathon/docs/health-checks.html#mesos-level-health-checks).
+- Bump JRE to 1.8u162.  ([#2135](https://github.com/mesosphere/dcos-commons/pull/2135))
+- Improvements to the pod pause feature. ([#1989](https://github.com/mesosphere/dcos-commons/pull/1989))
+- Improve handling of unexpected task statuses. ([#2087](https://github.com/mesosphere/dcos-commons/pull/2087))
+
+### Documentation
+- Added instructions for configuring placement constraints.
+- Added instructions for pausing nodes.
+
+## Version 2.1.1-5.6.5
+
+### NOTICE
+This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
+
+### Updates
+- Elastic updated to version 5.6.5.
+- Kibana updated to version 5.6.5.
+
+### Bug Fixes
+- Scheduler health check now passes during service uninstall.
+- Fixed a regression in replacing failed pods on failed agents.
+- Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.
+
+## Version 3.0.0-5.6.4-beta
+
+### NOTICE
 This is a beta release of the DC/OS Elastic framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do _not_ operate this version in production.
 
 ### New features
@@ -21,7 +54,7 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 ## Version 2.1.0-5.6.2
 
 ### New Features
-* Custom configuration can now be passed to Elastic plugins. See [the documentation](custom-elasticsearch-yaml.md).
+* Custom configuration can now be passed to Elastic plugins. See [the documentation](../custom-elasticsearch-yaml/).
 
 ### Bugs
 * Uninstall now handles failed tasks correctly.
@@ -70,17 +103,14 @@ This is a beta release of the DC/OS Elastic framework. It contains multiple impr
 ## Version 1.0.11-5.4.0-beta
 
 ### Breaking Changes
-
-- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](connecting.md)' section for instructions on how to provision and connect Kibana on DC/OS.
+- Kibana has been removed from the Elastic package, along with the proxylite helper service. Please see the '[Connecting Clients](../connecting-clients/)' section for instructions on how to provision and connect Kibana on DC/OS.
 
 ### Improvements/Features
-
 - Added an option to toggle installation of commercial X-Pack plugin (disabled by default).
 - Increased ingest node default RAM to 2GB [(issue: #908)](https://github.com/mesosphere/dcos-commons/issues/908).
 - Added a configurable health check user/password to use as Elastic credentials during readiness/health checks.
 
 ### Upgrades
-
 - Upgraded to Elastic 5.4.0.
 - Upgraded to Support Diagnostics Version 5.12.
 - Upgraded to dcos-commons-0.16.0.

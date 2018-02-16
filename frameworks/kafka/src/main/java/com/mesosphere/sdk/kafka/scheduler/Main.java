@@ -9,8 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.api.types.EndpointProducer;
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.kafka.api.BrokerResource;
 import com.mesosphere.sdk.kafka.api.KafkaZKClient;
 import com.mesosphere.sdk.kafka.api.TopicResource;
@@ -59,6 +59,7 @@ public class Main {
                         .setAllPodsEnv(KAFKA_ZK_URI_ENV, kafkaZookeeperUri)
                         .build(),
                 schedulerConfig)
+                .setCustomConfigValidators(Arrays.asList(new KafkaZoneValidator()))
                 .setPlansFrom(rawServiceSpec);
 
         return schedulerBuilder

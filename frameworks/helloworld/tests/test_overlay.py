@@ -1,17 +1,15 @@
 import logging
 
+import json
 import pytest
+import retrying
 
-import sdk_api
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
 import sdk_plan
-import sdk_utils
 import shakedown
-from dcos.http import DCOSHTTPException
-from shakedown.dcos.spinner import TimeoutExpired
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -32,14 +30,11 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-# test suite constants
 EXPECTED_TASKS = [
     'hello-host-vip-0-server',
     'hello-overlay-vip-0-server',
     'hello-host-0-server',
     'hello-overlay-0-server']
-
-TASKS_WITH_PORTS = [task for task in EXPECTED_TASKS if "hello" in task]
 
 EXPECTED_NETWORK_LABELS = {
     "key0": "val0",
@@ -74,7 +69,7 @@ def test_overlay_network():
     try:
         sdk_plan.wait_for_in_progress_recovery(config.SERVICE_NAME, timeout_seconds=60)
         sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=60)
-    except TimeoutExpired:
+    except retrying.RetryError:
         pass
 
     # test that the tasks are all up, which tests the overlay DNS
@@ -136,7 +131,7 @@ def test_cni_labels():
         assert v == EXPECTED_NETWORK_LABELS[k], "Value {obs} isn't correct, should be " \
                                                 "{exp}".format(obs=v, exp=EXPECTED_NETWORK_LABELS[k])
 
-    r = sdk_api.get(config.SERVICE_NAME, "v1/pod/hello-overlay-vip-0/info").json()
+    r = sdk_cmd.service_request('GET', config.SERVICE_NAME, "/v1/pod/hello-overlay-vip-0/info").json()
     assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
     try:
         cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
@@ -153,26 +148,16 @@ def test_cni_labels():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version('1.9')
-def test_port_names():
-    def check_task_ports(task_name, expected_port_count, expected_port_names):
-        endpoint = "/v1/tasks/info/{}".format(task_name)
-        try:
-            r = sdk_api.get(config.SERVICE_NAME, endpoint).json()
-        except DCOSHTTPException:
-            return False, "Failed to get API endpoint {}".format(endpoint)
-        sdk_networks.check_port_names(r, expected_port_count, expected_port_names)
-
-    for task in TASKS_WITH_PORTS:
-        if task == "hello-overlay-0-server":
-            check_task_ports(task, 2, ["dummy", "dynport"])
-        else:
-            check_task_ports(task, 1, ["test"])
-
-
-@pytest.mark.sanity
-@pytest.mark.overlay
-@pytest.mark.dcos_min_version('1.9')
 def test_srv_records():
+    def get_task_record(task_name, fmk_srv_records):
+        assert "tasks" in fmk_srv_records, "Framework SRV records missing 'tasks': {}".format(fmk_srv_records)
+        task_records = [t for t in fmk_srv_records["tasks"] if t["name"] == task_name]
+        assert len(task_records) > 0, "Didn't find task record for {}".format(task_name)
+        assert len(task_records) == 1, "Got redundant tasks for {}".format(task_name)
+        task_record = task_records[0]
+        assert "records" in task_record, "Task record {} missing 'records'".format(task_record)
+        return task_record["records"]
+
     def check_port_record(task_records, task_name, record_name):
         record_name_prefix = "_{}.".format(record_name)
         matching_records = [r for r in task_records if r["name"].startswith(record_name_prefix)]
@@ -181,17 +166,44 @@ def test_srv_records():
                 record_name, record_name_prefix, task_name, matching_records, task_records)
 
     log.info("Getting framework srv records for %s", config.SERVICE_NAME)
-    fmk_srvs = sdk_networks.get_framework_srv_records(config.SERVICE_NAME)
-    for task in TASKS_WITH_PORTS:
-        task_records = sdk_networks.get_task_record(task, fmk_srvs)
-        if task == "hello-overlay-0-server":
-            check_port_record(task_records, task, "overlay-dummy")
-            check_port_record(task_records, task, "overlay-dynport")
-        elif task == "hello-host-vip-0-server":
-            check_port_record(task_records, task, "host-vip")
-        elif task == "hello-overlay-vip-0-server":
-            check_port_record(task_records, task, "overlay-vip")
-        elif task == "hello-host-0-server":
-            check_port_record(task_records, task, "host-port")
+
+    @retrying.retry(wait_exponential_multiplier=1000,
+                    wait_exponential_max=120 * 1000)
+    def call_shakedown():
+        cmd = "curl localhost:8123/v1/enumerate"
+        log.info("Running '%s' on master", cmd)
+        is_ok, out = shakedown.run_command_on_master(cmd)
+        log.info("Running command returned: is_ok=%s", is_ok)
+        assert is_ok, "Failed to get srv records. command was {}".format(cmd)
+        try:
+            srvs = json.loads(out)
+        except Exception as e:
+            log.error("Error converting out=%s to json", out)
+            log.error(e)
+            raise e
+
+        return srvs
+
+    srvs = call_shakedown()
+    framework_srvs = [f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME]
+    assert len(framework_srvs) == 1, "Got too many srv records matching service {}, got {}"\
+        .format(config.SERVICE_NAME, framework_srvs)
+    framework_srv = framework_srvs[0]
+
+    for task_name in EXPECTED_TASKS:
+        assert "tasks" in framework_srv, "Framework SRV records missing 'tasks': {}".format(framework_srv)
+        match_records = [t for t in framework_srv["tasks"] if t["name"] == task_name]
+        assert len(match_records) > 0, "Didn't find task record for {}".format(task_name)
+        assert len(match_records) == 1, "Got redundant tasks for {}".format(task_name)
+        task_records = match_records[0]["records"]
+        if task_name == "hello-overlay-0-server":
+            check_port_record(task_records, task_name, "overlay-dummy")
+            check_port_record(task_records, task_name, "overlay-dynport")
+        elif task_name == "hello-host-vip-0-server":
+            check_port_record(task_records, task_name, "host-vip")
+        elif task_name == "hello-overlay-vip-0-server":
+            check_port_record(task_records, task_name, "overlay-vip")
+        elif task_name == "hello-host-0-server":
+            check_port_record(task_records, task_name, "host-port")
         else:
-            assert False, "Unknown task {}".format(task)
+            assert False, "Unknown task {}".format(task_name)

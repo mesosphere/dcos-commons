@@ -12,12 +12,17 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     python-software-properties \
     libssl-dev \
+    upx-ucl \
     wget \
     zip && \
-    # install go 1.7
-    add-apt-repository -y ppa:longsleep/golang-backports && \
-    apt-get update && apt-get install -y golang-go && \
     rm -rf /var/lib/apt/lists/*
+
+# Install go 1.8.5
+RUN curl -O https://storage.googleapis.com/golang/go1.8.5.linux-amd64.tar.gz && \
+    tar -xf go1.8.5.linux-amd64.tar.gz && \
+    mv go /usr/local
+ENV PATH=$PATH:/usr/local/go/bin
+RUN go version
 # AWS CLI for uploading build artifacts
 RUN pip install awscli
 # Install the testing dependencies

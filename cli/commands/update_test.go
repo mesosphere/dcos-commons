@@ -65,6 +65,9 @@ func (suite *UpdateTestSuite) SetupTest() {
 	// set up test server
 	suite.server = httptest.NewServer(http.HandlerFunc(suite.exampleHandler))
 	os.Setenv("DCOS_URL", suite.server.URL)
+	os.Setenv("DCOS_PACKAGE_COSMOS_URL", suite.server.URL)
+	os.Setenv("DCOS_ACS_TOKEN", "fake-token")
+	os.Setenv("DCOS_SSL_VERIFY", "False")
 }
 
 func (suite *UpdateTestSuite) TearDownTest() {

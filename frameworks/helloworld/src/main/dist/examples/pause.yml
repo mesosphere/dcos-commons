@@ -1,0 +1,47 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-check:
+          cmd: stat hello-container-path/output
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
+      companion:
+        goal: RUNNING
+        cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      hello-deploy:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[server], [companion]]

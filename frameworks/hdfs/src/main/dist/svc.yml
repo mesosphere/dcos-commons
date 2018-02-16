@@ -42,23 +42,29 @@ pods:
     tasks:
       bootstrap:
         goal: ONCE
-        cmd: >
-          echo "Creating version directory in the journal-data persistent volume" &&
-          mkdir -p journal-data/hdfs/current &&
-          echo "Fetching VERSION file" &&
-          curl $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION > journal-data/hdfs/current/VERSION &&
-          echo "VERSION has the following content:" &&
+        cmd: |
+          set -e
+          echo "Creating version directory in the journal-data persistent volume"
+          mkdir -p journal-data/hdfs/current
+          echo "Fetching VERSION file"
+          curl $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION > journal-data/hdfs/current/VERSION
+          echo "VERSION has the following content:"
           cat journal-data/hdfs/current/VERSION
         resource-set: journal-resources
       node:
         goal: RUNNING
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
+          ./bootstrap
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
@@ -88,19 +94,26 @@ pods:
         {{#JOURNAL_READINESS_CHECK_ENABLED}}
         # The absence of journal-data/hdfs indicates HDFS is about to be deployed for the first time.
         readiness-check:
-          cmd: >
+          cmd: |
+            set -e
             if [ ! -d journal-data/hdfs ]; then
+              echo "Journal data directory doesn't exist. Exiting early."
               exit 0
-            else
-              curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json &&
-              export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}') &&
-              if [ -f journal-data/hdfs/current/VERSION ] && [ ! -f journal-data/uploadedVersionFile ]; then
-                curl -X PUT -F 'file=@journal-data/hdfs/current/VERSION' $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION &&
-                touch journal-data/uploadedVersionFile
-              fi &&
-              [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
             fi
+            curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json
+            echo "Fetched JMX data:"
+            cat tmpJmx.json
+            export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}')
+            export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}')
+            echo "Lagging TX: $LAGGING_TX_COUNT (want {{JOURNAL_LAGGING_TX_COUNT}}), Written TX: $WRITTEN_TX_COUNT (want >0)"
+            VERSION_FILE=journal-data/hdfs/current/VERSION
+            if [ -f $VERSION_FILE ] && [ ! -f journal-data/uploadedVersionFile ]; then
+              echo "Uploading $VERSION_FILE to Scheduler:"
+              cat $VERSION_FILE
+              curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION
+              touch journal-data/uploadedVersionFile
+            fi
+            [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
           delay: 30
           interval: 5
           timeout: 15
@@ -156,35 +169,44 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+
           if [[ $POD_INSTANCE_INDEX -eq 0 ]]; then
             export OTHER_NN_INDEX=1
           else
             export OTHER_NN_INDEX=0
-          fi &&
+          fi
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap &&
+          ./bootstrap
           {{#NAME_NODE_PLACEMENT}}
-          mv zone-resolver.sh {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh &&
-          chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh &&
+          cp -v zone-resolver.sh {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
+          chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           {{/NAME_NODE_PLACEMENT}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
-          cmd: >
-            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
+          cmd: |
+            set -e
+            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
             {{#SECURITY_KERBEROS_ENABLED}}
-            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
-            KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM &&
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+            {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
             {{/SECURITY_KERBEROS_ENABLED}}
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME
           interval: 5
           delay: 0
-          timeout: 60
+          timeout: 180
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
@@ -217,13 +239,18 @@ pods:
         {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       format:
         goal: ONCE
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
+          ./bootstrap -resolve=false
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
@@ -249,13 +276,18 @@ pods:
           NAMENODE: true
       bootstrap:
         goal: ONCE
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
+          ./bootstrap -resolve=false
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
@@ -287,13 +319,18 @@ pods:
       zkfc:
         essential: false
         goal: RUNNING
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
+          ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
@@ -319,13 +356,18 @@ pods:
           ZKFC: true
       zkfc-format:
         goal: ONCE
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
+          ./bootstrap -resolve=false
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
@@ -371,13 +413,18 @@ pods:
     tasks:
       node:
         goal: RUNNING
-        cmd: >
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) ;
-          mv hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/ ;
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
-          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./bootstrap && ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
+          ./bootstrap
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:
@@ -419,13 +466,18 @@ pods:
           DATANODE: true
         # If HDFS does not report a data node to be live, we don't consider the data node to be ready yet
         readiness-check:
-          cmd: >
-            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jre*/) &&
+          cmd: |
+            set -e
+            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
             {{#SECURITY_KERBEROS_ENABLED}}
-            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS" &&
-            KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM &&
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+            {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
             {{/SECURITY_KERBEROS_ENABLED}}
-            export TASK_IP=$(./bootstrap --get-task-ip) && MATCH="$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)" &&
+            export TASK_IP=$(./bootstrap --get-task-ip)
+            MATCH="$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)"
             [[ $MATCH -ge 1 ]]
           interval: 10
           delay: 120

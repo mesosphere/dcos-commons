@@ -1,32 +1,29 @@
 import json
+import logging
 import os
+import retrying
 import shakedown
 
-import sdk_auth
 import sdk_cmd
 import sdk_plan
-import sdk_utils
 import sdk_tasks
+import sdk_utils
 
-PACKAGE_NAME = 'beta-hdfs'
-SERVICE_NAME = 'hdfs'
+log = logging.getLogger(__name__)
+
+PACKAGE_NAME = sdk_utils.get_package_name("hdfs")
+SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
+FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 TEST_CONTENT_SMALL = "This is some test data"
 # use long-read alignments to human chromosome 1 as large file input (11GB)
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
-TEST_FILE_1_NAME = "test_1"
-TEST_FILE_2_NAME = "test_2"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
 KEYTAB = "hdfs.keytab"
-CLIENT_PRINCIPALS = {
-    "hdfs": "hdfs@{}".format(sdk_auth.REALM),
-    "alice": "alice@{}".format(sdk_auth.REALM),
-    "bob": "bob@{}".format(sdk_auth.REALM)
-}
 
 
 def get_kerberized_hdfs_client_app():
@@ -90,15 +87,16 @@ def get_active_name_node(service_name):
     raise Exception("Failed to determine active name node")
 
 
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
-    def get_status():
-        rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
-        if not rc:
-            return rc
+    rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
+    if not rc:
+        return rc
 
-        return output.strip()
-
-    return shakedown.wait_for(lambda: get_status(), timeout_seconds=DEFAULT_HDFS_TIMEOUT)
+    return output.strip()
 
 
 def run_hdfs_command(service_name, command):
@@ -111,8 +109,15 @@ def run_hdfs_command(service_name, command):
         cmd=command
     )
 
-    rc, output = shakedown.run_command_on_master(full_command)
-    return rc, output
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+        retry_on_result=lambda res: not res[0])
+    def fn():
+        rc, output = shakedown.run_command_on_master(full_command)
+        log.info('Command output ({} bytes, success={}):\n{}'.format(len(output), rc, output))
+        return rc, output
+    return fn()
 
 
 def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):

@@ -81,7 +81,8 @@ public class MesosResourcePool {
     }
 
     public Map<String, Value> getUnreservedMergedPool() {
-        return reservableMergedPoolByRole.get(Constants.ANY_ROLE);
+        Map<String, Value> pool = reservableMergedPoolByRole.get(Constants.ANY_ROLE);
+        return pool == null ? Collections.emptyMap() : pool;
     }
 
     /**

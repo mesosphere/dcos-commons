@@ -10,7 +10,6 @@ import os
 import random
 import string
 
-import shakedown
 import sdk_cmd
 
 log = logging.getLogger(__name__)
@@ -62,13 +61,13 @@ def remove_universe_repos(stub_urls):
     # clear out the added universe repositores at testing end
     for name, url in stub_urls.items():
         log.info('Removing stub URL: {}'.format(url))
-        out, err, rc = shakedown.run_dcos_command('package repo remove {}'.format(name))
-        if err:
-            if err.endswith('is not present in the list'):
+        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo remove {}'.format(name))
+        if rc != 0 or stderr:
+            if stderr.endswith('is not present in the list'):
                 # tried to remove something that wasn't there, move on.
                 pass
             else:
-                raise 'Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(out, err)
+                raise Exception('Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(stdout, stderr))
 
     log.info('Finished removing universe repos')
 

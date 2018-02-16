@@ -1,8 +1,9 @@
 ---
-post_title: Node Settings
-menu_order: 27
-post_excerpt: ""
-enterprise: 'no'
+layout: layout.pug
+navigationTitle:
+excerpt:
+title: Node Settings
+menuWeight: 27
 ---
 
 Adjust the following settings to customize the amount of resources allocated to each  node. DC/OS Apache Cassandra's [system requirements](http://cassandra.apache.org/doc/latest/operating/hardware.html) must be taken into consideration when adjusting these values. Reducing these values below those requirements may result in adverse performance and/or failures while using the service.
@@ -85,23 +86,20 @@ It is [recommended](http://docs.datastax.com/en/landing_page/doc/landing_page/re
 
 # Placement Constraints
 
-Placement constraints allow you to customize where Apache Cassandra nodes are deployed in the DC/OS cluster. Placement constraints support all [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html) with this syntax: `field:OPERATOR[:parameter]`. For example, if the reference lists `[["hostname", "UNIQUE"]]`, use `hostname:UNIQUE`.
+Placement constraints allow you to customize where Apache Cassandra nodes are deployed in the DC/OS cluster. Placement constraints support all [Marathon operators](http://mesosphere.github.io/marathon/docs/constraints.html). For example, `[["hostname", "UNIQUE"]]` ensures that at most one pod instance is deployed per agent.
 
-*   **In DC/OS CLI options.json**: `placement_constraint`: string (default: `""`)
+*   **In DC/OS CLI options.json**: `placement_constraint`: string (default: `[["hostname", "MAX_PER", "1"]]`)
 *   **DC/OS web interface**: `PLACEMENT_CONSTRAINT`: `string`
+
+## Regions and Zones
+
+Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
+```
+[["@zone", "GROUP_BY", "3"]]
+```
+
+When the region awareness feature is enabled (currently in beta), the `@region` key can also be referenced for defining placement constraints. Any placement constraints that do not reference the `@region` key are constrained to the local region.
 
 ## Rack-Aware Placement
 
-Cassandra's "rack"-based fault domain support may be enabled by specifying a placement constraint that uses the `@zone` key. For example, one could spread Cassandra nodes across a minimum of three different zones/racks by specifying the constraint `@zone:GROUP_BY:3`. When a placement constraint specifying `@zone` is used, Cassandra nodes will be automatically configured with `rack`s that match the names of the zones. If no placement constraint referencing `@zone` is configured, all nodes will be configured with a default rack of `rack1`.
-
-# Virtual networks
-
-Cassandra supports deployment on virtual networks on DC/OS (including the `dcos` overlay network) allowing each node to have its own IP address and not use the ports resources on the agent. This can be specified by passing the following configuration during installation:
-```json
-{
-    "service": {
-        "virtual_network_enabled": true
-    }
-}
-```
-By default two nodes will not be placed on the same agent, however multiple Cassandra clusters can share an agent. As mentioned in the [developer guide](https://mesosphere.github.io/dcos-commons/developer-guide.html) once the service is deployed on a virtual network, it cannot be updated to use the host network.
+Cassandra's "rack"-based fault domain support may be enabled by specifying a placement constraint that uses the `@zone` key. For example, one could spread Cassandra nodes across a minimum of three different zones/racks by specifying the constraint `[["@zone", "GROUP_BY", "3"]]`. When a placement constraint specifying `@zone` is used, Cassandra nodes will be automatically configured with `rack`s that match the names of the zones. If no placement constraint referencing `@zone` is configured, all nodes will be configured with a default rack of `rack1`.

@@ -1,6 +1,7 @@
 ---
 title: Glossary
-menu_order: 4
+menuWeight: 4
+redirect_from: /glossary.html
 ---
 
 ## D

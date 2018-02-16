@@ -1,6 +1,7 @@
 target/
 *.pyc
 .cache/
+.gopath/
 
 # dcos-docker artifacts
 dcos-docker/

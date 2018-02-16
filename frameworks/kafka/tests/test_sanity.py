@@ -1,9 +1,5 @@
-import urllib
-
-import dcos
-import dcos.config
-import dcos.http
 import pytest
+import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
@@ -62,14 +58,19 @@ def test_mesos_v0_api():
 @pytest.mark.sanity
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    def fun():
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=120*1000,
+        retry_on_result=lambda res: not res)
+    def wait():
         ret = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, foldered_name,
             'endpoints {}'.format(config.DEFAULT_TASK_NAME), json=True)
         if len(ret['address']) == config.DEFAULT_BROKER_COUNT:
             return ret
         return False
-    endpoints = shakedown.wait_for(fun)
+
+    endpoints = wait()
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints['address']) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == config.DEFAULT_BROKER_COUNT
