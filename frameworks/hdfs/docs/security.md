@@ -10,7 +10,7 @@ menuWeight: 22
 
 The DC/OS Apache HDFS service supports HDFS's native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.
 
-A good overview of these features can be found [here](https://hadoop.apache.org/docs/r2.7.2/hadoop-project-dist/hadoop-common/SecureMode.html).
+A good overview of these features can be found [here](https://hadoop.apache.org/docs/r2.6.0/hadoop-project-dist/hadoop-common/SecureMode.html).
 
 *Note*: These security features are only available on DC/OS Enterprise 1.10 and above.
 
@@ -28,11 +28,6 @@ The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/
 <!--
 TO BE CONFIRMED
 *Note*: It is possible to update a running DC/OS Apache HDFS service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your HDFS clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true. -->
-
-#### Verify Transport Encryption Enabled
-
-???
-<!-- After service deployment completes, check the list of [HDFS endpoints](api-reference.md#connection-information) for the endpoints `broker-tls`. -->
 
 ## Authentication
 
@@ -84,7 +79,7 @@ HTTP/data-<data-index>-node.<service subdomain>.autoip.dcos.thisdcos.directory@<
 ```
 with:
 - `service primary = service.security.kerberos.primary`
-- `data index = 0 up to data_node.brokers.count - 1`
+- `data index = 0 up to data_node.count - 1`
 - `service subdomain = service.name with all `/`'s removed`
 - `service realm = service.security.kerberos.realm`
 
@@ -131,7 +126,11 @@ example/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 HTTP/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
 
-{{ include services/security-service-keytab }}
+{{ include service/security-kerberos-ad }}
+
+{{ include services/security-service-keytab
+    techName="Apache HDFS" }}
+
 #### Install the Service
 
 Install the DC/OS Apache HDFS service with the following options in addition to your own:
@@ -157,9 +156,27 @@ Install the DC/OS Apache HDFS service with the following options in addition to 
 
 ## Authorization
 
-The DC/OS Apache HDFS service supports HDFS's native authorization primitives. If Keberos is enabled as detailed [above](#kerberos-authentication), then
+The DC/OS Apache HDFS service supports HDFS's native authorization, which behaves similarly to UNIX file permissions. If Keberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to OS users which HDFS uses to assign permissions internally.
 
 ### Enable Authorization
 
 #### Prerequisites
 - Completion of  [Kerberos authentication](#kerberos-authentication) above.
+
+#### Set Kerberos Principal to User Mapping
+
+A custom mapping can be set to map Kerberos principals to OS user names. This is supplied by setting the parameter
+```
+{
+    "hdfs": {
+        "security_auth_to_local": "<custom mapping>"
+    }
+}
+```
+where `<custom mapping>` is a base64 encoded string. The mapping is base64 encoded to ensure it is sent to the service correctly.
+
+**WARNING**: The default mapping is to map **ANY** Kerberos Principal to the OS user `nobody`. This is done for simplicity of testing and you **MUST** change it before placing sensitive data in the system.
+
+[This](https://hortonworks.com/blog/fine-tune-your-apache-hadoop-security-settings/) article has a good description of how to build a custom mapping, under the section "Kerberos Principals and UNIX User Names".
+
+*NOTE*: In DC/OS 1.11 and above, the DC/OS UI will automatically encode and decode the mapping to and from base64. If installing from the CLI or from the UI in a version older than DC/OS 1.11, it is necessary to do the encoding manually.

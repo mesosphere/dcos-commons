@@ -85,8 +85,9 @@ example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-1-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-2-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
+{{ include service/security-kerberos-ad }}
 
-{% include services/security-configure-transport-encryption.md
+{% include services/security-service-keytab
     techName="Apache Kafka" %}
 
 #### Install the Service
