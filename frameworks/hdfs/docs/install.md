@@ -81,7 +81,7 @@ The following describes the most commonly used features of DC/OS Apache HDFS and
 
 ### Service Configuration
 
-The service configuration object contains properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
+The service configuration object contains some properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
 
 ```json
 {
