@@ -18,7 +18,8 @@ log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 # Prefix to be included at the start of stub universe URLs.
-# Points to a translator service which automatically converts the package definition to match the requesting cluster's version.
+# Points to a translator service which automatically converts the package
+# definition to match the requesting cluster's version.
 universe_converter_url_prefix = 'https://universe-converter.mesosphere.com/transform?url='
 
 
@@ -26,6 +27,8 @@ class UniverseReleaseBuilder(object):
 
     @staticmethod
     def get_package_name(stub_universe_url: str) -> str:
+        '''Determine the package name from the stub universe URL.
+        The can be overridden with a PACKAGE_NAME environment variable.'''
 
         package_name = os.environ.get('PACKAGE_NAME', '')
 
@@ -46,6 +49,8 @@ class UniverseReleaseBuilder(object):
 
     @staticmethod
     def apply_beta_prefix(package_name: str, is_beta: bool) -> str:
+        '''Ensure that the package_name ends in '-beta' if required'''
+
         stripped_name = left_trim(package_name, 'beta-')
         if is_beta:
             log.info('Applying beta- prefix to %s', stripped_name)
@@ -56,6 +61,7 @@ class UniverseReleaseBuilder(object):
 
     @staticmethod
     def apply_beta_version(package_version: str, is_beta: bool) -> str:
+        '''Add the '-beta' suffix to the package version if required'''
         if is_beta:
             stripped_version = right_trim(package_version, '-beta')
             log.info('Applying -beta sufix to %s', stripped_version)
@@ -113,7 +119,11 @@ Package name:    {}
 Package version: {}
 Artifact output: {}
 Upgrades from:   {}
-###'''.format(self._stub_universe_url, self._pkg_name, self._pkg_version, self._http_directory_url, self._upgrades_from))
+###'''.format(self._stub_universe_url,
+              self._pkg_name,
+              self._pkg_version,
+              self._http_directory_url,
+              self._upgrades_from))
 
     def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
         if self._dry_run:
@@ -310,14 +320,16 @@ Upgrades from:   {}
         ret = self._run_cmd(cmd, False, 1)
         if ret == 0:
             if self._force_upload:
-                log.info('Destination {} exists but force upload is configured, proceeding...'.format(
-                    self._uploader.get_s3_directory()))
+                log.info('Destination {} exists but force upload is configured, '
+                         'proceeding...'.format(self._uploader.get_s3_directory()))
             else:
-                raise Exception('Release artifact destination already exists. ' +
-                                'Refusing to continue until destination has been manually removed:\n' +
-                                'Do this: aws s3 rm --dryrun --recursive {}'.format(self._uploader.get_s3_directory()))
+                raise Exception('Release artifact destination already exists. '
+                                'Refusing to continue until destination has been manually removed:\n'
+                                'Do this:\n'
+                                '    aws s3 rm --dryrun --recursive {}'.format(self._uploader.get_s3_directory()))
         elif ret > 256:
-            raise Exception('Failed to check artifact destination presence (code {}). Bad AWS credentials? Exiting early.'.format(ret))
+            raise Exception('Failed to check artifact destination presence (code {}). '
+                            'Bad AWS credentials? Exiting early.'.format(ret))
         else:
             log.info('Destination {} doesnt exist, proceeding...'.format(self._uploader.get_s3_directory()))
 
@@ -347,7 +359,8 @@ Upgrades from:   {}
             os.unlink(local_path)
 
     def move_package(self):
-        '''Updates package, puts artifacts in target location, and uploads updated stub-universe.json to target location.'''
+        '''Updates package, puts artifacts in target location,
+        and uploads updated stub-universe.json to target location.'''
         # Download stub universe:
         scratchdir = tempfile.mkdtemp(prefix='stub-universe-tmp')
         stub_universe_json = self._fetch_stub_universe()
@@ -405,7 +418,8 @@ Upgrades from:   {}
         except:
             log.error(
                 'Failed to create PR. '
-                'Note that any release artifacts were already uploaded to {}, which must be manually deleted before retrying.'.format(self._uploader.get_s3_directory()))
+                'Note that any release artifacts were already uploaded to {}, '
+                'which must be manually deleted before retrying.'.format(self._uploader.get_s3_directory()))
             raise
 
 
@@ -423,7 +437,6 @@ def right_trim(string: str, suffix: str) -> str:
         return string[:-len(suffix)]
 
     return string
-
 
 
 def print_help(argv):
