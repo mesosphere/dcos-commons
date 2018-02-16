@@ -75,7 +75,12 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         }
     }
 
-    protected void setPlan(Plan plan) {
+    @Override
+    public void setPlan(Plan plan) {
+        throw new UnsupportedOperationException("Setting plans on the RecoveryPlanManager is not allowed.");
+    }
+
+    protected void setPlanInternal(Plan plan) {
         synchronized (planLock) {
             this.plan = plan;
             List<String> stepNames = plan.getChildren().stream()
@@ -148,7 +153,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 }
             }
 
-            setPlan(createPlan(defaultRequirements, phases));
+            setPlanInternal(createPlan(defaultRequirements, phases));
         }
     }
 

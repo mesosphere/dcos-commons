@@ -18,6 +18,11 @@ public interface PlanManager {
     Plan getPlan();
 
     /**
+     * Sets the plan for the PlanManager.
+     */
+    void setPlan(Plan plan);
+
+    /**
      * Determines the next {@link Step}s that should be considered for scheduling. {@link Step}s that are being selected
      * by other {@link PlanManager}s are provided as {@code dirtyAssets} as a hint to this {@link PlanManager} to assist
      * with scheduling.

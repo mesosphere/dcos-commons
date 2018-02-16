@@ -45,8 +45,9 @@ public class UninstallScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerConfig schedulerConfig) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, Optional.empty());
+            SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer) {
+        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
     }
 
     protected UninstallScheduler(
@@ -54,8 +55,9 @@ public class UninstallScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(stateStore, configStore, schedulerConfig);
+        super(stateStore, configStore, schedulerConfig, planCustomizer);
         this.serviceSpec = serviceSpec;
         this.secretsClient = customSecretsClientForTests;
 
@@ -66,6 +68,7 @@ public class UninstallScheduler extends AbstractScheduler {
                 schedulerConfig,
                 secretsClient)
                 .build();
+
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
         this.resources = Arrays.asList(
                 new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
@@ -102,7 +105,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() throws InterruptedException {
+    protected PlanCoordinator getPlanCoordinator() {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -115,6 +118,11 @@ public class UninstallScheduler extends AbstractScheduler {
                 return Collections.singletonList(uninstallPlanManager);
             }
         };
+    }
+
+    @Override
+    protected void registeredWithMesos() {
+        logger.info("Uninstall scheduler registered with Mesos.");
     }
 
     @Override

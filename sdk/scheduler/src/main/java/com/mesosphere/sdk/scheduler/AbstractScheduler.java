@@ -7,9 +7,8 @@ import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.queue.OfferQueue;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -41,6 +40,7 @@ public abstract class AbstractScheduler {
     // started, because when tasks launch they typically require access to ArtifactResource for config templates.
     private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
     private final AtomicBoolean started = new AtomicBoolean(false);
+    private final Optional<PlanCustomizer> planCustomizer;
 
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded = true;
@@ -66,10 +66,12 @@ public abstract class AbstractScheduler {
     protected AbstractScheduler(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            SchedulerConfig schedulerConfig) {
+            SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer) {
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.schedulerConfig = schedulerConfig;
+        this.planCustomizer = planCustomizer;
     }
 
     /**
@@ -81,6 +83,20 @@ public abstract class AbstractScheduler {
     public AbstractScheduler start() {
         if (!started.compareAndSet(false, true)) {
             throw new IllegalStateException("start() can only be called once");
+        }
+
+        if (planCustomizer.isPresent()) {
+            for (PlanManager planManager : getPlanCoordinator().getPlanManagers()) {
+                if (planManager.getPlan().isRecoveryPlan()) {
+                    continue;
+                }
+
+                if (planManager.getPlan().isDeployPlan() && this instanceof UninstallScheduler) {
+                    planManager.setPlan(planCustomizer.get().updateUninstallPlan(planManager.getPlan()));
+                } else {
+                    planManager.setPlan(planCustomizer.get().updatePlan(planManager.getPlan()));
+                }
+            }
         }
 
         if (multithreaded) {
@@ -178,21 +194,25 @@ public abstract class AbstractScheduler {
      */
     @VisibleForTesting
     public Collection<Plan> getPlans() {
-        return mesosScheduler.planCoordinator.getPlanManagers().stream()
+        return getPlanCoordinator().getPlanManagers().stream()
                 .map(planManager -> planManager.getPlan())
                 .collect(Collectors.toList());
     }
 
     /**
      * Returns a list of API resources to be served by the scheduler to the local cluster.
-     * This may be called before {@link #getPlanCoordinator()} has been called.
      */
     public abstract Collection<Object> getResources();
 
     /**
      * Returns the {@link PlanCoordinator}.
      */
-    protected abstract PlanCoordinator getPlanCoordinator() throws Exception;
+    protected abstract PlanCoordinator getPlanCoordinator();
+
+    /**
+     * Provides a callback to indicate that the scheduler has registered with Mesos.
+     */
+    protected abstract void registeredWithMesos();
 
     /**
      * The abstract scheduler will periodically call this method with a list of available offers, which may be empty.
@@ -223,7 +243,6 @@ public abstract class AbstractScheduler {
         // These are all (re)assigned when the scheduler has (re)registered:
         private ReviveManager reviveManager;
         private Reconciler reconciler;
-        private PlanCoordinator planCoordinator;
         private TaskCleaner taskCleaner;
 
         @Override
@@ -236,18 +255,12 @@ public abstract class AbstractScheduler {
             }
 
             Driver.setDriver(driver);
+            registeredWithMesos();
 
             LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
             this.reviveManager = new ReviveManager();
             this.reconciler = new Reconciler(stateStore);
             this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
-
-            try {
-                this.planCoordinator = getPlanCoordinator();
-            } catch (Exception e) {
-                LOGGER.error("Initialization failed with exception: ", e);
-                SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
-            }
 
             try {
                 stateStore.storeFrameworkId(frameworkId);
@@ -406,11 +419,11 @@ public abstract class AbstractScheduler {
                 }
 
                 // Get the current work
-                Collection<Step> steps = planCoordinator.getCandidates();
+                Collection<Step> steps = getPlanCoordinator().getCandidates();
 
                 // Revive previously suspended offers, if necessary
                 Collection<Step> activeWorkSet = new HashSet<>(steps);
-                Collection<Step> inProgressSteps = getInProgressSteps(planCoordinator);
+                Collection<Step> inProgressSteps = getInProgressSteps(getPlanCoordinator());
                 LOGGER.info(
                         "InProgress Steps: {}",
                         inProgressSteps.stream()
