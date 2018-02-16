@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -242,16 +242,22 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#getPlan--">getPlan</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#setPlan-com.mesosphere.sdk.scheduler.plan.Plan-">setPlan</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</code>&nbsp;</td>
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#setPlan-com.mesosphere.sdk.scheduler.plan.Plan-">setPlan</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</code>
+<div class="block">Sets the plan for the PlanManager.</div>
+</td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#setPlanInternal-com.mesosphere.sdk.scheduler.plan.Plan-">setPlanInternal</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Updates the recovery plan if necessary.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>protected void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#updatePlan-java.util.Collection-">updatePlan</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>&nbsp;</td>
 </tr>
@@ -430,7 +436,22 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <ul class="blockList">
 <li class="blockList">
 <h4>setPlan</h4>
-<pre>protected&nbsp;void&nbsp;setPlan(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</pre>
+<pre>public&nbsp;void&nbsp;setPlan(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html#setPlan-com.mesosphere.sdk.scheduler.plan.Plan-">PlanManager</a></code></span></div>
+<div class="block">Sets the plan for the PlanManager.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html#setPlan-com.mesosphere.sdk.scheduler.plan.Plan-">setPlan</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="setPlanInternal-com.mesosphere.sdk.scheduler.plan.Plan-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setPlanInternal</h4>
+<pre>protected&nbsp;void&nbsp;setPlanInternal(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan)</pre>
 </li>
 </ul>
 <a name="getCandidates-java.util.Collection-">

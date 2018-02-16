@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":10};
+var methods = {"i0":10,"i1":9,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -229,6 +229,10 @@ extends java.lang.Object</pre>
  applicable.</div>
 </td>
 </tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#getTasksToDecommission--">getTasksToDecommission</a></span>()</code>&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -308,6 +312,15 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;getResourceSteps()</pre>
 <div class="block">Returns all <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>ResourceCleanupStep</code></a>s associated with the decommission plan, or an empty list if no steps are
  applicable.</div>
+</li>
+</ul>
+<a name="getTasksToDecommission--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTasksToDecommission</h4>
+<pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;getTasksToDecommission()</pre>
 </li>
 </ul>
 <a name="getPodsToDecommission-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">

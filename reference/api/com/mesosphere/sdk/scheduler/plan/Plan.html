@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":18,"i1":18};
+var methods = {"i0":18,"i1":18,"i2":18,"i3":18};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -161,7 +161,15 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html#isDecommissionPlan--">isDecommissionPlan</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>default boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html#isDeployPlan--">isDeployPlan</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>default boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html#isRecoveryPlan--">isRecoveryPlan</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -204,10 +212,28 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/ParentElement.
 <a name="isDeployPlan--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>isDeployPlan</h4>
 <pre>default&nbsp;boolean&nbsp;isDeployPlan()</pre>
+</li>
+</ul>
+<a name="isRecoveryPlan--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isRecoveryPlan</h4>
+<pre>default&nbsp;boolean&nbsp;isRecoveryPlan()</pre>
+</li>
+</ul>
+<a name="isDecommissionPlan--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>isDecommissionPlan</h4>
+<pre>default&nbsp;boolean&nbsp;isDecommissionPlan()</pre>
 </li>
 </ul>
 </li>

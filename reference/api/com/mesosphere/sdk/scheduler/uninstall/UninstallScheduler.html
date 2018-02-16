@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -215,6 +215,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <div class="block">Handles a task status update which was received from Mesos.</div>
 </td>
 </tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#registeredWithMesos--">registeredWithMesos</a></span>()</code>
+<div class="block">Provides a callback to indicate that the scheduler has registered with Mesos.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.AbstractScheduler">
@@ -306,8 +312,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <h4>getResources</h4>
 <pre>public&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">AbstractScheduler</a></code></span></div>
-<div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.
- This may be called before <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--"><code>AbstractScheduler.getPlanCoordinator()</code></a> has been called.</div>
+<div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">getResources</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
@@ -320,15 +325,27 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="blockList">
 <li class="blockList">
 <h4>getPlanCoordinator</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()
-                                      throws java.lang.InterruptedException</pre>
+<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">AbstractScheduler</a></code></span></div>
 <div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.InterruptedException</code></dd>
+</dl>
+</li>
+</ul>
+<a name="registeredWithMesos--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>registeredWithMesos</h4>
+<pre>protected&nbsp;void&nbsp;registeredWithMesos()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registeredWithMesos--">AbstractScheduler</a></code></span></div>
+<div class="block">Provides a callback to indicate that the scheduler has registered with Mesos.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registeredWithMesos--">registeredWithMesos</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 </dl>
 </li>
 </ul>
