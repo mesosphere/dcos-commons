@@ -73,15 +73,6 @@
           ],
           "default": "parallel"
         },
-        "update_strategy": {
-          "description": "HDFS update strategy. [parallel, serial]",
-          "type": "string",
-          "enum": [
-            "parallel",
-            "serial"
-          ],
-          "default": "serial"
-        },
         "security": {
           "description": "HDFS security settings.",
           "type": "object",
