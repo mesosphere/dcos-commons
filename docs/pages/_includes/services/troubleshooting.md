@@ -279,7 +279,7 @@ If the scheduler is still failing after `pod replace <name>` to clear a task, a 
 - Automatically unreserve the task's previous resources with Mesos because it doesn't recognize them anymore (via the Resource Cleanup operation described earlier).
 - Automatically redeploy the task on a new agent.
 
-**Note:** This operation can easily lead to a completely broken service. __Do this at your own risk.__ [Break glass in case of emergency](img/ops-guide-exhibitor-delete-task.png)
+**Note:** This operation can easily lead to a completely broken service. __Do this at your own risk.__ [Break glass in case of emergency](/dcos-commons/img/services/ops-guide-exhibitor-delete-task.png)
 
 ### OOMed task
 

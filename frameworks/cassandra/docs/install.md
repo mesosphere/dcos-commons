@@ -7,7 +7,8 @@ menuWeight: 20
 ---
 {% assign data = site.data.services.cassandra %}
 
-{% include services/install.md data=data %}
+{% include services/install1.md data=data %}
+{% include services/install2.md data=data %}
 
 # Multi-datacenter deployment
 

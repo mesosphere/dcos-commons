@@ -8,6 +8,7 @@ techName: HDFS
 
 install:
   minNodeCount: five
+  customRequirements: "- Each agent node must have 4 GB of memory and 5 GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007."
   nodeDescription: with three journal nodes, two name nodes, and three data nodes
   serviceAccountInstructionsUrl: https://docs.mesosphere.com/services/hdfs/hdfs-auth/
 

@@ -275,7 +275,7 @@ plans:
 
 A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.
 
-![plans vs services](../img/dev-guide-plans-vs-services.png)
+![plans vs services](/dcos-commons/img/dev-guide-plans-vs-services.png)
 
 A phase encapsulates a pod type and a step encapsulates an instance of a pod.  So in this case we have two phases: hello-phase and world-phase.  They are clearly associated with their particular pod definitions from the ServiceSpec. In the example above, we do not need to specifically define steps to accomplish our deployment strategy goal, so they are omitted.
 
@@ -298,7 +298,7 @@ The pod parameter references the pod definition earlier in the `ServiceSpec`. Th
 
 The strategy associated with the deployment plan as a whole is serial, so the phases should be deployed one at a time. This dependency graph illustrates the deployment.
 
-![deployment steps](../img/dev-guide-deployment-steps.png)
+![deployment steps](/dcos-commons/img/dev-guide-deployment-steps.png)
 
 The dependency of the `world-pod` phase on the `hello-pod` phase serializes those two phases as described at the top level strategy element. Since both `hello` steps depend on a the` hello-pod` phase, and not each other, they are executed in parallel. The second `world-pod` instance depends on the first, so they are launched serially.
 
@@ -735,7 +735,7 @@ The `marathon.json.mustache` template pulls values from `config.json` and `resou
 
 The following is the typical flow of configuration values as represented by environment variables:
 
-![configuration values across files](../img/dev-guide-configuration-values-across-files.png)
+![configuration values across files](/dcos-commons/img/dev-guide-configuration-values-across-files.png)
 
 Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:
 

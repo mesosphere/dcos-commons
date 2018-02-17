@@ -7,7 +7,8 @@ menuWeight: 20
 ---
 {% assign data = site.data.services.elastic %}
 
-{% capture customInstallConfigurations %}
+{% include services/install1.md data=data %}
+
 ### Example custom installation
 
 You can customize the Elastic cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:
@@ -33,11 +34,8 @@ $ dcos package install {{ data.packageName }} --options=options.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
-{% endcapture %}
 
-{% include services/install.md
-    data=data
-    customInstallConfigurations=customInstallConfigurations %}
+{% include services/install2.md data=data %}
 
 ## TLS
 
@@ -131,8 +129,8 @@ Each task in the cluster performs one and only one of the following roles: maste
 
 The default placement strategy specifies that no two nodes of any type are distributed to the same agent. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that ingest nodes are deployed on a rack with high-CPU servers.
 
-![agent](../img/private-nodes-by-agent.png)
-![vip](../img/private-node-by-vip.png)
+![agent](/dcos-commons/services/elastic/img/private-nodes-by-agent.png)
+![vip](/dcos-commons/services/elastic/img/private-node-by-vip.png)
 
 No matter how big or small the cluster is, there will always be exactly 3 master-only nodes with `minimum_master_nodes = 2`.
 
