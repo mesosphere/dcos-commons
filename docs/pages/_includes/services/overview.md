@@ -1,11 +1,3 @@
----
-layout: layout.pug
-navigationTitle: Overview
-title:
-menuWeight: 0
-excerpt:
----
-
 ## Components
 
 The following components work together to deploy and maintain the service.
