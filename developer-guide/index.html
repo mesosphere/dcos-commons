@@ -1069,7 +1069,7 @@ now, you must manually run the janitor script as shown above.</p>
 
 <p>A plan is a simple three layer hierarchical structure.  A plan is composed of phases, which in turn are composed of steps.  Each layer may define a strategy for how to deploy its constituent elements. The strategy at the highest layer defines how to deploy phases. Each phase’s strategy defines how to deploy steps. The default strategy if none is specified is serial.</p>
 
-<p><img src="../img/dev-guide-plans-vs-services.png" alt="plans vs services"></p>
+<p><img src="/dcos-commons/img/dev-guide-plans-vs-services.png" alt="plans vs services"></p>
 
 <p>A phase encapsulates a pod type and a step encapsulates an instance of a pod.  So in this case we have two phases: hello-phase and world-phase.  They are clearly associated with their particular pod definitions from the ServiceSpec. In the example above, we do not need to specifically define steps to accomplish our deployment strategy goal, so they are omitted.</p>
 
@@ -1091,7 +1091,7 @@ now, you must manually run the janitor script as shown above.</p>
 
 <p>The strategy associated with the deployment plan as a whole is serial, so the phases should be deployed one at a time. This dependency graph illustrates the deployment.</p>
 
-<p><img src="../img/dev-guide-deployment-steps.png" alt="deployment steps"></p>
+<p><img src="/dcos-commons/img/dev-guide-deployment-steps.png" alt="deployment steps"></p>
 
 <p>The dependency of the <code class="highlighter-rouge">world-pod</code> phase on the <code class="highlighter-rouge">hello-pod</code> phase serializes those two phases as described at the top level strategy element. Since both <code class="highlighter-rouge">hello</code> steps depend on a the<code class="highlighter-rouge"> hello-pod</code> phase, and not each other, they are executed in parallel. The second <code class="highlighter-rouge">world-pod</code> instance depends on the first, so they are launched serially.</p>
 
@@ -1539,7 +1539,7 @@ dcos package <span class="nb">install</span> <span class="nt">--yes</span> hello
 
 <p>The following is the typical flow of configuration values as represented by environment variables:</p>
 
-<p><img src="../img/dev-guide-configuration-values-across-files.png" alt="configuration values across files"></p>
+<p><img src="/dcos-commons/img/dev-guide-configuration-values-across-files.png" alt="configuration values across files"></p>
 
 <p>Once Marathon deploys your scheduler, the service’s YAML specification can be rendered by the environment variables you provided. The helloworld’s service definition is in part:</p>
 

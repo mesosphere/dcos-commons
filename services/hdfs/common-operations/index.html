@@ -592,16 +592,6 @@
 <div id="content">
 
 
-<hr />
-<p>layout: layout.pug
-navigationTitle: Common Operations
-title:
-menuWeight: 10
-excerpt:
-—</p>
-
-<!--  disable mustache templating in this file: retain templated examples as-is -->
-
 <p>This guide has so far focused on describing the components, how they work, and how to interact with them. At this point we’ll start looking at how that knowledge can be applied to a running service.</p>
 
 <h2 id="initial-service-configuration">Initial service configuration</h2>
@@ -800,7 +790,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
     <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>less marathon.json.mustache
 </code></pre></div>    </div>
   </li>
-  <li>Use the variable names (e.g. <code class="highlighter-rouge">{{service.name}}</code>) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
+  <li>Use the variable names (e.g. <code class="highlighter-rouge">&lt;%==%&gt;</code>) to create a new <code class="highlighter-rouge">options.json</code> file as described in <a href="#initial-service-configuration">Initial service configuration</a>.</li>
 </ol>
 
 <h6 id="starting-the-update">Starting the update</h6>
@@ -883,7 +873,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
   </li>
 </ol>
 
-<p><a href="../img/ops-guide-edit-scheduler.png"><img src="../img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400" /></a></p>
+<p><a href="/dcos-commons/img/services/ops-guide-edit-scheduler.png"><img src="/dcos-commons/img/services/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400" /></a></p>
 
 <ol>
   <li>
@@ -898,7 +888,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
   <li>We can see the result by looking at the Mesos task list. At the top we see the new <code class="highlighter-rouge">dse</code> Scheduler and new OpsCenter instance. At the bottom we see the previous <code class="highlighter-rouge">dse</code> Scheduler and OpsCenter instance which were replaced due to our change:</li>
 </ol>
 
-<p><a href="../img/ops-guide-mesos-tasks-reconfigured.png"><img src="../img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400" /></a></p>
+<p><a href="/dcos-commons/img/services/ops-guide-mesos-tasks-reconfigured.png"><img src="/dcos-commons/img/services/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400" /></a></p>
 
 <p>If we look at the Scheduler logs, we can even see where it detected the change. The <code class="highlighter-rouge">api-port</code> value is random on each Scheduler restart, so it tends to always display as ‘different’ in this log. Because of this, the Scheduler automatically ignores changes to <code class="highlighter-rouge">api-port</code>, and so the change can be ignored here:</p>
 
@@ -948,7 +938,7 @@ will override the ‘Stored’ options with the ‘Provided’ options.</p>
   </span><span class="s2">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w">
   </span><span class="s2">"env"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
     </span><span class="s2">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"BROKER_COUNT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"{{brokers.count}}"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"BROKER_COUNT"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;%==%&gt;"</span><span class="p">,</span><span class="w">
     </span><span class="s2">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
   </span><span class="p">},</span><span class="w">
   </span><span class="s2">"..."</span><span class="p">:</span><span class="w"> </span><span class="s2">"..."</span><span class="w">
@@ -1225,8 +1215,6 @@ to observed failure or due to known required manual preparation that was not per
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos kafka plan force-complete deploy
 </code></pre></div></div>
-
-<!--  disable mustache templating in this file: retain templated examples as-is -->
 
 
 </div>

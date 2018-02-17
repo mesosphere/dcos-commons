@@ -604,9 +604,7 @@
       <li><code class="highlighter-rouge">disabled</code> security mode does not require a service account.</li>
     </ul>
   </li>
-  <li>
-    <p>Your cluster must have at least five private nodes.</p>
-  </li>
+  <li>Your cluster must have at least five private nodes.</li>
   <li>Each agent node must have 4 GB of memory and 5 GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.</li>
 </ul>
 
@@ -716,7 +714,7 @@
 
 <p><strong>Note:</strong> Once the service is deployed on a virtual network, it cannot be updated to use the host network.</p>
 
-<h3 id="example-custom-installation">Example custom Installation</h3>
+<h3 id="example-custom-installation">Example custom installation</h3>
 
 <p>If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to <code class="highlighter-rouge">dcos package install</code> using the <code class="highlighter-rouge">--options</code> parameter.</p>
 
