@@ -1364,66 +1364,6 @@
           "description": "If looking up a single user to group takes longer than this amount of milliseconds, we will log a warning message.",
           "default": "5000"
         },
-        "security_group_mapping_ldap_url": {
-          "type": "string",
-          "description": "The URL of the LDAP server to use for resolving user groups when using the LdapGroupsMapping user to group mapping.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_ssl": {
-          "type": "boolean",
-          "description": "Whether or not to use SSL when connecting to the LDAP server.",
-          "default": false
-        },
-        "security_group_mapping_ldap_ssl_keystore": {
-          "type": "string",
-          "description": "File path to the SSL keystore that contains the SSL certificate required by the LDAP server.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_ssl_keystore_password_file": {
-          "type": "string",
-          "description": "The path to a file containing the password of the LDAP SSL keystore. IMPORTANT: This file should be readable only by the Unix user running the daemons.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_bind_user": {
-          "type": "string",
-          "description": "The distinguished name of the user to bind as when connecting to the LDAP server. This may be left blank if the LDAP server supports anonymous binds.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_password_file": {
-          "type": "string",
-          "description": "The path to a file containing the password of the bind user. IMPORTANT: This file should be readable only by the Unix user running the daemons.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_base": {
-          "type": "string",
-          "description": "The search base for the LDAP connection. This is a distinguished name, and will typically be the root of the LDAP directory.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_search_filter_user": {
-          "type": "string",
-          "description": "An additional filter to use when searching for LDAP users. The default will usually be appropriate for Active Directory installations. If connecting to an LDAP server with a non-AD schema, this should be replaced with (&(objectClass=inetOrgPerson)(uid={0}). {0} is a special string used to denote where the username fits into the filter.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_search_filter_group": {
-          "type": "string",
-          "description": "An additional filter to use when searching for LDAP groups. This should be changed when resolving groups against a non-Active Directory installation. posixGroups are currently not a supported group class.",
-          "default": ""
-        },
-        "security_group_mapping_ldap_search_attr_member": {
-          "type": "string",
-          "description": "The attribute of the group object that identifies the users that are members of the group. The default will usually be appropriate for any LDAP installation.",
-          "default": "member"
-        },
-        "security_group_mapping_ldap_search_attr_group_name": {
-          "type": "string",
-          "description": "The attribute of the group object that identifies the group name. The default will usually be appropriate for all LDAP systems.",
-          "default": "cn"
-        },
-        "security_group_mapping_ldap_directory_search_timeout": {
-          "type": "string",
-          "description": "The attribute applied to the LDAP SearchControl properties to set a maximum time limit when searching and awaiting a result. Set to 0 if infinite wait period is desired. Default is 10 seconds. Units in milliseconds.",
-          "default": "10000"
-        },
         "security_service_user_name_key": {
           "type": "string",
           "description": "For those cases where the same RPC protocol is implemented by multiple servers, this configuration is required for specifying the principal name to use for the service when the client wishes to make an RPC call.",
@@ -2108,10 +2048,6 @@
         "security_groups_cache_secs",
         "security_groups_negative-cache_secs",
         "security_groups_cache_warn_after_ms",
-        "security_group_mapping_ldap_ssl",
-        "security_group_mapping_ldap_search_attr_member",
-        "security_group_mapping_ldap_search_attr_group_name",
-        "security_group_mapping_ldap_directory_search_timeout",
         "security_service_uid_cache_secs",
         "rpc_protection",
         "work_around_non_threadsafe_getpwuid",

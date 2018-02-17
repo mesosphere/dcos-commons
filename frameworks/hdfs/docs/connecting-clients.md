@@ -908,54 +908,6 @@ The responses are as below.
         <value>5000</value>
     </property>
     <property>
-        <name>hadoop.security.group.mapping.ldap.url</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl</name>
-        <value>false</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl.keystore</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl.keystore.password.file</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.bind.user</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.bind.password.file</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.base</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.filter.user</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.filter.group</name>
-        <value></value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.attr.member</name>
-        <value>member</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.attr.group.name</name>
-        <value>cn</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.directory.search.timeout</name>
-        <value>10000</value>
-    </property>
-    <property>
         <name>hadoop.security.service.user.name.key</name>
         <value></value>
     </property>
