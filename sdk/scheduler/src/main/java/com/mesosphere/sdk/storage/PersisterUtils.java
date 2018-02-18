@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 /**
  * Utilities relating to usage of {@link Persister}s.
  */
@@ -112,5 +114,23 @@ public class PersisterUtils {
             allKeys.addAll(getAllKeysUnder(persister, childPath)); // RECURSE
         }
         return allKeys;
+    }
+
+    /**
+     * Deletes all data in the provided persister, or does nothing if the persister is already empty.
+     */
+    /**
+     * Clears the root service node, leaving just the root node behind.
+     */
+    public static void clearAllData(Persister persister) throws PersisterException {
+        try {
+            persister.recursiveDelete(PersisterUtils.PATH_DELIM_STR);
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                // Nothing to delete, apparently. Treat as a no-op
+            } else {
+                throw e;
+            }
+        }
     }
 }

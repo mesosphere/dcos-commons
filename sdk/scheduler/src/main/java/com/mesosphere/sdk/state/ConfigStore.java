@@ -30,18 +30,13 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigStore.class);
 
-    /**
-     * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION
-     */
-    private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
-    private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
-
     private static final String TARGET_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
-    private final ConfigurationFactory<T> factory;
     private final Persister persister;
     private final Map<UUID, T> cache = new HashMap<>();
+
+    private ConfigurationFactory<T> factory;
 
     /**
      * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data.
@@ -49,16 +44,13 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
     public ConfigStore(ConfigurationFactory<T> factory, Persister persister) {
         this.factory = factory;
         this.persister = persister;
+    }
 
-        // Check version up-front:
-        int currentVersion = new SchemaVersionStore(persister).fetch();
-        if (!SchemaVersionStore.isSupported(
-                currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
-            throw new IllegalStateException(String.format(
-                    "Storage schema version %d is not supported by this software " +
-                            "(support: min=%d, max=%d)",
-                    currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
-        }
+    /**
+     * Overrides the configuration factory which was provided in the constructor.
+     */
+    public void setConfigurationFactory(ConfigurationFactory<T> factory) {
+        this.factory = factory;
     }
 
     /**

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
@@ -42,6 +43,7 @@ public class StateResource {
             + FILE_SIZE + " bytes.";
     protected static final String NO_FILE_ERROR_MESSAGE = "Only the first 1024 bytes of a file can be uploaded.";
 
+    private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
 
@@ -49,21 +51,26 @@ public class StateResource {
      * Creates a new StateResource which cannot deserialize Properties. Callers will receive a
      * "204 NO_CONTENT" HTTP response when attempting to view the content of a property.
      *
-     * @param stateStore     the source of data to be returned to callers
+     * @param frameworkStore the source of framework id data to be returned to callers
+     * @param stateStore     the source of state data to be returned to callers
      */
-    public StateResource(StateStore stateStore) {
-        this(stateStore, null);
+    public StateResource(
+            FrameworkStore frameworkStore, StateStore stateStore) {
+        this(frameworkStore, stateStore, null);
     }
 
     /**
      * Creates a new StateResource which can deserialize Properties. Callers will be able to view
      * the content of individual Properties.
      *
+     * @param frameworkStore       the source of framework id data to be returned to callers
      * @param stateStore           the source of data to be returned to callers
      * @param propertyDeserializer a deserializer which can turn any Property in the provided
      *                             {@code stateStore} to valid JSON
      */
-    public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
+    public StateResource(
+            FrameworkStore frameworkStore, StateStore stateStore, PropertyDeserializer propertyDeserializer) {
+        this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
         this.propertyDeserializer = propertyDeserializer;
     }
@@ -75,7 +82,7 @@ public class StateResource {
     @GET
     public Response getFrameworkId() {
         try {
-            Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
+            Optional<Protos.FrameworkID> frameworkIDOptional = frameworkStore.fetchFrameworkId();
             if (frameworkIDOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
                 return ResponseUtils.jsonOkResponse(idArray);
@@ -255,7 +262,7 @@ public class StateResource {
     @Path("/refresh")
     @PUT
     public Response refreshCache() {
-        PersisterCache cache = getPersisterCache(stateStore);
+        PersisterCache cache = getPersisterCache(frameworkStore);
         if (cache == null) {
             logger.warn("State store is not cached: Refresh is not applicable");
             return Response.status(Response.Status.CONFLICT).build();
@@ -277,8 +284,8 @@ public class StateResource {
         }
     }
 
-    private static PersisterCache getPersisterCache(StateStore stateStore) {
-        Persister persister = stateStore.getPersister();
+    private static PersisterCache getPersisterCache(FrameworkStore frameworkStore) {
+        Persister persister = frameworkStore.getPersister();
         if (!(persister instanceof PersisterCache)) {
             return null;
         }

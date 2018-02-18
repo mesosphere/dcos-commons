@@ -31,6 +31,7 @@ import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
@@ -52,11 +53,9 @@ public class SchedulerBuilder {
 
     private ServiceSpec serviceSpec;
     private final SchedulerConfig schedulerConfig;
-    private final Persister persister;
-
-    // When these optionals are unset, we use default values:
-    private Optional<StateStore> stateStoreOptional = Optional.empty();
-    private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
+    private final FrameworkStore frameworkStore;
+    private final StateStore stateStore;
+    private final ConfigStore<ServiceSpec> configStore;
 
     // When these collections are empty, we don't do anything extra:
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
@@ -78,7 +77,10 @@ public class SchedulerBuilder {
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
-        this.persister = persister;
+
+        this.frameworkStore = new FrameworkStore(persister);
+        this.stateStore = new StateStore(persister);
+        this.configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
     }
 
     /**
@@ -96,65 +98,10 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Specifies a custom {@link StateStore}.  The state store persists copies of task information and task status for
-     * all tasks running in the service.
-     *
-     * @throws IllegalStateException if the state store is already set, via a previous call to either
-     * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+     * Returns the {@link FrameworkStore} which uses the {@link Persister} provided in the constructor.
      */
-    public SchedulerBuilder setStateStore(StateStore stateStore) {
-        if (stateStoreOptional.isPresent()) {
-            // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
-            throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
-        }
-        this.stateStoreOptional = Optional.ofNullable(stateStore);
-        return this;
-    }
-
-    /**
-     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
-     *
-     * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
-     */
-    public StateStore getStateStore() {
-        if (!stateStoreOptional.isPresent()) {
-            setStateStore(new StateStore(persister));
-        }
-        return stateStoreOptional.get();
-    }
-
-    /**
-     * Specifies a custom {@link ConfigStore}.
-     *
-     * The config store persists a copy of the current configuration ('target' configuration),
-     * while also storing historical configurations.
-     */
-    public SchedulerBuilder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-        if (configStoreOptional.isPresent()) {
-            // Any customization of the config store must be applied BEFORE getConfigStore() is ever called.
-            throw new IllegalStateException(
-                    "Config store is already set. Was getConfigStore() invoked before this?");
-        }
-        this.configStoreOptional = Optional.ofNullable(configStore);
-        return this;
-    }
-
-    /**
-     * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default.
-     *
-     * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
-     */
-    public ConfigStore<ServiceSpec> getConfigStore() {
-        if (!configStoreOptional.isPresent()) {
-            try {
-                setConfigStore(createConfigStore(serviceSpec, Collections.emptyList(), persister));
-            } catch (ConfigStoreException e) {
-                throw new IllegalStateException("Failed to create default config store", e);
-            }
-        }
-        return configStoreOptional.get();
+    public FrameworkStore getFrameworkStore() {
+        return frameworkStore;
     }
 
     /**
@@ -210,6 +157,11 @@ public class SchedulerBuilder {
         return this;
     }
 
+    /**
+     * Assigns a {@link PlanCustomizer} to be used for customizing plans.
+     *
+     * @param planCustomizer the plan customizer
+     */
     public SchedulerBuilder setPlanCustomizer(PlanCustomizer planCustomizer) {
         this.planCustomizer = planCustomizer;
         return this;
@@ -223,10 +175,6 @@ public class SchedulerBuilder {
      * @throws IllegalArgumentException if validating the provided configuration failed
      */
     public AbstractScheduler build() {
-        // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
-        final StateStore stateStore = getStateStore();
-        final ConfigStore<ServiceSpec> configStore = getConfigStore();
-
         if (schedulerConfig.isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
@@ -234,7 +182,7 @@ public class SchedulerBuilder {
                 StateStoreUtils.setUninstalling(stateStore);
             }
 
-            return new UninstallScheduler(serviceSpec, stateStore, configStore,
+            return new UninstallScheduler(serviceSpec, frameworkStore, stateStore, configStore,
                     schedulerConfig, Optional.ofNullable(planCustomizer));
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
@@ -244,7 +192,7 @@ public class SchedulerBuilder {
             }
 
             try {
-                return getDefaultScheduler(stateStore, configStore);
+                return getDefaultScheduler();
             } catch (ConfigStoreException e) {
                 LOGGER.error("Failed to construct scheduler.", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -259,9 +207,7 @@ public class SchedulerBuilder {
      * @return a new scheduler instance
      * @throws IllegalArgumentException if config validation failed when updating the target config.
      */
-    private DefaultScheduler getDefaultScheduler(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
+    private DefaultScheduler getDefaultScheduler() throws ConfigStoreException {
 
         // Determine whether deployment had previously completed BEFORE we update the config.
         // Plans may be generated from the config content.
@@ -343,6 +289,7 @@ public class SchedulerBuilder {
                 customResources,
                 planCoordinator,
                 Optional.ofNullable(planCustomizer),
+                frameworkStore,
                 stateStore,
                 configStore,
                 endpointProducers);
@@ -351,7 +298,7 @@ public class SchedulerBuilder {
     private PlanManager getRecoveryPlanManager(
             Optional<RecoveryPlanOverriderFactory> recoveryOverriderFactory,
             StateStore stateStore,
-            ConfigStore configStore,
+            ConfigStore<ServiceSpec> configStore,
             Collection<Plan> plans) {
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
@@ -505,15 +452,6 @@ public class SchedulerBuilder {
         }
 
         return updatedPlans;
-    }
-
-    @VisibleForTesting
-    static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
-                    throws ConfigStoreException {
-        return new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
-                persister);
     }
 
     /**

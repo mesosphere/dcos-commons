@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 /**
  * Tests for {@link ConfigStore}.
  */
-public class DefaultConfigStoreTest {
+public class ConfigStoreTest {
     private Persister persister;
     private ConfigStore<StringConfiguration> store;
     private StringConfiguration testConfig;
@@ -26,9 +26,6 @@ public class DefaultConfigStoreTest {
     public void beforeEach() throws Exception {
         persister = new MemPersister();
         store = new ConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister);
-
-        // Check that schema version was created in the correct location:
-        assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
 
         testConfig = new StringConfiguration("test-config");
     }

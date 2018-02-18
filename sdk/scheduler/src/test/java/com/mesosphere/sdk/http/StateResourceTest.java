@@ -7,6 +7,7 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StateResourceTest {
+    @Mock private FrameworkStore mockFrameworkStore;
     @Mock private StateStore mockStateStore;
     @Mock private Persister mockPersister;
     @Mock private PersisterCache mockPersisterCache;
@@ -49,13 +51,13 @@ public class StateResourceTest {
         persister = new MemPersister();
         stateStore = new StateStore(persister);
         MockitoAnnotations.initMocks(this);
-        resource = new StateResource(mockStateStore, new StringPropertyDeserializer());
+        resource = new StateResource(mockFrameworkStore, mockStateStore, new StringPropertyDeserializer());
     }
 
     @Test
     public void testGetFrameworkId() {
         FrameworkID id = FrameworkID.newBuilder().setValue("aoeu-asdf").build();
-        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.of(id));
+        when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.of(id));
         Response response = resource.getFrameworkId();
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
@@ -65,14 +67,14 @@ public class StateResourceTest {
 
     @Test
     public void testGetFrameworkIdMissing() {
-        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.empty());
+        when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.empty());
         Response response = resource.getFrameworkId();
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetFrameworkIdFails() {
-        when(mockStateStore.fetchFrameworkId()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
+        when(mockFrameworkStore.fetchFrameworkId()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
         Response response = resource.getFrameworkId();
         assertEquals(500, response.getStatus());
     }
@@ -115,7 +117,7 @@ public class StateResourceTest {
 
     @Test
     public void testGetPropertyNoDeserializer() {
-        Response response = new StateResource(mockStateStore).getProperty("foo");
+        Response response = new StateResource(mockFrameworkStore, mockStateStore).getProperty("foo");
         assertEquals(409, response.getStatus());
     }
 
@@ -135,7 +137,7 @@ public class StateResourceTest {
 
     @Test
     public void testRefreshCache() throws PersisterException {
-        when(mockStateStore.getPersister()).thenReturn(mockPersisterCache);
+        when(mockFrameworkStore.getPersister()).thenReturn(mockPersisterCache);
         Response response = resource.refreshCache();
         assertEquals(200, response.getStatus());
         validateCommandResult(response, "refresh");
@@ -144,14 +146,14 @@ public class StateResourceTest {
 
     @Test
     public void testRefreshCacheNotCached() {
-        when(mockStateStore.getPersister()).thenReturn(mockPersister);
+        when(mockFrameworkStore.getPersister()).thenReturn(mockPersister);
         Response response = resource.refreshCache();
         assertEquals(409, response.getStatus());
     }
 
     @Test
     public void testRefreshCacheFailure() throws PersisterException {
-        when(mockStateStore.getPersister()).thenReturn(mockPersisterCache);
+        when(mockFrameworkStore.getPersister()).thenReturn(mockPersisterCache);
         doThrow(new PersisterException(Reason.UNKNOWN, "hi")).when(mockPersisterCache).refresh();
         Response response = resource.refreshCache();
         assertEquals(500, response.getStatus());

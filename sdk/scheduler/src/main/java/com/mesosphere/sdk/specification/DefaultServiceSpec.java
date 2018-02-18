@@ -257,11 +257,10 @@ public class DefaultServiceSpec implements ServiceSpec {
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
-     * @param serviceSpec           specification to test for successful serialization/deserialization
-     * @throws ConfigStoreException if testing the provided specification fails
+     * @param serviceSpec               specification to test for successful serialization/deserialization
+     * @throws IllegalArgumentException if testing the provided specification fails
      */
-    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec)
-            throws ConfigStoreException {
+    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec) {
         return getConfigurationFactory(serviceSpec, Collections.emptyList());
     }
 
@@ -274,33 +273,53 @@ public class DefaultServiceSpec implements ServiceSpec {
      * @param additionalSubtypesToRegister any class subtypes which should be registered with
      *                                     Jackson for deserialization. any custom placement rule implementations
      *                                     must be provided
-     * @throws ConfigStoreException        if testing the provided specification fails
+     * @throws IllegalArgumentException    if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
-            ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
+            ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) {
         ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister, serviceSpec);
 
-        ServiceSpec loopbackSpecification;
+        final byte[] serviceSpecBytes;
+        try {
+            serviceSpecBytes = serviceSpec.getBytes();
+        } catch (ConfigStoreException e) {
+            throw new IllegalArgumentException("Failed to convert ServiceSpec to bytes", e);
+        }
+
+        final ServiceSpec loopbackSpecification;
         try {
             // Serialize and then deserialize:
-            loopbackSpecification = factory.parse(serviceSpec.getBytes());
+            loopbackSpecification = factory.parse(serviceSpecBytes);
         } catch (Exception e) {
             logger.error("Failed to parse JSON for loopback validation", e);
-            logger.error("JSON to be parsed was:\n{}",
-                    new String(serviceSpec.getBytes(), StandardCharsets.UTF_8));
-            throw e;
+            logger.error("JSON to be parsed was:\n{}", new String(serviceSpecBytes, StandardCharsets.UTF_8));
+            throw new IllegalArgumentException("Failed to parse JSON for loopback validation", e);
         }
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
+            final String originalSpecString;
+            try {
+                originalSpecString = serviceSpec.toJsonString();
+            } catch (ConfigStoreException e) {
+                throw new IllegalArgumentException("Failed to convert original ServiceSpec to String", e);
+            }
+            final String loopbackSpecString;
+            try {
+                loopbackSpecString = loopbackSpecification.toJsonString();
+            } catch (ConfigStoreException e) {
+                throw new IllegalArgumentException("Failed to convert loopback ServiceSpec to String", e);
+            }
+
             StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
             error.append("Equality test failed: Loopback result is not equal to original:\n");
             error.append("- Original:\n");
-            error.append(serviceSpec.toJsonString());
+            error.append(originalSpecString);
             error.append('\n');
             error.append("- Result:\n");
-            error.append(loopbackSpecification.toJsonString());
+            error.append(loopbackSpecString);
             error.append('\n');
-            throw new ConfigStoreException(Reason.LOGIC_ERROR, error.toString());
+
+            throw new IllegalArgumentException(error.toString());
         }
         return factory;
     }

@@ -32,11 +32,6 @@ public class SchemaVersionStore {
      *
      * The migration implementation itself is not yet defined (let's wait until we need to actually
      * do it..)
-     *
-     * @see ConfigStore#MIN_SUPPORTED_SCHEMA_VERSION
-     * @see ConfigStore#MAX_SUPPORTED_SCHEMA_VERSION
-     * @see StateStore#MIN_SUPPORTED_SCHEMA_VERSION
-     * @see StateStore#MAX_SUPPORTED_SCHEMA_VERSION
      */
     private static final int CURRENT_SCHEMA_VERSION = 1;
 

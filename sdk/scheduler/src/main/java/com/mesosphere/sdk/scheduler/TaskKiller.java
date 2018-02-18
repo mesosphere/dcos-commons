@@ -24,36 +24,43 @@ import java.util.stream.Collectors;
 public final class TaskKiller {
     private static final Logger LOGGER = LoggerFactory.getLogger(TaskKiller.class);
 
-    private static final Duration killInterval = Duration.ofSeconds(5);
-    private static final Set<TaskID> tasksToKill = new HashSet<>();
-    private static final Object lock = new Object();
+    private static final Duration KILL_INTERVAL = Duration.ofSeconds(5);
+    private static final Set<TaskID> TASKS_TO_KILL = new HashSet<>();
+    private static final Object LOCK = new Object();
 
+    /**
+     * After the first task kill, this executor will be created and will periodically reissue kill invocations for any
+     * tasks which haven't produced a dead or unknown status. We do this because the Mesos kill command is best-effort.
+     */
     private static ScheduledExecutorService executor;
-    private static TaskKiller taskKiller = new TaskKiller();
+
+    /**
+     * Whether the above executor should be running. Only disabled for tests.
+     */
+    private static boolean executorEnabled = true;
 
     private TaskKiller() {
-        startScheduling();
+        // Do not instantiate
     }
 
+    /**
+     * Resets the {@link TaskKiller}'s internal state for tests.
+     *
+     * @param executorEnabled whether the background kill executor should be enabled, should only be disabled in tests
+     */
     @VisibleForTesting
-    static void shutdownScheduling() throws InterruptedException {
-        executor.shutdownNow();
-        executor.awaitTermination(killInterval.toMillis(), TimeUnit.MILLISECONDS);
-    }
+    static void reset(boolean executorEnabled) throws InterruptedException {
+        synchronized (LOCK) {
+            if (executor != null) {
+                executor.shutdownNow();
+                executor.awaitTermination(KILL_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
+            }
+            executor = null;
 
-    @VisibleForTesting
-    static void startScheduling() {
-        executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        killAllTasks();
-                    }
-                },
-                killInterval.toMillis(),
-                killInterval.toMillis(),
-                TimeUnit.MILLISECONDS);
+            TASKS_TO_KILL.clear();
+
+            TaskKiller.executorEnabled = executorEnabled;
+        }
     }
 
     /**
@@ -74,21 +81,42 @@ public final class TaskKiller {
             return;
         }
 
-        synchronized (lock) {
-            LOGGER.info("Enqueueing kill of task: {}", taskId.getValue());
-            tasksToKill.add(taskId);
+        synchronized (LOCK) {
+            TASKS_TO_KILL.add(taskId);
+            LOGGER.info("Enqueued kill of task: {}, {} tasks to kill: {}",
+                    taskId.getValue(),
+                    TASKS_TO_KILL.size(),
+                    TASKS_TO_KILL.stream().map(t -> t.getValue()).collect(Collectors.toList()));
+
+            // Initialize the executor if enabled and not already running.
+            if (executor == null && executorEnabled) {
+                LOGGER.info("Initializing scheduled executor with an interval of {}s", KILL_INTERVAL.getSeconds());
+                executor = Executors.newSingleThreadScheduledExecutor();
+                executor.scheduleAtFixedRate(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                killAllTasks();
+                            }
+                        },
+                        KILL_INTERVAL.toMillis(),
+                        KILL_INTERVAL.toMillis(),
+                        TimeUnit.MILLISECONDS);
+            }
         }
 
+        // Finally, try invoking the task kill (if driver is set).
         killTaskInternal(taskId);
     }
 
     public static void update(Protos.TaskStatus taskStatus) {
         if (isDead(taskStatus)) {
-            synchronized (lock) {
-                if (tasksToKill.remove(taskStatus.getTaskId())) {
-                    LOGGER.info("Completed killing: {}, remaining tasks to kill: {}",
+            synchronized (LOCK) {
+                if (TASKS_TO_KILL.remove(taskStatus.getTaskId())) {
+                    LOGGER.info("Completed killing: {}, {} remaining tasks to kill: {}",
                             taskStatus.getTaskId().getValue(),
-                            tasksToKill.stream().map(t -> t.getValue()).collect(Collectors.toList()));
+                            TASKS_TO_KILL.size(),
+                            TASKS_TO_KILL.stream().map(t -> t.getValue()).collect(Collectors.toList()));
                 } else {
                     LOGGER.warn(
                             "Attempted to complete killing of unexpected task: {}",
@@ -101,8 +129,8 @@ public final class TaskKiller {
     @VisibleForTesting
     static void killAllTasks() {
         Set<TaskID> copy;
-        synchronized (lock) {
-            copy = new HashSet<>(tasksToKill);
+        synchronized (LOCK) {
+            copy = new HashSet<>(TASKS_TO_KILL);
         }
 
         for (TaskID taskId : copy) {

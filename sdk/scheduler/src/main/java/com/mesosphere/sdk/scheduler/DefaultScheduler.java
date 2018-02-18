@@ -31,15 +31,13 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
-    private final ServiceSpec serviceSpec;
-
+    private final ConfigStore<ServiceSpec> configStore;
+    private final PlanCoordinator planCoordinator;
     private final OfferAccepter offerAccepter;
-
     private final Collection<Object> resources;
     private final HealthResource healthResource;
     private final PlansResource plansResource;
     private final PodResource podResource;
-    private final PlanCoordinator planCoordinator;
 
     private PlanScheduler planScheduler;
 
@@ -75,11 +73,12 @@ public class DefaultScheduler extends AbstractScheduler {
             Collection<Object> customResources,
             PlanCoordinator planCoordinator,
             Optional<PlanCustomizer> planCustomizer,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(stateStore, configStore, schedulerConfig, planCustomizer);
-        this.serviceSpec = serviceSpec;
+        super(frameworkStore, stateStore, schedulerConfig, planCustomizer);
+        this.configStore = configStore;
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
@@ -101,13 +100,14 @@ public class DefaultScheduler extends AbstractScheduler {
                 serviceSpec.getName(),
                 new DefaultTaskFailureListener(stateStore, configStore));
         this.resources.add(this.podResource);
-        this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
+        this.resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
 
         this.offerOutcomeTracker = new OfferOutcomeTracker();
         this.resources.add(new OfferOutcomeResource(offerOutcomeTracker));
         this.planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
+                        frameworkStore,
                         stateStore,
                         offerOutcomeTracker,
                         serviceSpec.getName(),
@@ -289,5 +289,10 @@ public class DefaultScheduler extends AbstractScheduler {
                 LOGGER.warn("Unable to store network info for status update: " + status, e);
             }
         }
+    }
+
+    @VisibleForTesting
+    ConfigStore<ServiceSpec> getConfigStore() {
+        return configStore;
     }
 }

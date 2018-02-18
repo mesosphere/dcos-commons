@@ -19,10 +19,9 @@ import java.util.stream.Collectors;
  */
 public class ExecutorResourceMapper {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorResourceMapper.class);
-    private final Protos.ExecutorInfo executorInfo;
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
-    private final List<Protos.Resource> resources;
+    private final Collection<Protos.Resource> executorResources;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
     private final boolean useDefaultExecutor;
@@ -30,12 +29,11 @@ public class ExecutorResourceMapper {
     public ExecutorResourceMapper(
             PodSpec podSpec,
             Collection<ResourceSpec> resourceSpecs,
-            Protos.ExecutorInfo executorInfo,
+            Collection<Protos.Resource> executorResources,
             boolean useDefaultExecutor) {
-        this.executorInfo = executorInfo;
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
-        this.resources = executorInfo.getResourcesList();
+        this.executorResources = executorResources;
         this.useDefaultExecutor = useDefaultExecutor;
         this.evaluationStages = getEvaluationStagesInternal();
     }
@@ -56,7 +54,7 @@ public class ExecutorResourceMapper {
         }
 
         List<ResourceLabels> matchingResources = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
+        for (Protos.Resource resource : executorResources) {
             Optional<ResourceLabels> matchingResource;
             if (resource.getName().equals(Constants.DISK_RESOURCE_TYPE) && resource.hasDisk()) {
                 matchingResource = findMatchingDiskSpec(resource, remainingResourceSpecs);

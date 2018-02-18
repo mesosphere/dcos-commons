@@ -19,8 +19,6 @@ import static org.junit.Assert.*;
  * Tests to validate the operation of the {@link StateStore}.
  */
 public class StateStoreTest {
-    private static final Protos.FrameworkID FRAMEWORK_ID =
-            Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
             .setTaskId(CommonIdUtils.toTaskId(TestConstants.TASK_NAME))
@@ -38,44 +36,6 @@ public class StateStoreTest {
     public void beforeEach() throws Exception {
         persister = new MemPersister();
         store = new StateStore(persister);
-
-        // Check that schema version was created in the correct location:
-        assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
-    }
-
-    @Test
-    public void testStoreFetchFrameworkId() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        assertEquals(FRAMEWORK_ID, store.fetchFrameworkId().get());
-    }
-
-    @Test
-    public void testRootPathMapping() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        assertArrayEquals(FRAMEWORK_ID.toByteArray(), persister.get("FrameworkID"));
-    }
-
-    @Test
-    public void testFetchEmptyFrameworkId() throws Exception {
-        assertFalse(store.fetchFrameworkId().isPresent());
-    }
-
-    @Test
-    public void testStoreClearFrameworkId() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        store.clearFrameworkId();
-    }
-
-    @Test
-    public void testStoreClearFetchFrameworkId() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        store.clearFrameworkId();
-        assertFalse(store.fetchFrameworkId().isPresent());
-    }
-
-    @Test
-    public void testClearEmptyFrameworkId() throws Exception {
-        store.clearFrameworkId();
     }
 
     // task
@@ -131,11 +91,10 @@ public class StateStoreTest {
     @Test
     public void testStoreClearAllData() throws Exception {
         store.storeTasks(createTasks(TestConstants.TASK_NAME));
-        store.storeFrameworkId(FRAMEWORK_ID);
         store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
-        assertEquals(7, PersisterUtils.getAllKeys(persister).size());
+        assertEquals(5, PersisterUtils.getAllKeys(persister).size());
 
-        store.clearAllData();
+        PersisterUtils.clearAllData(persister);
 
         // Verify nothing is left under the root.
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
@@ -157,17 +116,6 @@ public class StateStoreTest {
         String testTaskName0 = testTaskNamePrefix + "-0";
         String testTaskName1 = testTaskNamePrefix + "-1";
 
-        store.storeTasks(createTasks(testTaskName0, testTaskName1));
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
-    }
-
-    @Test
-    public void testFetchTaskNamesWithFrameworkIdSet() throws Exception {
-        String testTaskNamePrefix = "test-executor";
-        String testTaskName0 = testTaskNamePrefix + "-0";
-        String testTaskName1 = testTaskNamePrefix + "-1";
-
-        store.storeFrameworkId(FRAMEWORK_ID);
         store.storeTasks(createTasks(testTaskName0, testTaskName1));
         assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
     }

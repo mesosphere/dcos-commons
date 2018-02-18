@@ -14,12 +14,12 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -130,7 +130,7 @@ public class SchedulerRunner implements Runnable {
                     mesosScheduler.get(),
                     schedulerBuilder.getServiceSpec(),
                     schedulerBuilder.getSchedulerConfig(),
-                    schedulerBuilder.getStateStore());
+                    schedulerBuilder.getFrameworkStore().fetchFrameworkId());
         } else {
             /**
              * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
@@ -169,7 +169,11 @@ public class SchedulerRunner implements Runnable {
             PlansResource emptyPlanResource = new PlansResource();
             emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
 
-            schedulerBuilder.getStateStore().clearAllData();
+            try {
+                PersisterUtils.clearAllData(schedulerBuilder.getFrameworkStore().getPersister());
+            } catch (PersisterException e) {
+                throw new IllegalStateException("Unable to clear all data", e);
+            }
 
             SchedulerApiServer apiServer = new SchedulerApiServer(
                     schedulerConfig,
@@ -186,8 +190,11 @@ public class SchedulerRunner implements Runnable {
     }
 
     private static void runScheduler(
-            Scheduler mesosScheduler, ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, StateStore stateStore) {
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+            Scheduler mesosScheduler,
+            ServiceSpec serviceSpec,
+            SchedulerConfig schedulerConfig,
+            Optional<Protos.FrameworkID> frameworkId) {
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, frameworkId);
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
@@ -201,7 +208,8 @@ public class SchedulerRunner implements Runnable {
         }
     }
 
-    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    private static Protos.FrameworkInfo getFrameworkInfo(
+            ServiceSpec serviceSpec, Optional<Protos.FrameworkID> frameworkId) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
@@ -212,8 +220,7 @@ public class SchedulerRunner implements Runnable {
         setRoles(fwkInfoBuilder, serviceSpec);
 
         // The framework ID is not available when we're being started for the first time.
-        Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
-        optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
+        frameworkId.ifPresent(fwkInfoBuilder::setId);
 
         if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
             fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());

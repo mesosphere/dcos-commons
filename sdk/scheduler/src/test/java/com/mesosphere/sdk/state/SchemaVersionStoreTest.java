@@ -17,7 +17,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
-public class DefaultSchemaVersionStoreTest {
+public class SchemaVersionStoreTest {
 
     private static final Charset CHARSET = StandardCharsets.UTF_8;
     // This value must never change. If you're changing it, you're wrong:

@@ -43,12 +43,6 @@ public class StateStore {
 
     private static final Logger logger = LoggerFactory.getLogger(StateStore.class);
 
-    /**
-     * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION
-     */
-    private static final int MIN_SUPPORTED_SCHEMA_VERSION = 1;
-    private static final int MAX_SUPPORTED_SCHEMA_VERSION = 1;
-
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
@@ -58,7 +52,6 @@ public class StateStore {
     private static final String TASK_GOAL_OVERRIDE_PATH_NAME = "goal-state-override";
     private static final String TASK_GOAL_OVERRIDE_STATUS_PATH_NAME = "override-status";
 
-    private static final String FWK_ID_PATH_NAME = "FrameworkID";
     private static final String PROPERTIES_PATH_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
@@ -72,78 +65,7 @@ public class StateStore {
     public StateStore(Persister persister) {
         this.persister = persister;
 
-        // Check version up-front:
-        int currentVersion = new SchemaVersionStore(persister).fetch();
-        if (!SchemaVersionStore.isSupported(
-                currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION)) {
-            throw new IllegalStateException(String.format(
-                    "Storage schema version %d is not supported by this software " +
-                            "(support: min=%d, max=%d)",
-                    currentVersion, MIN_SUPPORTED_SCHEMA_VERSION, MAX_SUPPORTED_SCHEMA_VERSION));
-        }
-
         StateStoreUtils.repairTaskIDs(this);
-    }
-
-    // Framework ID
-
-    /**
-     * Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.
-     *
-     * @param fwkId FrameworkID to be store
-     * @throws StateStoreException when storing the FrameworkID fails
-     */
-    public void storeFrameworkId(Protos.FrameworkID fwkId) throws StateStoreException {
-        try {
-            persister.set(FWK_ID_PATH_NAME, fwkId.toByteArray());
-        } catch (PersisterException e) {
-            throw new StateStoreException(e, "Failed to store FrameworkID");
-        }
-    }
-
-    /**
-     * Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.
-     *
-     * @throws StateStoreException when clearing a FrameworkID fails
-     */
-    public void clearFrameworkId() throws StateStoreException {
-        try {
-            persister.recursiveDelete(FWK_ID_PATH_NAME);
-        } catch (PersisterException e) {
-            if (e.getReason() == Reason.NOT_FOUND) {
-                // Clearing a non-existent FrameworkID should not result in an exception from us.
-                logger.warn("Cleared unset FrameworkID, continuing silently", e);
-            } else {
-                throw new StateStoreException(e);
-            }
-        }
-    }
-
-    /**
-     * Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.
-     *
-     * @return The previously stored FrameworkID, or an empty Optional indicating the FrameworkID has not been set.
-     * @throws StateStoreException when fetching the FrameworkID fails
-     */
-    public Optional<Protos.FrameworkID> fetchFrameworkId() throws StateStoreException {
-        try {
-            byte[] bytes = persister.get(FWK_ID_PATH_NAME);
-            if (bytes.length > 0) {
-                return Optional.of(Protos.FrameworkID.parseFrom(bytes));
-            } else {
-                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
-                        "Empty FrameworkID in '%s'", FWK_ID_PATH_NAME));
-            }
-        } catch (PersisterException e) {
-            if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No FrameworkId found at: {}", FWK_ID_PATH_NAME);
-                return Optional.empty();
-            } else {
-                throw new StateStoreException(e);
-            }
-        } catch (InvalidProtocolBufferException e) {
-            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
-        }
     }
 
     // Write Tasks
@@ -529,31 +451,6 @@ public class StateStore {
         logger.warn("Task '{}' has unrecognized override progress '{}'. Left over from a recent upgrade/downgrade? "
                 + "Falling back to inactive override progress.", taskName, progressName);
         return GoalStateOverride.Status.INACTIVE.progress;
-    }
-
-    // Uninstall Related Methods
-
-    /**
-     * Clears the root service node, leaving just the root node behind.
-     */
-    public void clearAllData() throws StateStoreException {
-        try {
-            persister.recursiveDelete(PersisterUtils.PATH_DELIM_STR);
-        } catch (PersisterException e) {
-            if (e.getReason() == Reason.NOT_FOUND) {
-                // Nothing to delete, apparently. Treat as a no-op
-            } else {
-                throw new StateStoreException(e);
-            }
-        }
-    }
-
-    /**
-     * Returns the underlying {@link Persister} object for direct access.
-     * @return
-     */
-    public Persister getPersister() {
-        return persister;
     }
 
     // Internals

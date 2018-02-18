@@ -20,12 +20,12 @@ public class TaskKillerTest {
 
     @BeforeClass
     public static void beforeAll() throws InterruptedException {
-        TaskKiller.shutdownScheduling();
+        TaskKiller.reset(false); // disable background executor to avoid unexpected calls
     }
 
     @AfterClass
-    public static void afterAll() {
-        TaskKiller.startScheduling();
+    public static void afterAll() throws InterruptedException {
+        TaskKiller.reset(true); // reenable background executor to return to default behavior
     }
 
     @Before
