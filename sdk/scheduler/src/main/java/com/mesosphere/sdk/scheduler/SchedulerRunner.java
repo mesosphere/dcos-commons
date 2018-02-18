@@ -130,7 +130,7 @@ public class SchedulerRunner implements Runnable {
                     mesosScheduler.get(),
                     schedulerBuilder.getServiceSpec(),
                     schedulerBuilder.getSchedulerConfig(),
-                    schedulerBuilder.getFrameworkStore().fetchFrameworkId());
+                    scheduler.fetchFrameworkId());
         } else {
             /**
              * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
@@ -170,7 +170,7 @@ public class SchedulerRunner implements Runnable {
             emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
 
             try {
-                PersisterUtils.clearAllData(schedulerBuilder.getFrameworkStore().getPersister());
+                PersisterUtils.clearAllData(scheduler.getPersister());
             } catch (PersisterException e) {
                 throw new IllegalStateException("Unable to clear all data", e);
             }

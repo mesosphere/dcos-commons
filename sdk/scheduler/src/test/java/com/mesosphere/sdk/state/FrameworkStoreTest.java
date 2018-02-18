@@ -10,8 +10,6 @@ import org.junit.*;
 
 import static org.junit.Assert.*;
 
-import java.nio.charset.StandardCharsets;
-
 /**
  * Tests to validate the operation of the {@link FrameworkStore}.
  */
@@ -26,9 +24,6 @@ public class FrameworkStoreTest {
     public void beforeEach() throws Exception {
         persister = new MemPersister();
         store = new FrameworkStore(persister);
-
-        // Check that schema version was created in the correct location:
-        assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
     }
 
     @Test
@@ -69,8 +64,7 @@ public class FrameworkStoreTest {
     @Test
     public void testStoreClearAllData() throws Exception {
         store.storeFrameworkId(FRAMEWORK_ID);
-        // Schema version + framework id itself:
-        assertEquals(2, PersisterUtils.getAllKeys(persister).size());
+        assertEquals(1, PersisterUtils.getAllKeys(persister).size());
 
         PersisterUtils.clearAllData(store.getPersister());
 

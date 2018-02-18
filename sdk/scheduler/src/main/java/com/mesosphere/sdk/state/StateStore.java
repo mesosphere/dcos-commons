@@ -63,6 +63,16 @@ public class StateStore {
      * @param persister The persister which holds the state data
      */
     public StateStore(Persister persister) {
+        this(persister, "");
+    }
+
+    /**
+     * Creates a new {@link StateStore} where data is placed within a namespace under the provided name.
+     *
+     * @param persister The persister which holds the state data
+     * @param namespace The namespace for data to be stored within, or an empty string for no namespacing
+     */
+    public StateStore(Persister persister, String namespace) {
         this.persister = persister;
 
         StateStoreUtils.repairTaskIDs(this);

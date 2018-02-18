@@ -32,6 +32,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.FrameworkStore;
+import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
@@ -51,11 +52,12 @@ public class SchedulerBuilder {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerBuilder.class);
 
+    /** @see SchemaVersionStore */
+    private static final int SUPPORTED_SCHEMA_VERSION = 1;
+
     private ServiceSpec serviceSpec;
     private final SchedulerConfig schedulerConfig;
-    private final FrameworkStore frameworkStore;
-    private final StateStore stateStore;
-    private final ConfigStore<ServiceSpec> configStore;
+    private final Persister persister;
 
     // When these collections are empty, we don't do anything extra:
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
@@ -77,10 +79,7 @@ public class SchedulerBuilder {
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
-
-        this.frameworkStore = new FrameworkStore(persister);
-        this.stateStore = new StateStore(persister);
-        this.configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+        this.persister = persister;
     }
 
     /**
@@ -95,13 +94,6 @@ public class SchedulerBuilder {
      */
     public SchedulerConfig getSchedulerConfig() {
         return schedulerConfig;
-    }
-
-    /**
-     * Returns the {@link FrameworkStore} which uses the {@link Persister} provided in the constructor.
-     */
-    public FrameworkStore getFrameworkStore() {
-        return frameworkStore;
     }
 
     /**
@@ -175,6 +167,25 @@ public class SchedulerBuilder {
      * @throws IllegalArgumentException if validating the provided configuration failed
      */
     public AbstractScheduler build() {
+
+        // IMPORTANT: We specifically avoid touching the persister's content until build() is called. This mainly comes
+        // up in the Curator case, where we specifically want to invoke CuratorLocker before accessing the storage.
+
+        // FIRST, check schema version before doing any other storage access:
+        int currentVersion = new SchemaVersionStore(persister).fetch();
+        if (!SchemaVersionStore.isSupported(
+                currentVersion, SUPPORTED_SCHEMA_VERSION, SUPPORTED_SCHEMA_VERSION)) {
+            throw new IllegalStateException(String.format(
+                    "Storage schema version %d is not supported by this software (expected: %d)",
+                    currentVersion, SUPPORTED_SCHEMA_VERSION));
+        }
+
+        // THEN, initialize storage access:
+        FrameworkStore frameworkStore = new FrameworkStore(persister);
+        StateStore stateStore = new StateStore(persister);
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+
         if (schedulerConfig.isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {
                 LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
@@ -192,7 +203,7 @@ public class SchedulerBuilder {
             }
 
             try {
-                return getDefaultScheduler();
+                return getDefaultScheduler(frameworkStore, stateStore, configStore);
             } catch (ConfigStoreException e) {
                 LOGGER.error("Failed to construct scheduler.", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -207,7 +218,9 @@ public class SchedulerBuilder {
      * @return a new scheduler instance
      * @throws IllegalArgumentException if config validation failed when updating the target config.
      */
-    private DefaultScheduler getDefaultScheduler() throws ConfigStoreException {
+    private DefaultScheduler getDefaultScheduler(
+            FrameworkStore frameworkStore, StateStore stateStore, ConfigStore<ServiceSpec> configStore)
+            throws ConfigStoreException {
 
         // Determine whether deployment had previously completed BEFORE we update the config.
         // Plans may be generated from the config content.

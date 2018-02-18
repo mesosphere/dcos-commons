@@ -11,6 +11,8 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.Persister;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -113,6 +115,23 @@ public abstract class AbstractScheduler {
         }
 
         return this;
+    }
+
+    /**
+     * Returns the framework ID currently in persistent storage, or an empty {@link Optional} if no framework ID had
+     * been stored yet.
+     *
+     * @throws StateStoreException if storage access fails
+     */
+    Optional<Protos.FrameworkID> fetchFrameworkId() {
+        return frameworkStore.fetchFrameworkId();
+    }
+
+    /**
+     * Returns the underlying {@link Persister} being used to keep track of state/configs.
+     */
+    Persister getPersister() {
+        return frameworkStore.getPersister();
     }
 
     /**

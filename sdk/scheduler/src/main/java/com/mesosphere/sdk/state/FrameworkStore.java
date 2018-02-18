@@ -23,11 +23,6 @@ public class FrameworkStore {
 
     private static final Logger logger = LoggerFactory.getLogger(FrameworkStore.class);
 
-    /**
-     * @see SchemaVersionStore
-     */
-    private static final int SUPPORTED_SCHEMA_VERSION = 1;
-
     private static final String FWK_ID_PATH_NAME = "FrameworkID";
 
     private final Persister persister;
@@ -39,15 +34,6 @@ public class FrameworkStore {
      */
     public FrameworkStore(Persister persister) {
         this.persister = persister;
-
-        // Check schema version up-front:
-        int currentVersion = new SchemaVersionStore(persister).fetch();
-        if (!SchemaVersionStore.isSupported(
-                currentVersion, SUPPORTED_SCHEMA_VERSION, SUPPORTED_SCHEMA_VERSION)) {
-            throw new IllegalStateException(String.format(
-                    "Storage schema version %d is not supported by this software (expected: %d)",
-                    currentVersion, SUPPORTED_SCHEMA_VERSION));
-        }
     }
 
     /**

@@ -49,7 +49,7 @@ public class SchemaVersionStore {
      * Creates a new version store against the provided Framework Name, as would be provided to
      * {@link ConfigStore} or {@link StateStore}.
      */
-    SchemaVersionStore(Persister persister) {
+    public SchemaVersionStore(Persister persister) {
         this.persister = persister;
     }
 
