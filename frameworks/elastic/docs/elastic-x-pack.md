@@ -15,14 +15,6 @@ Afterwards, you should set the update strategy back to `serial` for future updat
 
 You can toggle this setting at any time. This gives you the option of launching an Elastic cluster without X-Pack and then later enabling it. Or, you can run a cluster with X-Pack enabled to try out the commercial features and, if at the end of the 30-day trial period you don't wish to purchase a license, you can disable it without losing access to your data.
 
-When the service starts up for the first time with X-Pack enabled it will automatically generate a free [Trial license](https://www.elastic.co/guide/en/x-pack/current/license-management.html) for you. It will also automatically generate a `changeme` [Elasticsearch keystore bootstrap password](https://www.elastic.co/guide/en/x-pack/current/setting-up-authentication.html#bootstrap-elastic-passwords) so that it works like the default password in pre-6.0.0 versions. Take a look at the security section in the [6.0.0 release announcement](https://www.elastic.co/blog/elasticsearch-6-0-0-released) for more information about how the default behavior differs from this.
-
-You can change the built-in users' passwords by using the [setup-passwords](https://www.elastic.co/guide/en/elasticsearch/reference/current/setup-passwords.html) command or by using the [change password API](https://www.elastic.co/guide/en/elasticsearch/reference/current/security-api-change-password.html).
-
-## License Management
-
-To update the license key for Basic/Gold/Platinum/Enterprise subscriptions, simply use the [License API](https://www.elastic.co/guide/en/x-pack/current/installing-license.html).
-
 ## License Expiration
 
 If you uninstall the X-Pack plugin via the service configuration or you let your license expire, remember these two important points:

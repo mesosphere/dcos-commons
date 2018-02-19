@@ -55,7 +55,6 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./elastic-scheduler/java-dns-ttl.sh
           ./elastic-scheduler/install-plugins.sh
-          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
           ./elastic-scheduler/setup-java-policy.sh
           ./bootstrap
 
@@ -135,7 +134,6 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./elastic-scheduler/java-dns-ttl.sh
           ./elastic-scheduler/install-plugins.sh
-          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
           ./elastic-scheduler/setup-java-policy.sh
           ./bootstrap
 
@@ -213,7 +211,6 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./elastic-scheduler/java-dns-ttl.sh
           ./elastic-scheduler/install-plugins.sh
-          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
           ./elastic-scheduler/setup-java-policy.sh
           ./bootstrap
 
@@ -291,7 +288,6 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./elastic-scheduler/java-dns-ttl.sh
           ./elastic-scheduler/install-plugins.sh
-          ./elastic-scheduler/setup-keystore-bootstrap-password.sh
           ./elastic-scheduler/setup-java-policy.sh
           ./bootstrap
 
