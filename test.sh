@@ -11,7 +11,11 @@
 set -e
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-FRAMEWORK_LIST=$(if [ -d $REPO_ROOT_DIR/frameworks ]; then ls $REPO_ROOT_DIR/frameworks | sort; fi)
+if [ -d $REPO_ROOT_DIR/frameworks ]; then
+    FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
+else
+    FRAMEWORK_LIST=$(basename $(pwd))
+fi
 
 # Set default values
 security="permissive"
@@ -21,13 +25,13 @@ azure_args=""
 ssh_path="${HOME}/.ssh/ccm.pem"
 aws_credentials_file="${HOME}/.aws/credentials"
 aws_profile="default"
-DCOS_ENTERPRISE=true
-interactive=false
-headless=false
+enterprise="true"
+interactive="false"
+headless="false"
 
 function usage()
 {
-    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--headless] [--aws|-a PATH] [--aws-profile PROFILE] all|<framework-name>"
+    echo "Usage: $0 [-m MARKEXPR] [-k EXPRESSION] [-p PATH] [-s] [-i|--interactive] [--headless] [--aws|-a PATH] [--aws-profile PROFILE] [all|<framework-name>]"
     echo "-m passed to pytest directly [default -m \"${pytest_m}\"]"
     echo "-k passed to pytest directly [default NONE]"
     echo "   Additional pytest arguments can be passed in the PYTEST_ARGS"
@@ -56,7 +60,7 @@ function usage()
     done
 }
 
-if [ "$#" -eq "0" -o x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
+if [ x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     usage
     exit 1
 fi
@@ -94,7 +98,7 @@ case $key in
     security="strict"
     ;;
     -o|--open)
-    DCOS_ENTERPRISE=false
+    enterprise="false"
     ;;
     -p)
     ssh_path="$2"
@@ -115,9 +119,9 @@ case $key in
     shift
     ;;
     -*)
+    echo "Unknown option: $key"
     usage
     exit 1
-            # unknown option
     ;;
     *)
     frameworks+=("$key")
@@ -145,6 +149,9 @@ else
             PROFILES="${PROFILES/#[/}"
             aws_profile="${PROFILES/%]/}"
             echo "Using single profile: ${aws_profile}"
+        elif [ -n $AWS_PROFILE ]; then
+            echo "Use AWS_PROFILE"
+            aws_profile=$AWS_PROFILE
         else
             echo "Found:"
             echo "$PROFILES"
@@ -158,12 +165,13 @@ fi
 echo "interactive=$interactive"
 echo "headless=$headless"
 echo "security=$security"
+echo "enterprise=$enterprise"
 
 # Some automation contexts (e.g. Jenkins) will be unhappy
 # if STDIN is not available. The --headless command accomodates
 # such contexts.
-if [ "$headless" = true ]; then
-    if [ "$interactive" = true ]; then
+if [ x"$headless" == x"true" ]; then
+    if [ x"$interactive" == "true" ]; then
         echo "Both --headless and -i|--interactive cannot be used at the same time."
         exit 1
     fi
@@ -172,7 +180,10 @@ else
     DOCKER_INTERACTIVE_FLAGS="-i"
 fi
 
-if [ "$interactive" = false ]; then
+
+WORK_DIR="/build"
+
+if [ x"$interactive" == x"false" ]; then
     if [ -z "$CLUSTER_URL" ]; then
         echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
         exit 1
@@ -184,21 +195,16 @@ if [ "$interactive" = false ]; then
         fi
     fi
 
-    if [ -z "$frameworks" ]; then
-        usage
-        exit 1
-    fi
-
     framework="$frameworks"
     if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
         echo "Cannot set \$STUB_UNIVERSE_URL when building all frameworks"
         exit 1
     fi
     FRAMEWORK_ARGS="-e FRAMEWORK=$framework"
-    DOCKER_COMMAND="bash test-runner.sh"
+    DOCKER_COMMAND="bash /build-tools/test-runner.sh $WORK_DIR"
 else
 # interactive mode
-    FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
+    # FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
     FRAMEWORK_ARGS=""
     framework="NOT_SPECIFIED"
     DOCKER_COMMAND="bash"
@@ -222,7 +228,7 @@ fi
 docker run --rm \
     -v ${aws_credentials_file}:/root/.aws/credentials:ro \
     -e AWS_PROFILE="${aws_profile}" \
-    -e DCOS_ENTERPRISE="$DCOS_ENTERPRISE" \
+    -e DCOS_ENTERPRISE="$enterprise" \
     -e DCOS_LOGIN_USERNAME="$DCOS_LOGIN_USERNAME" \
     -e DCOS_LOGIN_PASSWORD="$DCOS_LOGIN_PASSWORD" \
     -e CLUSTER_URL="$CLUSTER_URL" \
@@ -232,9 +238,9 @@ docker run --rm \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
     $FRAMEWORK_ARGS \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
-    -v $(pwd):/build \
+    -v $(pwd):$WORK_DIR \
     -v $ssh_path:/ssh/key \
-    -w /build \
+    -w $WORK_DIR \
     -t \
     $DOCKER_INTERACTIVE_FLAGS \
     mesosphere/dcos-commons:latest \
