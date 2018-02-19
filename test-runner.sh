@@ -7,6 +7,7 @@ export DCOS_ENTERPRISE
 export PYTHONUNBUFFERED=1
 export SECURITY
 
+BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT_DIR="${REPO_ROOT:-$1}"
 
 # Determine the list of frameworks if it is not specified
@@ -67,73 +68,32 @@ if [ -f /ssh/key ]; then
     ssh-add /ssh/key
 fi
 
-### ==== TODO: Integrate the following retry logic:
-### See https://jira.mesosphere.com/browse/INFINITY-3060
-# Make the test cluster
-# Make the test cluster
-set -e
-LAUNCH_SUCCESS="False"
-if [ x"$SECURITY" == x"strict" ]; then
-    # For the time being, only try to relaunch a cluster on strict mode.
-    # This is where we are alerting. If this is successful, then we can move
-    # this to the other clusters.
-    RETRY_LAUNCH="True"
-else
-    RETRY_LAUNCH="False"
-fi
-
-while [ x"$LAUNCH_SUCCESS" == x"False" ]; do
-    dcos-launch create -c /build/config.yaml
-    if [ x"$RETRY_LAUNCH" == x"True" ]; then
-        set +e
-    else
-        set -e
-    fi
-    dcos-launch wait 2>&1 | tee dcos-launch-wait-output.stdout
-
-    # Grep exits with an exit code of 1 if no lines are matched. We thus need to
-    # disable exit on errors.
-    set +e
-    ROLLBACK_FOUND=$(grep -o "Exception: StackStatus changed unexpectedly to: ROLLBACK_IN_PROGRESS" dcos-launch-wait-output.stdout)
-    if [ -n "$ROLLBACK_FOUND" ]; then
-        # This would be a good place to add some form of alerting!
-
-        # We only retry once!
-        RETRY_LAUNCH="False"
-        set -e
-
-        # We need to wait for the current stack to be deleted
-        dcos-launch delete
-        rm -f cluster_info.json
-        echo "Cluster creation failed. Retrying after 30 seconds"
-        sleep 30
-    else
-        LAUNCH_SUCCESS="True"
-    fi
-done
-set -e
-
-
-### ========
-
 # Now create a cluster if it doesn't exist.
 if [ -z "$CLUSTER_URL" ]; then
     echo "No DC/OS cluster specified. Attempting to create one now"
-    # TODO(elezar) Find the best way to create the config.yaml
-    dcos-launch create -c /build/config.yaml
-    dcos-launch wait
 
-    export CLUSTER_URL=https://`dcos-launch describe | jq -r .masters[0].public_ip`
-    CLUSTER_WAS_CREATED=True
+    ${BUILD_TOOL_DIR}/launch_cluster.sh ${REPO_ROOT_DIR}/config.yaml ${REPO_ROOT_DIR}/cluster_info.json
+
+    if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
+        export CLUSTER_URL=https://$(dcos-launch describe --info-file=${REPO_ROOT_DIR}/cluster_info.json | jq -r .masters[0].public_ip)
+        if [ -z $CLUSTER_URL ]; then
+            echo "Could not determine CLUSTER_URL"
+            exit 1
+        fi
+        CLUSTER_WAS_CREATED=True
+    else
+        echo "Error creating cluster"
+        exit 1
+    fi
 fi
 
 echo "Configuring dcoscli for cluster: $CLUSTER_URL"
 echo "\tDCOS_ENTERPRISE=$DCOS_ENTERPRISE"
-/build/tools/dcos_login.py
+${REPO_ROOT_DIR}/tools/dcos_login.py
 
-if [ -f cluster_info.json ]; then
-    if [ `cat cluster_info.json | jq .key_helper` == 'true' ]; then
-        cat cluster_info.json | jq -r .ssh_private_key > /root/.ssh/id_rsa
+if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
+    if [ `cat ${REPO_ROOT_DIR}/cluster_info.json | jq .key_helper` == 'true' ]; then
+        cat ${REPO_ROOT_DIR}/cluster_info.json | jq -r .ssh_private_key > /root/.ssh/id_rsa
         chmod 600 /root/.ssh/id_rsa
         ssh-add /root/.ssh/id_rsa
     fi
