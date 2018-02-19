@@ -36,5 +36,6 @@ ENV GOPATH=/go-tmp
 RUN mkdir /root/.ssh
 
 # Create a build-tool directory:
-RUN mkdir /build-tool
-COPY test-runner.sh /build-tool/
+RUN mkdir /build-tools
+COPY test-runner.sh /build-tools/
+RUN chmod +x /build-tools/test-runner.sh

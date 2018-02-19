@@ -1,3 +1,4 @@
+#!/bin/bash
 # Exit immediately on errors
 set -e -x
 
@@ -6,8 +7,7 @@ export DCOS_ENTERPRISE
 export PYTHONUNBUFFERED=1
 export SECURITY
 
-
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT_DIR="${REPO_ROOT:-$1}"
 
 # Determine the list of frameworks if it is not specified
 if [ -z "${FRAMEWORK}" -o x"${AUTO_DETECT_FRAMEWORKS}" == x"True" ]; then
@@ -28,7 +28,7 @@ else
 fi
 
 # First we need to build the framework(s)
-echo "Using FRAMEWORK_LIST: ${FRAMEWORK_LIST}"
+echo "Using FRAMEWORK_LIST:\n${FRAMEWORK_LIST}"
 
 if [ -n "$STUB_UNIVERSE_URL" ]; then
     echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
