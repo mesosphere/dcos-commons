@@ -20,7 +20,7 @@ if [ "$XPACK_ENABLED" = true ]; then
 fi
 
 if [ -n "$STATSD_UDP_HOST" ]; then
-    STATSD_PLUGIN="file://$MESOS_SANDBOX/elasticsearch-statsd-$ELASTIC_VERSION.0.zip"
+    STATSD_PLUGIN="file://$MESOS_SANDBOX/elasticsearch-statsd-$ELASTIC_STATSD_VERSION.zip"
     if [ -n "$PLUGINS" ]; then
         PLUGINS="$PLUGINS$IFS$STATSD_PLUGIN"
     else
