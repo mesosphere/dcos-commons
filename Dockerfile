@@ -39,5 +39,7 @@ RUN mkdir /root/.ssh
 RUN mkdir /build-tools
 
 COPY tools/ci/* /build-tools/
+COPY test.sh /build-tools/
+COPY TESTING.md /build-tools/
 
-RUN chmod +x /build-tools/*.sh
+ENV PATH /build-tools:$PATH

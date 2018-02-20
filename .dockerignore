@@ -3,3 +3,5 @@
 !test_requirements.txt
 !test-runner.sh
 !/tools/ci
+!test.sh
+!TESTING.md

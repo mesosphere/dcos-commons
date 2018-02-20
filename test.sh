@@ -44,7 +44,6 @@ function usage()
     echo "--headless leave STDIN available (mutually exclusive with --interactive)"
     echo "--gradle-cache PATH sets the gradle cache to the specified path [default ${gradle_cache}]."
     echo "               Setting PATH to \"\" will disable the cache."
-    echo "Cluster must be created and \$CLUSTER_URL set"
     echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
     echo "--aws|a PATH to an AWS credentials file [default ${aws_credentials_file}]"
     echo "        (AWS credentials must be present in this file)"
@@ -55,8 +54,12 @@ function usage()
     echo "      \$AZURE_STORAGE_ACCOUNT"
     echo "      \$AZURE_STORAGE_KEY"
     echo "  (changes the -m default to \"sanity\")"
+    echo ""
+    echo "Cluster must be created and \$CLUSTER_URL set"
+    echo ""
     echo "Set \$STUB_UNIVERSE_URL to bypass build"
     echo "  (invalid when building all frameworks)"
+    echo ""
     echo "Current frameworks:"
     for framework in $FRAMEWORK_LIST; do
         echo "       $framework"
@@ -193,7 +196,6 @@ if [ x"$headless" == x"true" ]; then
 else
     DOCKER_INTERACTIVE_FLAGS="-i"
 fi
-
 
 
 WORK_DIR="/build"
