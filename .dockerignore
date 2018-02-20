@@ -1,0 +1,5 @@
+# Ignore all folders when building the Docker image.
+/**/*
+!test_requirements.txt
+!test-runner.sh
+!/tools/ci
