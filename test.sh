@@ -22,6 +22,7 @@ security="permissive"
 pytest_m="sanity and not azure"
 pytest_k=""
 azure_args=""
+gradle_cache="$(pwd)/.gradle_cache"
 ssh_path="${HOME}/.ssh/ccm.pem"
 aws_credentials_file="${HOME}/.aws/credentials"
 aws_profile="default"
@@ -41,6 +42,8 @@ function usage()
     echo "-s run in strict mode (sets \$SECURITY=\"strict\")"
     echo "--interactive start a docker container in interactive mode"
     echo "--headless leave STDIN available (mutually exclusive with --interactive)"
+    echo "--gradle-cache PATH sets the gradle cache to the specified path [default ${gradle_cache}]."
+    echo "               Setting PATH to \"\" will disable the cache."
     echo "Cluster must be created and \$CLUSTER_URL set"
     echo "--aws-profile PROFILE the AWS profile to use [default ${aws_profile}]"
     echo "--aws|a PATH to an AWS credentials file [default ${aws_credentials_file}]"
@@ -64,7 +67,6 @@ if [ x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     usage
     exit 1
 fi
-
 
 # If AZURE variables are given, change default -m and prepare args for docker
 if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
@@ -109,6 +111,10 @@ case $key in
     ;;
     --headless)
     headless="true"
+    ;;
+    --gradle-cache)
+    gradle_cache="$2"
+    shift
     ;;
     -a|--aws)
     aws_credentials_file="$2"
@@ -167,6 +173,14 @@ echo "headless=$headless"
 echo "security=$security"
 echo "enterprise=$enterprise"
 
+DOCKER_ARGS=
+if [ -n $gradle_cache ]; then
+    echo "Setting Gradle cache to ${gradle_cache}"
+    DOCKER_ARGS="${DOCKER_ARGS} -v ${gradle_cache}:/root/.gradle"
+else
+    echo "Disabling Gradle cache"
+fi
+
 # Some automation contexts (e.g. Jenkins) will be unhappy
 # if STDIN is not available. The --headless command accomodates
 # such contexts.
@@ -179,6 +193,7 @@ if [ x"$headless" == x"true" ]; then
 else
     DOCKER_INTERACTIVE_FLAGS="-i"
 fi
+
 
 
 WORK_DIR="/build"
@@ -243,5 +258,6 @@ docker run --rm \
     -w $WORK_DIR \
     -t \
     $DOCKER_INTERACTIVE_FLAGS \
+    $DOCKER_ARGS \
     mesosphere/dcos-commons:latest \
     $DOCKER_COMMAND
