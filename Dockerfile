@@ -35,6 +35,6 @@ ENV GOPATH=/go-tmp
 # make a dir for holding the SSH key in tests
 RUN mkdir /root/.ssh
 
-# Create a tools directory:
-RUN mkdir /tools
-COPY test-runner.sh /tools/
+# Create a build-tool directory:
+RUN mkdir /build-tool
+COPY test-runner.sh /build-tool/
