@@ -30,6 +30,10 @@ public class PersisterUtils {
 
     /**
      * Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.
+     *
+     * @param first The first element of the path
+     * @param second The second element of the path (within {@code first})
+     * @return {@code first/second}, with any duplicate slashes cleaned up
      */
     public static String join(final String first, final String second) {
         if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {

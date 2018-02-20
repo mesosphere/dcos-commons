@@ -16,12 +16,11 @@ import java.util.*;
  * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
  * <p>
  * <p>The ZNode structure in Zookeeper is as follows:
- * <br>rootPath/
- * <br>&nbsp;-> ConfigTarget (contains UUID)
- * <br>&nbsp;-> Configurations/
- * <br>&nbsp;&nbsp;-> [Config-ID-0] (contains serialized config)
- * <br>&nbsp;&nbsp;-> [Config-ID-1] (contains serialized config)
- * <br>&nbsp;&nbsp;-> ...
+ * <br>namespacedPath/
+ * <br>&nbsp; ConfigTarget (contains UUID)
+ * <br>&nbsp; Configurations/
+ * <br>&nbsp; &nbsp; UUID-0 (contains serialized config)
+ * <br>&nbsp; &nbsp; UUID-1 (contains serialized config)
  *
  * @param <T> The {@code Configuration} object to be serialized and deserialized in the
  *            implementation of this interface
@@ -30,20 +29,38 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigStore.class);
 
-    private static final String TARGET_PATH_NAME = "ConfigTarget";
+    private static final String TARGET_ID_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
     private final Persister persister;
+    private final String namespace;
     private final Map<UUID, T> cache = new HashMap<>();
 
     private ConfigurationFactory<T> factory;
 
     /**
-     * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data.
+     * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data within
+     * the root namespace.
+     *
+     * @param factory The factory used to convert raw bytes to config objects of type {@code T}
+     * @param persister The persister which holds the config data
      */
     public ConfigStore(ConfigurationFactory<T> factory, Persister persister) {
+        this(factory, persister, "");
+    }
+
+    /**
+     * Creates a new {@link ConfigStore} which uses the provided {@link Persister} to access configuration data within
+     * the provided {@code namespace}.
+     *
+     * @param factory The factory used to convert raw bytes to config objects of type {@code T}
+     * @param persister The persister which holds the config data
+     * @param namespace The namespace for data to be stored within, or an empty string for no namespacing
+     */
+    public ConfigStore(ConfigurationFactory<T> factory, Persister persister, String namespace) {
         this.factory = factory;
         this.persister = persister;
+        this.namespace = namespace;
     }
 
     /**
@@ -61,7 +78,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      */
     public UUID store(T config) throws ConfigStoreException {
         UUID id = UUID.randomUUID();
-        String path = getConfigPath(id);
+        String path = getConfigPath(namespace, id);
         byte[] data = config.getBytes();
         try {
             persister.set(path, data);
@@ -88,7 +105,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
             return cache.get(id);
         }
 
-        String path = getConfigPath(id);
+        String path = getConfigPath(namespace, id);
         logger.info("Fetching configuration with ID={} from {}", id, path);
         byte[] data;
         try {
@@ -116,7 +133,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      * @throws ConfigStoreException if the configuration is found but deletion fails
      */
     public void clear(UUID id) throws ConfigStoreException {
-        String path = getConfigPath(id);
+        String path = getConfigPath(namespace, id);
         try {
             persister.recursiveDelete(path);
         } catch (PersisterException e) {
@@ -139,9 +156,10 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      * @throws ConfigStoreException if list retrieval fails
      */
     public Collection<UUID> list() throws ConfigStoreException {
+        String configurationsPath = getConfigsPath(namespace);
         try {
             Collection<UUID> ids = new ArrayList<>();
-            for (String id : persister.getChildren(CONFIGURATIONS_PATH_NAME)) {
+            for (String id : persister.getChildren(configurationsPath)) {
                 try {
                     ids.add(UUID.fromString(id));
                 } catch (IllegalArgumentException e) {
@@ -154,38 +172,39 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Configuration should not result in an exception.
                 logger.warn("Configuration list at path '{}' does not exist: returning empty list",
-                        CONFIGURATIONS_PATH_NAME);
+                        configurationsPath);
                 return new ArrayList<>();
             } else {
                 throw new ConfigStoreException(Reason.STORAGE_ERROR, String.format(
-                        "Failed to retrieve list of configurations from '%s'", CONFIGURATIONS_PATH_NAME), e);
+                        "Failed to retrieve list of configurations from '%s'", configurationsPath), e);
             }
         }
     }
 
     @Override
     public void setTargetConfig(UUID id) throws ConfigStoreException {
+        String targetIdPath = getTargetIdPath(namespace);
         try {
-            persister.set(TARGET_PATH_NAME, id.toString().getBytes(StandardCharsets.UTF_8));
+            persister.set(targetIdPath, id.toString().getBytes(StandardCharsets.UTF_8));
         } catch (PersisterException e) {
             throw new ConfigStoreException(e, String.format(
-                    "Failed to assign current target configuration to '%s' at path '%s'",
-                    id, TARGET_PATH_NAME));
+                    "Failed to assign current target configuration to '%s' at path '%s'", id, targetIdPath));
         }
     }
 
     @Override
     public UUID getTargetConfig() throws ConfigStoreException {
+        String targetIdPath = getTargetIdPath(namespace);
         String uuidStr;
         try {
-            uuidStr = new String(persister.get(TARGET_PATH_NAME), StandardCharsets.UTF_8);
+            uuidStr = new String(persister.get(targetIdPath), StandardCharsets.UTF_8);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 throw new ConfigStoreException(Reason.NOT_FOUND, String.format(
-                        "Current target configuration couldn't be found at path '%s'", TARGET_PATH_NAME), e);
+                        "Current target configuration couldn't be found at path '%s'", targetIdPath), e);
             } else {
                 throw new ConfigStoreException(e, String.format(
-                        "Failed to retrieve current target configuration from path '%s'", TARGET_PATH_NAME));
+                        "Failed to retrieve current target configuration from path '%s'", targetIdPath));
             }
         }
         try {
@@ -196,7 +215,26 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
         }
     }
 
-    private static String getConfigPath(UUID id) {
-        return PersisterUtils.join(CONFIGURATIONS_PATH_NAME, id.toString());
+    private static String getTargetIdPath(String namespace) {
+        return getRootPath(namespace, TARGET_ID_PATH_NAME);
+    }
+
+    private static String getConfigPath(String namespace, UUID id) {
+        return PersisterUtils.join(getConfigsPath(namespace), id.toString());
+    }
+
+    private static String getConfigsPath(String namespace) {
+        return getRootPath(namespace, CONFIGURATIONS_PATH_NAME);
+    }
+
+    /**
+     * Returns the provided {@code pathName} within the provided {@code namespace}.
+     *
+     * @param namespace The namespace, or an empty string for no/global namespace
+     * @param pathName The path within at root of the persister
+     * @return The namespaced path for {@code pathName}
+     */
+    private static String getRootPath(String namespace, String pathName) {
+        return namespace.isEmpty() ? pathName : PersisterUtils.join(namespace, pathName);
     }
 }

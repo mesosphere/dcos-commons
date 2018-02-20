@@ -26,18 +26,22 @@ import java.util.*;
  * change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
  *
  * <p>The structure used in the underlying persister is as follows:
- * <br>rootPath/
- * <br>&nbsp;-> FrameworkID
- * <br>&nbsp;-> Tasks/
- * <br>&nbsp;&nbsp;-> [TaskName-0]/
- * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
- * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
- * <br>&nbsp;&nbsp;-> [TaskName-1]/
- * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
- * <br>&nbsp;&nbsp;-> [TaskName-2]/
- * <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
- * <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
- * <br>&nbsp;&nbsp;-> ...
+ * <br>namespacedPath/
+ * <br>&nbsp; Tasks/
+ * <br>&nbsp; &nbsp; task-a/
+ * <br>&nbsp; &nbsp; &nbsp; TaskInfo
+ * <br>&nbsp; &nbsp; &nbsp; TaskStatus
+ * <br>&nbsp; &nbsp; &nbsp; Metadata/
+ * <br>&nbsp; &nbsp; &nbsp; &nbsp; goal-state-override
+ * <br>&nbsp; &nbsp; &nbsp; &nbsp; override-status
+ * <br>&nbsp; &nbsp; task-b/
+ * <br>&nbsp; &nbsp; &nbsp; TaskInfo
+ * <br>&nbsp; &nbsp; task-c/
+ * <br>&nbsp; &nbsp; &nbsp; TaskInfo
+ * <br>&nbsp; &nbsp; &nbsp; TaskStatus
+ * <br>&nbsp; Properties/
+ * <br>&nbsp; &nbsp; some-property
+ * <br>&nbsp; &nbsp; another-property
  */
 public class StateStore {
 
@@ -56,6 +60,7 @@ public class StateStore {
     private static final String TASKS_ROOT_NAME = "Tasks";
 
     protected final Persister persister;
+    protected final String namespace;
 
     /**
      * Creates a new {@link StateStore} which uses the provided {@link Persister} to access state data.
@@ -74,6 +79,7 @@ public class StateStore {
      */
     public StateStore(Persister persister, String namespace) {
         this.persister = persister;
+        this.namespace = namespace;
 
         StateStoreUtils.repairTaskIDs(this);
     }
@@ -91,7 +97,7 @@ public class StateStore {
     public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
         Map<String, byte[]> taskBytesMap = new HashMap<>();
         for (Protos.TaskInfo taskInfo : tasks) {
-            taskBytesMap.put(getTaskInfoPath(taskInfo.getName()), taskInfo.toByteArray());
+            taskBytesMap.put(getTaskInfoPath(namespace, taskInfo.getName()), taskInfo.toByteArray());
         }
         try {
             persister.setMany(taskBytesMap);
@@ -127,7 +133,7 @@ public class StateStore {
                     String.format("Dropping TaskStatus with unknnown TaskID: %s", status));
         }
 
-        String path = getTaskStatusPath(taskName);
+        String path = getTaskStatusPath(namespace, taskName);
         logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
@@ -145,7 +151,7 @@ public class StateStore {
      */
     public void clearTask(String taskName) throws StateStoreException {
         try {
-            persister.recursiveDelete(getTaskPath(taskName));
+            persister.recursiveDelete(getTaskPath(namespace, taskName));
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Task should not result in an exception from us.
@@ -168,7 +174,7 @@ public class StateStore {
     public Collection<String> fetchTaskNames() throws StateStoreException {
         try {
             Collection<String> taskNames = new ArrayList<>();
-            taskNames.addAll(persister.getChildren(TASKS_ROOT_NAME));
+            taskNames.addAll(persister.getChildren(getRootPath(namespace, TASKS_ROOT_NAME)));
             return taskNames;
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
@@ -212,7 +218,7 @@ public class StateStore {
      *                             fails
      */
     public Optional<Protos.TaskInfo> fetchTask(String taskName) throws StateStoreException {
-        String path = getTaskInfoPath(taskName);
+        String path = getTaskInfoPath(namespace, taskName);
         try {
             byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
@@ -244,7 +250,7 @@ public class StateStore {
         Collection<Protos.TaskStatus> taskStatuses = new ArrayList<>();
         for (String taskName : fetchTaskNames()) {
             try {
-                byte[] bytes = persister.get(getTaskStatusPath(taskName));
+                byte[] bytes = persister.get(getTaskStatusPath(namespace, taskName));
                 taskStatuses.add(Protos.TaskStatus.parseFrom(bytes));
             } catch (PersisterException e) {
                 if (e.getReason() == Reason.NOT_FOUND) {
@@ -271,7 +277,7 @@ public class StateStore {
      *                             information otherwise fails
      */
     public Optional<Protos.TaskStatus> fetchStatus(String taskName) throws StateStoreException {
-        String path = getTaskStatusPath(taskName);
+        String path = getTaskStatusPath(namespace, taskName);
         try {
             byte[] bytes = persister.get(path);
             if (bytes.length > 0) {
@@ -307,7 +313,7 @@ public class StateStore {
         validateKey(key);
         validateValue(value);
         try {
-            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
+            final String path = getPropertyPath(namespace, key);
             logger.debug("Storing property key: {} into path: {}", key, path);
             persister.set(path, value);
         } catch (PersisterException e) {
@@ -326,7 +332,7 @@ public class StateStore {
     public byte[] fetchProperty(final String key) throws StateStoreException {
         validateKey(key);
         try {
-            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
+            final String path = getPropertyPath(namespace, key);
             logger.debug("Fetching property key: {} from path: {}", key, path);
             return persister.get(path);
         } catch (PersisterException e) {
@@ -341,7 +347,7 @@ public class StateStore {
      */
     public Collection<String> fetchPropertyKeys() throws StateStoreException {
         try {
-            return persister.getChildren(PROPERTIES_PATH_NAME);
+            return persister.getChildren(getRootPath(namespace, PROPERTIES_PATH_NAME));
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Root path doesn't exist yet. Treat as an empty list of properties. This scenario is
@@ -362,7 +368,7 @@ public class StateStore {
     public void clearProperty(final String key) throws StateStoreException {
         validateKey(key);
         try {
-            final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
+            final String path = getPropertyPath(namespace, key);
             logger.debug("Removing property key: {} from path: {}", key, path);
             persister.recursiveDelete(path);
         } catch (PersisterException e) {
@@ -389,13 +395,13 @@ public class StateStore {
             if (GoalStateOverride.Status.INACTIVE.equals(status)) {
                 // Mark inactive state by clearing any override bits.
                 persister.recursiveDeleteMany(Arrays.asList(
-                        getGoalOverridePath(taskName),
-                        getGoalOverrideStatusPath(taskName)));
+                        getGoalOverridePath(namespace, taskName),
+                        getGoalOverrideStatusPath(namespace, taskName)));
             } else {
                 Map<String, byte[]> values = new TreeMap<>();
-                values.put(getGoalOverridePath(taskName),
+                values.put(getGoalOverridePath(namespace, taskName),
                         status.target.getSerializedName().getBytes(StandardCharsets.UTF_8));
-                values.put(getGoalOverrideStatusPath(taskName),
+                values.put(getGoalOverrideStatusPath(namespace, taskName),
                         status.progress.getSerializedName().getBytes(StandardCharsets.UTF_8));
                 persister.setMany(values);
             }
@@ -412,8 +418,8 @@ public class StateStore {
      */
     public GoalStateOverride.Status fetchGoalOverrideStatus(String taskName) throws StateStoreException {
         try {
-            String goalOverridePath = getGoalOverridePath(taskName);
-            String goalOverrideStatusPath = getGoalOverrideStatusPath(taskName);
+            String goalOverridePath = getGoalOverridePath(namespace, taskName);
+            String goalOverrideStatusPath = getGoalOverrideStatusPath(namespace, taskName);
             Map<String, byte[]> values = persister.getMany(Arrays.asList(goalOverridePath, goalOverrideStatusPath));
             byte[] nameBytes = values.get(goalOverridePath);
             byte[] statusBytes = values.get(goalOverrideStatusPath);
@@ -465,28 +471,43 @@ public class StateStore {
 
     // Internals
 
-    protected static String getTaskInfoPath(String taskName) {
-        return PersisterUtils.join(getTaskPath(taskName), TASK_INFO_PATH_NAME);
+    protected static String getTaskInfoPath(String namespace, String taskName) {
+        return PersisterUtils.join(getTaskPath(namespace, taskName), TASK_INFO_PATH_NAME);
     }
 
-    protected static String getTaskStatusPath(String taskName) {
-        return PersisterUtils.join(getTaskPath(taskName), TASK_STATUS_PATH_NAME);
+    protected static String getTaskStatusPath(String namespace, String taskName) {
+        return PersisterUtils.join(getTaskPath(namespace, taskName), TASK_STATUS_PATH_NAME);
     }
 
-    protected static String getGoalOverridePath(String taskName) {
+    protected static String getGoalOverridePath(String namespace, String taskName) {
         return PersisterUtils.join(
-                PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
+                PersisterUtils.join(getTaskPath(namespace, taskName), TASK_METADATA_PATH_NAME),
                 TASK_GOAL_OVERRIDE_PATH_NAME);
     }
 
-    protected static String getGoalOverrideStatusPath(String taskName) {
+    protected static String getGoalOverrideStatusPath(String namespace, String taskName) {
         return PersisterUtils.join(
-                PersisterUtils.join(getTaskPath(taskName), TASK_METADATA_PATH_NAME),
+                PersisterUtils.join(getTaskPath(namespace, taskName), TASK_METADATA_PATH_NAME),
                 TASK_GOAL_OVERRIDE_STATUS_PATH_NAME);
     }
 
-    protected static String getTaskPath(String taskName) {
-        return PersisterUtils.join(TASKS_ROOT_NAME, taskName);
+    protected static String getTaskPath(String namespace, String taskName) {
+        return PersisterUtils.join(getRootPath(namespace, TASKS_ROOT_NAME), taskName);
+    }
+
+    protected static String getPropertyPath(String namespace, String propertyName) {
+        return PersisterUtils.join(getRootPath(namespace, PROPERTIES_PATH_NAME), propertyName);
+    }
+
+    /**
+     * Returns the provided {@code pathName} within the provided {@code namespace}.
+     *
+     * @param namespace The namespace, or an empty string for no/global namespace
+     * @param pathName The path within at root of the persister
+     * @return The namespaced path for {@code pathName}
+     */
+    protected static String getRootPath(String namespace, String pathName) {
+        return namespace.isEmpty() ? pathName : PersisterUtils.join(namespace, pathName);
     }
 
     private static void validateKey(String key) throws StateStoreException {

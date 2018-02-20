@@ -53,7 +53,8 @@ public class SchedulerBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerBuilder.class);
 
     /** @see SchemaVersionStore */
-    private static final int SUPPORTED_SCHEMA_VERSION = 1;
+    private static final int SUPPORTED_SCHEMA_VERSION_WITHOUT_NAMESPACE = 1;
+    private static final int SUPPORTED_SCHEMA_VERSION_WITH_NAMESPACE = 2;
 
     private ServiceSpec serviceSpec;
     private final SchedulerConfig schedulerConfig;
@@ -66,6 +67,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
+    private String namespace;
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -80,6 +82,7 @@ public class SchedulerBuilder {
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
         this.persister = persister;
+        this.namespace = ""; // Default: no namespace
     }
 
     /**
@@ -160,6 +163,18 @@ public class SchedulerBuilder {
     }
 
     /**
+     * Assigns a namespace for this service to be used for state/config storage. Relevant when multiple services are
+     * being managed by the same process. Note that a non-namespaced service cannot be converted to or from a namespaced
+     * service, as the two have different storage schema versions.
+     *
+     * @param namespace the namespace to use, or an empty string for no/global namespace
+     */
+    public SchedulerBuilder setNamespace(String namespace) {
+        this.namespace = namespace;
+        return this;
+    }
+
+    /**
      * Creates a new Mesos scheduler instance with the provided values or their defaults, or an empty {@link Optional}
      * if no Mesos scheduler should be registered for this run.
      *
@@ -173,18 +188,20 @@ public class SchedulerBuilder {
 
         // FIRST, check schema version before doing any other storage access:
         int currentVersion = new SchemaVersionStore(persister).fetch();
-        if (!SchemaVersionStore.isSupported(
-                currentVersion, SUPPORTED_SCHEMA_VERSION, SUPPORTED_SCHEMA_VERSION)) {
+        int expectedVersion = namespace.isEmpty()
+                ? SUPPORTED_SCHEMA_VERSION_WITHOUT_NAMESPACE
+                : SUPPORTED_SCHEMA_VERSION_WITH_NAMESPACE;
+        if (!SchemaVersionStore.isSupported(currentVersion, expectedVersion, expectedVersion)) {
             throw new IllegalStateException(String.format(
                     "Storage schema version %d is not supported by this software (expected: %d)",
-                    currentVersion, SUPPORTED_SCHEMA_VERSION));
+                    currentVersion, expectedVersion));
         }
 
         // THEN, initialize storage access:
         FrameworkStore frameworkStore = new FrameworkStore(persister);
-        StateStore stateStore = new StateStore(persister);
+        StateStore stateStore = new StateStore(persister, namespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {

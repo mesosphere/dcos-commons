@@ -3,6 +3,8 @@ package com.mesosphere.sdk.state;
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.StorageError;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,6 +20,8 @@ import static org.junit.Assert.*;
  * Tests for {@link ConfigStore}.
  */
 public class ConfigStoreTest {
+    private static final String NAMESPACE = "test-namespace";
+
     private Persister persister;
     private ConfigStore<StringConfiguration> store;
     private StringConfiguration testConfig;
@@ -40,8 +44,37 @@ public class ConfigStoreTest {
     public void testRootPathMapping() throws Exception {
         UUID id = store.store(testConfig);
         store.setTargetConfig(id);
+
+        // Check that data is at root path:
         assertEquals(id.toString(), new String(persister.get("ConfigTarget"), StandardCharsets.UTF_8));
         assertNotEquals(0, persister.get("Configurations/" + id.toString()).length);
+
+        // Check that data is NOT in namespaced path:
+        checkPathNotFound(NAMESPACE + "/ConfigTarget");
+        checkPathNotFound(NAMESPACE + "/Configurations/" + id.toString());
+
+        // Check that data is accessible as expected:
+        assertEquals(id, store.getTargetConfig());
+        assertEquals(testConfig, store.fetch(id));
+    }
+
+    @Test
+    public void testNamespacedPathMapping() throws Exception {
+        store = new ConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister, NAMESPACE);
+        UUID id = store.store(testConfig);
+        store.setTargetConfig(id);
+
+        // Check that data is in namespaced path:
+        assertEquals(id.toString(), new String(persister.get(NAMESPACE + "/ConfigTarget"), StandardCharsets.UTF_8));
+        assertNotEquals(0, persister.get(NAMESPACE + "/Configurations/" + id.toString()).length);
+
+        // Check that data is NOT in root path:
+        checkPathNotFound("ConfigTarget");
+        checkPathNotFound("Configurations/" + id.toString());
+
+        // Check that data is accessible as expected:
+        assertEquals(id, store.getTargetConfig());
+        assertEquals(testConfig, store.fetch(id));
     }
 
     @Test
@@ -101,5 +134,13 @@ public class ConfigStoreTest {
     @Test(expected=ConfigStoreException.class)
     public void testGetEmptyTargetConfig() throws Exception {
         store.getTargetConfig();
+    }
+
+    private void checkPathNotFound(String path) {
+        try {
+            persister.get(path);
+        } catch (PersisterException e) {
+            assertEquals(StorageError.Reason.NOT_FOUND, e.getReason());
+        }
     }
 }
