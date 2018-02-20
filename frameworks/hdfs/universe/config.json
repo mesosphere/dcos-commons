@@ -1406,7 +1406,7 @@
             "binaryEncoding": "base64",
             "type": "application/x-yaml"
           },
-          "default": "UlVMRTpbMjokMUAkMF0oLiopcy8uKi9ub2JvZHkvClJVTEU6WzE6JDFAJDBdKC4qKXMvLiovbm9ib2R5Lwo="
+          "default": ""
         },
         "io_file_buffer_size": {
           "type": "string",
