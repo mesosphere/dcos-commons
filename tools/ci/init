@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+
+import argparse
+import subprocess
+
+
+def init(args: dict):
+
+    output_path = args.output_path.rstrip("/") + "/"
+
+    files = ["/build-tools/test.sh",
+             "/build-tools/TESTING.md", ]
+
+    cmd = ["cp", ]
+    cmd.extend(files)
+    cmd.append(output_path)
+    subprocess.run(cmd)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Init DC/OS test environment")
+    parser.add_argument('output_path', type=str,
+                        help='The absolute path where the testing tools should be created')
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    init(args)
+
+
+if __name__ == "__main__":
+    main()
