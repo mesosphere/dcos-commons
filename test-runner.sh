@@ -67,6 +67,55 @@ if [ -f /ssh/key ]; then
     ssh-add /ssh/key
 fi
 
+### ==== TODO: Integrate the following retry logic:
+### See https://jira.mesosphere.com/browse/INFINITY-3060
+# Make the test cluster
+# Make the test cluster
+set -e
+LAUNCH_SUCCESS="False"
+if [ x"$SECURITY" == x"strict" ]; then
+    # For the time being, only try to relaunch a cluster on strict mode.
+    # This is where we are alerting. If this is successful, then we can move
+    # this to the other clusters.
+    RETRY_LAUNCH="True"
+else
+    RETRY_LAUNCH="False"
+fi
+
+while [ x"$LAUNCH_SUCCESS" == x"False" ]; do
+    dcos-launch create -c /build/config.yaml
+    if [ x"$RETRY_LAUNCH" == x"True" ]; then
+        set +e
+    else
+        set -e
+    fi
+    dcos-launch wait 2>&1 | tee dcos-launch-wait-output.stdout
+
+    # Grep exits with an exit code of 1 if no lines are matched. We thus need to
+    # disable exit on errors.
+    set +e
+    ROLLBACK_FOUND=$(grep -o "Exception: StackStatus changed unexpectedly to: ROLLBACK_IN_PROGRESS" dcos-launch-wait-output.stdout)
+    if [ -n "$ROLLBACK_FOUND" ]; then
+        # This would be a good place to add some form of alerting!
+
+        # We only retry once!
+        RETRY_LAUNCH="False"
+        set -e
+
+        # We need to wait for the current stack to be deleted
+        dcos-launch delete
+        rm -f cluster_info.json
+        echo "Cluster creation failed. Retrying after 30 seconds"
+        sleep 30
+    else
+        LAUNCH_SUCCESS="True"
+    fi
+done
+set -e
+
+
+### ========
+
 # Now create a cluster if it doesn't exist.
 if [ -z "$CLUSTER_URL" ]; then
     echo "No DC/OS cluster specified. Attempting to create one now"

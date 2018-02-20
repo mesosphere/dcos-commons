@@ -34,3 +34,7 @@ ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 ENV GOPATH=/go-tmp
 # make a dir for holding the SSH key in tests
 RUN mkdir /root/.ssh
+
+# Create a tools directory:
+RUN mkdir /tools
+COPY test-runner.sh /tools/
