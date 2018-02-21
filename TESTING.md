@@ -1,6 +1,6 @@
 # DC/OS SDK framework testing tools
 
-The `test.sh` script works with the `mesosphere/dcos-commons` Docker image to set up a reproducible test environment for testing any DC/OS SDK-based frameworks such as [dcos-commons](https://github.com/mesosphere/dcos-commons). In order to pull the testing tools into a target frameworks, say `my-framework` in the current working folder, run:
+The `test.sh` script works with the `mesosphere/dcos-commons` Docker image to set up a reproducible test environment for testing any DC/OS SDK-based frameworks such as [dcos-commons](https://github.com/mesosphere/dcos-commons). In order to pull the testing utilities into a target framework, say `my-framework` in the current working folder, run:
 ```bash
 docker run --rm -ti -v $(pwd):$(pwd) mesosphere/dcos-commons:latest init $(pwd)
 ```
