@@ -67,7 +67,7 @@ if [ -z "$CLUSTER_URL" ]; then
     ${BUILD_TOOL_DIR}/launch_cluster.sh ${REPO_ROOT_DIR}/config.yaml ${REPO_ROOT_DIR}/cluster_info.json
 
     if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
-        export CLUSTER_URL=https://$(dcos-launch describe --info-file=${REPO_ROOT_DIR}/cluster_info.json | jq -r .masters[0].public_ip)
+        export CLUSTER_URL=https://$(dcos-launch describe --info-path=${REPO_ROOT_DIR}/cluster_info.json | jq -r .masters[0].public_ip)
         if [ -z $CLUSTER_URL ]; then
             echo "Could not determine CLUSTER_URL"
             exit 1
@@ -158,7 +158,7 @@ echo "Finished integration tests at "`date`
 
 if [ -n "$CLUSTER_WAS_CREATED" ]; then
     echo "The DC/OS cluster $CLUSTER_URL was created. Please run"
-    echo "\t\$ dcos-launch delete"
+    echo "\t\$ dcos-launch delete --info-path=${CLUSTER_INFO_FILE}"
     echo "to remove the cluster."
 fi
 
