@@ -39,7 +39,7 @@ A common task is to specify a list of whitelisted systems to deploy to. To achie
 [["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
 ```
 
-You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
+You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](../common-operations#replace-a-pod)) without requiring that system.
 
 ### Regions and Zones
 
