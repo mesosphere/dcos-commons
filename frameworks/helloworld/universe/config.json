@@ -91,7 +91,7 @@
             "pre-reserved",
             "pre-reserved-sidecar",
             "secrets",
-            "shared_pid_namespace",
+            "share_pid_namespace",
             "sidecar",
             "simple",
             "taskcfg",
