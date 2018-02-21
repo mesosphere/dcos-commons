@@ -181,7 +181,7 @@ public class SchedulerBuilder {
      * @return a new Mesos scheduler instance to be registered, or an empty {@link Optional}
      * @throws IllegalArgumentException if validating the provided configuration failed
      */
-    public AbstractScheduler build() {
+    public ServiceScheduler build() {
 
         // IMPORTANT: We specifically avoid touching the persister's content until build() is called. This mainly comes
         // up in the Curator case, where we specifically want to invoke CuratorLocker before accessing the storage.

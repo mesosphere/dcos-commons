@@ -1,22 +1,14 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.Driver;
-import com.mesosphere.sdk.scheduler.Metrics;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * This class provides commonly used utilities for offer handling.
  */
 public class OfferUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OfferUtils.class);
 
     /**
      * Filters out accepted offers and returns back a list of unused offers.
@@ -46,41 +38,5 @@ public class OfferUtils {
             Collection<Protos.OfferID> acceptedOfferIds) {
         return acceptedOfferIds.stream()
                 .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
-    }
-
-    public static void declineShort(Collection<Protos.Offer> unusedOffers) {
-        OfferUtils.declineOffers(unusedOffers, Constants.SHORT_DECLINE_SECONDS);
-        Metrics.incrementDeclinesShort(unusedOffers.size());
-    }
-
-    public static void declineLong(Collection<Protos.Offer> unusedOffers) {
-        OfferUtils.declineOffers(unusedOffers, Constants.LONG_DECLINE_SECONDS);
-        Metrics.incrementDeclinesLong(unusedOffers.size());
-    }
-
-    /**
-     * Decline unused {@link org.apache.mesos.Protos.Offer}s.
-     *
-     * @param unusedOffers The collection of Offers to decline
-     * @param refuseSeconds The number of seconds for which the offers should be refused
-     */
-    private static void declineOffers(Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("No driver present for declining offers.  This should never happen.");
-        }
-
-        Collection<Protos.OfferID> offerIds = unusedOffers.stream()
-                .map(offer -> offer.getId())
-                .collect(Collectors.toList());
-        LOGGER.info("Declining {} unused offer{} for {} seconds: {}",
-                offerIds.size(),
-                offerIds.size() == 1 ? "" : "s",
-                refuseSeconds,
-                offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
-        final Protos.Filters filters = Protos.Filters.newBuilder()
-                .setRefuseSeconds(refuseSeconds)
-                .build();
-        offerIds.forEach(offerId -> driver.get().declineOffer(offerId, filters));
     }
 }

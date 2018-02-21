@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
-public class DefaultScheduler extends AbstractScheduler {
+public class DefaultScheduler extends ServiceScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
@@ -219,7 +219,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+    protected List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         // See which offers are useful to the plans.
         List<Protos.OfferID> planOffers = new ArrayList<>();
         planOffers.addAll(planScheduler.resourceOffers(offers, steps));
@@ -239,18 +239,13 @@ public class DefaultScheduler extends AbstractScheduler {
         List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
-        // Decline remaining offers.
-        if (!unusedOffers.isEmpty()) {
-            OfferUtils.declineLong(unusedOffers);
-        }
-
         if (offers.isEmpty()) {
             LOGGER.info("0 Offers processed.");
         } else {
             LOGGER.info("{} Offer{} processed:\n"
                     + "  {} accepted by Plans: {}\n"
                     + "  {} accepted by Resource Cleaner: {}\n"
-                    + "  {} declined: {}",
+                    + "  {} unused: {}",
                     offers.size(),
                     offers.size() == 1 ? "" : "s",
                     planOffers.size(),
@@ -260,6 +255,8 @@ public class DefaultScheduler extends AbstractScheduler {
                     unusedOffers.size(),
                     unusedOffers.stream().map(offer -> offer.getId().getValue()).collect(Collectors.toList()));
         }
+
+        return unusedOffers;
     }
 
     @Override

@@ -28,11 +28,11 @@ import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
- * Tests for {@link AbstractScheduler}.
+ * Tests for {@link ServiceScheduler}.
  */
-public class AbstractSchedulerTest {
+public class ServiceSchedulerTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSchedulerTest.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceSchedulerTest.class);
 
     private FrameworkStore frameworkStore;
     private StateStore stateStore;
@@ -51,7 +51,7 @@ public class AbstractSchedulerTest {
     @Test
     public void testApiServerNotReadyDecline() throws PersisterException {
         // Build a new scheduler where the API server wasn't disabled:
-        AbstractScheduler scheduler = getScheduler(true, false, -1);
+        ServiceScheduler scheduler = getScheduler(true, false, -1);
         scheduler.getMesosScheduler().get()
                 .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer(), getOffer(), getOffer()));
         verify(mockSchedulerDriver, times(3)).declineOffer(any(), any());
@@ -85,7 +85,7 @@ public class AbstractSchedulerTest {
         verify(mockSchedulerDriver, never()).declineOffer(any(), any());
     }
 
-    private Set<String> sendOffers(AbstractScheduler scheduler, int threadCount, int offersPerThread)
+    private Set<String> sendOffers(ServiceScheduler scheduler, int threadCount, int offersPerThread)
             throws InterruptedException {
         // Hammer scheduler with offers, and check that they were all forwarded as expected
         Set<String> sentOfferIds = new HashSet<>();
@@ -160,7 +160,7 @@ public class AbstractSchedulerTest {
         return scheduler;
     }
 
-    private static class TestScheduler extends AbstractScheduler {
+    private static class TestScheduler extends ServiceScheduler {
 
         private final PlanCoordinator mockPlanCoordinator = mock(PlanCoordinator.class);
 
@@ -188,10 +188,11 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+        protected List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
             receivedOfferIds.addAll(offers.stream()
                     .map(o -> o.getId().getValue())
                     .collect(Collectors.toList()));
+            return Collections.emptyList();
         }
 
         @Override

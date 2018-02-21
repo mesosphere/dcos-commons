@@ -6,16 +6,17 @@ import com.mesosphere.sdk.http.HealthResource;
 import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.ServiceScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 /**
  * This scheduler uninstalls the framework and releases all of its resources.
  */
-public class UninstallScheduler extends AbstractScheduler {
+public class UninstallScheduler extends ServiceScheduler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -62,21 +63,30 @@ public class UninstallScheduler extends AbstractScheduler {
         super(frameworkStore, stateStore, schedulerConfig, planCustomizer);
         this.secretsClient = customSecretsClientForTests;
 
-        Plan plan = new UninstallPlanBuilder(
-                serviceSpec,
-                frameworkStore,
-                stateStore,
-                configStore,
-                schedulerConfig,
-                secretsClient)
-                .build();
+        final Plan deployPlan;
+        if (allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig)) {
+            /**
+             * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
+             * and provide an empty COMPLETE deploy plan so it may complete its uninstall.
+             */
+            deployPlan = buildEmptyDeployPlan();
+        } else {
+            deployPlan = new UninstallPlanBuilder(
+                    serviceSpec,
+                    frameworkStore,
+                    stateStore,
+                    configStore,
+                    schedulerConfig,
+                    secretsClient)
+                    .build();
+        }
 
-        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
+        this.uninstallPlanManager = DefaultPlanManager.createProceeding(deployPlan);
         this.resources = Arrays.asList(
                 new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
                 new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
 
-        List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
+        List<ResourceCleanupStep> resourceCleanupSteps = deployPlan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
                 .filter(step -> step instanceof ResourceCleanupStep)
                 .map(step -> (ResourceCleanupStep) step)
@@ -85,20 +95,19 @@ public class UninstallScheduler extends AbstractScheduler {
                 new UninstallRecorder(stateStore, resourceCleanupSteps)));
 
         try {
-            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
+            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(deployPlan)));
         } catch (IOException e) {
             logger.error("Failed to deserialize uninstall plan.");
         }
     }
 
-    @Override
-    public Optional<Scheduler> getMesosScheduler() {
-        if (allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig)) {
-            logger.info("Not registering framework because there are no resources left to unreserve.");
-            return Optional.empty();
-        }
-
-        return super.getMesosScheduler();
+    /**
+     * Returns whether the process should register with Mesos.
+     *
+     * This handles the case where there's nothing left to do with Mesos -- the framework has already unregistered.
+     */
+    public boolean shouldRegisterFramework() {
+        return !allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig);
     }
 
     @Override
@@ -128,7 +137,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+    protected List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
@@ -144,14 +153,8 @@ public class UninstallScheduler extends AbstractScheduler {
 
         offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
 
-        // Decline remaining offers.
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        if (unusedOffers.isEmpty()) {
-            logger.info("No offers to be declined.");
-        } else {
-            logger.info("Declining {} unused offers", unusedOffers.size());
-            OfferUtils.declineLong(unusedOffers);
-        }
+        // Return remaining offers.
+        return OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
     }
 
     @Override
@@ -174,5 +177,35 @@ public class UninstallScheduler extends AbstractScheduler {
                 ResourceUtils.getResourceIds(
                         ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                         .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+    }
+
+    private static Plan buildEmptyDeployPlan() {
+        UUID id = UUID.randomUUID();
+        return new Plan() {
+            @Override
+            public List<Phase> getChildren() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Strategy<Phase> getStrategy() {
+                return new SerialStrategy<>();
+            }
+
+            @Override
+            public UUID getId() {
+                return id;
+            }
+
+            @Override
+            public String getName() {
+                return Constants.DEPLOY_PLAN_NAME;
+            }
+
+            @Override
+            public List<String> getErrors() {
+                return Collections.emptyList();
+            }
+        };
     }
 }

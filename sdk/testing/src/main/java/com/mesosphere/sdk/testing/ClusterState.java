@@ -12,7 +12,7 @@ import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.ServiceScheduler;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -23,21 +23,21 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 public class ClusterState {
 
     private final ServiceSpec serviceSpec;
-    private final AbstractScheduler scheduler;
+    private final ServiceScheduler scheduler;
     private final List<Protos.Offer> sentOffers = new ArrayList<>();
     private final List<LaunchedPod> createdPods = new ArrayList<>();
 
-    private ClusterState(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
+    private ClusterState(ServiceSpec serviceSpec, ServiceScheduler scheduler) {
         this.serviceSpec = serviceSpec;
         this.scheduler = scheduler;
     }
 
-    public static ClusterState create(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
+    public static ClusterState create(ServiceSpec serviceSpec, ServiceScheduler scheduler) {
         return new ClusterState(serviceSpec, scheduler);
     }
 
     public static ClusterState withUpdatedConfig(
-            ClusterState clusterState, ServiceSpec serviceSpec, AbstractScheduler scheduler) {
+            ClusterState clusterState, ServiceSpec serviceSpec, ServiceScheduler scheduler) {
         ClusterState updatedClusterState = create(serviceSpec, scheduler);
         updatedClusterState.sentOffers.addAll(clusterState.sentOffers);
         updatedClusterState.createdPods.addAll(clusterState.createdPods);

@@ -5,18 +5,13 @@ import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
-import com.mesosphere.sdk.http.HealthResource;
-import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
-import com.mesosphere.sdk.scheduler.plan.Phase;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+import com.mesosphere.sdk.scheduler.framework.FrameworkScheduler;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
@@ -34,7 +29,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Class which sets up and executes the correct {@link AbstractScheduler} instance.
+ * Class which sets up and executes the correct {@link ServiceScheduler} instance.
  */
 public class SchedulerRunner implements Runnable {
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
@@ -114,60 +109,13 @@ public class SchedulerRunner implements Runnable {
 
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         Metrics.configureStatsd(schedulerConfig);
-        AbstractScheduler scheduler = schedulerBuilder.build();
+        ServiceScheduler scheduler = schedulerBuilder.build();
         scheduler.start();
-        Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
-        if (mesosScheduler.isPresent()) {
-            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
-            apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                @Override
-                public void lifeCycleStarted(LifeCycle event) {
-                    scheduler.markApiServerStarted();
-                }
-            });
-
-            runScheduler(
-                    mesosScheduler.get(),
-                    schedulerBuilder.getServiceSpec(),
-                    schedulerBuilder.getSchedulerConfig(),
-                    scheduler.fetchFrameworkId());
-        } else {
-            /**
-             * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
-             * and provide an empty COMPLETE deploy plan so it may complete its UNINSTALL.
-             *
-             * See {@link UninstallScheduler#getMesosScheduler()}.
-             */
-            Plan emptyDeployPlan = new Plan() {
-                @Override
-                public List<Phase> getChildren() {
-                    return Collections.emptyList();
-                }
-
-                @Override
-                public Strategy<Phase> getStrategy() {
-                    return new SerialStrategy<>();
-                }
-
-                @Override
-                public UUID getId() {
-                    return UUID.randomUUID();
-                }
-
-                @Override
-                public String getName() {
-                    return Constants.DEPLOY_PLAN_NAME;
-                }
-
-                @Override
-                public List<String> getErrors() {
-                    return Collections.emptyList();
-                }
-            };
-
-            PlanManager emptyPlanManager = DefaultPlanManager.createProceeding(emptyDeployPlan);
-            PlansResource emptyPlanResource = new PlansResource();
-            emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
+        // TODO(nickbp): Restructure this init, avoid creating multiple FrameworkStores like this (here + SchedBuilder)
+        FrameworkScheduler frameworkScheduler =
+                new FrameworkScheduler(new FrameworkStore(scheduler.getPersister()), scheduler);
+        if (scheduler instanceof UninstallScheduler && ((UninstallScheduler) scheduler).shouldRegisterFramework()) {
+            LOGGER.info("Not registering framework because there are no resources left to unreserve.");
 
             try {
                 PersisterUtils.clearAllData(scheduler.getPersister());
@@ -175,17 +123,27 @@ public class SchedulerRunner implements Runnable {
                 throw new IllegalStateException("Unable to clear all data", e);
             }
 
-            SchedulerApiServer apiServer = new SchedulerApiServer(
-                    schedulerConfig,
-                    Arrays.asList(
-                            emptyPlanResource,
-                            new HealthResource()));
+            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
                     LOGGER.info("Started trivially healthy API server.");
                 }
             });
+        } else {
+            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
+            apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+                @Override
+                public void lifeCycleStarted(LifeCycle event) {
+                    frameworkScheduler.markApiServerStarted();
+                }
+            });
+
+            runScheduler(
+                    frameworkScheduler,
+                    schedulerBuilder.getServiceSpec(),
+                    schedulerBuilder.getSchedulerConfig(),
+                    scheduler.fetchFrameworkId());
         }
     }
 

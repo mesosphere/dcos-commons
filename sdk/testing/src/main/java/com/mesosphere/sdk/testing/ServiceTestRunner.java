@@ -3,7 +3,7 @@ package com.mesosphere.sdk.testing;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.ServiceScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -308,7 +308,7 @@ public class ServiceTestRunner {
                 rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
-        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
+        ServiceScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
                 .setCustomConfigValidators(validators)

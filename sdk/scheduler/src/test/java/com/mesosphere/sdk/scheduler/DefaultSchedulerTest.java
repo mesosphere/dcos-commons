@@ -830,7 +830,7 @@ public class DefaultSchedulerTest {
     }
 
     private DefaultScheduler getScheduler(ServiceSpec serviceSpec) throws PersisterException {
-        AbstractScheduler scheduler = DefaultScheduler.newBuilder(
+        ServiceScheduler scheduler = DefaultScheduler.newBuilder(
                 serviceSpec, SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
                 .build()
                 .disableApiServer()
