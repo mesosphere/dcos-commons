@@ -11,7 +11,6 @@ import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
@@ -111,9 +110,6 @@ public class SchedulerRunner implements Runnable {
         Metrics.configureStatsd(schedulerConfig);
         ServiceScheduler scheduler = schedulerBuilder.build();
         scheduler.start();
-        // TODO(nickbp): Restructure this init, avoid creating multiple FrameworkStores like this (here + SchedBuilder)
-        FrameworkScheduler frameworkScheduler =
-                new FrameworkScheduler(new FrameworkStore(scheduler.getPersister()), scheduler);
         if (scheduler instanceof UninstallScheduler && ((UninstallScheduler) scheduler).shouldRegisterFramework()) {
             LOGGER.info("Not registering framework because there are no resources left to unreserve.");
 
@@ -131,11 +127,12 @@ public class SchedulerRunner implements Runnable {
                 }
             });
         } else {
+            FrameworkScheduler frameworkScheduler = new FrameworkScheduler(scheduler.getPersister(), scheduler);
             SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
-                    frameworkScheduler.markApiServerStarted();
+                    frameworkScheduler.markReadyToAcceptOffers();
                 }
             });
 

@@ -11,14 +11,10 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -39,11 +35,6 @@ public abstract class ServiceScheduler implements MesosEventClient {
     // These are all (re)assigned when the scheduler has (re)registered:
     private ReviveManager reviveManager;
     private Reconciler reconciler;
-
-    /**
-     * Executor for handling TaskStatus updates in {@link Scheduler#statusUpdate(SchedulerDriver, Protos.TaskStatus)}.
-     */
-    protected final ExecutorService statusExecutor = Executors.newSingleThreadExecutor();
 
     /**
      * Creates a new AbstractScheduler given a {@link StateStore}.
@@ -100,7 +91,7 @@ public abstract class ServiceScheduler implements MesosEventClient {
     /**
      * Returns the underlying {@link Persister} being used to keep track of state/configs.
      */
-    Persister getPersister() {
+    public Persister getPersister() {
         return frameworkStore.getPersister();
     }
 
@@ -115,7 +106,7 @@ public abstract class ServiceScheduler implements MesosEventClient {
     }
 
     @Override
-    public void registered(boolean reRegistered) {
+    public void register(boolean reRegistered) {
         if (!reRegistered) {
             this.reviveManager = new ReviveManager();
             this.reconciler = new Reconciler(stateStore);
@@ -128,10 +119,9 @@ public abstract class ServiceScheduler implements MesosEventClient {
 
     @Override
     public OfferResponse offers(List<Protos.Offer> offers) {
-        // Task Reconciliation:
-        // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-        // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-        // http://mesos.apache.org/documentation/latest/reconciliation/
+        /* Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
+         * Mesos have agreed upon the state of all Tasks of interest to the scheduler.
+         * See also: http://mesos.apache.org/documentation/latest/reconciliation/ */
         reconciler.reconcile();
         if (!reconciler.isReconciled()) {
             LOGGER.info("Not ready for offers: Waiting for task reconciliation to complete.");
@@ -173,7 +163,6 @@ public abstract class ServiceScheduler implements MesosEventClient {
     @Override
     public StatusResponse status(Protos.TaskStatus status) {
         try {
-            // TODO address this throwing when the status is for an unknown task. This will be much more common now!
             processStatusUpdate(status);
             reconciler.update(status);
         } catch (Exception e) {
@@ -190,7 +179,7 @@ public abstract class ServiceScheduler implements MesosEventClient {
     /**
      * Returns a list of API resources to be served by the scheduler to the local cluster.
      */
-    // TODO one per framework, not per service
+    // TODO(nickbp) in multi-service mode, namespace these returned resources by service name
     public abstract Collection<Object> getResources();
 
     /**

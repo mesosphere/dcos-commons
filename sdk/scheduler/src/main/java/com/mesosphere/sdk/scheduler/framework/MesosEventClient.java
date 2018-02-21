@@ -6,12 +6,19 @@ import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.state.StateStore;
 
+/**
+ * Accepts events received from Mesos.
+ */
 public interface MesosEventClient {
 
     /**
      * Response object to be returned by {@code offers()}.
      */
     public static class OfferResponse {
+
+        /**
+         * The outcome of this offers call.
+         */
         public enum Result {
             /**
              * The client was not ready to process these offers. Come back later.
@@ -52,6 +59,10 @@ public interface MesosEventClient {
      * Response object to be returned by {@code status()}.
      */
     public static class StatusResponse {
+
+        /**
+         * The outcome of this status call.
+         */
         public enum Result {
             /**
              * The task is not known to this service.
@@ -81,7 +92,7 @@ public interface MesosEventClient {
     /**
      * Called when the framework has registered (or re-registered) with Mesos.
      */
-    public void registered(boolean reRegistered);
+    public void register(boolean reRegistered);
 
     /**
      * Called when the framework has received offers from Mesos. The provided list may be empty.

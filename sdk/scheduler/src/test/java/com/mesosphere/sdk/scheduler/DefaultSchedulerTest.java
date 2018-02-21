@@ -192,8 +192,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testEmptyOffers() {
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Collections.emptyList());
+        defaultScheduler.offers(Collections.emptyList());
         verify(mockSchedulerDriver, times(1)).reconcileTasks(any());
         verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
@@ -224,9 +223,7 @@ public class DefaultSchedulerTest {
 
         // Offer insufficient Resource and wait for step state transition
         UUID offerId = UUID.randomUUID();
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(getInsufficientOfferForTaskA(offerId)));
-        defaultScheduler.awaitOffersProcessed();
+        defaultScheduler.offers(Arrays.asList(getInsufficientOfferForTaskA(offerId)));
         Assert.assertEquals(Arrays.asList(Status.PREPARED, Status.PENDING, Status.PENDING),
                 getStepStatuses(plan));
     }
@@ -235,7 +232,6 @@ public class DefaultSchedulerTest {
     public void updatePerTaskASpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitOffersProcessed();
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = getScheduler(getServiceSpec(updatedPodA, podB));
 
@@ -247,7 +243,6 @@ public class DefaultSchedulerTest {
     public void updatePerTaskBSpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitOffersProcessed();
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = getScheduler(getServiceSpec(podA, updatedPodB));
 
@@ -259,7 +254,6 @@ public class DefaultSchedulerTest {
     public void updateTaskTypeASpecification() throws InterruptedException, IOException, Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitOffersProcessed();
 
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = getScheduler(getServiceSpec(scaledPodA, podB));
@@ -278,13 +272,11 @@ public class DefaultSchedulerTest {
 
         // Offer sufficient Resource and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(offer1));
+        defaultScheduler.offers(Arrays.asList(offer1));
         verify(mockSchedulerDriver, times(1)).acceptOffers(
                 collectionThat(contains(offer1.getId())),
                 operationsCaptor.capture(),
                 any());
-        defaultScheduler.awaitOffersProcessed();
 
         Collection<Protos.Offer.Operation> operations = operationsCaptor.getValue();
         Protos.TaskID launchedTaskId = getTaskId(operations);
@@ -333,9 +325,7 @@ public class DefaultSchedulerTest {
                 .addResources(mem)
                 .build();
 
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(offerA, offerB, offerC));
-        defaultScheduler.awaitOffersProcessed();
+        defaultScheduler.offers(Arrays.asList(offerA, offerB, offerC));
 
         // Verify that acceptOffer is called thrice, once each for recovery, launch, and cleanup.
         // Use a separate captor as the other one was already used against an acceptOffers call in this test case.
@@ -407,8 +397,7 @@ public class DefaultSchedulerTest {
 
         // Offer sufficient Resource and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(offer1));
+        defaultScheduler.offers(Arrays.asList(offer1));
         verify(mockSchedulerDriver, times(1)).acceptOffers(
                 collectionThat(contains(offer1.getId())),
                 operationsCaptor.capture(),
@@ -445,8 +434,7 @@ public class DefaultSchedulerTest {
         Protos.Offer insufficientOffer = OfferTestUtils.getCompleteOffer(neededAdditionalResource);
 
         // First attempt doesn't do anything because reconciliation hadn't completed yet
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
+        defaultScheduler.offers(Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, times(0)).killTask(any());
         verify(mockSchedulerDriver, times(1)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
@@ -459,8 +447,7 @@ public class DefaultSchedulerTest {
         verify(mockSchedulerDriver, times(1)).reconcileTasks(Collections.emptyList());
 
         // Second attempt after reconciliation results in triggering task relaunch
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(insufficientOffer));
+        defaultScheduler.offers(Arrays.asList(insufficientOffer));
         verify(mockSchedulerDriver, times(1)).killTask(launchedTaskId);
         verify(mockSchedulerDriver, times(2)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
@@ -471,8 +458,7 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(0, getRecoveryPlan().getChildren().size());
 
         Protos.Offer expectedOffer = OfferTestUtils.getCompleteOffer(expectedResources);
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(expectedOffer));
+        defaultScheduler.offers(Arrays.asList(expectedOffer));
         verify(mockSchedulerDriver, times(1)).acceptOffers(
                 collectionThat(contains(expectedOffer.getId())),
                 operationsCaptor.capture(),
@@ -492,7 +478,6 @@ public class DefaultSchedulerTest {
     public void testInvalidConfigurationUpdate() throws Exception {
         // Launch A and B in original configuration
         testLaunchB();
-        defaultScheduler.awaitOffersProcessed();
 
         // Get initial target config UUID
         UUID targetConfigId = defaultScheduler.getConfigStore().getTargetConfig();
@@ -553,8 +538,7 @@ public class DefaultSchedulerTest {
                             .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
                                 .setIpAddress(updateIp))))
                 .build();
-        defaultScheduler.getMesosScheduler().get()
-                .statusUpdate(mockSchedulerDriver, update);
+        defaultScheduler.status(update);
 
         // Verify the TaskStatus was updated.
         Assert.assertEquals(updateIp,
@@ -579,8 +563,7 @@ public class DefaultSchedulerTest {
                 .setContainerStatus(Protos.ContainerStatus.newBuilder()
                         .addNetworkInfos(Protos.NetworkInfo.newBuilder()))
                 .build();
-        defaultScheduler.getMesosScheduler().get()
-                .statusUpdate(mockSchedulerDriver, update);
+        defaultScheduler.status(update);
 
         // Verify the TaskStatus was NOT updated.
         Assert.assertEquals(TASK_IP,
@@ -646,8 +629,6 @@ public class DefaultSchedulerTest {
                 getServiceSpec(podA, scaledInPodB), SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
                 .setPlanCustomizer(planCustomizer)
                 .build()
-                .disableApiServer()
-                .disableThreading()
                 .start();
 
         Assert.assertTrue(decommissionPlanCustomized.get());
@@ -765,8 +746,7 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(step.isPending());
 
         // Offer sufficient Resource and wait for its acceptance
-        defaultScheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, offers);
+        defaultScheduler.offers(offers);
         verify(mockSchedulerDriver, times(1)).acceptOffers(
                 Matchers.argThat(isACollectionThat(contains(offerId))),
                 operationsCaptor.capture(),
@@ -807,7 +787,7 @@ public class DefaultSchedulerTest {
 
     private void statusUpdate(Protos.TaskID launchedTaskId, Protos.TaskState state) {
         Protos.TaskStatus runningStatus = getTaskStatus(launchedTaskId, state);
-        defaultScheduler.getMesosScheduler().get().statusUpdate(mockSchedulerDriver, runningStatus);
+        defaultScheduler.status(runningStatus);
     }
 
     /**
@@ -819,7 +799,6 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(0, 0, getSufficientOfferForTaskA()));
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB()));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB()));
-        defaultScheduler.awaitOffersProcessed();
 
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
@@ -833,11 +812,8 @@ public class DefaultSchedulerTest {
         ServiceScheduler scheduler = DefaultScheduler.newBuilder(
                 serviceSpec, SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
                 .build()
-                .disableApiServer()
-                .disableThreading()
                 .start();
-        scheduler.getMesosScheduler().get()
-                .registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+        scheduler.register(false);
         return (DefaultScheduler) scheduler;
     }
 

@@ -52,8 +52,7 @@ public class ServiceSchedulerTest {
     public void testApiServerNotReadyDecline() throws PersisterException {
         // Build a new scheduler where the API server wasn't disabled:
         ServiceScheduler scheduler = getScheduler(true, false, -1);
-        scheduler.getMesosScheduler().get()
-                .resourceOffers(mockSchedulerDriver, Arrays.asList(getOffer(), getOffer(), getOffer()));
+        scheduler.offers(Arrays.asList(getOffer(), getOffer(), getOffer()));
         verify(mockSchedulerDriver, times(3)).declineOffer(any(), any());
     }
 
@@ -104,7 +103,7 @@ public class ServiceSchedulerTest {
                 @Override
                 public void run() {
                     LOGGER.info("Thread {} sending {} offers...", threadName, offers.size());
-                    scheduler.getMesosScheduler().get().resourceOffers(mockSchedulerDriver, offers);
+                    scheduler.offers(offers);
                 }
             }, threadName);
             threads.add(t);
@@ -119,9 +118,6 @@ public class ServiceSchedulerTest {
             t.join();
             LOGGER.info("Thread {} has exited", t.getName());
         }
-
-        // Wait for internal processing to finish before returning:
-        scheduler.awaitOffersProcessed();
 
         return sentOfferIds;
     }
@@ -143,20 +139,8 @@ public class ServiceSchedulerTest {
             throws PersisterException {
         TestScheduler scheduler =
                 new TestScheduler(frameworkStore, stateStore, SchedulerConfigTestUtils.getTestSchedulerConfig());
-        // Customize...
-        if (!waitForApiServer) {
-            scheduler.disableApiServer();
-        }
-        if (!multithreaded) {
-            scheduler.disableThreading();
-        }
-        if (offerQueueSize >= 0) {
-            scheduler.setOfferQueueSize(offerQueueSize);
-        }
         // Start and register.
-        scheduler.start();
-        scheduler.getMesosScheduler().get()
-                .registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
+        scheduler.start().register(false);
         return scheduler;
     }
 

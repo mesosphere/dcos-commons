@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import org.apache.mesos.Protos;
@@ -14,11 +13,6 @@ import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
 
 public class OfferUtilsTest {
     public static final int SUFFICIENT_CPUS = 2;
@@ -70,16 +64,6 @@ public class OfferUtilsTest {
                 .filterOutAcceptedOffers(offers, Arrays.asList(Protos.OfferID.newBuilder().setValue("abc").build()));
         Assert.assertNotNull(unacceptedOffers);
         Assert.assertEquals(2, unacceptedOffers.size());
-    }
-
-    @Test
-    public void testDeclineOffers() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.OfferID> offerIds = offers.stream().map(Protos.Offer::getId).collect(Collectors.toList());
-        Driver.setDriver(mockSchedulerDriver);
-        OfferUtils.declineLong(offers);
-        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
-        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {

@@ -4,6 +4,7 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.ServiceScheduler;
+import com.mesosphere.sdk.scheduler.framework.FrameworkScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -239,6 +240,10 @@ public class ServiceTestRunner {
         return this;
     }
 
+    /**
+     * Assigns a list of custom configuration validators which will be applied to service configurations, in addition to
+     * the default configuration validators.
+     */
     public ServiceTestRunner setCustomValidators(ConfigValidator<ServiceSpec>... validators) {
         this.validators = Arrays.asList(validators);
         return this;
@@ -308,13 +313,15 @@ public class ServiceTestRunner {
                 rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
-        ServiceScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
+        ServiceScheduler serviceScheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
                 .setCustomConfigValidators(validators)
-                .build()
-                .disableThreading()
-                .disableApiServer();
+                .build();
+        FrameworkScheduler frameworkScheduler =
+                new FrameworkScheduler(serviceScheduler.getPersister(), serviceScheduler)
+                .markReadyToAcceptOffers()
+                .disableThreading();
 
         // Test 4: Can we render the per-task config templates without any missing values?
         Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
@@ -323,10 +330,10 @@ public class ServiceTestRunner {
         ClusterState clusterState;
         if (oldClusterState == null) {
             // Initialize new cluster state
-            clusterState = ClusterState.create(serviceSpec, scheduler);
+            clusterState = ClusterState.create(serviceSpec, serviceScheduler);
         } else {
             // Carry over prior cluster state
-            clusterState = ClusterState.withUpdatedConfig(oldClusterState, serviceSpec, scheduler);
+            clusterState = ClusterState.withUpdatedConfig(oldClusterState, serviceSpec, serviceScheduler);
         }
         SchedulerDriver mockDriver = Mockito.mock(SchedulerDriver.class);
         for (SimulationTick tick : ticks) {
@@ -339,7 +346,7 @@ public class ServiceTestRunner {
                 }
             } else if (tick instanceof Send) {
                 LOGGER.info("SEND:   {}", tick.getDescription());
-                ((Send) tick).send(clusterState, mockDriver, scheduler.getMesosScheduler().get());
+                ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
             }

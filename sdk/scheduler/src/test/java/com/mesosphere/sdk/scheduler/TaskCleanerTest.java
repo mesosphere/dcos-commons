@@ -4,6 +4,7 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -19,6 +20,11 @@ import static org.mockito.Mockito.*;
  * This class test the {@link TaskCleaner}.
  */
 public class TaskCleanerTest {
+    @Test
+    public void portTestsToDefaultSchedulerTests() {
+        Assert.fail("TODO");
+    }
+    /*
     @Mock StateStore stateStore;
     @Mock SchedulerDriver driver;
     private TaskCleaner taskCleaner;
@@ -77,4 +83,5 @@ public class TaskCleanerTest {
     private Protos.TaskStatus getNonTerminalStatus() {
         return TestConstants.TASK_STATUS;
     }
+    */
 }

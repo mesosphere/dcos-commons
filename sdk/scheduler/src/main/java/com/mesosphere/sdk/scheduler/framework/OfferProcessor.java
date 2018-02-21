@@ -62,10 +62,6 @@ class OfferProcessor {
         multithreaded = false;
     }
 
-    public boolean isThreaded() {
-        return multithreaded;
-    }
-
     /**
      * Overrides the offer queue size. Must only be called before the scheduler has {@link #start()}ed.
      *
@@ -123,6 +119,7 @@ class OfferProcessor {
         }
 
         if (!multithreaded) {
+            // Process on this thread, rather than depending on offerExecutor to do it.
             processQueuedOffers();
         }
     }

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.http.HealthResource;
@@ -9,8 +10,6 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.ServiceScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -25,9 +24,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This scheduler uninstalls the framework and releases all of its resources.
+ * This scheduler uninstalls a service and releases all of its resources.
  */
 public class UninstallScheduler extends ServiceScheduler {
+    /**
+     * Empty complete deploy plan to be used if the scheduler was launched in a finished state.
+     */
+    @VisibleForTesting
+    static final Plan EMPTY_DEPLOY_PLAN = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -39,8 +43,8 @@ public class UninstallScheduler extends ServiceScheduler {
 
     /**
      * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
-     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
-     * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
+     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up
+     * the service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(
             ServiceSpec serviceSpec,
@@ -66,10 +70,10 @@ public class UninstallScheduler extends ServiceScheduler {
         final Plan deployPlan;
         if (allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig)) {
             /**
-             * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
-             * and provide an empty COMPLETE deploy plan so it may complete its uninstall.
+             * If the state store is empty this scheduler has been deregistered. Therefore it should report itself
+             * healthy and provide an empty COMPLETE deploy plan so it may complete its uninstall.
              */
-            deployPlan = buildEmptyDeployPlan();
+            deployPlan = EMPTY_DEPLOY_PLAN;
         } else {
             deployPlan = new UninstallPlanBuilder(
                     serviceSpec,
@@ -177,35 +181,5 @@ public class UninstallScheduler extends ServiceScheduler {
                 ResourceUtils.getResourceIds(
                         ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                         .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
-    }
-
-    private static Plan buildEmptyDeployPlan() {
-        UUID id = UUID.randomUUID();
-        return new Plan() {
-            @Override
-            public List<Phase> getChildren() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public Strategy<Phase> getStrategy() {
-                return new SerialStrategy<>();
-            }
-
-            @Override
-            public UUID getId() {
-                return id;
-            }
-
-            @Override
-            public String getName() {
-                return Constants.DEPLOY_PLAN_NAME;
-            }
-
-            @Override
-            public List<String> getErrors() {
-                return Collections.emptyList();
-            }
-        };
     }
 }

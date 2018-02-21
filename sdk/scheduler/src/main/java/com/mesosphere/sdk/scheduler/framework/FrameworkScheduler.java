@@ -18,6 +18,7 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.framework.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;
+import com.mesosphere.sdk.storage.Persister;
 
 /**
  * Implementation of Mesos' {@link Scheduler} interface.
@@ -27,26 +28,44 @@ public class FrameworkScheduler implements Scheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(FrameworkScheduler.class);
 
-    // Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
-    // master re-election. Avoid performing initialization multiple times, which would cause queues to be stuck.
+    /**
+     * Mesos may call registered() multiple times in the lifespan of a Scheduler process, specifically when there's
+     * master re-election. Avoid performing initialization multiple times, which would cause queues to be stuck.
+     */
     private final AtomicBoolean isRegisterStarted = new AtomicBoolean(false);
+
+    /**
+     * Tracks whether the API Server has entered a started state. We avoid launching tasks until after the API server is
+     * started, because when tasks launch they typically require access to ArtifactResource for config templates.
+     */
+    private final AtomicBoolean readyToAcceptOffers = new AtomicBoolean(false);
 
     private final FrameworkStore frameworkStore;
     private final MesosEventClient mesosEventClient;
     private final OfferProcessor offerProcessor;
 
-    // Tracks whether apiServer has entered a started state. We avoid launching tasks until after the API server has
-    // started, because when tasks launch they typically require access to ArtifactResource for config templates.
-    private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
-
-    public FrameworkScheduler(FrameworkStore frameworkStore, MesosEventClient mesosEventClient) {
-        this.frameworkStore = frameworkStore;
+    public FrameworkScheduler(Persister persister, MesosEventClient mesosEventClient) {
+        this.frameworkStore = new FrameworkStore(persister);
         this.mesosEventClient = mesosEventClient;
         this.offerProcessor = new OfferProcessor(mesosEventClient);
     }
 
-    public void markApiServerStarted() {
-        apiServerStarted.set(true);
+    /**
+     * Notifies this instance that the API server has been initialized. All offers are declined until this is called.
+     */
+    public FrameworkScheduler markReadyToAcceptOffers() {
+        readyToAcceptOffers.set(true);
+        return this;
+    }
+
+    /**
+     * Disables multithreading for tests. For this to take effect, it must be invoked before the framework has
+     * registered.
+     */
+    @VisibleForTesting
+    public FrameworkScheduler disableThreading() {
+        offerProcessor.disableThreading();
+        return this;
     }
 
     /**
@@ -80,7 +99,7 @@ public class FrameworkScheduler implements Scheduler {
         }
 
         updateStaticData(driver, masterInfo);
-        mesosEventClient.registered(false);
+        mesosEventClient.register(false);
 
         offerProcessor.start();
     }
@@ -89,7 +108,7 @@ public class FrameworkScheduler implements Scheduler {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
         updateStaticData(driver, masterInfo);
-        mesosEventClient.registered(true);
+        mesosEventClient.register(true);
     }
 
     private static void updateStaticData(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
@@ -103,7 +122,7 @@ public class FrameworkScheduler implements Scheduler {
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
         Metrics.incrementReceivedOffers(offers.size());
 
-        if (!apiServerStarted.get()) {
+        if (!readyToAcceptOffers.get()) {
             LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
                     offers.size(), offers.size() == 1 ? "" : "s");
             OfferProcessor.declineShort(offers);
@@ -121,6 +140,10 @@ public class FrameworkScheduler implements Scheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
         Metrics.record(status);
+        // TODO(nickbp) in the multi-service case:
+        // - embed the service id in task ids
+        // - route statuses to the correct service (or kill task if unknown service id)
+        // - note: do not do this in the single-service case
         StatusResponse response = mesosEventClient.status(status);
         TaskKiller.update(status);
         switch (response.result) {
