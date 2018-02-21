@@ -30,7 +30,7 @@
     "SERVICE_USER": "{{service.user}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "CASSANDRA_VERSION": "3.0.15",
+    "CASSANDRA_VERSION": "3.0.16",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.service_account_secret}}
@@ -43,7 +43,7 @@
 
     {{#service.security.transport_encryption.enabled}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
-    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.15/conf/cqlshrc",
+    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.16/conf/cqlshrc",
     {{#service.security.transport_encryption.allow_plaintext}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
     {{/service.security.transport_encryption.allow_plaintext}}
