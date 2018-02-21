@@ -23,6 +23,7 @@ RUN curl -O https://storage.googleapis.com/golang/go1.8.5.linux-amd64.tar.gz && 
     mv go /usr/local
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
+
 # AWS CLI for uploading build artifacts
 RUN pip install awscli
 # Install the testing dependencies
@@ -37,9 +38,13 @@ RUN mkdir /root/.ssh
 
 # Create a build-tool directory:
 RUN mkdir /build-tools
+ENV PATH /build-tools:$PATH
 
 COPY tools/ci/* /build-tools/
-COPY test.sh /build-tools/
-COPY TESTING.md /build-tools/
 
-ENV PATH /build-tools:$PATH
+# Create a folder to store the distributed artefacts
+RUN mkdir /dcos-commons-dist
+
+ENV DCOS_COMMONS_DIST_ROOT /dcos-commons-dist
+COPY test.sh ${DCOS_COMMONS_DIST_ROOT}/
+COPY TESTING.md ${DCOS_COMMONS_DIST_ROOT}/
