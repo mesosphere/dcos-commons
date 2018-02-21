@@ -65,7 +65,7 @@ To access this `MYSERVICE.yml` template data from a service doc template in `doc
   {% assign data = site.data.services.MYSERVICE %} <!-- may have this already, per above -->
   {% include services/mytemplate.md data=data %}
   ```
-- In the template, use the data in the passed `data` parameter:
+- In the template, use the data in the passed `data` parameter. This must be addressed as `include.data` in the template:
   ```
   Hello, common value {{ include.data.packageName }}, template-specific value {{ include.data.THISTEMPLATE.someParam }}!
   ```

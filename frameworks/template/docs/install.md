@@ -7,11 +7,8 @@ menuWeight: 20
 ---
 {% assign data = site.data.services.template %}
 
-{% capture customInstallRequirements %}
-- Each agent node must have some quantity of cpu, memory, disk, and ports.
-{% endcapture %}
+{% include services/install1.md data=data %}
 
-{% capture customInstallConfigurations %}
 ### Minimal installation
 
 DESCRIBE HOW TO RUN YOUR SERVICE IN THE SMALLEST FEASIBLE SPACE FOR DEMO PURPOSES
@@ -19,9 +16,5 @@ DESCRIBE HOW TO RUN YOUR SERVICE IN THE SMALLEST FEASIBLE SPACE FOR DEMO PURPOSE
 ### Example custom configuration
 
 A COMMON WAY OF CUSTOMIZING YOUR SERVICE'S CONFIG THAT YOU'D LIKE TO POINT OUT IN DOCUMENTATION
-{% endcapture %}
 
-{% include services/install.md
-    data=data
-    customInstallRequirements=customInstallRequirements
-    customInstallConfigurations=customInstallConfigurations %}
+{% include services/install2.md data=data %}

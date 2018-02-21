@@ -47,9 +47,13 @@ def get_foldered_name(service_name):
     return '/test/integration/' + service_name
 
 
+def get_deslashed_service_name(service_name):
+    # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'.
+    return service_name.lstrip('/').replace('/', '__')
+
+
 def get_zk_path(service_name):
-    # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'
-    return 'dcos-service-{}'.format(service_name.lstrip('/').replace('/', '__'))
+    return 'dcos-service-{}'.format(get_deslashed_service_name(service_name))
 
 
 @functools.lru_cache()

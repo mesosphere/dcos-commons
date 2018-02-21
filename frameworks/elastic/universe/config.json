@@ -520,7 +520,7 @@
           "default": 10000
         },
         "http_content_type_required": {
-          "description": "THIS FIELD IS DEPRECATED AS THIS SETTING IS NOT USED IN ELASTIC 6.0.0+. Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
+          "description": "Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
           "type": "boolean",
           "default": false
         },

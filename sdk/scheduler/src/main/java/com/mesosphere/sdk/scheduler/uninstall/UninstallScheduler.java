@@ -57,7 +57,7 @@ public class UninstallScheduler extends AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(stateStore, configStore, schedulerConfig);
+        super(stateStore, configStore, schedulerConfig, planCustomizer);
         this.serviceSpec = serviceSpec;
         this.secretsClient = customSecretsClientForTests;
 
@@ -68,9 +68,6 @@ public class UninstallScheduler extends AbstractScheduler {
                 schedulerConfig,
                 secretsClient)
                 .build();
-
-        // Allow for customization to the uninstall plan.
-        plan = planCustomizer.isPresent() ? planCustomizer.get().updateUninstallPlan(plan) : plan;
 
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
         this.resources = Arrays.asList(
@@ -108,7 +105,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() throws InterruptedException {
+    protected PlanCoordinator getPlanCoordinator() {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -121,6 +118,11 @@ public class UninstallScheduler extends AbstractScheduler {
                 return Collections.singletonList(uninstallPlanManager);
             }
         };
+    }
+
+    @Override
+    protected void registeredWithMesos() {
+        logger.info("Uninstall scheduler registered with Mesos.");
     }
 
     @Override

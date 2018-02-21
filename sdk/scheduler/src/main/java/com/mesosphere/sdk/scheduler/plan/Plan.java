@@ -3,7 +3,9 @@ package com.mesosphere.sdk.scheduler.plan;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
+import static com.mesosphere.sdk.offer.Constants.DECOMMISSION_PLAN_NAME;
 import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
+import static com.mesosphere.sdk.offer.Constants.RECOVERY_PLAN_NAME;
 
 /**
  * Defines the interface for a collection of one or more {@link Phase}s, along with any errors encountered while
@@ -33,5 +35,13 @@ public interface Plan extends ParentElement<Phase> {
 
     default boolean isDeployPlan() {
         return getName().equals(DEPLOY_PLAN_NAME);
+    }
+
+    default boolean isRecoveryPlan() {
+        return getName().equals(RECOVERY_PLAN_NAME);
+    }
+
+    default boolean isDecommissionPlan() {
+        return getName().equals(DECOMMISSION_PLAN_NAME);
     }
 }

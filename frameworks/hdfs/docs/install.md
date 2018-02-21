@@ -7,12 +7,9 @@ menuWeight: 20
 ---
 {% assign data = site.data.services.hdfs %}
 
-{% capture customInstallRequirements %}
-- Each agent node must have eight GiB of memory and ten GiB of disk, and each must have these ports available: 8480, 8485, 9000, 9001, 9002, 9005, and 9006, and 9007.
-{% endcapture %}
+{% include services/install1.md data=data %}
 
-{% capture customInstallConfigurations %}
-### Example custom Installation
+### Example custom installation
 
 If you are ready to ship into production, you will likely need to customize the deployment to suit the workload requirements of your application(s). Customize the default deployment by creating a JSON file, then pass it to `dcos package install` using the `--options` parameter.
 
@@ -32,12 +29,8 @@ See the Configuration section for a list of fields that can be customized via a 
 ### Minimal installation
 
 Many of the other Infinity services currently support deployment in DC/OS Docker for local testing a local machine. However, DC/OS HDFS currently only supports deployment with an HA name service managed by a Quorum Journal. The resource requirements for such a deployment make it prohibitive to install on a local development machine. The default deployment, is the minimal safe deployment for a DC/OS HDFS cluster. Community contributions to support deployment of a non-HA cluster, e.g. a single name node and data node with no failure detector, would be welcome.
-{% endcapture %}
 
-{% include services/install.md
-    data=data
-    customInstallRequirements=customInstallRequirements
-    customInstallConfigurations=customInstallConfigurations %}
+{% include services/install2.md data=data %}
 
 ## Topology
 
@@ -81,7 +74,7 @@ The following describes the most commonly used features of DC/OS Apache HDFS and
 
 ### Service Configuration
 
-The service configuration object contains properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
+The service configuration object contains some properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
 
 ```json
 {

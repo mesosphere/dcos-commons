@@ -78,7 +78,7 @@ $ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
 ```bash
 $ less marathon.json.mustache
 ```
-1. Use the variable names (e.g. `{% raw %}{{service.name}}{% endraw %}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
+1. Use the variable names (e.g. `{{=<% %>=}}{{service.name}}<%={{ }}=%>`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
 
 ### Starting the update
 

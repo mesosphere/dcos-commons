@@ -26,16 +26,6 @@ public class OfferAccepter {
         this.recorders.addAll(recorders);
     }
 
-    /**
-     * Adds a recorder for accepted operations.
-     *
-     * @return {@code this}
-     */
-    public OfferAccepter addRecorder(OperationRecorder recorder) {
-        this.recorders.add(recorder);
-        return this;
-    }
-
     public List<OfferID> accept(List<OfferRecommendation> recommendations) {
         if (CollectionUtils.isEmpty(recommendations)) {
             LOGGER.warn("No recommendations, nothing to do");

@@ -8,17 +8,9 @@ import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
-import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.*;
-import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
-import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
-import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
-import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
@@ -27,7 +19,6 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,16 +33,14 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private final ServiceSpec serviceSpec;
 
-    private final Collection<Plan> plans;
-    private final Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory;
     private final OfferAccepter offerAccepter;
 
     private final Collection<Object> resources;
     private final HealthResource healthResource;
     private final PlansResource plansResource;
     private final PodResource podResource;
+    private final PlanCoordinator planCoordinator;
 
-    private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
 
     private final OfferOutcomeTracker offerOutcomeTracker;
@@ -84,18 +73,15 @@ public class DefaultScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
-            Collection<Plan> plans,
+            PlanCoordinator planCoordinator,
+            Optional<PlanCustomizer> planCustomizer,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            Map<String, EndpointProducer> customEndpointProducers,
-            Optional<RecoveryPlanOverriderFactory> recoveryPlanOverriderFactory) {
-        super(stateStore, configStore, schedulerConfig);
+            Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
+        super(stateStore, configStore, schedulerConfig, planCustomizer);
         this.serviceSpec = serviceSpec;
-        this.plans = plans;
-        this.recoveryPlanOverriderFactory = recoveryPlanOverriderFactory;
-        this.offerAccepter = new OfferAccepter(Arrays.asList(
-                new PersistentLaunchRecorder(stateStore, serviceSpec),
-                Metrics.OperationsCounter.getInstance()));
+        this.planCoordinator = planCoordinator;
+        this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
         this.resources = new ArrayList<>();
         this.resources.addAll(customResources);
@@ -119,6 +105,57 @@ public class DefaultScheduler extends AbstractScheduler {
 
         this.offerOutcomeTracker = new OfferOutcomeTracker();
         this.resources.add(new OfferOutcomeResource(offerOutcomeTracker));
+        this.planScheduler = new DefaultPlanScheduler(
+                offerAccepter,
+                new OfferEvaluator(
+                        stateStore,
+                        offerOutcomeTracker,
+                        serviceSpec.getName(),
+                        configStore.getTargetConfig(),
+                        schedulerConfig,
+                        Capabilities.getInstance().supportsDefaultExecutor()),
+                stateStore);
+        this.plansResource.setPlanManagers(planCoordinator.getPlanManagers());
+        this.healthResource.setHealthyPlanManagers(
+                Arrays.asList(getDeploymentManager(planCoordinator), getRecoveryManager(planCoordinator)));
+    }
+
+    private static OfferAccepter getOfferAccepter(
+            StateStore stateStore,
+            ServiceSpec serviceSpec,
+            PlanCoordinator planCoordinator) {
+
+        List<OperationRecorder> recorders = new ArrayList<>();
+        recorders.add(new PersistentLaunchRecorder(stateStore, serviceSpec));
+
+        Optional<DecommissionPlanManager> decommissionManager = getDecomissionManager(planCoordinator);
+        if (decommissionManager.isPresent()) {
+            Collection<Step> steps = decommissionManager.get().getPlan().getChildren().stream()
+                    .flatMap(phase -> phase.getChildren().stream())
+                    .collect(Collectors.toList());
+           recorders.add(new DecommissionRecorder(stateStore, steps));
+        }
+
+        return new OfferAccepter(recorders);
+    }
+
+    private static PlanManager getDeploymentManager(PlanCoordinator planCoordinator) {
+        return planCoordinator.getPlanManagers().stream()
+                .filter(planManager -> planManager.getPlan().isDeployPlan())
+                .findFirst().get();
+    }
+
+    private static PlanManager getRecoveryManager(PlanCoordinator planCoordinator) {
+        return planCoordinator.getPlanManagers().stream()
+                .filter(planManager -> planManager.getPlan().isRecoveryPlan())
+                .findFirst().get();
+    }
+
+    private static Optional<DecommissionPlanManager> getDecomissionManager(PlanCoordinator planCoordinator) {
+        return planCoordinator.getPlanManagers().stream()
+                .filter(planManager -> planManager.getPlan().isDecommissionPlan())
+                .map(planManager -> (DecommissionPlanManager) planManager)
+                .findFirst();
     }
 
     @Override
@@ -127,29 +164,23 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() throws Exception {
-        // NOTE: We wait until this point to perform any work using configStore/stateStore.
-        // We specifically avoid writing any data to ZK before registered() has been called.
-
-        PlanManager deploymentPlanManager =
-                DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
-        PlanManager recoveryPlanManager = getRecoveryPlanManager();
-        planCoordinator = buildPlanCoordinator(deploymentPlanManager, recoveryPlanManager);
-        planScheduler = new DefaultPlanScheduler(
-                        offerAccepter,
-                        new OfferEvaluator(
-                                stateStore,
-                                offerOutcomeTracker,
-                                serviceSpec.getName(),
-                                configStore.getTargetConfig(),
-                                schedulerConfig,
-                                Capabilities.getInstance().supportsDefaultExecutor()),
-                        stateStore);
-        killUnneededTasks(stateStore, PlanUtils.getLaunchableTasks(plans));
-
-        plansResource.setPlanManagers(planCoordinator.getPlanManagers());
-        healthResource.setHealthyPlanManagers(Arrays.asList(deploymentPlanManager, recoveryPlanManager));
+    protected PlanCoordinator getPlanCoordinator() {
         return planCoordinator;
+    }
+
+    @Override
+    protected void registeredWithMesos() {
+        Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
+
+        Optional<DecommissionPlanManager> decomissionManager = getDecomissionManager(getPlanCoordinator());
+        if (decomissionManager.isPresent()) {
+            Collection<String> decomissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
+                    .map(taskInfo -> taskInfo.getName())
+                    .collect(Collectors.toList());
+            activeTasks.addAll(decomissionedTasks);
+        }
+
+        killUnneededTasks(stateStore, activeTasks);
     }
 
     private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
@@ -185,61 +216,6 @@ public class DefaultScheduler extends AbstractScheduler {
                 TaskKiller.killTask(taskInfo.getTaskId());
             }
         }
-    }
-
-    private PlanManager getRecoveryPlanManager() {
-        List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
-        if (recoveryPlanOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
-            overrideRecoveryPlanManagers.add(recoveryPlanOverriderFactory.get().create(stateStore, plans));
-        }
-        final LaunchConstrainer launchConstrainer;
-        final FailureMonitor failureMonitor;
-        if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
-            ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
-            launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
-            failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
-                    stateStore,
-                    configStore);
-        } else {
-            launchConstrainer = new UnconstrainedLaunchConstrainer();
-            failureMonitor = new NeverFailureMonitor();
-        }
-        return new DefaultRecoveryPlanManager(
-                stateStore,
-                configStore,
-                PlanUtils.getLaunchableTasks(plans),
-                launchConstrainer,
-                failureMonitor,
-                overrideRecoveryPlanManagers);
-    }
-
-    private PlanCoordinator buildPlanCoordinator(
-            PlanManager deploymentPlanManager,
-            PlanManager recoveryPlanManager) throws ConfigStoreException {
-        final Collection<PlanManager> planManagers = new ArrayList<>();
-        planManagers.add(deploymentPlanManager);
-        planManagers.add(recoveryPlanManager);
-
-        // If decommissioning nodes, set up decommission plan:
-        DecommissionPlanFactory decommissionPlanFactory =
-                new DecommissionPlanFactory(serviceSpec, stateStore);
-        Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
-        if (decommissionPlan.isPresent()) {
-            // Set things up for a decommission operation.
-            offerAccepter.addRecorder(new DecommissionRecorder(stateStore, decommissionPlanFactory.getResourceSteps()));
-            planManagers.add(DefaultPlanManager.createProceeding(decommissionPlan.get()));
-        }
-
-        // Other custom plan managers
-        planManagers.addAll(plans.stream()
-                .filter(plan -> !plan.isDeployPlan())
-                .map(DefaultPlanManager::createInterrupted)
-                .collect(Collectors.toList()));
-
-        return new DefaultPlanCoordinator(planManagers);
     }
 
     @Override

@@ -517,14 +517,14 @@ plans:
     strategy: serial
     phases:
       journal:
-        strategy: {{UPDATE_STRATEGY}}
+        strategy: serial
         pod: journal
         steps:
           - 0: [[node]]
           - 1: [[node]]
           - 2: [[node]]
       name:
-        strategy: {{UPDATE_STRATEGY}}
+        strategy: serial
         pod: name
         steps:
           - 0: [[node, zkfc]]

@@ -1,13 +1,3 @@
----
-layout: layout.pug
-navigationTitle: Common Operations
-title:
-menuWeight: 10
-excerpt:
----
-
-<!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
-
 This guide has so far focused on describing the components, how they work, and how to interact with them. At this point we'll start looking at how that knowledge can be applied to a running service.
 
 ## Initial service configuration
@@ -203,7 +193,7 @@ $ diff <(jq -S . default_env.json) <(jq -S . current_env.json)
 ```bash
 $ less marathon.json.mustache
 ```
-1. Use the variable names (e.g. `{{service.name}}`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
+1. Use the variable names (e.g. `{{=<% %>=}}{{service.name}}<%={{ }}=%>`) to create a new `options.json` file as described in [Initial service configuration](#initial-service-configuration).
 
 ###### Starting the update
 
@@ -288,7 +278,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 1. Click the three dots on the right hand side of the page for your Scheduler, then choose **Edit**.
 
-[<img src="../img/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](../img/ops-guide-edit-scheduler.png)
+[<img src="/dcos-commons/img/services/ops-guide-edit-scheduler.png" alt="Choose edit from the three dot menu" width="400"/>](/dcos-commons/img/services/ops-guide-edit-scheduler.png)
 
 1. In the window that appears, click the **Environment** tab to show a list of the Scheduler's environment variables. For the sake of this demo, we will increase the `OPSCENTER_MEM` value from `4000` to `5000`, thereby increasing the RAM quota for the OpsCenter task in this service. See [finding the correct environment variable](#finding-the-correct-environment-variable) for more information on determining the correct value to be updated.
 
@@ -298,7 +288,7 @@ If you do not have Enterprise DC/OS 1.10 or later, the CLI commands above are no
 
 1. We can see the result by looking at the Mesos task list. At the top we see the new `dse` Scheduler and new OpsCenter instance. At the bottom we see the previous `dse` Scheduler and OpsCenter instance which were replaced due to our change:
 
-[<img src="../img/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400"/>](../img/ops-guide-mesos-tasks-reconfigured.png)
+[<img src="/dcos-commons/img/services/ops-guide-mesos-tasks-reconfigured.png" alt="dse app deployment in Mesos with exited tasks and newly launched tasks" width="400"/>](/dcos-commons/img/services/ops-guide-mesos-tasks-reconfigured.png)
 
    If we look at the Scheduler logs, we can even see where it detected the change. The `api-port` value is random on each Scheduler restart, so it tends to always display as 'different' in this log. Because of this, the Scheduler automatically ignores changes to `api-port`, and so the change can be ignored here:
 
@@ -351,7 +341,7 @@ To see where this setting is passed when the Scheduler is first launched, we can
   "...": "...",
   "env": {
     "...": "...",
-    "BROKER_COUNT": "{{brokers.count}}",
+    "BROKER_COUNT": "{{=<% %>=}}{{brokers.count}}<%={{ }}=%>",
     "...": "..."
   },
   "...": "..."
@@ -409,7 +399,7 @@ For safety reasons, pod instances cannot be removed after they have been deploye
 
 #### Restart a pod
 
-Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](#recovery-plan).
+Restarting a pod keeps it in the current location and leaves data in any persistent volumes as-is. Data outside of those volumes is reset via the restart. Restarting a pod may be useful if an underlying process is broken in some way and just needs a kick to get working again. For more information see [Recovery](../overview#recovery-plan).
 
 Restarting a pod can be done either via the CLI or via the underlying Scheduler API. Both forms use the same [API](http://mesosphere.github.io/dcos-commons/reference/swagger-api/). In these examples we list the known pods, and then restart the one named `dse-1`, which contains tasks named `dse-1-agent` and `dse-1-node`:
 
@@ -461,7 +451,7 @@ All tasks within the pod are restarted as a unit. The response lists the names o
 
 Replacing a pod discards all of its current data and moves it to a new random location in the cluster. As of this writing, you can technically end up replacing a pod and have it go back where it started. Replacing a pod may be useful if an agent machine has gone down and is never coming back, or if an agent is about to undergo downtime.
 
-Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However, operators are free to build their own tooling to make this decision and invoke the replace call automatically. For more information see [Recovery](#recovery-plan).
+Pod replacement is not currently done automatically by the SDK, as making the correct decision requires operator knowledge of cluster status. Is a node really dead, or will it be back in a couple minutes? However, operators are free to build their own tooling to make this decision and invoke the replace call automatically. For more information see [Recovery](../overview#recovery-plan).
 
 As with restarting a pod, replacing a pod can be done either via the CLI or by directly invoking the HTTP API. The response lists all the tasks running in the pod which were replaced as a result:
 
@@ -633,5 +623,3 @@ to observed failure or due to known required manual preparation that was not per
 ```bash
 dcos kafka plan force-complete deploy
 ```
-
-<!-- {% endraw %} disable mustache templating in this file: retain templated examples as-is -->
