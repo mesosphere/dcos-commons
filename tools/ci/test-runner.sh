@@ -10,20 +10,15 @@ export SECURITY
 BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT_DIR="${REPO_ROOT:-$1}"
 
+SINGLE_FRAMEWORK="True"
 # Determine the list of frameworks if it is not specified
-if [ -z "${FRAMEWORK}" -o x"${AUTO_DETECT_FRAMEWORKS}" == x"True" ]; then
+if [ -z "${FRAMEWORK}" -o x"${AUTO_DETECT_FRAMEWORKS}" == x"True" -o x"$FRAMEWORK" == x"all" ]; then
     if [ -d "$REPO_ROOT_DIR/frameworks" ]; then
         FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks)
+        SINGLE_FRAMEWORK="False"
     else
         FRAMEWORK_LIST=$(basename ${REPO_ROOT_DIR})
     fi
-elif [ "$FRAMEWORK" = "all" ]; then
-    if [ -n "$STUB_UNIVERSE_URL" ]; then
-        echo "Cannot set \$STUB_UNIVERSE_URL when building all frameworks"
-        exit 1
-    fi
-    # randomize the FRAMEWORK_LIST
-    FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | while read -r fw; do printf "%05d %s\n" "$RANDOM" "$fw"; done | sort -n | cut -c7- )
 else
     FRAMEWORK_LIST=$FRAMEWORK
 fi
@@ -32,13 +27,15 @@ fi
 echo "Using FRAMEWORK_LIST:\n${FRAMEWORK_LIST}"
 
 if [ -n "$STUB_UNIVERSE_URL" ]; then
+    if [ x"$SINGLE_FRAMEWORK" == x"False" ]; then
+        echo "\$STUB_UNIVERSE_URL can only be set when building single frameworks"
+        exit 1
+    fi
     echo "Using provided STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
 else
     for framework in $FRAMEWORK_LIST; do
-        echo "STARTING: $framework"
         FRAMEWORK_DIR=$REPO_ROOT_DIR/frameworks/${framework}
-
-        if [ ! -d ${FRAMEWORK_DIR} -a "${FRAMEWORK}" != "all" ]; then
+        if [ ! -d ${FRAMEWORK_DIR} ]; then
             echo "FRAMEWORK_DIR=${FRAMEWORK_DIR} does not exist."
             echo "Assuming single framework in ${REPO_ROOT}."
             FRAMEWORK_DIR=${REPO_ROOT_DIR}
@@ -62,11 +59,6 @@ else
     echo "Using STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
 fi
 
-# Ensure that the ssh-agent is running:
-eval "$(ssh-agent -s)"
-if [ -f /ssh/key ]; then
-    ssh-add /ssh/key
-fi
 
 # Now create a cluster if it doesn't exist.
 if [ -z "$CLUSTER_URL" ]; then
@@ -80,7 +72,7 @@ if [ -z "$CLUSTER_URL" ]; then
             echo "Could not determine CLUSTER_URL"
             exit 1
         fi
-        CLUSTER_WAS_CREATED=True
+        CLUSTER_WAS_CREATED="True"
     else
         echo "Error creating cluster"
         exit 1
@@ -91,6 +83,12 @@ echo "Configuring dcoscli for cluster: $CLUSTER_URL"
 echo "\tDCOS_ENTERPRISE=$DCOS_ENTERPRISE"
 ${REPO_ROOT_DIR}/tools/dcos_login.py
 
+# Ensure that the ssh-agent is running:
+eval "$(ssh-agent -s)"
+if [ -f /ssh/key ]; then
+    ssh-add /ssh/key
+fi
+
 if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
     if [ `cat ${REPO_ROOT_DIR}/cluster_info.json | jq .key_helper` == 'true' ]; then
         cat ${REPO_ROOT_DIR}/cluster_info.json | jq -r .ssh_private_key > /root/.ssh/id_rsa
@@ -99,52 +97,39 @@ if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
     fi
 fi
 
-# Now run the tests:
 
-# Strip the quotes from the -k and -m options to pytest
-PYTEST_K_FROM_PYTEST_ARGS=`echo "$PYTEST_ARGS" \
-    | sed -e "s#.*-k [\'\"]\([^\'\"]*\)['\"].*#\1#"`
-if [ "$PYTEST_K_FROM_PYTEST_ARGS" == "$PYTEST_ARGS" ]; then
-    PYTEST_K_FROM_PYTEST_ARGS=
-else
-    if [ -n "$PYTEST_K" ]; then
-        PYTEST_K="$PYTEST_K "
-    fi
-    PYTEST_K="${PYTEST_K}${PYTEST_K_FROM_PYTEST_ARGS}"
-    PYTEST_ARGS=`echo "$PYTEST_ARGS" \
-        | sed -e "s#-k [\'\"]\([^\'\"]*\)['\"]##"`
-fi
-
-PYTEST_M_FROM_PYTEST_ARGS=`echo "$PYTEST_ARGS" \
-    | sed -e "s#.*-m [\'\"]\([^\'\"]*\)['\"].*#\1#"`
-if [ "$PYTEST_M_FROM_PYTEST_ARGS" == "$PYTEST_ARGS" ]; then
-    PYTEST_M_FROM_PYTEST_ARGS=
-else
-    if [ -n "$PYTEST_M" ]; then
-        PYTEST_M="$PYTEST_M "
-    fi
-    PYTEST_M="${PYTEST_M}${PYTEST_M_FROM_PYTEST_ARGS}"
-    PYTEST_ARGS=`echo "$PYTEST_ARGS" \
-        | sed -e "s#-m [\'\"]\([^\'\"]*\)['\"]##"`
-fi
-
-
+# Determine the pytest args
 pytest_args=()
 
 # PYTEST_K and PYTEST_M are treated as single strings, and should thus be added
 # to the pytest_args array in quotes.
-if [ -n "$PYTEST_K" ]; then
-    pytest_args+=(-k "$PYTEST_K")
+
+PYTEST_K=`echo "$PYTEST_ARGS" \
+    | sed -e "s#.*-k [\'\"]\([^\'\"]*\)['\"].*#\1#"`
+if [ "$PYTEST_K" != "$PYTEST_ARGS" ]; then
+    if [ -n "$PYTEST_K" ]; then
+        pytest_args+=(-k "$PYTEST_K")
+    fi
+    PYTEST_ARGS=`echo "$PYTEST_ARGS" \
+        | sed -e "s#-k [\'\"]\([^\'\"]*\)['\"]##"`
 fi
 
-if [ -n "$PYTEST_M" ]; then
-    pytest_args+=(-m "$PYTEST_M")
+PYTEST_M=`echo "$PYTEST_ARGS" \
+    | sed -e "s#.*-m [\'\"]\([^\'\"]*\)['\"].*#\1#"`
+if [ "$PYTEST_M" != "$PYTEST_ARGS" ]; then
+    if [ -n "$PYTEST_M" ]; then
+        pytest_args+=(-m "$PYTEST_M")
+    fi
+    PYTEST_ARGS=`echo "$PYTEST_ARGS" \
+        | sed -e "s#-m [\'\"]\([^\'\"]*\)['\"]##"`
 fi
 
 # Each of the space-separated parts of PYTEST_ARGS are treated separately.
 if [ -n "$PYTEST_ARGS" ]; then
     pytest_args+=($PYTEST_ARGS)
 fi
+
+# Now run the tests:
 
 # First in the root.
 if [ -d ${REPO_ROOT_DIR}/tests ]; then
@@ -155,10 +140,10 @@ if [ -d ${REPO_ROOT_DIR}/tests ]; then
     echo "Finished test for $FRAMEWORK_TESTS_DIR at "`date`
 fi
 
+# Now each of the selected frameworks:
 for framework in $FRAMEWORK_LIST; do
     echo "Checking framework ${framework}"
-    FRAMEWORK_DIR=$REPO_ROOT_DIR/frameworks/${framework}
-    FRAMEWORK_TESTS_DIR=${FRAMEWORK_DIR}/tests
+    FRAMEWORK_TESTS_DIR=$REPO_ROOT_DIR/frameworks/${framework}/tests
     if [ ! -d ${FRAMEWORK_TESTS_DIR} ]; then
         echo "No tests found for ${framework} at ${FRAMEWORK_TESTS_DIR}"
     else
