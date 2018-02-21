@@ -3132,6 +3132,29 @@ hello
 
 <p>The path is relative to the sandbox path if not preceded by a leading “/”. The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is <a href="http://mesos.apache.org/documentation/latest/multiple-disk/">documented here</a>. The PATH type is not currently supported.</p>
 
+<p>Multiple volumes per pod or task can also be defined in a service YAML file.</p>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">name</span><span class="pi">:</span> <span class="s2">"</span><span class="s">hello-world"</span>
+<span class="na">pods</span><span class="pi">:</span>
+  <span class="na">hello</span><span class="pi">:</span>
+    <span class="na">count</span><span class="pi">:</span> <span class="s">3</span>
+    <span class="na">tasks</span><span class="pi">:</span>
+      <span class="na">server</span><span class="pi">:</span>
+        <span class="na">goal</span><span class="pi">:</span> <span class="s">RUNNING</span>
+        <span class="na">cmd</span><span class="pi">:</span> <span class="s2">"</span><span class="s">echo</span><span class="nv"> </span><span class="s">hello</span><span class="nv"> </span><span class="s">&gt;&gt;</span><span class="nv"> </span><span class="s">hello-container-path/output</span><span class="nv"> </span><span class="s">&amp;&amp;</span><span class="nv"> </span><span class="s">sleep</span><span class="nv"> </span><span class="s">$SLEEP_DURATION"</span>
+        <span class="na">cpus</span><span class="pi">:</span> <span class="s">1.0</span>
+        <span class="na">memory</span><span class="pi">:</span> <span class="s">256</span>
+        <span class="na">volumes</span><span class="pi">:</span>
+          <span class="na">volume1</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">volume1"</span>
+            <span class="na">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+            <span class="na">size</span><span class="pi">:</span> <span class="s">5000</span>
+          <span class="na">volume2</span><span class="pi">:</span>
+            <span class="na">path</span><span class="pi">:</span> <span class="s2">"</span><span class="s">volume2"</span>
+            <span class="na">type</span><span class="pi">:</span> <span class="s">ROOT</span>
+            <span class="na">size</span><span class="pi">:</span> <span class="s">2500</span>
+</code></pre></div></div>
+
 <p><a name="proxy-fallback"></a></p>
 <h3 id="proxy-fallback">
 <a id="proxy-fallback" class="anchor" href="#proxy-fallback" aria-hidden="true"><span class="octicon octicon-link"></span></a>Proxy Fallback</h3>
