@@ -2231,6 +2231,30 @@ pods:
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
+Multiple volumes per pod or task can also be defined in a service YAML file.
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 3
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cpus: 1.0
+        memory: 256
+        volumes:
+          volume1:
+            path: "volume1"
+            type: ROOT
+            size: 5000
+          volume2:
+            path: "volume2"
+            type: ROOT
+            size: 2500
+```
+
 <a name="proxy-fallback"></a>
 ### Proxy Fallback
 
