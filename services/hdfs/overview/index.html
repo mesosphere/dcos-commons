@@ -1098,13 +1098,13 @@ Agent 3: X B
 
 <h2 id="placement-constraints">Placement Constraints</h2>
 
-<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a> with this syntax: <code class="highlighter-rouge">field:OPERATOR[:parameter]</code>. For example, if the reference lists <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code>, you should  use <code class="highlighter-rouge">hostname:UNIQUE</code>.</p>
+<p>Placement constraints allow you to customize where a service is deployed in the DC/OS cluster. Depending on the service, some or all components may be configurable using <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon operators (reference)</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent.</p>
 
 <p>A common task is to specify a list of whitelisted systems to deploy to. To achieve this, use the following syntax for the placement constraint:</p>
-<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hostname:LIKE:10.0.0.159|10.0.1.202|10.0.3.3
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.0.159|10.0.1.202|10.0.3.3"]]
 </code></pre></div></div>
 
-<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
+<p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="../common-operations#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
 
 <h3 id="regions-and-zones">Regions and Zones</h3>
 
@@ -1158,7 +1158,7 @@ Agent 3: X B
 <p>For example, let’s say we have the following deployment of our imaginary <code class="highlighter-rouge">data</code> nodes, with manual IPs defined for placing the nodes in the cluster:</p>
 
 <ul>
-  <li>Placement constraint of: <code class="highlighter-rouge">hostname:LIKE:10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84</code></li>
+  <li>Placement constraint of: <code class="highlighter-rouge">[["hostname", "LIKE", "10.0.10.3|10.0.10.8|10.0.10.26|10.0.10.28|10.0.10.84"]]</code></li>
   <li>Tasks:
     <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>10.0.10.3: data-0
 10.0.10.8: data-1
@@ -1173,7 +1173,7 @@ Agent 3: X B
 
 <ol>
   <li>Remove the decommissioned IP and add a new IP to the placement rule whitelist, by configuring the Scheduler environment with a new <code class="highlighter-rouge">DATA_NODE_PLACEMENT</code> setting:
-    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>hostname:LIKE:10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[["hostname", "LIKE", "10.0.10.3|10.0.10.26|10.0.10.28|10.0.10.84|10.0.10.123"]]
 </code></pre></div>    </div>
   </li>
   <li>Wait for the Scheduler to restart with the new placement constraint setting.</li>
