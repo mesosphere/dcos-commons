@@ -35,7 +35,6 @@ ext {
     bouncyCastleVer = "1.57"
     j2htmlVer = "1.2.0"
     dropWizardMetricsVer = "3.2.5"
-    dropWizardMetricsVer = "3.2.5"
 }
 
 task sourceJar(type: Jar) {
