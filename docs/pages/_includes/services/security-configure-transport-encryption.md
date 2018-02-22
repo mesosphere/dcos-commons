@@ -30,6 +30,6 @@ Install the DC/OS {{ include.techName }} service including the following options
                 "allow_plaintext": <true|false default false>{% else %}"enabled": true{% endif %}
             }
         }
-    }
+    }{{ include.extras }}
 }
 ```
