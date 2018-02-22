@@ -3,7 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.FrameworkStore;

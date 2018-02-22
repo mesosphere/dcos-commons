@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.framework;
+package com.mesosphere.sdk.scheduler;
 
 import java.util.Arrays;
 import java.util.List;
@@ -14,8 +14,7 @@ import org.mockito.MockitoAnnotations;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.scheduler.Driver;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.TestConstants;

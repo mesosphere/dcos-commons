@@ -174,10 +174,10 @@ public class DefaultScheduler extends ServiceScheduler {
 
         Optional<DecommissionPlanManager> decomissionManager = getDecomissionManager(getPlanCoordinator());
         if (decomissionManager.isPresent()) {
-            Collection<String> decomissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
+            Collection<String> decommissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
                     .map(taskInfo -> taskInfo.getName())
                     .collect(Collectors.toList());
-            activeTasks.addAll(decomissionedTasks);
+            activeTasks.addAll(decommissionedTasks);
         }
 
         killUnneededTasks(stateStore, activeTasks);

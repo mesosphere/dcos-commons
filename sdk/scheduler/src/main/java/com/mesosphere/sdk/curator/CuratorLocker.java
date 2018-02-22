@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
@@ -24,22 +23,68 @@ public class CuratorLocker {
     private static final int LOCK_ATTEMPTS = 3;
     static final String LOCK_PATH_NAME = "lock";
 
+    private static final Object INSTANCE_LOCK = new Object();
+    private static CuratorLocker instance = null;
+    private static final Thread SHUTDOWN_HOOK = new Thread(() -> {
+        if (instance != null) {
+            LOGGER.info("Shutdown initiated, releasing curator lock");
+            instance.unlockInternal();
+        }
+    });
+
     private final String serviceName;
     private final String zookeeperConnection;
 
     private CuratorFramework curatorClient;
     private InterProcessSemaphoreMutex curatorMutex;
 
-    public CuratorLocker(ServiceSpec serviceSpec) {
-        this.serviceName = serviceSpec.getName();
-        this.zookeeperConnection = serviceSpec.getZookeeperConnection();
+    /**
+     * Locks curator. This should only be called once per process. Throws if called a second time.
+     *
+     * @param serviceName the name of the service to be locked
+     * @param zookeeperConnection the connection string for the ZK instance, e.g. {@code master.mesos:2181}
+     */
+    public static void lock(String serviceName, String zookeeperConnection) {
+        synchronized (INSTANCE_LOCK) {
+            if (instance != null) {
+                throw new IllegalStateException("Already locked");
+            }
+            instance = new CuratorLocker(serviceName, zookeeperConnection);
+            instance.lockInternal();
+
+            Runtime.getRuntime().addShutdownHook(SHUTDOWN_HOOK);
+        }
+    }
+
+    @VisibleForTesting
+    static void unlock() {
+        synchronized (INSTANCE_LOCK) {
+            if (instance == null) {
+                return; // No-op
+            }
+            instance.unlockInternal();
+            instance = null;
+
+            Runtime.getRuntime().removeShutdownHook(SHUTDOWN_HOOK);
+        }
+    }
+
+    /**
+     * @param serviceName the name of the service to be locked
+     * @param zookeeperConnection the connection string for the ZK instance, e.g. {@code master.mesos:2181}
+     */
+    @VisibleForTesting
+    CuratorLocker(String serviceName, String zookeeperConnection) {
+        this.serviceName = serviceName;
+        this.zookeeperConnection = zookeeperConnection;
     }
 
     /**
      * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
      * same service.
      */
-    public void lock() {
+    @VisibleForTesting
+    void lockInternal() {
         if (curatorClient != null) {
             throw new IllegalStateException("Already locked");
         }
@@ -76,7 +121,8 @@ public class CuratorLocker {
     /**
      * Releases the lock previously obtained via {@link #lock()}.
      */
-    public void unlock() {
+    @VisibleForTesting
+    void unlockInternal() {
         if (curatorClient == null) {
             throw new IllegalStateException("Already unlocked");
         }

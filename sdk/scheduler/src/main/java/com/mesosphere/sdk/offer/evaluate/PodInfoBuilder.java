@@ -240,7 +240,7 @@ public class PodInfoBuilder {
 
             // Always add the bootstrap URI as the paused command depends on it
             if (override.equals(GoalStateOverride.PAUSED)) {
-                commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
+                commandBuilder.addUrisBuilder().setValue(schedulerConfig.getBootstrapURI());
             }
 
             if (useDefaultExecutor) {

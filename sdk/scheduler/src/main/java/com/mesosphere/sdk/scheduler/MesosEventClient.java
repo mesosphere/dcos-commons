@@ -1,5 +1,6 @@
-package com.mesosphere.sdk.scheduler.framework;
+package com.mesosphere.sdk.scheduler;
 
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.mesos.Protos;
@@ -108,4 +109,9 @@ public interface MesosEventClient {
      * Called when the framework has received a task status update from Mesos.
      */
     public StatusResponse status(Protos.TaskStatus status);
+
+    /**
+     * Returns any HTTP resources to be served by this instance.
+     */
+    public Collection<Object> getResources();
 }

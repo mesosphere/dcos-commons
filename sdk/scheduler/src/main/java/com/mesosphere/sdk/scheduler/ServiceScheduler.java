@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.reconciliation.Reconciler;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -78,16 +77,6 @@ public abstract class ServiceScheduler implements MesosEventClient {
         }
 
         return this;
-    }
-
-    /**
-     * Returns the framework ID currently in persistent storage, or an empty {@link Optional} if no framework ID had
-     * been stored yet.
-     *
-     * @throws StateStoreException if storage access fails
-     */
-    Optional<Protos.FrameworkID> fetchFrameworkId() {
-        return frameworkStore.fetchFrameworkId();
     }
 
     /**
@@ -181,12 +170,6 @@ public abstract class ServiceScheduler implements MesosEventClient {
     protected abstract void registeredWithMesos();
     protected abstract List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps);
     protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
-
-    /**
-     * Returns a list of API resources to be served by the scheduler to the local cluster.
-     */
-    // TODO(nickbp) in multi-service mode, namespace these returned resources by service name
-    public abstract Collection<Object> getResources();
 
     /**
      * Returns the {@link PlanCoordinator}.

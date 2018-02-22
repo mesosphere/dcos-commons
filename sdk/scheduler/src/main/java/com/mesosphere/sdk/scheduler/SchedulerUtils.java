@@ -15,11 +15,7 @@ import java.util.stream.Collectors;
  * This class provides utilities common to the construction and operation of Mesos Schedulers.
  */
 public class SchedulerUtils {
-    private static final String DEFAULT_ROLE_SUFFIX = "-role";
-    private static final String DEFAULT_PRINCIPAL_SUFFIX = "-principal";
-
-    /** Reasonable zk host on DC/OS systems. */
-    private static final String DEFAULT_ZK_HOST_PORT = "master.mesos:2181";
+    public static final String DEFAULT_ROLE_SUFFIX = "-role";
 
     /**
      * Escape sequence to use for slashes in service names. Slashes are used in DC/OS for folders, and we don't want to
@@ -71,6 +67,16 @@ public class SchedulerUtils {
      * For example: /path/to/kafka => path__to__kafka-role
      */
     public static String getServiceRole(RawServiceSpec rawServiceSpec) {
+        return getServiceRole(getServiceName(rawServiceSpec));
+    }
+
+    /**
+     * Returns the configured Mesos role to use for running the service, based on the service name.
+     * Unlike the Mesos principal and pre-reserved roles, this value cannot be configured directly via the YAML schema.
+     *
+     * For example: /path/to/kafka => path__to__kafka-role
+     */
+    public static String getServiceRole(String serviceName) {
         // Use <svcname>-role (or throw if svcname is missing)
 
         // If the service name has a leading slash (due to folders), omit that leading slash from the role.
@@ -79,7 +85,7 @@ public class SchedulerUtils {
         // Slashes are currently banned from roles by as of mesos commit e0d8cc7c. Sounds like they will be allowed
         // again in 1.4 when hierarchical roles are supported.
         //TODO(nickbp): Revisit use of slashes here, as they're needed for hierarchical roles.
-        return withEscapedSlashes(getServiceName(rawServiceSpec)) + DEFAULT_ROLE_SUFFIX;
+        return withEscapedSlashes(serviceName) + DEFAULT_ROLE_SUFFIX;
     }
 
     /**
@@ -92,7 +98,7 @@ public class SchedulerUtils {
             return rawServiceSpec.getScheduler().getPrincipal();
         }
         // Fallback: Use <svcname>-principal (or throw if svcname is missing)
-        return getServiceName(rawServiceSpec) + DEFAULT_PRINCIPAL_SUFFIX;
+        return getServiceName(rawServiceSpec) + DcosConstants.DEFAULT_PRINCIPAL_SUFFIX;
     }
 
     /**
@@ -105,7 +111,7 @@ public class SchedulerUtils {
             return rawServiceSpec.getScheduler().getZookeeper();
         }
         // Fallback: Use the default host:port
-        return DEFAULT_ZK_HOST_PORT;
+        return DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING;
     }
 
     /**

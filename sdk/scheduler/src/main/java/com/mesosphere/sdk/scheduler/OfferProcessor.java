@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.framework;
+package com.mesosphere.sdk.scheduler;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -20,11 +20,7 @@ import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.queue.OfferQueue;
-import com.mesosphere.sdk.scheduler.Driver;
-import com.mesosphere.sdk.scheduler.Metrics;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 
 class OfferProcessor {
 

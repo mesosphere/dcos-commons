@@ -132,7 +132,14 @@ public class CuratorPersister implements Persister {
      * @param serviceSpec the service for which data will be stored
      */
     public static Builder newBuilder(ServiceSpec serviceSpec) {
-        return new Builder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+        return newBuilder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+    }
+
+    /**
+     * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+     */
+    public static Builder newBuilder(String serviceName, String zookeeperConnection) {
+        return new Builder(serviceName, zookeeperConnection);
     }
 
     @VisibleForTesting

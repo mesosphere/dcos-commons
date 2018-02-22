@@ -1,6 +1,7 @@
-package com.mesosphere.sdk.scheduler.framework;
+package com.mesosphere.sdk.scheduler;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
@@ -11,13 +12,9 @@ import org.slf4j.LoggerFactory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.scheduler.Driver;
-import com.mesosphere.sdk.scheduler.Metrics;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;
+import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
 
 /**
@@ -54,6 +51,16 @@ public class FrameworkScheduler implements Scheduler {
         this.frameworkStore = frameworkStore;
         this.mesosEventClient = mesosEventClient;
         this.offerProcessor = offerProcessor;
+    }
+
+    /**
+     * Returns the framework ID currently in persistent storage, or an empty {@link Optional} if no framework ID had
+     * been stored yet.
+     *
+     * @throws StateStoreException if storage access fails
+     */
+    Optional<Protos.FrameworkID> fetchFrameworkId() {
+        return frameworkStore.fetchFrameworkId();
     }
 
     /**
@@ -127,10 +134,6 @@ public class FrameworkScheduler implements Scheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
         Metrics.record(status);
-        // TODO(nickbp) in the multi-service case:
-        // - embed the service id in task ids
-        // - route statuses to the correct service (or kill task if unknown service id)
-        // - note: do not do this in the single-service case
         StatusResponse response = mesosEventClient.status(status);
         TaskKiller.update(status);
         switch (response.result) {

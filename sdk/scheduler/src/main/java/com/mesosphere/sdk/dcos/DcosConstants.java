@@ -33,6 +33,9 @@ public class DcosConstants {
     public static final Integer OVERLAY_DYNAMIC_PORT_RANGE_END = 2025;
 
     public static final String DEFAULT_SERVICE_USER = "root";
+    public static final String DEFAULT_QUEUE_SERVICE_USER = "nobody";
+
+    public static final String DEFAULT_PRINCIPAL_SUFFIX = "-principal";
 
     // Network Names
 

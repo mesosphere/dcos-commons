@@ -101,9 +101,9 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 11);
     }
 
-    public boolean supportsRegionAwareness() {
+    public boolean supportsRegionAwareness(SchedulerConfig schedulerConfig) {
         // This feature is in BETA for 1.11, so requires explicit opt-in by end-users.
-        return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
+        return schedulerConfig.isRegionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
     }
 
     public boolean supportsDomains() {

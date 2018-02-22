@@ -13,7 +13,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.FrameworkStore;

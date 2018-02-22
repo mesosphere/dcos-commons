@@ -1,12 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
-import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.generated.SDKBuildInfo;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.framework.FrameworkScheduler;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -14,24 +8,17 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
- * Class which sets up and executes the correct {@link ServiceScheduler} instance.
+ * Sets up and executes the {@link ServiceScheduler} instance.
  */
 public class SchedulerRunner implements Runnable {
-    private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerRunner.class);
 
     private final SchedulerBuilder schedulerBuilder;
@@ -80,16 +67,6 @@ public class SchedulerRunner implements Runnable {
 
     private SchedulerRunner(SchedulerBuilder schedulerBuilder) {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
-
-        LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                schedulerConfig.getPackageName(),
-                schedulerConfig.getPackageVersion(),
-                Instant.ofEpochMilli(schedulerConfig.getPackageBuildTimeMs()),
-
-                SDKBuildInfo.VERSION,
-                SDKBuildInfo.GIT_SHA,
-                Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     /**
@@ -98,16 +75,16 @@ public class SchedulerRunner implements Runnable {
      */
     @Override
     public void run() {
-        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
+        CuratorLocker.lock(
+                schedulerBuilder.getServiceSpec().getName(),
+                schedulerBuilder.getServiceSpec().getZookeeperConnection());
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("Shutdown initiated, releasing curator lock");
-            locker.unlock();
-        }));
-        locker.lock();
+        Metrics.configureStatsd(schedulerBuilder.getSchedulerConfig());
 
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
-        Metrics.configureStatsd(schedulerConfig);
+        FrameworkRunner frameworkRunner = new FrameworkRunner(
+                schedulerBuilder.getSchedulerConfig(),
+                FrameworkConfig.fromServiceSpec(schedulerBuilder.getServiceSpec()));
+
         ServiceScheduler scheduler = schedulerBuilder.build();
         scheduler.start();
         if (scheduler instanceof UninstallScheduler && ((UninstallScheduler) scheduler).shouldRegisterFramework()) {
@@ -119,7 +96,8 @@ public class SchedulerRunner implements Runnable {
                 throw new IllegalStateException("Unable to clear all data", e);
             }
 
-            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
+            SchedulerApiServer apiServer =
+                    new SchedulerApiServer(schedulerBuilder.getSchedulerConfig(), scheduler.getResources());
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
@@ -127,93 +105,7 @@ public class SchedulerRunner implements Runnable {
                 }
             });
         } else {
-            FrameworkScheduler frameworkScheduler = new FrameworkScheduler(scheduler.getPersister(), scheduler);
-            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
-            apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
-                @Override
-                public void lifeCycleStarted(LifeCycle event) {
-                    frameworkScheduler.setReadyToAcceptOffers();
-                }
-            });
-
-            runScheduler(
-                    frameworkScheduler,
-                    schedulerBuilder.getServiceSpec(),
-                    schedulerBuilder.getSchedulerConfig(),
-                    scheduler.fetchFrameworkId());
-        }
-    }
-
-    private static void runScheduler(
-            Scheduler mesosScheduler,
-            ServiceSpec serviceSpec,
-            SchedulerConfig schedulerConfig,
-            Optional<Protos.FrameworkID> frameworkId) {
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, frameworkId);
-        LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
-        Protos.Status status = new SchedulerDriverFactory()
-                .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig)
-                .run();
-        LOGGER.error("Scheduler driver exited with status: {}", status);
-        // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.
-        // When this happens, we want to continue running so that we can advertise that the uninstall plan is complete.
-        if (status != Protos.Status.DRIVER_STOPPED) {
-            SchedulerUtils.hardExit(SchedulerErrorCode.DRIVER_EXITED);
-        }
-    }
-
-    private static Protos.FrameworkInfo getFrameworkInfo(
-            ServiceSpec serviceSpec, Optional<Protos.FrameworkID> frameworkId) {
-        Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceSpec.getName())
-                .setPrincipal(serviceSpec.getPrincipal())
-                .setFailoverTimeout(TWO_WEEK_SEC)
-                .setUser(serviceSpec.getUser())
-                .setCheckpoint(true);
-
-        setRoles(fwkInfoBuilder, serviceSpec);
-
-        // The framework ID is not available when we're being started for the first time.
-        frameworkId.ifPresent(fwkInfoBuilder::setId);
-
-        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
-            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
-        }
-
-        if (Capabilities.getInstance().supportsGpuResource()
-                && PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec)) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
-        }
-
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
-        }
-
-        if (Capabilities.getInstance().supportsRegionAwareness()) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE));
-        }
-
-        return fwkInfoBuilder.build();
-    }
-
-    @SuppressWarnings("deprecation") // mute warning for FrameworkInfo.setRole()
-    private static void setRoles(Protos.FrameworkInfo.Builder fwkInfoBuilder, ServiceSpec serviceSpec) {
-        List<String> preReservedRoles =
-                serviceSpec.getPods().stream()
-                .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
-                .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
-                .collect(Collectors.toList());
-        if (preReservedRoles.isEmpty()) {
-            fwkInfoBuilder.setRole(serviceSpec.getRole());
-        } else {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
-            fwkInfoBuilder.addRoles(serviceSpec.getRole());
-            fwkInfoBuilder.addAllRoles(preReservedRoles);
+            frameworkRunner.registerAndRunFramework(scheduler.getPersister(), scheduler);
         }
     }
 }

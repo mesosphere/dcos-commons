@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler.framework;
+package com.mesosphere.sdk.scheduler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,8 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.scheduler.Driver;
-import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import static org.mockito.Mockito.*;
