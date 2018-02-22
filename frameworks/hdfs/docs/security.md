@@ -24,6 +24,8 @@ A good overview of these features can be found [here](https://hadoop.apache.org/
 {% include services/security-configure-transport-encryption.md
     techName="Apache HDFS" plaintext="true" %}
 
+{% include services.security-transport-encryption-clients.md %}
+
 <!--
 TO BE CONFIRMED
 *Note*: It is possible to update a running DC/OS Apache HDFS service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your HDFS clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true. -->
