@@ -10,7 +10,8 @@ RUN wget https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.9.1-dcos
 
 RUN apt-get update && \
     apt-get install -y default-jre && \
-    apt-get install -y dnsutils
+    apt-get install -y dnsutils && \
+    apt-get install -y curl
 
 COPY configure-hdfs.sh /configure-hdfs.sh
 RUN chmod +x configure-hdfs.sh
