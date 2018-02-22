@@ -5,8 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos;
 
 /**
  * Mesos client which wraps other clients. Used in the case where multiple services should be subscribed to mesos
@@ -22,7 +21,7 @@ public class MultiMesosEventClient implements MesosEventClient {
     }
 
     public MultiMesosEventClient addClient(MesosEventClient client) {
-        //TODO(nickbp): Should revive offers after a new client is added.. and consider invoking its register() call too
+        //TODO(nickbp): Revive offers after a new client is added?
         clients.add(client);
         return this;
     }
@@ -35,16 +34,18 @@ public class MultiMesosEventClient implements MesosEventClient {
     }
 
     @Override
-    public OfferResponse offers(List<Offer> offers) {
+    public OfferResponse offers(List<Protos.Offer> offers) {
+        // If we don't have any sub-clients, then WE aren't ready.
         boolean allNotReady = true;
-        List<Offer> unusedOffers = new ArrayList<>();
+
+        List<Protos.Offer> unusedOffers = new ArrayList<>();
         unusedOffers.addAll(offers);
 
         synchronized (lock) {
             for (MesosEventClient client : clients) {
                 OfferResponse response = client.offers(unusedOffers);
-                // Update the list of unused offers:
-                unusedOffers.clear();
+                // Create a new list with unused offers. Avoid clearing in-place, in case response is the original list.
+                unusedOffers = new ArrayList<>();
                 unusedOffers.addAll(response.unusedOffers);
 
                 if (response.result != OfferResponse.Result.NOT_READY) {
@@ -62,7 +63,7 @@ public class MultiMesosEventClient implements MesosEventClient {
     }
 
     @Override
-    public StatusResponse status(TaskStatus status) {
+    public StatusResponse status(Protos.TaskStatus status) {
         // TODO(nickbp) for the multi-service case:
         // - embed the service id in task ids
         // - use status.task_id to map status => service (or kill task here if service id is unknown or invalid)
