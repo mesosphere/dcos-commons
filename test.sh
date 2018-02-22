@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verifies environment and launches docker to execute test-runner.sh
+# Verifies environment and launches docker to execute test_runner.sh
 
 # 1. I can pick up a brand new laptop, and as long as I have docker installed, everything will just work if I do ./test.sh <fw>
 # 2. I want test.sh to default to running _all_ tests for that framework.
@@ -218,7 +218,7 @@ if [ x"$interactive" == x"false" ]; then
         exit 1
     fi
     FRAMEWORK_ARGS="-e FRAMEWORK=$framework"
-    DOCKER_COMMAND="bash /build-tools/test-runner.sh $WORK_DIR"
+    DOCKER_COMMAND="bash /build-tools/test_runner.sh $WORK_DIR"
 else
 # interactive mode
     # FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"

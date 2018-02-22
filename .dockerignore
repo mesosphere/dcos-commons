@@ -5,7 +5,7 @@
 .*
 
 !test_requirements.txt
-!test-runner.sh
+!test_runner.sh
 !/tools/ci
 !test.sh
 !TESTING.md
