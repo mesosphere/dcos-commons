@@ -21,6 +21,7 @@ import static org.junit.Assert.*;
  */
 public class ConfigStoreTest {
     private static final String NAMESPACE = "test-namespace";
+    private static final String NAMESPACE_PATH = "Services/" + NAMESPACE;
 
     private Persister persister;
     private ConfigStore<StringConfiguration> store;
@@ -50,8 +51,8 @@ public class ConfigStoreTest {
         assertNotEquals(0, persister.get("Configurations/" + id.toString()).length);
 
         // Check that data is NOT in namespaced path:
-        checkPathNotFound(NAMESPACE + "/ConfigTarget");
-        checkPathNotFound(NAMESPACE + "/Configurations/" + id.toString());
+        checkPathNotFound(NAMESPACE_PATH + "/ConfigTarget");
+        checkPathNotFound(NAMESPACE_PATH + "/Configurations/" + id.toString());
 
         // Check that data is accessible as expected:
         assertEquals(id, store.getTargetConfig());
@@ -65,8 +66,8 @@ public class ConfigStoreTest {
         store.setTargetConfig(id);
 
         // Check that data is in namespaced path:
-        assertEquals(id.toString(), new String(persister.get(NAMESPACE + "/ConfigTarget"), StandardCharsets.UTF_8));
-        assertNotEquals(0, persister.get(NAMESPACE + "/Configurations/" + id.toString()).length);
+        assertEquals(id.toString(), new String(persister.get(NAMESPACE_PATH + "/ConfigTarget"), StandardCharsets.UTF_8));
+        assertNotEquals(0, persister.get(NAMESPACE_PATH + "/Configurations/" + id.toString()).length);
 
         // Check that data is NOT in root path:
         checkPathNotFound("ConfigTarget");

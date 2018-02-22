@@ -16,7 +16,7 @@ import java.util.*;
  * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
  * <p>
  * <p>The ZNode structure in Zookeeper is as follows:
- * <br>namespacedPath/
+ * <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
  * <br>&nbsp; ConfigTarget (contains UUID)
  * <br>&nbsp; Configurations/
  * <br>&nbsp; &nbsp; UUID-0 (contains serialized config)
@@ -28,6 +28,8 @@ import java.util.*;
 public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigStore.class);
+
+    private static final String NAMESPACE_ROOT_NAME = "Services";
 
     private static final String TARGET_ID_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
@@ -235,6 +237,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      * @return The namespaced path for {@code pathName}
      */
     private static String getRootPath(String namespace, String pathName) {
-        return namespace.isEmpty() ? pathName : PersisterUtils.join(namespace, pathName);
+        return namespace.isEmpty() ? pathName :
+            PersisterUtils.join(NAMESPACE_ROOT_NAME, PersisterUtils.join(namespace, pathName));
     }
 }

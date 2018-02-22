@@ -27,6 +27,7 @@ public class StateStoreTest {
             .setState(TASK_STATE)
             .build();
     private static final String NAMESPACE = "test-namespace";
+    private static final String NAMESPACE_PATH = "Services/" + NAMESPACE;
     private static final String PROPERTY_VALUE = "DC/OS";
     private static final String GOOD_PROPERTY_KEY = "hey";
     private static final String WHITESPACE_PROPERTY_KEY = "            ";
@@ -60,11 +61,11 @@ public class StateStoreTest {
         assertEquals(PROPERTY_VALUE, new String(persister.get("Properties/" + GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
 
         // Check that data is NOT in namespaced path:
-        checkPathNotFound(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/TaskInfo");
-        checkPathNotFound(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/TaskStatus");
-        checkPathNotFound(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override");
-        checkPathNotFound(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status");
-        checkPathNotFound(NAMESPACE + "/Properties/" + GOOD_PROPERTY_KEY);
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskInfo");
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskStatus");
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override");
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status");
+        checkPathNotFound(NAMESPACE_PATH + "/Properties/" + GOOD_PROPERTY_KEY);
 
         // Check that data is accessible as expected:
         assertEquals(tasks.iterator().next(), store.fetchTask(TestConstants.TASK_NAME).get());
@@ -84,11 +85,11 @@ public class StateStoreTest {
         store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
 
         // Check that data is in namespaced path:
-        assertNotEquals(0, persister.get(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/TaskInfo"));
-        assertNotEquals(0, persister.get(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/TaskStatus"));
-        assertEquals("PAUSED", new String(persister.get(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override"), StandardCharsets.UTF_8));
-        assertEquals("PENDING", new String(persister.get(NAMESPACE + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status"), StandardCharsets.UTF_8));
-        assertEquals(PROPERTY_VALUE, new String(persister.get(NAMESPACE + "/Properties/" + GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
+        assertNotEquals(0, persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskInfo"));
+        assertNotEquals(0, persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskStatus"));
+        assertEquals("PAUSED", new String(persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override"), StandardCharsets.UTF_8));
+        assertEquals("PENDING", new String(persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status"), StandardCharsets.UTF_8));
+        assertEquals(PROPERTY_VALUE, new String(persister.get(NAMESPACE_PATH + "/Properties/" + GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
 
         // Check that data is NOT at root path:
         checkPathNotFound("Tasks/" + TestConstants.TASK_NAME + "/TaskInfo");

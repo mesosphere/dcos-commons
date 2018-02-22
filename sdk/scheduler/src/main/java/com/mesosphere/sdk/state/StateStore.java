@@ -26,7 +26,7 @@ import java.util.*;
  * change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
  *
  * <p>The structure used in the underlying persister is as follows:
- * <br>namespacedPath/
+ * <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
  * <br>&nbsp; Tasks/
  * <br>&nbsp; &nbsp; task-a/
  * <br>&nbsp; &nbsp; &nbsp; TaskInfo
@@ -56,7 +56,8 @@ public class StateStore {
     private static final String TASK_GOAL_OVERRIDE_PATH_NAME = "goal-state-override";
     private static final String TASK_GOAL_OVERRIDE_STATUS_PATH_NAME = "override-status";
 
-    private static final String PROPERTIES_PATH_NAME = "Properties";
+    private static final String NAMESPACE_ROOT_NAME = "Services";
+    private static final String PROPERTIES_ROOT_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
     protected final Persister persister;
@@ -347,7 +348,7 @@ public class StateStore {
      */
     public Collection<String> fetchPropertyKeys() throws StateStoreException {
         try {
-            return persister.getChildren(getRootPath(namespace, PROPERTIES_PATH_NAME));
+            return persister.getChildren(getRootPath(namespace, PROPERTIES_ROOT_NAME));
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Root path doesn't exist yet. Treat as an empty list of properties. This scenario is
@@ -496,7 +497,7 @@ public class StateStore {
     }
 
     protected static String getPropertyPath(String namespace, String propertyName) {
-        return PersisterUtils.join(getRootPath(namespace, PROPERTIES_PATH_NAME), propertyName);
+        return PersisterUtils.join(getRootPath(namespace, PROPERTIES_ROOT_NAME), propertyName);
     }
 
     /**
@@ -507,7 +508,8 @@ public class StateStore {
      * @return The namespaced path for {@code pathName}
      */
     protected static String getRootPath(String namespace, String pathName) {
-        return namespace.isEmpty() ? pathName : PersisterUtils.join(namespace, pathName);
+        return namespace.isEmpty() ? pathName :
+            PersisterUtils.join(NAMESPACE_ROOT_NAME, PersisterUtils.join(namespace, pathName));
     }
 
     private static void validateKey(String key) throws StateStoreException {

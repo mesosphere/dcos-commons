@@ -14,9 +14,15 @@ public class QueueRunner implements Runnable {
     private final SchedulerConfig schedulerConfig;
     private final FrameworkConfig frameworkConfig;
     private final Persister persister;
-    private final MultiMesosEventClient clients;
+    private final MesosEventClient client;
 
-    public static QueueRunner build() {
+    /**
+     * Returns a new {@link QueueRunner} instance which may be launched with {@code run()}.
+     *
+     * @param client the Mesos event client which receives offers/statuses from Mesos. Note that this may route events
+     *               to multiple wrapped clients
+     */
+    public static QueueRunner build(MesosEventClient client) {
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnv();
         Persister persister;
@@ -31,20 +37,19 @@ public class QueueRunner implements Runnable {
                     "Failed to initialize default persister at %s for framework %s",
                     frameworkConfig.zookeeperConnection, frameworkConfig.frameworkName));
         }
-        return new QueueRunner(schedulerConfig, frameworkConfig, persister);
+        return new QueueRunner(schedulerConfig, frameworkConfig, persister, client);
 
     }
 
-    private QueueRunner(SchedulerConfig schedulerConfig, FrameworkConfig frameworkConfig, Persister persister) {
+    private QueueRunner(
+            SchedulerConfig schedulerConfig,
+            FrameworkConfig frameworkConfig,
+            Persister persister,
+            MesosEventClient client) {
         this.schedulerConfig = schedulerConfig;
         this.frameworkConfig = frameworkConfig;
         this.persister = persister;
-        this.clients = new MultiMesosEventClient();
-    }
-
-    // TODO(nickbp): This (or something like it) should be called by the 'add a service' HTTP endpoint
-    public void addService(MesosEventClient service) {
-        clients.addClient(service);
+        this.client = client;
     }
 
     /**
@@ -56,6 +61,6 @@ public class QueueRunner implements Runnable {
         CuratorLocker.lock(frameworkConfig.frameworkName, frameworkConfig.zookeeperConnection);
         Metrics.configureStatsd(schedulerConfig);
 
-        new FrameworkRunner(schedulerConfig, frameworkConfig).registerAndRunFramework(persister, clients);
+        new FrameworkRunner(schedulerConfig, frameworkConfig).registerAndRunFramework(persister, client);
     }
 }
