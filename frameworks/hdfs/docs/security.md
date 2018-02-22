@@ -24,7 +24,7 @@ A good overview of these features can be found [here](https://hadoop.apache.org/
 {% include services/security-configure-transport-encryption.md
     techName="Apache HDFS" plaintext="true" %}
 
-{% include services.security-transport-encryption-clients.md %}
+{% include services/security-transport-encryption-clients.md %}
 
 <!--
 TO BE CONFIRMED

@@ -31,4 +31,4 @@ A good overview of X-Pack can be found [here](https://www.elastic.co/guide/en/x-
 
 *Note* It is possible to enable Transport Encryption after initial installation, but it requires setting `service.update_strategy` to `parallel`. After the update is complete, `service.update_strategy` should be set back to `serial`. Because the update must occur in parallel, the service **WILL** be unavailable during the transition. Additionally, clients will need to be reconfigured after the transition.
 
-{% include services.security-transport-encryption-clients.md %}
+{% include services/security-transport-encryption-clients.md %}

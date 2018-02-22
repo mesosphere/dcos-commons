@@ -30,7 +30,7 @@ A good overview of these features can be found [here](https://www.confluent.io/b
 
 After service deployment completes, check the list of [Kafka endpoints](../api-reference/#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
 
-{% include services.security-transport-encryption-clients.md %}
+{% include services/security-transport-encryption-clients.md %}
 
 ## Authentication
 
