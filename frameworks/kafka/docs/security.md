@@ -30,6 +30,8 @@ A good overview of these features can be found [here](https://www.confluent.io/b
 
 After service deployment completes, check the list of [Kafka endpoints](../api-reference/#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
 
+{% include services/security-transport-encryption-clients.md %}
+
 ## Authentication
 
 DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported indpendently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.

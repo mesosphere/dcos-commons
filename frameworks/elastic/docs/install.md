@@ -37,56 +37,6 @@ $ dcos package install {{ data.packageName }} --options=options.json
 
 {% include services/install2.md data=data %}
 
-## TLS
-
-The Elastic service can be launched with TLS encryption. Enabling TLS will switch all internal communication between Elastic nodes to encrypted connections.
-
-Enabling TLS is only possible in `permissive` and `strict` cluster security modes on Enterprise DC/OS. Both modes require a service account. Additionally, a service account must have the `dcos:superuser` permission. If the permission is missing the Elastic scheduler will not abe able to provision TLS artifacts.
-
-Installing Elastic with TLS support requires [enabling X-Pack functionality](../elastic-x-pack/).
-
-Sample JSON options file named `elastic-tls.json`:
-```json
-{
-  "service": {
-    "service_account_secret": "elastic",
-    "service_account": "elastic",
-    "security": {
-        "transport_encryption": {
-            "enabled": true
-        }
-    }
-  },
-  "elasticsearch": {
-    "xpack_enabled": true
-  }
-}
-```
-
-For more information about TLS in the SDK see [the TLS documentation](https://mesosphere.github.io/dcos-commons/developer-guide.html#tls).
-
-### Clients when TLS is enabled
-
-Clients connecting to the Elastic service are required to use [the DC/OS CA bundle](https://docs.mesosphere.com/1.10/networking/tls-ssl/get-cert/) to verify the TLS connections.
-
-### Kibana when TLS is enabled
-
-When the Elastic service has been deployed on DC/OS with TLS support, Kibana, acting as an Elastic client, must be configured to verify TLS with the DC/OS CA bundle. To install the DC/OS CA bundle, launch Kibana with the following configuration.
-
-Sample JSON options file named `kibana-tls.json`:
-```json
-{
-    "kibana": {
-        "xpack_enabled": true,
-        "elasticsearch_url": "https://coordinator.{{ data.serviceName }}.l4lb.thisdcos.directory:9200",
-        "elasticsearch_tls": true,
-        "...": "..."
-    }
-}
-```
-
-Similarly to Elastic, Kibana requires [X-Pack](../elastic-x-pack/) to be installed. The Kibana package itself doesn't support exposing itself over a TLS connection.
-
 ## Configuration Guidelines
 
 - Service name: This needs to be unique for each instance of the service that is running. It is also used as your cluster name.
