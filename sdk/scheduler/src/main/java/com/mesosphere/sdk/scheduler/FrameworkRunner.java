@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.storage.Persister;
@@ -58,7 +59,8 @@ public class FrameworkRunner {
         }
     }
 
-    private Protos.FrameworkInfo getFrameworkInfo(Optional<Protos.FrameworkID> frameworkId) {
+    @VisibleForTesting
+    Protos.FrameworkInfo getFrameworkInfo(Optional<Protos.FrameworkID> frameworkId) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(frameworkConfig.frameworkName)
                 .setPrincipal(frameworkConfig.principal)
@@ -66,35 +68,35 @@ public class FrameworkRunner {
                 .setFailoverTimeout(TWO_WEEK_SEC)
                 .setCheckpoint(true);
 
+        // The framework ID is not available when we're being started for the first time.
+        frameworkId.ifPresent(fwkInfoBuilder::setId);
+
         if (frameworkConfig.preReservedRoles.isEmpty()) {
             setRole(fwkInfoBuilder, frameworkConfig.role);
         } else {
-            fwkInfoBuilder.addCapabilitiesBuilder().setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
+            fwkInfoBuilder.addCapabilitiesBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
             fwkInfoBuilder
                     .addRoles(frameworkConfig.role)
                     .addAllRoles(frameworkConfig.preReservedRoles);
         }
 
-        // The framework ID is not available when we're being started for the first time.
-        frameworkId.ifPresent(fwkInfoBuilder::setId);
-
         if (!StringUtils.isEmpty(frameworkConfig.webUrl)) {
             fwkInfoBuilder.setWebuiUrl(frameworkConfig.webUrl);
         }
 
-        if (Capabilities.getInstance().supportsGpuResource() && frameworkConfig.enableGpuResources) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
+        Capabilities capabilities = Capabilities.getInstance();
+        if (capabilities.supportsGpuResource() && frameworkConfig.enableGpuResources) {
+            fwkInfoBuilder.addCapabilitiesBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES);
         }
-
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
+        if (capabilities.supportsPreReservedResources()) {
+            fwkInfoBuilder.addCapabilitiesBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT);
         }
-
-        if (Capabilities.getInstance().supportsRegionAwareness(schedulerConfig)) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE));
+        if (capabilities.supportsRegionAwareness(schedulerConfig)) {
+            fwkInfoBuilder.addCapabilitiesBuilder()
+                    .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE);
         }
 
         return fwkInfoBuilder.build();

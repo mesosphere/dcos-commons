@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
@@ -76,11 +77,11 @@ class FrameworkConfig {
     }
 
     /**
-     * Creates a {@link FrameworkConfig} instance based off the process environment, when no single {@link ServiceSpec}
-     * is applicable.
+     * Creates a {@link FrameworkConfig} instance based off the provided process environment. This is used when no
+     * single {@link ServiceSpec} is applicable (multi-service mode).
      */
-    static FrameworkConfig fromEnv() {
-        EnvStore envStore = new EnvStore(System.getenv());
+    static FrameworkConfig fromMap(Map<String, String> map) {
+        EnvStore envStore = new EnvStore(map);
         // The only required value is FRAMEWORK_NAME.
         String frameworkName = envStore.getRequired("FRAMEWORK_NAME");
         return new FrameworkConfig(

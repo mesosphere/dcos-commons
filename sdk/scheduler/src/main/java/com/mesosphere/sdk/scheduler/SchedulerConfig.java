@@ -152,22 +152,14 @@ public class SchedulerConfig {
         this.envStore = new EnvStore(flagMap);
 
         if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-            try {
-                LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                        getPackageName(),
-                        getPackageVersion(),
-                        Instant.ofEpochMilli(getPackageBuildTimeMs()),
+            LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
+                    getPackageName(),
+                    getPackageVersion(),
+                    Instant.ofEpochMilli(getPackageBuildTimeMs()),
 
-                        SDKBuildInfo.VERSION,
-                        SDKBuildInfo.GIT_SHA,
-                        Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
-            } catch (EnvStore.ConfigException e) {
-                // Couldn't get package info, missing from env? Fall back to just printing SDK info
-                LOGGER.info("Build information:\n- Package: UNKNOWN\n- SDK: {}/{}, built {}",
-                        SDKBuildInfo.VERSION,
-                        SDKBuildInfo.GIT_SHA,
-                        Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
-            }
+                    SDKBuildInfo.VERSION,
+                    SDKBuildInfo.GIT_SHA,
+                    Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
         }
     }
 

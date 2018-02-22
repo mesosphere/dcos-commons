@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
+import java.util.Map;
+
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -23,8 +25,9 @@ public class QueueRunner implements Runnable {
      *               to multiple wrapped clients
      */
     public static QueueRunner build(MesosEventClient client) {
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
-        FrameworkConfig frameworkConfig = FrameworkConfig.fromEnv();
+        Map<String, String> env = System.getenv();
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
+        FrameworkConfig frameworkConfig = FrameworkConfig.fromMap(env);
         Persister persister;
         try {
             persister = schedulerConfig.isStateCacheEnabled()
