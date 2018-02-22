@@ -3,8 +3,10 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -187,13 +189,19 @@ public class DefaultSchedulerTest {
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         persister = new MemPersister();
+        // Emulate behavior of upstream FrameworkScheduler, which handled registering with Mesos:
+        new FrameworkStore(persister).storeFrameworkId(TestConstants.FRAMEWORK_ID);
         defaultScheduler = getScheduler(serviceSpec);
     }
 
     @Test
     public void testEmptyOffers() {
-        defaultScheduler.offers(Collections.emptyList());
+        // Reconcile already triggered via registration during setup:
         verify(mockSchedulerDriver, times(1)).reconcileTasks(any());
+
+        OfferResponse offerResponse = defaultScheduler.offers(Collections.emptyList());
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
+        Assert.assertTrue(offerResponse.unusedOffers.isEmpty());
         verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
     }
@@ -434,9 +442,10 @@ public class DefaultSchedulerTest {
         Protos.Offer insufficientOffer = OfferTestUtils.getCompleteOffer(neededAdditionalResource);
 
         // First attempt doesn't do anything because reconciliation hadn't completed yet
-        defaultScheduler.offers(Arrays.asList(insufficientOffer));
+        OfferResponse offerResponse = defaultScheduler.offers(Arrays.asList(insufficientOffer));
+        Assert.assertEquals(OfferResponse.Result.NOT_READY, offerResponse.result);
+        Assert.assertEquals(insufficientOffer, offerResponse.unusedOffers.get(0));
         verify(mockSchedulerDriver, times(0)).killTask(any());
-        verify(mockSchedulerDriver, times(1)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PENDING, stepTaskA0.getStatus());
 
         // Check that the scheduler had requested reconciliation of its sole task, then finish that reconciliation:
@@ -447,9 +456,10 @@ public class DefaultSchedulerTest {
         verify(mockSchedulerDriver, times(1)).reconcileTasks(Collections.emptyList());
 
         // Second attempt after reconciliation results in triggering task relaunch
-        defaultScheduler.offers(Arrays.asList(insufficientOffer));
+        offerResponse = defaultScheduler.offers(Arrays.asList(insufficientOffer));
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
+        Assert.assertEquals(insufficientOffer, offerResponse.unusedOffers.get(0));
         verify(mockSchedulerDriver, times(1)).killTask(launchedTaskId);
-        verify(mockSchedulerDriver, times(2)).declineOffer(eq(insufficientOffer.getId()), any());
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
 
         // Sent TASK_KILLED status
@@ -458,7 +468,9 @@ public class DefaultSchedulerTest {
         Assert.assertEquals(0, getRecoveryPlan().getChildren().size());
 
         Protos.Offer expectedOffer = OfferTestUtils.getCompleteOffer(expectedResources);
-        defaultScheduler.offers(Arrays.asList(expectedOffer));
+        offerResponse = defaultScheduler.offers(Arrays.asList(expectedOffer));
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
+        Assert.assertTrue(offerResponse.unusedOffers.isEmpty());
         verify(mockSchedulerDriver, times(1)).acceptOffers(
                 collectionThat(contains(expectedOffer.getId())),
                 operationsCaptor.capture(),

@@ -21,7 +21,7 @@ import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.Persister;
 
 /**
- * Implementation of Mesos' {@link Scheduler} interface.
+ * Implementation of Mesos' {@link Scheduler} interface. There should only be one of these per Scheduler process.
  * Received messages are forwarded to the provided {@link MesosEventClient} instance.
  */
 public class FrameworkScheduler implements Scheduler {
@@ -45,15 +45,21 @@ public class FrameworkScheduler implements Scheduler {
     private final OfferProcessor offerProcessor;
 
     public FrameworkScheduler(Persister persister, MesosEventClient mesosEventClient) {
-        this.frameworkStore = new FrameworkStore(persister);
+        this(new FrameworkStore(persister), mesosEventClient, new OfferProcessor(mesosEventClient));
+    }
+
+    @VisibleForTesting
+    FrameworkScheduler(
+            FrameworkStore frameworkStore, MesosEventClient mesosEventClient, OfferProcessor offerProcessor) {
+        this.frameworkStore = frameworkStore;
         this.mesosEventClient = mesosEventClient;
-        this.offerProcessor = new OfferProcessor(mesosEventClient);
+        this.offerProcessor = offerProcessor;
     }
 
     /**
      * Notifies this instance that the API server has been initialized. All offers are declined until this is called.
      */
-    public FrameworkScheduler markReadyToAcceptOffers() {
+    public FrameworkScheduler setReadyToAcceptOffers() {
         readyToAcceptOffers.set(true);
         return this;
     }
@@ -66,18 +72,6 @@ public class FrameworkScheduler implements Scheduler {
     public FrameworkScheduler disableThreading() {
         offerProcessor.disableThreading();
         return this;
-    }
-
-    /**
-     * All offers must have been presented to resourceOffers() before calling this.  This call will block until all
-     * offers have been processed.
-     *
-     * @throws InterruptedException if waiting for offers to be processed is interrupted
-     * @throws IllegalStateException if offers were not processed in a reasonable amount of time
-     */
-    @VisibleForTesting
-    public void awaitOffersProcessed() throws InterruptedException {
-        offerProcessor.awaitOffersProcessed();
     }
 
     @Override
@@ -111,13 +105,6 @@ public class FrameworkScheduler implements Scheduler {
         mesosEventClient.register(true);
     }
 
-    private static void updateStaticData(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        Driver.setDriver(driver);
-        if (masterInfo.hasDomain()) {
-            IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
-        }
-    }
-
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
         Metrics.incrementReceivedOffers(offers.size());
@@ -148,6 +135,8 @@ public class FrameworkScheduler implements Scheduler {
         TaskKiller.update(status);
         switch (response.result) {
         case UNKNOWN_TASK:
+            LOGGER.info("Got UNKNOWN_TASK in response to status update, marking task to be killed: "
+                    + status.getTaskId().getValue());
             TaskKiller.killTask(status.getTaskId());
             break;
         case PROCESSED:
@@ -165,8 +154,8 @@ public class FrameworkScheduler implements Scheduler {
     @Override
     public void frameworkMessage(
             SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, byte[] data) {
-        LOGGER.error("Received a {} byte Framework Message from Executor {}, but don't know how to process it",
-                data.length, executorId.getValue());
+        LOGGER.error("Received unsupported {} byte Framework Message from Executor {} on Agent {}",
+                data.length, executorId.getValue(), agentId.getValue());
     }
 
     @Override
@@ -192,5 +181,12 @@ public class FrameworkScheduler implements Scheduler {
     public void error(SchedulerDriver driver, String message) {
         LOGGER.error("SchedulerDriver returned an error, shutting down: {}", message);
         SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
+    }
+
+    private static void updateStaticData(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
+        Driver.setDriver(driver);
+        if (masterInfo.hasDomain()) {
+            IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
+        }
     }
 }

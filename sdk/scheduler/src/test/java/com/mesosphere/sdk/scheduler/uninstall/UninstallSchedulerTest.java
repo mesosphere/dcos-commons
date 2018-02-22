@@ -4,6 +4,7 @@ import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
@@ -72,6 +73,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
+        Driver.setDriver(mockSchedulerDriver);
+
         Persister persister = new MemPersister();
         frameworkStore = new FrameworkStore(persister);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);

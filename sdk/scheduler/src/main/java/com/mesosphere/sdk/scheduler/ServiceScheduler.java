@@ -8,7 +8,9 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -166,10 +168,14 @@ public abstract class ServiceScheduler implements MesosEventClient {
             processStatusUpdate(status);
             reconciler.update(status);
         } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
+            if (e instanceof StateStoreException && ((StateStoreException) e).getReason() == Reason.NOT_FOUND) {
+                LOGGER.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
+                        + TextFormat.shortDebugString(status), e);
+                return StatusResponse.unknownTask();
+            }
+            LOGGER.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
         }
-        return StatusResponse.forStatus(stateStore, status);
+        return StatusResponse.processed();
     }
 
     protected abstract void registeredWithMesos();

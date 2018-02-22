@@ -4,8 +4,6 @@ import java.util.List;
 
 import org.apache.mesos.Protos;
 
-import com.mesosphere.sdk.state.StateStore;
-
 /**
  * Accepts events received from Mesos.
  */
@@ -80,8 +78,12 @@ public interface MesosEventClient {
          */
         public final Result result;
 
-        public static StatusResponse forStatus(StateStore stateStore, Protos.TaskStatus status) {
+        public static StatusResponse unknownTask() {
             return new StatusResponse(Result.UNKNOWN_TASK);
+        }
+
+        public static StatusResponse processed() {
+            return new StatusResponse(Result.PROCESSED);
         }
 
         private StatusResponse(Result result) {

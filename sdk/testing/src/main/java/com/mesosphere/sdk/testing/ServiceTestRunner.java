@@ -4,6 +4,7 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.ServiceScheduler;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.framework.FrameworkScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -299,6 +300,9 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(supportsDefaultExecutor);
         Capabilities.overrideCapabilities(mockCapabilities);
 
+        // Disable background TaskKiller thread, to avoid erroneous kill invocations
+        TaskKiller.reset(false);
+
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
         schedulerEnvironment.putAll(customSchedulerEnv);
@@ -320,7 +324,7 @@ public class ServiceTestRunner {
                 .build();
         FrameworkScheduler frameworkScheduler =
                 new FrameworkScheduler(serviceScheduler.getPersister(), serviceScheduler)
-                .markReadyToAcceptOffers()
+                .setReadyToAcceptOffers()
                 .disableThreading();
 
         // Test 4: Can we render the per-task config templates without any missing values?
@@ -354,6 +358,9 @@ public class ServiceTestRunner {
 
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
+
+        // Re-enable background TaskKiller thread for other tests
+        TaskKiller.reset(false);
 
         return new ServiceTestResult(
                 serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs, persister, clusterState);

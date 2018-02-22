@@ -184,16 +184,16 @@ public class DefaultScheduler extends ServiceScheduler {
     }
 
     private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
-        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
+        Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
 
-        Set<Protos.TaskID> taskIds = taskInfos.stream()
+        Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
 
         // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
-        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+        Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.toBuilder())
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
                 .collect(Collectors.toSet());
@@ -205,7 +205,7 @@ public class DefaultScheduler extends ServiceScheduler {
             stateStore.storeTasks(Arrays.asList(taskInfo));
         }
 
-        taskIds.forEach(taskID -> TaskKiller.killTask(taskID));
+        taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
 
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
@@ -260,7 +260,7 @@ public class DefaultScheduler extends ServiceScheduler {
     }
 
     @Override
-    protected void processStatusUpdate(Protos.TaskStatus status) {
+    protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
         // Store status, then pass status to PlanManager => Plan => Steps
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
 

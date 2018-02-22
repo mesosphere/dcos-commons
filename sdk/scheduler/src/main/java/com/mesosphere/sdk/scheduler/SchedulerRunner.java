@@ -132,7 +132,7 @@ public class SchedulerRunner implements Runnable {
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
-                    frameworkScheduler.markReadyToAcceptOffers();
+                    frameworkScheduler.setReadyToAcceptOffers();
                 }
             });
 

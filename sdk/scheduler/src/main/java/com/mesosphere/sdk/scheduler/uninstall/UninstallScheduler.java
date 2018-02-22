@@ -162,7 +162,7 @@ public class UninstallScheduler extends ServiceScheduler {
     }
 
     @Override
-    protected void processStatusUpdate(Protos.TaskStatus status) {
+    protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
     }
 

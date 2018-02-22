@@ -1,35 +1,191 @@
 package com.mesosphere.sdk.scheduler.framework;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
+import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.mesosphere.sdk.offer.OfferUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.scheduler.framework.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.testutils.TestConstants;
+
+import static org.mockito.Mockito.*;
 
 public class OfferProcessorTest {
 
-    @Test
-    public void testsWritten() {
-        Assert.fail("TODO");
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfferProcessorTest.class);
+    private static final int THREAD_COUNT = 50;
+    private static final int OFFERS_PER_THREAD = 3;
+
+    private static final Protos.Filters LONG_INTERVAL = Protos.Filters.newBuilder()
+            .setRefuseSeconds(Constants.LONG_DECLINE_SECONDS)
+            .build();
+    private static final Protos.Filters SHORT_INTERVAL = Protos.Filters.newBuilder()
+            .setRefuseSeconds(Constants.SHORT_DECLINE_SECONDS)
+            .build();
+
+    @Mock private MesosEventClient mockMesosEventClient;
+    @Mock private SchedulerDriver mockSchedulerDriver;
+
+    private OfferProcessor processor;
+
+    @Before
+    public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
+        Driver.setDriver(mockSchedulerDriver);
+
+        processor = new OfferProcessor(mockMesosEventClient);
     }
 
-    /*
     @Test
-    public void testDeclineOffers() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
+    public void testDeclineCall() {
+        final List<Protos.Offer> offers = Arrays.asList(getOffer());
         final List<Protos.OfferID> offerIds = offers.stream().map(Protos.Offer::getId).collect(Collectors.toList());
         Driver.setDriver(mockSchedulerDriver);
-        OfferUtils.declineLong(offers);
+        OfferProcessor.declineShort(offers);
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
-        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
     }
-    */
+
+    @Test
+    public void testOffersUnused() throws InterruptedException {
+        when(mockMesosEventClient.offers(any())).thenAnswer(new Answer<OfferResponse>() {
+            @Override
+            public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
+                // Pass back all the offers we got as unused:
+                return OfferResponse.processed(getOffersArgument(invocation));
+            }
+        });
+
+        processor.setOfferQueueSize(0).start(); // unlimited queue size
+
+        // All offers should have been declined with a long interval (don't need these, come back much later):
+        Set<String> sentOfferIds = sendOffers(THREAD_COUNT, OFFERS_PER_THREAD);
+        verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(LONG_INTERVAL));
+    }
+
+    @Test
+    public void testOffersNotReady() throws InterruptedException {
+        when(mockMesosEventClient.offers(any())).thenAnswer(new Answer<OfferResponse>() {
+            @Override
+            public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
+                // Pass back all the offers we got in the not-ready response:
+                return OfferResponse.notReady(getOffersArgument(invocation));
+            }
+        });
+
+        processor.setOfferQueueSize(0).start(); // unlimited queue size
+
+        // All offers should have been declined with a short interval (not ready, come back soon):
+        Set<String> sentOfferIds = sendOffers(THREAD_COUNT, OFFERS_PER_THREAD);
+        verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(SHORT_INTERVAL));
+    }
+
+    @Test
+    public void testAsyncOffersLimitedQueueSize() throws InterruptedException {
+        when(mockMesosEventClient.offers(any())).thenReturn(OfferResponse.processed(Collections.emptyList()));
+        processor.setOfferQueueSize(10).start();
+
+        // At least some offers should have been dropped/declined before reaching the client:
+        Set<String> sentOfferIds = sendOffers(THREAD_COUNT, OFFERS_PER_THREAD);
+        verify(mockMesosEventClient, atLeastOnce()).offers(any());
+        verify(mockMesosEventClient, atMost(sentOfferIds.size() - 1)).offers(any());
+        verify(mockSchedulerDriver, atLeastOnce()).declineOffer(any(), any());
+    }
+
+    @Test
+    public void testAsyncOffersUnlimitedQueueSize() throws InterruptedException {
+        // The queueing results in accumulating all the offer lists into a flat list.
+        // So we need to explicitly collect an offer count.
+        AtomicInteger receivedCount = new AtomicInteger(0);
+        when(mockMesosEventClient.offers(any())).thenAnswer(new Answer<OfferResponse>() {
+            @Override
+            public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
+                List<Protos.Offer> offers = getOffersArgument(invocation);
+                receivedCount.addAndGet(offers.size());
+                return OfferResponse.processed(Collections.emptyList());
+            }
+        });
+
+        processor.setOfferQueueSize(0).start(); // unlimited queue size
+
+        // No offers should have been dropped/declined:
+        Set<String> sentOfferIds = sendOffers(THREAD_COUNT, OFFERS_PER_THREAD);
+        Assert.assertEquals(receivedCount.get(), sentOfferIds.size());
+        verify(mockSchedulerDriver, never()).declineOffer(any(), any());
+    }
+
+    private Set<String> sendOffers(int threadCount, int offersPerThread) throws InterruptedException {
+        // Hammer scheduler with offers, and check that they were all forwarded as expected
+        Set<String> sentOfferIds = new HashSet<>();
+        List<Thread> threads = new ArrayList<>();
+        for (int iThread = 0; iThread < threadCount; ++iThread) {
+            List<Protos.Offer> offers = new ArrayList<>();
+            for (int iOffer = 0; iOffer < offersPerThread; ++iOffer) {
+                offers.add(getOffer());
+            }
+            sentOfferIds.addAll(offers.stream()
+                    .map(o -> o.getId().getValue())
+                    .collect(Collectors.toList()));
+
+            final String threadName = String.format("offer-%d", iThread);
+            Thread t = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    LOGGER.info("Thread {} sending {} offers...", threadName, offers.size());
+                    processor.enqueue(offers);
+                }
+            }, threadName);
+            threads.add(t);
+            t.start();
+        }
+
+        LOGGER.info("Created {} threads.", threadCount);
+
+        // Wait for input to finish:
+        for (Thread t : threads) {
+            LOGGER.info("Waiting on thread {}...", t.getName());
+            t.join();
+            LOGGER.info("Thread {} has exited", t.getName());
+        }
+
+        processor.awaitOffersProcessed();
+
+        return sentOfferIds;
+    }
+
+    private static Protos.Offer getOffer() {
+        return getOffer(UUID.randomUUID().toString());
+    }
+
+    private static Protos.Offer getOffer(String id) {
+        return Protos.Offer.newBuilder()
+                .setId(Protos.OfferID.newBuilder().setValue(id))
+                .setFrameworkId(TestConstants.FRAMEWORK_ID)
+                .setSlaveId(TestConstants.AGENT_ID)
+                .setHostname(TestConstants.HOSTNAME)
+                .build();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<Protos.Offer> getOffersArgument(InvocationOnMock invocation) {
+        return (List<Protos.Offer>) invocation.getArguments()[0];
+    }
 }

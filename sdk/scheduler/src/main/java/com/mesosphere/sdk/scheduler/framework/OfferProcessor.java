@@ -57,19 +57,21 @@ class OfferProcessor {
      *
      * @return this
      */
-    @VisibleForTesting
-    public void disableThreading() {
+    OfferProcessor disableThreading() {
         multithreaded = false;
+        return this;
     }
 
     /**
      * Overrides the offer queue size. Must only be called before the scheduler has {@link #start()}ed.
      *
      * @param queueSize the queue size to use, zero for infinite
+     * @return this
      */
     @VisibleForTesting
-    public void setOfferQueueSize(int queueSize) {
+    OfferProcessor setOfferQueueSize(int queueSize) {
         offerQueue = new OfferQueue(queueSize);
+        return this;
     }
 
     public void start() {

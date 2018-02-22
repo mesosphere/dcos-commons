@@ -49,7 +49,7 @@ public final class TaskKiller {
      * @param executorEnabled whether the background kill executor should be enabled, should only be disabled in tests
      */
     @VisibleForTesting
-    static void reset(boolean executorEnabled) throws InterruptedException {
+    public static void reset(boolean executorEnabled) throws InterruptedException {
         synchronized (LOCK) {
             if (executor != null) {
                 executor.shutdownNow();

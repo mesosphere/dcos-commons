@@ -163,6 +163,7 @@ public class ServiceTest {
                 .setTaskId(taskId)
                 .build());
 
+        // Unknown task that we made up above was killed, but the launched task was not killed:
         ticks.add(Expect.taskIdKilled(taskId));
         ticks.add(Expect.taskNameNotKilled("hello-0-server"));
 
@@ -343,7 +344,7 @@ public class ServiceTest {
         }
         runner.run(ticks);
     }
-    
+
     @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
         Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
