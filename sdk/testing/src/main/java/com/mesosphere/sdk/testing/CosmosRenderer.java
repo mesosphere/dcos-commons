@@ -56,11 +56,12 @@ public class CosmosRenderer {
      * that the service's universe packaging is valid, by exercising config.json, resource.json, and
      * marathon.json.mustache.
      *
-     * @param customPackageOptions      map of any custom config settings as would be passed via an {@code options.json} file
-     *                                  when installing the service. these are provided to {@code config.json}
+     * @param customPackageOptions      map of any custom config settings as would be passed via an {@code options.json}
+     *                                  file when installing the service. these are provided to {@code config.json}
      * @param customBuildTemplateParams map of any custom template params that are normally provided as
-     *                                  {@code TEMPLATE_X} envvars when building the service at the commandline. these are provided to all universe
-     *                                  files (config.json, marathon.json.mustache, and resource.json)
+     *                                  {@code TEMPLATE_X} envvars when building the service at the commandline. these
+     *                                  are provided to all universe files (config.json, marathon.json.mustache,
+     *                                  and resource.json)
      * @return Scheduler environment variables resulting from the provided options
      */
     public static Map<String, String> renderSchedulerEnvironment(
