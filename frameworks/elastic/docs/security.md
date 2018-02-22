@@ -32,3 +32,20 @@ A good overview of X-Pack can be found [here](https://www.elastic.co/guide/en/x-
 *Note* It is possible to enable Transport Encryption after initial installation, but it requires setting `service.update_strategy` to `parallel`. After the update is complete, `service.update_strategy` should be set back to `serial`. Because the update must occur in parallel, the service **WILL** be unavailable during the transition. Additionally, clients will need to be reconfigured after the transition.
 
 {% include services/security-transport-encryption-clients.md %}
+
+
+#### Kibana
+
+To use the DC/OS Kibana service in tandem with DC/OS Elastic when the latter has Transport Encryption enabled, install (or update) Kibana with the following options in addition to your own:
+```json
+{
+    "kibana": {
+        "xpack_enabled": true,
+        "elasticsearch_tls": true,
+        "elasticsearch_url": "https://<elastic-coordinator-vip>"
+    }
+}
+```
+This configures the Kibana service to securely connect to the Elastic service.
+
+*Note*: Currently, the Kibana service does not itself support Transport Encryption.
