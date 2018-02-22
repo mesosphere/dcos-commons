@@ -169,7 +169,7 @@ The DC/OS Apache HDFS service supports HDFS's native authorization, which behave
 
 #### Set Kerberos Principal to User Mapping
 
-A custom mapping can be set to map Kerberos principals to OS user names for the purposes of determining group membership. This is supplied by setting the parameter
+A custom mapping should be set to map Kerberos principals to OS user names for the purposes of determining group membership. This is supplied by setting the parameter
 ```
 {
     "hdfs": {
@@ -179,7 +179,7 @@ A custom mapping can be set to map Kerberos principals to OS user names for the 
 ```
 where `<custom mapping>` is a base64 encoded string. The mapping is base64 encoded to ensure it is sent to the service correctly.
 
-*Note*: There is _no_ default mapping. This is a reasonably secure default, but a mapping must be set if you plan to use groups in assigning permissions.
+*Note*: There is _no_ default mapping and one **MUST** be set during installation.
 
 [This](https://hortonworks.com/blog/fine-tune-your-apache-hadoop-security-settings/) article has a good description of how to build a custom mapping, under the section "Kerberos Principals and UNIX User Names".
 
