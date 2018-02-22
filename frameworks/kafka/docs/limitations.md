@@ -23,7 +23,7 @@ When Kerberos is enabled, the broker VIP is disabled as Kerberized clients will 
 
 Kerberos authentication can be toggled (enabled / disabled), but this triggers a rolling restart of the cluster. Clients configured with the old security settings will lose connectivity during and after this process. It is recommended that backups are made and downtime is scheduled.
 
-### Toggling TLS
+### Toggling Transport Encryption
 
 Transport encryption using TLS can be toggled (enabled / disabled), but will trigger a rolling restart of the cluster. As each broker restarts, a client may lose connectivity based on its security settings and the value of the `service.security.transport_encryption.allow_plaintext` configuration option. It is recommended that backups are made and downtime is scheduled.
 

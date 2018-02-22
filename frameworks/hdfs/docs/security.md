@@ -19,10 +19,12 @@ A good overview of these features can be found [here](https://hadoop.apache.org/
 {% include services/security-transport-encryption-lead-in.md
     techName="Apache HDFS" plaintext="true" %}
 
-*Note*: Enabling transport encryption is not _required_ to use [Kerberos authentication](#kerberos-authn), but transport encryption _can_ be combined with Kerberos authentication.
+*Note*: Enabling transport encryption is not _required_ to use [Kerberos authentication](#kerberos-authentication), but transport encryption _can_ be combined with Kerberos authentication.
 
 {% include services/security-configure-transport-encryption.md
     techName="Apache HDFS" plaintext="true" %}
+
+{% include services/security-transport-encryption-clients.md %}
 
 <!--
 TO BE CONFIRMED

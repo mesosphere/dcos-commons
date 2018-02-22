@@ -19,7 +19,13 @@ The DC/OS {{ data.techName }} Service must be deployed with at least 3 nodes.
 
 ## Security
 
-{{ data.techName }}'s native TLS, authentication, and authorization features are not supported at this time.
+{{ data.techName }}'s native authentication, and authorization mechanisms are not supported at this time.
+
+### Toggling Transport Encryption
+
+Transport encryption using TLS can be toggled (enabled / disabled), but will trigger a rolling restart of the cluster. As each node restarts, a client may lose connectivity based on its security settings and the value of the `service.security.transport_encryption.allow_plaintext` configuration option. It is recommended that backups are made and downtime is scheduled.
+
+In order to enable TLS, a service account and corresponding secret is required. Since it is not possible to change the service account used by a service, it is recommended that the service is deployed with an explicit service account to allow for TLS to be enabled at a later stage.
 
 ## Data Center Name
 
@@ -41,4 +47,3 @@ The name of the data center cannot be changed after installation. `service.data_
 ...
 }
 ```
-
