@@ -62,12 +62,6 @@ The fourth and final phase of the installation is deployment of the distributed 
 
 This configuration update strategy is analogous to the installation procedure above. If the configuration update is accepted, there will be no errors in the generated `deploy` plan, and a rolling restart will be performed on all affected nodes to apply the updated configuration.
 
-## Clients
-
-Clients connecting to HDFS over a TLS connection must connect to an HTTPS specific port. Each node type (`journal`, `name` and `data`) can be configured with different port numbers for TLS connections.
-
-Clients can connect only using TLS version 1.2.
-
 ## Configuration Options
 
 The following describes the most commonly used features of DC/OS Apache HDFS and how to configure them via the DC/OS CLI and the DC/OS GUI. There are two methods of configuring an HDFS cluster. The configuration may be specified using a JSON file during installation via the DC/OS command line (See the Installation section) or via modification to the Service Scheduler’s DC/OS environment at runtime (See the Configuration Update section). Note that some configuration options may only be specified at installation time.
