@@ -16,11 +16,10 @@ A good overview of these features can be found [here](https://hadoop.apache.org/
 
 ## Transport Encryption
 
-With transport encryption enabled, DC/OS Apache HDFS will automatically deploy all nodes with the correct configuration to encrypt communication via TLS. The nodes will communicate securely between themselves using TLS. Optionally, plaintext communication can be left open to clients.
+{% include services/security-transport-encryption-lead-in.md
+    techName="Apache HDFS" plaintext="true" %}
 
-The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
-
-*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
+*Note*: Enabling transport encryption is not _required_ to use [Kerberos authentication](#kerberos-authn), but transport encryption _can_ be combined with Kerberos authentication.
 
 {% include services/security-configure-transport-encryption.md
     techName="Apache HDFS" plaintext="true" %}
@@ -31,7 +30,7 @@ TO BE CONFIRMED
 
 ## Authentication
 
-DC/OS Apache HDFS only supports Kerberos authentication.
+DC/OS Apache HDFS supports Kerberos authentication.
 
 ### Kerberos Authentication
 
@@ -126,10 +125,13 @@ example/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 HTTP/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
 
-{{ include service/security-kerberos-ad }}
+{% include services/security-kerberos-ad.md
+    principal="example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE"
+    spn="example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory"
+    upn="example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE" %}
 
-{{ include services/security-service-keytab
-    techName="Apache HDFS" }}
+{% include services/security-service-keytab.md
+    techName="Apache HDFS" %}
 
 #### Install the Service
 
@@ -156,7 +158,7 @@ Install the DC/OS Apache HDFS service with the following options in addition to 
 
 ## Authorization
 
-The DC/OS Apache HDFS service supports HDFS's native authorization, which behaves similarly to UNIX file permissions. If Keberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to OS users which HDFS uses to assign permissions internally.
+The DC/OS Apache HDFS service supports HDFS's native authorization, which behaves similarly to UNIX file permissions. If Keberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to HDFS users against which permissions can be assigned.
 
 ### Enable Authorization
 
@@ -165,7 +167,7 @@ The DC/OS Apache HDFS service supports HDFS's native authorization, which behave
 
 #### Set Kerberos Principal to User Mapping
 
-A custom mapping can be set to map Kerberos principals to OS user names. This is supplied by setting the parameter
+A custom mapping can be set to map Kerberos principals to OS user names for the purposes of determining group membership. This is supplied by setting the parameter
 ```
 {
     "hdfs": {
@@ -175,7 +177,7 @@ A custom mapping can be set to map Kerberos principals to OS user names. This is
 ```
 where `<custom mapping>` is a base64 encoded string. The mapping is base64 encoded to ensure it is sent to the service correctly.
 
-**WARNING**: The default mapping is to map **ANY** Kerberos Principal to the OS user `nobody`. This is done for simplicity of testing and you **MUST** change it before placing sensitive data in the system.
+*Note*: There is _no_ default mapping. This is a reasonably secure default, but a mapping must be set if you plan to use groups in assigning permissions.
 
 [This](https://hortonworks.com/blog/fine-tune-your-apache-hadoop-security-settings/) article has a good description of how to build a custom mapping, under the section "Kerberos Principals and UNIX User Names".
 

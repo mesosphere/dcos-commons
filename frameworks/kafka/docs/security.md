@@ -16,11 +16,10 @@ A good overview of these features can be found [here](https://www.confluent.io/b
 
 ## Transport Encryption
 
-With transport encryption enabled, DC/OS Apache Kafka will automatically deploy all brokers with the correct configuration to communicate via SSL. The Brokers will communicate securely between themselves using SSL. Optionally, plaintext communication can be left open to clients.
+{% include services/security-transport-encryption-lead-in.md
+    techName="Apache Kafka" plaintext="true" %}
 
-The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
-
-*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authentication](#kerberos-authentication).
+*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication), but is optional for [Kerberos authentication](#kerberos-authentication).
 
 {% include services/security-configure-transport-encryption.md
     techName="Apache Kafka" plaintext="true" %}
@@ -33,9 +32,9 @@ After service deployment completes, check the list of [Kafka endpoints](../api-r
 
 ## Authentication
 
-DC/OS Apache Kafka supports two authentication (authn) mechanisms, SSL and Kerberos. The two are supported indpendently but may not be combined. If both are SSL and Kerberos are enabled, the service will use Kerberos authentication.
+DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported indpendently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.
 
-*Note*: Kerberos can, however, be combined with transport encryption.
+*Note*: Kerberos authentication can, however, be combined with transport encryption.
 
 ### Kerberos Authentication
 
@@ -85,9 +84,12 @@ example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-1-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-2-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
-{{ include service/security-kerberos-ad }}
+{% include services/security-kerberos-ad.md
+    principal="example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE"
+    spn="example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory"
+    upn="example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE" %}
 
-{% include services/security-service-keytab
+{% include services/security-service-keytab.md
     techName="Apache Kafka" %}
 
 #### Install the Service
@@ -122,14 +124,14 @@ Install the DC/OS Apache Kafka service with the following options in addition to
     }
 }
 ```
-The DC/OS Apache ZooKeeper service is intended for this purpose and supports Kerberos.
+The DC/OS Apache ZooKeeper service, package `kafka-zookeeper`, is intended for this purpose and supports Kerberos.
 
 *Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured.
 
 
 ### SSL Authentication
 
-SSL authentication requires that all clients be they brokers, producers, or consumers present a valid certificate from which their identity can be derived. DC/OS Apache Kafka uses the `CN` of the SSL certificate as the principal for a given client. For example, the certificate `CN=bob@example.com,OU=,O=Example,L=London,ST=London,C=GB` will be considered as the principal `bob@example.com`.
+SSL authentication requires that all clients be they brokers, producers, or consumers present a valid certificate from which their identity can be derived. DC/OS Apache Kafka uses the `CN` of the SSL certificate as the principal for a given client. For example, from the certificate `CN=bob@example.com,OU=,O=Example,L=London,ST=London,C=GB` the principal `bob@example.com` will be extracted.
 
 #### Prerequisites
 - Completion of the section [Transport Encryption](#transport-encryption) above
@@ -158,7 +160,7 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 
 #### Authenticating a Client
 
-To authenticate a client against DC/OS Apache Kafka, you will need to configure it to use a certificate signed by the DC/OS CA. After generating a certificate signing request, you can issue it to the DC/OS CA by calling the API `<dcos-cluster>/ca/api/v2/sign`. Using the `curl` command the request would look like:
+To authenticate a client against DC/OS Apache Kafka, you will need to configure it to use a certificate signed by the DC/OS CA. After generating a [certificate signing request](https://www.ssl.com/how-to/manually-generate-a-certificate-signing-request-csr-using-openssl/), you can issue it to the DC/OS CA by calling the API `<dcos-cluster>/ca/api/v2/sign`. Using `curl` the request would look like:
 ```bash
 $ curl -X POST \
     -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
@@ -170,12 +172,12 @@ The response will contain a signed public certificate. Full details on the DC/OS
 
 ## Authorization
 
-The DC/OS Apache Kafka service supports Kafka's ACL-based authorization (authz) system. To use Kafka's authz, either SSL Auth or Kerberos must be enabled as detailed above.
+The DC/OS Apache Kafka service supports Kafka's [ACL-based](https://docs.confluent.io/current/kafka/authorization.html#using-acls) authorization system. To use Kafka's ACLs, either SSL or Kerberos authentication must be enabled as detailed above.
 
 ### Enable Authorization
 
 #### Prerequisites
-- Completion of either [SSL Authentication](#ssl-authentication) or [Kerberos](#kerberos-authentication) above.
+- Completion of either [SSL](#ssl-authentication) or [Kerberos](#kerberos-authentication) authentication above.
 
 #### Install the Service
 
@@ -195,3 +197,6 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 ```
 
 `service.security.authorization.super_users` should be set to a semi-colon delimited list of principals to treat as super users (all permissions). The format of the list is `User:<user1>;User:<user2>;...`. Using Kerberos authentication, the "user" value is the Kerberos primary, and for SSL authentication the "user" value is the `CN` of the certificate. The Kafka brokers themselves are automatically designated as super users.
+
+<!-- TODO. @Evan, did you write something for this already? Or am I mis-remembering? -->
+*Note*:  It is possible to enable Authorization after initial installation, but the service may be unavailable during the transition. Additionally, Kafka clients may fail to function if they do not have the correct ACLs assigned to their principals. During the transition `service.security.authorization.allow_everyone_if_no_acl_found` can be set to `true` to prevent clients from being failing until their ACLs can be set correctly. After the transition, `service.security.authorization.allow_everyone_if_no_acl_found` should be reversed to `false`
