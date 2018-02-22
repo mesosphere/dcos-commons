@@ -8,6 +8,7 @@ techName: TEMPLATE SERVICE
 
 install:
   minNodeCount: some
+  customRequirements: "- Each agent node must have some quantity of cpu, memory, disk, and ports."
   nodeDescription: with SOME QUANTITY OF NODES
   serviceAccountInstructionsUrl: https://docs.mesosphere.com/services/TEMPLATE/TEMPLATE-auth/
 

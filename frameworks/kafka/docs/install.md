@@ -7,7 +7,8 @@ menuWeight: 20
 ---
 {% assign data = site.data.services.kafka %}
 
-{% capture customInstallConfigurations %}
+{% include services/install1.md data=data %}
+
 ### Minimal installation
 
 For development purposes, you may wish to install {{ data.techName }} on a local DC/OS cluster. For this, you can use [dcos-docker](https://github.com/dcos/dcos-docker) or [dcos-vagrant](https://github.com/dcos/dcos-vagrant).
@@ -94,8 +95,5 @@ You can also update an already-running {{ data.techName }} instance from the DC/
 ```bash
 $ dcos {{ data.packageName }} --name={{ data.serviceName }} update start --options=options.json
 ```
-{% endcapture %}
 
-{% include services/install.md
-    data=data
-    customInstallConfigurations=customInstallConfigurations %}
+{% include services/install2.md data=data %}

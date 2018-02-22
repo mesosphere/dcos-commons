@@ -7,7 +7,8 @@ menuWeight: 20
 ---
 {% assign data = site.data.services.elastic %}
 
-{% capture customInstallConfigurations %}
+{% include services/install1.md data=data %}
+
 ### Example custom installation
 
 You can customize the Elastic cluster in a variety of ways by specifying a JSON options file. For example, here is a sample JSON options file that customizes the service name, master transport port, and plugins:
@@ -33,11 +34,8 @@ $ dcos package install {{ data.packageName }} --options=options.json
 ```
 
 **Recommendation:** Store your custom configuration in source control.
-{% endcapture %}
 
-{% include services/install.md
-    data=data
-    customInstallConfigurations=customInstallConfigurations %}
+{% include services/install2.md data=data %}
 
 ## TLS
 
@@ -129,10 +127,10 @@ Any other modifiable settings are covered by the various Elasticsearch APIs (clu
 
 Each task in the cluster performs one and only one of the following roles: master, data, ingest, coordinator.
 
-The default placement strategy specifies no constraint except that all the master nodes are distributed to different agents. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that data nodes are never colocated, or that ingest nodes are deployed on a rack with high-CPU servers.
+The default placement strategy specifies that no two nodes of any type are distributed to the same agent. You can specify further [Marathon placement constraints](http://mesosphere.github.io/marathon/docs/constraints.html) for each node type. For example, you can specify that ingest nodes are deployed on a rack with high-CPU servers.
 
-![agent](../img/private-nodes-by-agent.png)
-![vip](../img/private-node-by-vip.png)
+![agent](/dcos-commons/services/elastic/img/private-nodes-by-agent.png)
+![vip](/dcos-commons/services/elastic/img/private-node-by-vip.png)
 
 No matter how big or small the cluster is, there will always be exactly 3 master-only nodes with `minimum_master_nodes = 2`.
 
@@ -147,7 +145,7 @@ The master/data/ingest/coordinator nodes are set up to only perform their one ro
 
 ### Minimal Topology
 
-You can set up a minimal development/staging cluster without ingest nodes, or coordinator nodes. You’ll still get 3 master nodes placed on 3 separate hosts. If you don’t care about replication, you can even use just 1 data node. By default, Elasticsearch creates indices with a replication factor of 1 (i.e., 1 primary shard + 1 replica), so with 1 data node, your cluster will be stuck in a ‘yellow’ state unless you change the replication factor.
+You can set up a minimal development/staging cluster without ingest nodes, or coordinator nodes. You’ll still get 3 master nodes placed on 3 separate hosts. If you don’t care about replication, you can even use just 1 data node.
 
 Note that with X-Pack installed, the default monitoring behavior is to try to write to an ingest node every few seconds. Without an ingest node, you will see frequent warnings in your master node error logs. While they can be ignored, you can turn them off by disabling X-Pack monitoring in your cluster, like this:
 
