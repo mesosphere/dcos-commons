@@ -129,8 +129,14 @@ if [ -n "$PYTEST_ARGS" ]; then
     pytest_args+=($PYTEST_ARGS)
 fi
 
-# Now run the tests:
+# If not already set, ensure that the PYTHONPATH is correct
+if [ -n $PYTHONPATH ]; then
+    if [ -d ${REPO_ROOT_DIR}/testing ]; then
+        export PYTHONPATH=${REPO_ROOT_DIR}/testing
+    fi
+fi
 
+# Now run the tests:
 # First in the root.
 if [ -d ${REPO_ROOT_DIR}/tests ]; then
     FRAMEWORK_TESTS_DIR=${REPO_ROOT_DIR}/tests
