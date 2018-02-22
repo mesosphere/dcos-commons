@@ -12,7 +12,7 @@ to the current working directory.
 *Note:* If these files exist in the `$(pwd)` folder, they will be overwritten.
 
 ## Running tests
-With the test utilities in place, the tests for the framework(s) in the current folder can be run using:
+With the testing utilities in place, the tests for the framework(s) in the current folder can be run using:
 
 ```bash
 CLUSTER_URL=$(dcos config show core.dcos_url) ./test.sh
