@@ -5,7 +5,7 @@
     "container": {
         "type": "MESOS",
         "docker": {
-            "image": "elezar/hdfs-client:dev",
+            "image": "nvaziri/hdfs-client:stable",
             "forcePullImage": true
         },
         "volumes": [
