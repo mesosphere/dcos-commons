@@ -6,7 +6,7 @@
 
 #### Setup the Service Account
 
-[Grant](https://docs.mesosphere.com/1.10/security/ent/perms-management/) the service account the correct permissions.
+[Grant](https://docs.mesosphere.com/latest/security/ent/perms-management/) the service account the correct permissions.
 - In DC/OS 1.10, the required permission is `dcos:superuser full`.
 - In DC/OS 1.11+ the required permissions are:
 ```

@@ -8,7 +8,7 @@ menuWeight: 22
 
 # DC/OS Elastic Security
 
-The DC/OS Elastic service supports Elastic's Xpack transport encryption mechanisms. The service provides automation and orchestration to simplify the usage of these important features. At this time, X-Pack's authentication and authorization features are not supported.
+The DC/OS Elastic service supports Elastic's X-Pack transport encryption mechanisms. The service provides automation and orchestration to simplify the usage of these important features. At this time, X-Pack's authentication and authorization features are not supported.
 
 A good overview of X-Pack can be found [here](https://www.elastic.co/guide/en/x-pack/current/xpack-introduction.html).
 
@@ -46,6 +46,6 @@ To use the DC/OS Kibana service in tandem with DC/OS Elastic when the latter has
     }
 }
 ```
-This configures the Kibana service to securely connect to the Elastic service.
+This configures the Kibana service to connect securely to the Elastic service.
 
-*Note*: Currently, the Kibana service does not itself support Transport Encryption.
+*Note*: Currently, the Kibana service does not support Transport Encryption for its own clients.
