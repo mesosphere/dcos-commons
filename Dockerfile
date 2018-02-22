@@ -48,3 +48,11 @@ RUN mkdir /dcos-commons-dist
 ENV DCOS_COMMONS_DIST_ROOT /dcos-commons-dist
 COPY test.sh ${DCOS_COMMONS_DIST_ROOT}/
 COPY TESTING.md ${DCOS_COMMONS_DIST_ROOT}/
+
+COPY conftest.py ${DCOS_COMMONS_DIST_ROOT}/
+
+COPY testing ${DCOS_COMMONS_DIST_ROOT}/testing
+COPY tools ${DCOS_COMMONS_DIST_ROOT}/tools
+
+COPY build.gradle ${DCOS_COMMONS_DIST_ROOT}/build.gradle
+RUN grep -oE "version = '.*?'" ${DCOS_COMMONS_DIST_ROOT}/build.gradle | sed 's/version = //' > ${DCOS_COMMONS_DIST_ROOT}/.version

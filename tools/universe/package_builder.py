@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _jre_url = 'https://downloads.mesosphere.com/java/server-jre-8u162-linux-x64.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-master-28f8827.tar.gz'
+_dcos_sdk_version = '0.41.0-SNAPSHOT'
 
 _docs_root = "https://docs.mesosphere.com"
 
@@ -153,7 +154,8 @@ class UniversePackageBuilder(object):
             'documentation-path': self._get_documentation_path(),
             'issues-path': self._get_issues_path(),
             'jre-url': _jre_url,
-            'libmesos-bundle-url': _libmesos_bundle_url
+            'libmesos-bundle-url': _libmesos_bundle_url,
+            'dcos-sdk-version': _dcos_sdk_version
         }
 
         # look for any 'sha256:filename' or 'sha256:filename@url' template params, and get shas for those.
