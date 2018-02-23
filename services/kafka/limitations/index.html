@@ -260,6 +260,10 @@
       
       
       
+      
+      
+      
+      
       <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
       <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
     </ul>
@@ -299,6 +303,10 @@
           
           
           
+          <li><a href="/dcos-commons/services/cassandra/security/">Security</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
           
           
@@ -323,19 +331,19 @@
           
           
           
-          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/cassandra/common-operations/">Common Operations</a></li>
           
           
           
-          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/cassandra/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
           
           
           
@@ -378,6 +386,10 @@
           
           
           <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/security/">Security</a></li>
           
           
           
@@ -475,7 +487,7 @@
           
           
           
-          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
           
           
           
@@ -487,7 +499,7 @@
           
           
           
-          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
           
           
           
@@ -545,11 +557,11 @@
           
           
           
-          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/kafka/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
           
           
           
@@ -634,7 +646,7 @@
 
 <p>Kerberos authentication can be toggled (enabled / disabled), but this triggers a rolling restart of the cluster. Clients configured with the old security settings will lose connectivity during and after this process. It is recommended that backups are made and downtime is scheduled.</p>
 
-<h3 id="toggling-tls">Toggling TLS</h3>
+<h3 id="toggling-transport-encryption">Toggling Transport Encryption</h3>
 
 <p>Transport encryption using TLS can be toggled (enabled / disabled), but will trigger a rolling restart of the cluster. As each broker restarts, a client may lose connectivity based on its security settings and the value of the <code class="highlighter-rouge">service.security.transport_encryption.allow_plaintext</code> configuration option. It is recommended that backups are made and downtime is scheduled.</p>
 

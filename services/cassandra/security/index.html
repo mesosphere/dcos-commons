@@ -9,7 +9,7 @@
 
 
 <head>
-<title>Kafka: Release Notes</title>
+<title>Cassandra: Security</title>
 <link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
 <link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
 <!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
@@ -600,78 +600,66 @@
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
-<h1>Kafka: Release Notes</h1>
+<h1>Cassandra: Security</h1>
 <div id="content">
 
-<h2 id="version-204-100">Version 2.0.4-1.0.0</h2>
+<h1 id="dcos-apache-cassandra-security">DC/OS Apache Cassandra Security</h1>
 
-<h3 id="updates">Updates</h3>
+<p>The DC/OS Apache Cassandra service supports Apache Cassandra’s native transport encryption mechanisms. The service provides automation and orchestration to simplify the usage of these important features. At this time, Apache Cassandra’s authentication and authorization features are not supported.</p>
+
+<p><em>Note</em>: These security features are only available on DC/OS Enterprise 1.10 and above.</p>
+
+<h2 id="transport-encryption">Transport Encryption</h2>
+
+<p>With transport encryption enabled, DC/OS Apache Cassandra will automatically deploy all nodes with the correct configuration to encrypt communication via SSL. The nodes will communicate securely between themselves using SSL.</p>
+
+<p>The service uses the <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/">DC/OS CA</a> to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service’s certificates valid.</p>
+
+<h3 id="prerequisites">Prerequisites</h3>
 <ul>
-  <li>Upgraded to Kafka v1.0.0. <strong>Note:</strong> Protocol and log version defaults are set to 0.11.0. After upgrading to this version, they may be set to 1.0.0.</li>
+  <li><a href="https://docs.mesosphere.com/latest/security/ent/service-auth/custom-service-auth/">A DC/OS Service Account with a secret stored in the DC/OS Secret Store</a>.</li>
+  <li>DC/OS Superuser permissions for modifying the permissions of the Service Account.</li>
 </ul>
 
-<h2 id="version-211-100-beta">Version 2.1.1-1.0.0-beta</h2>
+<h3 id="configure-transport-encryption">Configure Transport Encryption</h3>
 
-<h3 id="notice">NOTICE</h3>
-<p>This is a beta release of the DC/OS Apache Kafka framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
+<h4 id="setup-the-service-account">Setup the Service Account</h4>
 
-<h3 id="bug-fixes">Bug Fixes</h3>
+<p><a href="https://docs.mesosphere.com/latest/security/ent/perms-management/">Grant</a> the service account the correct permissions.</p>
 <ul>
-  <li>Scheduler health check now passes during service uninstall.</li>
-  <li>Fixed a regression in replacing failed pods on failed agents.</li>
-  <li>Replacing a pod on a failed agent now no longer waits for Mesos to register the agent as lost.</li>
+  <li>In DC/OS 1.10, the required permission is <code class="highlighter-rouge">dcos:superuser full</code>.</li>
+  <li>In DC/OS 1.11+ the required permissions are:
+    <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos:secrets:default:/&lt;service name&gt;/* full
+dcos:secrets:list:default:/&lt;service name&gt; read
+dcos:adminrouter:ops:ca:rw full
+dcos:adminrouter:ops:ca:ro full
+</code></pre></div>    </div>
+    <p>where <code class="highlighter-rouge">&lt;service name&gt;</code> is the name of the service to be installed.</p>
+  </li>
 </ul>
 
-<h2 id="version-300-100-beta">Version 3.0.0-1.0.0-beta</h2>
+<h4 id="install-the-service">Install the service</h4>
+<p>Install the DC/OS Apache Cassandra service including the following options in addition to your own:</p>
+<div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"service_account"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;your service account name&gt;"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"service_account_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;full path of service secret&gt;"</span><span class="p">,</span><span class="w">
+        </span><span class="s2">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"transport_encryption"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"allow_plaintext"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div></div>
 
-<h3 id="notice-1">NOTICE</h3>
-<p>This is a beta release of the DC/OS Kafka framework. It contains multiple improvements as well as new features that are to be considered of beta quality. Do <em>not</em> operate this version in production.</p>
+<p><em>Note</em>: It is possible to update a running DC/OS Apache Cassandra service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your  clients will need to be reconfigured unless <code class="highlighter-rouge">service.security.transport_encryption.allow_plaintext</code> is set to <code class="highlighter-rouge">true</code>.</p>
 
-<h3 id="new-features">New features</h3>
-<ul>
-  <li>Support for the automated provisioning of TLS artifacts to secure Kafka communication.</li>
-  <li>Support for Kerberos and SSL authorization and authentication.</li>
-  <li>Support for <code class="highlighter-rouge">Zone</code> placement constraints in DC/OS 1.11 (beta versions of DC/OS 1.11 coming soon).</li>
-</ul>
+<h4 id="transport-encryption-clients">Transport Encryption Clients</h4>
 
-<h3 id="updates-1">Updates</h3>
-<ul>
-  <li>Major improvements to the stability and performance of service orchestration.</li>
-  <li>The service now uses Kafka v1.0.0. Note that the broker protocol version defaults to 1.0.0, but can be manually set to 1.0.0 if desired.</li>
-</ul>
+<p>With Transport Encryption enabled, service clients will need to be configured to use <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the connections they make to the service. Consult your client’s documentation for trusting a CA and configure your client appropriately.</p>
 
-<h2 id="version-1127-0110-beta">Version 1.1.27-0.11.0-beta</h2>
-
-<h3 id="improvements">Improvements</h3>
-<ul>
-  <li>Support for Kafka’s graceful shutdown.</li>
-  <li>Update to 0.11.0.0 version of Apache Kafka.</li>
-  <li>Default broker protocol and log message formats now default to 0.11.0.0.</li>
-  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.30.0">dcos-commons 0.30.0</a>.</li>
-</ul>
-
-<h3 id="bug-fixes-1">Bug Fixes</h3>
-<ul>
-  <li>Numerous fixes and enhancements to service reliability.</li>
-</ul>
-
-<h2 id="version-1126-01010-beta">Version 1.1.26-0.10.1.0-beta</h2>
-
-<h3 id="new-features-1">New Features</h3>
-<ul>
-  <li>Installation in folders is supported</li>
-  <li>Use of a CNI network is supported</li>
-</ul>
-
-<h3 id="improvements-1">Improvements</h3>
-<ul>
-  <li>Upgrade to <a href="https://github.com/mesosphere/dcos-commons/releases/tag/0.20.1">dcos-commons 0.20.1</a></li>
-  <li>Default user is now <code class="highlighter-rouge">nobody</code></li>
-  <li>Allow configuration of scheduler log level</li>
-  <li>Readiness check has been added</li>
-  <li>Custom ZK configuration is supported</li>
-  <li>Statsd is enabled</li>
-</ul>
 
 </div>
 </div>

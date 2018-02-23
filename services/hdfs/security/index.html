@@ -260,6 +260,10 @@
       
       
       
+      
+      
+      
+      
       <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
       <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
     </ul>
@@ -299,6 +303,10 @@
           
           
           
+          <li><a href="/dcos-commons/services/cassandra/security/">Security</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
           
           
@@ -323,19 +331,19 @@
           
           
           
-          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/cassandra/common-operations/">Common Operations</a></li>
           
           
           
-          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/cassandra/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
           
           
           
@@ -378,6 +386,10 @@
           
           
           <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/security/">Security</a></li>
           
           
           
@@ -475,7 +487,7 @@
           
           
           
-          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
           
           
           
@@ -487,7 +499,7 @@
           
           
           
-          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
           
           
           
@@ -545,11 +557,11 @@
           
           
           
-          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/kafka/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
           
           
           
@@ -605,7 +617,7 @@
 
 <p>The service uses the <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/">DC/OS CA</a> to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service’s certificates valid.</p>
 
-<p><em>Note</em>: Enabling transport encryption is not <em>required</em> to use <a href="#kerberos-authn">Kerberos authentication</a>, but transport encryption <em>can</em> be combined with Kerberos authentication.</p>
+<p><em>Note</em>: Enabling transport encryption is not <em>required</em> to use <a href="#kerberos-authentication">Kerberos authentication</a>, but transport encryption <em>can</em> be combined with Kerberos authentication.</p>
 
 <h3 id="prerequisites">Prerequisites</h3>
 <ul>
@@ -617,7 +629,7 @@
 
 <h4 id="setup-the-service-account">Setup the Service Account</h4>
 
-<p><a href="https://docs.mesosphere.com/1.10/security/ent/perms-management/">Grant</a> the service account the correct permissions.</p>
+<p><a href="https://docs.mesosphere.com/latest/security/ent/perms-management/">Grant</a> the service account the correct permissions.</p>
 <ul>
   <li>In DC/OS 1.10, the required permission is <code class="highlighter-rouge">dcos:superuser full</code>.</li>
   <li>In DC/OS 1.11+ the required permissions are:
@@ -645,6 +657,10 @@ dcos:adminrouter:ops:ca:ro full
     </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
+
+<h4 id="transport-encryption-clients">Transport Encryption Clients</h4>
+
+<p>With Transport Encryption enabled, service clients will need to be configured to use <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the connections they make to the service. Consult your client’s documentation for trusting a CA and configure your client appropriately.</p>
 
 <!--
 TO BE CONFIRMED

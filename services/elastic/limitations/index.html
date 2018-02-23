@@ -260,6 +260,10 @@
       
       
       
+      
+      
+      
+      
       <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
       <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
     </ul>
@@ -299,6 +303,10 @@
           
           
           
+          <li><a href="/dcos-commons/services/cassandra/security/">Security</a></li>
+          
+          
+          
           <li><a href="/dcos-commons/services/cassandra/cassandra-settings/">Cassandra Settings</a></li>
           
           
@@ -323,19 +331,19 @@
           
           
           
-          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/cassandra/common-operations/">Common Operations</a></li>
           
           
           
-          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/cassandra/overview/">Overview</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/api-reference/">API Reference</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/cassandra/diagnostic-tools/">Diagnostic Tools</a></li>
           
           
           
@@ -378,6 +386,10 @@
           
           
           <li><a href="/dcos-commons/services/elastic/elastic-x-pack/">X-Pack</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/elastic/security/">Security</a></li>
           
           
           
@@ -475,7 +487,7 @@
           
           
           
-          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
+          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
           
           
           
@@ -487,7 +499,7 @@
           
           
           
-          <li><a href="/dcos-commons/services/hdfs/diagnostic-tools/">Diagnostic Tools</a></li>
+          <li><a href="/dcos-commons/services/hdfs/api-reference/">API Reference</a></li>
           
           
           
@@ -545,11 +557,11 @@
           
           
           
-          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
-          
-          
-          
           <li><a href="/dcos-commons/services/kafka/common-operations/">Common Operations</a></li>
+          
+          
+          
+          <li><a href="/dcos-commons/services/kafka/api-reference/">API Reference</a></li>
           
           
           
@@ -631,9 +643,13 @@
 
 <p>Upgrades and rolling configuration updates do not wait for a green status. During deployment and upgrades, the <code class="highlighter-rouge">serial</code> strategy does not wait for the Elastic service to reach green before proceeding to the next node.</p>
 
-<h2 id="toggling-tls">Toggling TLS</h2>
+<h2 id="security">Security</h2>
 
-<p>Toggling TLS requires doing a full-cluster restart. This is an <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html">Elasticsearch limitation</a>. Since the service’s default update strategy is a rolling upgrade (<code class="highlighter-rouge">serial</code>) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). A full-cluster restart is required (using the <code class="highlighter-rouge">parallel</code> update strategy). Make sure to have backups and plan for some downtime.</p>
+<p>Elastic’s native authentication and authorization mechanisms are not supported at this time.</p>
+
+<h3 id="transport-encryption">Transport Encryption</h3>
+
+<p>Toggling Transport Encryption requires doing a full-cluster restart. This is an <a href="https://www.elastic.co/guide/en/elasticsearch/reference/current/configuring-tls.html">Elasticsearch limitation</a>. Since the service’s default update strategy is a rolling upgrade (<code class="highlighter-rouge">serial</code>) changing its configuration to enable (or disable) transport encryption will result in nodes configured with TLS not being able to communicate with nodes configured with unencrypted networking (and vice-versa). A full-cluster restart is required (using the <code class="highlighter-rouge">parallel</code> update strategy). Make sure to have backups and plan for some downtime.</p>
 
 <p>Afterwards, you should set the update strategy back to <code class="highlighter-rouge">serial</code> for future updates.</p>
 
