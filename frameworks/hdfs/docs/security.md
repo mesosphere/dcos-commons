@@ -141,16 +141,18 @@ Install the DC/OS Apache HDFS service with the following options in addition to 
 ```json
 {
     "service": {
-        "kerberos": {
-            "enabled": true,
-            "kdc": {
-                "hostname": "<kdc host>",
-                "port": <kdc port>
-            },
-            "primary": "<service primary default hdfs>",
-            "realm": "<realm>",
-            "keytab_secret": "<path to keytab secret>",
-            "debug": <true|false default false>
+        "security": {
+            "kerberos": {
+                "enabled": true,
+                "kdc": {
+                    "hostname": "<kdc host>",
+                    "port": <kdc port>
+                },
+                "primary": "<service primary default hdfs>",
+                "realm": "<realm>",
+                "keytab_secret": "<path to keytab secret>",
+                "debug": <true|false default false>
+            }
         }
     }
 }
@@ -179,7 +181,7 @@ A custom mapping must be set to map Kerberos principals to OS user names for the
 ```
 where `<custom mapping>` is a base64-encoded string.
 
-*Note*: There is _no_ default mapping. One **MUST** be set at install or update time.
+*Note*: There is _no_ default mapping. One **MUST** be set at install time or as a service update.
 
 [This](https://hortonworks.com/blog/fine-tune-your-apache-hadoop-security-settings/) article has a good description of how to build a custom mapping, under the section "Kerberos Principals and UNIX User Names".
 
