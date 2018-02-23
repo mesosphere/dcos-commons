@@ -658,7 +658,7 @@ dcos:adminrouter:ops:ca:ro full
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
 
-<h4 id="transport-encryption-clients">Transport Encryption Clients</h4>
+<h4 id="transport-encryption-for-clients">Transport Encryption for Clients</h4>
 
 <p>With Transport Encryption enabled, service clients will need to be configured to use <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the connections they make to the service. Consult your client’s documentation for trusting a CA and configure your client appropriately.</p>
 
@@ -826,16 +826,18 @@ msgType is 30
 <p>Install the DC/OS Apache HDFS service with the following options in addition to your own:</p>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
     </span><span class="s2">"service"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-        </span><span class="s2">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-            </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;kdc host&gt;"</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"port"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;kdc</span><span class="w"> </span><span class="err">port&gt;</span><span class="w">
-            </span><span class="p">},</span><span class="w">
-            </span><span class="s2">"primary"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;service primary default hdfs&gt;"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;realm&gt;"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;path to keytab secret&gt;"</span><span class="p">,</span><span class="w">
-            </span><span class="s2">"debug"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
+        </span><span class="s2">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"kerberos"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"kdc"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+                    </span><span class="s2">"hostname"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;kdc host&gt;"</span><span class="p">,</span><span class="w">
+                    </span><span class="s2">"port"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;kdc</span><span class="w"> </span><span class="err">port&gt;</span><span class="w">
+                </span><span class="p">},</span><span class="w">
+                </span><span class="s2">"primary"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;service primary default hdfs&gt;"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"realm"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;realm&gt;"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"keytab_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;path to keytab secret&gt;"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"debug"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
+            </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
@@ -865,7 +867,7 @@ msgType is 30
 </code></pre></div></div>
 <p>where <code class="highlighter-rouge">&lt;custom mapping&gt;</code> is a base64-encoded string.</p>
 
-<p><em>Note</em>: There is <em>no</em> default mapping. One <strong>MUST</strong> be set at install or update time.</p>
+<p><em>Note</em>: There is <em>no</em> default mapping. One <strong>MUST</strong> be set at install time or as a service update.</p>
 
 <p><a href="https://hortonworks.com/blog/fine-tune-your-apache-hadoop-security-settings/">This</a> article has a good description of how to build a custom mapping, under the section “Kerberos Principals and UNIX User Names”.</p>
 

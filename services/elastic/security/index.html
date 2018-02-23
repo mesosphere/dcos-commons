@@ -662,7 +662,7 @@ dcos:adminrouter:ops:ca:ro full
 
 <p><em>Note</em> It is possible to enable Transport Encryption after initial installation, but it requires setting <code class="highlighter-rouge">service.update_strategy</code> to <code class="highlighter-rouge">parallel</code>. After the update is complete, <code class="highlighter-rouge">service.update_strategy</code> should be set back to <code class="highlighter-rouge">serial</code>. Because the update must occur in parallel, the service <strong>WILL</strong> be unavailable during the transition. Additionally, clients will need to be reconfigured after the transition.</p>
 
-<h4 id="transport-encryption-clients">Transport Encryption Clients</h4>
+<h4 id="transport-encryption-for-clients">Transport Encryption for Clients</h4>
 
 <p>With Transport Encryption enabled, service clients will need to be configured to use <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/get-cert/">the DC/OS CA bundle</a> to verify the connections they make to the service. Consult your client’s documentation for trusting a CA and configure your client appropriately.</p>
 
