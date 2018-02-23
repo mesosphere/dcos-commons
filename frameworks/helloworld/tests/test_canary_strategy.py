@@ -27,7 +27,7 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             0,
             additional_options={
-                'service': {'spec_file': 'examples/canary.yml'},
+                'service': {'yaml': 'canary'},
                 'hello': {'count': 4},
                 'world': {'count': 4}
             },
