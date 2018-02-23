@@ -301,17 +301,6 @@ def test_plugin_install_and_uninstall(default_populated_index):
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-@pytest.mark.skip(reason="INFINITY-3216")
-def test_unchanged_scheduler_restarts_without_restarting_tasks():
-    initial_task_ids = sdk_tasks.get_task_ids(foldered_name, '')
-    shakedown.kill_process_on_host(sdk_marathon.get_scheduler_host(foldered_name), "elastic.scheduler.Main")
-    sdk_tasks.check_tasks_not_updated(foldered_name, '', initial_task_ids)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
-
-
-@pytest.mark.recovery
-@pytest.mark.sanity
 def test_bump_node_counts():
     # bump ingest and coordinator, but NOT data, which is bumped in the following test.
     # we want to avoid adding two data nodes because the cluster sometimes won't have enough room for it
