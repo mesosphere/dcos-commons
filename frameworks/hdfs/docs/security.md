@@ -141,16 +141,18 @@ Install the DC/OS Apache HDFS service with the following options in addition to 
 ```json
 {
     "service": {
-        "kerberos": {
-            "enabled": true,
-            "kdc": {
-                "hostname": "<kdc host>",
-                "port": <kdc port>
-            },
-            "primary": "<service primary default hdfs>",
-            "realm": "<realm>",
-            "keytab_secret": "<path to keytab secret>",
-            "debug": <true|false default false>
+        "security": {
+            "kerberos": {
+                "enabled": true,
+                "kdc": {
+                    "hostname": "<kdc host>",
+                    "port": <kdc port>
+                },
+                "primary": "<service primary default hdfs>",
+                "realm": "<realm>",
+                "keytab_secret": "<path to keytab secret>",
+                "debug": <true|false default false>
+            }
         }
     }
 }
