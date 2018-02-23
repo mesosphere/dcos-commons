@@ -805,7 +805,7 @@ hello-0-server  10.0.3.117  nobody    R    hello-0-server__3007283c-837d-48e1-aa
 </code></pre></div>                </div>
               </li>
               <li><code class="highlighter-rouge">FINISH</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it is rerun. To demonstrate, let’s assume that we’ve now launched hello-world with the <code class="highlighter-rouge">finish_state.yml</code> specfile, like so:
-                <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo '{"service": {"spec_file": "examples/finish_state.yml"}}' &gt; options.json
+                <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo '{"service": {"yaml": "finish_state"}}' &gt; options.json
 $ dcos package install --yes hello-world --options=options.json
 </code></pre></div>                </div>
                 <p>Once again, we wait for the deploy plan to complete, as above, and take note of the ID of the <code class="highlighter-rouge">world-0-finish</code> task (this time using the <code class="highlighter-rouge">--completed</code> flag, since the task has run to completion):</p>
@@ -829,7 +829,7 @@ world-0-finish  10.0.3.117  nobody    F    world-0-finish__bd03efc2-26a0-4e36-a3
 </code></pre></div>                </div>
               </li>
               <li><code class="highlighter-rouge">ONCE</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it will not be rerun. To demonstrate, let’s assume that this time we’ve launched hello-world with the <code class="highlighter-rouge">discovery.yml</code> specfile, like so:&lt;/li&gt;
-                <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo '{"service": {"spec_file": "examples/discovery.yml"}}' &gt; options.json
+                <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo '{"service": {"yaml": "discovery"}}' &gt; options.json
 $ dcos package install --yes hello-world --options=options.json
 </code></pre></div>                </div>
                 <p>Again we wait for the deploy plan to complete and take note of the ID of the <code class="highlighter-rouge">hello-0-once</code> task, using the <code class="highlighter-rouge">--completed</code> flag since that task has run to completion:</p>
