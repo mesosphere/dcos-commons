@@ -12,7 +12,7 @@
 ---
 __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration and automation of stateful services, such as databases, message brokers, and caching services.
 
-![Status](https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square)
+![Status](https://img.shields.io/badge/Status-Beta-BF97F0.svg?style=flat-square)
 
 DC/OS SDK is progressing toward a 1.0 release, but as such is still under heavy development.
 
