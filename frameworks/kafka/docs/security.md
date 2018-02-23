@@ -126,7 +126,7 @@ Install the DC/OS Apache Kafka service with the following options in addition to
     }
 }
 ```
-The DC/OS Apache ZooKeeper service, package `kafka-zookeeper`, is intended for this purpose and supports Kerberos.
+The DC/OS Apache ZooKeeper service (`kafka-zookeeper` package) is intended for this purpose and supports Kerberos.
 
 *Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured.
 

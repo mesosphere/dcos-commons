@@ -21,6 +21,6 @@ The DC/OS Apache Cassandra service supports Apache Cassandra's native transport 
     techName="Apache Cassandra"
     plaintext="true" %}
 
-*Note*: It is possible to update a running DC/OS Apache Cassandra service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your  clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to `true`.
+*Note*: It is possible to update a running DC/OS Apache Cassandra service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to `true`.
 
 {% include services/security-transport-encryption-clients.md %}
