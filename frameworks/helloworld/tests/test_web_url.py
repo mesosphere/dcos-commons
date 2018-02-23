@@ -14,7 +14,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {
             "service": {
-                "spec_file": "examples/web-url.yml"
+                "yaml": "web-url"
             }
         }
 

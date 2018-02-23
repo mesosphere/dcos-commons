@@ -88,7 +88,7 @@ public class ServiceTest {
         // Matching ExecutorInfo == same pod:
         ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
 
-        new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
+        new ServiceTestRunner("nonessential_tasks.yml").run(ticks);
     }
 
     /**
@@ -138,7 +138,7 @@ public class ServiceTest {
         // Matching ExecutorInfo == same pod:
         ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
 
-        new ServiceTestRunner("examples/nonessential_tasks.yml").run(ticks);
+        new ServiceTestRunner("nonessential_tasks.yml").run(ticks);
     }
 
     /**
@@ -166,7 +166,7 @@ public class ServiceTest {
         ticks.add(Expect.taskIdKilled(taskId));
         ticks.add(Expect.taskNameNotKilled("hello-0-server"));
 
-        new ServiceTestRunner("examples/simple.yml").run(ticks);
+        new ServiceTestRunner("simple.yml").run(ticks);
     }
 
     /**
@@ -674,7 +674,7 @@ public class ServiceTest {
                 "WORLD_SECRET3", "hello-world/secret3"));
 
         // Iterate over yml files in dist/examples/, run sanity check for each:
-        File[] exampleFiles = ServiceTestRunner.getDistFile("examples").listFiles();
+        File[] exampleFiles = ServiceTestRunner.getDistDir().listFiles();
         Assert.assertNotNull(exampleFiles);
         Assert.assertTrue(exampleFiles.length != 0);
         for (File examplesFile : exampleFiles) {

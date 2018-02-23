@@ -23,7 +23,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             4,
-            additional_options={ "service": { "spec_file": "examples/overlay.yml" } })
+            additional_options={ "service": { "yaml": "overlay" } })
 
         yield # let the test session execute
     finally:
