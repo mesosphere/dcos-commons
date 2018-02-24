@@ -113,6 +113,8 @@ pods:
               curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION
               touch journal-data/uploadedVersionFile
             fi
+            # check for presence of these env vars to ensure equality check isn't false positive
+            [[ ! -z $LAGGING_TX_COUNT ]] && [[ ! -z $WRITTEN_TX_COUNT ]] &&
             [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
           delay: 30
           interval: 5
