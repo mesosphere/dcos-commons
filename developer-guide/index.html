@@ -2255,6 +2255,8 @@ ZONE: us-west-2a
 
 <p>The placement rule above would apply the <code class="highlighter-rouge">GROUP_BY</code> operator to zones.</p>
 
+<p>If the placement constraint for a pod defined in the service YAML references a zone as in the above example, the scheduler will create an environment variable in the environment of every task in that pod type called <code class="highlighter-rouge">PLACEMENT_REFERENCED_ZONE</code> and set it to <code class="highlighter-rouge">true</code>. Command definitions for tasks can use this to indicate to the base technology that it should operate in a region-aware fashion.</p>
+
 <h2 id="regions-beta">
 <a id="regions-beta" class="anchor" href="#regions-beta" aria-hidden="true"><span class="octicon octicon-link"></span></a>Regions (beta)</h2>
 
