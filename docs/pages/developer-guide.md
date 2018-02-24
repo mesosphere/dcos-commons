@@ -1371,6 +1371,8 @@ Services may choose to use this information to enable rack awareness. Users may 
 
 The placement rule above would apply the `GROUP_BY` operator to zones.
 
+If the placement constraint for a pod defined in the service YAML references a zone as in the above example, the scheduler will create an environment variable in the environment of every task in that pod type called `PLACEMENT_REFERENCED_ZONE` and set it to `true`. Command definitions for tasks can use this to indicate to the base technology that it should operate in a region-aware fashion.
+
 ## Regions (beta)
 
 The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
