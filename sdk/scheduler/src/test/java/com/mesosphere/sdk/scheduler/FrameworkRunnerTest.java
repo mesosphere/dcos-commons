@@ -40,7 +40,7 @@ public class FrameworkRunnerTest {
         Assert.assertTrue(info.getCheckpoint());
         Assert.assertEquals("/path/to/test-service-principal", info.getPrincipal());
         Assert.assertFalse(info.hasId());
-        Assert.assertEquals("path__to__test-service-role", info.getRole());
+        checkRole(Optional.of("path__to__test-service-role"), info);
         Assert.assertEquals(0, info.getRolesCount());
         Assert.assertEquals(0, info.getCapabilitiesCount());
         Assert.assertFalse(info.hasWebuiUrl());
@@ -59,7 +59,7 @@ public class FrameworkRunnerTest {
         Assert.assertTrue(info.getCheckpoint());
         Assert.assertEquals("/path/to/test-service-principal", info.getPrincipal());
         Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
-        Assert.assertEquals("path__to__test-service-role", info.getRole());
+        checkRole(Optional.of("path__to__test-service-role"), info);
         Assert.assertEquals(0, info.getRolesCount());
         Assert.assertEquals(0, info.getCapabilitiesCount());
         Assert.assertFalse(info.hasWebuiUrl());
@@ -89,7 +89,7 @@ public class FrameworkRunnerTest {
         Assert.assertTrue(info.getCheckpoint());
         Assert.assertEquals("custom-principal", info.getPrincipal());
         Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
-        Assert.assertFalse(info.hasRole());
+        checkRole(Optional.empty(), info);
         Assert.assertEquals(Arrays.asList("path__to__test-service-role", "role1", "role2", "role3"), info.getRolesList());
         Assert.assertEquals(Arrays.asList(
                 getCapability(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE),
@@ -103,9 +103,19 @@ public class FrameworkRunnerTest {
         return Protos.FrameworkInfo.Capability.newBuilder().setType(type).build();
     }
 
+    @SuppressWarnings("deprecation")
+    private static void checkRole(Optional<String> expectedRole, Protos.FrameworkInfo info) {
+        if (expectedRole.isPresent()) {
+            Assert.assertEquals(info.getRole(), expectedRole.get());
+        } else {
+            Assert.assertFalse(info.hasRole());
+        }
+    }
+
     private static Map<String, String> getMinimalMap() {
         Map<String, String> map = new HashMap<>();
         map.put("FRAMEWORK_NAME", "/path/to/test-service");
+        // Required by SchedulerConfig:
         map.put("PACKAGE_NAME", "test-package");
         map.put("PACKAGE_VERSION", "1.5");
         map.put("PACKAGE_BUILD_TIME_EPOCH_MS", "1234567890");

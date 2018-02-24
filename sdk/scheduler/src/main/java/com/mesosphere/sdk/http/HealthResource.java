@@ -11,7 +11,7 @@ import com.mesosphere.sdk.scheduler.plan.PlanManager;
 /**
  * A read-only API for checking whether the service is healthy.
  */
-@Path("/v1/health")
+@Path("health")
 public class HealthResource {
 
     private final Collection<PlanManager> planManagers = new ArrayList<>();

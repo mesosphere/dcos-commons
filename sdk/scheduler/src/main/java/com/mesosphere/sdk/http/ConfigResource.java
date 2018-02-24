@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
  *
  * @param <T> The configuration type which is being stored by the framework.
  */
-@Path("/v1/configurations")
+@Path("configurations")
 public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());

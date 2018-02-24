@@ -310,7 +310,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 throw new IllegalArgumentException("Failed to convert loopback ServiceSpec to String", e);
             }
 
-            StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
+            StringBuilder error = new StringBuilder();
             error.append("Equality test failed: Loopback result is not equal to original:\n");
             error.append("- Original:\n");
             error.append(originalSpecString);

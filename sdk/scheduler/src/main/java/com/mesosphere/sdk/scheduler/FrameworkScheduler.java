@@ -169,14 +169,12 @@ public class FrameworkScheduler implements Scheduler {
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
-        // TODO: Add recovery optimizations relevant to loss of an Agent.  TaskStatus updates are sufficient now.
         LOGGER.warn("Agent lost: {}", agentId.getValue());
     }
 
     @Override
     public void executorLost(
             SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
-        // TODO: Add recovery optimizations relevant to loss of an Executor.  TaskStatus updates are sufficient now.
         LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), agentId.getValue());
     }
 

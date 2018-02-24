@@ -34,7 +34,8 @@ public class DefaultScheduler extends ServiceScheduler {
     private final ConfigStore<ServiceSpec> configStore;
     private final PlanCoordinator planCoordinator;
     private final OfferAccepter offerAccepter;
-    private final Collection<Object> resources;
+    private final Collection<Object> customResources;
+    private final Collection<Object> defaultResources;
     private final HealthResource healthResource;
     private final PlansResource plansResource;
     private final PodResource podResource;
@@ -82,28 +83,29 @@ public class DefaultScheduler extends ServiceScheduler {
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
-        this.resources = new ArrayList<>();
-        this.resources.addAll(customResources);
-        this.resources.add(new ArtifactResource(configStore));
-        this.resources.add(new ConfigResource<>(configStore));
+        this.customResources = customResources;
+        this.defaultResources = new ArrayList<>();
+        this.defaultResources.add(new ArtifactResource(configStore));
+        this.defaultResources.add(new ConfigResource<>(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
         }
-        this.resources.add(endpointsResource);
+        this.defaultResources.add(endpointsResource);
         this.plansResource = new PlansResource();
-        this.resources.add(this.plansResource);
+        this.defaultResources.add(this.plansResource);
+        this.defaultResources.add(new DeprecatedPlanResource(plansResource));
         this.healthResource = new HealthResource();
-        this.resources.add(this.healthResource);
+        this.defaultResources.add(this.healthResource);
         this.podResource = new PodResource(
                 stateStore,
                 serviceSpec.getName(),
                 new DefaultTaskFailureListener(stateStore, configStore));
-        this.resources.add(this.podResource);
-        this.resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
+        this.defaultResources.add(this.podResource);
+        this.defaultResources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
 
         this.offerOutcomeTracker = new OfferOutcomeTracker();
-        this.resources.add(new OfferOutcomeResource(offerOutcomeTracker));
+        this.defaultResources.add(new OfferOutcomeResource(offerOutcomeTracker));
         this.planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
@@ -159,8 +161,12 @@ public class DefaultScheduler extends ServiceScheduler {
     }
 
     @Override
-    public Collection<Object> getResources() {
-        return resources;
+    public void setResourceServer(ResourceServer resourceServer) {
+        // Put our resources under "/v1/...":
+        resourceServer.addResources("v1", defaultResources);
+        // Meanwhile, custom resources can go whereever they want relative to root:
+        // TODO(nickbp): Consider having these under v1 as well. This would be an API change.
+        resourceServer.addResources("", customResources);
     }
 
     @Override

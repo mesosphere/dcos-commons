@@ -93,6 +93,16 @@ public interface MesosEventClient {
     }
 
     /**
+     * Type which accepts HTTP resource objects from a client to be served.
+     */
+    public interface ResourceServer {
+        /**
+         * Assigns the provided resources to this server. Resources will be served under the specified namespace.
+         */
+        void addResources(String namespace, Collection<Object> resources);
+    }
+
+    /**
      * Called when the framework has registered (or re-registered) with Mesos.
      */
     public void register(boolean reRegistered);
@@ -111,7 +121,8 @@ public interface MesosEventClient {
     public StatusResponse status(Protos.TaskStatus status);
 
     /**
-     * Returns any HTTP resources to be served by this instance.
+     * Adds any HTTP resources to the provided {@link ResourceServer}. The implementation may add resources to the
+     * server and return and/or keep the server around to periodically update its resources.
      */
-    public Collection<Object> getResources();
+    public void setResourceServer(ResourceServer resourceServer);
 }

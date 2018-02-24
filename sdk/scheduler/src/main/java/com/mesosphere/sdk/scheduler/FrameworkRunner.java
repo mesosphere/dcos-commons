@@ -6,8 +6,6 @@ import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.storage.Persister;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,13 +35,13 @@ public class FrameworkRunner {
     // NOTE: in multi-service case, use a single MultiMesosEventClient.
     public void registerAndRunFramework(Persister persister, MesosEventClient mesosEventClient) {
         FrameworkScheduler frameworkScheduler = new FrameworkScheduler(persister, mesosEventClient);
-        SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, mesosEventClient.getResources());
-        apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+        MesosEventClient.ResourceServer server = SchedulerApiServer.start(schedulerConfig, new Runnable() {
             @Override
-            public void lifeCycleStarted(LifeCycle event) {
+            public void run() {
                 frameworkScheduler.setReadyToAcceptOffers();
             }
         });
+        mesosEventClient.setResourceServer(server);
 
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(frameworkScheduler.fetchFrameworkId());
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));

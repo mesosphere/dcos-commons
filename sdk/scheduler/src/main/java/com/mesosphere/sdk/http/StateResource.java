@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
  * being used.
  */
-@Path("/v1/state")
+@Path("state")
 public class StateResource {
 
     private static final Logger logger = LoggerFactory.getLogger(StateResource.class);

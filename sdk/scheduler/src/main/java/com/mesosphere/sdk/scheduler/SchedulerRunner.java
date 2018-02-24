@@ -8,8 +8,6 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,14 +94,14 @@ public class SchedulerRunner implements Runnable {
                 throw new IllegalStateException("Unable to clear all data", e);
             }
 
-            SchedulerApiServer apiServer =
-                    new SchedulerApiServer(schedulerBuilder.getSchedulerConfig(), scheduler.getResources());
-            apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
+            MesosEventClient.ResourceServer server =
+                    SchedulerApiServer.start(schedulerBuilder.getSchedulerConfig(), new Runnable() {
                 @Override
-                public void lifeCycleStarted(LifeCycle event) {
+                public void run() {
                     LOGGER.info("Started trivially healthy API server.");
                 }
             });
+            scheduler.setResourceServer(server);
         } else {
             frameworkRunner.registerAndRunFramework(scheduler.getPersister(), scheduler);
         }

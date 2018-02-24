@@ -13,7 +13,7 @@ import io.prometheus.client.dropwizard.DropwizardExports;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.mesos.Protos;
-import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 /**
@@ -41,18 +41,18 @@ public class Metrics {
      * metrics.
      */
     public static void configureMetricsEndpoints(
-            ServletContextHandler context, String codahaleMetricsEndpoint, String prometheusEndpoint) {
+            ServletHandler handler, String codahaleMetricsEndpoint, String prometheusEndpoint) {
         // Metrics
         ServletHolder codahaleMetricsServlet = new ServletHolder("default",
                 new com.codahale.metrics.servlets.MetricsServlet(metrics));
-        context.addServlet(codahaleMetricsServlet, codahaleMetricsEndpoint);
+        handler.addServletWithMapping(codahaleMetricsServlet, codahaleMetricsEndpoint);
 
         // Prometheus
         CollectorRegistry collectorRegistry = new CollectorRegistry();
         collectorRegistry.register(new DropwizardExports(metrics));
         ServletHolder prometheusServlet = new ServletHolder("prometheus",
                 new io.prometheus.client.exporter.MetricsServlet(collectorRegistry));
-        context.addServlet(prometheusServlet, prometheusEndpoint);
+        handler.addServletWithMapping(prometheusServlet, prometheusEndpoint);
     }
 
     // Offers

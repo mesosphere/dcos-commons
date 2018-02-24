@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.http.HealthResource;
+import com.mesosphere.sdk.http.DeprecatedPlanResource;
 import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
@@ -38,7 +39,7 @@ public class UninstallScheduler extends ServiceScheduler {
     private final Optional<SecretsClient> secretsClient;
 
     private PlanManager uninstallPlanManager;
-    private Collection<Object> resources = Collections.emptyList();
+    private Collection<Object> defaultResources = Collections.emptyList();
     private OfferAccepter offerAccepter;
 
     /**
@@ -86,8 +87,11 @@ public class UninstallScheduler extends ServiceScheduler {
         }
 
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(deployPlan);
-        this.resources = Arrays.asList(
-                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
+        PlansResource plansResource = new PlansResource()
+                .setPlanManagers(Collections.singletonList(uninstallPlanManager));
+        this.defaultResources = Arrays.asList(
+                plansResource,
+                new DeprecatedPlanResource(plansResource),
                 new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
 
         List<ResourceCleanupStep> resourceCleanupSteps = deployPlan.getChildren().stream()
@@ -115,8 +119,8 @@ public class UninstallScheduler extends ServiceScheduler {
     }
 
     @Override
-    public Collection<Object> getResources() {
-        return resources;
+    public void setResourceServer(ResourceServer resourceServer) {
+        resourceServer.addResources("v1", defaultResources);
     }
 
     @Override

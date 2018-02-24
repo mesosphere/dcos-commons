@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 /**
  * A read-only API for accessing file artifacts (e.g. config templates) for retrieval by executors.
  */
-@Path("/v1/artifacts")
+@Path("artifacts")
 public class ArtifactResource {
     private static final String ARTIFACT_URI_FORMAT = "http://%s/v1/artifacts/template/%s/%s/%s/%s";
 

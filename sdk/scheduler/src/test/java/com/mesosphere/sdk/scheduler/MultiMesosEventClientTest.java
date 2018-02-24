@@ -69,6 +69,27 @@ public class MultiMesosEventClientTest {
     }
 
     @Test
+    public void putRemoveClients() {
+        Assert.assertNull(client.removeClient("1"));
+
+        client.putClient("1", mockClient1);
+        Assert.assertSame(mockClient1, client.removeClient("1"));
+        Assert.assertNull(client.removeClient("1"));
+
+        client.putClient("2", mockClient2);
+        try {
+            client.putClient("2", mockClient1);
+            Assert.fail("Expected exception: duplicate key");
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
+        Assert.assertNull(client.removeClient("1"));
+        // Client should still have the original value that was successfully added:
+        Assert.assertSame(mockClient2, client.removeClient("2"));
+        Assert.assertNull(client.removeClient("2"));
+    }
+
+    @Test
     public void offerNoClients() {
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
@@ -91,15 +112,15 @@ public class MultiMesosEventClientTest {
         when(mockClient2.offers(any())).then(DROP_LAST_OFFER);
         when(mockClient3.offers(any())).then(OFFER_NOT_READY);
         client
-                .addClient(mockClient1)
-                .addClient(mockClient2)
-                .addClient(mockClient3)
-                .addClient(mockClient1)
-                .addClient(mockClient2)
-                .addClient(mockClient3)
-                .addClient(mockClient1)
-                .addClient(mockClient2)
-                .addClient(mockClient3);
+                .putClient("1", mockClient1)
+                .putClient("2", mockClient2)
+                .putClient("3", mockClient3)
+                .putClient("4", mockClient1)
+                .putClient("5", mockClient2)
+                .putClient("6", mockClient3)
+                .putClient("7", mockClient1)
+                .putClient("8", mockClient2)
+                .putClient("9", mockClient3);
 
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
@@ -128,9 +149,9 @@ public class MultiMesosEventClientTest {
         // All three clients: Not ready
         when(mockClient1.offers(any())).then(OFFER_NOT_READY);
         client
-                .addClient(mockClient1)
-                .addClient(mockClient1)
-                .addClient(mockClient1);
+                .putClient("1", mockClient1)
+                .putClient("2", mockClient1)
+                .putClient("3", mockClient1);
 
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
@@ -151,9 +172,9 @@ public class MultiMesosEventClientTest {
         // Client 1,2,3: unknown task
         when(mockClient1.status(any())).thenReturn(StatusResponse.unknownTask());
         client
-                .addClient(mockClient1)
-                .addClient(mockClient1)
-                .addClient(mockClient1);
+                .putClient("1", mockClient1)
+                .putClient("2", mockClient1)
+                .putClient("3", mockClient1);
 
         Protos.TaskStatus status = getStatus();
         Assert.assertEquals(StatusResponse.Result.UNKNOWN_TASK, client.status(status).result);
@@ -166,10 +187,10 @@ public class MultiMesosEventClientTest {
         when(mockClient1.status(any())).thenReturn(StatusResponse.unknownTask());
         when(mockClient2.status(any())).thenReturn(StatusResponse.processed());
         client
-                .addClient(mockClient1)
-                .addClient(mockClient1)
-                .addClient(mockClient2)
-                .addClient(mockClient1);
+                .putClient("1", mockClient1)
+                .putClient("2", mockClient1)
+                .putClient("3", mockClient2)
+                .putClient("4", mockClient1);
 
         Protos.TaskStatus status = getStatus();
         Assert.assertEquals(StatusResponse.Result.PROCESSED, client.status(status).result);

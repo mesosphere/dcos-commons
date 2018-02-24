@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
-@Path("/v1/pod")
+@Path("pod")
 public class PodResource extends PrettyJsonResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(PodResource.class);
 

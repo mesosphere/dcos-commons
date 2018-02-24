@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
-@Path("/v1/endpoints")
+@Path("endpoints")
 public class EndpointsResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EndpointsResource.class);
 

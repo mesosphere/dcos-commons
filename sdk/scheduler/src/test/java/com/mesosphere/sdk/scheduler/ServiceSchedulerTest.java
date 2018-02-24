@@ -98,8 +98,8 @@ public class ServiceSchedulerTest {
         }
 
         @Override
-        public Collection<Object> getResources() {
-            return Collections.emptyList();
+        public void setResourceServer(ResourceServer resourceServer) {
+            // Intentionally empty.
         }
 
         @Override

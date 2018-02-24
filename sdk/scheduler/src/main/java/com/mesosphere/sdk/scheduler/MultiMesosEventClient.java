@@ -2,10 +2,12 @@ package com.mesosphere.sdk.scheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-
+import java.util.Map;
 import org.apache.mesos.Protos;
+
+import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * Mesos client which wraps other clients. Used in the case where multiple services should be subscribed to mesos
@@ -13,23 +15,76 @@ import org.apache.mesos.Protos;
  */
 public class MultiMesosEventClient implements MesosEventClient {
 
-    private static final Object lock = new Object();
-    private final List<MesosEventClient> clients;
+    private static class NamespacedResourceWrapper implements MesosEventClient.ResourceServer {
 
-    public MultiMesosEventClient() {
-        this.clients = new ArrayList<>();
+        private final SchedulerApiServer server;
+        private final String namespace;
+
+        private NamespacedResourceWrapper(SchedulerApiServer server, String namespace) {
+            this.server = server;
+            this.namespace = namespace;
+        }
+
+        @Override
+        public void addResources(String parentNamespace, Collection<Object> resources) {
+            // Example: "v1/<namespace>/<resourcepath>" (with parentNamespace="v1")
+            server.addResources(PersisterUtils.join(parentNamespace, namespace), resources);
+        }
+
     }
 
-    public MultiMesosEventClient addClient(MesosEventClient client) {
-        //TODO(nickbp): Revive offers after a new client is added?
-        clients.add(client);
+    private static final Object lock = new Object();
+
+    private final Map<String, MesosEventClient> clients;
+    private SchedulerApiServer apiServer;
+
+    public MultiMesosEventClient() {
+        this.clients = new HashMap<>();
+    }
+
+    /**
+     * Adds a client which is mapped for the specified name.
+     *
+     * @param name the unique name of the client
+     * @param client the client to add
+     * @return {@code this}
+     * @throws IllegalArgumentException if the name is already present
+     */
+    public MultiMesosEventClient putClient(String name, MesosEventClient client) {
+        synchronized (lock) {
+            MesosEventClient previousClient = clients.put(name, client);
+            if (previousClient != null) {
+                // Put the old client back before throwing...
+                clients.put(name, previousClient);
+                throw new IllegalArgumentException("Client named '" + name + "' is already present");
+            }
+            if (apiServer != null) {
+                // Add the resources to our apiServer, using the provided name as a namespace:
+                client.setResourceServer(new NamespacedResourceWrapper(apiServer, name));
+            }
+        }
         return this;
+    }
+
+    /**
+     * Removes a client mapping which was previously added using the provided name.
+     *
+     * @param name the name of the client to remove
+     * @return the removed client, or {@code null} if no client with that name was found
+     */
+    public MesosEventClient removeClient(String name) {
+        synchronized (lock) {
+            if (apiServer != null) {
+                apiServer.removeResources(name);
+            }
+            return clients.remove(name);
+        }
     }
 
     @Override
     public void register(boolean reRegistered) {
         synchronized (lock) {
-            clients.stream().forEach(c -> c.register(reRegistered));
+            clients.values().stream().forEach(c -> c.register(reRegistered));
         }
     }
 
@@ -42,7 +97,7 @@ public class MultiMesosEventClient implements MesosEventClient {
         unusedOffers.addAll(offers);
 
         synchronized (lock) {
-            for (MesosEventClient client : clients) {
+            for (MesosEventClient client : clients.values()) {
                 OfferResponse response = client.offers(unusedOffers);
                 // Create a new list with unused offers. Avoid clearing in-place, in case response is the original list.
                 unusedOffers = new ArrayList<>();
@@ -68,7 +123,7 @@ public class MultiMesosEventClient implements MesosEventClient {
         // - embed the service id in task ids
         // - use status.task_id to map status => service (or kill task here if service id is unknown or invalid)
         synchronized (lock) {
-            for (MesosEventClient client : clients) {
+            for (MesosEventClient client : clients.values()) {
                 StatusResponse response = client.status(status);
                 if (response.result == StatusResponse.Result.PROCESSED) {
                     // Stop as soon as we find a matching service.
@@ -81,8 +136,19 @@ public class MultiMesosEventClient implements MesosEventClient {
     }
 
     @Override
-    public Collection<Object> getResources() {
-        // TODO(nickbp): Produce namespaced resources somehow. SchedulerApiServer has hints...
-        return Collections.emptyList();
+    public void setResourceServer(ResourceServer resourceServer) {
+        if (!(resourceServer instanceof SchedulerApiServer)) {
+            throw new IllegalArgumentException(
+                    "Expected " + SchedulerApiServer.class.getCanonicalName() +
+                    ", got " + resourceServer.getClass().getCanonicalName());
+        }
+
+        synchronized (lock) {
+            this.apiServer = (SchedulerApiServer) resourceServer;
+            for (Map.Entry<String, MesosEventClient> entry : clients.entrySet()) {
+                // Add the resources to the apiServer, using the provided name as a namespace:
+                entry.getValue().setResourceServer(new NamespacedResourceWrapper(apiServer, entry.getKey()));
+            }
+        }
     }
 }

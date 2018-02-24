@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
  *  A read-only API for accessing the most recently processed offers. It does _not_ return any information
  *  about offers that were declined but never evaluated.
  */
-@Path("/v1/debug/offers")
+@Path("debug/offers")
 public class OfferOutcomeResource {
     private final OfferOutcomeTracker offerOutcomeTracker;
 

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * API for management of Plan(s).
  */
-@Path("/v1")
+@Path("plans")
 public class PlansResource extends PrettyJsonResource {
 
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
@@ -64,7 +64,7 @@ public class PlansResource extends PrettyJsonResource {
      * Returns list of all configured plans.
      */
     @GET
-    @Path("/plans")
+    @Path("")
     public Response listPlans() {
         return jsonOkResponse(new JSONArray(getPlanNames()));
     }
@@ -73,7 +73,7 @@ public class PlansResource extends PrettyJsonResource {
      * Returns a full list of the {@link Plan}'s contents (incl all {@link Phase}s/{@link Step}s).
      */
     @GET
-    @Path("/plans/{planName}")
+    @Path("{planName}")
     public Response getPlanInfo(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
@@ -95,7 +95,7 @@ public class PlansResource extends PrettyJsonResource {
      * plan proceed.  If a plan is already in progress, it has no effect.
      */
     @POST
-    @Path("/plans/{planName}/start")
+    @Path("{planName}/start")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response startPlan(@PathParam("planName") String planName, Map<String, String> parameters) {
         try {
@@ -132,7 +132,7 @@ public class PlansResource extends PrettyJsonResource {
      * @see #interruptCommand(String, String) for the distinctions between Stop and Interrupt actions.
      */
     @POST
-    @Path("/plans/{planName}/stop")
+    @Path("{planName}/stop")
     public Response stopPlan(@PathParam("planName") String planName) {
         final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
         if (!planManagerOptional.isPresent()) {
@@ -145,7 +145,7 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     @POST
-    @Path("/plans/{planName}/continue")
+    @Path("{planName}/continue")
     public Response continueCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase) {
@@ -198,7 +198,7 @@ public class PlansResource extends PrettyJsonResource {
      *    also restarts the Plan.
      */
     @POST
-    @Path("/plans/{planName}/interrupt")
+    @Path("{planName}/interrupt")
     public Response interruptCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase) {
@@ -236,7 +236,7 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     @POST
-    @Path("/plans/{planName}/forceComplete")
+    @Path("{planName}/forceComplete")
     public Response forceCompleteCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase,
@@ -259,7 +259,7 @@ public class PlansResource extends PrettyJsonResource {
     }
 
     @POST
-    @Path("/plans/{planName}/restart")
+    @Path("{planName}/restart")
     public Response restartCommand(
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase,
@@ -298,45 +298,6 @@ public class PlansResource extends PrettyJsonResource {
         }
 
         return Response.status(Response.Status.BAD_REQUEST).build();
-    }
-
-    @GET
-    @Deprecated
-    @Path("/plan")
-    public Response getFullInfo() {
-        return getPlanInfo("deploy");
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/continue")
-    public Response continueCommand() {
-        return continueCommand("deploy", null);
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/interrupt")
-    public Response interruptCommand() {
-        return interruptCommand("deploy", null);
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/forceComplete")
-    public Response forceCompleteCommand(
-            @QueryParam("phase") String phaseId,
-            @QueryParam("step") String stepId) {
-        return forceCompleteCommand("deploy", phaseId, stepId);
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/restart")
-    public Response restartCommand(
-            @QueryParam("phase") String phaseId,
-            @QueryParam("step") String stepId) {
-        return restartCommand("deploy", phaseId, stepId);
     }
 
     private static List<Phase> getPhases(PlanManager manager, String phaseIdOrName) {
