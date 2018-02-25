@@ -14,7 +14,7 @@ __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy in
 
 ![Status](https://img.shields.io/badge/Status-Beta-BF97F0.svg?style=flat-square)
 
-DC/OS SDK is progressing toward a 1.0 release, but as such is still under heavy development.
+DC/OS SDK is progressing toward a 1.0 release, but is still under heavy development.
 
 ### Benefits
 
