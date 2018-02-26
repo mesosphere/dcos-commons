@@ -1,18 +1,18 @@
 import datetime
 
-import subprocess
-#from dateutil.parser import *
 import pytest
 import os
 import re
 import time
+import json
 
 import sdk_cmd
 import sdk_install
 import sdk_plan
 import sdk_tasks
+import sdk_utils
 
-from tests.test_utils import *
+from tests import config
 
 BROKER_KILL_GRACE_PERIOD = int(os.environ.get('BROKER_KILL_GRACE_PERIOD', 30))
 EXPECTED_KAFKA_STARTUP_SECONDS = os.environ.get('KAFKA_EXPECTED_STARTUP', 30)
@@ -26,18 +26,18 @@ def setup_module(module):
         }
     }
 
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
     config.install(
-        package_name=config.PACKAGE_NAME,
-        service_name=config.SERVICE_NAME,
-        expected_running_tasks=config.DEFAULT_BROKER_COUNT,
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_BROKER_COUNT,
         additional_options=options)
-    sdk_plan.wait_for_completed_deployment(PACKAGE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
 def teardown_module(module):
-    sdk_install.uninstall(SERVICE_NAME, PACKAGE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.availability
@@ -49,7 +49,7 @@ def test_service_startup_rapid():
     retry_delay_seconds = STARTUP_POLL_DELAY_SECONDS
 
     task_short_name = 'kafka-0'
-    broker_task_id_0 = sdk_tasks.get_task_ids(PACKAGE_NAME, task_short_name)[0]
+    broker_task_id_0 = sdk_tasks.get_task_ids(config.SERVICE_NAME, task_short_name)[0]
 
     # the following 'dcos kafka topic ....' command has expected output as follows:
     # 'Output: 100 records sent ....'
@@ -57,25 +57,23 @@ def test_service_startup_rapid():
     # '...leader not available...'
     stdout = ''
     retries = 15
-    retry_delay = 1.0
     while retries > 0:
         retries -= 1
-        stdout = sdk_cmd.run_cli('kafka topic producer_test test 100')
+        stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic producer_test test 100')
         if 'records sent' in stdout:
             break
 
-    stdout = sdk_cmd.run_cli('kafka pod restart {}'.format(task_short_name))
-    jsonobj = json.loads(stdout)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart {}'.format(task_short_name), json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == task_short_name
     assert jsonobj['tasks'] == [ '{}-broker'.format(task_short_name) ]
 
     starting_fallback_time = datetime.datetime.now()
 
-    sdk_tasks.check_tasks_updated(PACKAGE_NAME, '{}-'.format(DEFAULT_POD_TYPE), [ broker_task_id_0 ])
-    sdk_tasks.check_running(SERVICE_NAME, DEFAULT_BROKER_COUNT)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, '{}-'.format(config.DEFAULT_POD_TYPE), [ broker_task_id_0 ])
+    sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
 
-    broker_task_id_1 = sdk_tasks.get_task_ids(PACKAGE_NAME, task_short_name)[0]
+    broker_task_id_1 = sdk_tasks.get_task_ids(config.SERVICE_NAME, task_short_name)[0]
 
     # extract starting and started lines from log
     starting_time = started_time = None
@@ -89,7 +87,6 @@ def test_service_startup_rapid():
             elif started_time is None and ' started (kafka.server.KafkaServer)' in log_line:
                 started_time = log_line_ts(log_line)
         if starting_time is None or started_time is None:
-            retries_remaining = retry_seconds_remaining - retry_delay_seconds
             time.sleep(retry_delay_seconds)
 
     if started_time is None or starting_time is None:

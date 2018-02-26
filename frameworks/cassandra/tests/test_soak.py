@@ -2,13 +2,12 @@ import json
 import os
 import uuid
 
-import dcos
 import pytest
+import sdk_cmd
 import sdk_hosts
 import sdk_jobs
 import sdk_plan
 import sdk_upgrade
-import shakedown
 from tests import config
 
 
@@ -30,8 +29,8 @@ def test_backup_and_restore():
             config.get_verify_data_job(),
             config.get_delete_data_job(),
             config.get_verify_deletion_job()]):
-        run_backup_and_restore(
-            config.PACKAGE_NAME,
+        config.run_backup_and_restore(
+            config.SERVICE_NAME,
             'backup-s3',
             'restore-s3',
             plan_parameters)
@@ -45,10 +44,9 @@ def test_soak_upgrade_downgrade():
     with open('cassandra.json') as options_file:
         install_options = json.load(options_file)
     sdk_upgrade.soak_upgrade_downgrade(
-        "beta-{}".format(PACKAGE_NAME),
         config.PACKAGE_NAME,
+        install_options["service"]["name"],
         config.DEFAULT_TASK_COUNT,
-        service_name=install_options["service"]["name"],
         additional_options=install_options)
 
 
@@ -92,12 +90,7 @@ def test_cassandra_migration():
             's3_secret_key': plan_parameters['AWS_SECRET_ACCESS_KEY'],
             'external_location': 's3://{}'.format(plan_parameters['S3_BUCKET_NAME']),
         }
-        dcos.http.put(
-            '{}v1/backup/start'.format(
-                shakedown.dcos_service_url(backup_service_name)
-            ),
-            json=backup_parameters
-        )
+        sdk_cmd.service_request('PUT', backup_service_name, '/v1/backup/start', json=backup_parameters)
         sdk_plan.wait_for_completed_deployment(backup_service_name)
 
     # Restore data to second instance:
