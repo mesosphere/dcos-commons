@@ -1777,7 +1777,7 @@ pods:
 
 In this case, the resources are declared separately from the server task in a resource set named `hello-resources`. They are referenced by a `resource-set` element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased flexibility: you can now define multiple processes that can consume the same resources.
 
-**Note:** Resource sets are reserved at scheduler startup. [Custom auxiliary plans](#custom-auxiliary-plans) that run tasks that make use resource sets won't require additional resources than what the scheduler already reserved.
+**Note:** Resource sets are reserved at scheduler startup. [Custom auxiliary plans](#custom-auxiliary-plans) that run tasks referencing resource sets won't require additional resources than what the scheduler already reserved.
 
 Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pods based on [Mesos Task Groups](https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md). Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:
 
