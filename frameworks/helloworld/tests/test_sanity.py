@@ -41,17 +41,6 @@ def test_install():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.mesos_v0
-def test_mesos_v0_api():
-    service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
-    if prior_api_version is not "V0":
-        sdk_marathon.set_mesos_api_version(service_name, "V0")
-        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
-
-
-@pytest.mark.sanity
-@pytest.mark.smoke
 def test_bump_hello_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
@@ -93,40 +82,16 @@ def test_bump_world_cpus():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_increase_decrease_world_nodes():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    config.check_running(foldered_name)
+def test_bump_hello_nodes():
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-    original_hello_ids = sdk_tasks.get_task_ids(foldered_name, 'hello')
-    original_world_ids = sdk_tasks.get_task_ids(foldered_name, 'world')
-    log.info('world ids: ' + str(original_world_ids))
+    hello_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'hello')
+    log.info('hello ids: ' + str(hello_ids))
 
-    # add 2 world nodes
-    sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', 2)
+    sdk_marathon.bump_task_count_config(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'HELLO_COUNT')
 
-    config.check_running(foldered_name)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
-
-    # check 2 world tasks added:
-    assert 2 + len(original_world_ids) == len(sdk_tasks.get_task_ids(foldered_name, 'world'))
-
-    # subtract 2 world nodes
-    sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', -2)
-
-    config.check_running(foldered_name)
-    # wait for the decommission plan for this subtraction to be complete
-    sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
-    # check that the total task count is back to original
-    sdk_tasks.check_running(
-        foldered_name,
-        len(original_hello_ids) + len(original_world_ids),
-        allow_more=False)
-    # check that original tasks weren't affected/relaunched in the process
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'hello', original_hello_ids)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
-
-    # check that the world tasks are back to their prior state (also without changing task ids)
-    assert original_world_ids == sdk_tasks.get_task_ids(foldered_name, 'world')
+    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    sdk_tasks.check_tasks_not_updated(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'hello', hello_ids)
 
 
 @pytest.mark.sanity

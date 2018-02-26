@@ -43,17 +43,6 @@ def _escape_placement_for_1_9(options: dict) -> dict:
     return escape_section_placement("hello", escape_section_placement("world", options))
 
 
-@pytest.mark.dcos_min_version('1.11')
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-def test_region_zone_injection():
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
-    assert fault_domain_vars_are_present('hello-0')
-    assert fault_domain_vars_are_present('world-0')
-    assert fault_domain_vars_are_present('world-1')
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
 def fault_domain_vars_are_present(pod_instance):
     info = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
     variables = info['command']['environment']['variables']
@@ -111,100 +100,6 @@ def test_rack_not_found():
     assert steps2[0]['status'] == 'PENDING'
     assert steps2[1]['status'] == 'PENDING'
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-@pytest.mark.dcos_min_version('1.11')
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-def test_unique_zone_fails():
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "placement": "[[\"@zone\", \"UNIQUE\"]]"
-        },
-        "world": {
-            "placement": "[[\"@zone\", \"UNIQUE\"]]"
-        }
-    })
-
-    fail_placement(options)
-
-
-@pytest.mark.dcos_min_version('1.11')
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-def test_max_per_zone_fails():
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
-        },
-        "world": {
-            "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
-        }
-    })
-
-    fail_placement(options)
-
-
-@pytest.mark.dcos_min_version('1.11')
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-def test_max_per_zone_succeeds():
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
-        },
-        "world": {
-            "placement": "[[\"@zone\", \"MAX_PER\", \"2\"]]"
-        }
-    })
-
-    succeed_placement(options)
-
-
-@pytest.mark.dcos_min_version('1.11')
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-def test_group_by_zone_succeeds():
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
-        },
-        "world": {
-            "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
-        }
-    })
-    succeed_placement(options)
-
-
-@pytest.mark.dcos_min_version('1.11')
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-def test_group_by_zone_fails():
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
-        },
-        "world": {
-            "placement": "[[\"@zone\", \"GROUP_BY\", \"2\"]]"
-        }
-    })
-
-    fail_placement(options)
 
 
 def succeed_placement(options):
