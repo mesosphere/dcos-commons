@@ -958,21 +958,25 @@ now, you must manually run the janitor script as shown above.</p>
           </li>
           <li>
             <p><strong>hello-world-task</strong>: In this example, the single pod definition is composed of a single task. The name of this task is “hello-world-task”.</p>
+
+            <ul>
+              <li>
+                <p><strong>goal</strong>: Every task must have a goal state. There are three possible goal states: <code class="highlighter-rouge">RUNNING</code>, <code class="highlighter-rouge">FINISH</code> and <code class="highlighter-rouge">ONCE</code>. <code class="highlighter-rouge">RUNNING</code> indicates that a task should always be running, so if it exits, it should be restarted. <code class="highlighter-rouge">FINISH</code> indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. <code class="highlighter-rouge">ONCE</code> indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod’s lifetime.</p>
+              </li>
+              <li>
+                <p><strong>cmd</strong>: The command to run to start a task. Here, the task will print “hello world” to stdout and sleep for 1000 seconds. Because its goal state is <code class="highlighter-rouge">RUNNING</code>, it will be started again upon exit.</p>
+              </li>
+              <li>
+                <p><strong>cpus</strong>: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate <a href="http://mesos.apache.org/documentation/latest/containerizer/">see the Mesos documentation here</a>.</p>
+              </li>
+              <li>
+                <p><strong>memory</strong>: This entry defines how much memory will be allocated to the task’s container.</p>
+              </li>
+            </ul>
           </li>
         </ul>
       </li>
     </ul>
-  </li>
-  <li>
-    <p><strong>goal</strong>: Every task must have a goal state. There are three possible goal states: <code class="highlighter-rouge">RUNNING</code>, <code class="highlighter-rouge">FINISH</code> and <code class="highlighter-rouge">ONCE</code>. <code class="highlighter-rouge">RUNNING</code> indicates that a task should always be running, so if it exits, it should be restarted. <code class="highlighter-rouge">FINISH</code> indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. <code class="highlighter-rouge">ONCE</code> indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod’s lifetime.</p>
-
-    <div class="highlighter-rouge">
-<div class="highlight"><pre class="highlight"><code>      * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
-
-      * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
-
-      * **memory**: This entry defines how much memory will be allocated to the task’s container.
-</code></pre></div>    </div>
   </li>
 </ul>
 
@@ -2676,7 +2680,9 @@ The SDK supports having pods join virtual neworks (including the <code class="hi
         <span class="na">resource-set</span><span class="pi">:</span> <span class="s">hello-resources/</span>
 </code></pre></div></div>
 
-<p>In this case, the resources are declared separately from the server task in a resource set named <code class="highlighter-rouge">hello-resources</code>. They are referenced by a <code class="highlighter-rouge">resource-set</code> element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.</p>
+<p>In this case, the resources are declared separately from the server task in a resource set named <code class="highlighter-rouge">hello-resources</code>. They are referenced by a <code class="highlighter-rouge">resource-set</code> element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased flexibility: you can now define multiple processes that can consume the same resources.</p>
+
+<p><strong>Note:</strong> Resource sets are reserved at scheduler startup. <a href="#custom-auxiliary-plans">Custom auxiliary plans</a> that run tasks referencing resource sets won’t require additional resources than what the scheduler already reserved.</p>
 
 <p>Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pods based on <a href="https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md">Mesos Task Groups</a>. Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:</p>
 
