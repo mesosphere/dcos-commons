@@ -1,12 +1,28 @@
+'''
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import functools
 import logging
+import operator
 
 import dcos
 import shakedown
 import pytest
 import os
+import os.path
 
 log = logging.getLogger(__name__)
+
+
+def get_package_name(default: str) -> str:
+    return os.environ.get("INTEGRATION_TEST__PACKAGE_NAME") or default
+
+
+def get_service_name(default: str) -> str:
+    return os.environ.get("INTEGRATION_TEST__SERVICE_NAME") or default
 
 
 def list_reserved_resources():
@@ -19,24 +35,25 @@ def list_reserved_resources():
         reserved_resources = slave['reserved_resources']
         if reserved_resources == {}:
             continue
-        msg = "on slaveid=%s hostname=%s reserved resources: %s"
+        msg = 'on slaveid=%s hostname=%s reserved resources: %s'
         log.info(msg % (slave['id'], slave['hostname'], reserved_resources))
 
 
 def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if dcos_version_less_than("1.10"):
+    if dcos_version_less_than('1.10'):
         return service_name
-    return "/test/integration/" + service_name
+    return '/test/integration/' + service_name
+
+
+def get_deslashed_service_name(service_name):
+    # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'.
+    return service_name.lstrip('/').replace('/', '__')
 
 
 def get_zk_path(service_name):
-    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
-    # group names
-    if dcos_version_less_than("1.10"):
-        return service_name
-    return "test__integration__" + service_name
+    return 'dcos-service-{}'.format(get_deslashed_service_name(service_name))
 
 
 @functools.lru_cache()
@@ -44,18 +61,26 @@ def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
 
-def is_test_failure(pytest_request):
-    '''Determine if the test run failed using the request object from pytest.
-    The reports being evaluated are set in conftest.py:pytest_runtest_makereport()
-    https://docs.pytest.org/en/latest/builtin.html#_pytest.fixtures.FixtureRequest
+def dcos_version_at_least(version):
+    return not dcos_version_less_than(version)
+
+
+def check_dcos_min_version_mark(item: pytest.Item):
+    '''Enforces the dcos_min_version pytest annotation, which should be used like this:
+
+    @pytest.mark.dcos_min_version('1.10')
+    def your_test_here(): ...
+
+    In order for this annotation to take effect, this function must be called by a pytest_runtest_setup() hook.
     '''
-    for report in ('rep_setup', 'rep_call', 'rep_teardown'):
-        if not hasattr(pytest_request.node, report):
-            continue
-        if not getattr(pytest_request.node, report).failed:
-            continue
-        return True
-    return False
+    min_version_mark = item.get_marker('dcos_min_version')
+    if min_version_mark:
+        min_version = min_version_mark.args[0]
+        message = 'Feature only supported in DC/OS {} and up'.format(min_version)
+        if 'reason' in min_version_mark.kwargs:
+            message += ': {}'.format(min_version_mark.kwargs['reason'])
+        if dcos_version_less_than(min_version):
+            pytest.skip(message)
 
 
 def is_open_dcos():
@@ -72,3 +97,29 @@ def is_strict_mode():
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
+
+
+# Pretty much https://github.com/pytoolz/toolz/blob/a8cd0adb5f12ec5b9541d6c2ef5a23072e1b11a3/toolz/dicttoolz.py#L279
+def get_in(keys, coll, default=None):
+    """ Reaches into nested associative data structures. Returns the value for path ``keys``.
+
+    If the path doesn't exist returns ``default``.
+
+    >>> transaction = {'name': 'Alice',
+    ...                'purchase': {'items': ['Apple', 'Orange'],
+    ...                             'costs': [0.50, 1.25]},
+    ...                'credit card': '5555-1234-1234-1234'}
+    >>> get_in(['purchase', 'items', 0], transaction)
+    'Apple'
+    >>> get_in(['name'], transaction)
+    'Alice'
+    >>> get_in(['purchase', 'total'], transaction)
+    >>> get_in(['purchase', 'items', 'apple'], transaction)
+    >>> get_in(['purchase', 'items', 10], transaction)
+    >>> get_in(['purchase', 'total'], transaction, 0)
+    0
+    """
+    try:
+        return functools.reduce(operator.getitem, keys, coll)
+    except (KeyError, IndexError, TypeError):
+        return default
