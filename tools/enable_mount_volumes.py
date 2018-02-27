@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-enable_mount_voluems - Creator and Configurator of MOUNT volumes
+enable_mount_volumes - Creator and Configurator of MOUNT volumes
 
 Features:
 1. Create GP2 SSD volumes for each private agent
@@ -174,20 +174,22 @@ def configure_mesos(stdout):
 
 
 def main(stack_id = '', stdout=sys.stdout):
-    # Read inputs from environment
-    aws_access_key = os.environ.get('AWS_ACCESS_KEY_ID', '')
-    aws_secret_key = os.environ.get('AWS_SECRET_ACCESS_KEY', '')
-    stack_id = str(os.environ.get('STACK_ID', stack_id))
-    if not aws_access_key or not aws_secret_key or not stack_id:
-        logger.error('AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and STACK_ID envvars are required.')
-        return 1
-    region_name = os.environ.get('AWS_DEFAULT_REGION', 'us-west-2')
+    aws_profile_key = 'AWS_PROFILE'
+    aws_region_key = 'AWS_REGION'
+    stack_id_key = 'STACK_ID'
 
+    # Read inputs from environment
+    if aws_profile_key not in os.environ or aws_region_key not in os.environ or stack_id_key not in environ:
+        logger.error('{}, {} and {} envvars are required.'.format(aws_profile_key, aws_region_key, stack_id_key))
+        return 1
+
+    aws_profile = str(os.environ.get(aws_profile_key))
+    aws_region = str(os.environ.get(aws_region_key))
+    stack_id = str(os.environ.get(stack_id_key))
+
+    dev = boto3.session.Session(profile_name=aws_profile)
     # Create EC2 client
-    ec2 = boto3.client('ec2',
-                       aws_access_key_id=aws_access_key,
-                       aws_secret_access_key=aws_secret_key,
-                       region_name=region_name)
+    ec2 = dev.client('ec2', region_name=aws_region)
 
     # Get all provisioned instances
     instances = ec2.describe_instances()

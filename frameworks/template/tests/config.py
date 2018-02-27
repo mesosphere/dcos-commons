@@ -1,3 +1,4 @@
 PACKAGE_NAME = 'template'
+SERVICE_NAME = 'template'
 DEFAULT_TASK_COUNT = 1
 

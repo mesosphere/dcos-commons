@@ -1,7 +1,12 @@
-import json
+'''
+************************************************************************
+FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
+SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
+************************************************************************
+'''
 import logging
-import retrying
 import shakedown
+import sdk_cmd
 
 log = logging.getLogger(__name__)
 
@@ -13,6 +18,7 @@ def check_task_network(task_name, expected_network_name="dcos"):
     """
     _task = shakedown.get_task(task_id=task_name, completed=False)
 
+    assert _task is not None, "Unable to find task named {}".format(task_name)
     if type(_task) == list or type(_task) == tuple:
         assert len(_task) == 1, "Found too many tasks matching {}, got {}"\
             .format(task_name, _task)
@@ -34,16 +40,13 @@ def check_task_network(task_name, expected_network_name="dcos"):
                         .format(task=task_name, status=status)
 
 
-def get_and_test_endpoints(endpoint_to_get, package_name, correct_count):
+def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_count):
     """Gets the endpoints for a service or the specified 'endpoint_to_get' similar to running
     $ docs <service> endpoints
     or
     $ dcos <service> endpoints <endpoint_to_get>
     Checks that there is the correct number of endpoints"""
-
-    endpoints, _, rc = shakedown.run_dcos_command("{} endpoints {}".format(package_name, endpoint_to_get))
-    assert rc == 0, "Failed to get endpoints on overlay network"
-    endpoints = json.loads(endpoints)
+    endpoints = sdk_cmd.svc_cli(package_name, service_name, "endpoints {}".format(endpoint_to_get), json=True)
     assert len(endpoints) == correct_count, "Wrong number of endpoints, got {} should be {}" \
         .format(len(endpoints), correct_count)
     return endpoints
@@ -63,62 +66,5 @@ def check_endpoints_on_overlay(endpoints):
         "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
 
     for dns in endpoints["dns"]:
-        assert "autoip.dcos.thisdcos.directory" in dns, "DNS {} is incorrect should have autoip.dcos.thisdcos." \
-                                                        "directory".format(dns)
-
-
-def get_framework_srv_records(package_name):
-
-    @retrying.retry(wait_exponential_multiplier=1000,
-                    wait_exponential_max=120 * 1000)
-    def call_shakedown():
-        cmd = "curl localhost:8123/v1/enumerate"
-        log.info("Running '%s' on master", cmd)
-        is_ok, out = shakedown.run_command_on_master(cmd)
-        log.info("Running command returned: is_ok=%s\n\tout=%s", is_ok, out)
-        assert is_ok, "Failed to get srv records. command was {}".format(cmd)
-        try:
-            srvs = json.loads(out)
-        except Exception as e:
-            log.error("Error converting out=%s to json", out)
-            log.error(e)
-            raise e
-
-        return srvs
-
-    srvs = call_shakedown()
-    framework_srvs = [f for f in srvs["frameworks"] if f["name"] == package_name]
-    assert len(framework_srvs) == 1, "Got too many srv records matching package {}, got {}"\
-        .format(package_name, framework_srvs)
-    return framework_srvs[0]
-
-
-def get_task_record(task_name, fmk_srv_records):
-    assert "tasks" in fmk_srv_records, "Framework SRV records missing 'tasks': {}".format(fmk_srv_records)
-    task_records = [t for t in fmk_srv_records["tasks"] if t["name"] == task_name]
-    assert len(task_records) > 0, "Didn't find task record for {}".format(task_name)
-    assert len(task_records) == 1, "Got redundant tasks for {}".format(task_name)
-    task_record = task_records[0]
-    assert "records" in task_record, "Task record {} missing 'records'".format(task_record)
-    return task_record["records"]
-
-
-def check_port_names(task_info, expected_port_count, expected_port_names):
-    assert type(task_info) == dict
-    assert "discovery" in task_info
-    assert "ports" in task_info["discovery"]
-    assert "ports" in task_info["discovery"]["ports"]
-    ports_list = task_info["discovery"]["ports"]["ports"]
-    assert len(ports_list) == expected_port_count, "Got incorrect number of ports for task {}," \
-                                                   "got {} ports, should be {}." \
-                                                   .format(task_info, len(ports_list), expected_port_count)
-    for port, expected_name in zip(ports_list, expected_port_names):
-        assert "name" in port, "port {} missing name".format(port)
-        assert port["name"] == expected_name, "Port name wrong, should be {} got {}"\
-                                              .format(expected_name, port["name"])
-
-
-def get_task_srv_records(task_srv_records, prefixes):
-    for prefix in prefixes:
-        assert len([rec for rec in task_srv_records if prefix in rec["name"]]) > 0, \
-            "Didn't find SRV matching prefix {} in {}".format(prefix, task_srv_records)
+        assert "autoip.dcos.thisdcos.directory" in dns, \
+            "DNS {} is incorrect should have autoip.dcos.thisdcos.directory".format(dns)
