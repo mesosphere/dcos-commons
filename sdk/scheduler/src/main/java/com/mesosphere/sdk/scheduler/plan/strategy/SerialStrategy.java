@@ -41,8 +41,11 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
 
             for (int i = 1; i < planElements.size(); i++) {
                 C previous = planElements.get(i - 1);
-                C current = planElements.get(i);
-                dependencyStrategyHelper.addDependency(previous, current);
+
+                for (int currIndex = i; currIndex < planElements.size(); currIndex++) {
+                    C current = planElements.get(currIndex);
+                    dependencyStrategyHelper.addDependency(previous, current);
+                }
             }
         }
 
