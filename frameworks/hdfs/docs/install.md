@@ -78,7 +78,7 @@ The node configuration objects correspond to the configuration for nodes in the 
 
 #### A Note on Memory Configuration
 
-As part of the service (or node) configuration, the amount of memory in MB allocated to the node can be specified. This value *must& be larger than the specified maximum heap size. Make sure to allocate enough space for additional memory used by the JVM and other overhead. A good rule of thumb is allocate twice as much memory as the size of the heap.
+As part of the configuration for each node type, the amount of memory in MB allocated to the node can be specified. This value *must* be larger than the specified maximum heap size for the given node type. Make sure to allocate enough space for additional memory used by the JVM and other overhead. A good rule of thumb is allocate twice as much memory as the size of the heap (set using either `hdfs.hadoop_heapsize` or `<node type>.hadoop_<node type>node_opts`).
 
 #### A Note on Disk Types
 
