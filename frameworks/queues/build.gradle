@@ -22,9 +22,9 @@ dependencies {
 
 distributions {
     main {
-        baseName = 'template-scheduler'
+        baseName = 'queues-scheduler'
         version = ''
     }
 }
 
-mainClassName = 'com.mesosphere.sdk.template.scheduler.Main'
+mainClassName = 'com.mesosphere.sdk.queues.scheduler.Main'

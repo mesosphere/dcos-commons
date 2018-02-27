@@ -1,0 +1,14 @@
+name: job3
+scheduler:
+  user: {{FRAMEWORK_USER}}
+pods:
+  template:
+    count: 2
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: "echo template3 >> output && sleep $SLEEP_DURATION"
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

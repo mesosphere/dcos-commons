@@ -1,0 +1,41 @@
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "{{jre-url}}",
+      "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
+      "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
+      "scheduler-zip": "{{artifact-dir}}/template-scheduler.zip",
+      "executor-zip": "{{artifact-dir}}/executor.zip"
+    }
+  },
+  "images": {
+    "icon-small": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-small.png?raw=true",
+    "icon-medium": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-medium.png?raw=true",
+    "icon-large": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-large.png?raw=true"
+  },
+  "cli":{
+    "binaries":{
+      "darwin":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-darwin}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-service-cli-darwin"
+        }
+      },
+      "linux":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-linux}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-service-cli-linux"
+        }
+      },
+      "windows":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli.exe}}" } ],
+          "kind":"executable",
+          "url":"{{artifact-dir}}/dcos-service-cli.exe"
+        }
+      }
+    }
+  }
+}
