@@ -5,6 +5,8 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -83,7 +85,7 @@ public abstract class ServiceScheduler implements MesosEventClient {
      * Returns the underlying {@link Persister} being used to keep track of state/configs.
      */
     public Persister getPersister() {
-        return frameworkStore.getPersister();
+        return stateStore.getPersister();
     }
 
     /**
@@ -167,6 +169,13 @@ public abstract class ServiceScheduler implements MesosEventClient {
         return StatusResponse.processed();
     }
 
+    /**
+     * Returns the {@link StateStore}.
+     */
+    protected StateStore getStateStore() {
+        return stateStore;
+    }
+
     protected abstract void registeredWithMesos();
     protected abstract List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps);
     protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
@@ -175,4 +184,9 @@ public abstract class ServiceScheduler implements MesosEventClient {
      * Returns the {@link PlanCoordinator}.
      */
     protected abstract PlanCoordinator getPlanCoordinator();
+
+    /**
+     * Returns the {@link ConfigStore}.
+     */
+    protected abstract ConfigStore<ServiceSpec> getConfigStore();
 }

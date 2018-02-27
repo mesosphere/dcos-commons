@@ -1,13 +1,19 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.http.RequestUtils;
+import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.GroupedTasks;
-import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
@@ -17,10 +23,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import static com.mesosphere.sdk.http.ResponseUtils.jsonOkResponse;
@@ -30,38 +32,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * A read-only API for accessing information about how to connect to the service.
+ * A read-only API for accessing information about the pods which compose the service, and restarting/replacing those
+ * pods.
  */
-@Path("pod")
-public class PodResource extends PrettyJsonResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PodResource.class);
+public class PodQueries {
+    private static final Logger LOGGER = LoggerFactory.getLogger(PodQueries.class);
+    private static final FailureSetter DEFAULT_FAILURE_SETTER = new FailureSetter();
 
     /**
      * Pod 'name' to use in responses for tasks which have no pod information.
      */
     private static final String UNKNOWN_POD_LABEL = "UNKNOWN_POD";
 
-    private final StateStore stateStore;
-    private final String serviceName;
-    private final TaskFailureListener taskFailureListener;
-
-    /**
-     * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
-     */
-    public PodResource(
-            StateStore stateStore,
-            String serviceName,
-            TaskFailureListener taskFailureListener) {
-        this.stateStore = stateStore;
-        this.serviceName = serviceName;
-        this.taskFailureListener = taskFailureListener;
+    private PodQueries() {
+        // do not instantiate
     }
 
     /**
      * Produces a listing of all pod instance names.
      */
-    @GET
-    public Response getPods() {
+    public static Response list(StateStore stateStore) {
         try {
             Set<String> podNames = new TreeSet<>();
             List<String> unknownTaskNames = new ArrayList<>();
@@ -93,9 +83,7 @@ public class PodResource extends PrettyJsonResource {
     /**
      * Produces the summary statuses of all pod instances.
      */
-    @Path("/status")
-    @GET
-    public Response getPodStatuses() {
+    public static Response getStatuses(StateStore stateStore, String serviceName) {
         try {
             // Group the tasks by pod:
             GroupedTasks groupedTasks = GroupedTasks.create(stateStore);
@@ -137,14 +125,12 @@ public class PodResource extends PrettyJsonResource {
     /**
      * Produces the summary status of a single pod instance.
      */
-    @Path("/{name}/status")
-    @GET
-    public Response getPodStatus(@PathParam("name") String podInstanceName) {
+    public static Response getStatus(StateStore stateStore, String podInstanceName) {
         try {
             Optional<Collection<TaskInfoAndStatus>> podTasks =
                     GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
             if (!podTasks.isPresent()) {
-                return ResponseUtils.elementNotFoundResponse();
+                return podNotFoundResponse(podInstanceName);
             }
             return jsonOkResponse(getPodInstanceStatusJson(stateStore, podInstanceName, podTasks.get()));
         } catch (Exception e) {
@@ -156,14 +142,12 @@ public class PodResource extends PrettyJsonResource {
     /**
      * Produces the full information for a single pod instance.
      */
-    @Path("/{name}/info")
-    @GET
-    public Response getPodInfo(@PathParam("name") String podInstanceName) {
+    public static Response getInfo(StateStore stateStore, String podInstanceName) {
         try {
             Optional<Collection<TaskInfoAndStatus>> podTasks =
                     GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
             if (!podTasks.isPresent()) {
-                return ResponseUtils.elementNotFoundResponse();
+                return podNotFoundResponse(podInstanceName);
             }
             return jsonResponseBean(podTasks.get(), Response.Status.OK);
         } catch (Exception e) {
@@ -175,9 +159,7 @@ public class PodResource extends PrettyJsonResource {
     /**
      * Restarts a pod in a "paused" debug mode.
      */
-    @Path("/{name}/pause")
-    @POST
-    public Response pausePod(@PathParam("name") String podName, String bodyPayload) {
+    public static Response pause(StateStore stateStore, String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
             taskFilter = new HashSet<>(RequestUtils.parseJsonList(bodyPayload));
@@ -186,7 +168,7 @@ public class PodResource extends PrettyJsonResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            return overrideGoalState(podName, taskFilter, GoalStateOverride.PAUSED);
+            return overrideGoalState(stateStore, podName, taskFilter, GoalStateOverride.PAUSED);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to pause pod '%s' with task filter '%s'", podName, taskFilter), e);
             return Response.serverError().build();
@@ -196,9 +178,7 @@ public class PodResource extends PrettyJsonResource {
     /**
      * Restarts a pod in a normal state following a prior "pause" command.
      */
-    @Path("/{name}/resume")
-    @POST
-    public Response resumePod(@PathParam("name") String podName, String bodyPayload) {
+    public static Response resume(StateStore stateStore, String podName, String bodyPayload) {
         Set<String> taskFilter;
         try {
             taskFilter = new HashSet<>(RequestUtils.parseJsonList(bodyPayload));
@@ -207,18 +187,19 @@ public class PodResource extends PrettyJsonResource {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            return overrideGoalState(podName, taskFilter, GoalStateOverride.NONE);
+            return overrideGoalState(stateStore, podName, taskFilter, GoalStateOverride.NONE);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to resume pod '%s' with task filter '%s'", podName, taskFilter), e);
             return Response.serverError().build();
         }
     }
 
-    private Response overrideGoalState(String podInstanceName, Set<String> taskNameFilter, GoalStateOverride override) {
+    private static Response overrideGoalState(
+            StateStore stateStore, String podInstanceName, Set<String> taskNameFilter, GoalStateOverride override) {
         Optional<Collection<TaskInfoAndStatus>> allPodTasks =
                 GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
         if (!allPodTasks.isPresent()) {
-            return ResponseUtils.elementNotFoundResponse();
+            return podNotFoundResponse(podInstanceName);
         }
         Collection<TaskInfoAndStatus> podTasks =
                 RequestUtils.filterPodTasks(podInstanceName, allPodTasks.get(), taskNameFilter);
@@ -229,7 +210,7 @@ public class PodResource extends PrettyJsonResource {
                     podInstanceName,
                     allPodTasks.get().stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()),
                     podTasks.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
-            return ResponseUtils.elementNotFoundResponse();
+            return podNotFoundResponse(podInstanceName);
         }
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
@@ -250,37 +231,29 @@ public class PodResource extends PrettyJsonResource {
     /**
      * Restarts a pod instance in-place.
      */
-    @Path("/{name}/restart")
-    @POST
-    public Response restartPod(@PathParam("name") String name) {
+    public static Response restart(StateStore stateStore, ConfigStore<ServiceSpec> configStore, String podInstanceName,
+            RecoveryType recoveryType) {
         try {
-            return restartPod(name, RecoveryType.TRANSIENT);
+            return restartPod(stateStore, configStore, podInstanceName, recoveryType, DEFAULT_FAILURE_SETTER);
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to restart pod '%s'", name), e);
+            LOGGER.error(String.format("Failed to %s pod '%s'",
+                    recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", podInstanceName), e);
             return Response.serverError().build();
         }
     }
 
-    /**
-     * Replaces a pod instance with a new instance on a different agent.
-     */
-    @Path("/{name}/replace")
-    @POST
-    public Response replacePod(@PathParam("name") String name) {
-        try {
-            return restartPod(name, RecoveryType.PERMANENT);
-        } catch (Exception e) {
-            LOGGER.error(String.format("Failed to replace pod '%s'", name), e);
-            return Response.serverError().build();
-        }
-    }
-
-    private Response restartPod(String podInstanceName, RecoveryType recoveryType) {
+    @VisibleForTesting
+    static Response restartPod(
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            String podInstanceName,
+            RecoveryType recoveryType,
+            FailureSetter failureSetter) {
         // look up all tasks in the provided pod name:
         Optional<Collection<TaskInfoAndStatus>> podTasks =
                 GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
         if (!podTasks.isPresent() || podTasks.get().isEmpty()) { // shouldn't ever be empty, but just in case
-            return ResponseUtils.elementNotFoundResponse();
+            return podNotFoundResponse(podInstanceName);
         }
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
@@ -292,10 +265,44 @@ public class PodResource extends PrettyJsonResource {
             Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
                     .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo())
                     .collect(Collectors.toList());
-            taskFailureListener.tasksFailed(taskInfos);
+            failureSetter.setFailure(configStore, stateStore, taskInfos);
         }
 
         return killTasks(podInstanceName, podTasks.get(), recoveryType);
+    }
+
+    /**
+     * Broken out into a separate callback to simplify unit testing.
+     */
+    @VisibleForTesting
+    static class FailureSetter {
+        /**
+         * Default behavior: Set permanently failed bit in state store tasks.
+         */
+        public void setFailure(
+                ConfigStore<ServiceSpec> configStore, StateStore stateStore, Collection<Protos.TaskInfo> taskInfos) {
+            getPods(configStore, taskInfos)
+                .forEach(podInstance -> FailureUtils.setPermanentlyFailed(stateStore, podInstance));
+        }
+    }
+
+    private static Set<PodInstance> getPods(
+            ConfigStore<ServiceSpec> configStore, Collection<Protos.TaskInfo> taskInfos) {
+        Set<PodInstance> podInstances = new HashSet<>();
+        for (Protos.TaskInfo taskInfo : taskInfos) {
+            if (taskInfo.getTaskId().getValue().isEmpty()) {
+                // Skip marking 'stub' tasks which haven't been launched as permanently failed:
+                LOGGER.info("Not marking task {} as failed due to empty taskId", taskInfo.getName());
+                continue;
+            }
+            try {
+                podInstances.add(TaskUtils.getPodInstance(configStore, taskInfo));
+            } catch (TaskException e) {
+                LOGGER.error(String.format("Failed to get pod for task %s", taskInfo.getTaskId().getValue()), e);
+            }
+        }
+
+        return podInstances;
     }
 
     private static Response killTasks(
@@ -377,5 +384,9 @@ public class PodResource extends PrettyJsonResource {
             stateString = stateString.substring("TASK_".length());
         }
         return Optional.of(stateString);
+    }
+
+    private static Response podNotFoundResponse(String podInstanceName) {
+        return ResponseUtils.notFoundResponse("Pod " + podInstanceName);
     }
 }

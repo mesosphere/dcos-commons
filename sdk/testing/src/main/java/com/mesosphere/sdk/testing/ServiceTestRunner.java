@@ -245,6 +245,7 @@ public class ServiceTestRunner {
      * Assigns a list of custom configuration validators which will be applied to service configurations, in addition to
      * the default configuration validators.
      */
+    @SuppressWarnings("unchecked")
     public ServiceTestRunner setCustomValidators(ConfigValidator<ServiceSpec>... validators) {
         this.validators = Arrays.asList(validators);
         return this;

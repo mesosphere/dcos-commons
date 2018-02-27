@@ -3,9 +3,9 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.http.HealthResource;
-import com.mesosphere.sdk.http.DeprecatedPlanResource;
-import com.mesosphere.sdk.http.PlansResource;
+import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
+import com.mesosphere.sdk.http.endpoints.HealthResource;
+import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.ServiceScheduler;
@@ -36,10 +36,10 @@ public class UninstallScheduler extends ServiceScheduler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final Optional<SecretsClient> secretsClient;
+    private final ConfigStore<ServiceSpec> configStore;
 
     private PlanManager uninstallPlanManager;
-    private Collection<Object> defaultResources = Collections.emptyList();
+    private Collection<Object> resources = Collections.emptyList();
     private OfferAccepter offerAccepter;
 
     /**
@@ -66,7 +66,7 @@ public class UninstallScheduler extends ServiceScheduler {
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(frameworkStore, stateStore, schedulerConfig, planCustomizer);
-        this.secretsClient = customSecretsClientForTests;
+        this.configStore = configStore;
 
         final Plan deployPlan;
         if (allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig)) {
@@ -82,17 +82,16 @@ public class UninstallScheduler extends ServiceScheduler {
                     stateStore,
                     configStore,
                     schedulerConfig,
-                    secretsClient)
+                    customSecretsClientForTests)
                     .build();
         }
 
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(deployPlan);
-        PlansResource plansResource = new PlansResource()
-                .setPlanManagers(Collections.singletonList(uninstallPlanManager));
-        this.defaultResources = Arrays.asList(
+        PlansResource plansResource = new PlansResource(Collections.singletonList(uninstallPlanManager));
+        this.resources = Arrays.asList(
                 plansResource,
                 new DeprecatedPlanResource(plansResource),
-                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
+                new HealthResource(Collections.singletonList(uninstallPlanManager)));
 
         List<ResourceCleanupStep> resourceCleanupSteps = deployPlan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
@@ -119,8 +118,8 @@ public class UninstallScheduler extends ServiceScheduler {
     }
 
     @Override
-    public void setResourceServer(ResourceServer resourceServer) {
-        resourceServer.addResources("v1", defaultResources);
+    public Collection<Object> getResources() {
+        return resources;
     }
 
     @Override
@@ -137,6 +136,11 @@ public class UninstallScheduler extends ServiceScheduler {
                 return Collections.singletonList(uninstallPlanManager);
             }
         };
+    }
+
+    @Override
+    protected ConfigStore<ServiceSpec> getConfigStore() {
+        return configStore;
     }
 
     @Override

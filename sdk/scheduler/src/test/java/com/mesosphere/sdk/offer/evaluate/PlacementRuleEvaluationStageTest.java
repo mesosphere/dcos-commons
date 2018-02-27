@@ -52,6 +52,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
                         true,
+                        Optional.empty(),
                         Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -89,6 +90,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
                         true,
+                        Optional.empty(),
                         Collections.emptyMap()));
 
         Assert.assertFalse(outcome.isPassing());

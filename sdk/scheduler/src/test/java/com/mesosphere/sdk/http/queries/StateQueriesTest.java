@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.state.StateStoreUtilsTest;
@@ -6,6 +6,7 @@ import com.mesosphere.sdk.storage.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos.*;
 
+import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class StateResourceTest {
+public class StateQueriesTest {
     @Mock private FrameworkStore mockFrameworkStore;
     @Mock private StateStore mockStateStore;
     @Mock private Persister mockPersister;
@@ -41,7 +42,6 @@ public class StateResourceTest {
     private static final String FILE_NAME = "test-file";
     private static final String FILE_CONTENT = "test data";
 
-    private StateResource resource;
     private StateStore stateStore;
     private Persister persister;
     @Mock FormDataContentDisposition formDataContentDisposition;
@@ -51,14 +51,13 @@ public class StateResourceTest {
         persister = new MemPersister();
         stateStore = new StateStore(persister);
         MockitoAnnotations.initMocks(this);
-        resource = new StateResource(mockFrameworkStore, mockStateStore, new StringPropertyDeserializer());
     }
 
     @Test
     public void testGetFrameworkId() {
         FrameworkID id = FrameworkID.newBuilder().setValue("aoeu-asdf").build();
         when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.of(id));
-        Response response = resource.getFrameworkId();
+        Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(1, json.length());
@@ -68,21 +67,21 @@ public class StateResourceTest {
     @Test
     public void testGetFrameworkIdMissing() {
         when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.empty());
-        Response response = resource.getFrameworkId();
+        Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetFrameworkIdFails() {
         when(mockFrameworkStore.fetchFrameworkId()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
-        Response response = resource.getFrameworkId();
+        Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testGetPropertyKeys() {
         when(mockStateStore.fetchPropertyKeys()).thenReturn(Arrays.asList("hi", "hey"));
-        Response response = resource.getPropertyKeys();
+        Response response = StateQueries.getPropertyKeys(mockStateStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(2, json.length());
@@ -93,7 +92,7 @@ public class StateResourceTest {
     @Test
     public void testGetPropertyKeysEmpty() {
         when(mockStateStore.fetchPropertyKeys()).thenReturn(Collections.emptyList());
-        Response response = resource.getPropertyKeys();
+        Response response = StateQueries.getPropertyKeys(mockStateStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(0, json.length());
@@ -102,7 +101,7 @@ public class StateResourceTest {
     @Test
     public void testGetPropertyKeysFails() {
         when(mockStateStore.fetchPropertyKeys()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
-        Response response = resource.getPropertyKeys();
+        Response response = StateQueries.getPropertyKeys(mockStateStore);
         assertEquals(500, response.getStatus());
     }
 
@@ -110,35 +109,29 @@ public class StateResourceTest {
     public void testGetProperty() {
         byte[] property = "hello this is a property".getBytes(StandardCharsets.UTF_8);
         when(mockStateStore.fetchProperty("foo")).thenReturn(property);
-        Response response = resource.getProperty("foo");
+        Response response = StateQueries.getProperty(mockStateStore, new StringPropertyDeserializer(), "foo");
         assertEquals(200, response.getStatus());
         assertEquals("hello this is a property", response.getEntity());
     }
 
     @Test
-    public void testGetPropertyNoDeserializer() {
-        Response response = new StateResource(mockFrameworkStore, mockStateStore).getProperty("foo");
-        assertEquals(409, response.getStatus());
-    }
-
-    @Test
     public void testGetPropertyMissing() {
         when(mockStateStore.fetchProperty("foo")).thenThrow(new StateStoreException(Reason.NOT_FOUND, "hi"));
-        Response response = resource.getProperty("foo");
+        Response response = StateQueries.getProperty(mockStateStore, new StringPropertyDeserializer(), "foo");
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetPropertyFails() {
         when(mockStateStore.fetchProperty("foo")).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
-        Response response = resource.getProperty("foo");
+        Response response = StateQueries.getProperty(mockStateStore, new StringPropertyDeserializer(), "foo");
         assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testRefreshCache() throws PersisterException {
-        when(mockFrameworkStore.getPersister()).thenReturn(mockPersisterCache);
-        Response response = resource.refreshCache();
+        when(mockStateStore.getPersister()).thenReturn(mockPersisterCache);
+        Response response = StateQueries.refreshCache(mockStateStore);
         assertEquals(200, response.getStatus());
         validateCommandResult(response, "refresh");
         verify(mockPersisterCache).refresh();
@@ -146,93 +139,95 @@ public class StateResourceTest {
 
     @Test
     public void testRefreshCacheNotCached() {
-        when(mockFrameworkStore.getPersister()).thenReturn(mockPersister);
-        Response response = resource.refreshCache();
+        when(mockStateStore.getPersister()).thenReturn(mockPersister);
+        Response response = StateQueries.refreshCache(mockStateStore);
         assertEquals(409, response.getStatus());
     }
 
     @Test
     public void testRefreshCacheFailure() throws PersisterException {
-        when(mockFrameworkStore.getPersister()).thenReturn(mockPersisterCache);
+        when(mockStateStore.getPersister()).thenReturn(mockPersisterCache);
         doThrow(new PersisterException(Reason.UNKNOWN, "hi")).when(mockPersisterCache).refresh();
-        Response response = resource.refreshCache();
+        Response response = StateQueries.refreshCache(mockStateStore);
         assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testStoreAndGetFile() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
         when(formDataContentDisposition.getSize()).thenReturn((long)FILE_CONTENT.length());
-        StateResource.storeFile(stateStore, FILE_NAME, inputStream, formDataContentDisposition);
-        assertEquals(StateResource.getFile(stateStore, FILE_NAME), FILE_CONTENT);
+        StateQueries.storeFile(stateStore, FILE_NAME, inputStream, formDataContentDisposition);
+        Response response = StateQueries.getFile(stateStore, FILE_NAME);
+        assertEquals(200, response.getStatus());
+        assertEquals(FILE_CONTENT, response.getEntity());
     }
 
     @Test
     public void testStoreAndListFiles() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
         when(formDataContentDisposition.getSize()).thenReturn((long)FILE_CONTENT.length());
-        StateResource.storeFile(stateStore, FILE_NAME + "-1", inputStream, formDataContentDisposition);
-        StateResource.storeFile(stateStore, FILE_NAME + "-2", inputStream, formDataContentDisposition);
+        StateQueries.storeFile(stateStore, FILE_NAME + "-1", inputStream, formDataContentDisposition);
+        StateQueries.storeFile(stateStore, FILE_NAME + "-2", inputStream, formDataContentDisposition);
         Collection<String> file_names = new HashSet<>();
         file_names.add(FILE_NAME + "-1");
         file_names.add(FILE_NAME + "-2");
-        assertEquals(file_names, StateResource.getFileNames(stateStore));
+        assertEquals(file_names, StateQueries.getFileNames(stateStore));
     }
 
     @Test
     public void testPutAndGetFile() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
         when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn((long)FILE_CONTENT.length());
-        when(mockStateStore.fetchProperty(StateResource.FILE_NAME_PREFIX + FILE_NAME))
-                .thenReturn(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        when(mockStateStore.fetchProperty(StateQueries.FILE_NAME_PREFIX + FILE_NAME))
+                .thenReturn(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = resource.putFile(inputStream, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore,inputStream, formDataContentDisposition);
         assertEquals(200, response.getStatus());
-        response = resource.getFile(FILE_NAME);
+        response = StateQueries.getFile(mockStateStore, FILE_NAME);
         assertEquals(200, response.getStatus());
         assertEquals(FILE_CONTENT, response.getEntity());
     }
 
     @Test
     public void testBadUpload() throws IOException {
-        int fileSize = StateResource.FILE_SIZE / FILE_CONTENT.length() * 100;
+        int fileSize = StateQueries.FILE_SIZE / FILE_CONTENT.length() * 100;
         String input = String.join("", Collections.nCopies(fileSize, FILE_CONTENT));
-        InputStream inputStream = new ByteArrayInputStream(input.getBytes(StateResource.FILE_ENCODING));
+        InputStream inputStream = new ByteArrayInputStream(input.getBytes(StateQueries.FILE_ENCODING));
         when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn(((long)fileSize));
-        when(mockStateStore.fetchProperty(StateResource.FILE_NAME_PREFIX + FILE_NAME))
-                .thenReturn(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        when(mockStateStore.fetchProperty(StateQueries.FILE_NAME_PREFIX + FILE_NAME))
+                .thenReturn(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = resource.putFile(inputStream, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore, inputStream, formDataContentDisposition);
         assertEquals(400, response.getStatus());
-        assertEquals(StateResource.UPLOAD_TOO_BIG_ERROR_MESSAGE, response.getEntity());
+        assertEquals(StateQueries.UPLOAD_TOO_BIG_ERROR_MESSAGE, response.getEntity());
     }
 
     @Test
     public void testNoFileUpload() throws IOException {
         when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn((long)0);
-        when(mockStateStore.fetchProperty(StateResource.FILE_NAME_PREFIX + FILE_NAME))
-                .thenReturn(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        when(mockStateStore.fetchProperty(StateQueries.FILE_NAME_PREFIX + FILE_NAME))
+                .thenReturn(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = resource.putFile(null, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore, null, formDataContentDisposition);
         assertEquals(400, response.getStatus());
-        assertEquals(StateResource.NO_FILE_ERROR_MESSAGE, response.getEntity());
+        assertEquals(StateQueries.NO_FILE_ERROR_MESSAGE, response.getEntity());
     }
 
     @Test
     public void testFailedUpload() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+        InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
         when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn(
-                (long)FILE_CONTENT.getBytes(StateResource.FILE_ENCODING).length);
+                (long)FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING).length);
         doThrow(new StateStoreException(new PersisterException(Reason.STORAGE_ERROR, "Failed to store")))
                 .when(mockStateStore).storeProperty(
-                        StateResource.FILE_NAME_PREFIX + FILE_NAME,
-                        FILE_CONTENT.getBytes(StateResource.FILE_ENCODING));
+                        StateQueries.FILE_NAME_PREFIX + FILE_NAME,
+                        FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = resource.putFile(inputStream, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore, inputStream, formDataContentDisposition);
         assertEquals(500, response.getStatus());
     }
 
@@ -241,7 +236,7 @@ public class StateResourceTest {
         TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
         when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
         when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
-        Response response = resource.getTaskNamesToZones();
+        Response response = StateQueries.getTaskNamesToZones(mockStateStore);
 
         Map<String, String> expectedTaskNameToZone = new HashMap<>();
         expectedTaskNameToZone.put(TestConstants.TASK_NAME,  TestConstants.ZONE);
@@ -256,7 +251,7 @@ public class StateResourceTest {
         TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
         when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
         when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
-        Response response = resource.getTaskNameToZone(TestConstants.TASK_NAME);
+        Response response = StateQueries.getTaskNameToZone(mockStateStore, TestConstants.TASK_NAME);
         assertEquals(response.getEntity(), TestConstants.ZONE);
     }
 
@@ -268,7 +263,8 @@ public class StateResourceTest {
         when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
         when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
         when(mockStateStore.fetchStatus(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskStatus));
-        Response response = resource.getTaskIPsToZones(
+        Response response = StateQueries.getTaskIPsToZones(
+                mockStateStore,
                 TestConstants.TASK_NAME.substring(0, 4), // simulates the pod-type prefix of a task name
                 TestConstants.IP_ADDRESS
         );

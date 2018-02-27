@@ -35,6 +35,7 @@ public class OfferEvaluator {
     private final StateStore stateStore;
     private final OfferOutcomeTracker offerOutcomeTracker;
     private final String serviceName;
+    private final Optional<String> queueName;
     private final UUID targetConfigId;
     private final SchedulerConfig schedulerConfig;
     private final boolean useDefaultExecutor;
@@ -44,6 +45,7 @@ public class OfferEvaluator {
             StateStore stateStore,
             OfferOutcomeTracker offerOutcomeTracker,
             String serviceName,
+            Optional<String> queueName,
             UUID targetConfigId,
             SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
@@ -51,6 +53,7 @@ public class OfferEvaluator {
         this.stateStore = stateStore;
         this.offerOutcomeTracker = offerOutcomeTracker;
         this.serviceName = serviceName;
+        this.queueName = queueName;
         this.targetConfigId = targetConfigId;
         this.schedulerConfig = schedulerConfig;
         this.useDefaultExecutor = useDefaultExecutor;
@@ -96,6 +99,7 @@ public class OfferEvaluator {
                     thisPodTasks.values(),
                     frameworkStore.fetchFrameworkId().get(),
                     useDefaultExecutor,
+                    queueName,
                     overrideMap);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;

@@ -60,7 +60,7 @@ public class UninstallPlanBuilder {
         if (!frameworkStore.fetchFrameworkId().isPresent()) {
             LOGGER.info("Framework ID is unset. Clearing persisted data and using an empty completed plan.");
             try {
-                PersisterUtils.clearAllData(frameworkStore.getPersister());
+                PersisterUtils.clearAllData(stateStore.getPersister());
             } catch (PersisterException e) {
                 throw new IllegalStateException("Unable to clear data following unset Framework ID", e);
             }

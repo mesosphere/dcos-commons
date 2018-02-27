@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -43,12 +44,12 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         stateStore = new StateStore(persister);
         targetConfig = UUID.randomUUID();
         evaluator = new OfferEvaluator(
-                frameworkStore, stateStore, new OfferOutcomeTracker(), TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, true);
+                frameworkStore, stateStore, new OfferOutcomeTracker(), TestConstants.SERVICE_NAME, Optional.empty(), targetConfig, SCHEDULER_CONFIG, true);
     }
 
     protected void useCustomExecutor() {
         evaluator = new OfferEvaluator(
-                frameworkStore, stateStore, new OfferOutcomeTracker(), TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, false);
+                frameworkStore, stateStore, new OfferOutcomeTracker(), TestConstants.SERVICE_NAME, Optional.empty(), targetConfig, SCHEDULER_CONFIG, false);
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {

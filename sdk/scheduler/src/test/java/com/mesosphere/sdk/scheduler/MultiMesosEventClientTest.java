@@ -56,29 +56,29 @@ public class MultiMesosEventClientTest {
         }
     };
 
-    @Mock private MesosEventClient mockClient1;
-    @Mock private MesosEventClient mockClient2;
-    @Mock private MesosEventClient mockClient3;
+    @Mock private ServiceScheduler mockClient1;
+    @Mock private ServiceScheduler mockClient2;
+    @Mock private ServiceScheduler mockClient3;
 
-    private MultiMesosEventClient client;
+    private JobsEventClient client;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        client = new MultiMesosEventClient();
+        client = new JobsEventClient();
     }
 
     @Test
     public void putRemoveClients() {
         Assert.assertNull(client.removeClient("1"));
 
-        client.putClient("1", mockClient1);
+        client.putJob("1", mockClient1);
         Assert.assertSame(mockClient1, client.removeClient("1"));
         Assert.assertNull(client.removeClient("1"));
 
-        client.putClient("2", mockClient2);
+        client.putJob("2", mockClient2);
         try {
-            client.putClient("2", mockClient1);
+            client.putJob("2", mockClient1);
             Assert.fail("Expected exception: duplicate key");
         } catch (IllegalArgumentException e) {
             // expected
@@ -112,15 +112,15 @@ public class MultiMesosEventClientTest {
         when(mockClient2.offers(any())).then(DROP_LAST_OFFER);
         when(mockClient3.offers(any())).then(OFFER_NOT_READY);
         client
-                .putClient("1", mockClient1)
-                .putClient("2", mockClient2)
-                .putClient("3", mockClient3)
-                .putClient("4", mockClient1)
-                .putClient("5", mockClient2)
-                .putClient("6", mockClient3)
-                .putClient("7", mockClient1)
-                .putClient("8", mockClient2)
-                .putClient("9", mockClient3);
+                .putJob("1", mockClient1)
+                .putJob("2", mockClient2)
+                .putJob("3", mockClient3)
+                .putJob("4", mockClient1)
+                .putJob("5", mockClient2)
+                .putJob("6", mockClient3)
+                .putJob("7", mockClient1)
+                .putJob("8", mockClient2)
+                .putJob("9", mockClient3);
 
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
@@ -149,9 +149,9 @@ public class MultiMesosEventClientTest {
         // All three clients: Not ready
         when(mockClient1.offers(any())).then(OFFER_NOT_READY);
         client
-                .putClient("1", mockClient1)
-                .putClient("2", mockClient1)
-                .putClient("3", mockClient1);
+                .putJob("1", mockClient1)
+                .putJob("2", mockClient1)
+                .putJob("3", mockClient1);
 
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
@@ -172,9 +172,9 @@ public class MultiMesosEventClientTest {
         // Client 1,2,3: unknown task
         when(mockClient1.status(any())).thenReturn(StatusResponse.unknownTask());
         client
-                .putClient("1", mockClient1)
-                .putClient("2", mockClient1)
-                .putClient("3", mockClient1);
+                .putJob("1", mockClient1)
+                .putJob("2", mockClient1)
+                .putJob("3", mockClient1);
 
         Protos.TaskStatus status = getStatus();
         Assert.assertEquals(StatusResponse.Result.UNKNOWN_TASK, client.status(status).result);
@@ -187,10 +187,10 @@ public class MultiMesosEventClientTest {
         when(mockClient1.status(any())).thenReturn(StatusResponse.unknownTask());
         when(mockClient2.status(any())).thenReturn(StatusResponse.processed());
         client
-                .putClient("1", mockClient1)
-                .putClient("2", mockClient1)
-                .putClient("3", mockClient2)
-                .putClient("4", mockClient1);
+                .putJob("1", mockClient1)
+                .putJob("2", mockClient1)
+                .putJob("3", mockClient2)
+                .putJob("4", mockClient1);
 
         Protos.TaskStatus status = getStatus();
         Assert.assertEquals(StatusResponse.Result.PROCESSED, client.status(status).result);

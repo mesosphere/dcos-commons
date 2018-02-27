@@ -94,14 +94,12 @@ public class SchedulerRunner implements Runnable {
                 throw new IllegalStateException("Unable to clear all data", e);
             }
 
-            MesosEventClient.ResourceServer server =
-                    SchedulerApiServer.start(schedulerBuilder.getSchedulerConfig(), new Runnable() {
+            SchedulerApiServer.start(schedulerBuilder.getSchedulerConfig(), scheduler.getResources(), new Runnable() {
                 @Override
                 public void run() {
                     LOGGER.info("Started trivially healthy API server.");
                 }
             });
-            scheduler.setResourceServer(server);
         } else {
             frameworkRunner.registerAndRunFramework(scheduler.getPersister(), scheduler);
         }

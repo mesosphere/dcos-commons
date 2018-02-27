@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -11,9 +11,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import static com.mesosphere.sdk.http.ResponseUtils.plainOkResponse;
@@ -24,34 +21,20 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
- * A read-only API for accessing file artifacts (e.g. config templates) for retrieval by executors.
+ * A read-only API for accessing file artifacts (e.g. config templates) for retrieval by pods.
  */
-@Path("artifacts")
-public class ArtifactResource {
-    private static final String ARTIFACT_URI_FORMAT = "http://%s/v1/artifacts/template/%s/%s/%s/%s";
+public class ArtifactQueries {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactQueries.class);
 
-    private final ConfigStore<ServiceSpec> configStore;
-
-    /**
-     * Returns a valid URL for accessing a config template artifact from a service task.
-     * Must be kept in sync with {@link #getTemplate(String, String, String, String)}.
-     */
-    public static String getTemplateUrl(
-            String serviceName, UUID configId, String podType, String taskName, String configName) {
-        return String.format(ARTIFACT_URI_FORMAT,
-                EndpointUtils.toSchedulerApiVipHostname(serviceName), configId, podType, taskName, configName);
-    }
-
-    public ArtifactResource(ConfigStore<ServiceSpec> configStore) {
-        this.configStore = configStore;
+    private ArtifactQueries() {
+        // do not instantiate
     }
 
     /**
      * Produces the content of the requested configuration template, or returns an error if that template doesn't exist
      * or the data couldn't be read. Configuration templates are versioned against configuration IDs, which (despite the
-     * similar naming) are not directly related. See also {@link ConfigResource} for more information on configuration
+     * similar naming) are not directly related. See also {@link ConfigQueries} for more information on configuration
      * IDs.
      *
      * @param configurationId the id of the configuration set to be retrieved from -- this should match the
@@ -60,22 +43,21 @@ public class ArtifactResource {
      * @param taskName the name of the task
      * @param configurationName the name of the configuration to be retrieved
      * @return an HTTP response containing the content of the requested configuration, or an HTTP error
-     * @see ConfigResource
+     * @see ConfigQueries
      */
-    @Path("/template/{configurationId}/{podType}/{taskName}/{configurationName}")
-    @GET
-    public Response getTemplate(
-            @PathParam("configurationId") String configurationId,
-            @PathParam("podType") String podType,
-            @PathParam("taskName") String taskName,
-            @PathParam("configurationName") String configurationName) {
-        logger.info("Attempting to fetch template '{}' from config '{}' with pod '{}', task '{}'",
+    public static Response getTemplate(
+            ConfigStore<ServiceSpec> configStore,
+            String configurationId,
+            String podType,
+            String taskName,
+            String configurationName) {
+        LOGGER.info("Attempting to fetch template '{}' from config '{}' with pod '{}', task '{}'",
                 configurationName, configurationId, podType, taskName);
         UUID uuid;
         try {
             uuid = UUID.fromString(configurationId);
         } catch (IllegalArgumentException ex) {
-            logger.warn(String.format(
+            LOGGER.warn(String.format(
                     "Failed to parse requested configuration id as a UUID: '%s'", configurationId), ex);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
@@ -84,10 +66,10 @@ public class ArtifactResource {
             serviceSpec = configStore.fetch(uuid);
         } catch (ConfigStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
-                logger.warn(String.format("Requested configuration '%s' doesn't exist", configurationId), ex);
+                LOGGER.warn(String.format("Requested configuration '%s' doesn't exist", configurationId), ex);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            logger.error(String.format(
+            LOGGER.error(String.format(
                     "Failed to fetch requested configuration with id '%s'", configurationId), ex);
             return Response.serverError().build();
         }
@@ -95,7 +77,7 @@ public class ArtifactResource {
             ConfigFileSpec config = getConfigFile(getTask(getPod(serviceSpec, podType), taskName), configurationName);
             return plainOkResponse(config.getTemplateContent());
         } catch (Exception ex) {
-            logger.warn(String.format(
+            LOGGER.warn(String.format(
                     "Couldn't find requested template in config '%s'", configurationId), ex);
             return Response.status(Response.Status.NOT_FOUND).build();
         }

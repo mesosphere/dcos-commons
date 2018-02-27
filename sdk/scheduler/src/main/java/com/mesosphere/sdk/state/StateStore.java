@@ -73,6 +73,13 @@ public class StateStore {
     }
 
     /**
+     * Returns the underlying {@link Persister}.
+     */
+    public Persister getPersister() {
+        return persister;
+    }
+
+    /**
      * Creates a new {@link StateStore} where data is placed within a namespace under the provided name.
      *
      * @param persister The persister which holds the state data

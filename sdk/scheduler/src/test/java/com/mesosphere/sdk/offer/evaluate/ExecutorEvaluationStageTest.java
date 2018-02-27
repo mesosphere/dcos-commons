@@ -57,6 +57,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 stateStore.fetchTasks(),
                                 frameworkStore.fetchFrameworkId().get(),
                                 true,
+                                Optional.empty(),
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
     }
@@ -99,6 +100,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 stateStore.fetchTasks(),
                                 frameworkStore.fetchFrameworkId().get(),
                                 false,
+                                Optional.empty(),
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
     }
@@ -140,6 +142,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         stateStore.fetchTasks(),
                         frameworkStore.fetchFrameworkId().get(),
                         true,
+                        Optional.empty(),
                         Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);
@@ -187,6 +190,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         stateStore.fetchTasks(),
                         frameworkStore.fetchFrameworkId().get(),
                         false,
+                        Optional.empty(),
                         Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);

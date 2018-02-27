@@ -16,6 +16,8 @@ import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
@@ -35,6 +37,8 @@ public class ServiceSchedulerTest {
 
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private SecretsClient mockSecretsClient;
+    @Mock private PlanCoordinator mockPlanCoordinator;
+    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
 
     @Before
     public void beforeEach() throws Exception {
@@ -87,9 +91,7 @@ public class ServiceSchedulerTest {
         return scheduler;
     }
 
-    private static class TestScheduler extends ServiceScheduler {
-
-        private final PlanCoordinator mockPlanCoordinator = mock(PlanCoordinator.class);
+    private class TestScheduler extends ServiceScheduler {
 
         protected TestScheduler(FrameworkStore frameworkStore, StateStore stateStore, SchedulerConfig schedulerConfig) {
             super(frameworkStore, stateStore, schedulerConfig, Optional.empty());
@@ -98,8 +100,8 @@ public class ServiceSchedulerTest {
         }
 
         @Override
-        public void setResourceServer(ResourceServer resourceServer) {
-            // Intentionally empty.
+        public Collection<Object> getResources() {
+            return Collections.emptyList();
         }
 
         @Override
@@ -121,6 +123,11 @@ public class ServiceSchedulerTest {
         protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
             String taskName = StateStoreUtils.getTaskName(stateStore, status);
             stateStore.storeStatus(taskName, status);
+        }
+
+        @Override
+        protected ConfigStore<ServiceSpec> getConfigStore() {
+            return mockConfigStore;
         }
     }
 }

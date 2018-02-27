@@ -13,7 +13,6 @@ import org.apache.mesos.Protos;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.ServiceScheduler;
-import com.mesosphere.sdk.scheduler.MesosEventClient.ResourceServer;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -60,16 +59,7 @@ public class ClusterState {
     }
 
     public Collection<Object> getResources() {
-        // Extract resources in a roundabout way: Calling setResourceServer() should result in them being (immediately)
-        // passed to us.
-        List<Object> resources = new ArrayList<>();
-        scheduler.setResourceServer(new ResourceServer() {
-            @Override
-            public void addResources(String namespace, Collection<Object> r) {
-                resources.addAll(r);
-            }
-        });
-        return resources;
+        return scheduler.getResources();
     }
 
     /**

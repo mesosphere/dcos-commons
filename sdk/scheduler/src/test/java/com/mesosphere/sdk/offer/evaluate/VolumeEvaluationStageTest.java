@@ -41,6 +41,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
                                 true,
+                                Optional.empty(),
                                 Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -94,6 +95,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
                                 true,
+                                Optional.empty(),
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());

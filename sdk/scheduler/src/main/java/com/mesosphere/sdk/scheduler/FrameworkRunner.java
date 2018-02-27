@@ -35,13 +35,15 @@ public class FrameworkRunner {
     // NOTE: in multi-service case, use a single MultiMesosEventClient.
     public void registerAndRunFramework(Persister persister, MesosEventClient mesosEventClient) {
         FrameworkScheduler frameworkScheduler = new FrameworkScheduler(persister, mesosEventClient);
-        MesosEventClient.ResourceServer server = SchedulerApiServer.start(schedulerConfig, new Runnable() {
+        SchedulerApiServer.start(
+                schedulerConfig,
+                mesosEventClient.getResources(),
+                new Runnable() {
             @Override
             public void run() {
                 frameworkScheduler.setReadyToAcceptOffers();
             }
         });
-        mesosEventClient.setResourceServer(server);
 
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(frameworkScheduler.fetchFrameworkId());
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));

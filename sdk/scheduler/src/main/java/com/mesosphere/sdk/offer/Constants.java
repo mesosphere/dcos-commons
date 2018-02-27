@@ -71,7 +71,7 @@ public class Constants {
      * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
      * {@link com.mesosphere.sdk.specification.PortSpec}.
      *
-     * As of this writing, this setting is only used by {@link com.mesosphere.sdk.http.EndpointsResource} for
+     * As of this writing, this setting is only used by {@link com.mesosphere.sdk.http.endpoints.EndpointsResource} for
      * determining what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't
      * advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
      */

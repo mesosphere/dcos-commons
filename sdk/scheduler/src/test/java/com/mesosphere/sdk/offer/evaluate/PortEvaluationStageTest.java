@@ -40,6 +40,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 useDefaultExecutor,
+                Optional.empty(),
                 Collections.emptyMap());
     }
 
@@ -456,6 +457,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true,
+                Optional.empty(),
                 Collections.emptyMap());
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(portSpec,
@@ -481,6 +483,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
                 true,
+                Optional.empty(),
                 Collections.emptyMap());
 
         // Omit 10,000 the expected port.
@@ -501,6 +504,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
                 true,
+                Optional.empty(),
                 Collections.emptyMap());
 
         mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));

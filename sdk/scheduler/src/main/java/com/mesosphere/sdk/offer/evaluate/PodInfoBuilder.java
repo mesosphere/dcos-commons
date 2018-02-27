@@ -2,8 +2,9 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.http.ArtifactResource;
 import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.http.endpoints.ArtifactResource;
+import com.mesosphere.sdk.http.endpoints.JobsArtifactResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
@@ -43,6 +44,7 @@ public class PodInfoBuilder {
     private final PodInstance podInstance;
     private final Map<String, TaskPortLookup> portsByTask;
     private final boolean useDefaultExecutor;
+    private final Optional<String> queueName;
 
     public PodInfoBuilder(
             PodInstanceRequirement podInstanceRequirement,
@@ -52,9 +54,11 @@ public class PodInfoBuilder {
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
             boolean useDefaultExecutor,
+            Optional<String> queueName,
             Map<TaskSpec, GoalStateOverride> overrideMap) throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         this.useDefaultExecutor = useDefaultExecutor;
+        this.queueName = queueName;
 
         // Generate new TaskInfos based on the task spec. To keep things consistent, we always generate new TaskInfos
         // from scratch, with the only carry-over being the prior task environment.
@@ -249,17 +253,7 @@ public class PodInfoBuilder {
                     commandBuilder.addUrisBuilder().setValue(uri.toString());
                 }
 
-                for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                    commandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
-                            .setOutputFile(getConfigTemplateDownloadPath(config))
-                            .setExtract(false);
-                }
+                addConfigTemplateUris(commandBuilder, serviceName, targetConfigurationId, podSpec.getType(), taskSpec);
 
                 // Secrets are constructed differently from other envvars where the proto is concerned:
                 for (SecretSpec secretSpec : podInstance.getPod().getSecrets()) {
@@ -296,6 +290,39 @@ public class PodInfoBuilder {
         setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
+    }
+
+    private void addConfigTemplateUris(
+            Protos.CommandInfo.Builder commandBuilder,
+            String serviceName,
+            UUID targetConfigurationId,
+            String podType,
+            TaskSpec taskSpec) {
+        for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
+            String url;
+            if (queueName.isPresent()) {
+                // Download from JobArtifactResource. "serviceName" is actually the name of the job.
+                url = JobsArtifactResource.getJobTemplateUrl(
+                        queueName.get(),
+                        serviceName,
+                        targetConfigurationId,
+                        podType,
+                        taskSpec.getName(),
+                        config.getName());
+            } else {
+                url = ArtifactResource.getStandaloneServiceTemplateUrl(
+                        serviceName,
+                        targetConfigurationId,
+                        podType,
+                        taskSpec.getName(),
+                        config.getName());
+            }
+            commandBuilder.addUrisBuilder()
+                    .setValue(url)
+                    .setOutputFile(getConfigTemplateDownloadPath(config))
+                    .setExtract(false);
+        }
+
     }
 
     private Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
@@ -349,17 +376,8 @@ public class PodInfoBuilder {
 
             // Finally any URIs for config templates defined in TaskSpecs.
             for (TaskSpec taskSpec : podSpec.getTasks()) {
-                for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
-                    executorCommandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
-                            .setOutputFile(getConfigTemplateDownloadPath(config))
-                            .setExtract(false);
-                }
+                addConfigTemplateUris(
+                        executorCommandBuilder, serviceName, targetConfigurationId, podSpec.getType(), taskSpec);
             }
         }
 

@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.endpoints;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -25,7 +25,7 @@ public class HealthResourceTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        resource = new HealthResource().setHealthyPlanManagers(Arrays.asList(
+        resource = new HealthResource(Arrays.asList(
                 DefaultPlanManager.createProceeding(mockPlan1),
                 DefaultPlanManager.createProceeding(mockPlan2)));
     }

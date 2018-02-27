@@ -67,7 +67,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
-    private String namespace;
+    private Optional<String> queueFrameworkName;
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -82,7 +82,7 @@ public class SchedulerBuilder {
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
         this.persister = persister;
-        this.namespace = ""; // Default: no namespace
+        this.queueFrameworkName = Optional.empty(); // Default: not a queue
     }
 
     /**
@@ -163,14 +163,13 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Assigns a namespace for this service to be used for state/config storage. Relevant when multiple services are
-     * being managed by the same process. Note that a non-namespaced service cannot be converted to or from a namespaced
-     * service, as the two have different storage schema versions.
+     * Assigns a framework name for this service to be used for config template retrieval. Otherwise the service name
+     * is used. This is only relevant when a single framework is running multiple services.
      *
-     * @param namespace the namespace to use, or an empty string for no/global namespace
+     * @param frameworkName the framework name to use for config template retrieval, otherwise the service name is used
      */
-    public SchedulerBuilder setNamespace(String namespace) {
-        this.namespace = namespace;
+    public SchedulerBuilder setCustomFrameworkName(String frameworkName) {
+        this.queueFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -188,9 +187,9 @@ public class SchedulerBuilder {
 
         // FIRST, check schema version before doing any other storage access:
         int currentVersion = new SchemaVersionStore(persister).fetch();
-        int expectedVersion = namespace.isEmpty()
-                ? SUPPORTED_SCHEMA_VERSION_WITHOUT_NAMESPACE
-                : SUPPORTED_SCHEMA_VERSION_WITH_NAMESPACE;
+        int expectedVersion = queueFrameworkName.isPresent()
+                ? SUPPORTED_SCHEMA_VERSION_WITH_NAMESPACE
+                : SUPPORTED_SCHEMA_VERSION_WITHOUT_NAMESPACE;
         if (!SchemaVersionStore.isSupported(currentVersion, expectedVersion, expectedVersion)) {
             throw new IllegalStateException(String.format(
                     "Storage schema version %d is not supported by this software (expected: %d)",
@@ -199,9 +198,12 @@ public class SchedulerBuilder {
 
         // THEN, initialize storage access:
         FrameworkStore frameworkStore = new FrameworkStore(persister);
-        StateStore stateStore = new StateStore(persister, namespace);
+        // When queue is enabled, use a namespace matching the job name. Otherwise use an empty namespace (the default).
+        // TODO: sanitize slashes in job name?
+        String storageNamespace = queueFrameworkName.isPresent() ? serviceSpec.getName() : "";
+        StateStore stateStore = new StateStore(persister, storageNamespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, storageNamespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {
@@ -315,6 +317,7 @@ public class SchedulerBuilder {
 
         return new DefaultScheduler(
                 serviceSpec,
+                Optional.empty() /* queueName */,
                 schedulerConfig,
                 customResources,
                 planCoordinator,

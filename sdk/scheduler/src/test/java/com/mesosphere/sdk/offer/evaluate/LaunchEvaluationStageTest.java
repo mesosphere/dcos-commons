@@ -39,6 +39,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
                 true,
+                Optional.empty(),
                 Collections.emptyMap());
     }
 

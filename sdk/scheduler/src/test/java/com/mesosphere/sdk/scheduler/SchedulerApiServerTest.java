@@ -6,7 +6,6 @@ import org.apache.http.client.fluent.ContentResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHttpRequest;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import java.net.URI;
 import java.time.Duration;
@@ -17,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import static org.mockito.Mockito.mock;
@@ -26,59 +26,34 @@ public class SchedulerApiServerTest {
     private static final int SHORT_TIMEOUT_MILLIS = 100;
     private static final int LONG_TIMEOUT_MILLIS = 30000;
 
-    @BeforeClass
-    public static void beforeAll() {
-        org.eclipse.jetty.util.log.StdErrLog l = new org.eclipse.jetty.util.log.StdErrLog();
-        l.setLevel(org.eclipse.jetty.util.log.StdErrLog.LEVEL_ALL);
-        org.eclipse.jetty.util.log.Log.setLog(l);
-    }
-
     @Test
-    public void testApiServerEndpointManagement() throws Exception {
+    public void testApiServerEndpointHandling() throws Exception {
         SchedulerConfig mockSchedulerConfig = mock(SchedulerConfig.class);
         when(mockSchedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofMillis(LONG_TIMEOUT_MILLIS));
         when(mockSchedulerConfig.getApiServerPort()).thenReturn(0);
 
         Listener listener = new Listener();
-        SchedulerApiServer server = SchedulerApiServer.start(mockSchedulerConfig, listener);
+        SchedulerApiServer server = SchedulerApiServer.start(
+                mockSchedulerConfig,
+                Arrays.asList(
+                        new TestResourcePlans(),
+                        new TestResourcePod(),
+                        new TestResourceJobPlans(),
+                        new TestResourceJobPod()),
+                listener);
         listener.waitForStarted();
-
-        server.addResources("v1", Arrays.asList(new TestResourceOneTwo(), new TestResourceThree()));
-        server.addResources("foo", Arrays.asList(new TestResourceFour()));
-        server.addResources("", Arrays.asList(new TestResourceThree(), new TestResourceFour()));
 
         Map<String, String> expectedEndpoints = new HashMap<>();
         expectedEndpoints.put("/v1/metrics", "");
         expectedEndpoints.put("/v1/metrics/prometheus", "");
-        expectedEndpoints.put("/v1/onetwo/endpoint1", "one");
-        expectedEndpoints.put("/v1/onetwo/endpoint2", "two");
-        expectedEndpoints.put("/v1/three/endpoint3", "three");
-        expectedEndpoints.put("/foo/four/endpoint4", "four");
-        expectedEndpoints.put("/three/endpoint3", "three");
-        expectedEndpoints.put("/four/endpoint4", "four");
-
-        checkEndpoints(server.getURI(), expectedEndpoints);
-
-        server.removeResources("foo");
-        expectedEndpoints.put("/foo/four/endpoint4", null);
-
-        checkEndpoints(server.getURI(), expectedEndpoints);
-
-        server.addResources("foo", Arrays.asList(new TestResourceFour()));
-        expectedEndpoints.put("/foo/four/endpoint4", "four");
-
-        checkEndpoints(server.getURI(), expectedEndpoints);
-
-        server.removeResources("v1");
-        expectedEndpoints.put("/v1/onetwo/endpoint1", null);
-        expectedEndpoints.put("/v1/onetwo/endpoint2", null);
-        expectedEndpoints.put("/v1/three/endpoint3", null);
-
-        checkEndpoints(server.getURI(), expectedEndpoints);
-
-        server.removeResources("");
-        expectedEndpoints.put("/three/endpoint3", null);
-        expectedEndpoints.put("/three/endpoint4", null);
+        expectedEndpoints.put("/v1/plans/foo", "Service Plan: foo");
+        expectedEndpoints.put("/v1/plans/bar", "Service Plan: bar");
+        expectedEndpoints.put("/v1/pod/foo/info", "Service Pod: foo");
+        expectedEndpoints.put("/v1/pod/bar/info", "Service Pod: bar");
+        expectedEndpoints.put("/v1/jobs/fast/plans/foo", "fast Plan: foo");
+        expectedEndpoints.put("/v1/jobs/slow/plans/bar", "slow Plan: bar");
+        expectedEndpoints.put("/v1/jobs/fast/pod/foo/info", "fast Pod: foo");
+        expectedEndpoints.put("/v1/jobs/slow/pod/foo/info", "slow Pod: foo");
 
         checkEndpoints(server.getURI(), expectedEndpoints);
 
@@ -131,38 +106,43 @@ public class SchedulerApiServerTest {
         }
     }
 
-    @Path("onetwo")
-    private static class TestResourceOneTwo {
+    @Path("/v1/plans")
+    public static class TestResourcePlans {
 
-        @Path("/endpoint1")
+        @Path("{planName}")
         @GET
-        public Response endpoint1() {
-            return Response.ok().entity("one").build();
-        }
-        @Path("/endpoint2")
-        @GET
-        public Response endpoint2() {
-            return Response.ok().entity("two").build();
+        public Response getPlan(@PathParam("planName") String planName) {
+            return Response.ok().entity("Service Plan: " + planName).build();
         }
     }
 
-    @Path("three")
-    private static class TestResourceThree {
+    @Path("/v1/pod")
+    public static class TestResourcePod {
 
-        @Path("/endpoint3")
+        @Path("/{name}/info")
         @GET
-        public Response endpoint3() {
-            return Response.ok().entity("three").build();
+        public Response getPlan(@PathParam("name") String podName) {
+            return Response.ok().entity("Service Pod: " + podName).build();
         }
     }
 
-    @Path("four")
-    private static class TestResourceFour {
+    @Path("/v1/jobs")
+    public static class TestResourceJobPlans {
 
-        @Path("/endpoint4")
+        @Path("{jobName}/plans/{planName}")
         @GET
-        public Response endpoint4() {
-            return Response.ok().entity("four").build();
+        public Response getPlan(@PathParam("jobName") String jobName, @PathParam("planName") String planName) {
+            return Response.ok().entity(jobName + " Plan: " + planName).build();
+        }
+    }
+
+    @Path("/v1/jobs")
+    public static class TestResourceJobPod {
+
+        @Path("/{jobName}/pod/{name}/info")
+        @GET
+        public Response getPlan(@PathParam("jobName") String jobName, @PathParam("name") String podName) {
+            return Response.ok().entity(jobName + " Pod: " + podName).build();
         }
     }
 }

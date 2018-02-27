@@ -108,6 +108,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         stateStore,
                         new OfferOutcomeTracker(),
                         TestConstants.SERVICE_NAME,
+                        Optional.empty(),
                         UUID.randomUUID(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),

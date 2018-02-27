@@ -128,6 +128,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         stateStore,
                         new OfferOutcomeTracker(),
                         serviceSpec.getName(),
+                        Optional.empty(),
                         configTarget,
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),

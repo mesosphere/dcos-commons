@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.http.*;
+import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
@@ -10,7 +10,6 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.*;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
@@ -31,14 +30,12 @@ public class DefaultScheduler extends ServiceScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
+    private final String serviceName;
     private final ConfigStore<ServiceSpec> configStore;
     private final PlanCoordinator planCoordinator;
     private final OfferAccepter offerAccepter;
     private final Collection<Object> customResources;
-    private final Collection<Object> defaultResources;
-    private final HealthResource healthResource;
-    private final PlansResource plansResource;
-    private final PodResource podResource;
+    private final Map<String, EndpointProducer> customEndpointProducers;
 
     private PlanScheduler planScheduler;
 
@@ -70,6 +67,7 @@ public class DefaultScheduler extends ServiceScheduler {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
+            Optional<String> queueName,
             SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
             PlanCoordinator planCoordinator,
@@ -79,33 +77,14 @@ public class DefaultScheduler extends ServiceScheduler {
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
         super(frameworkStore, stateStore, schedulerConfig, planCustomizer);
+        this.serviceName = serviceSpec.getName();
         this.configStore = configStore;
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
-
         this.customResources = customResources;
-        this.defaultResources = new ArrayList<>();
-        this.defaultResources.add(new ArtifactResource(configStore));
-        this.defaultResources.add(new ConfigResource<>(configStore));
-        EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName());
-        for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
-            endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
-        }
-        this.defaultResources.add(endpointsResource);
-        this.plansResource = new PlansResource();
-        this.defaultResources.add(this.plansResource);
-        this.defaultResources.add(new DeprecatedPlanResource(plansResource));
-        this.healthResource = new HealthResource();
-        this.defaultResources.add(this.healthResource);
-        this.podResource = new PodResource(
-                stateStore,
-                serviceSpec.getName(),
-                new DefaultTaskFailureListener(stateStore, configStore));
-        this.defaultResources.add(this.podResource);
-        this.defaultResources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
+        this.customEndpointProducers = customEndpointProducers;
 
         this.offerOutcomeTracker = new OfferOutcomeTracker();
-        this.defaultResources.add(new OfferOutcomeResource(offerOutcomeTracker));
         this.planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
@@ -113,13 +92,11 @@ public class DefaultScheduler extends ServiceScheduler {
                         stateStore,
                         offerOutcomeTracker,
                         serviceSpec.getName(),
+                        queueName,
                         configStore.getTargetConfig(),
                         schedulerConfig,
                         Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore);
-        this.plansResource.setPlanManagers(planCoordinator.getPlanManagers());
-        this.healthResource.setHealthyPlanManagers(
-                Arrays.asList(getDeploymentManager(planCoordinator), getRecoveryManager(planCoordinator)));
     }
 
     private static OfferAccepter getOfferAccepter(
@@ -141,18 +118,6 @@ public class DefaultScheduler extends ServiceScheduler {
         return new OfferAccepter(recorders);
     }
 
-    private static PlanManager getDeploymentManager(PlanCoordinator planCoordinator) {
-        return planCoordinator.getPlanManagers().stream()
-                .filter(planManager -> planManager.getPlan().isDeployPlan())
-                .findFirst().get();
-    }
-
-    private static PlanManager getRecoveryManager(PlanCoordinator planCoordinator) {
-        return planCoordinator.getPlanManagers().stream()
-                .filter(planManager -> planManager.getPlan().isRecoveryPlan())
-                .findFirst().get();
-    }
-
     private static Optional<DecommissionPlanManager> getDecomissionManager(PlanCoordinator planCoordinator) {
         return planCoordinator.getPlanManagers().stream()
                 .filter(planManager -> planManager.getPlan().isDecommissionPlan())
@@ -161,12 +126,24 @@ public class DefaultScheduler extends ServiceScheduler {
     }
 
     @Override
-    public void setResourceServer(ResourceServer resourceServer) {
-        // Put our resources under "/v1/...":
-        resourceServer.addResources("v1", defaultResources);
-        // Meanwhile, custom resources can go whereever they want relative to root:
-        // TODO(nickbp): Consider having these under v1 as well. This would be an API change.
-        resourceServer.addResources("", customResources);
+    public Collection<Object> getResources() {
+        Collection<Object> resources = new ArrayList<>();
+        resources.addAll(customResources);
+        resources.add(new ArtifactResource(configStore));
+        resources.add(new ConfigResource<>(configStore));
+        EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceName);
+        for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
+            endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
+        }
+        resources.add(endpointsResource);
+        PlansResource plansResource = new PlansResource(planCoordinator);
+        resources.add(plansResource);
+        resources.add(new DeprecatedPlanResource(plansResource));
+        resources.add(new HealthResource(planCoordinator));
+        resources.add(new PodResource(stateStore, configStore, serviceName));
+        resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
+        resources.add(new OfferOutcomeResource(offerOutcomeTracker));
+        return resources;
     }
 
     @Override
@@ -294,8 +271,7 @@ public class DefaultScheduler extends ServiceScheduler {
         }
     }
 
-    @VisibleForTesting
-    ConfigStore<ServiceSpec> getConfigStore() {
+    protected ConfigStore<ServiceSpec> getConfigStore() {
         return configStore;
     }
 }

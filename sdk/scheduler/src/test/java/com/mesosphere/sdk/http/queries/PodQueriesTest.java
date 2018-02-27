@@ -1,11 +1,13 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
@@ -35,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
 
-public class PodResourceTest {
+public class PodQueriesTest {
 
     // build from hand to avoid default type/index settings:
     private static final TaskInfo NO_POD_TASK = Protos.TaskInfo.newBuilder()
@@ -114,10 +116,9 @@ public class PodResourceTest {
             POD_2_STATUS_A);
 
     @Mock private StateStore mockStateStore;
-    @Mock private TaskFailureListener mockTaskFailureListener;
-    @Mock private SchedulerDriver driver;
-
-    private PodResource resource;
+    @Mock private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock private SchedulerDriver mockDriver;
+    @Mock private PodQueries.FailureSetter mockFailureSetter;
 
     @BeforeClass
     public static void beforeAll() throws InterruptedException {
@@ -132,14 +133,13 @@ public class PodResourceTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        Driver.setDriver(driver);
-        resource = new PodResource(mockStateStore, TestConstants.SERVICE_NAME, mockTaskFailureListener);
+        Driver.setDriver(mockDriver);
     }
 
     @Test
     public void testGetPodNames() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getPods();
+        Response response = PodQueries.list(mockStateStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(json.toString(), 4, json.length());
@@ -168,7 +168,7 @@ public class PodResourceTest {
         when(mockStateStore.fetchGoalOverrideStatus("test-2-a")).thenReturn(GoalStateOverride.Status.INACTIVE);
         when(mockStateStore.fetchGoalOverrideStatus(TestConstants.TASK_NAME))
                 .thenReturn(GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.COMPLETE));
-        Response response = resource.getPodStatuses();
+        Response response = PodQueries.getStatuses(mockStateStore, TestConstants.SERVICE_NAME);
 
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
@@ -264,7 +264,7 @@ public class PodResourceTest {
         when(mockStateStore.fetchGoalOverrideStatus("test-1-a")).thenReturn(GoalStateOverride.Status.INACTIVE);
         when(mockStateStore.fetchGoalOverrideStatus("test-1-b"))
                 .thenReturn(GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.IN_PROGRESS));
-        Response response = resource.getPodStatus("test-1");
+        Response response = PodQueries.getStatus(mockStateStore, "test-1");
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 2, json.length());
@@ -291,7 +291,7 @@ public class PodResourceTest {
     public void testGetPodStatusNotFound() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.getPodStatus("aaa");
+        Response response = PodQueries.getStatus(mockStateStore, "aaa");
         assertEquals(404, response.getStatus());
     }
 
@@ -299,7 +299,7 @@ public class PodResourceTest {
     public void testGetPodInfo() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.getPodInfo("test-1");
+        Response response = PodQueries.getInfo(mockStateStore, "test-1");
         assertEquals(200, response.getStatus());
         @SuppressWarnings("unchecked")
         List<TaskInfoAndStatus> info = (List<TaskInfoAndStatus>) response.getEntity();
@@ -314,7 +314,7 @@ public class PodResourceTest {
     public void testGetPodInfoNotFound() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.getPodInfo("aaa");
+        Response response = PodQueries.getInfo(mockStateStore, "aaa");
         assertEquals(404, response.getStatus());
     }
 
@@ -324,7 +324,7 @@ public class PodResourceTest {
     public void testPauseEntirePod() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.pausePod("test-0", null);
+        Response response = PodQueries.pause(mockStateStore, "test-0", null);
         assertEquals(200, response.getStatus());
 
         JSONObject json = new JSONObject((String) response.getEntity());
@@ -348,7 +348,7 @@ public class PodResourceTest {
     public void testPauseEntirePodNotFound() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.pausePod("aaa", null);
+        Response response = PodQueries.pause(mockStateStore, "aaa", null);
         assertEquals(404, response.getStatus());
 
         verify(mockStateStore, times(0)).storeGoalOverrideStatus(any(), any());
@@ -362,7 +362,7 @@ public class PodResourceTest {
         // allow both task names with and without a "pod-#-" prefix:
         jsonReq.put("a");
         jsonReq.put("test-0-c");
-        Response response = resource.pausePod("test-0", jsonReq.toString());
+        Response response = PodQueries.pause(mockStateStore, "test-0", jsonReq.toString());
         assertEquals(200, response.getStatus());
 
         JSONObject json = new JSONObject((String) response.getEntity());
@@ -388,7 +388,7 @@ public class PodResourceTest {
         jsonReq.put("a");
         jsonReq.put("test-0-c");
         jsonReq.put("e");
-        Response response = resource.pausePod("test-0", jsonReq.toString());
+        Response response = PodQueries.pause(mockStateStore, "test-0", jsonReq.toString());
         assertEquals(404, response.getStatus());
 
         verify(mockStateStore, times(0)).storeGoalOverrideStatus(any(), any());
@@ -400,7 +400,7 @@ public class PodResourceTest {
     public void testRestartPodNotFound() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.restartPod("aaa");
+        Response response = PodQueries.restartPod(mockStateStore, mockConfigStore, "aaa", RecoveryType.TRANSIENT, null);
         assertEquals(404, response.getStatus());
     }
 
@@ -409,7 +409,7 @@ public class PodResourceTest {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
 
-        Response response = resource.restartPod("test-0");
+        Response response = PodQueries.restartPod(mockStateStore, mockConfigStore, "test-0", RecoveryType.TRANSIENT, null);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(2, json.length());
@@ -420,13 +420,13 @@ public class PodResourceTest {
         assertEquals("test-0-c", json.getJSONArray("tasks").get(2));
         assertEquals("test-0-d", json.getJSONArray("tasks").get(3));
 
-        verify(driver).killTask(POD_0_TASK_A.getTaskId());
-        verify(driver).killTask(POD_0_TASK_B.getTaskId());
-        verify(driver).killTask(POD_0_TASK_C.getTaskId());
-        verify(driver).killTask(POD_0_TASK_D.getTaskId());
-        verifyNoMoreInteractions(driver);
+        verify(mockDriver).killTask(POD_0_TASK_A.getTaskId());
+        verify(mockDriver).killTask(POD_0_TASK_B.getTaskId());
+        verify(mockDriver).killTask(POD_0_TASK_C.getTaskId());
+        verify(mockDriver).killTask(POD_0_TASK_D.getTaskId());
+        verifyNoMoreInteractions(mockDriver);
 
-        verify(mockTaskFailureListener, never()).tasksFailed(any());
+        verifyNoMoreInteractions(mockConfigStore);
     }
 
     @Test
@@ -434,7 +434,7 @@ public class PodResourceTest {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
 
-        Response response = resource.restartPod("test-1");
+        Response response = PodQueries.restartPod(mockStateStore, mockConfigStore, "test-1", RecoveryType.TRANSIENT, null);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(2, json.length());
@@ -443,11 +443,11 @@ public class PodResourceTest {
         assertEquals("test-1-a", json.getJSONArray("tasks").get(0));
         assertEquals("test-1-b", json.getJSONArray("tasks").get(1));
 
-        verify(driver).killTask(POD_1_TASK_A.getTaskId());
-        verify(driver).killTask(POD_1_TASK_B.getTaskId());
-        verifyNoMoreInteractions(driver);
+        verify(mockDriver).killTask(POD_1_TASK_A.getTaskId());
+        verify(mockDriver).killTask(POD_1_TASK_B.getTaskId());
+        verifyNoMoreInteractions(mockDriver);
 
-        verify(mockTaskFailureListener, never()).tasksFailed(any());
+        verifyNoMoreInteractions(mockConfigStore);
     }
 
     // replace
@@ -456,10 +456,10 @@ public class PodResourceTest {
     public void testReplacePodNotFound() {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
-        Response response = resource.replacePod("aaa");
+        Response response = PodQueries.restartPod(mockStateStore, mockConfigStore, "aaa", RecoveryType.PERMANENT, null);
         assertEquals(404, response.getStatus());
 
-        verify(mockTaskFailureListener, never()).tasksFailed(any());
+        verifyNoMoreInteractions(mockConfigStore);
     }
 
     @Test
@@ -469,7 +469,8 @@ public class PodResourceTest {
 
         String podInstanceName = "test-0";
 
-        Response response = resource.replacePod(podInstanceName);
+        Response response = PodQueries.restartPod(
+                mockStateStore, mockConfigStore, podInstanceName, RecoveryType.PERMANENT, mockFailureSetter);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(2, json.length());
@@ -480,17 +481,17 @@ public class PodResourceTest {
         assertEquals(podInstanceName + "-c", json.getJSONArray("tasks").get(2));
         assertEquals(podInstanceName + "-d", json.getJSONArray("tasks").get(3));
 
-        verify(driver).killTask(POD_0_TASK_A.getTaskId());
-        verify(driver).killTask(POD_0_TASK_B.getTaskId());
-        verify(driver).killTask(POD_0_TASK_C.getTaskId());
-        verify(driver).killTask(POD_0_TASK_D.getTaskId());
-        verifyNoMoreInteractions(driver);
+        verify(mockDriver).killTask(POD_0_TASK_A.getTaskId());
+        verify(mockDriver).killTask(POD_0_TASK_B.getTaskId());
+        verify(mockDriver).killTask(POD_0_TASK_C.getTaskId());
+        verify(mockDriver).killTask(POD_0_TASK_D.getTaskId());
+        verifyNoMoreInteractions(mockDriver);
 
         List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
                 .collect(Collectors.toList());
-        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTasks);
-        verifyNoMoreInteractions(mockTaskFailureListener);
+        verify(mockFailureSetter, times(1)).setFailure(mockConfigStore, mockStateStore, expectedFailedTasks);
+        verifyNoMoreInteractions(mockFailureSetter);
     }
 
     @Test
@@ -500,7 +501,8 @@ public class PodResourceTest {
 
         String podInstanceName = "test-1";
 
-        Response response = resource.replacePod(podInstanceName);
+        Response response = PodQueries.restartPod(
+                mockStateStore, mockConfigStore, podInstanceName, RecoveryType.PERMANENT, mockFailureSetter);
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(2, json.length());
@@ -509,14 +511,14 @@ public class PodResourceTest {
         assertEquals(podInstanceName + "-a", json.getJSONArray("tasks").get(0));
         assertEquals(podInstanceName + "-b", json.getJSONArray("tasks").get(1));
 
-        verify(driver).killTask(POD_1_TASK_A.getTaskId());
-        verify(driver).killTask(POD_1_TASK_B.getTaskId());
-        verify(driver, times(2)).killTask(any());
+        verify(mockDriver).killTask(POD_1_TASK_A.getTaskId());
+        verify(mockDriver).killTask(POD_1_TASK_B.getTaskId());
+        verify(mockDriver, times(2)).killTask(any());
 
         List<Protos.TaskInfo> expectedFailedTasks = TASK_INFOS.stream()
                 .filter(taskInfo -> taskInfo.getName().startsWith(podInstanceName))
                 .collect(Collectors.toList());
-        verify(mockTaskFailureListener, times(1)).tasksFailed(expectedFailedTasks);
-        verifyNoMoreInteractions(mockTaskFailureListener);
+        verify(mockFailureSetter, times(1)).setFailure(mockConfigStore, mockStateStore, expectedFailedTasks);
+        verifyNoMoreInteractions(mockFailureSetter);
     }
 }

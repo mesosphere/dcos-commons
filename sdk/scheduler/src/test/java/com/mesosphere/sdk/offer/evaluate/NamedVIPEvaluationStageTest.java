@@ -237,6 +237,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
                 true,
+                Optional.empty(),
                 Collections.emptyMap());
     }
 
