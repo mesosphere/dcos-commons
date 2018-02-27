@@ -7,7 +7,6 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_utils
-import sdk_security
 
 from security import transport_encryption
 
@@ -27,18 +26,15 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
-    Creates service account and yields the name.
+    Creates service account for TLS.
     """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
+    try:
+        name = config.SERVICE_NAME
+        service_account_info = transport_encryption.setup_service_account(name)
 
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+        yield service_account_info
+    finally:
+        transport_encryption.cleanup_service_account(service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)

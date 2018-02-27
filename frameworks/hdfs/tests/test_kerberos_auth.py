@@ -7,10 +7,10 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_security
 import sdk_utils
 
 from security import kerberos as krb5
+from security import transport_encryption
 
 from tests import auth
 from tests import config
@@ -26,19 +26,15 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
-    Creates service account and yields the name.
+    Creates service account for TLS.
     """
     try:
         name = config.SERVICE_NAME
-        sdk_security.create_service_account(
-            service_account_name=name, service_account_secret=name)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        sdk_cmd.run_cli(
-            "security org groups add_user superusers {name}".format(name=name))
-        yield name
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=name)
+        transport_encryption.cleanup_service_account(service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -66,8 +62,8 @@ def hdfs_server(kerberos, service_account):
     service_kerberos_options = {
         "service": {
             "name": config.FOLDERED_SERVICE_NAME,
-            "service_account": service_account,
-            "service_account_secret": service_account,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
             "security": {
                 "kerberos": {
                     "enabled": True,
