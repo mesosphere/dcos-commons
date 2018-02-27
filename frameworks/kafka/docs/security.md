@@ -16,47 +16,13 @@ A good overview of these features can be found [here](https://www.confluent.io/b
 
 ## Transport Encryption
 
-With transport encryption enabled, DC/OS Apache Kafka will automatically deploy all brokers with the correct configuration to communicate via SSL. The Brokers will communicate securely between themselves using SSL. Optionally, plaintext communication can be left open to clients.
+{% include services/security-transport-encryption-lead-in.md
+    techName="Apache Kafka" plaintext="true" %}
 
-The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.
+*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication), but is optional for [Kerberos authentication](#kerberos-authentication).
 
-*Note*: Enabling transport encryption is _required_ to use [SSL authentication](#ssl-authentication) for [authentication](#authentication) (authn), but is optional for [Kerberos authn](#kerberos-authn).
-
-### Prerequisites
-- [A DC/OS Service Account with a secret stored in the DC/OS Secret Store](https://docs.mesosphere.com/latest/security/ent/service-auth/custom-service-auth/).
-- DC/OS Superuser permissions for modifying the permissions of the Service Account.
-
-### Configure Transport Encryption
-
-#### Setup the Service Account
-
-[Grant](https://docs.mesosphere.com/1.10/security/ent/perms-management/) the service account the correct permissions.
-- In DC/OS 1.10, the required permission is `dcos:superuser full`.
-- In DC/OS 1.11+ the required permissions are:
-```
-dcos:secrets:default:/<service name>/* full
-dcos:secrets:list:default:/<service name> read
-dcos:adminrouter:ops:ca:rw full
-dcos:adminrouter:ops:ca:ro full
-```
-where `<service name>` is the name of the service to be installed.
-
-#### Install the service
-Install the DC/OS Apache Kafka service including the following options in addition to your own:
-```json
-{
-    "service": {
-        "service_account": "<your service account name>",
-        "service_account_secret": "<full path of service secret>",
-        "security": {
-            "transport_encryption": {
-                "enabled": true,
-                "allow_plaintext": <true|false default false>
-            }
-        }
-    }
-}
-```
+{% include services/security-configure-transport-encryption.md
+    techName="Apache Kafka" plaintext="true" %}
 
 *Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
 
@@ -64,11 +30,13 @@ Install the DC/OS Apache Kafka service including the following options in additi
 
 After service deployment completes, check the list of [Kafka endpoints](../api-reference/#connection-information) for the endpoint `broker-tls`. If `service.security.transport_encryption.allow_plaintext` is `true`, then the `broker` endpoint will also be available.
 
+{% include services/security-transport-encryption-clients.md %}
+
 ## Authentication
 
-DC/OS Apache Kafka supports two authentication (authn) mechanisms, SSL and Kerberos. The two are supported indpendently but may not be combined. If both are SSL and Kerberos are enabled, the service will use Kerberos authentication.
+DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported indpendently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.
 
-*Note*: Kerberos can, however, be combined with transport encryption.
+*Note*: Kerberos authentication can, however, be combined with transport encryption.
 
 ### Kerberos Authentication
 
@@ -91,7 +59,7 @@ The DC/OS Apache Kafka service requires a Kerberos principal for each broker to 
 ```
 with:
 - `service primary = service.security.kerberos.primary`
-- `broker index = 0 up to kafka.brokers.count - 1`
+- `broker index = 0 up to brokers.count - 1`
 - `service subdomain = service.name with all `/`'s removed`
 - `service realm = service.security.kerberos.realm`
 
@@ -100,15 +68,15 @@ For example, if installing with these options:
 {
     "service": {
         "name": "a/good/example",
-        "kerberos": {
-            "primary": "example",
-            "realm": "EXAMPLE"
+        "security": {
+            "kerberos": {
+                "primary": "example",
+                "realm": "EXAMPLE"
+            }
         }
     },
-    "kafka": {
-        "brokers": {
-            "count": 3
-        }
+    "brokers": {
+        "count": 3
     }
 }
 ```
@@ -118,27 +86,13 @@ example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-1-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 example/kafka-2-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
+{% include services/security-kerberos-ad.md
+    principal="example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE"
+    spn="example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory"
+    upn="example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE" %}
 
-#### Place Service Keytab in DC/OS Secret Store
-
-The DC/OS Apache Kafka service uses a keytab containing all broker principals (service keytab) to simplify orchestration. After creating the principals above, generate the service keytab making sure to include all the broker principals. This will be stored as a secret in the DC/OS Secret Store.
-
-*Note*: DC/OS 1.10 does not support adding binary secrets directly to the secret store, only text files are supported. Instead, first base64 encode the file, and save it to the secret store as `/desired/path/__dcos_base64__secret_name`. The DC/OS security modules will handle decoding the file when it is used by the service. More details [here](https://docs.mesosphere.com/services/ops-guide/overview/#binary-secrets).
-
-The service keytab should be stored at `service/path/service.keytab` (as noted above for 1.10, it would be `__dcos_base64__service.keytab`), where `service/path` matches the path of the service. For example, if installing with the options
-```json
-{
-    "service": {
-        "name": "a/good/example"
-    }
-}
-```
-then the service keytab should be stored at `a/good/service.keytab`.
-
-Documentation for adding a file to the secret store can be found [here](https://docs.mesosphere.com/latest/security/ent/secrets/create-secrets/#creating-secrets-from-a-file-via-the-dcos-enterprise-cli).
-
-*Note*: Secrets access is controlled by [DC/OS Spaces](https://docs.mesosphere.com/latest/security/ent/#spaces-for-secrets), which function like namespaces. Technically, any secret path in the same space as that of the service will be accessible by the service. Matching the two paths is, however, the most secure option. Additionally the secret name `service.keytab` is a convention and not a requirement.
-
+{% include services/security-service-keytab.md
+    techName="Apache Kafka" %}
 
 #### Install the Service
 
@@ -146,17 +100,19 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 ```json
 {
     "service": {
-        "kerberos": {
-            "enabled": true,
-            "enabled_for_zookeeper": <true|false default false>,
-            "kdc": {
-                "hostname": "<kdc host>",
-                "port": <kdc port>
-            },
-            "primary": "<service primary default kafka>",
-            "realm": "<realm>",
-            "keytab_secret": "<path to keytab secret>",
-            "debug": <true|false default false>
+        "security": {
+            "kerberos": {
+                "enabled": true,
+                "enabled_for_zookeeper": <true|false default false>,
+                "kdc": {
+                    "hostname": "<kdc host>",
+                    "port": <kdc port>
+                },
+                "primary": "<service primary default kafka>",
+                "realm": "<realm>",
+                "keytab_secret": "<path to keytab secret>",
+                "debug": <true|false default false>
+            }
         }
     }
 }
@@ -170,14 +126,14 @@ Install the DC/OS Apache Kafka service with the following options in addition to
     }
 }
 ```
-The DC/OS Apache ZooKeeper service is intended for this purpose and supports Kerberos.
+The DC/OS Apache ZooKeeper service (`kafka-zookeeper` package) is intended for this purpose and supports Kerberos.
 
 *Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured.
 
 
 ### SSL Authentication
 
-SSL authentication requires that all clients be they brokers, producers, or consumers present a valid certificate from which their identity can be derived. DC/OS Apache Kafka uses the `CN` of the SSL certificate as the principal for a given client. For example, the certificate `CN=bob@example.com,OU=,O=Example,L=London,ST=London,C=GB` will be considered as the principal `bob@example.com`.
+SSL authentication requires that all clients be they brokers, producers, or consumers present a valid certificate from which their identity can be derived. DC/OS Apache Kafka uses the `CN` of the SSL certificate as the principal for a given client. For example, from the certificate `CN=bob@example.com,OU=,O=Example,L=London,ST=London,C=GB` the principal `bob@example.com` will be extracted.
 
 #### Prerequisites
 - Completion of the section [Transport Encryption](#transport-encryption) above
@@ -206,7 +162,7 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 
 #### Authenticating a Client
 
-To authenticate a client against DC/OS Apache Kafka, you will need to configure it to use a certificate signed by the DC/OS CA. After generating a certificate signing request, you can issue it to the DC/OS CA by calling the API `<dcos-cluster>/ca/api/v2/sign`. Using the `curl` command the request would look like:
+To authenticate a client against DC/OS Apache Kafka, you will need to configure it to use a certificate signed by the DC/OS CA. After generating a [certificate signing request](https://www.ssl.com/how-to/manually-generate-a-certificate-signing-request-csr-using-openssl/), you can issue it to the DC/OS CA by calling the API `<dcos-cluster>/ca/api/v2/sign`. Using `curl` the request would look like:
 ```bash
 $ curl -X POST \
     -H "Authorization: token=$(dcos config show core.dcos_acs_token)" \
@@ -218,12 +174,12 @@ The response will contain a signed public certificate. Full details on the DC/OS
 
 ## Authorization
 
-The DC/OS Apache Kafka Service supports Kafka's ACL-based authorization (authz) system. To use Kafka's authz, either SSL Auth or Kerberos must be enabled as detailed above.
+The DC/OS Apache Kafka service supports Kafka's [ACL-based](https://docs.confluent.io/current/kafka/authorization.html#using-acls) authorization system. To use Kafka's ACLs, either SSL or Kerberos authentication must be enabled as detailed above.
 
 ### Enable Authorization
 
 #### Prerequisites
-- Completion of either [SSL Authentication](#ssl-authentication) or [Kerberos](#kerberos-authn) above.
+- Completion of either [SSL](#ssl-authentication) or [Kerberos](#kerberos-authentication) authentication above.
 
 #### Install the Service
 
@@ -243,3 +199,6 @@ Install the DC/OS Apache Kafka service with the following options in addition to
 ```
 
 `service.security.authorization.super_users` should be set to a semi-colon delimited list of principals to treat as super users (all permissions). The format of the list is `User:<user1>;User:<user2>;...`. Using Kerberos authentication, the "user" value is the Kerberos primary, and for SSL authentication the "user" value is the `CN` of the certificate. The Kafka brokers themselves are automatically designated as super users.
+
+<!-- TODO. @Evan, did you write something for this already? Or am I mis-remembering? -->
+*Note*:  It is possible to enable Authorization after initial installation, but the service may be unavailable during the transition. Additionally, Kafka clients may fail to function if they do not have the correct ACLs assigned to their principals. During the transition `service.security.authorization.allow_everyone_if_no_acl_found` can be set to `true` to prevent clients from being failing until their ACLs can be set correctly. After the transition, `service.security.authorization.allow_everyone_if_no_acl_found` should be reversed to `false`

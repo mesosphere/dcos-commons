@@ -12,3 +12,9 @@ menuWeight: 100
 ## Zones
 
 DC/OS Zones allow the service to implement rack-awareness. When the service is deployed with some zone configuration (or lack thereof), it cannot be upgraded/downgraded to another zone configuration.
+
+<!-- TBD? ## Security
+
+### Transport Encryption
+
+### Kerberos -->
