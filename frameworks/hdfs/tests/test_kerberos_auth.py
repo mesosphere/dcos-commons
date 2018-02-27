@@ -104,7 +104,7 @@ def hdfs_client(kerberos, hdfs_server):
         client = {
             "id": client_id,
             "mem": 1024,
-            "user": "nobody",
+            "user": "root",
             "container": {
                 "type": "MESOS",
                 "docker": {

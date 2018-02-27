@@ -38,11 +38,11 @@ def get_kerberized_hdfs_client_app():
 
 
 def hdfs_command(command):
-    return "./hadoop-*/bin/hdfs dfs -{}".format(command)
+    return "/hadoop-*/bin/hdfs dfs -{}".format(command)
 
 
 def hdfs_write_command(content_to_write, filename):
-    return "echo {} | ./hadoop-*/bin/hdfs dfs -put - {}".format(content_to_write, filename)
+    return "echo {} | /hadoop-*/bin/hdfs dfs -put - {}".format(content_to_write, filename)
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
@@ -52,7 +52,7 @@ def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMA
 
 
 def hdfs_read_command(filename):
-    return "./hadoop-*/bin/hdfs dfs -cat {}".format(filename)
+    return "/hadoop-*/bin/hdfs dfs -cat {}".format(filename)
 
 
 def read_data_from_hdfs(service_name, filename):
@@ -61,7 +61,7 @@ def read_data_from_hdfs(service_name, filename):
 
 
 def hdfs_delete_file_command(filename):
-    return "./hadoop-*/bin/hdfs dfs -rm /{}".format(filename)
+    return "/hadoop-*/bin/hdfs dfs -rm /{}".format(filename)
 
 
 def delete_data_from_hdfs(service_name, filename):
@@ -70,7 +70,7 @@ def delete_data_from_hdfs(service_name, filename):
 
 
 def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | ./hadoop-*/bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
+    write_command = "wget {} -qO- | /hadoop-*/bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
     rc, _ = run_hdfs_command(service_name, write_command)
     return rc
 
@@ -92,7 +92,7 @@ def get_active_name_node(service_name):
     stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
-    rc, output = run_hdfs_command(service_name, "./hadoop-*/bin/hdfs haadmin -getServiceState {}".format(name_node))
+    rc, output = run_hdfs_command(service_name, "/hadoop-*/bin/hdfs haadmin -getServiceState {}".format(name_node))
     if not rc:
         return rc
 

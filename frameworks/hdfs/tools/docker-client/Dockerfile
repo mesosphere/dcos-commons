@@ -29,5 +29,7 @@ COPY krb5.conf /etc/krb5.conf
 COPY configure-environment.sh /$HADOOP_VERSION/configure-environment.sh
 COPY configure-hdfs.sh /$HADOOP_VERSION/configure-hdfs.sh
 
+WORKDIR "/$HADOOP_VERSION/"
+
 # this script will setup the HDFS configuration regardless of HDFS being kerberized or not
-CMD "$HADOOP_VERSION/configure-environment.sh"
+CMD "/$HADOOP_VERSION/configure-environment.sh"
