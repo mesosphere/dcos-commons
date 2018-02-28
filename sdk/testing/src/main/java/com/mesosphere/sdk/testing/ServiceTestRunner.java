@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.specification.*;
@@ -296,6 +297,9 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(supportsDefaultExecutor);
         Capabilities.overrideCapabilities(mockCapabilities);
 
+        // Disable background TaskKiller thread, to avoid erroneous kill invocations
+        TaskKiller.reset(false);
+
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
         schedulerEnvironment.putAll(customSchedulerEnv);
@@ -351,6 +355,9 @@ public class ServiceTestRunner {
 
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
+
+        // Re-enable background TaskKiller thread for other tests
+        TaskKiller.reset(true);
 
         return new ServiceTestResult(
                 serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs, persister, clusterState);
