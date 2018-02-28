@@ -658,7 +658,7 @@ dcos:adminrouter:ops:ca:ro full
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
 
-<p><em>Note</em>: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless <code class="highlighter-rouge">service.security.transport_encryption.allow_plaintext</code> is set to true.</p>
+<p><em>Note</em>: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured unless <code class="highlighter-rouge">service.security.transport_encryption.allow_plaintext</code> is set to true.</p>
 
 <h4 id="verify-transport-encryption-enabled">Verify Transport Encryption Enabled</h4>
 
@@ -670,7 +670,7 @@ dcos:adminrouter:ops:ca:ro full
 
 <h2 id="authentication">Authentication</h2>
 
-<p>DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported indpendently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.</p>
+<p>DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported independently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.</p>
 
 <p><em>Note</em>: Kerberos authentication can, however, be combined with transport encryption.</p>
 
