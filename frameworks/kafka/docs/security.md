@@ -24,7 +24,7 @@ A good overview of these features can be found [here](https://www.confluent.io/b
 {% include services/security-configure-transport-encryption.md
     techName="Apache Kafka" plaintext="true" %}
 
-*Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
+*Note*: It is possible to update a running DC/OS Apache Kafka service to enable transport encryption after initial installation, but the service may be unavailable during the transition. Additionally, your Kafka clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true.
 
 #### Verify Transport Encryption Enabled
 
@@ -34,7 +34,7 @@ After service deployment completes, check the list of [Kafka endpoints](../api-r
 
 ## Authentication
 
-DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported indpendently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.
+DC/OS Apache Kafka supports two authentication mechanisms, SSL and Kerberos. The two are supported independently and may not be combined. If both SSL and Kerberos authentication are enabled, the service will use Kerberos authentication.
 
 *Note*: Kerberos authentication can, however, be combined with transport encryption.
 
