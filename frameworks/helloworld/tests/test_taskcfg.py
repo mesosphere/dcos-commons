@@ -19,7 +19,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             0,
-            { "service": { "spec_file": "examples/taskcfg.yml" } },
+            { "service": { "yaml": "taskcfg" } },
             wait_for_deployment=False)
 
         yield # let the test session execute

@@ -3,6 +3,7 @@ package com.mesosphere.sdk.reconciliation;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
+import com.mesosphere.sdk.scheduler.Driver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.state.StateStore;
@@ -19,9 +20,9 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Tests for {@link DefaultReconciler}.
+ * Tests for {@link Reconciler}.
  */
-public class DefaultReconcilerTest {
+public class ReconcilerTest {
 
     private static final Protos.TaskStatus TASK_STATUS_1 = Protos.TaskStatus.newBuilder()
             .setTaskId(Protos.TaskID.newBuilder().setValue("task-1").build())
@@ -44,6 +45,7 @@ public class DefaultReconcilerTest {
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
+        Driver.setDriver(mockDriver);
         reconciler = new TestReconciler(mockStateStore, DEFAULT_TIME_MS);
     }
 
@@ -57,7 +59,7 @@ public class DefaultReconcilerTest {
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
-        reconciler.reconcile(mockDriver);
+        reconciler.reconcile();
 
         verify(mockDriver).reconcileTasks(eq(Arrays.asList()));
         assertTrue(reconciler.isReconciled()); // implicit reconciliation has occurred
@@ -121,14 +123,14 @@ public class DefaultReconcilerTest {
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
-        reconciler.reconcile(mockDriver); // trigger implicit reconciliation
+        reconciler.reconcile(); // trigger implicit reconciliation
         verify(mockDriver).reconcileTasks(taskStatusCaptor.capture());
 
         assertEquals(0, taskStatusCaptor.getValue().size());
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
-        reconciler.reconcile(mockDriver); // no-op
+        reconciler.reconcile(); // no-op
         verifyNoMoreInteractions(mockDriver);
     }
 
@@ -137,7 +139,7 @@ public class DefaultReconcilerTest {
         when(mockStateStore.fetchStatuses()).thenReturn(TASK_STATUSES);
         reconciler.start();
 
-        reconciler.reconcile(mockDriver); // first call to reconcileTasks: 2 values
+        reconciler.reconcile(); // first call to reconcileTasks: 2 values
 
         assertFalse(reconciler.isReconciled());
         assertEquals(2, reconciler.remaining().size());
@@ -155,7 +157,7 @@ public class DefaultReconcilerTest {
         assertEquals(TASK_STATUS_1.getTaskId().getValue(), reconciler.remaining().iterator().next());
 
         // still have a task left, but the time is still the same so driver.reconcile is skipped:
-        reconciler.reconcile(mockDriver); // doesn't call reconcileTasks due to timer
+        reconciler.reconcile(); // doesn't call reconcileTasks due to timer
 
         assertFalse(reconciler.isReconciled());
         assertEquals(1, reconciler.remaining().size());
@@ -163,7 +165,7 @@ public class DefaultReconcilerTest {
 
         // bump time forward and try again:
         reconciler.setNowMs(DEFAULT_TIME_MS + 30000);
-        reconciler.reconcile(mockDriver); // second call to reconcileTasks: 1 values
+        reconciler.reconcile(); // second call to reconcileTasks: 1 values
 
         assertFalse(reconciler.isReconciled());
         assertEquals(1, reconciler.remaining().size());
@@ -174,12 +176,12 @@ public class DefaultReconcilerTest {
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
-        reconciler.reconcile(mockDriver); // third call to reconcileTasks: 0 values (implicit)
+        reconciler.reconcile(); // third call to reconcileTasks: 0 values (implicit)
 
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
 
-        reconciler.reconcile(mockDriver); // no-op
+        reconciler.reconcile(); // no-op
 
         // we need to validate all calls at once due to how mockito deals with Collection calls.
         // otherwise it incorrectly throws "TooManyActualInvocations"
@@ -199,14 +201,14 @@ public class DefaultReconcilerTest {
         assertFalse(reconciler.isReconciled());
         assertEquals(1, reconciler.remaining().size());
 
-        reconciler.reconcile(mockDriver);
+        reconciler.reconcile();
 
         final Protos.TaskStatus updatedTaskStatus = Protos.TaskStatus.newBuilder(TASK_STATUS_2)
                 .setState(Protos.TaskState.TASK_RUNNING)
                 .build();
 
         reconciler.update(updatedTaskStatus);
-        reconciler.reconcile(mockDriver);
+        reconciler.reconcile();
 
         assertTrue(reconciler.isReconciled());
         assertEquals(0, reconciler.remaining().size());
@@ -219,9 +221,9 @@ public class DefaultReconcilerTest {
     }
 
     /**
-     * A DefaultReconciler with adjustable 'now'
+     * A Reconciler with adjustable 'now'
      */
-    private static class TestReconciler extends DefaultReconciler {
+    private static class TestReconciler extends Reconciler {
         private long nowMs;
 
         private TestReconciler(StateStore store, long nowMs) {

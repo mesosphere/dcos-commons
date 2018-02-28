@@ -54,20 +54,53 @@
           "type": "number",
           "default": 1000
         },
-        "spec_file": {
-          "description": "The name of the service spec yaml file.",
-          "type": "string",
-          "default": "svc.yml"
-        },
         "test_boolean": {
           "description": "A boolean value for testing purposes",
           "type": "boolean",
           "default": true
         },
-        "customize_plan": {
-          "description": "A boolean value to test programmatic plan customization",
-          "type": "boolean",
-          "default": false
+        "scenario": {
+          "description": "A value to test various SDK customization scenarios",
+          "type": "string",
+          "enum": [
+            "YAML",
+            "JAVA",
+            "CUSTOM_PLAN",
+            "CUSTOM_DECOMMISSION"
+          ],
+          "default": "YAML"
+        },
+        "yaml": {
+          "description": "An example YAML file to deploy",
+          "type": "string",
+          "enum": [
+            "canary",
+            "discovery",
+            "enable-disable",
+            "executor_volume",
+            "finish_state",
+            "gpu_resource",
+            "graceful-shutdown",
+            "marathon_constraint",
+            "multistep_plan",
+            "nonessential_tasks",
+            "overlay",
+            "pause",
+            "plan",
+            "pod-mount-volume",
+            "pre-reserved",
+            "pre-reserved-sidecar",
+            "secrets",
+            "share_pid_namespace",
+            "sidecar",
+            "simple",
+            "taskcfg",
+            "svc",
+            "tls",
+            "uri",
+            "web-url"
+          ],
+          "default": "svc"
         },
         "allow_region_awareness": {
           "description": "Allow region awareness",

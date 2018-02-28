@@ -46,6 +46,7 @@ import org.mockito.*;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -192,6 +193,7 @@ public class DefaultSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
+        Driver.setDriver(mockSchedulerDriver);
 
         when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
@@ -255,14 +257,14 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testLaunchA() throws InterruptedException {
+    public void testLaunchA() throws Exception {
         installStep(0, 0, getSufficientOfferForTaskA());
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
                 getStepStatuses(getDeploymentPlan()));
     }
 
     @Test
-    public void testLaunchB() throws InterruptedException {
+    public void testLaunchB() throws Exception {
         // Launch A-0
         testLaunchA();
         installStep(1, 0, getSufficientOfferForTaskB());
@@ -271,7 +273,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testFailLaunchA() throws InterruptedException {
+    public void testFailLaunchA() throws Exception {
         // Get first Step associated with Task A-0
         Plan plan = getDeploymentPlan();
         Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
@@ -578,7 +580,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testTaskIpIsStoredOnInstall() throws InterruptedException {
+    public void testTaskIpIsStoredOnInstall() throws Exception {
         install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
@@ -589,7 +591,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testTaskIpIsUpdatedOnStatusUpdate() throws InterruptedException {
+    public void testTaskIpIsUpdatedOnStatusUpdate() throws Exception {
         List<Protos.TaskID> taskIds = install();
         String updateIp = "1.1.1.1";
 
@@ -616,7 +618,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testTaskIpIsNotOverwrittenByEmptyOnUpdate() throws InterruptedException {
+    public void testTaskIpIsNotOverwrittenByEmptyOnUpdate() throws Exception {
         List<Protos.TaskID> taskIds = install();
 
         // Verify the TaskIP (TaskInfo, strictly speaking) has been stored in the StateStore.
@@ -661,6 +663,48 @@ public class DefaultSchedulerTest {
                 .findFirst().get();
 
         Assert.assertEquals(2, deployPlan.getChildren().size());
+    }
+
+    @Test
+    public void testDecommissionPlanCustomization() throws Exception {
+        AtomicBoolean decommissionPlanCustomized = new AtomicBoolean(false);
+        PlanCustomizer planCustomizer = new PlanCustomizer() {
+            @Override
+            public Plan updatePlan(Plan plan) {
+                if (plan.isDecommissionPlan()) {
+                    decommissionPlanCustomized.set(true);
+                }
+
+                return plan;
+            }
+        };
+
+        // Launches the first instance of POD-B
+        testLaunchB();
+
+        // Launch the second instance of POD-B
+        installStep(1, 1, getSufficientOfferForTaskB());
+        Assert.assertEquals(
+                Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
+                getStepStatuses(getDeploymentPlan()));
+
+        // Construct POD-B which scales in by 1 pod instance
+        PodSpec scaledInPodB = DefaultPodSpec.newBuilder(podB)
+                .count(TASK_B_COUNT - 1)
+                .allowDecommission(true)
+                .build();
+
+        DefaultScheduler.newBuilder(
+                getServiceSpec(podA, scaledInPodB), SchedulerConfigTestUtils.getTestSchedulerConfig(), new MemPersister())
+                .setStateStore(stateStore)
+                .setConfigStore(configStore)
+                .setPlanCustomizer(planCustomizer)
+                .build()
+                .disableApiServer()
+                .disableThreading()
+                .start();
+
+        Assert.assertTrue(decommissionPlanCustomized.get());
     }
 
     // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
@@ -767,7 +811,7 @@ public class DefaultSchedulerTest {
         });
     }
 
-    private Protos.TaskID installStep(int phaseIndex, int stepIndex, Protos.Offer offer) {
+    private Protos.TaskID installStep(int phaseIndex, int stepIndex, Protos.Offer offer) throws Exception {
         // Get first Step associated with Task A-0
         List<Protos.Offer> offers = Arrays.asList(offer);
         Protos.OfferID offerId = offer.getId();
@@ -823,7 +867,7 @@ public class DefaultSchedulerTest {
     /**
      * Installs the service.
      */
-    private List<Protos.TaskID> install() throws InterruptedException {
+    private List<Protos.TaskID> install() throws Exception {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
         taskIds.add(installStep(0, 0, getSufficientOfferForTaskA()));
@@ -900,15 +944,15 @@ public class DefaultSchedulerTest {
         return (DefaultScheduler) scheduler;
     }
 
-    private Plan getDeploymentPlan() {
+    private Plan getDeploymentPlan() throws Exception {
         return getPlan(Constants.DEPLOY_PLAN_NAME);
     }
 
-    private Plan getRecoveryPlan() {
+    private Plan getRecoveryPlan() throws Exception {
         return getPlan("recovery");
     }
 
-    private Plan getPlan(String planName) {
+    private Plan getPlan(String planName) throws Exception {
         for (PlanManager planManager : defaultScheduler.getPlanCoordinator().getPlanManagers()) {
             if (planManager.getPlan().getName().equals(planName)) {
                 return planManager.getPlan();

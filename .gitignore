@@ -27,6 +27,7 @@ tools/template
 /logs/
 *.log
 *.pem
+.pytest_cache/
 
 # idea
 *.i??

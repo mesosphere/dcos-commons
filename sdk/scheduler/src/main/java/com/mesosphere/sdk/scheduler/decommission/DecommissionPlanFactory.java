@@ -1,35 +1,11 @@
 package com.mesosphere.sdk.scheduler.decommission;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.TaskKiller;
-import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
-import com.mesosphere.sdk.scheduler.plan.Phase;
-import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.ResourceCleanupStep;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -37,6 +13,14 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Handles creation of the decommission plan, used for removing nodes from a service.
@@ -71,9 +55,12 @@ public class DecommissionPlanFactory {
             GoalStateOverride.DECOMMISSIONED.newStatus(GoalStateOverride.Progress.IN_PROGRESS);
 
     private final PlanInfo planInfo;
+    private final SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission;
 
-    public DecommissionPlanFactory(ServiceSpec serviceSpec, StateStore stateStore, TaskKiller taskKiller) {
-        this.planInfo = buildPlanInfo(serviceSpec, stateStore, taskKiller);
+    public DecommissionPlanFactory(ServiceSpec serviceSpec, StateStore stateStore) {
+        Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
+        this.podsToDecommission = getPodsToDecommission(serviceSpec, allTasks);
+        this.planInfo = buildPlanInfo(serviceSpec, stateStore, allTasks, podsToDecommission);
     }
 
     /**
@@ -92,6 +79,12 @@ public class DecommissionPlanFactory {
         return planInfo.resourceSteps;
     }
 
+    public Collection<Protos.TaskInfo> getTasksToDecommission() {
+        return podsToDecommission.values().stream()
+                .flatMap(taskInfos -> taskInfos.stream())
+                .collect(Collectors.toList());
+    }
+
     private static class PlanInfo {
         private final Optional<Plan> plan;
         private final Collection<Step> resourceSteps;
@@ -105,11 +98,12 @@ public class DecommissionPlanFactory {
     /**
      * Returns a {@link Plan} for decommissioning tasks, or an empty {@link Optional} if no decommission is necessary.
      */
-    private static PlanInfo buildPlanInfo(ServiceSpec serviceSpec, StateStore stateStore, TaskKiller taskKiller) {
+    private static PlanInfo buildPlanInfo(
+            ServiceSpec serviceSpec,
+            StateStore stateStore,
+            Collection<Protos.TaskInfo> allTasks,
+            SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission) {
         // Determine which tasks should be decommissioned (and which shouldn't)
-        Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
-        SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission =
-                getPodsToDecommission(serviceSpec, allTasks);
         Set<String> tasksToDecommission = new HashSet<>();
         for (Collection<Protos.TaskInfo> podTasks : podsToDecommission.values()) {
             tasksToDecommission.addAll(podTasks.stream().map(task -> task.getName()).collect(Collectors.toSet()));
@@ -148,7 +142,7 @@ public class DecommissionPlanFactory {
 
             // 1. Kill pod's tasks
             steps.addAll(entry.getValue().stream()
-                    .map(task -> new TriggerDecommissionStep(stateStore, taskKiller, task))
+                    .map(task -> new TriggerDecommissionStep(stateStore, task))
                     .collect(Collectors.toList()));
 
             // 2. Unreserve pod's resources

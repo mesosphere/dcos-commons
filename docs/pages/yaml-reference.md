@@ -177,7 +177,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         ```
       * `FINISH`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it is rerun. To demonstrate, let's assume that we've now launched hello-world with the `finish_state.yml` specfile, like so:
         ```
-        $ echo '{"service": {"spec_file": "examples/finish_state.yml"}}' > options.json
+        $ echo '{"service": {"yaml": "finish_state"}}' > options.json
         $ dcos package install --yes hello-world --options=options.json
         ```
         Once again, we wait for the deploy plan to complete, as above, and take note of the ID of the `world-0-finish` task (this time using the `--completed` flag, since the task has run to completion):
@@ -204,7 +204,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         ```
       * `ONCE`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it will not be rerun. To demonstrate, let's assume that this time we've launched hello-world with the `discovery.yml` specfile, like so:</li>
         ```
-        $ echo '{"service": {"spec_file": "examples/discovery.yml"}}' > options.json
+        $ echo '{"service": {"yaml": "discovery"}}' > options.json
         $ dcos package install --yes hello-world --options=options.json
         ```
         Again we wait for the deploy plan to complete and take note of the ID of the `hello-0-once` task, using the `--completed` flag since that task has run to completion:

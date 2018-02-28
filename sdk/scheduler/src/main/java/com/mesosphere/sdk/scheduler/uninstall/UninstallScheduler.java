@@ -15,7 +15,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +31,6 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private final ServiceSpec serviceSpec;
     private final Optional<SecretsClient> secretsClient;
-    private final Optional<PlanCustomizer> planCustomizer;
 
     private PlanManager uninstallPlanManager;
     private Collection<Object> resources = Collections.emptyList();
@@ -59,10 +57,36 @@ public class UninstallScheduler extends AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(stateStore, configStore, schedulerConfig);
+        super(stateStore, configStore, schedulerConfig, planCustomizer);
         this.serviceSpec = serviceSpec;
         this.secretsClient = customSecretsClientForTests;
-        this.planCustomizer = planCustomizer;
+
+        Plan plan = new UninstallPlanBuilder(
+                serviceSpec,
+                stateStore,
+                configStore,
+                schedulerConfig,
+                secretsClient)
+                .build();
+
+        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
+        this.resources = Arrays.asList(
+                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
+                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
+
+        List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step instanceof ResourceCleanupStep)
+                .map(step -> (ResourceCleanupStep) step)
+                .collect(Collectors.toList());
+        this.offerAccepter = new OfferAccepter(Collections.singletonList(
+                new UninstallRecorder(stateStore, resourceCleanupSteps)));
+
+        try {
+            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
+        } catch (IOException e) {
+            logger.error("Failed to deserialize uninstall plan.");
+        }
     }
 
     @Override
@@ -81,41 +105,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator initialize(SchedulerDriver driver) throws InterruptedException {
-        logger.info("Initializing...");
-
-        Plan plan = new UninstallPlanBuilder(
-                serviceSpec,
-                stateStore,
-                configStore,
-                schedulerConfig,
-                driver,
-                secretsClient)
-                .build();
-
-        // Allow for customization to the uninstall plan.
-        plan = planCustomizer.isPresent() ? planCustomizer.get().updateUninstallPlan(plan) : plan;
-
-        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
-        this.resources = Arrays.asList(
-                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
-                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
-        List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step instanceof ResourceCleanupStep)
-                .map(step -> (ResourceCleanupStep) step)
-                .collect(Collectors.toList());
-        offerAccepter = new OfferAccepter(Collections.singletonList(
-                new UninstallRecorder(stateStore, resourceCleanupSteps)));
-
-        try {
-            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
-        } catch (IOException e) {
-            logger.error("Failed to deserialize uninstall plan.");
-        }
-
-        logger.info("Done initializing.");
-
+    protected PlanCoordinator getPlanCoordinator() {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -131,7 +121,12 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(SchedulerDriver driver, List<Protos.Offer> offers, Collection<Step> steps) {
+    protected void registeredWithMesos() {
+        logger.info("Uninstall scheduler registered with Mesos.");
+    }
+
+    @Override
+    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
@@ -145,7 +140,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
         ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
 
-        offersWithReservedResources.addAll(rcs.resourceOffers(driver, localOffers));
+        offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
 
         // Decline remaining offers.
         List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
@@ -153,7 +148,7 @@ public class UninstallScheduler extends AbstractScheduler {
             logger.info("No offers to be declined.");
         } else {
             logger.info("Declining {} unused offers", unusedOffers.size());
-            OfferUtils.declineLong(driver, unusedOffers);
+            OfferUtils.declineLong(unusedOffers);
         }
     }
 

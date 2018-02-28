@@ -14,13 +14,11 @@ import java.util.stream.Collectors;
  */
 public class TaskCleaner {
     private final StateStore stateStore;
-    private final TaskKiller taskKiller;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final boolean multithreaded;
 
-    public TaskCleaner(StateStore stateStore, TaskKiller taskKiller, boolean multithreaded) {
+    public TaskCleaner(StateStore stateStore, boolean multithreaded) {
         this.stateStore = stateStore;
-        this.taskKiller = taskKiller;
         this.multithreaded = multithreaded;
     }
 
@@ -47,7 +45,7 @@ public class TaskCleaner {
                 .collect(Collectors.toList());
 
         if (!expectedTaskIds.contains(taskStatus.getTaskId())) {
-            taskKiller.killTask(taskStatus.getTaskId());
+            TaskKiller.killTask(taskStatus.getTaskId());
         }
     }
 

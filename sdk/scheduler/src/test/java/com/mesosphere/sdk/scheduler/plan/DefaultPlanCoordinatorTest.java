@@ -3,14 +3,12 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -77,7 +75,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     private DefaultServiceSpec serviceSpecificationB;
     private StateStore stateStore;
     private DefaultPlanScheduler planScheduler;
-    private SchedulerDriver schedulerDriver;
     private StepFactory stepFactory;
     private PhaseFactory phaseFactory;
 
@@ -85,7 +82,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     public void setupTest() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        schedulerDriver = mock(SchedulerDriver.class);
         serviceSpecification = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME)
                 .role(TestConstants.ROLE)
@@ -107,8 +103,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         UUID.randomUUID(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
-                stateStore,
-                new TaskKiller(schedulerDriver));
+                stateStore);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
                 .name(SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
@@ -156,7 +151,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
                         coordinator.getCandidates()));
     }
@@ -229,7 +223,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Collections.emptyList(),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, INSUFFICIENT_MEM, INSUFFICIENT_DISK),
                         coordinator.getCandidates()));
     }
@@ -243,7 +236,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Collections.emptyList(),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
                         coordinator.getCandidates()));
     }
@@ -257,7 +249,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID, OTHER_ID),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
                         coordinator.getCandidates()));
     }
@@ -274,7 +265,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
                         coordinator.getCandidates()));
     }
@@ -294,7 +284,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Collections.emptyList(),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
                         coordinator.getCandidates()));
     }
@@ -316,7 +305,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
                 planScheduler.resourceOffers(
-                        schedulerDriver,
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
                         coordinator.getCandidates()));
 

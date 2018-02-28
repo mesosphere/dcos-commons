@@ -29,6 +29,7 @@ public class ReviveManagerTest {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        Driver.setDriver(driver);
         manager = null;
     }
 
@@ -66,7 +67,7 @@ public class ReviveManagerTest {
 
     @Test
     public void dontReviveWhenThrottled() {
-        ReviveManager manager = new ReviveManager(driver);
+        ReviveManager manager = new ReviveManager();
         manager.revive(getSteps(0));
         manager.revive(getSteps(1));
         verify(driver, times(1)).reviveOffers();
@@ -80,7 +81,7 @@ public class ReviveManagerTest {
     }
 
     private ReviveManager getReviveManager() {
-        return new ReviveManager(driver, TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
+        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
     }
 
     private List<Step> getSteps(Integer index) {
