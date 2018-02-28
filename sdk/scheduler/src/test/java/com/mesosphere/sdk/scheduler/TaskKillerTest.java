@@ -20,23 +20,22 @@ public class TaskKillerTest {
 
     @BeforeClass
     public static void beforeAll() throws InterruptedException {
-        TaskKiller.shutdownScheduling();
+        TaskKiller.reset(false); // disable background executor to avoid unexpected calls
     }
 
     @AfterClass
-    public static void afterAll() {
-        TaskKiller.startScheduling();
+    public static void afterAll() throws InterruptedException {
+        TaskKiller.reset(true); // reenable background executor to return to default behavior
     }
 
     @Before
     public void beforeEach() throws InterruptedException {
         MockitoAnnotations.initMocks(this);
-        Driver.setDriver(null);
+        Driver.setDriver(driver);
     }
 
     @Test
     public void emptyTaskId() {
-        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         TaskKiller.killTask(Protos.TaskID.newBuilder().setValue("").build());
@@ -49,12 +48,12 @@ public class TaskKillerTest {
     @Test
     public void delayedDriverSet() throws InterruptedException {
         // Enqueue a task to kill, but it shouldn't be killed since no driver exists
+        Driver.setDriver(null);
         TaskKiller.killTask(TestConstants.TASK_ID);
-
-        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
-        // Perform an iteration of task killing
+        // Re-add driver and perform an iteration of task killing. Should happen now.
+        Driver.setDriver(driver);
         TaskKiller.killAllTasks();
         verify(driver, times(1)).killTask(TestConstants.TASK_ID);
 
@@ -63,7 +62,6 @@ public class TaskKillerTest {
 
     @Test
     public void normalDriverSet() {
-        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Enqueue a task to kill, and it should have a kill call issued immediately
@@ -75,7 +73,6 @@ public class TaskKillerTest {
 
     @Test
     public void multipleKillAttempts() {
-        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Enqueue a task to kill, and it should have a kill call issued immediately
@@ -92,7 +89,6 @@ public class TaskKillerTest {
 
     @Test
     public void multipleKillAttemptsWithNonTerminalStatus() {
-        Driver.setDriver(driver);
         verify(driver, never()).killTask(TestConstants.TASK_ID);
 
         // Enqueue a task to kill, and it should have a kill call issued immediately
