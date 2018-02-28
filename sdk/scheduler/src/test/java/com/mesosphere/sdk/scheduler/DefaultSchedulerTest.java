@@ -193,7 +193,7 @@ public class DefaultSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        TaskKiller.setDriver(mockSchedulerDriver);
+        Driver.setDriver(mockSchedulerDriver);
 
         when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
