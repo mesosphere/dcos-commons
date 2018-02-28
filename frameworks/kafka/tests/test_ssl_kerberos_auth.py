@@ -64,8 +64,8 @@ def kafka_server(kerberos, service_account):
     service_kerberos_options = {
         "service": {
             "name": config.SERVICE_NAME,
-            "service_account": service_account,
-            "service_account_secret": service_account,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
             "security": {
                 "kerberos": {
                     "enabled": True,

@@ -110,8 +110,8 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
                     "port_tls": 1030
                 },
                 "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
@@ -162,8 +162,8 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
                     "port_tls": 1030
                 },
                 "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
@@ -235,8 +235,8 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                     "port_tls": 1030
                 },
                 "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
