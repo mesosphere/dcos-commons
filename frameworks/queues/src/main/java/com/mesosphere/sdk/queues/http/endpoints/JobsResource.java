@@ -1,7 +1,8 @@
-package com.mesosphere.sdk.http.endpoints;
+package com.mesosphere.sdk.queues.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
-import com.mesosphere.sdk.http.types.JobInfoProvider;
+import com.mesosphere.sdk.queues.http.types.JobInfoProvider;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;

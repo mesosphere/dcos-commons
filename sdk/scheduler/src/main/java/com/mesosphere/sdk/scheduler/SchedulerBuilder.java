@@ -10,6 +10,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -39,7 +40,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
@@ -50,15 +50,14 @@ import java.util.stream.Collectors;
  */
 public class SchedulerBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerBuilder.class);
-
     /** @see SchemaVersionStore */
     private static final int SUPPORTED_SCHEMA_VERSION_WITHOUT_NAMESPACE = 1;
     private static final int SUPPORTED_SCHEMA_VERSION_WITH_NAMESPACE = 2;
 
-    private ServiceSpec serviceSpec;
+    private final Logger logger;
     private final SchedulerConfig schedulerConfig;
     private final Persister persister;
+    private ServiceSpec serviceSpec;
 
     // When these collections are empty, we don't do anything extra:
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
@@ -67,7 +66,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
-    private Optional<String> queueFrameworkName;
+    private Optional<String> customFrameworkName = Optional.empty();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -79,10 +78,10 @@ public class SchedulerBuilder {
     }
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceSpec.getName());
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
         this.persister = persister;
-        this.queueFrameworkName = Optional.empty(); // Default: not a queue
     }
 
     /**
@@ -163,13 +162,15 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Assigns a framework name for this service to be used for config template retrieval. Otherwise the service name
+     * Assigns a framework name for this service to be used for config template retrieval. By default the service name
      * is used. This is only relevant when a single framework is running multiple services.
+     *
+     * <p>WARNING: This call is not part of the stable API. Don't expect it to stick around.
      *
      * @param frameworkName the framework name to use for config template retrieval, otherwise the service name is used
      */
-    public SchedulerBuilder setCustomFrameworkName(String frameworkName) {
-        this.queueFrameworkName = Optional.of(frameworkName);
+    public SchedulerBuilder setFrameworkName(String frameworkName) {
+        this.customFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -185,29 +186,25 @@ public class SchedulerBuilder {
         // IMPORTANT: We specifically avoid touching the persister's content until build() is called. This mainly comes
         // up in the Curator case, where we specifically want to invoke CuratorLocker before accessing the storage.
 
-        // FIRST, check schema version before doing any other storage access:
-        int currentVersion = new SchemaVersionStore(persister).fetch();
-        int expectedVersion = queueFrameworkName.isPresent()
+        // FIRST, check and/or initialize schema version before doing any other storage access:
+        int expectedVersion = customFrameworkName.isPresent()
                 ? SUPPORTED_SCHEMA_VERSION_WITH_NAMESPACE
                 : SUPPORTED_SCHEMA_VERSION_WITHOUT_NAMESPACE;
-        if (!SchemaVersionStore.isSupported(currentVersion, expectedVersion, expectedVersion)) {
-            throw new IllegalStateException(String.format(
-                    "Storage schema version %d is not supported by this software (expected: %d)",
-                    currentVersion, expectedVersion));
-        }
+        new SchemaVersionStore(persister).check(expectedVersion);
 
         // THEN, initialize storage access:
         FrameworkStore frameworkStore = new FrameworkStore(persister);
-        // When queue is enabled, use a namespace matching the job name. Otherwise use an empty namespace (the default).
-        // TODO: sanitize slashes in job name?
-        String storageNamespace = queueFrameworkName.isPresent() ? serviceSpec.getName() : "";
+        // When queue is enabled, store state/configs within a namespace matching the job name. Otherwise use an empty
+        // namespace (the default).
+        // TODO: sanitize slashes in job/service name?
+        String storageNamespace = customFrameworkName.isPresent() ? serviceSpec.getName() : "";
         StateStore stateStore = new StateStore(persister, storageNamespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, storageNamespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             if (!StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                logger.info("Service has been told to uninstall. Marking this in the persistent state store. " +
                         "Uninstall cannot be canceled once enabled.");
                 StateStoreUtils.setUninstalling(stateStore);
             }
@@ -216,7 +213,7 @@ public class SchedulerBuilder {
                     schedulerConfig, Optional.ofNullable(planCustomizer));
         } else {
             if (StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+                logger.error("Service has been previously told to uninstall, this cannot be reversed. " +
                         "Reenable the uninstall flag to complete the process.");
                 SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
             }
@@ -224,7 +221,7 @@ public class SchedulerBuilder {
             try {
                 return getDefaultScheduler(frameworkStore, stateStore, configStore);
             } catch (ConfigStoreException e) {
-                LOGGER.error("Failed to construct scheduler.", e);
+                logger.error("Failed to construct scheduler.", e);
                 SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
                 return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
             }
@@ -252,13 +249,13 @@ public class SchedulerBuilder {
                 Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
                         getPlans(stateStore, configStore, lastServiceSpec, yamlPlans));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                    LOGGER.info("Marking deployment as having been previously completed");
+                    logger.info("Marking deployment as having been previously completed");
                     StateStoreUtils.setDeploymentWasCompleted(stateStore);
                     hasCompletedDeployment = true;
                 }
             } catch (ConfigStoreException e) {
                 // This is expected during initial deployment, when there is no prior configuration.
-                LOGGER.info("Unable to retrieve last configuration. Assuming that no prior deployment has completed");
+                logger.info("Unable to retrieve last configuration. Assuming that no prior deployment has completed");
             }
         }
 
@@ -274,13 +271,13 @@ public class SchedulerBuilder {
         final ConfigurationUpdater.UpdateResult configUpdateResult =
                 updateConfig(serviceSpec, stateStore, configStore, configValidators);
         if (!configUpdateResult.getErrors().isEmpty()) {
-            LOGGER.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
+            logger.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
             try {
                 // If there were errors, stick with the last accepted target configuration.
                 serviceSpec = configStore.fetch(configStore.getTargetConfig());
             } catch (ConfigStoreException e) {
                 // Uh oh. Bail.
-                LOGGER.error("Failed to retrieve previous target configuration", e);
+                logger.error("Failed to retrieve previous target configuration", e);
                 throw new IllegalArgumentException(e);
             }
         }
@@ -310,6 +307,7 @@ public class SchedulerBuilder {
                 plans);
         Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(stateStore);
         PlanCoordinator planCoordinator = buildPlanCoordinator(
+                serviceSpec.getName(),
                 deploymentPlanManager,
                 recoveryPlanManager,
                 decommissionPlanManager,
@@ -317,7 +315,7 @@ public class SchedulerBuilder {
 
         return new DefaultScheduler(
                 serviceSpec,
-                Optional.empty() /* queueName */,
+                customFrameworkName,
                 schedulerConfig,
                 customResources,
                 planCoordinator,
@@ -336,7 +334,7 @@ public class SchedulerBuilder {
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
+            logger.info("Adding overriding recovery plan manager.");
             overrideRecoveryPlanManagers.add(recoveryOverriderFactory.get().create(stateStore, plans));
         }
         final LaunchConstrainer launchConstrainer;
@@ -354,6 +352,7 @@ public class SchedulerBuilder {
             failureMonitor = new NeverFailureMonitor();
         }
         return new DefaultRecoveryPlanManager(
+                serviceSpec.getName(),
                 stateStore,
                 configStore,
                 PlanUtils.getLaunchableTasks(plans),
@@ -375,7 +374,8 @@ public class SchedulerBuilder {
         return Optional.empty();
     }
 
-    private PlanCoordinator buildPlanCoordinator(
+    private static PlanCoordinator buildPlanCoordinator(
+            String serviceName,
             PlanManager deploymentPlanManager,
             PlanManager recoveryPlanManager,
             Optional<PlanManager> decommissionPlanManager,
@@ -395,7 +395,7 @@ public class SchedulerBuilder {
                 .map(DefaultPlanManager::createInterrupted)
                 .collect(Collectors.toList()));
 
-        return new DefaultPlanCoordinator(planManagers);
+        return new DefaultPlanCoordinator(serviceName, planManagers);
     }
 
     /**
@@ -428,7 +428,7 @@ public class SchedulerBuilder {
      * @param configStore The config store to use for plan generation.
      * @return a collection of plans
      */
-    private static Collection<Plan> getPlans(
+    private Collection<Plan> getPlans(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
@@ -458,7 +458,7 @@ public class SchedulerBuilder {
             }
         }
 
-        LOGGER.info("Got {} {} plan{}: {}",
+        logger.info("Got {} {} plan{}: {}",
                 plans.size(),
                 plansType,
                 plans.size() == 1 ? "" : "s",
@@ -492,18 +492,18 @@ public class SchedulerBuilder {
      * a custom update plan has been specified.
      */
     @VisibleForTesting
-    static Collection<Plan> selectDeployPlan(Collection<Plan> plans, boolean hasCompletedDeployment) {
+    Collection<Plan> selectDeployPlan(Collection<Plan> plans, boolean hasCompletedDeployment) {
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
 
         if (!hasCompletedDeployment || !updatePlanOptional.isPresent()) {
-            LOGGER.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
+            logger.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
                     hasCompletedDeployment, updatePlanOptional.isPresent());
             return plans;
         }
 
-        LOGGER.info("Overriding deploy plan with custom update plan. " +
+        logger.info("Overriding deploy plan with custom update plan. " +
                 "(Has completed deployment: {}, Custom update plan defined: {})",
                 hasCompletedDeployment, updatePlanOptional.isPresent());
         Collection<Plan> newPlans = new ArrayList<>();
@@ -531,18 +531,18 @@ public class SchedulerBuilder {
      * @return the config update result, which may contain one or more validation errors produced by
      *     {@code configValidators}
      */
-    private static ConfigurationUpdater.UpdateResult updateConfig(
+    private ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Collection<ConfigValidator<ServiceSpec>> configValidators) {
-        LOGGER.info("Updating config with {} validators...", configValidators.size());
+        logger.info("Updating config with {} validators...", configValidators.size());
         ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
                 stateStore, configStore, DefaultServiceSpec.getComparatorInstance(), configValidators);
         try {
             return configurationUpdater.updateConfiguration(serviceSpec);
         } catch (ConfigStoreException e) {
-            LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
+            logger.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
         }
     }

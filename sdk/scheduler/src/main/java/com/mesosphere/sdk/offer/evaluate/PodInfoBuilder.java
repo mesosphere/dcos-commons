@@ -4,7 +4,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
-import com.mesosphere.sdk.http.endpoints.JobsArtifactResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
@@ -44,7 +43,7 @@ public class PodInfoBuilder {
     private final PodInstance podInstance;
     private final Map<String, TaskPortLookup> portsByTask;
     private final boolean useDefaultExecutor;
-    private final Optional<String> queueName;
+    private final Optional<String> customFrameworkName;
 
     public PodInfoBuilder(
             PodInstanceRequirement podInstanceRequirement,
@@ -54,11 +53,11 @@ public class PodInfoBuilder {
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
             boolean useDefaultExecutor,
-            Optional<String> queueName,
+            Optional<String> customFrameworkName,
             Map<TaskSpec, GoalStateOverride> overrideMap) throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
         this.useDefaultExecutor = useDefaultExecutor;
-        this.queueName = queueName;
+        this.customFrameworkName = customFrameworkName;
 
         // Generate new TaskInfos based on the task spec. To keep things consistent, we always generate new TaskInfos
         // from scratch, with the only carry-over being the prior task environment.
@@ -300,16 +299,17 @@ public class PodInfoBuilder {
             TaskSpec taskSpec) {
         for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
             String url;
-            if (queueName.isPresent()) {
+            if (customFrameworkName.isPresent()) {
                 // Download from JobArtifactResource. "serviceName" is actually the name of the job.
-                url = JobsArtifactResource.getJobTemplateUrl(
-                        queueName.get(),
+                url = ArtifactResource.getJobTemplateUrl(
+                        customFrameworkName.get(),
                         serviceName,
                         targetConfigurationId,
                         podType,
                         taskSpec.getName(),
                         config.getName());
             } else {
+                // Download from ArtifactResource.
                 url = ArtifactResource.getStandaloneServiceTemplateUrl(
                         serviceName,
                         targetConfigurationId,

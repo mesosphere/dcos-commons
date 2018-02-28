@@ -1,9 +1,9 @@
-package com.mesosphere.sdk.http.endpoints;
+package com.mesosphere.sdk.queues.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.PlansQueries;
-import com.mesosphere.sdk.http.types.JobInfoProvider;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.queues.http.types.JobInfoProvider;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;

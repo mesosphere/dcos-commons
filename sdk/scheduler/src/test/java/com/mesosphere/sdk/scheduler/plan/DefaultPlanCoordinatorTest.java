@@ -26,7 +26,6 @@ import static org.mockito.Mockito.mock;
  */
 public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
-    private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
     public static final int SUFFICIENT_MEM = 2000;
     public static final int SUFFICIENT_DISK = 10000;
@@ -86,7 +85,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         MockitoAnnotations.initMocks(this);
 
         serviceSpecification = DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME)
+                .name(TestConstants.SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
@@ -102,7 +101,8 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         phaseFactory = new DefaultPhaseFactory(stepFactory);
 
         planScheduler = new DefaultPlanScheduler(
-                new OfferAccepter(Arrays.asList()),
+                TestConstants.SERVICE_NAME,
+                new OfferAccepter(TestConstants.SERVICE_NAME, Arrays.asList()),
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
@@ -114,7 +114,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         true),
                 stateStore);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME + "-B")
+                .name(TestConstants.SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
@@ -149,14 +149,15 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNoPlanManager() {
-        new DefaultPlanCoordinator(Arrays.asList());
+        new DefaultPlanCoordinator(TestConstants.SERVICE_NAME, Arrays.asList());
     }
 
     @Test
     public void testOnePlanManagerPendingSufficientOffer() throws Exception {
         final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManager = DefaultPlanManager.createProceeding(plan);
-        final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(planManager));
+        final DefaultPlanCoordinator coordinator =
+                new DefaultPlanCoordinator(TestConstants.SERVICE_NAME, Arrays.asList(planManager));
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
                 planScheduler.resourceOffers(
@@ -228,6 +229,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     public void testOnePlanManagerPendingInSufficientOffer() throws Exception {
         final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                TestConstants.SERVICE_NAME,
                 Arrays.asList(DefaultPlanManager.createInterrupted(plan)));
         Assert.assertEquals(
                 Collections.emptyList(),
@@ -241,6 +243,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         plan.getChildren().get(0).getChildren().get(0).forceComplete();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                TestConstants.SERVICE_NAME,
                 Arrays.asList(DefaultPlanManager.createInterrupted(plan)));
         Assert.assertEquals(
                 Collections.emptyList(),
@@ -254,6 +257,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecificationB);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                TestConstants.SERVICE_NAME,
                 Arrays.asList(DefaultPlanManager.createProceeding(planA), DefaultPlanManager.createProceeding(planB)));
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID, OTHER_ID),
@@ -270,6 +274,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .build();
         final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecB);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                TestConstants.SERVICE_NAME,
                 Arrays.asList(DefaultPlanManager.createProceeding(planA), DefaultPlanManager.createProceeding(planB)));
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
@@ -289,6 +294,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         planB.getChildren().get(0).getChildren().get(0).forceComplete();
 
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                TestConstants.SERVICE_NAME,
                 Arrays.asList(planManagerA, planManagerB));
         Assert.assertEquals(
                 Collections.emptyList(),
@@ -302,6 +308,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                TestConstants.SERVICE_NAME,
                 Arrays.asList(DefaultPlanManager.createProceeding(planA), DefaultPlanManager.createProceeding(planB)));
 
         Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));

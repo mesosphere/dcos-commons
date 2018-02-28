@@ -2,14 +2,15 @@
   "packagingVersion": "4.0",
   "upgradesFrom": ["{{upgrades-from}}"],
   "downgradesTo": ["{{downgrades-to}}"],
-  "minDcosReleaseVersion": "1.9",
-  "name": "template",
+  "minDcosReleaseVersion": "1.10",
+  "name": "queues",
   "version": "{{package-version}}",
-  "maintainer": "support@YOURNAMEHERE.COM",
-  "description": "YOURNAMEHERE on DC/OS",
+  "maintainer": "support@mesosphere.io",
+  "description": "Apache Kafka",
   "selected": false,
   "framework": true,
-  "tags": ["template"],
-  "postInstallNotes": "DC/OS YOURNAMEHERE is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
-  "postUninstallNotes": "DC/OS YOURNAMEHERE is being uninstalled."
+  "tags": ["queues"],
+  "preInstallNotes": "This DC/OS service is currently VERY ALPHA and is likely to be VERY BROKEN if you look at it the wrong way. Tread carefully.",
+  "postInstallNotes": "The DC/OS Queues service is being installed.\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
+  "postUninstallNotes": "The DC/OS Queues service is being uninstalled."
 }

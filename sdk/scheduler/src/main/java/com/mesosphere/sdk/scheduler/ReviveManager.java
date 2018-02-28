@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,15 +18,17 @@ import java.util.stream.Collectors;
  * This class determines whether offers should be revived based on changes to the work being processed by the scheduler.
  */
 public class ReviveManager {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger;
     private final TokenBucket tokenBucket;
+
     private Set<WorkItem> candidates = new HashSet<>();
 
-    public ReviveManager() {
-        this(TokenBucket.newBuilder().build());
+    public ReviveManager(String serviceName) {
+        this(serviceName, TokenBucket.newBuilder().build());
     }
 
-    public ReviveManager(TokenBucket tokenBucket) {
+    public ReviveManager(String serviceName, TokenBucket tokenBucket) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
         this.tokenBucket = tokenBucket;
     }
 

@@ -16,7 +16,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,8 +27,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultScheduler extends ServiceScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
-
+    private final Logger logger;
     private final String serviceName;
     private final ConfigStore<ServiceSpec> configStore;
     private final PlanCoordinator planCoordinator;
@@ -67,7 +65,7 @@ public class DefaultScheduler extends ServiceScheduler {
      */
     protected DefaultScheduler(
             ServiceSpec serviceSpec,
-            Optional<String> queueName,
+            Optional<String> customFrameworkName,
             SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
             PlanCoordinator planCoordinator,
@@ -76,7 +74,8 @@ public class DefaultScheduler extends ServiceScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(frameworkStore, stateStore, schedulerConfig, planCustomizer);
+        super(serviceSpec.getName(), frameworkStore, stateStore, schedulerConfig, planCustomizer);
+        this.logger = LoggingUtils.getLogger(getClass(), serviceSpec.getName());
         this.serviceName = serviceSpec.getName();
         this.configStore = configStore;
         this.planCoordinator = planCoordinator;
@@ -86,13 +85,14 @@ public class DefaultScheduler extends ServiceScheduler {
 
         this.offerOutcomeTracker = new OfferOutcomeTracker();
         this.planScheduler = new DefaultPlanScheduler(
+                serviceSpec.getName(),
                 offerAccepter,
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
                         offerOutcomeTracker,
                         serviceSpec.getName(),
-                        queueName,
+                        customFrameworkName,
                         configStore.getTargetConfig(),
                         schedulerConfig,
                         Capabilities.getInstance().supportsDefaultExecutor()),
@@ -115,7 +115,7 @@ public class DefaultScheduler extends ServiceScheduler {
            recorders.add(new DecommissionRecorder(stateStore, steps));
         }
 
-        return new OfferAccepter(recorders);
+        return new OfferAccepter(serviceSpec.getName(), recorders);
     }
 
     private static Optional<DecommissionPlanManager> getDecomissionManager(PlanCoordinator planCoordinator) {
@@ -147,8 +147,13 @@ public class DefaultScheduler extends ServiceScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() {
+    public PlanCoordinator getPlanCoordinator() {
         return planCoordinator;
+    }
+
+    @Override
+    public ConfigStore<ServiceSpec> getConfigStore() {
+        return configStore;
     }
 
     @Override
@@ -223,9 +228,9 @@ public class DefaultScheduler extends ServiceScheduler {
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
         if (offers.isEmpty()) {
-            LOGGER.info("0 Offers processed.");
+            logger.info("0 Offers processed.");
         } else {
-            LOGGER.info("{} Offer{} processed:\n"
+            logger.info("{} Offer{} processed:\n"
                     + "  {} accepted by Plans: {}\n"
                     + "  {} accepted by Resource Cleaner: {}\n"
                     + "  {} unused: {}",
@@ -266,12 +271,8 @@ public class DefaultScheduler extends ServiceScheduler {
             try {
                 StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
             } catch (StateStoreException e) {
-                LOGGER.warn("Unable to store network info for status update: " + status, e);
+                logger.warn("Unable to store network info for status update: " + status, e);
             }
         }
-    }
-
-    protected ConfigStore<ServiceSpec> getConfigStore() {
-        return configStore;
     }
 }

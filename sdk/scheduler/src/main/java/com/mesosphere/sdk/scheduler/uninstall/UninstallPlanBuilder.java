@@ -10,12 +10,12 @@ import java.util.stream.Collectors;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -39,13 +39,13 @@ import com.mesosphere.sdk.storage.PersisterUtils;
  * Handles creation of the uninstall plan, returning information about the plan contents back to the caller.
  */
 public class UninstallPlanBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UninstallPlanBuilder.class);
 
     private static final String TASK_KILL_PHASE = "kill-tasks";
     private static final String RESOURCE_PHASE = "unreserve-resources";
     private static final String TLS_CLEANUP_PHASE = "tls-cleanup";
     private static final String DEREGISTER_PHASE = "deregister-service";
 
+    private final Logger logger;
     private final Plan plan;
 
     UninstallPlanBuilder(
@@ -55,10 +55,11 @@ public class UninstallPlanBuilder {
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceSpec.getName());
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
         if (!frameworkStore.fetchFrameworkId().isPresent()) {
-            LOGGER.info("Framework ID is unset. Clearing persisted data and using an empty completed plan.");
+            logger.info("Framework ID is unset. Clearing persisted data and using an empty completed plan.");
             try {
                 PersisterUtils.clearAllData(stateStore.getPersister());
             } catch (PersisterException e) {
@@ -104,7 +105,7 @@ public class UninstallPlanBuilder {
                                 resourceId,
                                 resourceId.startsWith(Constants.TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING))
                         .collect(Collectors.toList());
-        LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
+        logger.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
                 tasksNotFailedAndErrored.size(), allTasks.size(),
                 resourceSteps.stream().filter(step -> step.isComplete()).count(),
                 resourceSteps.size());
@@ -127,11 +128,12 @@ public class UninstallPlanBuilder {
                 phases.add(new DefaultPhase(
                         TLS_CLEANUP_PHASE,
                         Collections.singletonList(new TLSCleanupStep(
-                                secretsClient, schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
+                                secretsClient,
+                                schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
                         new SerialStrategy<>(),
                         Collections.emptyList()));
             } catch (Exception e) {
-                LOGGER.error("Failed to create a secrets store client, " +
+                logger.error("Failed to create a secrets store client, " +
                         "TLS artifacts possibly won't be cleaned up from secrets store", e);
             }
         }

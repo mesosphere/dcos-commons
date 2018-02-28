@@ -54,11 +54,12 @@ public class DefaultPlanSchedulerTest {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
         mockRecommendations = Arrays.asList(mockRecommendation);
-        scheduler = new DefaultPlanScheduler(mockOfferAccepter, mockOfferEvaluator, mockStateStore);
 
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        scheduler = new DefaultPlanScheduler(serviceSpec.getName(), mockOfferAccepter, mockOfferEvaluator, mockStateStore);
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

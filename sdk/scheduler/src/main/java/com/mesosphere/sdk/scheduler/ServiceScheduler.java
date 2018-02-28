@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
@@ -15,7 +16,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,8 +26,9 @@ import java.util.stream.Collectors;
  */
 public abstract class ServiceScheduler implements MesosEventClient {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceScheduler.class);
+    private final Logger logger;
 
+    private final String serviceName;
     protected final FrameworkStore frameworkStore;
     protected final StateStore stateStore;
     protected final SchedulerConfig schedulerConfig;
@@ -43,10 +44,13 @@ public abstract class ServiceScheduler implements MesosEventClient {
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
     protected ServiceScheduler(
+            String serviceName,
             FrameworkStore frameworkStore,
             StateStore stateStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
+        this.serviceName = serviceName;
         this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
         this.schedulerConfig = schedulerConfig;
@@ -101,7 +105,7 @@ public abstract class ServiceScheduler implements MesosEventClient {
     @Override
     public void register(boolean reRegistered) {
         if (!reRegistered) {
-            this.reviveManager = new ReviveManager();
+            this.reviveManager = new ReviveManager(serviceName);
             this.reconciler = new Reconciler(stateStore);
             registeredWithMesos();
         }
@@ -117,7 +121,7 @@ public abstract class ServiceScheduler implements MesosEventClient {
          * See also: http://mesos.apache.org/documentation/latest/reconciliation/ */
         reconciler.reconcile();
         if (!reconciler.isReconciled()) {
-            LOGGER.info("Not ready for offers: Waiting for task reconciliation to complete.");
+            logger.info("Not ready for offers: Waiting for task reconciliation to complete.");
             return OfferResponse.notReady(offers);
         }
 
@@ -127,18 +131,18 @@ public abstract class ServiceScheduler implements MesosEventClient {
         // Revive previously suspended offers, if necessary
         Collection<Step> activeWorkSet = new HashSet<>(steps);
         Collection<Step> inProgressSteps = getInProgressSteps(getPlanCoordinator());
-        LOGGER.info("InProgress Steps: {}",
+        logger.info("InProgress Steps: {}",
                 inProgressSteps.stream()
                         .map(step -> step.getMessage())
                         .collect(Collectors.toList()));
         activeWorkSet.addAll(inProgressSteps);
         reviveManager.revive(activeWorkSet);
 
-        LOGGER.info("Processing {} offer{} against {} step{}:",
+        logger.info("Processing {} offer{} against {} step{}:",
                 offers.size(), offers.size() == 1 ? "" : "s",
                 steps.size(), steps.size() == 1 ? "" : "s");
         for (int i = 0; i < offers.size(); ++i) {
-            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
+            logger.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
         }
 
         return OfferResponse.processed(processOffers(offers, steps));
@@ -160,11 +164,11 @@ public abstract class ServiceScheduler implements MesosEventClient {
             reconciler.update(status);
         } catch (Exception e) {
             if (e instanceof StateStoreException && ((StateStoreException) e).getReason() == Reason.NOT_FOUND) {
-                LOGGER.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
+                logger.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
                         + TextFormat.shortDebugString(status), e);
                 return StatusResponse.unknownTask();
             }
-            LOGGER.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
+            logger.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
         }
         return StatusResponse.processed();
     }
@@ -172,21 +176,38 @@ public abstract class ServiceScheduler implements MesosEventClient {
     /**
      * Returns the {@link StateStore}.
      */
-    protected StateStore getStateStore() {
+    public StateStore getStateStore() {
         return stateStore;
     }
-
-    protected abstract void registeredWithMesos();
-    protected abstract List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps);
-    protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
 
     /**
      * Returns the {@link PlanCoordinator}.
      */
-    protected abstract PlanCoordinator getPlanCoordinator();
+    public abstract PlanCoordinator getPlanCoordinator();
 
     /**
      * Returns the {@link ConfigStore}.
      */
-    protected abstract ConfigStore<ServiceSpec> getConfigStore();
+    public abstract ConfigStore<ServiceSpec> getConfigStore();
+
+    /**
+     * Invoked when the framework has registered (or re-registered) with Mesos.
+     */
+    protected abstract void registeredWithMesos();
+
+    /**
+     * Invoked when Mesos has provided offers to be evaluated.
+     *
+     * @param offers zero or more offers (zero may periodically be passed to 'turn the crank' on other processing)
+     * @param steps candidate steps which had been returned by the {@link PlanCoordinator}
+     */
+    protected abstract List<Protos.Offer> processOffers(List<Protos.Offer> offers, Collection<Step> steps);
+
+    /**
+     * Invoked when Mesos has provided a task status to be processed.
+     *
+     * @param status the task status, which may be for a task which no longer exists or is otherwise unrelated to the
+     *               service
+     */
+    protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
 }

@@ -62,8 +62,8 @@ public class YAMLToInternalMappers {
         verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
         verifyDistinctEndpointNames(rawServiceSpec.getPods().values());
 
-        String role = SchedulerUtils.getServiceRole(rawServiceSpec);
-        String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
+        String role = SchedulerUtils.getServiceRole(rawServiceSpec); // TODO wrong role (want queue, not job)
+        String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec); // TODO wrong principal (want queue, not job)
         String user = SchedulerUtils.getUser(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()

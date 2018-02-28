@@ -2,7 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,14 +14,15 @@ import java.util.stream.Collectors;
  * A {@link DefaultPlanCoordinator} is an {@link Observable} and will forward updates from its plans.
  */
 public class DefaultPlanCoordinator implements PlanCoordinator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
 
+    private final Logger logger;
     private final List<PlanManager> planManagers = new LinkedList<>();
 
-    public DefaultPlanCoordinator(Collection<PlanManager> planManagers) {
+    public DefaultPlanCoordinator(String serviceName, Collection<PlanManager> planManagers) {
         if (CollectionUtils.isEmpty(planManagers)) {
             throw new IllegalArgumentException("At least one plan manager is required");
         }
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
         this.planManagers.addAll(planManagers);
     }
 
@@ -41,24 +43,24 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
                 .flatMap(planManager -> planManager.getDirtyAssets().stream())
                 .collect(Collectors.toList()));
 
-        LOGGER.info("Initial dirtied assets: {}", dirtiedAssets);
+        logger.info("Initial dirtied assets: {}", dirtiedAssets);
 
         List<Step> candidates = new LinkedList<>();
         for (final PlanManager planManager : getPlanManagers()) {
             if (planManager.getPlan().isInterrupted()) {
-                LOGGER.info("Skipping interrupted plan: {}", planManager.getPlan().getName());
+                logger.info("Skipping interrupted plan: {}", planManager.getPlan().getName());
                 continue;
             }
 
             try {
                 Collection<PodInstanceRequirement> relevantDirtyAssets =
                         getRelevantDirtyAssets(planManager, dirtiedAssets);
-                LOGGER.info("Getting candidates for plan: '{}' with relevant dirtied assets: {}.",
+                logger.info("Getting candidates for plan: '{}' with relevant dirtied assets: {}.",
                         planManager.getPlan().getName(), relevantDirtyAssets);
 
                 // Get candidate steps to be scheduled
                 Collection<? extends Step> steps = planManager.getCandidates(relevantDirtyAssets);
-                LOGGER.info("Got candidates: {}, from plan: {}",
+                logger.info("Got candidates: {}, from plan: {}",
                         steps.stream().map(step -> step.getName()).collect(Collectors.toList()),
                         planManager.getPlan().getName());
                 candidates.addAll(steps);
@@ -69,13 +71,13 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
                         .filter(step -> step.getPodInstanceRequirement().isPresent())
                         .map(step -> step.getPodInstanceRequirement().get())
                         .collect(Collectors.toList()));
-                LOGGER.info("Updated dirtied assets: {}", dirtiedAssets);
+                logger.info("Updated dirtied assets: {}", dirtiedAssets);
             } catch (Throwable t) {
-                LOGGER.error(String.format("Error with plan manager: %s.", planManager), t);
+                logger.error(String.format("Error with plan manager: %s.", planManager), t);
             }
         }
 
-        LOGGER.info("Got total candidates: {}",
+        logger.info("Got total candidates: {}",
                 candidates.stream().map(step -> step.getName()).collect(Collectors.toList()));
         return candidates;
     }
@@ -88,8 +90,8 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
     private Collection<PodInstanceRequirement> getRelevantDirtyAssets(
             PlanManager planManager,
             Set<PodInstanceRequirement> dirtyAssets) {
-        LOGGER.info("Input dirty assets: {}", dirtyAssets);
-        LOGGER.info("Plan's dirty assets: {}", planManager.getDirtyAssets());
+        logger.info("Input dirty assets: {}", dirtyAssets);
+        logger.info("Plan's dirty assets: {}", planManager.getDirtyAssets());
 
         Plan plan = planManager.getPlan();
         return dirtyAssets.stream()

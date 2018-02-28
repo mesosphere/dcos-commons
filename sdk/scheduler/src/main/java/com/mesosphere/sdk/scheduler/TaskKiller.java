@@ -118,9 +118,7 @@ public final class TaskKiller {
                             TASKS_TO_KILL.size(),
                             TASKS_TO_KILL.stream().map(t -> t.getValue()).collect(Collectors.toList()));
                 } else {
-                    LOGGER.warn(
-                            "Attempted to complete killing of unexpected task: {}",
-                            taskStatus.getTaskId().getValue());
+                    LOGGER.warn("Task was not scheduled for killing: {}", taskStatus.getTaskId().getValue());
                 }
             }
         }

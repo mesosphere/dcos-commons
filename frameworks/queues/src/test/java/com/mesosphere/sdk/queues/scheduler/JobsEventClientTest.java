@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.queues.scheduler;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -11,10 +11,9 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
+import com.mesosphere.sdk.scheduler.ServiceScheduler;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
 
 import static org.mockito.Mockito.*;
 
@@ -23,7 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class MultiMesosEventClientTest {
+public class JobsEventClientTest {
 
     private static final Answer<OfferResponse> DROP_FIRST_OFFER = new Answer<OfferResponse>() {
         @Override
@@ -70,11 +69,11 @@ public class MultiMesosEventClientTest {
 
     @Test
     public void putRemoveClients() {
-        Assert.assertNull(client.removeClient("1"));
+        Assert.assertNull(client.removeJob("1"));
 
         client.putJob("1", mockClient1);
-        Assert.assertSame(mockClient1, client.removeClient("1"));
-        Assert.assertNull(client.removeClient("1"));
+        Assert.assertSame(mockClient1, client.removeJob("1"));
+        Assert.assertNull(client.removeJob("1"));
 
         client.putJob("2", mockClient2);
         try {
@@ -83,10 +82,10 @@ public class MultiMesosEventClientTest {
         } catch (IllegalArgumentException e) {
             // expected
         }
-        Assert.assertNull(client.removeClient("1"));
+        Assert.assertNull(client.removeJob("1"));
         // Client should still have the original value that was successfully added:
-        Assert.assertSame(mockClient2, client.removeClient("2"));
-        Assert.assertNull(client.removeClient("2"));
+        Assert.assertSame(mockClient2, client.removeJob("2"));
+        Assert.assertNull(client.removeJob("2"));
     }
 
     @Test
@@ -199,17 +198,18 @@ public class MultiMesosEventClientTest {
     }
 
     private static Protos.TaskStatus getStatus() {
-        return TaskTestUtils.generateStatus(
-                Protos.TaskID.newBuilder().setValue("foo").build(),
-                TaskState.TASK_FINISHED);
+        return Protos.TaskStatus.newBuilder()
+                .setTaskId(Protos.TaskID.newBuilder().setValue("foo").build())
+                .setState(TaskState.TASK_FINISHED)
+                .build();
     }
 
     private static Protos.Offer getOffer(int id) {
         return Protos.Offer.newBuilder()
                 .setId(Protos.OfferID.newBuilder().setValue(Integer.toString(id)))
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(TestConstants.HOSTNAME)
+                .setFrameworkId(Protos.FrameworkID.newBuilder().setValue("test-framework-id").build())
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue("test-slave-id").build())
+                .setHostname("test-hostname")
                 .build();
     }
 

@@ -1,9 +1,9 @@
-package com.mesosphere.sdk.http.endpoints;
+package com.mesosphere.sdk.queues.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.PodQueries;
-import com.mesosphere.sdk.http.types.JobInfoProvider;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.queues.http.types.JobInfoProvider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;

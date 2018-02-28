@@ -18,7 +18,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -34,8 +33,7 @@ public class UninstallScheduler extends ServiceScheduler {
     @VisibleForTesting
     static final Plan EMPTY_DEPLOY_PLAN = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
+    private final Logger logger;
     private final ConfigStore<ServiceSpec> configStore;
 
     private PlanManager uninstallPlanManager;
@@ -65,7 +63,8 @@ public class UninstallScheduler extends ServiceScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(frameworkStore, stateStore, schedulerConfig, planCustomizer);
+        super(serviceSpec.getName(), frameworkStore, stateStore, schedulerConfig, planCustomizer);
+        this.logger = LoggingUtils.getLogger(getClass(), serviceSpec.getName());
         this.configStore = configStore;
 
         final Plan deployPlan;
@@ -98,8 +97,9 @@ public class UninstallScheduler extends ServiceScheduler {
                 .filter(step -> step instanceof ResourceCleanupStep)
                 .map(step -> (ResourceCleanupStep) step)
                 .collect(Collectors.toList());
-        this.offerAccepter = new OfferAccepter(Collections.singletonList(
-                new UninstallRecorder(stateStore, resourceCleanupSteps)));
+        this.offerAccepter = new OfferAccepter(
+                serviceSpec.getName(),
+                Collections.singletonList(new UninstallRecorder(stateStore, resourceCleanupSteps)));
 
         try {
             logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(deployPlan)));
@@ -123,7 +123,7 @@ public class UninstallScheduler extends ServiceScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() {
+    public PlanCoordinator getPlanCoordinator() {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -139,7 +139,7 @@ public class UninstallScheduler extends ServiceScheduler {
     }
 
     @Override
-    protected ConfigStore<ServiceSpec> getConfigStore() {
+    public ConfigStore<ServiceSpec> getConfigStore() {
         return configStore;
     }
 

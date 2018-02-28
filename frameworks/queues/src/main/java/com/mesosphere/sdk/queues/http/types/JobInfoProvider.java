@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http.types;
+package com.mesosphere.sdk.queues.http.types;
 
 import java.util.Collection;
 import java.util.Optional;

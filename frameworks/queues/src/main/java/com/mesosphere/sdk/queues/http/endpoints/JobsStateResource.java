@@ -1,9 +1,9 @@
-package com.mesosphere.sdk.http.endpoints;
+package com.mesosphere.sdk.queues.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.StateQueries;
-import com.mesosphere.sdk.http.types.JobInfoProvider;
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
+import com.mesosphere.sdk.queues.http.types.JobInfoProvider;
 import com.mesosphere.sdk.state.StateStore;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;

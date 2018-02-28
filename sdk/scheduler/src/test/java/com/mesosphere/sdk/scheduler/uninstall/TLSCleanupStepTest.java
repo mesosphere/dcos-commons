@@ -18,6 +18,8 @@ import static org.mockito.Mockito.*;
 
 public class TLSCleanupStepTest {
 
+    private static final String SECRETS_NAMESPACE = TestConstants.SERVICE_NAME + "-secrets";
+
     @Mock private SecretsClient mockSecretsClient;
     private TLSArtifactPaths tlsArtifactPaths;
 
@@ -25,18 +27,18 @@ public class TLSCleanupStepTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
         tlsArtifactPaths = new TLSArtifactPaths(
-                TestConstants.SERVICE_NAME,
+                SECRETS_NAMESPACE,
                 String.format("%s-%d-%s", TestConstants.POD_TYPE, 0, TestConstants.TASK_NAME),
                 "a-test-hash");
     }
 
     private TLSCleanupStep createTLSCleanupStep() {
-        return new TLSCleanupStep(mockSecretsClient, TestConstants.SERVICE_NAME);
+        return new TLSCleanupStep(mockSecretsClient, SECRETS_NAMESPACE);
     }
 
     @Test
     public void testSecretsClientError() throws Exception {
-        when(mockSecretsClient.list(TestConstants.SERVICE_NAME))
+        when(mockSecretsClient.list(SECRETS_NAMESPACE))
                 .thenThrow(new IOException());
 
         TLSCleanupStep step = createTLSCleanupStep();
@@ -49,14 +51,14 @@ public class TLSCleanupStepTest {
 
     @Test
     public void testCleaningAllSecrets() throws Exception {
-        when(mockSecretsClient.list(TestConstants.SERVICE_NAME))
+        when(mockSecretsClient.list(SECRETS_NAMESPACE))
                 .thenReturn(tlsArtifactPaths.getAllNames("tls-test"));
 
         TLSCleanupStep step = createTLSCleanupStep();
         step.start();
 
         for (String secretName: tlsArtifactPaths.getAllNames("tls-test")) {
-            verify(mockSecretsClient, times(1)).delete(TestConstants.SERVICE_NAME + "/" + secretName);
+            verify(mockSecretsClient, times(1)).delete(SECRETS_NAMESPACE + "/" + secretName);
         }
 
         Assert.assertTrue(step.isComplete());
@@ -69,7 +71,7 @@ public class TLSCleanupStepTest {
         List<String> listResponse = new ArrayList<>(tlsArtifactPaths.getAllNames("tls-test"));
         listResponse.addAll(nonTLSSecrets);
 
-        when(mockSecretsClient.list(TestConstants.SERVICE_NAME))
+        when(mockSecretsClient.list(SECRETS_NAMESPACE))
                 .thenReturn(listResponse);
 
         TLSCleanupStep step = createTLSCleanupStep();
@@ -85,7 +87,7 @@ public class TLSCleanupStepTest {
     @Test
     public void testNoTLSSecrets() throws Exception {
         List<String> nonTLSSecrets = Arrays.asList("test", "test/nested");
-        when(mockSecretsClient.list(TestConstants.SERVICE_NAME))
+        when(mockSecretsClient.list(SECRETS_NAMESPACE))
                 .thenReturn(nonTLSSecrets);
 
         TLSCleanupStep step = createTLSCleanupStep();

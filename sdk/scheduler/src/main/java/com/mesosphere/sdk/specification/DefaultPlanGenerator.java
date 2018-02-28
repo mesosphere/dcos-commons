@@ -8,6 +8,7 @@ import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.WriteOnceLinkedHashMap;
 import com.mesosphere.sdk.state.ConfigTargetStore;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

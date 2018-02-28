@@ -39,20 +39,11 @@ public class SchemaVersionStoreTest {
     }
 
     @Test
-    public void testRootPathMapping() throws Exception {
-        store.fetch();
-        assertNotEquals(0, persister.get(NODE_PATH).length);
-    }
-
-    @Test
     public void testFetchAutoInitialize() throws Exception {
-        // not initialized until first fetch:
         assertFalse(directHasVersion());
-
-        assertEquals(1, store.fetch());
-
-        // check that underlying storage now has the data:
-        assertEquals(1, getDirectVersion());
+        store.check(3);
+        assertNotEquals(0, persister.get(NODE_PATH).length);
+        assertEquals(3, getDirectVersion());
     }
 
     @Test
@@ -62,11 +53,11 @@ public class SchemaVersionStoreTest {
 
         store.store(val);
         assertEquals(val, getDirectVersion());
-        assertEquals(val, store.fetch());
+        store.check(val);
 
         store.store(val + 1);
         assertEquals(val + 1, getDirectVersion());
-        assertEquals(val + 1, store.fetch());
+        store.check(val + 1);
     }
 
     @Test
@@ -76,29 +67,29 @@ public class SchemaVersionStoreTest {
 
         store.store(val);
         assertEquals(val, getDirectVersion());
-        assertEquals(val, store2.fetch());
+        store2.check(val);
 
         store2.store(val + 1);
         assertEquals(val + 1, getDirectVersion());
-        assertEquals(val + 1, store.fetch());
+        store.check(val + 1);
     }
 
     @Test(expected=StateStoreException.class)
-    public void testFetchCorruptData() throws Exception {
+    public void testCheckCorruptData() throws Exception {
         storeDirectVersion("hello");
-        store.fetch();
+        store.check(5);
     }
 
     @Test(expected=StateStoreException.class)
-    public void testFetchEmptyData() throws Exception {
+    public void testCheckEmptyData() throws Exception {
         storeDirectVersion("");
-        store.fetch();
+        store.check(3);
     }
 
     @Test(expected=StateStoreException.class)
-    public void testFetchOtherFailure() throws Exception {
+    public void testCheckOtherFailure() throws Exception {
         when(mockPersister.get(NODE_PATH)).thenThrow(new PersisterException(Reason.LOGIC_ERROR, "hey"));
-        storeWithMock.fetch();
+        storeWithMock.check(3);
     }
 
     @Test(expected=StateStoreException.class)

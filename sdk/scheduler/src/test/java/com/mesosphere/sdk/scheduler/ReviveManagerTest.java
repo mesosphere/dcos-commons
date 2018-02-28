@@ -67,7 +67,7 @@ public class ReviveManagerTest {
 
     @Test
     public void dontReviveWhenThrottled() {
-        ReviveManager manager = new ReviveManager();
+        ReviveManager manager = new ReviveManager("foo");
         manager.revive(getSteps(0));
         manager.revive(getSteps(1));
         verify(driver, times(1)).reviveOffers();
@@ -81,7 +81,7 @@ public class ReviveManagerTest {
     }
 
     private ReviveManager getReviveManager() {
-        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
+        return new ReviveManager("foo", TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
     }
 
     private List<Step> getSteps(Integer index) {

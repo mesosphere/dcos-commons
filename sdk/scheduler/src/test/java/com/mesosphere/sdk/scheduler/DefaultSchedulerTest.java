@@ -585,30 +585,6 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testDeployPlanOverriddenDuringUpdate() {
-        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), true);
-
-        Assert.assertEquals(1, plans.size());
-        Plan deployPlan = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst().get();
-
-        Assert.assertEquals(1, deployPlan.getChildren().size());
-    }
-
-    @Test
-    public void testDeployPlanPreservedDuringInstall() {
-        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), false);
-
-        Assert.assertEquals(2, plans.size());
-        Plan deployPlan = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst().get();
-
-        Assert.assertEquals(2, deployPlan.getChildren().size());
-    }
-
-    @Test
     public void testDecommissionPlanCustomization() throws Exception {
         AtomicBoolean decommissionPlanCustomized = new AtomicBoolean(false);
         PlanCustomizer planCustomizer = new PlanCustomizer() {
@@ -644,19 +620,6 @@ public class DefaultSchedulerTest {
                 .start();
 
         Assert.assertTrue(decommissionPlanCustomized.get());
-    }
-
-    // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
-    private static Collection<Plan> getDeployUpdatePlans() {
-        Phase phase = mock(Phase.class);
-
-        Plan deployPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Arrays.asList(phase, phase));
-        Assert.assertEquals(2, deployPlan.getChildren().size());
-
-        Plan updatePlan = new DefaultPlan(Constants.UPDATE_PLAN_NAME, Arrays.asList(phase));
-        Assert.assertEquals(1, updatePlan.getChildren().size());
-
-        return Arrays.asList(deployPlan, updatePlan);
     }
 
     private static int countOperationType(

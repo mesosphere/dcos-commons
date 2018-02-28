@@ -9,7 +9,9 @@ import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 
 /**
- * Sets up and executes a {@link FrameworkRunner} to which {@link ServiceScheduler}s may be added.
+ * Sets up and executes a {@link FrameworkRunner} to which potentially multiple {@link ServiceScheduler}s may be added.
+ *
+ * <p>WARNING: This is not a stable API, and can go away at any time.
  */
 public class QueueRunner implements Runnable {
 
@@ -30,18 +32,17 @@ public class QueueRunner implements Runnable {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromMap(env);
         Persister persister;
         try {
-            persister = schedulerConfig.isStateCacheEnabled()
-                    ? new PersisterCache(CuratorPersister.newBuilder(
-                            frameworkConfig.frameworkName, frameworkConfig.zookeeperConnection).build())
-                    : CuratorPersister.newBuilder(
-                            frameworkConfig.frameworkName, frameworkConfig.zookeeperConnection).build();
+            persister = CuratorPersister.newBuilder(
+                    frameworkConfig.frameworkName, frameworkConfig.zookeeperConnection).build();
+            if (schedulerConfig.isStateCacheEnabled()) {
+                persister = new PersisterCache(persister);
+            }
         } catch (PersisterException e) {
             throw new IllegalStateException(String.format(
                     "Failed to initialize default persister at %s for framework %s",
                     frameworkConfig.zookeeperConnection, frameworkConfig.frameworkName));
         }
         return new QueueRunner(schedulerConfig, frameworkConfig, persister, client);
-
     }
 
     private QueueRunner(
@@ -56,14 +57,21 @@ public class QueueRunner implements Runnable {
     }
 
     /**
+     * Returns the persister which should be passed to individual jobs.
+     */
+    public Persister getPersister() {
+        // Lock curator before returning access.
+        CuratorLocker.lock(frameworkConfig.frameworkName, frameworkConfig.zookeeperConnection);
+        return persister;
+    }
+
+    /**
      * Runs the queue. Don't forget to call this!
      * This should never exit, instead the entire process will be terminated internally.
      */
     @Override
     public void run() {
-        CuratorLocker.lock(frameworkConfig.frameworkName, frameworkConfig.zookeeperConnection);
         Metrics.configureStatsd(schedulerConfig);
-
         new FrameworkRunner(schedulerConfig, frameworkConfig).registerAndRunFramework(persister, client);
     }
 }

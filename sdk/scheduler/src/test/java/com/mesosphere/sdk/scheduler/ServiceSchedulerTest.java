@@ -94,7 +94,7 @@ public class ServiceSchedulerTest {
     private class TestScheduler extends ServiceScheduler {
 
         protected TestScheduler(FrameworkStore frameworkStore, StateStore stateStore, SchedulerConfig schedulerConfig) {
-            super(frameworkStore, stateStore, schedulerConfig, Optional.empty());
+            super("test-svc", frameworkStore, stateStore, schedulerConfig, Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }
@@ -105,8 +105,13 @@ public class ServiceSchedulerTest {
         }
 
         @Override
-        protected PlanCoordinator getPlanCoordinator() {
+        public PlanCoordinator getPlanCoordinator() {
             return mockPlanCoordinator;
+        }
+
+        @Override
+        public ConfigStore<ServiceSpec> getConfigStore() {
+            return mockConfigStore;
         }
 
         @Override
@@ -123,11 +128,6 @@ public class ServiceSchedulerTest {
         protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
             String taskName = StateStoreUtils.getTaskName(stateStore, status);
             stateStore.storeStatus(taskName, status);
-        }
-
-        @Override
-        protected ConfigStore<ServiceSpec> getConfigStore() {
-            return mockConfigStore;
         }
     }
 }

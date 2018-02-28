@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.state;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -10,7 +11,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -45,8 +45,6 @@ import java.util.*;
  */
 public class StateStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(StateStore.class);
-
     private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024; // 1MB
 
     private static final String TASK_INFO_PATH_NAME = "TaskInfo";
@@ -60,6 +58,7 @@ public class StateStore {
     private static final String PROPERTIES_ROOT_NAME = "Properties";
     private static final String TASKS_ROOT_NAME = "Tasks";
 
+    private final Logger logger;
     protected final Persister persister;
     protected final String namespace;
 
@@ -86,6 +85,7 @@ public class StateStore {
      * @param namespace The namespace for data to be stored within, or an empty string for no namespacing
      */
     public StateStore(Persister persister, String namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.persister = persister;
         this.namespace = namespace;
 
@@ -446,7 +446,7 @@ public class StateStore {
         }
     }
 
-    private static GoalStateOverride parseOverrideName(String taskName, byte[] nameBytes) throws StateStoreException {
+    private GoalStateOverride parseOverrideName(String taskName, byte[] nameBytes) throws StateStoreException {
         String overrideName = new String(nameBytes, StandardCharsets.UTF_8);
         for (GoalStateOverride override : GoalStateOverride.values()) {
             if (override.getSerializedName().equals(overrideName)) {
@@ -461,7 +461,7 @@ public class StateStore {
         return GoalStateOverride.Status.INACTIVE.target;
     }
 
-    private static GoalStateOverride.Progress parseOverrideProgress(String taskName, byte[] progressBytes)
+    private GoalStateOverride.Progress parseOverrideProgress(String taskName, byte[] progressBytes)
             throws StateStoreException {
         String progressName = new String(progressBytes, StandardCharsets.UTF_8);
         for (GoalStateOverride.Progress state : GoalStateOverride.Progress.values()) {

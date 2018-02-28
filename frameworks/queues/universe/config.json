@@ -8,7 +8,7 @@
         "name": {
           "description": "The name of the service instance",
           "type": "string",
-          "default": "template",
+          "default": "queues",
           "title": "Service name"
         },
         "user": {
@@ -54,18 +54,18 @@
       ]
     },
     "node": {
-      "description": "Template pod configuration properties",
+      "description": "Queues pod configuration properties",
       "type": "object",
       "properties": {
         "cpus": {
           "title": "CPU count",
-          "description": "Template pod CPU requirements",
+          "description": "Queues pod CPU requirements",
           "type": "number",
           "default": 0.1
         },
         "mem": {
           "title": "Memory size (MB)",
-          "description": "Template pod mem requirements (in MB)",
+          "description": "Queues pod mem requirements (in MB)",
           "type": "integer",
           "default": 252
         }

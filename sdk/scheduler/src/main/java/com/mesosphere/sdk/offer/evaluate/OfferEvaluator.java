@@ -16,7 +16,6 @@ import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -29,13 +28,12 @@ import java.util.stream.Collectors;
  * in reference to {@link PodInstanceRequirement}s.
  */
 public class OfferEvaluator {
-    private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
-
+    private final Logger logger;
     private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
     private final OfferOutcomeTracker offerOutcomeTracker;
     private final String serviceName;
-    private final Optional<String> queueName;
+    private final Optional<String> customFrameworkName;
     private final UUID targetConfigId;
     private final SchedulerConfig schedulerConfig;
     private final boolean useDefaultExecutor;
@@ -45,15 +43,16 @@ public class OfferEvaluator {
             StateStore stateStore,
             OfferOutcomeTracker offerOutcomeTracker,
             String serviceName,
-            Optional<String> queueName,
+            Optional<String> customFrameworkName,
             UUID targetConfigId,
             SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
         this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
         this.offerOutcomeTracker = offerOutcomeTracker;
         this.serviceName = serviceName;
-        this.queueName = queueName;
+        this.customFrameworkName = customFrameworkName;
         this.targetConfigId = targetConfigId;
         this.schedulerConfig = schedulerConfig;
         this.useDefaultExecutor = useDefaultExecutor;
@@ -99,7 +98,7 @@ public class OfferEvaluator {
                     thisPodTasks.values(),
                     frameworkStore.fetchFrameworkId().get(),
                     useDefaultExecutor,
-                    queueName,
+                    customFrameworkName,
                     overrideMap);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;

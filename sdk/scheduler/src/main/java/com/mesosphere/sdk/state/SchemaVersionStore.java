@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -27,15 +28,6 @@ public class SchemaVersionStore {
     private static final Logger logger = LoggerFactory.getLogger(SchemaVersionStore.class);
 
     /**
-     * Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that
-     * requires explicit migration.
-     *
-     * The migration implementation itself is not yet defined (let's wait until we need to actually
-     * do it..)
-     */
-    private static final int CURRENT_SCHEMA_VERSION = 1;
-
-    /**
      * This name/path must remain the same forever. It's the basis of all other migrations.
      * If it's not present, it's automatically created and initialized to the value of
      * {@code CURRENT_SCHEMA_VERSION}, on the assumption that the framework is being launched for
@@ -60,10 +52,12 @@ public class SchemaVersionStore {
      * compatible. Note that this may auto-populate the underlying schema version if the value isn't
      * currently present.
      *
-     * @return the current schema version, which may be auto-populated with the current version
+     * @param expectedVersion the expected schema version to be stored if no version is currently set or to be checked
+     *                        for equality if a version is currently set
      * @throws StateStoreException if retrieving the schema version fails
+     * @throws IllegalStateException if a value is present which doesn't match the expected value
      */
-    public int fetch() throws StateStoreException {
+    public void check(int expectedVersion) throws StateStoreException {
         try {
             logger.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
             byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
@@ -73,23 +67,29 @@ public class SchemaVersionStore {
             }
             String rawString = new String(bytes, CHARSET);
             logger.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
+            int currentVersion;
             try {
-                return Integer.parseInt(rawString);
+                currentVersion = Integer.parseInt(rawString);
             } catch (NumberFormatException e) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Unable to parse fetched schema version: '%s' from path: %s",
                         rawString, SCHEMA_VERSION_NAME), e);
+            }
+            if (!SchemaVersionStore.isSupported(currentVersion, expectedVersion, expectedVersion)) {
+                throw new IllegalStateException(String.format(
+                        "Storage schema version %d is not supported by this software (expected: %d)",
+                        currentVersion, expectedVersion));
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // The schema version doesn't exist yet. Initialize to the current version.
                 logger.debug("Schema version not found at path: {}. New service install? " +
                         "Initializing path to schema version: {}.",
-                        SCHEMA_VERSION_NAME, CURRENT_SCHEMA_VERSION);
-                store(CURRENT_SCHEMA_VERSION);
-                return CURRENT_SCHEMA_VERSION;
+                        SCHEMA_VERSION_NAME, expectedVersion);
+                store(expectedVersion);
             } else {
-                throw new StateStoreException(Reason.STORAGE_ERROR, "Storage error when fetching schema version", e);
+                throw new StateStoreException(
+                        Reason.STORAGE_ERROR, "Storage error when fetching schema storage", e);
             }
         }
     }
@@ -101,7 +101,8 @@ public class SchemaVersionStore {
      * @param version the new schema version to store
      * @throws StateStoreException if storing the schema version fails
      */
-    public void store(int version) throws StateStoreException {
+    @VisibleForTesting
+    void store(int version) throws StateStoreException {
         try {
             String versionStr = String.valueOf(version);
             logger.debug("Storing schema version: '{}' into path: {}",

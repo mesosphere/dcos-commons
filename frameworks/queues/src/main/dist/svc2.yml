@@ -2,12 +2,12 @@ name: job2
 scheduler:
   user: {{FRAMEWORK_USER}}
 pods:
-  template:
+  pod2:
     count: 2
     tasks:
       node:
         goal: RUNNING
-        cmd: "echo template2 >> output && sleep $SLEEP_DURATION"
+        cmd: "echo queue2 >> output && sleep $SLEEP_DURATION"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         env:

@@ -7,8 +7,6 @@ import com.mesosphere.sdk.scheduler.uninstall.UninstallStep;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
 
@@ -16,12 +14,10 @@ import java.util.Optional;
  * Step which marks a task as being decommissioned and kills it.
  */
 public class TriggerDecommissionStep extends UninstallStep {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DecommissionPlanFactory.class);
-
     private final StateStore stateStore;
     private final Protos.TaskInfo taskInfo;
 
-    public TriggerDecommissionStep(StateStore stateStore,  Protos.TaskInfo taskInfo) {
+    public TriggerDecommissionStep(StateStore stateStore, Protos.TaskInfo taskInfo) {
         super("kill-" + taskInfo.getName(), Status.PENDING);
         this.stateStore = stateStore;
         this.taskInfo = taskInfo;
@@ -29,7 +25,7 @@ public class TriggerDecommissionStep extends UninstallStep {
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        LOGGER.info("Marking task for decommissioning: {}", taskInfo.getName());
+        logger.info("Marking task for decommissioning: {}", taskInfo.getName());
         setStatus(Status.IN_PROGRESS);
         stateStore.storeGoalOverrideStatus(taskInfo.getName(), DecommissionPlanFactory.DECOMMISSIONING_STATUS);
         TaskKiller.killTask(taskInfo.getTaskId());

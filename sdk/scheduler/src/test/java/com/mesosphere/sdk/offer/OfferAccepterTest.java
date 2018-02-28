@@ -43,7 +43,7 @@ public class OfferAccepterTest {
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
-        OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
+        OfferAccepter accepter = new OfferAccepter("foo", Arrays.asList(recorder));
         Driver.setDriver(driver);
         accepter.accept(
                 Arrays.asList(new LaunchOfferRecommendation(
@@ -67,7 +67,7 @@ public class OfferAccepterTest {
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
-        OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
+        OfferAccepter accepter = new OfferAccepter("foo", Arrays.asList(recorder));
         Driver.setDriver(driver);
         accepter.accept(
                 Arrays.asList(new LaunchOfferRecommendation(

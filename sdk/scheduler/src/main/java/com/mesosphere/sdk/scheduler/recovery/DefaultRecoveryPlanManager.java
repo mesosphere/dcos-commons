@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.http.types.PlanInfo;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -15,7 +16,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -31,7 +31,8 @@ import java.util.stream.Collectors;
 public class DefaultRecoveryPlanManager implements PlanManager {
     public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
     public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+    protected final Logger logger;
     protected final ConfigStore<ServiceSpec> configStore;
     private final List<RecoveryPlanOverrider> recoveryPlanOverriders;
     private final Set<String> recoverableTaskNames;
@@ -44,21 +45,30 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     protected final Object planLock = new Object();
 
     public DefaultRecoveryPlanManager(
+            String serviceName,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Set<String> recoverableTaskNames,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor) {
-        this(stateStore, configStore, recoverableTaskNames, launchConstrainer, failureMonitor, Collections.emptyList());
+        this(serviceName,
+                stateStore,
+                configStore,
+                recoverableTaskNames,
+                launchConstrainer,
+                failureMonitor,
+                Collections.emptyList());
     }
 
     public DefaultRecoveryPlanManager(
+            String serviceName,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Set<String> recoverableTaskNames,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
             List<RecoveryPlanOverrider> overrideRecoveryManagers) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.recoverableTaskNames = recoverableTaskNames;
