@@ -175,12 +175,11 @@ func setListeners() error {
 	// NOTE: To be consistent with the legacy behavior of the 2.0.X Kafka series,
 	// when there is no security enabled, we must honor the kafka.kafka_advertise_host_ip
 	// configuration parameter
-	if !kerberosEnabled && !tlsEncryptionEnabled && !getBooleanEnvvar(advertiseHostIPEnvvar) {
-		// Write an empty file.
-		err = writeToWorkingDirectory(advertisedListenersProperty, "")
-	} else {
+	if kerberosEnabled || tlsEncryptionEnabled || getBooleanEnvvar(advertiseHostIPEnvvar) {
 		err = writeToWorkingDirectory(advertisedListenersProperty,
 			"advertised.listeners="+strings.Join(advertisedListeners, ","))
+	} else {
+		err = writeToWorkingDirectory(advertisedListenersProperty, "")
 	}
 
 	return err
