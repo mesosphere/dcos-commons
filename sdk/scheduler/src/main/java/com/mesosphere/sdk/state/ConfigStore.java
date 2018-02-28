@@ -73,6 +73,13 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
     }
 
     /**
+     * Indicates whether the provided key is present in the store.
+     */
+    public boolean hasKey(UUID id) throws ConfigStoreException {
+        return cache.containsKey(id) || list().contains(id);
+    }
+
+    /**
      * Serializes the provided {@link Configuration} using its {@link Configuration#getBytes()}
      * function, writes it to storage, and returns the UUID which it was stored against.
      *
@@ -80,6 +87,17 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      */
     public UUID store(T config) throws ConfigStoreException {
         UUID id = UUID.randomUUID();
+        store(id, config);
+        return id;
+    }
+
+    /**
+     * Serializes the provided {@link Configuration} using its {@link Configuration#getBytes()}
+     * function, writes it to storage with the provided ID as a key.
+     *
+     * @throws ConfigStoreException is serialization or writing fails
+     */
+    public void store (UUID id, T config) throws ConfigStoreException {
         String path = getConfigPath(namespace, id);
         byte[] data = config.getBytes();
         try {
@@ -90,7 +108,6 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
         }
 
         cache.put(id, config);
-        return id;
     }
 
     /**

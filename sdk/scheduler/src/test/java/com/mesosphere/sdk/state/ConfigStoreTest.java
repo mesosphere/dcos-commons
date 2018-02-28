@@ -6,6 +6,7 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -135,6 +136,17 @@ public class ConfigStoreTest {
     @Test(expected=ConfigStoreException.class)
     public void testGetEmptyTargetConfig() throws Exception {
         store.getTargetConfig();
+    }
+
+    @Test
+    public void testKeyNotPresent() throws ConfigStoreException {
+        Assert.assertFalse(store.hasKey(UUID.randomUUID()));
+    }
+
+    @Test
+    public void testKeyIsPresent() throws ConfigStoreException {
+        UUID testId = store.store(testConfig);
+        Assert.assertTrue(store.hasKey(testId));
     }
 
     private void checkPathNotFound(String path) {

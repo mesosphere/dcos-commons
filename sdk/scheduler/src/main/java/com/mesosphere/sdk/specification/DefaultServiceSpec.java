@@ -276,8 +276,12 @@ public class DefaultServiceSpec implements ServiceSpec {
      * @throws IllegalArgumentException    if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
-            ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) {
-        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister, serviceSpec);
+            ServiceSpec serviceSpec,
+            Collection<Class<?>> additionalSubtypesToRegister) {
+
+        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(
+                additionalSubtypesToRegister,
+                ConfigFactory.getReferenceTerminalGoalState(serviceSpec));
 
         final byte[] serviceSpecBytes;
         try {
@@ -324,6 +328,10 @@ public class DefaultServiceSpec implements ServiceSpec {
         return factory;
     }
 
+    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory() {
+        return new ConfigFactory(Collections.emptyList());
+    }
+
     /**
      * Factory which performs the inverse of {@link DefaultServiceSpec#getBytes()}.
      */
@@ -367,10 +375,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private final ObjectMapper objectMapper;
         private final GoalState referenceTerminalGoalState;
 
-        /**
-         * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
-         */
-        private ConfigFactory(Collection<Class<?>> additionalSubtypes, ServiceSpec serviceSpec) {
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes, GoalState goalState) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
@@ -384,7 +389,11 @@ public class DefaultServiceSpec implements ServiceSpec {
             module.addDeserializer(GoalState.class, new GoalStateDeserializer());
             objectMapper.registerModule(module);
 
-            referenceTerminalGoalState = getReferenceTerminalGoalState(serviceSpec);
+            referenceTerminalGoalState = goalState;
+        }
+
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
+            this(additionalSubtypes, GoalState.ONCE);
         }
 
         @VisibleForTesting
@@ -403,7 +412,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             }
         }
 
-        private GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
+        static private GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
             Collection<TaskSpec> serviceTasks =
                     serviceSpec.getPods().stream().flatMap(p -> p.getTasks().stream()).collect(Collectors.toList());
             for (TaskSpec taskSpec : serviceTasks) {
