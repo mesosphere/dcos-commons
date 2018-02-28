@@ -45,7 +45,7 @@ def cassandra_service_tls(service_account):
     sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,
-        service_account,
+        config.SERVICE_NAME,
         config.DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
