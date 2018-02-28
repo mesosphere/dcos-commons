@@ -70,7 +70,7 @@ def fault_domain_vars_are_present(pod_instance):
 def test_rack_not_found():
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "placement": "[[\"rack_id\", \"LIKE\", \"rack-foo-.*\"]]"
@@ -119,7 +119,7 @@ def test_rack_not_found():
 def test_unique_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "placement": "[[\"@zone\", \"UNIQUE\"]]"
@@ -138,7 +138,7 @@ def test_unique_zone_fails():
 def test_max_per_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
@@ -157,7 +157,7 @@ def test_max_per_zone_fails():
 def test_max_per_zone_succeeds():
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "placement": "[[\"@zone\", \"MAX_PER\", \"1\"]]"
@@ -176,7 +176,7 @@ def test_max_per_zone_succeeds():
 def test_group_by_zone_succeeds():
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
@@ -194,7 +194,7 @@ def test_group_by_zone_succeeds():
 def test_group_by_zone_fails():
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "placement": "[[\"@zone\", \"GROUP_BY\", \"1\"]]"
@@ -260,7 +260,7 @@ def test_hostname_unique():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "count": config.get_num_private_agents(),
@@ -289,7 +289,7 @@ def test_max_per_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "count": config.get_num_private_agents() * 2,
@@ -311,7 +311,7 @@ def test_rr_by_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "count": config.get_num_private_agents() * 2,
@@ -334,7 +334,7 @@ def test_cluster():
     some_agent = shakedown.get_private_agents().pop()
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "count": config.get_num_private_agents(),
@@ -450,7 +450,7 @@ def setup_constraint_switch():
     assert some_agent != other_agent
     options = _escape_placement_for_1_9({
         "service": {
-            "spec_file": "examples/marathon_constraint.yml"
+            "yaml": "marathon_constraint"
         },
         "hello": {
             "count": 1,

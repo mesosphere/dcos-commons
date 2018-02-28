@@ -15,7 +15,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             6,
-            additional_options={ "service": { "spec_file": "examples/enable-disable.yml" }, "hello": { "count": 3 } } )
+            additional_options={ "service": { "yaml": "enable-disable" }, "hello": { "count": 3 } } )
 
         yield # let the test session execute
     finally:

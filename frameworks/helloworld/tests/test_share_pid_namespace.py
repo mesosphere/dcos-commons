@@ -13,13 +13,16 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = {
-            "service": {
-                "spec_file": "examples/share_pid_namespace.yml"
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            2,
+            additional_options={
+                "service": {
+                    "yaml": "share_pid_namespace"
+                }
             }
-        }
-
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 2, additional_options=options)
+        )
 
         yield # let the test session execute
     finally:

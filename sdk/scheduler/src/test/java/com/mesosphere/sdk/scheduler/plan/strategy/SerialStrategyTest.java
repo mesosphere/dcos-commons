@@ -98,4 +98,18 @@ public class SerialStrategyTest {
         step1.setStatus(Status.COMPLETE);
         Assert.assertTrue(strategy.getCandidates(phase.getChildren(), Collections.emptyList()).isEmpty());
     }
+
+    @Test
+    public void testMiddleComplete() {
+        Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
+        Assert.assertEquals(el0, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
+
+        when(el1.isComplete()).thenReturn(true);
+        Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
+        Assert.assertEquals(el0, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
+
+        when(el0.isComplete()).thenReturn(true);
+        Assert.assertEquals(1, strategy.getCandidates(steps, Collections.emptyList()).size());
+        Assert.assertEquals(el2, strategy.getCandidates(steps, Collections.emptyList()).iterator().next());
+    }
 }

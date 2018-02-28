@@ -10,6 +10,7 @@ import sdk_marathon
 import sdk_plan
 import sdk_tasks
 import sdk_utils
+import sdk_hosts
 import shakedown
 from tests import config
 
@@ -282,6 +283,28 @@ def test_pod_replace():
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
     config.check_running()
+
+
+@pytest.mark.recovery
+@pytest.mark.skip(reason="BLOCKED-INFINITY-3047")
+def test_config_update_while_partitioned():
+    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
+    host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
+    shakedown.partition_agent(host)
+
+    service_config = sdk_marathon.get_config(config.SERVICE_NAME)
+    updated_cpus = float(service_config['env']['WORLD_CPUS']) + 0.1
+    service_config['env']['WORLD_CPUS'] = str(updated_cpus)
+    sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
+
+    shakedown.reconnect_agent(host)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
+    config.check_running()
+    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
+    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    assert len(running_tasks) == config.world_task_count(config.SERVICE_NAME)
+    for t in running_tasks:
+        assert config.close_enough(t['resources']['cpus'], updated_cpus)
 
 
 # @@@@@@@

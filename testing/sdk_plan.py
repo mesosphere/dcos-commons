@@ -29,6 +29,8 @@ def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
 def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return get_plan(service_name, 'recovery', timeout_seconds)
 
+def get_decommission_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
+    return get_plan(service_name, 'decommission', timeout_seconds)
 
 def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return sdk_cmd.service_request('GET', service_name, '/v1/plans', timeout_seconds=timeout_seconds).json()

@@ -164,7 +164,7 @@ pods:
 
         * **hello-world-task**: In this example, the single pod definition is composed of a single task. The name of this task is "hello-world-task".
 
-* **goal**: Every task must have a goal state. There are three possible goal states: `RUNNING`, `FINISH` and `ONCE`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISH` indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. `ONCE` indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod's lifetime.
+            * **goal**: Every task must have a goal state. There are three possible goal states: `RUNNING`, `FINISH` and `ONCE`. `RUNNING` indicates that a task should always be running, so if it exits, it should be restarted. `FINISH` indicates that if a task finishes successfully it does not need to be restarted unless its configuration is updated. `ONCE` indicates that if a task finishes successfully it does not need to be restarted for the duration of the pod's lifetime.
 
             * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
@@ -1371,6 +1371,8 @@ Services may choose to use this information to enable rack awareness. Users may 
 
 The placement rule above would apply the `GROUP_BY` operator to zones.
 
+If the placement constraint for a pod defined in the service YAML references a zone as in the above example, the scheduler will create an environment variable in the environment of every task in that pod type called `PLACEMENT_REFERENCED_ZONE` and set it to `true`. Command definitions for tasks can use this to indicate to the base technology that it should operate in a region-aware fashion.
+
 ## Regions (beta)
 
 The SDK allows region-aware scheduling as a beta feature.  Enable it by setting the environment variable `ALLOW_REGION_AWARENESS` to `true`.  Once enabled, placement rules can be written that reference the `@region` key.
@@ -1775,7 +1777,9 @@ pods:
         resource-set: hello-resources/
 ```
 
-In this case, the resources are declared separately from the server task in a resource set named `hello-resources`. They are referenced by a `resource-set` element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased  flexibility:  you can now define multiple processes that can consume the same resources.
+In this case, the resources are declared separately from the server task in a resource set named `hello-resources`. They are referenced by a `resource-set` element in the task definition. A task continues to be defined as the combination of a process to run and resources to consume. This alternate formulation provides you with increased flexibility: you can now define multiple processes that can consume the same resources.
+
+**Note:** Resource sets are reserved at scheduler startup. [Custom auxiliary plans](#custom-auxiliary-plans) that run tasks referencing resource sets won't require additional resources than what the scheduler already reserved.
 
 Pods can also define volumes at the pod level, allowing volumes to be shared between every task in a pod. Although volumes defined on individual tasks are currently visible between tasks in a pod, this will change with the introduction of pods based on [Mesos Task Groups](https://github.com/apache/mesos/blob/master/docs/nested-container-and-task-group.md). Once this change is made, pods will need to define volumes at the pod level if they are intended to be shared across tasks, as in the following example:
 
@@ -2230,6 +2234,30 @@ pods:
 ```
 
 The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
+
+Multiple volumes per pod or task can also be defined in a service YAML file.
+
+```yaml
+name: "hello-world"
+pods:
+  hello:
+    count: 3
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> hello-container-path/output && sleep $SLEEP_DURATION"
+        cpus: 1.0
+        memory: 256
+        volumes:
+          volume1:
+            path: "volume1"
+            type: ROOT
+            size: 5000
+          volume2:
+            path: "volume2"
+            type: ROOT
+            size: 2500
+```
 
 <a name="proxy-fallback"></a>
 ### Proxy Fallback

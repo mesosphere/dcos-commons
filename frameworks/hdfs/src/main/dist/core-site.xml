@@ -582,54 +582,6 @@
         <value>{{HADOOP_SECURITY_GROUPS_CACHE_WARN_AFTER_MS}}</value>
     </property>
     <property>
-        <name>hadoop.security.group.mapping.ldap.url</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_URL}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl.keystore</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL_KEYSTORE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.ssl.keystore.password.file</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SSL_KEYSTORE_PASSWORD_FILE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.bind.user</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_BIND_USER}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.bind.password.file</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_PASSWORD_FILE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.base</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_BASE}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.filter.user</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_FILTER_USER}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.filter.group</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_FILTER_GROUP}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.attr.member</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_ATTR_MEMBER}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.search.attr.group.name</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_SEARCH_ATTR_GROUP_NAME}}</value>
-    </property>
-    <property>
-        <name>hadoop.security.group.mapping.ldap.directory.search.timeout</name>
-        <value>{{HADOOP_SECURITY_GROUP_MAPPING_LDAP_DIRECTORY_SEARCH_TIMEOUT}}</value>
-    </property>
-    <property>
         <name>hadoop.security.service.user.name.key</name>
         <value>{{HADOOP_SECURITY_SERVICE_USER_NAME_KEY}}</value>
     </property>
