@@ -41,6 +41,7 @@ func TestCalculateSettingsListenersError(t *testing.T) {
 }
 
 var listenerTests = []struct {
+	advertiseHostIPEnvvarValue  string
 	kerberosEnvvarValue         string
 	tlsEncryptionEnvvarValue    string
 	tlsAllowPlainEnvvarValue    string
@@ -48,15 +49,24 @@ var listenerTests = []struct {
 	expectedAdvertisedListeners string
 }{
 	{ // Everything false
+		advertiseHostIPEnvvarValue:  "false",
 		kerberosEnvvarValue:         "false",
 		tlsEncryptionEnvvarValue:    "false",
 		tlsAllowPlainEnvvarValue:    "false",
 		expectedListeners:           "listeners=PLAINTEXT://127.0.0.1:1000",
-		expectedAdvertisedListeners: "advertised.listeners=PLAINTEXT://a-task.a-framework:1000",
+		expectedAdvertisedListeners: "",
+	},
+	{ // Everything false except advertise host ip
+		advertiseHostIPEnvvarValue:  "true",
+		kerberosEnvvarValue:         "false",
+		tlsEncryptionEnvvarValue:    "false",
+		tlsAllowPlainEnvvarValue:    "false",
+		expectedListeners:           "listeners=PLAINTEXT://127.0.0.1:1000",
+		expectedAdvertisedListeners: "advertised.listeners=PLAINTEXT://127.0.0.1:1000",
 	},
 	{ // None of the booleans set.
 		expectedListeners:           "listeners=PLAINTEXT://127.0.0.1:1000",
-		expectedAdvertisedListeners: "advertised.listeners=PLAINTEXT://a-task.a-framework:1000",
+		expectedAdvertisedListeners: "",
 	},
 	{ // Kerberos enabled, no TLS
 		kerberosEnvvarValue:         "true",
@@ -87,6 +97,7 @@ var listenerTests = []struct {
 		expectedAdvertisedListeners: "advertised.listeners=SSL://a-task.a-framework:1001",
 	},
 	{ // Kerberos disabled, TLS enabled, Plaintext allowed
+		advertiseHostIPEnvvarValue:  "false",
 		kerberosEnvvarValue:         "false",
 		tlsEncryptionEnvvarValue:    "true",
 		tlsAllowPlainEnvvarValue:    "true",
@@ -105,6 +116,7 @@ func TestSetListeners(t *testing.T) {
 
 		// Set the envvars
 		os.Clearenv()
+		setEnv(advertiseHostIPEnvvar, test.advertiseHostIPEnvvarValue)
 		setEnv(kerberosEnvvar, test.kerberosEnvvarValue)
 		setEnv(tlsEncryptionEnvvar, test.tlsEncryptionEnvvarValue)
 		setEnv(tlsAllowPlainEnvvar, test.tlsAllowPlainEnvvarValue)
