@@ -68,199 +68,28 @@ The following describes the most commonly used features of DC/OS Apache HDFS and
 
 ### Service Configuration
 
-The service configuration object contains some properties that MUST be specified during installation and CANNOT be modified after installation is in progress. This configuration object is similar across all DC/OS Infinity services. Service configuration example:
+The service configuration object contains some properties that MUST be specified during installation and CANNOT be modified after installation is in progress.
 
-```json
-{
-  "service": {
-    "name": "{{ data.serviceName }}",
-    "service_account": "{{ data.serviceName }}-principal",
-  }
-}
-```
-
-<table class="table">
-  <tr>
-    <th>Property</th>
-    <th>Type</th>
-    <th>Description</th>
-  </tr>
-
-  <tr>
-    <td>name</td>
-    <td>string</td>
-    <td>The name of the HDFS service installation. This must be unique for each DC/OS service instance deployed on a DC/OS cluster. It will determine the ID of the HDFS service. See [Alternate install configurations](#alternate-install-configurations) for more information on configuring the service name.</td>
-  </tr>
-
-  <tr>
-    <td>service_account</td>
-    <td>string</td>
-    <td>The DC/OS service account for the HDFS cluster.</td>
-  </tr>
-
-</table>
+For more information on service configuration see [the documentation on configuring a service from the catalog](https://docs.mesosphere.com/latest/deploying-services/config-universe-service/).
 
 ### Node Configuration
 
 The node configuration objects correspond to the configuration for nodes in the HDFS cluster. Node configuration MUST be specified during installation and MAY be modified during configuration updates. All of the properties except `disk` and `disk_type` MAY be modified during the configuration update process.
 
-Example node configuration:
-```json
-  "journal_node": {
-    "cpus": 0.5,
-    "mem": 4096,
-    "disk": 10240,
-    "disk_type": "ROOT",
-    "strategy": "parallel"
-  },
-    "name_node": {
-    "cpus": 0.5,
-    "mem": 4096,
-    "disk": 10240,
-    "disk_type": "ROOT"
-  },
-  "zkfc_node": {
-    "cpus": 0.5,
-    "mem": 4096
-  },
-  "data_node": {
-    "count": 3,
-    "cpus": 0.5,
-    "mem": 4096,
-    "disk": 10240,
-    "disk_type": "ROOT",
-    "strategy": "parallel"
-  }
-```
+#### A Note on Memory Configuration
 
-<table class="table">
+As part of the configuration for each node type, the amount of memory in MB allocated to the node can be specified. This value *must* be larger than the specified maximum heap size for the given node type. Make sure to allocate enough space for additional memory used by the JVM and other overhead. A good rule of thumb is allocate twice as much memory as the size of the heap (set using either `hdfs.hadoop_heapsize` or `<node type>.hadoop_<node type>node_opts`).
 
-  <tr>
-    <th>Property</th>
-    <th>Type</th>
-    <th>Description</th>
-  </tr>
+#### A Note on Disk Types
 
-   <tr>
-    <td>cpus</td>
-    <td>number</td>
-    <td>The number of cpu shares allocated to the node's process.</td>
-  </tr>
+As already noted, the disk size and type specifications cannot be modified after initial installation. Furthermore, the following disk volume types are available:
 
-  <tr>
-    <td>mem</td>
-    <td>integer</td>
-    <td>The amount of memory, in MB, allocated to the node. This value MUST be larger than the specified max heap size. Make sure to allocate enough space for additional memory used by the JVM and other overhead. A good rule of thumb is allocate twice the heap size in MB for memory.</td>
-  </tr>
-
-  <tr>
-    <td>disk</td>
-    <td>integer</td>
-    <td>The amount of disk, in MB, allocated to node. **Note:** Once this value is configured, it can not be changed.</td>
-  </tr>
-
-  <tr>
-    <td>disk_type</td>
-    <td>string</td>
-    <td>The type of disk to use for storing data. Possible values: <b>ROOT</b> (default) and <b>MOUNT</b>. <b>Note:</b> Once this value is configured, it can not be changed.
-    <ul>
-    <li><b>ROOT:</b> Data is stored on the same volume as the agent work directory and the node tasks use the configured amount of <i>disk</i> space.</li>
-    <li><b>MOUNT:</b> Data will be stored on a dedicated, operator-formatted volume attached to the agent. Dedicated MOUNT volumes have performance advantages and a disk error on these MOUNT volumes will be correctly reported to HDFS.</li>
-    </ul>
-    </td>
-  </tr>
-
-  <tr>
-    <td>strategy</td>
-    <td>string</td>
-    <td>The strategy used to deploy that node type. Possible values: <b>parallel</b> (default) and <b>serial</b>.
-    <ul>
-    <li><b>parallel:</b> All nodes of that type are deployed at the same time.</li>
-    <li><b>serial:</b> All nodes of that type are deployed in sequence.</li>
-    </ul>
-    </td>
-  </tr>
-
-  <tr>
-    <td>count</td>
-    <td>integer</td>
-    <td>The number of nodes of that node type for the cluster. There are always exactly two name nodes, so the name_node object has no count property. Users may select either 3 or 5 journal nodes. The default value of 3 is sufficient for most deployments and should only be overridden after careful thought. At least 3 data nodes should be configured, but this value may be increased to meet the storage needs of the deployment.</td>
-  </tr>
-</table>
+* `ROOT`: Data is stored on the same volume as the agent work directory and the node tasks use the configured amount of disk space.
+* `MOUNT`: Data will be stored on a dedicated, operator-formatted volume attached to the agent. Dedicated MOUNT volumes have performance advantages and a disk error on these MOUNT volumes will be correctly reported to HDFS.
 
 ### HDFS File System Configuration
 
-The HDFS file system network configuration, permissions, and compression is configured via the `hdfs` JSON object. Once these properties are set at installation time they can not be reconfigured.
-Example HDFS configuration:
-
-```json
-{
-  "hdfs": {
-    "name_node_rpc_port": 9001,
-    "name_node_http_port": 9002,
-    "journal_node_rpc_port": 8485,
-    "journal_node_http_port": 8480,
-    "data_node_rpc_port": 9005,
-    "data_node_http_port": 9006,
-    "data_node_ipc_port": 9007,
-    "permissions_enabled": false,
-    "name_node_heartbeat_recheck_interval": 60000,
-    "compress_image": true,
-    "image_compression_codec": "org.apache.hadoop.io.compress.SnappyCodec"
-  }
-}
-```
-
-<table class="table">
-
-  <tr>
-    <th>Property</th>
-    <th>Type</th>
-    <th>Description</th>
-  </tr>
-
-   <tr>
-    <td>name_node_rpc_port</td>
-    <td>integer</td>
-    <td>The port on which the name nodes will listen for RPC connections.</td>
-  </tr>
-
-   <tr>
-    <td>name_node_http_port</td>
-    <td>integer</td>
-    <td>The port on which the name nodes will listen for HTTP connections.</td>
-  </tr>
-
-   <tr>
-    <td>journal_node_rpc_port</td>
-    <td>integer</td>
-    <td>The port on which the journal nodes will listen for RPC connections.</td>
-  </tr>
-
-   <tr>
-    <td>journal_node_http_port</td>
-    <td>integer</td>
-    <td>The port on which the journal nodes will listen for HTTP connections.</td>
-  </tr>
-
-   <tr>
-    <td>data_node_rpc_port</td>
-    <td>integer</td>
-    <td>The port on which the data nodes will listen for RPC connections.</td>
-  </tr>
-
-   <tr>
-    <td>data_node_http_port</td>
-    <td>integer</td>
-    <td>The port on which the data nodes will listen for HTTP connections.</td>
-  </tr>
-
-   <tr>
-    <td>data_node_ipc_port</td>
-    <td>integer</td>
-    <td>The port on which the data nodes will listen for IPC connections. This property is useful if you deploy a service that colocates with HDFS data nodes. It provides domain socket communication instead of RPC</td>
-  </tr>
-</table>
+The HDFS file system network configuration, permissions, and compression are configured via the `hdfs` JSON object. Once these properties are set at installation time they can not be reconfigured.
 
 ### Operating System Configuration
 
