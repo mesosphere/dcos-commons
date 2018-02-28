@@ -162,7 +162,7 @@ Install the DC/OS Apache HDFS service with the following options in addition to 
 
 ## Authorization
 
-The DC/OS Apache HDFS service supports HDFS's native authorization, which behaves similarly to UNIX file permissions. If Keberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to HDFS users against which permissions can be assigned.
+The DC/OS Apache HDFS service supports HDFS's native authorization, which behaves similarly to UNIX file permissions. If Kerberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to HDFS users against which permissions can be assigned.
 
 ### Enable Authorization
 
