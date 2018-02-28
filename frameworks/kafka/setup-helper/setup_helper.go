@@ -26,6 +26,7 @@ const (
 	authorizationEnvvar   = "SECURITY_AUTHORIZATION_ENABLED"
 	superUsersEnvvar      = "SECURITY_AUTHORIZATION_SUPER_USERS"
 	brokerCountEnvvar     = "BROKER_COUNT"
+	advertiseHostIPEnvvar = "KAFKA_ADVERTISE_HOST"
 
 	listenersProperty           = "listeners"
 	advertisedListenersProperty = "advertised.listeners"
@@ -162,14 +163,26 @@ func setListeners() error {
 	} else { // No TLS, no Kerberos, Plaintext only
 		listeners = append(listeners,
 			getListener("PLAINTEXT", brokerPort))
+		// NOTE: To be consistent with the legacy behavior of the 2.0.X Kafka series,
+		// we advertise the IP address rather than the host name.
 		advertisedListeners = append(advertisedListeners,
-			getAdvertisedListener("PLAINTEXT", brokerPort))
+			getListener("PLAINTEXT", brokerPort))
 	}
 
 	err := writeToWorkingDirectory(listenersProperty,
 		"listeners="+strings.Join(listeners, ","))
-	err = writeToWorkingDirectory(advertisedListenersProperty,
-		"advertised.listeners="+strings.Join(advertisedListeners, ","))
+
+	// NOTE: To be consistent with the legacy behavior of the 2.0.X Kafka series,
+	// when there is no security enabled, we must honor the kafka.kafka_advertise_host_ip
+	// configuration parameter
+	if !kerberosEnabled && !tlsEncryptionEnabled && !getBooleanEnvvar(advertiseHostIPEnvvar) {
+		// Write an empty file.
+		err = writeToWorkingDirectory(advertisedListenersProperty, "")
+	} else {
+		err = writeToWorkingDirectory(advertisedListenersProperty,
+			"advertised.listeners="+strings.Join(advertisedListeners, ","))
+	}
+
 	return err
 }
 
