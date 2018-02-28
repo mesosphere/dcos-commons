@@ -7,7 +7,7 @@
   "container": {
     "type": "MESOS",
     "docker": {
-      "image": "nvaziri/kdc:mesosphere",
+      "image": "nvaziri/mit_kdc:dev",
       "forcePullImage": true
     }
   },
@@ -22,5 +22,11 @@
       "name": "kdc"
     }
   ],
-  "requirePorts": true
+  "requirePorts": true,
+  "env": {
+    "REALM": "LOCAL",
+    "KRB5_CONFIG": "/kdc/krb5.conf",
+    "KRB5_KDC_PROFILE": "/kdc/kdc.conf"
+
+  }
 }

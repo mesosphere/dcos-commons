@@ -210,7 +210,7 @@ class KerberosEnvironment:
                             needed to be set for the sub command.
         :raises a generic Exception if the invocation fails.
         """
-        kadmin_cmd = "/usr/sbin/kadmin {options} {cmd} {args}".format(
+        kadmin_cmd = "/usr/local/sbin/kadmin.local \"{options} {cmd} {args}\"".format(
             options=' '.join(options),
             cmd=cmd,
             args=' '.join(args)
@@ -246,16 +246,16 @@ class KerberosEnvironment:
         self.principals = list(map(lambda x: x.strip(), principals))
 
         log.info("Adding the following list of principals to the KDC: {principals}".format(principals=self.principals))
-        kadmin_options = ["-l"]
-        kadmin_cmd = "add"
-        kadmin_args = ["--use-defaults", "--random-password"]
+        kadmin_options = ["-q"]
+        kadmin_cmd = "add_principal"
+        kadmin_args = ["-randkey"]
 
-        try:
-            kadmin_args.extend(self.principals)
-            self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
-        except Exception as e:
-            raise RuntimeError("Failed to add principals {principals}: {err_msg}".format(
-                principals=self.principals, err_msg=repr(e)))
+        for principal in self.principals:
+            try:
+                self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args + [principal])
+            except Exception as e:
+                raise RuntimeError("Failed to add principal {_principal}: {err_msg}".format(
+                    _principal=principal, err_msg=repr(e)))
 
         log.info("Principals successfully added to KDC")
 
@@ -278,12 +278,12 @@ class KerberosEnvironment:
         log.info("Deleting any previous keytab just in case (kadmin will append to it)")
         sdk_cmd.task_exec(self.task_id, "rm {}".format(name))
 
-        kadmin_options = ["-l"]
-        kadmin_cmd = "ext"
+        kadmin_options = ["-q"]
+        kadmin_cmd = "ktadd"
         kadmin_args = ["-k", name]
-        kadmin_args.extend(principals)
 
-        self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
+        for principal in principals:
+            self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args + [principal])
 
         keytab_absolute_path = os.path.join("/var/lib/mesos/slave/slaves", self.kdc_host_id,
                                             "frameworks", self.framework_id,
