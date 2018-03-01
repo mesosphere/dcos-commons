@@ -125,8 +125,9 @@ num.recovery.threads.per.data.dir={{KAFKA_NUM_RECOVERY_THREADS_PER_DATA_DIR}}
 # The number of messages to accept before forcing a flush of data to disk
 log.flush.interval.messages={{KAFKA_LOG_FLUSH_INTERVAL_MESSAGES}}
 
-# The maximum amount of time a message can sit in a log before we force a flush
-#log.flush.interval.ms=1000
+{{#KAFKA_LOG_FLUSH_INTERVAL_MS}}
+log.flush.interval.ms={{KAFKA_LOG_FLUSH_INTERVAL_MS}}
+{{/KAFKA_LOG_FLUSH_INTERVAL_MS}}
 
 ############################# Log Retention Policy #############################
 
@@ -136,8 +137,12 @@ log.flush.interval.messages={{KAFKA_LOG_FLUSH_INTERVAL_MESSAGES}}
 # from the end of the log.
 
 # The minimum age of a log file to be eligible for deletion
+{{#KAFKA_LOG_RETENTION_MS}}
 log.retention.ms={{KAFKA_LOG_RETENTION_MS}}
+{{/KAFKA_LOG_RETENTION_MS}}
+{{#KAFKA_LOG_RETENTION_MINUTES}}
 log.retention.minutes={{KAFKA_LOG_RETENTION_MINUTES}}
+{{/KAFKA_LOG_RETENTION_MINUTES}}
 log.retention.hours={{KAFKA_LOG_RETENTION_HOURS}}
 
 # A size-based retention policy for logs. Segments are pruned from the log as long as the remaining
@@ -218,7 +223,6 @@ log.cleanup.policy={{KAFKA_LOG_CLEANUP_POLICY}}
 log.flush.offset.checkpoint.interval.ms={{KAFKA_LOG_FLUSH_OFFSET_CHECKPOINT_INTERVAL_MS}}
 log.flush.scheduler.interval.ms={{KAFKA_LOG_FLUSH_SCHEDULER_INTERVAL_MS}}
 log.flush.start.offset.checkpoint.interval.ms={{KAFKA_LOG_FLUSH_START_OFFSET_CHECKPOINT_INTERVAL_MS}}
-log.flush.interval.ms={{KAFKA_LOG_FLUSH_INTERVAL_MS}}
 
 log.index.interval.bytes={{KAFKA_LOG_INDEX_INTERVAL_BYTES}}
 log.index.size.max.bytes={{KAFKA_LOG_INDEX_SIZE_MAX_BYTES}}
@@ -227,10 +231,14 @@ log.message.format.version={{KAFKA_LOG_MESSAGE_FORMAT_VERSION}}
 
 log.preallocate={{KAFKA_LOG_PREALLOCATE}}
 
-log.roll.hours={{KAFKA_LOG_ROLL_HOURS}}
+{{#KAFKA_LOG_ROLL_MS}}
 log.roll.ms={{KAFKA_LOG_ROLL_MS}}
-log.roll.jitter.hours={{KAFKA_LOG_ROLL_JITTER_HOURS}}
+{{/KAFKA_LOG_ROLL_MS}}
+log.roll.hours={{KAFKA_LOG_ROLL_HOURS}}
+{{#KAFKA_LOG_ROLL_JITTER_MS}}
 log.roll.jitter.ms={{KAFKA_LOG_ROLL_JITTER_MS}}
+{{/KAFKA_LOG_ROLL_JITTER_MS}}
+log.roll.jitter.hours={{KAFKA_LOG_ROLL_JITTER_HOURS}}
 
 log.segment.delete.delay.ms={{KAFKA_LOG_SEGMENT_DELETE_DELAY_MS}}
 
