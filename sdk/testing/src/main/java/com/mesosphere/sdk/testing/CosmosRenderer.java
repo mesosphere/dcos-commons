@@ -1,21 +1,15 @@
 package com.mesosphere.sdk.testing;
 
+import com.mesosphere.sdk.specification.yaml.TemplateUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 
 /**
  * Reads a service's Universe packaging configuration, and uses that to generate the resulting Scheduler environment.
@@ -30,11 +24,13 @@ public class CosmosRenderer {
      * See also: tools/universe/package_builder.py
      */
     private static final Map<String, String> RESOURCE_TEMPLATE_PARAMS;
+
     static {
         RESOURCE_TEMPLATE_PARAMS = new HashMap<>();
         RESOURCE_TEMPLATE_PARAMS.put("artifact-dir", "https://test-url/artifacts");
         RESOURCE_TEMPLATE_PARAMS.put("jre-url", "https://test-url/jre.tgz");
         RESOURCE_TEMPLATE_PARAMS.put("libmesos-bundle-url", "https://test-url/libmesos-bundle.tgz");
+        RESOURCE_TEMPLATE_PARAMS.put("dcos-sdk-version", "99.99.99-SNAPSHOT");
     }
 
     /**
@@ -42,6 +38,7 @@ public class CosmosRenderer {
      * See also: tools/universe/package_builder.py
      */
     private static final Map<String, String> MARATHON_TEMPLATE_PARAMS;
+
     static {
         MARATHON_TEMPLATE_PARAMS = new HashMap<>();
         MARATHON_TEMPLATE_PARAMS.put("package-name", "test-pkg");
@@ -59,11 +56,12 @@ public class CosmosRenderer {
      * that the service's universe packaging is valid, by exercising config.json, resource.json, and
      * marathon.json.mustache.
      *
-     * @param customPackageOptions map of any custom config settings as would be passed via an {@code options.json} file
-     *     when installing the service. these are provided to {@code config.json}
+     * @param customPackageOptions      map of any custom config settings as would be passed via an {@code options.json}
+     *                                  file when installing the service. these are provided to {@code config.json}
      * @param customBuildTemplateParams map of any custom template params that are normally provided as
-     *     {@code TEMPLATE_X} envvars when building the service at the commandline. these are provided to all universe
-     *     files (config.json, marathon.json.mustache, and resource.json)
+     *                                  {@code TEMPLATE_X} envvars when building the service at the commandline. these
+     *                                  are provided to all universe files (config.json, marathon.json.mustache,
+     *                                  and resource.json)
      * @return Scheduler environment variables resulting from the provided options
      */
     public static Map<String, String> renderSchedulerEnvironment(
@@ -109,7 +107,7 @@ public class CosmosRenderer {
     /**
      * Finds string entries in the provided tree and writes them to {@code config} under the provided path. Used for
      * Universe resource.json files.
-     *
+     * <p>
      * For example, {"a": {"b": {"c": "d"}} } => {"a.b.c": "d"}
      */
     private static void flattenTree(String path, JSONObject node, Map<String, String> config) {
@@ -127,7 +125,7 @@ public class CosmosRenderer {
     /**
      * Finds entries nested under 'properties' nodes in the provided JSON {@code node} and writes them to {@code config}
      * under the provided path. Used for Universe config.json files.
-     *
+     * <p>
      * For example, {"a": {"properties": {"b": {"default": "c"}, "d": {"properties": {"e": {"default": "f"}}}}}} =>
      * {"a.b": "c", "a.b.d.e": "f"}
      */
