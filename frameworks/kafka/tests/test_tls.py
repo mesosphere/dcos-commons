@@ -17,7 +17,7 @@ BROKER_TLS_ENDPOINT = 'broker-tls'
 @pytest.fixture(scope='module')
 def service_account(configure_security):
     """
-    Creates service account for TLS.
+    Sets up a service account for use with TLS.
     """
     try:
         name = config.SERVICE_NAME
