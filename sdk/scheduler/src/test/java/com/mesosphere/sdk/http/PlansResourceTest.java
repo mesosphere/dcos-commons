@@ -262,6 +262,36 @@ public class PlansResourceTest {
     }
 
     @Test
+    public void testForceCompletePlan() {
+        Response response = resource.forceCompleteCommand(planName, null, null);
+        validateCommandResult(response, "forceComplete");
+    }
+
+    @Test
+    public void testForceCompletePhase() {
+        Response response = resource.forceCompleteCommand(planName, phaseName, null);
+        validateCommandResult(response, "forceComplete");
+    }
+
+    @Test
+    public void testFailForceCompletePlanAndStep() {
+        Response response = resource.forceCompleteCommand(planName, null, stepName);
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    public void testFailForceCompleteStep() {
+        Response response = resource.forceCompleteCommand(null, null, stepName);
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    public void testFailForceCompleteNothing() {
+        Response response = resource.forceCompleteCommand(null, null, null);
+        assertEquals(404, response.getStatus());
+    }
+
+    @Test
     public void testRestart() {
         Response response = resource.restartCommand(planName, phaseId.toString(), stepId.toString());
         validateCommandResult(response, "restart");
@@ -359,10 +389,12 @@ public class PlansResourceTest {
         assertTrue(response.getStatusInfo().equals(Response.Status.NOT_FOUND));
 
         response = resource.restartCommand(planName, null, "non-null");
-        assertTrue(response.getStatusInfo().equals(Response.Status.BAD_REQUEST));
+        assertEquals(404, response.getStatus());
     }
 
     private static void validateCommandResult(Response response, String commandName) {
-        assertEquals("{\"message\": \"Received cmd: " + commandName + "\"}", response.getEntity().toString());
+        String expectedPrefix = String.format("{\"message\": \"Received cmd: %s", commandName);
+        assertTrue(response.getEntity().toString().startsWith(expectedPrefix));
+        assertEquals(200, response.getStatus());
     }
 }
