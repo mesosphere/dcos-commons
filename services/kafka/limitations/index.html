@@ -638,6 +638,10 @@
 
 <h2 id="security">Security</h2>
 
+<h3 id="kafka-cli">Kafka CLI</h3>
+
+<p>When any security functions are enabled, the Kafka service CLI sub-command <code class="highlighter-rouge">topic</code> will not function. While the service CLI convenience functions will not work, the tooling bundled with <a href="https://cwiki.apache.org/confluence/display/KAFKA/System+Tools">Apache Kafka</a> and other tools that support the enabled security modes will of course work.</p>
+
 <h3 id="kerberos">Kerberos</h3>
 
 <p>When Kerberos is enabled, the broker VIP is disabled as Kerberized clients will not be able to use it. This is because each Kafka broker uses a specific Kerberos principal and cannot accept connections from a single unified principal which the VIP would require.</p>
