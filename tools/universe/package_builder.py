@@ -18,6 +18,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _jre_url = 'https://downloads.mesosphere.com/java/server-jre-8u162-linux-x64.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-master-28f8827.tar.gz'
+_dcos_sdk_version = '0.41.0-SNAPSHOT'
 
 _docs_root = "https://docs.mesosphere.com"
 
@@ -35,8 +36,9 @@ _expected_package_filenames = [
 
 class UniversePackageBuilder(object):
     def __init__(self, package, package_manager, input_dir_path, upload_dir_url,
-                 artifact_paths):
+                 artifact_paths, dry_run=False):
 
+        self._dry_run = dry_run
         self._package = package
         self._package_manager = package_manager
         self._upload_dir_url = upload_dir_url
@@ -89,6 +91,15 @@ class UniversePackageBuilder(object):
             yield package_filename, open(package_filepath).read()
 
     def _fetch_sha256_from_manifest(self, manifest_url, filename):
+        logger.info("Fetching manifest for %s from %s", filename, manifest_url)
+
+        if self._dry_run:
+            logger.info("(dryrun) Generating hash for DRY_RUN")
+            hasher = hashlib.sha256()
+            hasher.update(manifest_url)
+            hasher.update(filename)
+            return hasher.hexdigest()
+
         with urllib.request.urlopen(manifest_url) as manifest_file:
             manifest_content = manifest_file.read(10240).decode('utf-8').strip()
         for manifest_row in manifest_content.split('\n'):
@@ -153,30 +164,9 @@ class UniversePackageBuilder(object):
             'documentation-path': self._get_documentation_path(),
             'issues-path': self._get_issues_path(),
             'jre-url': _jre_url,
-            'libmesos-bundle-url': _libmesos_bundle_url
+            'libmesos-bundle-url': _libmesos_bundle_url,
+            'dcos-sdk-version': _dcos_sdk_version
         }
-
-        # look for any 'sha256:filename' or 'sha256:filename@url' template params, and get shas for those.
-        # - "sha256:filename": generate SHA256 of local file which was specified as an artifact
-        # - "sha256:filename@manifesturl": download checksum manifest at URL, and use sha listed in there for filename
-        url_matcher = re.compile('^(.+?)@(.+?)$') # filename@url
-        for sha_param in re.findall('{{sha256:(.+?)}}', orig_content):
-            url_match = url_matcher.match(sha_param)
-            if url_match:
-                # fetch remote manifest at URL, get sha256 from manifest
-                target_filename = url_match.group(1)
-                manifest_url = url_match.group(2)
-                sha_value = self._fetch_sha256_from_manifest(manifest_url, target_filename)
-            else:
-                # find local file with specified name, get sha256 for that file
-                target_file_path = self._artifact_file_paths.get(sha_param, '')
-                if not target_file_path:
-                    raise Exception(
-                        'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(sha_param) +
-                        'Please provide the full path to this artifact (known artifacts: {}), '.format(self._artifact_file_paths) +
-                        'or specify a manifest URL (SHA256SUMS) with \'{}@<manifestURL>\''.format(sha_param))
-                sha_value = self._calculate_sha256(target_file_path)
-            template_mapping['sha256:{}'.format(sha_param)] = sha_value
 
         # import any custom "TEMPLATE_SOME_PARAM" environment variables as "some-param":
         for env_key, env_val in os.environ.items():
@@ -184,14 +174,60 @@ class UniversePackageBuilder(object):
                 # 'TEMPLATE_SOME_KEY' => 'some-key'
                 template_mapping[env_key[len('TEMPLATE_'):].lower().replace('_', '-')] = env_val
 
+        sha_template_maps = self._get_sha_template_mapping(orig_content, template_mapping)
+
+        for key, value in sha_template_maps.items():
+            template_mapping[key] = value
+
         return template_mapping
+
+    def _get_sha_template_mapping(self, content: str, template_mapping: dict) -> dict:
+        """
+        Look for any 'sha256:filename' or 'sha256:filename@url' template params, and get shas for those.
+            - "sha256:filename": generate SHA256 of local file which was specified as an artifact
+            - "sha256:filename@manifesturl": download checksum manifest at URL, and use sha listed in there for filename
+        """
+        sha_template_maps = {}
+        url_matcher = re.compile('^(.+?)@(.+?)$')  # filename@url
+        for sha_param in re.findall('"{{sha256:(.+?)}}"', content):
+            sha_param_templated = self._apply_template_to_string(sha_param, template_mapping)
+            url_match = url_matcher.match(sha_param_templated)
+            if url_match:
+                # fetch remote manifest at URL, get sha256 from manifest
+                target_filename = url_match.group(1)
+                manifest_url = url_match.group(2)
+                sha_value = self._fetch_sha256_from_manifest(manifest_url, target_filename)
+            else:
+                # find local file with specified name, get sha256 for that file
+                target_file_path = self._artifact_file_paths.get(sha_param_templated, '')
+                if not target_file_path:
+                    raise Exception(
+                        'Missing path for artifact file named \'{}\' (to calculate sha256). '.format(sha_param_templated) +
+                        'Please provide the full path to this artifact (known artifacts: {}), '.format(self._artifact_file_paths) +
+                        'or specify a manifest URL (SHA256SUMS) with \'{}@<manifestURL>\''.format(sha_param_templated))
+                sha_value = self._calculate_sha256(target_file_path)
+
+            # We add both the templated and non-templated sha patterns to the maps.
+            sha_template_maps['sha256:{}'.format(sha_param_templated)] = sha_value
+            sha_template_maps['sha256:{}'.format(sha_param)] = sha_value
+
+        return sha_template_maps
+
+    @staticmethod
+    def _apply_template_to_string(content: str, template_mapping: dict) -> str:
+        new_content = content
+        prior_content = None
+        while prior_content != new_content:
+            prior_content = new_content
+            for template_key, template_val in template_mapping.items():
+                new_content = new_content.replace('{{%s}}' % template_key, template_val)
+
+        return new_content
 
     def _apply_templating_to_file(self, filename, orig_content):
         template_mapping = self._get_template_mapping_for_content(orig_content)
-        new_content = orig_content
-        for template_key, template_val in template_mapping.items():
-            new_content = new_content.replace('{{%s}}' % template_key,
-                                              template_val)
+        new_content = self._apply_template_to_string(orig_content, template_mapping)
+
         if orig_content == new_content:
             logger.info('')
             logger.info('No templating detected in {}, leaving file as-is'.
