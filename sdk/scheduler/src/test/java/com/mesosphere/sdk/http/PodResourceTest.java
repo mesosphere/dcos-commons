@@ -4,6 +4,7 @@ import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.TaskFailureListener;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
@@ -16,7 +17,9 @@ import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -115,6 +118,16 @@ public class PodResourceTest {
     @Mock private SchedulerDriver driver;
 
     private PodResource resource;
+
+    @BeforeClass
+    public static void beforeAll() throws InterruptedException {
+        TaskKiller.reset(false); // disable background executor to avoid unexpected calls
+    }
+
+    @AfterClass
+    public static void afterAll() throws InterruptedException {
+        TaskKiller.reset(true); // reenable background executor to return to default behavior
+    }
 
     @Before
     public void beforeEach() {
