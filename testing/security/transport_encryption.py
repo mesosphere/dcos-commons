@@ -15,12 +15,13 @@ log = logging.getLogger(__name__)
 def setup_service_account(service_name: str,
                           service_account_secret: str=None) -> dict:
     """
-    Setup the service account for TLS
+    Setup the service account for TLS. If the account or secret of the specified
+    name already exists, these are deleted.
     """
 
     if sdk_utils.is_open_dcos():
-        log.warn("The setup of a service account requires DC/OS EE")
-        return {}
+        log.error("The setup of a service account requires DC/OS EE. service_name=%s", service_name)
+        raise Exception("The setup of a service account requires DC/OS EE")
 
     name = service_name
     secret = name if service_account_secret is None else service_account_secret
@@ -51,7 +52,9 @@ def setup_service_account(service_name: str,
 
 def cleanup_service_account(service_account_info: dict):
     """
-    Clean up the service account
+    Clean up the specified service account.
+
+    Ideally, this service account was created using the setup_service_account function.
     """
     if isinstance(service_account_info, str):
         service_account_info = {"name": service_account_info}
