@@ -306,7 +306,7 @@
           "default": true
         },
         "kafka_advertise_host_ip": {
-          "description": "Automatically configure advertised.host.name with the tasks' IP address",
+          "description": "[DEPRECATED] This configuration parameter has been deprecated and will be removed in a future release. When set to true, and no security settings are enabled, kafka's advertised.listeners property is set to PLAINTEXT://<broker-ip>:<broker-port>. When the setting is false and no security is enabled, then advertised.listeners is NOT set. When security is enabled, the advertised.listeners property will be set to broker hostnames.",
           "type": "boolean",
           "default": true
         },
