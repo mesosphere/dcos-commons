@@ -3,9 +3,6 @@ package com.mesosphere.sdk.offer;
 import java.util.UUID;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.ExecutorID;
-import org.apache.mesos.Protos.SlaveID;
-import org.apache.mesos.Protos.TaskID;
 
 /**
  * Various utility methods for manipulating data in {@link Protos.TaskInfo}s.
@@ -13,7 +10,7 @@ import org.apache.mesos.Protos.TaskID;
 public class CommonIdUtils {
 
     /** Used in task and executor IDs to separate the task/executor name from a UUID. */
-    public static final String NAME_ID_DELIM = "__";
+    private static final String NAME_ID_DELIM = "__";
 
     private CommonIdUtils() {
         // do not instantiate
@@ -26,7 +23,7 @@ public class CommonIdUtils {
      *
      * @see #toTaskId(String)
      */
-    public static String toTaskName(TaskID taskId) throws TaskException {
+    public static String toTaskName(Protos.TaskID taskId) throws TaskException {
         return extractNameFromId(taskId.getValue());
     }
 
@@ -35,10 +32,11 @@ public class CommonIdUtils {
      * <p>
      * For example: "instance-0" => "instance-0__aoeu5678"
      *
+     * @throws IllegalArgumentException if the provided {@code name} contains the "__" delimiter
      * @see #toTaskName(TaskID)
      */
-    public static TaskID toTaskId(String taskName) {
-        return TaskID.newBuilder().setValue(generateIdString(taskName)).build();
+    public static Protos.TaskID toTaskId(String taskName) throws IllegalArgumentException {
+        return Protos.TaskID.newBuilder().setValue(generateIdString(taskName)).build();
     }
 
     /**
@@ -57,31 +55,37 @@ public class CommonIdUtils {
      * <p>
      * For example: "instance-0" => "instance-0_aoeu5678"
      *
+     * @throws IllegalArgumentException if the provided {@code name} contains the "__" delimiter
      * @see #toExecutorName(ExecutorID)
      */
-    public static Protos.ExecutorID toExecutorId(String executorName) {
+    public static Protos.ExecutorID toExecutorId(String executorName) throws IllegalArgumentException {
         return Protos.ExecutorID.newBuilder().setValue(generateIdString(executorName)).build();
     }
 
-    public static TaskID emptyTaskId() {
-        return TaskID.newBuilder().setValue("").build();
+    public static Protos.TaskID emptyTaskId() {
+        return Protos.TaskID.newBuilder().setValue("").build();
     }
 
-    public static SlaveID emptyAgentId() {
-        return SlaveID.newBuilder().setValue("").build();
+    public static Protos.SlaveID emptyAgentId() {
+        return Protos.SlaveID.newBuilder().setValue("").build();
     }
 
-    public static ExecutorID emptyExecutorId() {
-        return ExecutorID.newBuilder().setValue("").build();
+    public static Protos.ExecutorID emptyExecutorId() {
+        return Protos.ExecutorID.newBuilder().setValue("").build();
     }
 
     /**
      * Returns a new unique task or executor ID.
      *
+     * @throws IllegalArgumentException if the provided {@code name} contains the "__" delimiter
      * @param name the task name or executor name
      * @see #extractNameFromId(String)
      */
-    private static String generateIdString(String name) {
+    private static String generateIdString(String name) throws IllegalArgumentException {
+        if (name.contains(NAME_ID_DELIM)) {
+            throw new IllegalArgumentException(
+                    String.format("Name cannot contain delimiter '%s': %s", NAME_ID_DELIM, name));
+        }
         return name + NAME_ID_DELIM + UUID.randomUUID();
     }
 
@@ -92,13 +96,23 @@ public class CommonIdUtils {
      * @see #generateIdString(String)
      */
     private static String extractNameFromId(String id) throws TaskException {
-        int underScoreIndex = id.lastIndexOf(NAME_ID_DELIM);
-        if (underScoreIndex == -1) {
-          throw new TaskException(String.format(
-                  "ID '%s' is malformed.  Expected '%s' to extract name from ID.  "
-                  + "IDs should be generated with CommonIdUtils.",
-                  id, NAME_ID_DELIM));
+        // Support both of the following (note double underscores as delimiter):
+        // - "task_name__uuid"
+        // - "other_info__task_name__uuid"
+        int lastIndex = id.lastIndexOf(NAME_ID_DELIM);
+        if (lastIndex == -1) {
+            throw new TaskException(String.format(
+                    "ID '%s' is malformed. Expected '%s' to extract name from ID. "
+                    + "IDs should be generated with CommonIdUtils.",
+                    id, NAME_ID_DELIM));
         }
-        return id.substring(0, underScoreIndex);
+        int secondLastIndex = id.lastIndexOf(NAME_ID_DELIM, lastIndex - NAME_ID_DELIM.length());
+        if (secondLastIndex == -1) {
+            // Only one set of double underscores: "task_name__uuid"
+            return id.substring(0, lastIndex);
+        } else {
+            // Two sets of double underscores: "other_name__task_name__uuid"
+            return id.substring(secondLastIndex + NAME_ID_DELIM.length(), lastIndex);
+        }
     }
 }
