@@ -15,31 +15,31 @@ public class ServiceTest {
 
     @Test
     public void testSpec() throws Exception {
-        new ServiceTestRunner().run(getDeploymentTicks());
+        getServiceTestRunner().run(getDeploymentTicks());
     }
 
 
     @Test
     public void testValidPlacementConstraint() throws Exception {
-        ServiceTestRunner serviceTestRunner = new ServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", VALID_HOSTNAME_CONSTRAINT);
+        ServiceTestRunner serviceTestRunner = getServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", VALID_HOSTNAME_CONSTRAINT);
         serviceTestRunner.run(getDeploymentTicks());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testInvalidPlacementConstraint() throws Exception {
-        new ServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT).run(getDeploymentTicks());
+        getServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT).run(getDeploymentTicks());
     }
 
     @Test
     public void testSwitchToInvalidPlacementConstraint() throws Exception {
-        ServiceTestResult initial = new ServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", VALID_HOSTNAME_CONSTRAINT).run(getDeploymentTicks());
+        ServiceTestResult initial = getServiceTestRunner().setSchedulerEnv("NODE_PLACEMENT", VALID_HOSTNAME_CONSTRAINT).run(getDeploymentTicks());
 
 
         Collection<SimulationTick> ticks = new ArrayList<>();
         ticks.add(Send.register());
         ticks.add(Expect.planStatus("deploy", Status.ERROR));
 
-        new ServiceTestRunner().setState(initial).setSchedulerEnv("NODE_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT).run(ticks);
+        getServiceTestRunner().setState(initial).setSchedulerEnv("NODE_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT).run(ticks);
 
     }
 
@@ -71,6 +71,11 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         return ticks;
+    }
+
+    private ServiceTestRunner getServiceTestRunner() {
+        return new ServiceTestRunner()
+            .setBuildTemplateParams("dcos-sdk-version", "99.99.99-SNAPSHOT");
     }
 
 

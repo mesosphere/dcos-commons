@@ -5,12 +5,15 @@ import argparse
 import subprocess
 import os
 import re
+import sys
+import shutil
 
 logging.basicConfig(level="INFO")
 
 LOGGER = logging.getLogger(__name__)
 
 DCOS_COMMONS_DIST_ROOT = os.environ.get("DCOS_COMMONS_DIST_ROOT", "/dcos-commons-dist")
+DCOS_COMMONS_TEMPLATE_ROOT = os.environ.get("DCOS_COMMONS_TEMPLATE_ROOT", "/dcos-commons-template")
 DCOS_SDK_VERSION = "0.40.2"
 
 
@@ -101,10 +104,207 @@ def update_sdk(output_path: str, target_version: str):
     write_file(package_builder_path, package_builder_contents)
 
 
+def write_build_sh(output_path: str, framework_name: str):
+    contents = """
+#!/usr/bin/env bash
+set -e
+
+FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BUILD_DIR=$FRAMEWORK_DIR/build/distributions
+
+FRAMEWORK_NAME={{framework_name}}
+
+${FRAMEWORK_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
+
+BOOTSTRAP_DIR=disable \\
+EXECUTOR_DIR=disable \\
+TEMPLATE_DOCUMENTATION_PATH="http://YOURNAMEHERE.COM/DOCS" \\
+TEMPLATE_ISSUES_PATH="http://YOURNAMEHERE.COM/SUPPORT" \\
+    $FRAMEWORK_DIR/tools/build_package.sh \\
+        ${FRAMEWORK_NAME} \\
+        $FRAMEWORK_DIR \\
+        -a "$BUILD_DIR/${FRAMEWORK_NAME}-scheduler.zip" \\
+        $@
+"""
+    write_file(os.path.join(output_path, "build.sh"),
+               contents.replace("{{framework_name}}", framework_name))
+
+
+def write_build_gradle(output_path: str, framework_name: str):
+    contents = """
+group 'com.mesosphere.sdk'
+version '1.1-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+repositories {
+    jcenter()
+    mavenCentral()
+    maven {
+        url "http://downloads.mesosphere.com/maven/"
+    }
+    maven {
+        url "http://downloads.mesosphere.com/maven-snapshot/"
+    }
+}
+
+ext {
+    junitVer = "4.12"
+    systemRulesVer = "1.16.0"
+    mockitoVer = "1.9.5"
+    dcosSDKVer = "0.40.2"
+}
+
+dependencies {
+    compile "mesosphere:scheduler:${dcosSDKVer}"
+    compile "mesosphere:executor:${dcosSDKVer}"
+    testCompile "mesosphere:testing:${dcosSDKVer}"
+}
+
+
+distributions {
+    main {
+        baseName = '{{framework_name}}-scheduler'
+        version = ''
+    }
+}
+
+mainClassName = 'com.mesosphere.sdk.{{framework_name}}.scheduler.Main'
+"""
+
+    write_file(os.path.join(output_path, "build.gradle"),
+               contents.replace("{{framework_name}}", framework_name))
+
+
+def write_gradle_settings(output_path: str, framework_name: str):
+    contents = "rootProject.name = '{{framework_name}}'"
+
+    write_file(os.path.join(output_path, "settings.gradle"),
+               contents.replace("{{framework_name}}", framework_name))
+
+
+def move_java_files(output_path: str, framework_name: str):
+
+    folders = [
+             "src/test/java/com/mesosphere/sdk/template/",
+             "src/main/java/com/mesosphere/sdk/template/"]
+
+    for f in folders:
+        shutil.move(os.path.join(output_path, f),
+                    os.path.join(output_path, f[:-len("/template/")], framework_name))
+
+
+def update_files(output_path: str, framework_name: str):
+
+    template_pattern = "([^-]?)template([^_]?)"
+    framework_pattern = "\\1{}\\2".format(framework_name)
+
+    matcher = re.compile(template_pattern)
+
+    for dirpath, _, filenames in os.walk(output_path):
+        for filename in filenames:
+            full_path = os.path.join(dirpath, filename)
+            contents = read_file(full_path)
+            if matcher.search(contents):
+                LOGGER.info("Updating %s", full_path)
+                write_file(full_path,
+                           matcher.sub(framework_pattern, contents))
+
+
+def write_standalone_resource_json(output_path: str, framework_name: str):
+    contents = """{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "{{jre-url}}",
+      "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
+      "scheduler-zip": "{{artifact-dir}}/{{framework_name}}-scheduler.zip",
+      "executor-zip": "http://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/executor.zip",
+      "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/bootstrap.zip"
+    }
+  },
+  "images": {
+    "icon-small": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-small.png?raw=true",
+    "icon-medium": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-medium.png?raw=true",
+    "icon-large": "https://github.com/dcos/dcos-ui/blob/master/plugins/services/src/img/icon-service-default-large.png?raw=true"
+  },
+  "cli":{
+    "binaries":{
+      "darwin":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-darwin@https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/SHA256SUMS}}" } ],
+          "kind":"executable",
+          "url":"https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/dcos-service-cli-darwin"
+        }
+      },
+      "linux":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-linux@https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/SHA256SUMS}}" } ],
+          "kind":"executable",
+          "url":"https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/dcos-service-cli-linux"
+        }
+      },
+      "windows":{
+        "x86-64":{
+          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli.exe@https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/SHA256SUMS}}" } ],
+          "kind":"executable",
+          "url":"https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/dcos-service-cli.exe"
+        }
+      }
+    }
+  }
+}
+"""
+    write_file(os.path.join(output_path, "universe/resource.json"),
+               contents.replace("{{framework_name}}", framework_name))
+
+
+def init_gradle(output_path: str):
+    cmd = [
+           os.path.join(DCOS_COMMONS_DIST_ROOT, "gradlew"),
+           "wrapper",
+           "--project-dir", output_path
+    ]
+    subprocess.check_output(cmd)
+
+
+def new_framework(output_root: str, framework_name: str):
+    """
+    Creates a new framework at the specified path with the specified name
+    """
+
+    output_path = os.path.join(output_root, framework_name)
+
+    if os.path.exists(output_path):
+        LOGGER.error("The specified output path (%s) exits. Exiting", output_path)
+        sys.exit(1)
+
+    shutil.copytree(DCOS_COMMONS_TEMPLATE_ROOT, output_path)
+
+    move_java_files(output_path, framework_name)
+
+    writers = [write_build_sh,
+               write_build_gradle,
+               write_gradle_settings,
+               write_standalone_resource_json]
+
+    for w in writers:
+        w(output_path, framework_name)
+
+    update_files(output_path, framework_name)
+
+    init_gradle(output_path)
+
+    return output_path
+
+
 def parse_args():
     parser = argparse.ArgumentParser(description="Init DC/OS test environment")
     parser.add_argument('output_path', type=str,
                         help='The absolute path where the testing tools should be created')
+    parser.add_argument("--create-framework", type=str, required=False,
+                        default=None,
+                        help="Initialise a framework at the desired path.")
     parser.add_argument("--update-sdk", nargs="?", type=str, const=get_sdk_version(),
                         help="Update the SDK in the target framework.")
     return parser.parse_args()
@@ -112,10 +312,16 @@ def parse_args():
 
 def main():
     args = parse_args()
-    distribute_test_utils(args.output_path)
+
+    output_root = args.output_path
+
+    if args.create_framework:
+        output_root = new_framework(output_root, args.create_framework)
+
+    distribute_test_utils(output_root)
 
     if (args.update_sdk):
-        update_sdk(args.output_path, args.update_sdk)
+        update_sdk(output_root, args.update_sdk)
 
 
 if __name__ == "__main__":

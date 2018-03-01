@@ -96,8 +96,8 @@ class UniversePackageBuilder(object):
         if self._dry_run:
             logger.info("(dryrun) Generating hash for DRY_RUN")
             hasher = hashlib.sha256()
-            hasher.update(manifest_url)
-            hasher.update(filename)
+            hasher.update(manifest_url.encode('utf-8'))
+            hasher.update(filename.encode('utf-8'))
             return hasher.hexdigest()
 
         with urllib.request.urlopen(manifest_url) as manifest_file:
@@ -158,6 +158,7 @@ class UniversePackageBuilder(object):
             'package-version': self._package.get_version(),
             'package-build-time-epoch-ms': str(int(round(now * 1000))),
             'package-build-time-str': time.strftime('%a %b %d %Y %H:%M:%S +0000', time.gmtime(now)),
+            'service-name': self._package.get_non_beta_name(),
             'upgrades-from': self._get_upgrades_from(),
             'downgrades-to': self._get_downgrades_to(),
             'artifact-dir': self._upload_dir_url,

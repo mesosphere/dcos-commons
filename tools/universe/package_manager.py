@@ -25,8 +25,10 @@ class PackageManager:
     """A simple package manager for retrieving universe packages"""
     def __init__(self, universe_url="https://universe.mesosphere.com/repo",
                  dcos_version="1.10",
-                 package_version="4"):
+                 package_version="4",
+                 dry_run=False):
 
+        self._dry_run = dry_run
         self._universe_url = universe_url
         self._headers = {
             "User-Agent": "dcos/{}".format(dcos_version),
@@ -49,6 +51,10 @@ class PackageManager:
         return packages.get(package_name, [])
 
     def get_latest(self, package_name):
+
+        if self._dry_run:
+            return "(dryrun) previous-version"
+
         if isinstance(package_name, package.Package):
             package_name = package_name.get_name()
 

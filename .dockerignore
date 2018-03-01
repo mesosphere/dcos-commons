@@ -1,8 +1,11 @@
 # Ignore all folders when building the Docker image.
 /**/build
 /**/__pycache__
-*.pyc
+/**/*.pyc
 .*
+
+/**/*.class
+/**/*-universe-url
 
 !test_requirements.txt
 !test_runner.sh

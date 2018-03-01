@@ -43,9 +43,10 @@ ENV PATH /build-tools:$PATH
 COPY tools/ci/* /build-tools/
 
 # Create a folder to store the distributed artefacts
-RUN mkdir /dcos-commons-dist
-
 ENV DCOS_COMMONS_DIST_ROOT /dcos-commons-dist
+
+RUN mkdir ${DCOS_COMMONS_DIST_ROOT}
+
 COPY test.sh ${DCOS_COMMONS_DIST_ROOT}/
 COPY TESTING.md ${DCOS_COMMONS_DIST_ROOT}/
 
@@ -54,5 +55,14 @@ COPY conftest.py ${DCOS_COMMONS_DIST_ROOT}/
 COPY testing ${DCOS_COMMONS_DIST_ROOT}/testing
 COPY tools ${DCOS_COMMONS_DIST_ROOT}/tools
 
+COPY gradlew ${DCOS_COMMONS_DIST_ROOT}/
+COPY gradle ${DCOS_COMMONS_DIST_ROOT}/gradle
+
 COPY build.gradle ${DCOS_COMMONS_DIST_ROOT}/build.gradle
 RUN grep -oE "version = '.*?'" ${DCOS_COMMONS_DIST_ROOT}/build.gradle | sed 's/version = //' > ${DCOS_COMMONS_DIST_ROOT}/.version
+
+
+# Create a folder for the templates
+ENV DCOS_COMMONS_TEMPLATE_ROOT /dcos-commons-template
+RUN mkdir ${DCOS_COMMONS_TEMPLATE_ROOT}
+COPY frameworks/template ${DCOS_COMMONS_TEMPLATE_ROOT}/

@@ -52,7 +52,7 @@ They store the desired configuration of a service and all relevant information r
   $ cd dcos-commons
   ```
 
-1. Access to a DC/OS 1.8 (or newer) cluster.
+1. Access to a DC/OS 1.9 (or newer) cluster.
 
 1. The DC/OS CLI [installed](https://docs.mesosphere.com/latest/cli/install/) and [configured](https://docs.mesosphere.com/latest/cli/configure/) to point to your cluster.
 
@@ -62,16 +62,32 @@ They store the desired configuration of a service and all relevant information r
 
 # Getting Started
 
+## Creating a new standalone framework
 
-1. Create your framework.
+The `mesosphere/dcos-commons:latest` Docker image is able to set up a development environment for creating a new standalone framework.
 
-   ```bash
-   $ ./new-framework.sh frameworks/myframework
-   $ cd frameworks/myframework
-   ```
+In order to set up this environment run the following command:
+```bash
+$ TARGET_FOLDER=/home/elezar/frameworks
+$ docker run --rm -ti \
+    -v ${FRAMEWORK_ROOT}:${FRAMEWORK_ROOT} \
+        mesosphere/dcos-commons:latest \
+            init ${FRAMEWORK_ROOT} --create-framework pyframework
+```
+This will create a folder `/home/elezar/frameworks/myframework` (for example) containing a framework based on the DC/OS SDK template framework. The rest of thes instructions are relative to this folder.
 
-   `new-framework.sh` creates a skeleton framework.  You will extend
-   this skeleton.
+## Creating a new framework in the DC/OS SDK repository
+
+Assuming you are in the root of the `dcos-commons` repository (indicated by the environment variable `DCOS_COMMONS_ROOT`):
+```bash
+$ cd ${DCOS_COMMONS_ROOT}
+$ ./new-framework.sh frameworks/myframework
+$ cd frameworks/myframework
+```
+
+`new-framework.sh` creates a skeleton framework. You will extend this skeleton, with the rest of these instructions relative to the `${DCOS_COMMONS_ROOT}/frameworks/myframework` directory.
+
+## Editing the framework
 
 1. View `svc.yml`.
 
