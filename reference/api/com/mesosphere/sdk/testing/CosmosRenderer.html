@@ -171,11 +171,12 @@ extends java.lang.Object</pre>
  marathon.json.mustache.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>customPackageOptions</code> - map of any custom config settings as would be passed via an <code>options.json</code> file
-     when installing the service. these are provided to <code>config.json</code></dd>
+<dd><code>customPackageOptions</code> - map of any custom config settings as would be passed via an <code>options.json</code>
+                                  file when installing the service. these are provided to <code>config.json</code></dd>
 <dd><code>customBuildTemplateParams</code> - map of any custom template params that are normally provided as
-     <code>TEMPLATE_X</code> envvars when building the service at the commandline. these are provided to all universe
-     files (config.json, marathon.json.mustache, and resource.json)</dd>
+                                  <code>TEMPLATE_X</code> envvars when building the service at the commandline. these
+                                  are provided to all universe files (config.json, marathon.json.mustache,
+                                  and resource.json)</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>Scheduler environment variables resulting from the provided options</dd>
 </dl>
