@@ -275,6 +275,11 @@
           "type": "integer",
           "default": 0
         },
+        "port_jmx": {
+          "description": "Java JMX port, typically used for remote management and monitoring, disabled by default",
+          "type": "integer",
+          "default": -1
+        },
         "kill_grace_period": {
           "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `30`",
           "type": "integer",
