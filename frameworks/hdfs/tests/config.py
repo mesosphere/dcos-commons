@@ -22,7 +22,7 @@ TEST_CONTENT_SMALL = "This is some test data"
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
-DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:dev"
+DOCKER_IMAGE_NAME = "elezar/hdfs-client:dev"
 KEYTAB = "hdfs.keytab"
 
 
@@ -65,13 +65,13 @@ def hdfs_delete_file_command(filename):
 
 
 def delete_data_from_hdfs(service_name, filename):
-    rc, output = run_hdfs_command(service_name, hdfs_delete_file_command(filename))
+    rc, _ = run_hdfs_command(service_name, hdfs_delete_file_command(filename))
     return rc
 
 
 def write_lots_of_data_to_hdfs(service_name, filename):
     write_command = "wget {} -qO- | ./bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
-    rc, output = run_hdfs_command(service_name, write_command)
+    rc, _ = run_hdfs_command(service_name, write_command)
     return rc
 
 
@@ -103,11 +103,20 @@ def run_hdfs_command(service_name, command):
     """
     Execute the command using the Docker client
     """
-    full_command = 'docker run -e HDFS_SERVICE_NAME={service_name} {image_name} /bin/bash -c "/configure-hdfs.sh && {cmd}"'.format(
-        service_name=service_name,
-        image_name=DOCKER_IMAGE_NAME,
-        cmd=command
-    )
+    def get_bash_command(cmd: str, environment: str) -> str:
+        """
+        TODO: This has been copied from the Kafka auth tests and should be made
+        a util.
+        """
+        env_str = "{} && ".format(environment) if environment else ""
+
+        return "bash -c \"{}{}\"".format(env_str, cmd)
+
+    cmd = ["docker", "run",
+           "-e", "HDFS_SERVICE_NAME={}".format(service_name),
+           DOCKER_IMAGE_NAME,
+           get_bash_command("/configure-hdfs.sh && {}".format(command), ""), ]
+    full_command = " ".join(cmd)
 
     @retrying.retry(
         wait_fixed=1000,
