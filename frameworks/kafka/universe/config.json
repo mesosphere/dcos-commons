@@ -320,7 +320,8 @@
           "title": "background.threads",
           "description": "The number of threads to use for various background processing tasks",
           "type": "integer",
-          "default": 10
+          "default": 10,
+          "minimum": 1
         },
         "compression_type": {
           "title": "compression.type",
@@ -359,15 +360,16 @@
           "default": "9223372036854775807"
         },
         "log_flush_interval_ms": {
-        "title": "log.flush.interval.ms",
-        "description": "The maximum time in ms that a message in any topic is kept in memory before flushed to disk. If not set, the value in log.flush.scheduler.interval.ms is used",
-        "type": "integer"
+          "title": "log.flush.interval.ms",
+          "description": "The maximum time in ms that a message in any topic is kept in memory before flushed to disk. If not set, the value in log.flush.scheduler.interval.ms is used",
+          "type": "integer"
         },
         "log_flush_offset_checkpoint_interval_ms": {
           "title": "log.flush.offset.checkpoint.interval.ms",
           "description": "The frequency with which we update the persistent record of the last flush which acts as the log recovery point",
           "type": "integer",
-          "default": 60000
+          "default": 60000,
+          "minimum": 0
         },
         "log_flush_scheduler_interval_ms": {
           "title": "log.flush.scheduler.interval.ms",
@@ -379,7 +381,8 @@
           "title": "log.flush.start.offset.checkpoint.interval.ms",
           "description": "The frequency with which we update the persistent record of log start offset",
           "type": "integer",
-          "default": 60000
+          "default": 60000,
+          "minimum": 0
         },
         "log_retention_bytes": {
           "title": "log.retention.bytes",
@@ -417,55 +420,64 @@
           "title": "log.roll.hours",
           "description": "The maximum time before a new log segment is rolled out (in hours), secondary to log.roll.ms property",
           "type": "integer",
-          "default": 168
+          "default": 168,
+          "minimum": 1
         },
         "log_roll_jitter_hours": {
           "title": "log.roll.jitter.hours",
           "description": "The maximum jitter to subtract from logRollTimeMillis (in hours), secondary to log.roll.jitter.ms property",
           "type": "integer",
-          "default": 0
+          "default": 0,
+          "minimum": 0
         },
         "log_segment_bytes": {
           "title": "log.segment.bytes",
           "description": "The maximum size of a single log file",
           "type": "integer",
-          "default": 1073741824
+          "default": 1073741824,
+          "minimum": 14
         },
         "log_segment_delete_delay_ms": {
           "title": "log.segment.delete.delay.ms",
           "description": "The amount of time to wait before deleting a file from the filesystem",
           "type": "integer",
-          "default": 60000
+          "default": 60000,
+          "minimum": 0
         },
         "message_max_bytes": {
           "title": "message.max.bytes",
           "description": "The largest record batch size allowed by Kafka. If this is increased and there are consumers older than 0.10.2, the consumers' fetch size must also be increased so that the they can fetch record batches this large.\nIn the latest message format version, records are always grouped into batches for efficiency. In previous message format versions, uncompressed records are not grouped into batches and this limit only applies to a single record in that case.\nThis can be set per topic with the topic level max.message.bytes config.",
           "type": "integer",
-          "default": 1000012
+          "default": 1000012,
+          "minimum": 0
         },
         "min_insync_replicas": {
           "title": "min.insync.replicas",
           "description": "When a producer sets acks to \"all\" (or \"-1\"), min.insync.replicas specifies the minimum number of replicas that must acknowledge a write for the write to be considered successful. If this minimum cannot be met, then the producer will raise an exception (either NotEnoughReplicas or NotEnoughReplicasAfterAppend).\nWhen used together, min.insync.replicas and acks allow you to enforce greater durability guarantees. A typical scenario would be to create a topic with a replication factor of 3, set min.insync.replicas to 2, and produce with acks of \"all\". This will ensure that the producer raises an exception if a majority of replicas do not receive a write.",
           "type": "integer",
-          "default": 1
+          "default": 1,
+          "minimum": 1
         },
         "num_io_threads": {
           "title": "num.io.threads",
           "description": "The number of threads that the server uses for processing requests, which may include disk I/O",
           "type": "integer",
-          "default": 8
+          "default": 8,
+          "minimum": 1
         },
         "num_network_threads": {
           "title": "num.network.threads",
           "description": "The number of threads that the server uses for receiving requests from the network and sending responses to the network",
           "type": "integer",
-          "default": 3
+          "default": 3,
+          "minimum": 1
         },
         "num_recovery_threads_per_data_dir": {
           "title": "num.recovery.threads.per.data.dir",
           "description": "The number of threads per data directory to be used for log recovery at startup and flushing at shutdown",
           "type": "integer",
-          "default": 1
+          "default": 1,
+          "minimum": 1
         },
         "num_replica_fetchers": {
           "title": "num.replica.fetchers",
@@ -489,25 +501,29 @@
           "title": "offsets.commit.timeout.ms",
           "description": "Offset commit will be delayed until all replicas for the offsets topic receive the commit or this timeout is reached. This is similar to the producer request timeout.",
           "type": "integer",
-          "default": 5000
+          "default": 5000,
+          "minimum": 1
         },
         "offsets_load_buffer_size": {
           "title": "offsets.load.buffer.size",
           "description": "Batch size for reading from the offsets segments when loading offsets into the cache.",
           "type": "integer",
-          "default": 5242880
+          "default": 5242880,
+          "minimum": 1
         },
         "offsets_retention_check_interval_ms": {
           "title": "offsets.retention.check.interval.ms",
           "description": "Frequency at which to check for stale offsets",
           "type": "integer",
-          "default": 600000
+          "default": 600000,
+          "minimum": 1
         },
         "offsets_retention_minutes": {
           "title": "offsets.retention.minutes",
           "description": "Offsets older than this retention period will be discarded",
           "type": "integer",
-          "default": 1440
+          "default": 1440,
+          "minimum": 1
         },
         "offsets_topic_compression_codec": {
           "title": "offsets.topic.compression.codec",
@@ -519,25 +535,29 @@
           "title": "offsets.topic.num.partitions",
           "description": "The number of partitions for the offset commit topic (should not change after deployment)",
           "type": "integer",
-          "default": 50
+          "default": 50,
+          "minimum": 1
         },
         "offsets_topic_replication_factor": {
           "title": "offsets.topic.replication.factor",
           "description": "The replication factor for the offsets topic (set higher to ensure availability). Internal topic creation will fail until the cluster size meets this replication factor requirement.",
           "type": "integer",
-          "default": 3
+          "default": 3,
+          "minimum": 1
         },
         "offsets_topic_segment_bytes": {
           "title": "offsets.topic.segment.bytes",
           "description": "The offsets topic segment bytes should be kept relatively small in order to facilitate faster log compaction and cache loads",
           "type": "integer",
-          "default": 104857600
+          "default": 104857600,
+          "minimum": 1
         },
         "queued_max_requests": {
           "title": "queued.max.requests",
           "description": "The number of queued requests allowed before blocking the network threads",
           "type": "integer",
-          "default": 500
+          "default": 500,
+          "minimum": 1
         },
         "queued_max_request_bytes": {
           "title": "queued.max.request.bytes",
@@ -547,13 +567,13 @@
         },
         "quota_consumer_default": {
           "title": "quota.consumer.default",
-          "description": "DEPRECATED: Used only when dynamic default quotas are not configured for or in Zookeeper. Any consumer distinguished by clientId/consumer group will get throttled if it fetches more bytes than this value per-second",
+          "description": "Used only when dynamic default quotas are not configured for or in Zookeeper. Any consumer distinguished by clientId/consumer group will get throttled if it fetches more bytes than this value per-second",
           "type": "string",
           "default": "9223372036854775807"
         },
         "quota_producer_default": {
           "title": "quota.producer.default",
-          "description": "DEPRECATED: Used only when dynamic default quotas are not configured for , or in Zookeeper. Any producer distinguished by clientId will get throttled if it produces more bytes than this value per-second",
+          "description": "Used only when dynamic default quotas are not configured for , or in Zookeeper. Any producer distinguished by clientId will get throttled if it produces more bytes than this value per-second",
           "type": "string",
           "default": "9223372036854775807"
         },
@@ -579,7 +599,8 @@
           "title": "replica.fetch.response.max.bytes",
           "description": "Maximum bytes expected for the entire fetch response. Records are fetched in batches, and if the first record batch in the first non-empty partition of the fetch is larger than this value, the record batch will still be returned to ensure that progress can be made. As such, this is not an absolute maximum. The maximum record batch size accepted by the broker is defined via message.max.bytes (broker config) or max.message.bytes (topic config).",
           "type": "integer",
-          "default": 10485760
+          "default": 10485760,
+          "minimum": 0
         },
         "replica_high_watermark_checkpoint_interval_ms": {
           "title": "replica.high.watermark.checkpoint.interval.ms",
@@ -609,13 +630,15 @@
           "title": "replication.quota.window.num",
           "description": "The number of samples to retain in memory for replication quotas",
           "type": "integer",
-          "default": 11
+          "default": 11,
+          "minimum": 1
         },
         "replication_quota_window_size_seconds": {
           "title": "replication.quota.window.size.seconds",
           "description": "The time span of each sample for replication quotas",
           "type": "integer",
-          "default": 1
+          "default": 1,
+          "minimum": 1
         },
         "request_timeout_ms": {
           "title": "request.timeout.ms",
@@ -633,7 +656,8 @@
           "title": "socket.request.max.bytes",
           "description": "The maximum number of bytes in a socket request",
           "type": "integer",
-          "default": 104857600
+          "default": 104857600,
+          "minimum": 1
         },
         "socket_send_buffer_bytes": {
           "title": "socket.send.buffer.bytes",
@@ -729,7 +753,8 @@
           "title": "log.cleaner.backoff.ms",
           "description": "The amount of time to sleep when there are no logs to clean",
           "type": "integer",
-          "default": 15000
+          "default": 15000,
+          "minimum": 0
         },
         "log_cleaner_dedupe_buffer_size": {
           "title": "log.cleaner.dedupe.buffer.size",
@@ -759,19 +784,20 @@
           "title": "log.cleaner.io.buffer.size",
           "description": "The total memory used for log cleaner I/O buffers across all cleaner threads",
           "type": "integer",
-          "default": 524288
+          "default": 524288,
+          "minimum": 0
         },
         "log_cleaner_io_max_bytes_per_second": {
           "title": "log.cleaner.io.max.bytes.per.second",
           "description": "The log cleaner will be throttled so that the sum of its read and write i/o will be less than this value on average",
           "type": "number",
-          "default": 1.80E+308
+          "default": 1.7976931348623157E308
         },
         "log_cleaner_min_cleanable_ratio": {
           "title": "log.cleaner.min.cleanable.ratio",
           "description": "The minimum ratio of dirty log to total log for a log to eligible for cleaning",
-          "type": "double",
-          "default": "0.5"
+          "type": "number",
+          "default": 0.5
         },
         "log_cleaner_min_compaction_lag_ms": {
           "title": "log.cleaner.min.compaction.lag.ms",
@@ -783,7 +809,8 @@
           "title": "log.cleaner.threads",
           "description": "The number of background threads to use for log cleaning",
           "type": "integer",
-          "default": 1
+          "default": 1,
+          "minimum": 0
         },
         "log_cleanup_policy": {
           "type": "string",
@@ -795,13 +822,15 @@
           "title": "log.index.interval.bytes",
           "description": "The interval with which we add an entry to the offset index",
           "type": "integer",
-          "default": 4096
+          "default": 4096,
+          "minimum": 0
         },
         "log_index_size_max_bytes": {
           "title": "log.index.size.max.bytes",
           "description": "The maximum size in bytes of the offset index",
           "type": "integer",
-          "default": 10485760
+          "default": 10485760,
+          "minimum": 4
         },
         "log_preallocate": {
           "title": "log.preallocate",
@@ -813,13 +842,15 @@
           "title": "log.retention.check.interval.ms",
           "description": "The frequency in milliseconds that the log cleaner checks whether any log is eligible for deletion",
           "type": "integer",
-          "default": 300000
+          "default": 300000,
+          "minimum": 1
         },
         "max_connections_per_ip": {
           "title": "max.connections.per.ip",
           "description": "The maximum number of connections we allow from each ip address",
           "type": "integer",
-          "default": 2147483647
+          "default": 2147483647,
+          "minimum": 1
         },
         "max_connections_per_ip_overrides": {
           "type": "string",
@@ -831,7 +862,8 @@
           "title": "num.partitions",
           "description": "The default number of log partitions per topic",
           "type": "integer",
-          "default": 1
+          "default": 1,
+          "minimum": 1
         },
         "producer_purgatory_purge_interval_requests": {
           "title": "producer.purgatory.purge.interval.requests",
@@ -843,13 +875,15 @@
           "title": "replica.fetch.backoff.ms",
           "description": "The amount of time to sleep when fetch partition error occurs.",
           "type": "integer",
-          "default": 1000
+          "default": 1000,
+          "minimum": 0
         },
         "reserved_broker_max_id": {
           "title": "reserved.broker.max.id",
           "description": "Max number that can be used for a broker.id",
           "type": "integer",
-          "default": 1000
+          "default": 1000,
+          "minimum": 0
         },
         "kafka_metrics_reporters": {
           "title": "kafka.metric.reporters",
@@ -867,79 +901,92 @@
           "title": "metrics.num.samples",
           "description": "The number of samples maintained to compute metrics.",
           "type": "integer",
-          "default": 2
+          "default": 2,
+          "minimum": 1
         },
         "metrics_sample_window_ms": {
           "title": "metrics.sample.window.ms",
           "description": "The window of time a metrics sample is computed over.",
           "type": "integer",
-          "default": 30000
+          "default": 30000,
+          "minimum": 1
         },
         "quota_window_num": {
           "title": "quota.window.num",
           "description": "The number of samples to retain in memory for client quotas",
           "type": "integer",
-          "default": 11
+          "default": 11,
+          "minimum": 1
         },
         "quota_window_size_seconds": {
           "title": "quota.window.size.seconds",
           "description": "The time span of each sample for client quotas",
           "type": "integer",
-          "default": 1
+          "default": 1,
+          "minimum": 1
         },
         "transaction_state_log_segment_bytes": {
           "title": "transaction.state.log.segment.bytes",
           "description": "The transaction topic segment bytes should be kept relatively small in order to facilitate faster log compaction and cache loads",
           "type": "integer",
-          "default": 104857600
+          "default": 104857600,
+          "minimum": 1
         },
         "transaction_remove_expired_transaction_cleanup_interval_ms": {
           "title": "transaction.remove.expired.transaction.cleanup.interval.ms",
           "description": "The interval at which to remove transactions that have expired due to transactional.id.expiration.ms passing",
           "type": "integer",
-          "default": 3600000
+          "default": 3600000,
+          "minimum": 1
         },
         "transaction_max_timeout_ms": {
           "title": "transaction.max.timeout.ms",
           "description": "The maximum allowed timeout for transactions. If a client\u2019s requested transaction time exceed this, then the broker will return an error in InitProducerIdRequest. This prevents a client from too large of a timeout, which can stall consumers reading from topics included in the transaction.",
           "type": "integer",
-          "default": 900000
+          "default": 900000,
+          "minimum": 1
         },
         "transaction_state_log_num_partitions": {
           "title": "transaction.state.log.num.partitions",
           "description": "The number of partitions for the transaction topic (should not change after deployment).",
           "type": "integer",
-          "default": 50
+          "default": 50,
+          "minimum": 1
         },
         "transaction_abort_timed_out_transaction_cleanup_interval_ms": {
           "title": "transaction.abort.timed.out.transaction.cleanup.interval.ms",
           "description": "The interval at which to rollback transactions that have timed out",
           "type": "integer",
-          "default": 60000
+          "default": 60000,
+          "minimum": 1
         },
         "transaction_state_log_load_buffer_size": {
           "title": "transaction.state.log.load.buffer.size",
           "description": "Batch size for reading from the transaction log segments when loading producer ids and transactions into the cache.",
           "type": "integer",
-          "default": 5242880
+          "default": 5242880,
+          "minimum": 1
         },
         "transaction_state_log_replication_factor": {
           "title": "transaction.state.log.replication.factor",
           "description": "The replication factor for the transaction topic (set higher to ensure availability). Internal topic creation will fail until the cluster size meets this replication factor requirement.",
           "type": "integer",
-          "default": 3
+          "default": 3,
+          "minimum": 1
         },
         "transaction_state_log_min_isr": {
           "title": "transaction.state.log.min.isr",
           "description": "Overridden min.insync.replicas config for the transaction topic.",
           "type": "integer",
-          "default": 2
+          "default": 2,
+          "minimum": 1
         },
         "transactional_id_expiration_ms": {
           "title": "transactional.id.expiration.ms",
           "description": "The maximum amount of time in ms that the transaction coordinator will wait before proactively expire a producer's transactional id without receiving any transaction status updates from it.",
           "type": "integer",
-          "default": 604800000
+          "default": 604800000,
+          "minimum": 1
         },
         "zookeeper_sync_time_ms": {
           "title": "zookeeper.sync.time.ms",
