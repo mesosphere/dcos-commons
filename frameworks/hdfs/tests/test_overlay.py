@@ -2,11 +2,14 @@ from xml.etree import ElementTree
 
 import pytest
 import retrying
+import uuid
+
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
 import shakedown
+
 from tests import config
 
 
@@ -21,7 +24,7 @@ def configure_package(configure_security):
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
             timeout_seconds=30*60)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -59,7 +62,7 @@ def test_endpoints_on_overlay():
 @pytest.mark.data_integrity
 @pytest.mark.dcos_min_version('1.9')
 def test_write_and_read_data_on_overlay():
-    test_filename = "test_overlay_data" # must be unique among tests in this suite
+    test_filename = get_unique_filename("test_overlay_data")
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
     config.check_healthy(service_name=config.SERVICE_NAME)
@@ -71,7 +74,7 @@ def test_integrity_on_data_node_failure():
     """
     Verifies proper data replication among data nodes.
     """
-    test_filename = "test_datanode_fail" # must be unique among tests in this suite
+    test_filename = get_unique_filename("test_datanode_fail")
 
     # An HDFS write will only successfully return when the data replication has taken place
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
@@ -101,7 +104,7 @@ def test_integrity_on_name_node_failure():
 
     wait_for_failover_to_complete(predicted_active_name_node)
 
-    test_filename = "test_namenode_fail" # must be unique among tests in this suite
+    test_filename = get_unique_filename("test_namenode_fail")
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
 
@@ -119,3 +122,7 @@ def wait_for_failover_to_complete(namenode):
     """
     status = config.get_name_node_status(config.SERVICE_NAME, namenode)
     return status == "active"
+
+
+def get_unique_filename(prefix: str) -> str:
+    return "{}.{}".format(prefix, str(uuid.uuid4()))

@@ -120,7 +120,7 @@ def hdfs_client(kerberos, hdfs_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "nvaziri/hdfs-client:dev",
+                    "image": "elezar/hdfs-client:dev",
                     "forcePullImage": True
                 },
                 "volumes": [
