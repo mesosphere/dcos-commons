@@ -333,7 +333,7 @@
           "title": "delete.topic.enable",
           "description": "Enables delete topic. Delete topic through the admin tool will have no effect if this config is turned off",
           "type": "boolean",
-          "default": true
+          "default": false
         },
         "delete_records_purgatory_purge_interval_requests": {
           "title": "delete.records.purgatory.purge.interval.requests",
