@@ -200,42 +200,59 @@ def delete_secret(secret: str) -> None:
 
 
 def setup_security(framework_name: str,
-                   service_account: str='service-acct',
-                   service_account_secret: str='secret') -> None:
-    log.info('Setting up strict-mode security')
-    create_service_account(service_account_name=service_account, service_account_secret=service_account_secret)
+                   service_account: str="service-acct",
+                   service_account_secret: str="secret") -> dict:
+
+    create_service_account(service_account_name=service_account,
+                           service_account_secret=service_account_secret)
+
+    service_account_info = {"name": service_account, "secret": service_account_secret}
+
+    if not sdk_utils.is_strict_mode():
+        log.info("Skipping strict-mode security setup on non-strict cluster")
+        return service_account_info
+
+    log.info("Setting up strict-mode security")
     grant_permissions(
-        linux_user='nobody',
-        role_name='{}-role'.format(framework_name),
+        linux_user="nobody",
+        role_name="{}-role".format(framework_name),
         service_account_name=service_account
     )
     grant_permissions(
-        linux_user='nobody',
-        role_name='slave_public%252F{}-role'.format(framework_name),
+        linux_user="nobody",
+        role_name="slave_public%252F{}-role".format(framework_name),
         service_account_name=service_account
     )
     grant_permissions(
-        linux_user='nobody',
-        role_name='test__integration__{}-role'.format(framework_name),
+        linux_user="nobody",
+        role_name="test__integration__{}-role".format(framework_name),
         service_account_name=service_account
     )
-    log.info('Finished setting up strict-mode security')
+    log.info("Finished setting up strict-mode security")
+
+    return service_account_info
 
 
-def cleanup_security(framework_name: str) -> None:
-    log.info('Cleaning up strict-mode security')
-    revoke_permissions(
-        linux_user='nobody',
-        role_name='{}-role'.format(framework_name),
-        service_account_name='service-acct'
-    )
-    revoke_permissions(
-        linux_user='nobody',
-        role_name='test__integration__{}-role'.format(framework_name),
-        service_account_name='service-acct'
-    )
-    delete_service_account('service-acct', 'secret')
-    log.info('Finished cleaning up strict-mode security')
+def cleanup_security(framework_name: str,
+                     service_account: str="service-acct",
+                     service_account_secret: str="secret") -> None:
+
+    if sdk_utils.is_strict_mode():
+        log.info("Cleaning up strict-mode security")
+        revoke_permissions(
+            linux_user="nobody",
+            role_name="{}-role".format(framework_name),
+            service_account_name=service_account
+        )
+        revoke_permissions(
+            linux_user="nobody",
+            role_name="test__integration__{}-role".format(framework_name),
+            service_account_name=service_account
+        )
+
+    delete_service_account(service_account, service_account_secret)
+
+    log.info("Finished cleaning up strict-mode security")
 
 
 def security_session(framework_name: str) -> None:

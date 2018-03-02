@@ -25,9 +25,12 @@ def setup_service_account(service_name: str,
 
     name = service_name
     secret = name if service_account_secret is None else service_account_secret
-    sdk_security.create_service_account(service_account_name=name,
-                                        service_account_secret=secret)
 
+    service_account_info = sdk_security.setup_security(service_name,
+                                                       service_account=name,
+                                                       service_account_secret=secret)
+
+    log.info("Adding permissions required for TLS.")
     if sdk_utils.dcos_version_less_than("1.11"):
         sdk_cmd.run_cli("security org groups add_user superusers {name}".format(name=name))
     else:
@@ -47,10 +50,10 @@ def setup_service_account(service_name: str,
             output = sdk_cmd.run_cli(" ".join(cmd_list))
             log.info("output=%s", output)
 
-    return {"name": name, "secret": secret}
+    return service_account_info
 
 
-def cleanup_service_account(service_account_info: dict):
+def cleanup_service_account(service_name: str, service_account_info: dict):
     """
     Clean up the specified service account.
 
@@ -62,8 +65,9 @@ def cleanup_service_account(service_account_info: dict):
     name = service_account_info["name"]
     secret = service_account_info["secret"] if "secret" in service_account_info else name
 
-    sdk_security.delete_service_account(service_account_name=name,
-                                        service_account_secret=secret)
+    sdk_security.cleanup_security(service_name,
+                                  service_account=name,
+                                  service_account_secret=secret)
 
 
 def fetch_dcos_ca_bundle(task: str) -> str:
