@@ -58,11 +58,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(getResourceId(reserveResource), getResourceId(launchResource));
-        String executorId = launchOperation.getLaunchGroup().getExecutor().getExecutorId().getValue();
 
-        String prefix = TestConstants.POD_TYPE + "__";
-        Assert.assertTrue(executorId.startsWith(prefix));
-        Assert.assertEquals(prefix.length() + UUID.randomUUID().toString().length(), executorId.length());
+        Protos.ExecutorID executorId = launchOperation.getLaunchGroup().getExecutor().getExecutorId();
+        Assert.assertEquals(TestConstants.POD_TYPE, CommonIdUtils.toExecutorName(executorId));
     }
 
     private Collection<Resource> getExpectedExecutorResources(ExecutorInfo executorInfo) {

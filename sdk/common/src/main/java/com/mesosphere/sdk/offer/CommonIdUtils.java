@@ -9,8 +9,13 @@ import org.apache.mesos.Protos;
  */
 public class CommonIdUtils {
 
-    /** Used in task and executor IDs to separate the task/executor name from a UUID. */
+    /**
+     * Used in task and executor IDs to separate the task/executor name from a UUID.
+     */
     private static final String NAME_ID_DELIM = "__";
+
+    private static final Protos.TaskID EMPTY_TASK_ID = Protos.TaskID.newBuilder().setValue("").build();
+    private static final Protos.SlaveID EMPTY_AGENT_ID = Protos.SlaveID.newBuilder().setValue("").build();
 
     private CommonIdUtils() {
         // do not instantiate
@@ -62,16 +67,18 @@ public class CommonIdUtils {
         return Protos.ExecutorID.newBuilder().setValue(generateIdString(executorName)).build();
     }
 
+    /**
+     * Returns a Task ID whose value is an empty string.
+     */
     public static Protos.TaskID emptyTaskId() {
-        return Protos.TaskID.newBuilder().setValue("").build();
+        return EMPTY_TASK_ID;
     }
 
+    /**
+     * Returns an Agent ID whose value is an empty string.
+     */
     public static Protos.SlaveID emptyAgentId() {
-        return Protos.SlaveID.newBuilder().setValue("").build();
-    }
-
-    public static Protos.ExecutorID emptyExecutorId() {
-        return Protos.ExecutorID.newBuilder().setValue("").build();
+        return EMPTY_AGENT_ID;
     }
 
     /**
