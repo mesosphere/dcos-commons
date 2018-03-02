@@ -197,7 +197,7 @@ def move_java_files(output_path: str, framework_name: str):
 
 def update_files(output_path: str, framework_name: str):
 
-    template_pattern = "([^-]?)template([^_]?)"
+    template_pattern = "([^-])template([^_]?)"
     framework_pattern = "\\1{}\\2".format(framework_name)
 
     matcher = re.compile(template_pattern)
