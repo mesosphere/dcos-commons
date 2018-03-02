@@ -3,6 +3,7 @@
 packageName: beta-kafka
 serviceName: kafka
 techName: Apache Kafka
+techShortName: Kafka
 
 # Values specific to certain templates:
 
@@ -19,8 +20,17 @@ supportedVersions:
   techExampleVersion: 0.11.0.2
   techLink: "[Apache Kafka](https://kafka.apache.org/downloads)"
 
+security:
+  plaintext: true
+
+kerberos:
+  spn: example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory
+  upn: example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+  principal: example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+
 # Values specific to Kafka's own docs content:
 
 kafka:
   zookeeperPackageName: beta-kafka-zookeeper
   zookeeperServiceName: kafka-zookeeper
+  zookeeperTechName: Apache Zookeeper

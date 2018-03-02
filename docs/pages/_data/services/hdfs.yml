@@ -2,7 +2,8 @@
 
 packageName: beta-hdfs
 serviceName: hdfs
-techName: HDFS
+techName: Apache HDFS
+techShortName: HDFS
 
 # Values specific to certain templates:
 
@@ -19,3 +20,11 @@ managing:
 supportedVersions:
   techExampleVersion: 2.9.0
   techLink: "[HDFS](http://hadoop.apache.org/releases.html)"
+
+security:
+  plaintext: true
+
+kerberos:
+  spn: example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory
+  upn: example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
+  principal: example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE

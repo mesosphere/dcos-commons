@@ -3,6 +3,7 @@
 packageName: beta-cassandra
 serviceName: cassandra
 techName: Apache Cassandra
+techShortName: Cassandra
 
 # Values specific to certain templates:
 
@@ -18,3 +19,6 @@ managing:
 supportedVersions:
   techExampleVersion: 3.0.13
   techLink: "[Cassandra](http://cassandra.apache.org/download/)"
+
+security:
+  plaintext: true

@@ -6,9 +6,11 @@ title: Security
 menuWeight: 22
 ---
 
-# DC/OS Elastic Security
+{% assign data = site.data.services.elastic %}
 
-The DC/OS Elastic service supports Elastic's X-Pack transport encryption mechanisms. The service provides automation and orchestration to simplify the usage of these important features. At this time, X-Pack's authentication and authorization features are not supported.
+# DC/OS {{ data.techName }} Security
+
+The DC/OS {{ data.techName }} service supports {{ data.techName }}'s X-Pack transport encryption mechanisms. The service provides automation and orchestration to simplify the usage of these important features. At this time, X-Pack's authentication and authorization features are not supported.
 
 A good overview of X-Pack can be found [here](https://www.elastic.co/guide/en/x-pack/current/xpack-introduction.html).
 
@@ -16,18 +18,11 @@ A good overview of X-Pack can be found [here](https://www.elastic.co/guide/en/x-
 
 ## Transport Encryption
 
-{% include services/security-transport-encryption-lead-in.md
-    techName="Elastic" plaintext="false" %}
+{% include services/security-transport-encryption-lead-in.md data=data %}
 
 *Note*: X-Pack is required to enable Transport Encryption.
 
-{% include services/security-configure-transport-encryption.md
-    techName="Elastic"
-    plaintext="false"
-    extras=",
-    \"elasticsearch\": {
-        \"xpack_enabled\": true
-    }" %}
+{% include services/security-configure-transport-encryption.md data=data %}
 
 *Note* It is possible to enable Transport Encryption after initial installation, but it requires setting `service.update_strategy` to `parallel`. After the update is complete, `service.update_strategy` should be set back to `serial`. Because the update must occur in parallel, the service **WILL** be unavailable during the transition. Additionally, clients will need to be reconfigured after the transition.
 
@@ -36,7 +31,7 @@ A good overview of X-Pack can be found [here](https://www.elastic.co/guide/en/x-
 
 #### Kibana
 
-To use the DC/OS Kibana service in tandem with DC/OS Elastic when the latter has Transport Encryption enabled, install (or update) Kibana with the following options in addition to your own:
+To use the DC/OS Kibana service in tandem with DC/OS {{ data.techName }} when the latter has Transport Encryption enabled, install (or update) Kibana with the following options in addition to your own:
 ```json
 {
     "kibana": {
@@ -46,6 +41,6 @@ To use the DC/OS Kibana service in tandem with DC/OS Elastic when the latter has
     }
 }
 ```
-This configures the Kibana service to connect securely to the Elastic service.
+This configures the Kibana service to connect securely to the {{ data.techName }} service.
 
 *Note*: Currently, the Kibana service does not support Transport Encryption for its own clients.
