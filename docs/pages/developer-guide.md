@@ -68,7 +68,7 @@ The `mesosphere/dcos-commons:latest` Docker image is able to set up a developmen
 
 In order to set up this environment run the following command:
 ```bash
-$ TARGET_FOLDER=/home/elezar/frameworks
+$ FRAMEWORK_ROOT=/home/elezar/frameworks
 $ docker run --rm -ti \
     -v ${FRAMEWORK_ROOT}:${FRAMEWORK_ROOT} \
         mesosphere/dcos-commons:latest \
