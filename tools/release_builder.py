@@ -62,9 +62,10 @@ class UniverseReleaseBuilder(object):
     @staticmethod
     def apply_beta_version(package_version: str, is_beta: bool) -> str:
         '''Add the '-beta' suffix to the package version if required'''
+
+        stripped_version = right_trim(package_version, '-beta')
         if is_beta:
-            stripped_version = right_trim(package_version, '-beta')
-            log.info('Applying -beta sufix to %s', stripped_version)
+            log.info('Applying -beta sufix to {}'.format(stripped_version))
             return '{}-beta'.format(stripped_version)
         else:
             # complain if version has '-beta' suffix but BETA mode was disabled:
