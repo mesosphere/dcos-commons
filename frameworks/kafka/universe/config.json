@@ -64,14 +64,6 @@
           ],
           "default": "INFO"
         },
-        "placement_constraint": {
-          "description": "Placement constraints for broker nodes. Example: [[\"rack_id\", \"LIKE\", \"rack-foo-.*\"], [\"rack_id\", \"MAX_PER\", \"2\"]]",
-          "type": "string",
-          "default": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
-          "media": {
-            "type": "application/x-zone-constraints+json"
-          }
-        },
         "deploy_strategy": {
           "description": "Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
           "type": "string",
@@ -264,6 +256,14 @@
           "description": "Number of brokers to run",
           "type": "number",
           "default": 3
+        },
+        "placement_constraint": {
+          "description": "Placement constraints for broker nodes. Example: [[\"rack_id\", \"LIKE\", \"rack-foo-.*\"], [\"rack_id\", \"MAX_PER\", \"2\"]]",
+          "type": "string",
+          "default": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         },
         "port": {
           "description": "Port for broker to listen on",

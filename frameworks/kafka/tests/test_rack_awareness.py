@@ -57,7 +57,9 @@ def test_zones_referenced_in_placement_constraints():
         config.DEFAULT_BROKER_COUNT,
         additional_options={
             "service": {
-                "name": foldered_name,
+                "name": foldered_name
+            },
+            "brokers": {
                 "placement_constraint": "[[\"@zone\", \"GROUP_BY\"]]"
             }
         })
