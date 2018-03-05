@@ -859,6 +859,22 @@
 
 <p>You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via <a href="../common-operations#replace-a-pod"><code class="highlighter-rouge">pod replace</code></a>) without requiring that system.</p>
 
+<h4 id="example">Example</h4>
+<p>In order to define placement constraints as part of an install or update of a service they should be provided as a JSON encoded string.  For example one can define a placement constraint in an options file as follows:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span><span class="nb">cat </span>options.json
+<span class="o">{</span>
+  <span class="s2">"hello"</span>: <span class="o">{</span>
+    <span class="s2">"placement"</span>: <span class="s2">"[[</span><span class="se">\"</span><span class="s2">hostname</span><span class="se">\"</span><span class="s2">, </span><span class="se">\"</span><span class="s2">UNIQUE</span><span class="se">\"</span><span class="s2">]]"</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>This file can be referenced to install a <code class="highlighter-rouge">hello-world</code> service.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package <span class="nb">install </span>hello-world <span class="nt">--options</span><span class="o">=</span>options.json
+</code></pre></div></div>
+<p>Likewise this file can be referenced to update a <code class="highlighter-rouge">hello-world</code> service.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos hello-world update start <span class="nt">--options</span><span class="o">=</span>options.json
+</code></pre></div></div>
+
 <h3 id="regions-and-zones">Regions and Zones</h3>
 
 <p>Placement constraints can be applied to zones by referring to the <code class="highlighter-rouge">@zone</code> key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:</p>
@@ -867,7 +883,7 @@
 
 <p>When the region awareness feature is enabled (currently in beta), the <code class="highlighter-rouge">@region</code> key can also be referenced for defining placement constraints. Any placement constraints that do not reference the <code class="highlighter-rouge">@region</code> key are constrained to the local region.</p>
 
-<h4 id="example">Example</h4>
+<h4 id="example-1">Example</h4>
 
 <p>Suppose we have a Mesos cluster with three zones. For balanced placement across those three zones, we would have a configuration like this:</p>
 
