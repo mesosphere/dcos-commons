@@ -603,6 +603,7 @@
 <h1>Cassandra: Security</h1>
 <div id="content">
 
+
 <h1 id="dcos-apache-cassandra-security">DC/OS Apache Cassandra Security</h1>
 
 <p>The DC/OS Apache Cassandra service supports Apache Cassandra’s native transport encryption mechanisms. The service provides automation and orchestration to simplify the usage of these important features. At this time, Apache Cassandra’s authentication and authorization features are not supported.</p>
@@ -646,8 +647,7 @@ dcos:adminrouter:ops:ca:ro full
         </span><span class="s2">"service_account_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;full path of service secret&gt;"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="s2">"transport_encryption"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"allow_plaintext"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
+                </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s2">"allow_plaintext"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
             </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">}</span><span class="w">

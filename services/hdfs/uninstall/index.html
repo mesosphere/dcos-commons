@@ -616,7 +616,7 @@
   <li>Uninstall the service. From the DC/OS CLI, enter <code class="highlighter-rouge">dcos package uninstall --app-id=&lt;instancename&gt; beta-hdfs</code>.</li>
 </ol>
 
-<p>For example, to uninstall the HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
+<p>For example, to uninstall the Apache HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span>hdfs-dev beta-hdfs
 </code></pre></div></div>
@@ -728,7 +728,7 @@ For example, <code class="highlighter-rouge">dcos package uninstall --app-id=hdf
   <li>Clean up remaining reserved resources with the framework cleaner script, <code class="highlighter-rouge">janitor.py</code>. See <a href="https://docs.mesosphere.com/1.9/deploying-services/uninstall/#framework-cleaner">DC/OS documentation</a> for more information about the framework cleaner script.</li>
 </ol>
 
-<p>For example, to uninstall HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
+<p>For example, to uninstall Apache HDFS instance named <code class="highlighter-rouge">hdfs-dev</code>, run:</p>
 
 <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nv">$ MY_SERVICE_NAME</span><span class="o">=</span>hdfs-dev
 <span class="nv">$ </span>dcos package uninstall <span class="nt">--app-id</span><span class="o">=</span><span class="nv">$MY_SERVICE_NAME</span> beta-hdfs<span class="sb">`</span><span class="nb">.</span>

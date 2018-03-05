@@ -603,6 +603,7 @@
 <h1>HDFS: Security</h1>
 <div id="content">
 
+
 <h1 id="dcos-apache-hdfs-security">DC/OS Apache HDFS Security</h1>
 
 <p>The DC/OS Apache HDFS service supports HDFS’s native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.</p>
@@ -613,7 +614,7 @@
 
 <h2 id="transport-encryption">Transport Encryption</h2>
 
-<p>With transport encryption enabled, DC/OS Apache HDFS will automatically deploy all nodes with the correct configuration to encrypt communication via SSL. The nodes will communicate securely between themselves using SSL. Optionally, plaintext communication can be left open to clients.</p>
+<p>With transport encryption enabled, DC/OS Apache HDFS will automatically deploy all nodes with the correct configuration to encrypt communication via SSL. The nodes will communicate securely between themselves using SSL.</p>
 
 <p>The service uses the <a href="https://docs.mesosphere.com/latest/security/ent/tls-ssl/">DC/OS CA</a> to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service’s certificates valid.</p>
 
@@ -650,8 +651,7 @@ dcos:adminrouter:ops:ca:ro full
         </span><span class="s2">"service_account_secret"</span><span class="p">:</span><span class="w"> </span><span class="s2">"&lt;full path of service secret&gt;"</span><span class="p">,</span><span class="w">
         </span><span class="s2">"security"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
             </span><span class="s2">"transport_encryption"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-                </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w">
-                </span><span class="s2">"allow_plaintext"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
+                </span><span class="s2">"enabled"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span><span class="w"> </span><span class="s2">"allow_plaintext"</span><span class="p">:</span><span class="w"> </span><span class="err">&lt;</span><span class="kc">true</span><span class="err">|</span><span class="kc">false</span><span class="w"> </span><span class="err">default</span><span class="w"> </span><span class="kc">false</span><span class="err">&gt;</span><span class="w">
             </span><span class="p">}</span><span class="w">
         </span><span class="p">}</span><span class="w">
     </span><span class="p">}</span><span class="w">
