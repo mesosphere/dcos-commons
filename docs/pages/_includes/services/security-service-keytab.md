@@ -1,6 +1,6 @@
 #### Place Service Keytab in DC/OS Secret Store
 
-The DC/OS {{ include.techName }} service uses a keytab containing all node principals (service keytab). After creating the principals above, generate the service keytab making sure to include all the node principals. This will be stored as a secret in the DC/OS Secret Store.
+The DC/OS {{ include.data.techName }} service uses a keytab containing all node principals (service keytab). After creating the principals above, generate the service keytab making sure to include all the node principals. This will be stored as a secret in the DC/OS Secret Store.
 
 *Note*: DC/OS 1.10 does not support adding binary secrets directly to the secret store, only text files are supported. Instead, first base64 encode the file, and save it to the secret store as `/desired/path/__dcos_base64__secret_name`. The DC/OS security modules will handle decoding the file when it is used by the service. More details [here](https://docs.mesosphere.com/services/ops-guide/overview/#binary-secrets).
 

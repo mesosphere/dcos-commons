@@ -6,9 +6,11 @@ title: Security
 menuWeight: 22
 ---
 
-# DC/OS Apache HDFS Security
+{% assign data = site.data.services.hdfs %}
 
-The DC/OS Apache HDFS service supports HDFS's native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.
+# DC/OS {{ data.techName }} Security
+
+The DC/OS {{ data.techName }} service supports {{ data.techShortName }}'s native transport encryption, authentication, and authorization mechanisms. The service provides automation and orchestration to simplify the usage of these important features.
 
 A good overview of these features can be found [here](https://hadoop.apache.org/docs/r2.6.0/hadoop-project-dist/hadoop-common/SecureMode.html).
 
@@ -16,27 +18,25 @@ A good overview of these features can be found [here](https://hadoop.apache.org/
 
 ## Transport Encryption
 
-{% include services/security-transport-encryption-lead-in.md
-    techName="Apache HDFS" plaintext="true" %}
+{% include services/security-transport-encryption-lead-in.md data=data %}
 
 *Note*: Enabling transport encryption is not _required_ to use [Kerberos authentication](#kerberos-authentication), but transport encryption _can_ be combined with Kerberos authentication.
 
-{% include services/security-configure-transport-encryption.md
-    techName="Apache HDFS" plaintext="true" %}
+{% include services/security-configure-transport-encryption.md data=data %}
 
 {% include services/security-transport-encryption-clients.md %}
 
 <!--
 TO BE CONFIRMED
-*Note*: It is possible to update a running DC/OS Apache HDFS service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your HDFS clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true. -->
+*Note*: It is possible to update a running DC/OS {{ data.techName }} service to enable transport encryption after initial installation, but the service may be unavilable during the transition. Additionally, your {{ data.techShortName }} clients will need to be reconfigured unless `service.security.transport_encryption.allow_plaintext` is set to true. -->
 
 ## Authentication
 
-DC/OS Apache HDFS supports Kerberos authentication.
+DC/OS {{ data.techName }} supports Kerberos authentication.
 
 ### Kerberos Authentication
 
-Kerberos authentication relies on a central authority to verify that HDFS clients are who they say they are. DC/OS Apache HDFS integrates with your existing Kerberos infrastructure to verify the identity of clients.
+Kerberos authentication relies on a central authority to verify that {{ data.techShortName }} clients are who they say they are. DC/OS {{ data.techName }} integrates with your existing Kerberos infrastructure to verify the identity of clients.
 
 #### Prerequisites
 - The hostname and port of a KDC reachable from your DC/OS cluster
@@ -49,12 +49,12 @@ Kerberos authentication relies on a central authority to verify that HDFS client
 
 #### Create principals
 
-The DC/OS Apache HDFS service requires Kerberos principals for each node to be deployed. The overall topology of the HDFS service is:
+The DC/OS {{ data.techName }} service requires Kerberos principals for each node to be deployed. The overall topology of the {{ data.techShortName }} service is:
 - 3 journal nodes
 - 2 name nodes (with ZKFC)
 - A configurable number of data nodes
 
-*Note:* Apache HDFS requires a principal for both the `service primary` and `HTTP`. The latter is used by the HTTP api.
+*Note:* {{ data.techName }} requires a principal for both the `service primary` and `HTTP`. The latter is used by the HTTP api.
 
 The required Kerberos principals will have the form:
 ```
@@ -127,17 +127,13 @@ example/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 HTTP/data-2-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE
 ```
 
-{% include services/security-kerberos-ad.md
-    principal="example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE"
-    spn="example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory"
-    upn="example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory@EXAMPLE" %}
+{% include services/security-kerberos-ad.md data=data %}
 
-{% include services/security-service-keytab.md
-    techName="Apache HDFS" %}
+{% include services/security-service-keytab.md data=data %}
 
 #### Install the Service
 
-Install the DC/OS Apache HDFS service with the following options in addition to your own:
+Install the DC/OS {{ data.techName }} service with the following options in addition to your own:
 ```json
 {
     "service": {
@@ -158,11 +154,11 @@ Install the DC/OS Apache HDFS service with the following options in addition to 
 }
 ```
 
-<!-- TO BE DETERMINED *Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your HDFS clients will need to be reconfigured. -->
+<!-- TO BE DETERMINED *Note*: It is possible to enable Kerberos after initial installation but the service may be unavailable during the transition. Additionally, your {{ data.techShortName }} clients will need to be reconfigured. -->
 
 ## Authorization
 
-The DC/OS Apache HDFS service supports HDFS's native authorization, which behaves similarly to UNIX file permissions. If Kerberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to HDFS users against which permissions can be assigned.
+The DC/OS {{ data.techName }} service supports {{ data.techShortName }}'s native authorization, which behaves similarly to UNIX file permissions. If Kerberos is enabled as detailed [above](#kerberos-authentication), then Kerberos principals are mapped to {{ data.techShortName }} users against which permissions can be assigned.
 
 ### Enable Authorization
 
