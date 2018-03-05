@@ -10,10 +10,10 @@ servicePrincipalName = <primary>/<host>
 userPrincipalName = <primary>/<host>@<REALM>
 ```
 
-For example, with the Kerberos principal `{{ include.principal }}`, then the correct mapping would be,
+For example, with the Kerberos principal `{{ include.data.kerberos.principal }}`, then the correct mapping would be,
 ```
-servicePrincipalName = {{ include.spn }}
-userPrincipalName = {{ include.upn }}
+servicePrincipalName = {{ include.data.kerberos.spn }}
+userPrincipalName = {{ include.data.kerberos.upn }}
 ```
 
 If either mapping is incorrect or not present, the service will fail to authenticate that Principal. The symptom in the Kerberos debug logs will be an error of the form
