@@ -41,6 +41,7 @@ public class ServiceTest {
         map.put("SETUP_HELPER_SUPER_USERS", "User:fake"); // set by setup-helper
 
         return new ServiceTestRunner()
-                .setPodEnv("kafka", map);
+                .setPodEnv("kafka", map)
+                .setBuildTemplateParams("kafka-version", "2.11-1.0.0"); // set by build.sh/versions.sh
     }
 }
