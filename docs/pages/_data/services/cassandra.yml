@@ -21,4 +21,4 @@ supportedVersions:
   techLink: "[Cassandra](http://cassandra.apache.org/download/)"
 
 security:
-  plaintext: true
+  plaintext: ", \"allow_plaintext\": <true|false default false>"

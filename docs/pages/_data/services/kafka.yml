@@ -21,7 +21,7 @@ supportedVersions:
   techLink: "[Apache Kafka](https://kafka.apache.org/downloads)"
 
 security:
-  plaintext: true
+  plaintext: ", \"allow_plaintext\": <true|false default false>"
 
 kerberos:
   spn: example/kafka-0-broker.agoodexample.autoip.dcos.thisdcos.directory

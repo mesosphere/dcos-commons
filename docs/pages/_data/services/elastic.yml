@@ -21,7 +21,6 @@ supportedVersions:
   techLink: "the [Elastic Stack](https://www.elastic.co/downloads/elasticsearch) and [X-Pack](https://www.elastic.co/downloads/x-pack)"
 
 security:
-  plaintext: false
   extras: ",
     \"elasticsearch\": {
         \"xpack_enabled\": true

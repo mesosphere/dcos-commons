@@ -22,7 +22,7 @@ supportedVersions:
   techLink: "[HDFS](http://hadoop.apache.org/releases.html)"
 
 security:
-  plaintext: true
+  plaintext: ", \"allow_plaintext\": <true|false default false>"
 
 kerberos:
   spn: example/name-0-node.agoodexample.autoip.dcos.thisdcos.directory
