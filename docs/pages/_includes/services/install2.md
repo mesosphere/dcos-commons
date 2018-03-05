@@ -41,6 +41,25 @@ A common task is to specify a list of whitelisted systems to deploy to. To achie
 
 You must include spare capacity in this list, so that if one of the whitelisted systems goes down, there is still enough room to repair your service (via [`pod replace`](#replace-a-pod)) without requiring that system.
 
+#### Example
+In order to define placement constraints as part of an install or update of a service they should be provided as a JSON encoded string.  For example one can define a placement constraint in an options file as follows:
+```bash
+$ cat options.json
+{
+  "hello": {
+    "placement": "[[\"hostname\", \"UNIQUE\"]]"
+  }
+}
+```
+This file can be referenced to install a `hello-world` service.
+```bash
+$ dcos package install hello-world --options=options.json
+```
+Likewise this file can be referenced to update a `hello-world` service.
+```bash
+$ dcos hello-world update start --options=options.json
+```
+
 ### Regions and Zones
 
 Placement constraints can be applied to zones by referring to the `@zone` key. For example, one could spread pods across a minimum of 3 different zones by specifying the constraint:
