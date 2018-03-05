@@ -44,7 +44,14 @@
     "ZOOKEEPER_CLIENT_URI": "{{resource.assets.uris.zookeeper-client-jar}}",
     "CUSTOM_KAFKA_PRINCIPAL_URI": "{{resource.assets.uris.custom-kafka-principal-jar}}",
 
+    {{#service.placement_constraint}}
+    "PLACEMENT_CONSTRAINTS": "{{{service.placement_constraint}}}",
+    {{/service.placement_constraint}}
+    {{^service.placement_constraint}}
+    {{#brokers.placement_constraint}}
     "PLACEMENT_CONSTRAINTS": "{{{brokers.placement_constraint}}}",
+    {{/brokers.placement_constraint}}
+    {{/service.placement_constraint}}
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
     "BROKER_COUNT": "{{brokers.count}}",
     {{^service.security.kerberos.enabled}}
