@@ -1,6 +1,6 @@
 ---
 title: Frequently Asked Questions
-menuWeight: 3
+menuWeight: 20
 redirect_from: /faq.html
 ---
 
