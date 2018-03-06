@@ -60,7 +60,8 @@ fi
 # Build Java bits: Executor
 if [ "$EXECUTOR_DIR" != $DISABLED_VALUE ]; then
     echo "Building executor in $EXECUTOR_DIR"
-    ./gradlew distZip -p $EXECUTOR_DIR
+    # Retrying gradle command to handle transient failures with downloading jars from public repositories.
+    $REPO_ROOT_DIR/tools/retry "./gradlew distZip -p $EXECUTOR_DIR"
 fi
 
 # Run ALL Java unit tests
