@@ -2,6 +2,7 @@ import pytest
 import shakedown
 
 import sdk_install
+import sdk_hosts
 import sdk_plan
 import sdk_utils
 
@@ -60,6 +61,29 @@ def elastic_service_tls(service_account):
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.fixture(scope='module')
+def kibana_application_tls(elastic_service_tls):
+    elasticsearch_url = "https://" + sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
+
+    sdk_install.install(
+        config.KIBANA_PACKAGE_NAME,
+        service_name=config.KIBANA_PACKAGE_NAME,
+        expected_running_tasks=0,
+        additional_options={
+            "kibana": {
+                "xpack_enabled": True,
+                "elasticsearch_tls": True,
+                "elasticsearch_url": elasticsearch_url
+            }
+        },
+        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        wait_for_deployment=False)
+
+    yield
+
+    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
+
+
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version('1.10')
@@ -91,3 +115,10 @@ def test_crud_over_tls(elastic_service_tls):
 
     assert document
     assert document['_source']['name'] == 'Loren'
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.dcos_min_version('1.10')
+def test_kibana_tls(kibana_application_tls):
+    config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
