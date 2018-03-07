@@ -205,9 +205,17 @@ def test_kill_all_datanodes():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanently_replace_namenodes():
-    replace_name_node(0)
-    replace_name_node(1)
-    replace_name_node(0)
+    replace_node(0, "name")
+    replace_node(1, "name")
+    replace_node(0, "name")
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_permanently_replace_journalnodes():
+    replace_node(0, "journal")
+    replace_node(1, "journal")
+    replace_node(2, "journal")
 
 
 @pytest.mark.sanity
@@ -380,18 +388,21 @@ def test_metrics():
     )
 
 
-def replace_name_node(index):
+def replace_node(index, type):
+    log.info("Starting to replace {}-{}".format(type, index))
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_healthy(service_name=foldered_name)
-    name_node_name = 'name-' + str(index)
-    name_id = sdk_tasks.get_task_ids(foldered_name, name_node_name)
-    journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
-    data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
+    node_name = "{node_type}-{node_index}".format(node_type=type, node_index=index)
+    node_id = sdk_tasks.get_task_ids(foldered_name, node_name)
+    other_nodes = dict()
+    for pod_type in config.HDFS_POD_TYPES:
+        if pod_type != type:
+            other_nodes[pod_type] = sdk_tasks.get_task_ids(foldered_name, pod_type)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace {}'.format(name_node_name))
-
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace {}'.format(node_name))
     config.expect_recovery(service_name=foldered_name)
 
-    sdk_tasks.check_tasks_updated(foldered_name, name_node_name, name_id)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'journal', journal_ids)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'data', data_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, node_name, node_id)
+    for pod_type in config.HDFS_POD_TYPES:
+        if pod_type != type:
+            sdk_tasks.check_tasks_not_updated(foldered_name, pod_type, other_nodes[pod_type])
