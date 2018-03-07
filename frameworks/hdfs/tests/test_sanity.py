@@ -216,6 +216,7 @@ def test_permanently_replace_journalnodes():
     replace_node(0, "journal")
     replace_node(1, "journal")
     replace_node(2, "journal")
+    replace_node(0, "journal")
 
 
 @pytest.mark.sanity
