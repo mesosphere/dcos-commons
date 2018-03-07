@@ -13,7 +13,7 @@ The maximum number of deployable nodes is constrained by the DC/OS cluster's res
 
 ## Upgrades and rolling configuration updates do not wait for green status
 
-The `serial` deploy strategy does wait for the cluster to reach green before proceeding to the next node.
+The `serial` deploy strategy does not wait for the cluster to reach green before proceeding to the next node.
 
 ## Out-of-band configuration
 
