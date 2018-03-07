@@ -8,6 +8,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -206,24 +207,37 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         return FailureUtils.isPermanentlyFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
     }
 
-    private boolean failureStateHasChanged(PodInstanceRequirement podInstanceRequirement) {
-        RecoveryType original = podInstanceRequirement.getRecoveryType();
+    private RecoveryType getPodRecoveryType(Collection<PodInstanceRequirement> podInstanceRequirements) {
+        if (podInstanceRequirements.stream()
+                .anyMatch(podInstanceRequirement ->
+                        podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT))) {
+            return RecoveryType.PERMANENT;
+        } else {
+            return RecoveryType.TRANSIENT;
+        }
+    }
 
-        Collection<String> taskInfoNames =
-                TaskUtils.getTaskNames(
-                        podInstanceRequirement.getPodInstance(),
-                        podInstanceRequirement.getTasksToLaunch());
+    private boolean failureStateHasChanged(
+            PodInstance podInstance,
+            Collection<PodInstanceRequirement> podInstanceRequirements) {
+        RecoveryType original = getPodRecoveryType(podInstanceRequirements);
+        if (original.equals(RecoveryType.PERMANENT)) {
+            return false;
+        }
+
         Collection<Protos.TaskInfo> taskInfos =
-                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance()).stream()
-                .filter(taskInfo -> taskInfoNames.contains(taskInfo.getName()))
+                StateStoreUtils.fetchPodTasks(stateStore, podInstance).stream()
                 .collect(Collectors.toList());
 
         RecoveryType current = getRecoveryType(taskInfos);
+        if (current.equals(RecoveryType.NONE)) {
+            return false;
+        }
 
         boolean recoveryStateHasChanged = !original.equals(current);
         if (recoveryStateHasChanged) {
             logger.info("Pod: {} recovery state has changed from: {} to: {}",
-                    getPodNames(Arrays.asList(podInstanceRequirement)),
+                    getPodNames(podInstanceRequirements),
                     original,
                     current);
         }
@@ -276,14 +290,30 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 .collect(Collectors.toList());
         logger.info("Found pods needing recovery: " + getPodNames(failedPods));
 
-        List<PodInstanceRequirement> inProgressRecoveries = getPlan().getChildren().stream()
+        List<PodInstanceRequirement> inCompleteRecoveries = getPlan().getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
                 .filter(step -> !step.isComplete())
                 .map(step -> step.getPodInstanceRequirement())
                 .filter(requirement -> requirement.isPresent())
                 .map(requirement -> requirement.get())
-                .filter(requirement -> !failureStateHasChanged(requirement))
                 .collect(Collectors.toList());
+
+        logger.info("Found recoveries which are NOT complete: " + getPodNames(inCompleteRecoveries));
+
+        Map<PodInstance, List<PodInstanceRequirement>> recoveryMap = new HashMap<>();
+        inCompleteRecoveries.forEach(
+                podInstanceRequirement -> recoveryMap.put(podInstanceRequirement.getPodInstance(), new ArrayList<>()));
+
+        for (PodInstanceRequirement inProgressRecovery : inCompleteRecoveries) {
+            recoveryMap.get(inProgressRecovery.getPodInstance()).add(inProgressRecovery);
+        }
+
+        Collection<PodInstanceRequirement> inProgressRecoveries = new ArrayList<>();
+        for (Map.Entry<PodInstance, List<PodInstanceRequirement>> entry : recoveryMap.entrySet()) {
+            if (!failureStateHasChanged(entry.getKey(), entry.getValue())) {
+               inProgressRecoveries.addAll(entry.getValue());
+            }
+        }
         logger.info("Found recoveries already in progress: " + getPodNames(inProgressRecoveries));
 
         failedPods = failedPods.stream()
