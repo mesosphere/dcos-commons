@@ -341,15 +341,14 @@ public abstract class AbstractScheduler {
                     TextFormat.shortDebugString(status));
             try {
                 processStatusUpdate(status);
-                reconciler.update(status);
-                TaskKiller.update(status);
-
-                Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
 
+            reconciler.update(status);
+            TaskKiller.update(status);
+            Metrics.record(status);
             taskCleaner.statusUpdate(status);
         }
 
