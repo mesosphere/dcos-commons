@@ -25,7 +25,7 @@
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.kibana-tar-gz}}", "cache": true },
-    { "uri": "{{resource.assets.uris.xpack-zip}}", "cache": true }
+    { "uri": "{{resource.assets.uris.xpack-zip}}", "extract": false, "cache": true }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,
