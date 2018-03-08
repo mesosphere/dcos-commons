@@ -7,7 +7,7 @@
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
   "description": "Apache Kafka",
-  "selected": false,
+  "selected": true,
   "framework": true,
   "tags": ["message", "broker", "kafka", "pubsub"],
   "preInstallNotes": "Default configuration requires 3 agent nodes each with: 1.0 CPU | 2048 MB MEM | 1 5000 MB Disk",
