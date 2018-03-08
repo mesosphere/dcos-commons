@@ -204,23 +204,6 @@ def test_kill_all_datanodes():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanently_replace_namenodes():
-    replace_node(0, "name")
-    replace_node(1, "name")
-    replace_node(0, "name")
-
-
-@pytest.mark.sanity
-@pytest.mark.recovery
-def test_permanently_replace_journalnodes():
-    replace_node(0, "journal")
-    replace_node(1, "journal")
-    replace_node(2, "journal")
-    replace_node(0, "journal")
-
-
-@pytest.mark.sanity
-@pytest.mark.recovery
 def test_permanent_and_transient_namenode_failures_0_1():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_healthy(service_name=foldered_name)
@@ -387,6 +370,22 @@ def test_metrics():
         config.DEFAULT_HDFS_TIMEOUT,
         expected_metrics_exist
     )
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_permanently_replace_namenodes():
+    replace_node(0, "name")
+    replace_node(1, "name")
+    replace_node(0, "name")
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_permanently_replace_journalnodes():
+    replace_node(0, "journal")
+    replace_node(1, "journal")
+    replace_node(2, "journal")
 
 
 def replace_node(index, type):
