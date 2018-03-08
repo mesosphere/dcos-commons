@@ -1,6 +1,6 @@
 ---
 title: YAML Reference
-menuWeight: 2
+menuWeight: 10
 stylesheet: yaml-reference.css
 redirect_from:
 - /reference/yaml-reference.html
