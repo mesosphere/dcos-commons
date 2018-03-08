@@ -100,12 +100,6 @@ pods:
               echo "Journal data directory doesn't exist. Exiting early."
               exit 0
             fi
-            curl -s journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json
-            echo "Fetched JMX data:"
-            cat tmpJmx.json
-            export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}')
-            export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}')
-            echo "Lagging TX: $LAGGING_TX_COUNT (want {{JOURNAL_LAGGING_TX_COUNT}}), Written TX: $WRITTEN_TX_COUNT (want >0)"
             VERSION_FILE=journal-data/hdfs/current/VERSION
             if [ -f $VERSION_FILE ] && [ ! -f journal-data/uploadedVersionFile ]; then
               echo "Uploading $VERSION_FILE to Scheduler:"
@@ -113,10 +107,26 @@ pods:
               curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION
               touch journal-data/uploadedVersionFile
             fi
-            [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
-          delay: 30
-          interval: 5
-          timeout: 15
+            # Sometimes the bookkeeping HDFS does doesn't send a transaction to the journal node
+            # so we end up waiting forever for the written tx count to increase. We make a write to simulate
+            # load, and if the write succeeds and is acknowledged by the journal node via processing
+            # the transaction, it creates an edit in its logs which then means by definition the journal node
+            # is ready to process further transactions.
+            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+            if [ ! -f journal-data/wroteFile ]; then
+              export FILE_EXISTS=$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfs -ls "/_test_$POD_INSTANCE_INDEX.txt" | wc -l)
+              if [ ! -z $FILE_EXISTS ]; then
+                echo "Writing to simulate load"
+                echo "test data" | ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfs -put - "/_test_$POD_INSTANCE_INDEX.txt"
+                touch journal-data/wroteFile
+              fi
+              echo "Removing temporary simulator data"
+              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfs -rm "/_test_$POD_INSTANCE_INDEX.txt"
+            fi
+            [[ -f $(ls journal-data/hdfs/current/edits_inprogress* | tail -n 1) ]]
+          delay: 60
+          interval: 20
+          timeout: 30
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
