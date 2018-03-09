@@ -52,8 +52,8 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
         return stub_urls
 
     log.info('Adding stub URLs: {}'.format(stub_universe_urls))
-    for url in stub_universe_urls:
-        log.info('url: {}'.format(url))
+    for idx, url in enumerate(stub_universe_urls):
+        log.info('URL {}: {}'.format(idx, repr(url)))
         package_name = 'testpkg-'
         package_name += ''.join(random.choice(string.ascii_lowercase +
                                               string.digits) for _ in range(8))
