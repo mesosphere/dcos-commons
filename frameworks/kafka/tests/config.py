@@ -5,6 +5,10 @@ import sdk_utils
 PACKAGE_NAME = sdk_utils.get_package_name("kafka")
 SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
 
+ZOOKEEPER_PACKAGE_NAME = "kafka-zookeeper"
+ZOOKEEPER_SERVICE_NAME = "kafka-zookeeper"
+ZOOKEEPER_TASK_COUNT = 6
+
 DEFAULT_BROKER_COUNT = 3
 DEFAULT_PARTITION_COUNT = 1
 DEFAULT_REPLICATION_FACTOR = 1
