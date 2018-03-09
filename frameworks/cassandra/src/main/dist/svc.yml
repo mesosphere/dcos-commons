@@ -152,7 +152,7 @@ pods:
         cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
-                rm -r container-path/snapshot
+                rm -rf container-path/snapshot
         resource-set: sidecar-resources
       fetch-s3:
         goal: ONCE
@@ -376,3 +376,11 @@ plans:
         pod: node
         steps:
           - default: [[restore-snapshot]]
+  cleanup-snapshots:
+    strategy: serial
+    phases:
+      cleanup-snapshots:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[cleanup-snapshot]]
