@@ -136,6 +136,11 @@ public class SchedulerConfig {
     private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
 
     /**
+     * An environment variable that advertises to the service what region its tasks should run in.
+     */
+    private static final String SERVICE_REGION_ENV = "SERVICE_REGION";
+
+    /**
      * Environment variables for configuring metrics reporting behavior.
      */
     private static final String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
@@ -219,6 +224,10 @@ public class SchedulerConfig {
             return value;
         }
         return envStore.getOptional(MARATHON_APP_ID_ENV, "/");
+    }
+
+    public String getSchedulerRegion() {
+        return envStore.getOptional(SERVICE_REGION_ENV, null);
     }
 
     public String getSecretsNamespace(String serviceName) {
