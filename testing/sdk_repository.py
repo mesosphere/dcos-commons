@@ -9,10 +9,31 @@ import logging
 import os
 import random
 import string
+from itertools import chain, imap
 
 import sdk_cmd
 
 log = logging.getLogger(__name__)
+
+
+def flatmap(f, items):
+    """
+    lines = ["one,two", "three", "four,five"]
+    f     = lambda s: s.split(",")
+
+    >>> map(f, lines)
+    [['one', 'two'], ['three'], ['four', 'five']]
+
+    >>> flatmap(f, lines)
+    ['one', 'two', 'three', 'four', 'five'] 
+    """
+    return chain.from_iterable(imap(f, items))
+
+
+def parse_stub_universe_url_string(stub_universe_url_string):
+    """Handles newline- and comma-separated strings."""
+    lines = stub_universe_url_string.split("\n")
+    filter(None, flatmap(lambda s: s.split(","), lines))
 
 
 def add_universe_repos():
@@ -21,7 +42,7 @@ def add_universe_repos():
     # prepare needed universe repositories
     stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL', "")
 
-    return add_stub_universe_urls(stub_universe_urls.split(","))
+    return add_stub_universe_urls(parse_stub_universe_url_string(stub_universe_urls))
 
 
 def add_stub_universe_urls(stub_universe_urls: list) -> dict:
