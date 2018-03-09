@@ -500,7 +500,7 @@ plans:
     strategy: serial
     phases:
       journal:
-        strategy: serial
+        strategy: {{DEPLOY_STRATEGY}}
         pod: journal
         steps:
           - 0: [[node]]
@@ -519,7 +519,7 @@ plans:
           - 0: [[zkfc-format], [zkfc]]
           - 1: [[zkfc]]
       data:
-        strategy: serial
+        strategy: {{DEPLOY_STRATEGY}}
         pod: data
   update:
     strategy: serial
