@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _jre_url = 'https://downloads.mesosphere.com/java/server-jre-8u162-linux-x64.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-master-28f8827.tar.gz'
-_dcos_sdk_version = '0.41.0-SNAPSHOT'
+_dcos_sdk_version = '0.40.3'
 
 _docs_root = "https://docs.mesosphere.com"
 
@@ -96,8 +96,8 @@ class UniversePackageBuilder(object):
         if self._dry_run:
             logger.info("(dryrun) Generating hash for DRY_RUN")
             hasher = hashlib.sha256()
-            hasher.update(manifest_url)
-            hasher.update(filename)
+            hasher.update(manifest_url.encode('utf-8'))
+            hasher.update(filename.encode('utf-8'))
             return hasher.hexdigest()
 
         with urllib.request.urlopen(manifest_url) as manifest_file:
