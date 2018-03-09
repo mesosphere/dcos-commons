@@ -28,7 +28,7 @@ public class ResourceCleaner {
     private final Protos.FrameworkInfo frameworkInfo;
 
     /**
-     * Creates a new {@link DefaultResourceCleaner} which retrieves expected resource
+     * Creates a new {@link ResourceCleaner} which retrieves expected resource
      * information from the provided {@link StateStore}.
      *
      * @throws StateStoreException
@@ -114,7 +114,6 @@ public class ResourceCleaner {
     private Collection<Resource> selectUnexpectedResources(
             Set<String> expectedIds, Map<String, Resource> resourcesById) {
         List<Resource> unexpectedResources = new ArrayList<>();
-        LOGGER.error("expected ids:{} resources:{}", expectedIds, resourcesById);
 
         for (Map.Entry<String, Resource> entry : resourcesById.entrySet()) {
             if (expectedIds.contains(entry.getKey())) {
@@ -124,7 +123,6 @@ public class ResourceCleaner {
                 LOGGER.info("Unexpected reserved resource: {}", TextFormat.shortDebugString(entry.getValue()));
                 unexpectedResources.add(entry.getValue());
             } else {
-                // Mesos bug: Offers resources within hierarchical roles that don't belong to OUR hierarchical role.
                 LOGGER.warn("Unexpected resource which is not owned by this framework, leaving as-is: {}",
                         TextFormat.shortDebugString(entry.getValue()));
             }

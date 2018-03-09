@@ -142,18 +142,26 @@ public class ResourceUtils {
     }
 
     private static Set<String> getRoles(Resource resource) {
-        Set<String> roles = new HashSet<>(
-                resource.getReservationsList().stream()
-                        .map(Resource.ReservationInfo::getRole)
-                        .collect(Collectors.toSet()));
+        Set<Resource.ReservationInfo> reservations =
+                new HashSet<>(resource.getReservationsList().stream().collect(Collectors.toSet()));
+        if (resource.hasReservation()) {
+            reservations.add(resource.getReservation());
+        }
+
+        Set<String> roles =
+                new HashSet<>(
+                        reservations.stream()
+                                .filter(
+                                        reservationInfo ->
+                                                reservationInfo.getType()
+                                                        .equals(Resource.ReservationInfo.Type.DYNAMIC))
+                                .map(Resource.ReservationInfo::getRole)
+                                .collect(Collectors.toSet()));
 
         if (resource.hasRole()) {
             roles.add(resource.getRole());
         }
 
-        if (resource.hasReservation()) {
-            roles.add(resource.getReservation().getRole());
-        }
 
         return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
     }
