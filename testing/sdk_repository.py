@@ -9,7 +9,7 @@ import logging
 import os
 import random
 import string
-from itertools import chain, imap
+from itertools import chain
 
 import sdk_cmd
 
@@ -27,14 +27,13 @@ def flatmap(f, items):
     >>> flatmap(f, lines)
     ['one', 'two', 'three', 'four', 'five'] 
     """
-    return chain.from_iterable(imap(f, items))
+    return chain.from_iterable(map(f, items))
 
 
 def parse_stub_universe_url_string(stub_universe_url_string):
     """Handles newline- and comma-separated strings."""
     lines = stub_universe_url_string.split("\n")
-    filter(None, flatmap(lambda s: s.split(","), lines))
-
+    list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
 def add_universe_repos():
     log.info('Adding universe repos')
