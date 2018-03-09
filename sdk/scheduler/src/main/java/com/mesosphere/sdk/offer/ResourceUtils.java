@@ -138,20 +138,24 @@ public class ResourceUtils {
             roles.add(frameworkInfo.getRole());
         }
 
-        return roles;
+        return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
     }
 
     private static Set<String> getRoles(Resource resource) {
-        Set<Resource.ReservationInfo> reservationInfos = resource.getReservationsList().stream()
-                .collect(Collectors.toSet());
+        Set<String> roles = new HashSet<>(
+                resource.getReservationsList().stream()
+                        .map(Resource.ReservationInfo::getRole)
+                        .collect(Collectors.toSet()));
 
-        if (resource.hasReservation()) {
-            reservationInfos.add(resource.getReservation());
+        if (resource.hasRole()) {
+            roles.add(resource.getRole());
         }
 
-        return reservationInfos.stream()
-                .map(reservationInfo -> reservationInfo.getRole())
-                .collect(Collectors.toSet());
+        if (resource.hasReservation()) {
+            roles.add(resource.getReservation().getRole());
+        }
+
+        return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
     }
 
     private static boolean isMountVolume(Resource resource) {
