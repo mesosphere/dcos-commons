@@ -107,26 +107,24 @@ pods:
               curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION
               touch journal-data/uploadedVersionFile
             fi
-            # Sometimes the bookkeeping HDFS does doesn't send a transaction to the journal node
-            # so we end up waiting forever for the written tx count to increase. We make a write to simulate
-            # load, and if the write succeeds and is acknowledged by the journal node via processing
-            # the transaction, it creates an edit in its logs which then means by definition the journal node
-            # is ready to process further transactions.
-            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-            if [ ! -f journal-data/wroteFile ]; then
-              export FILE_EXISTS=$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfs -ls "/_test_$POD_INSTANCE_INDEX.txt" | wc -l)
-              if [ ! -z $FILE_EXISTS ]; then
-                echo "Writing to simulate load"
-                echo "test data" | ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfs -put - "/_test_$POD_INSTANCE_INDEX.txt"
-                touch journal-data/wroteFile
-              fi
-              echo "Removing temporary simulator data"
-              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfs -rm "/_test_$POD_INSTANCE_INDEX.txt"
+            if [ ! -f rolledEdits ]; then
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+              # By doing a rollEdits, the name node flushes the edits to the journal nodes so that the standby
+              # name node can read the latest edits. When a journal node restart, it will not resume processing
+              # edits in its latest edits_inprogress and instead waits for the next segment to be opened. rollEdits
+              # effectively initiates a new segment and the journal node isn't considered ready until it has opened
+              # a new segment to process edits. The success of the rollEdits call determines the success of the
+              # readiness check as its output indicates "New segment starts at txid..."
+              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollEdits
+              # We also want to only do this once when the journal node comes up after a restart or a replace and not
+              # on every run of the readiness check.
+              touch rolledEdits
+              # give it a chance to roll completely and start a new edits segment
+              sleep 30
             fi
-            [[ -f $(ls journal-data/hdfs/current/edits_inprogress* | tail -n 1) ]]
-          delay: 60
-          interval: 20
-          timeout: 30
+          delay: 30
+          interval: 30
+          timeout: 60
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
@@ -502,7 +500,7 @@ plans:
     strategy: serial
     phases:
       journal:
-        strategy: {{DEPLOY_STRATEGY}}
+        strategy: serial
         pod: journal
         steps:
           - 0: [[node]]
@@ -521,7 +519,7 @@ plans:
           - 0: [[zkfc-format], [zkfc]]
           - 1: [[zkfc]]
       data:
-        strategy: {{DEPLOY_STRATEGY}}
+        strategy: serial
         pod: data
   update:
     strategy: serial
