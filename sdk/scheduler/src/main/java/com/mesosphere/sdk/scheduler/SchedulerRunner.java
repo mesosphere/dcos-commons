@@ -1,9 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
-import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.http.HealthResource;
 import com.mesosphere.sdk.http.PlansResource;
@@ -14,13 +12,11 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
-import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
@@ -31,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Class which sets up and executes the correct {@link AbstractScheduler} instance.

@@ -29,7 +29,6 @@ public class UninstallScheduler extends AbstractScheduler {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final ServiceSpec serviceSpec;
     private final Optional<SecretsClient> secretsClient;
 
     private PlanManager uninstallPlanManager;
@@ -60,7 +59,6 @@ public class UninstallScheduler extends AbstractScheduler {
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
-        this.serviceSpec = serviceSpec;
         this.secretsClient = customSecretsClientForTests;
 
         Plan plan = new UninstallPlanBuilder(
@@ -140,7 +138,9 @@ public class UninstallScheduler extends AbstractScheduler {
         // Destroy/Unreserve any reserved resource or volume that is offered
         final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
-        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new DefaultResourceCleaner(frameworkInfo, stateStore), offerAccepter);
+        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(
+                new DefaultResourceCleaner(frameworkInfo, stateStore),
+                offerAccepter);
 
         offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
 

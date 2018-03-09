@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.http.*;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -16,7 +15,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

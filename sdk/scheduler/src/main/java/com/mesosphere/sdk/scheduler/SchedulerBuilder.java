@@ -366,7 +366,7 @@ public class SchedulerBuilder {
     private PlanManager getRecoveryPlanManager(
             Optional<RecoveryPlanOverriderFactory> recoveryOverriderFactory,
             StateStore stateStore,
-            ConfigStore configStore,
+            ConfigStore<ServiceSpec> configStore,
             Collection<Plan> plans) {
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();

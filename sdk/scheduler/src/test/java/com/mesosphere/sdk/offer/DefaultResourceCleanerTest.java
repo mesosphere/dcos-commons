@@ -345,7 +345,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
         ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
         List<Offer> offers = OfferTestUtils.getOffers(alienResource);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-        Assert.assertEquals(0, recommendations.size());
+        assertEquals(0, recommendations.size());
     }
 
     @Test
@@ -367,6 +367,6 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
         ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
         List<Offer> offers = OfferTestUtils.getOffers(alienResource);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-        Assert.assertEquals(0, recommendations.size());
+        assertEquals(0, recommendations.size());
     }
 }
