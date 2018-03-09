@@ -31,8 +31,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
-    private final ServiceSpec serviceSpec;
-
     private final OfferAccepter offerAccepter;
 
     private final Collection<Object> resources;
@@ -83,7 +81,6 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
         super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
-        this.serviceSpec = serviceSpec;
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
@@ -238,8 +235,9 @@ public class DefaultScheduler extends AbstractScheduler {
         // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
         // offer cycle.
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
-        ResourceCleanerScheduler cleanerScheduler =
-                new ResourceCleanerScheduler(new DefaultResourceCleaner(frameworkInfo, stateStore), offerAccepter);
+        ResourceCleanerScheduler cleanerScheduler = new ResourceCleanerScheduler(
+                new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)),
+                offerAccepter);
         List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 

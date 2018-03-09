@@ -139,7 +139,7 @@ public class UninstallScheduler extends AbstractScheduler {
         final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
         ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(
-                new DefaultResourceCleaner(frameworkInfo, stateStore),
+                new ResourceCleaner(frameworkInfo, Collections.emptyList()),
                 offerAccepter);
 
         offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));

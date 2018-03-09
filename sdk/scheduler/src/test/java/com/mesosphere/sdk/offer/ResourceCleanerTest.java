@@ -22,7 +22,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
+public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
 
     private static final String EXPECTED_RESOURCE_1_ID = "expected-resource-id";
     private static final String EXPECTED_RESOURCE_2_ID = "expected-volume-id";
@@ -58,7 +58,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
             .addRoles(TestConstants.ROLE)
             .build();
 
-    public DefaultResourceCleanerTest() {
+    public ResourceCleanerTest() {
         // Validate ResourceCleaner statelessness by only initializing them once
 
         stateStore = mock(StateStore.class);
@@ -67,12 +67,12 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
         when(stateStore.fetchTasks()).thenReturn(new ArrayList<>());
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_1.getName())).thenReturn(GoalStateOverride.Status.INACTIVE);
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_2.getName())).thenReturn(GoalStateOverride.Status.INACTIVE);
-        emptyCleaners.add(new DefaultResourceCleaner(frameworkInfo, stateStore));
+        emptyCleaners.add(new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)));
 
         // cleaners with expected resources
         when(stateStore.fetchTasks())
                 .thenReturn(Arrays.asList(TASK_INFO_1, TASK_INFO_2));
-        populatedCleaners.add(new DefaultResourceCleaner(frameworkInfo, stateStore));
+        populatedCleaners.add(new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)));
 
         allCleaners.addAll(emptyCleaners);
         allCleaners.addAll(populatedCleaners);
@@ -278,7 +278,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedPermanentlyFailedResource() {
         TaskInfo failedTask = TaskTestUtils.withFailedFlag(TASK_INFO_1);
         when(stateStore.fetchTasks()).thenReturn(Arrays.asList(failedTask, TASK_INFO_2));
-        ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
+        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
 
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_1);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
@@ -290,7 +290,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedPermanentlyFailedVolume() {
         TaskInfo failedTask = TaskTestUtils.withFailedFlag(TASK_INFO_2);
         when(stateStore.fetchTasks()).thenReturn(Arrays.asList(TASK_INFO_1, failedTask));
-        ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
+        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
@@ -307,7 +307,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedDecommissioningResource() {
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_1.getName()))
                 .thenReturn(DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
+        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
 
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_1);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
@@ -319,7 +319,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedDecommissioningVolume() {
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_2.getName()))
                 .thenReturn(DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
+        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
@@ -342,7 +342,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
                 .setReservations(0, alienReservation).build();
         Assert.assertFalse(ResourceUtils.hasResourceId(alienResource));
 
-        ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
+        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
         List<Offer> offers = OfferTestUtils.getOffers(alienResource);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
         assertEquals(0, recommendations.size());
@@ -364,7 +364,7 @@ public class DefaultResourceCleanerTest extends DefaultCapabilitiesTestSuite {
                 .setReservations(0, alienReservation).build();
         Assert.assertFalse(ResourceUtils.hasResourceId(alienResource));
 
-        ResourceCleaner cleaner = new DefaultResourceCleaner(frameworkInfo, stateStore);
+        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
         List<Offer> offers = OfferTestUtils.getOffers(alienResource);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
         assertEquals(0, recommendations.size());
