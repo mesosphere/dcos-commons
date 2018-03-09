@@ -122,6 +122,38 @@ public class ResourceUtils {
         return Optional.of(resource.getDisk().getSource().getMount().getRoot());
     }
 
+    public static boolean isOwnedByThisFramework(Resource resource, FrameworkInfo frameworkInfo) {
+        final Set<String> frameworkRoles = getRoles(frameworkInfo);
+        final Set<String> resourceRoles = getRoles(resource);
+
+        final boolean hasResourceId = ResourceUtils.hasResourceId(resource);
+        final boolean matchingRoles = frameworkRoles.containsAll(resourceRoles);
+
+        return hasResourceId && matchingRoles;
+    }
+
+    private static Set<String> getRoles(FrameworkInfo frameworkInfo) {
+        Set<String> roles = frameworkInfo.getRolesList().stream().collect(Collectors.toSet());
+        if (frameworkInfo.hasRole()) {
+            roles.add(frameworkInfo.getRole());
+        }
+
+        return roles;
+    }
+
+    private static Set<String> getRoles(Resource resource) {
+        Set<Resource.ReservationInfo> reservationInfos = resource.getReservationsList().stream()
+                .collect(Collectors.toSet());
+
+        if (resource.hasReservation()) {
+            reservationInfos.add(resource.getReservation());
+        }
+
+        return reservationInfos.stream()
+                .map(reservationInfo -> reservationInfo.getRole())
+                .collect(Collectors.toSet());
+    }
+
     private static boolean isMountVolume(Resource resource) {
         return resource.hasDisk()
                 && resource.getDisk().hasSource()

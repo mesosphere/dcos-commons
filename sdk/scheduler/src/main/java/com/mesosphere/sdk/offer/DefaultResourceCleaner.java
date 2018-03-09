@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ public class DefaultResourceCleaner implements ResourceCleaner {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultResourceCleaner.class);
 
     private final Collection<Resource> expectedResources;
+    private final Protos.FrameworkInfo frameworkInfo;
 
     /**
      * Creates a new {@link DefaultResourceCleaner} which retrieves expected resource
@@ -30,8 +32,9 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      * @throws StateStoreException
      *             if there's a failure when retrieving resource information
      */
-    public DefaultResourceCleaner(StateStore stateStore) {
-        expectedResources = getExpectedResources(stateStore);
+    public DefaultResourceCleaner(Protos.FrameworkInfo frameworkInfo, StateStore stateStore) {
+        this.frameworkInfo = frameworkInfo;
+        this.expectedResources = getExpectedResources(stateStore);
     }
 
     /**
@@ -60,12 +63,13 @@ public class DefaultResourceCleaner implements ResourceCleaner {
      * Returns a list of resources from {@code resourcesById} whose ids are not present in
      * {@code expectedIds}.
      */
-    private static Collection<Resource> selectUnexpectedResources(
+    private Collection<Resource> selectUnexpectedResources(
             Set<String> expectedIds, Map<String, Resource> resourcesById) {
         List<Resource> unexpectedResources = new ArrayList<>();
 
         for (Map.Entry<String, Resource> entry : resourcesById.entrySet()) {
-            if (!expectedIds.contains(entry.getKey())) {
+            if (ResourceUtils.isOwnedByThisFramework(entry.getValue(), frameworkInfo)
+                    && !expectedIds.contains(entry.getKey())) {
                 LOGGER.info("Unexpected reserved resource found: {}", TextFormat.shortDebugString(entry.getValue()));
                 unexpectedResources.add(entry.getValue());
             }

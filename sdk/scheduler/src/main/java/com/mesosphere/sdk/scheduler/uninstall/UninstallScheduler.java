@@ -42,22 +42,24 @@ public class UninstallScheduler extends AbstractScheduler {
      * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(
+            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
+        this(frameworkInfo, serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
     }
 
     protected UninstallScheduler(
+            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
         this.serviceSpec = serviceSpec;
         this.secretsClient = customSecretsClientForTests;
 
@@ -138,7 +140,7 @@ public class UninstallScheduler extends AbstractScheduler {
         // Destroy/Unreserve any reserved resource or volume that is offered
         final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
-        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
+        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new DefaultResourceCleaner(frameworkInfo, stateStore), offerAccepter);
 
         offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
 

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.http.*;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -10,11 +11,12 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.*;
+import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +53,8 @@ public class DefaultScheduler extends AbstractScheduler {
      * deployment should be organized.
      */
     public static SchedulerBuilder newBuilder(
-            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
+            ServiceSpec serviceSpec,
+            SchedulerConfig schedulerConfig) throws PersisterException {
         return new SchedulerBuilder(serviceSpec, schedulerConfig);
     }
 
@@ -62,7 +65,9 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     @VisibleForTesting
     public static SchedulerBuilder newBuilder(
-            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) throws PersisterException {
+            ServiceSpec serviceSpec,
+            SchedulerConfig schedulerConfig,
+            Persister persister) throws PersisterException {
         return new SchedulerBuilder(serviceSpec, schedulerConfig, persister);
     }
 
@@ -70,6 +75,7 @@ public class DefaultScheduler extends AbstractScheduler {
      * Creates a new DefaultScheduler. See information about parameters in {@link SchedulerBuilder}.
      */
     protected DefaultScheduler(
+            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
@@ -78,7 +84,7 @@ public class DefaultScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
         this.serviceSpec = serviceSpec;
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
@@ -235,7 +241,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // offer cycle.
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
         ResourceCleanerScheduler cleanerScheduler =
-                new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
+                new ResourceCleanerScheduler(new DefaultResourceCleaner(frameworkInfo, stateStore), offerAccepter);
         List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
