@@ -42,7 +42,12 @@
   "healthChecks": [
     {
       "protocol": "MESOS_HTTP",
+      {{^kibana.xpack_enabled}}
       "path": "/",
+      {{/kibana.xpack_enabled}}
+      {{#kibana.xpack_enabled}}
+      "path": "/login",
+      {{/kibana.xpack_enabled}}
       "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,
