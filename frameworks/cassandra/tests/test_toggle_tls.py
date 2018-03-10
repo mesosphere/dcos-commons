@@ -8,7 +8,6 @@ import sdk_cmd
 import sdk_install
 import sdk_jobs
 import sdk_plan
-import sdk_security
 import sdk_utils
 
 from security import transport_encryption
@@ -21,20 +20,16 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module')
 def service_account(configure_security):
     """
-    Creates service account and secret and yields dict containing both.
+    Sets up a service account for use with TLS.
     """
     try:
         name = config.SERVICE_NAME
-        secret = "{}-secret".format(name)
-        sdk_security.create_service_account(
-            service_account_name=name, service_account_secret=secret)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        sdk_cmd.run_cli(
-            "security org groups add_user superusers {name}".format(name=name))
-        yield {"name": name, "secret": secret}
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=secret)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module')

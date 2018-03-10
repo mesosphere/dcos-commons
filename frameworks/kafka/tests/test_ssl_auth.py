@@ -7,7 +7,6 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_utils
-import sdk_security
 
 from security import transport_encryption
 
@@ -27,18 +26,16 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
-    Creates service account and yields the name.
+    Sets up a service account for use with TLS.
     """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
+    try:
+        name = config.SERVICE_NAME
+        service_account_info = transport_encryption.setup_service_account(name)
 
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+        yield service_account_info
+    finally:
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -114,8 +111,8 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
                     "port_tls": 1030
                 },
                 "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
@@ -166,8 +163,8 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
                     "port_tls": 1030
                 },
                 "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
@@ -239,8 +236,8 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                     "port_tls": 1030
                 },
                 "service": {
-                    "service_account": service_account,
-                    "service_account_secret": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
