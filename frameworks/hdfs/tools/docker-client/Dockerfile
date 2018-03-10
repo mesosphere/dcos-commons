@@ -24,6 +24,9 @@ RUN wget https://downloads.mesosphere.com/hdfs/assets/$HADOOP_VERSION-dcos.tar.g
     tar xf $HADOOP_VERSION-dcos.tar.gz && \
     rm $HADOOP_VERSION-dcos.tar.gz
 
+RUN chown -R nobody:nogroup /$HADOOP_VERSION && \
+    chown -R nobody:nogroup /etc
+
 COPY krb5.conf /etc/krb5.conf
 
 COPY configure-environment.sh /$HADOOP_VERSION/configure-environment.sh

@@ -104,7 +104,7 @@ def hdfs_client(kerberos, hdfs_server):
         client = {
             "id": client_id,
             "mem": 1024,
-            "user": "root",
+            "user": "nobody",
             "container": {
                 "type": "MESOS",
                 "docker": {
@@ -113,7 +113,7 @@ def hdfs_client(kerberos, hdfs_server):
                 },
                 "volumes": [
                     {
-                        "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
+                        "containerPath": "/{}/hdfs.keytab".format(config.HADOOP_VERSION),
                         "secret": "hdfs_keytab"
                     }
                 ]
@@ -134,6 +134,7 @@ def hdfs_client(kerberos, hdfs_server):
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
                 "HDFS_SERVICE_NAME": sdk_hosts._safe_name(config.FOLDERED_SERVICE_NAME),
+                "HADOOP_VERSION": config.HADOOP_VERSION
             }
         }
 
