@@ -32,6 +32,7 @@ public abstract class AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScheduler.class);
 
+    protected final Protos.FrameworkInfo frameworkInfo;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final SchedulerConfig schedulerConfig;
@@ -64,10 +65,12 @@ public abstract class AbstractScheduler {
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
     protected AbstractScheduler(
+            Protos.FrameworkInfo frameworkInfo,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
+        this.frameworkInfo = frameworkInfo;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.schedulerConfig = schedulerConfig;

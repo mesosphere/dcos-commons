@@ -356,6 +356,7 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
         when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "prior config not found"));
+        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.empty());
         DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawSpec, SCHEDULER_CONFIG, file.getParentFile()).build(), SCHEDULER_CONFIG, new MemPersister())
                 .setConfigStore(mockConfigStore)
