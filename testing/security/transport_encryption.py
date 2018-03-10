@@ -6,9 +6,68 @@ import logging
 
 
 import sdk_cmd
-
+import sdk_security
+import sdk_utils
 
 log = logging.getLogger(__name__)
+
+
+def setup_service_account(service_name: str,
+                          service_account_secret: str=None) -> dict:
+    """
+    Setup the service account for TLS. If the account or secret of the specified
+    name already exists, these are deleted.
+    """
+
+    if sdk_utils.is_open_dcos():
+        log.error("The setup of a service account requires DC/OS EE. service_name=%s", service_name)
+        raise Exception("The setup of a service account requires DC/OS EE")
+
+    name = service_name
+    secret = name if service_account_secret is None else service_account_secret
+
+    service_account_info = sdk_security.setup_security(service_name,
+                                                       service_account=name,
+                                                       service_account_secret=secret)
+
+    log.info("Adding permissions required for TLS.")
+    if sdk_utils.dcos_version_less_than("1.11"):
+        sdk_cmd.run_cli("security org groups add_user superusers {name}".format(name=name))
+    else:
+        acls = [
+                {"rid": "dcos:secrets:default:/{}/*".format(service_name), "action": "full"},
+                {"rid": "dcos:secrets:list:default:/{}".format(service_name), "action": "read"},
+                {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
+                {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
+                ]
+
+        for acl in acls:
+            cmd_list = ["security", "org", "users", "grant",
+                        "--description", "\"Permissing required to provision TLS certificates\"",
+                        name, acl["rid"], acl["action"]
+                        ]
+
+            output = sdk_cmd.run_cli(" ".join(cmd_list))
+            log.info("output=%s", output)
+
+    return service_account_info
+
+
+def cleanup_service_account(service_name: str, service_account_info: dict):
+    """
+    Clean up the specified service account.
+
+    Ideally, this service account was created using the setup_service_account function.
+    """
+    if isinstance(service_account_info, str):
+        service_account_info = {"name": service_account_info}
+
+    name = service_account_info["name"]
+    secret = service_account_info["secret"] if "secret" in service_account_info else name
+
+    sdk_security.cleanup_security(service_name,
+                                  service_account=name,
+                                  service_account_secret=secret)
 
 
 def fetch_dcos_ca_bundle(task: str) -> str:

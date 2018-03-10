@@ -100,12 +100,6 @@ pods:
               echo "Journal data directory doesn't exist. Exiting early."
               exit 0
             fi
-            curl journal-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST:$JOURNAL_NODE_HTTP_PORT/jmx > tmpJmx.json
-            echo "Fetched JMX data:"
-            cat tmpJmx.json
-            export LAGGING_TX_COUNT=$(grep "CurrentLagTxns" tmpJmx.json | sed s/,//g | awk '{print $3}')
-            export WRITTEN_TX_COUNT=$(grep "TxnsWritten" tmpJmx.json | sed s/,//g | awk '{print $3}')
-            echo "Lagging TX: $LAGGING_TX_COUNT (want {{JOURNAL_LAGGING_TX_COUNT}}), Written TX: $WRITTEN_TX_COUNT (want >0)"
             VERSION_FILE=journal-data/hdfs/current/VERSION
             if [ -f $VERSION_FILE ] && [ ! -f journal-data/uploadedVersionFile ]; then
               echo "Uploading $VERSION_FILE to Scheduler:"
@@ -113,10 +107,24 @@ pods:
               curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION
               touch journal-data/uploadedVersionFile
             fi
-            [[ $LAGGING_TX_COUNT -eq {{JOURNAL_LAGGING_TX_COUNT}} ]] && [[ $WRITTEN_TX_COUNT -gt 0 ]]
+            if [ ! -f rolledEdits ]; then
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+              # By doing a rollEdits, the name node flushes the edits to the journal nodes so that the standby
+              # name node can read the latest edits. When a journal node restart, it will not resume processing
+              # edits in its latest edits_inprogress and instead waits for the next segment to be opened. rollEdits
+              # effectively initiates a new segment and the journal node isn't considered ready until it has opened
+              # a new segment to process edits. The success of the rollEdits call determines the success of the
+              # readiness check as its output indicates "New segment starts at txid..."
+              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollEdits
+              # We also want to only do this once when the journal node comes up after a restart or a replace and not
+              # on every run of the readiness check.
+              touch rolledEdits
+              # give it a chance to roll completely and start a new edits segment
+              sleep 30
+            fi
           delay: 30
-          interval: 5
-          timeout: 15
+          interval: 30
+          timeout: 60
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
