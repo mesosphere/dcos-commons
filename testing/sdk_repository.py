@@ -9,11 +9,31 @@ import logging
 import os
 import random
 import string
+from itertools import chain
 
 import sdk_cmd
 
 log = logging.getLogger(__name__)
 
+
+def flatmap(f, items):
+    """
+    lines = ["one,two", "three", "four,five"]
+    f     = lambda s: s.split(",")
+
+    >>> map(f, lines)
+    [['one', 'two'], ['three'], ['four', 'five']]
+
+    >>> flatmap(f, lines)
+    ['one', 'two', 'three', 'four', 'five']
+    """
+    return chain.from_iterable(map(f, items))
+
+
+def parse_stub_universe_url_string(stub_universe_url_string):
+    """Handles newline- and comma-separated strings."""
+    lines = stub_universe_url_string.split("\n")
+    return list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
 def add_universe_repos():
     log.info('Adding universe repos')
@@ -21,7 +41,7 @@ def add_universe_repos():
     # prepare needed universe repositories
     stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL', "")
 
-    return add_stub_universe_urls(stub_universe_urls.split(","))
+    return add_stub_universe_urls(parse_stub_universe_url_string(stub_universe_urls))
 
 
 def add_stub_universe_urls(stub_universe_urls: list) -> dict:
@@ -31,8 +51,8 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
         return stub_urls
 
     log.info('Adding stub URLs: {}'.format(stub_universe_urls))
-    for url in stub_universe_urls:
-        log.info('url: {}'.format(url))
+    for idx, url in enumerate(stub_universe_urls):
+        log.info('URL {}: {}'.format(idx, repr(url)))
         package_name = 'testpkg-'
         package_name += ''.join(random.choice(string.ascii_lowercase +
                                               string.digits) for _ in range(8))
@@ -47,8 +67,12 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
 
     # add the needed universe repositories
     for name, url in stub_urls.items():
-        log.info('Adding stub URL: {}'.format(url))
-        sdk_cmd.run_cli('package repo add --index=0 {} {}'.format(name, url))
+        log.info('Adding stub repo {} URL: {}'.format(name, url))
+        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo add --index=0 {} {}'.format(name, url))
+        if rc != 0 or stderr:
+            raise Exception(
+                'Failed to add stub repo {} ({}): stdout=[{}], stderr=[{}]'.format(
+                    name, url, stdout, stderr))
 
     log.info('Finished adding universe repos')
 
