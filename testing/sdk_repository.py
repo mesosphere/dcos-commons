@@ -25,7 +25,7 @@ def flatmap(f, items):
     [['one', 'two'], ['three'], ['four', 'five']]
 
     >>> flatmap(f, lines)
-    ['one', 'two', 'three', 'four', 'five'] 
+    ['one', 'two', 'three', 'four', 'five']
     """
     return chain.from_iterable(map(f, items))
 
@@ -33,7 +33,7 @@ def flatmap(f, items):
 def parse_stub_universe_url_string(stub_universe_url_string):
     """Handles newline- and comma-separated strings."""
     lines = stub_universe_url_string.split("\n")
-    list(filter(None, flatmap(lambda s: s.split(","), lines)))
+    return list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
 def add_universe_repos():
     log.info('Adding universe repos')
