@@ -137,7 +137,7 @@ public class ResourceCleaner {
     private static Set<String> getPersistentVolumeIds(Collection<Resource> resources) {
         Set<String> persistenceIds = new HashSet<>();
         for (Resource resource : resources) {
-            if (ResourceUtils.hasResourceId(resource) && resource.hasDisk() && resource.getDisk().hasPersistence()) {
+            if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
                 persistenceIds.add(resource.getDisk().getPersistence().getId());
             }
         }
@@ -163,7 +163,7 @@ public class ResourceCleaner {
     private static Map<String, Resource> getPersistentVolumesById(Offer offer) {
         Map<String, Resource> volumes = new HashMap<>();
         for (Resource resource : offer.getResourcesList()) {
-            if (ResourceUtils.hasResourceId(resource) && resource.hasDisk() && resource.getDisk().hasPersistence()) {
+            if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
                 volumes.put(resource.getDisk().getPersistence().getId(), resource);
             }
         }
