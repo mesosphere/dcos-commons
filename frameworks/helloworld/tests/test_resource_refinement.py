@@ -24,21 +24,15 @@ pre_reserved_options = {
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = {
-            "service": {
-                "yaml": "pre-reserved"
-            }
-        }
 
         sdk_install.install(config.PACKAGE_NAME,
                             config.SERVICE_NAME,
                             config.DEFAULT_TASK_COUNT,
-                            additional_options=options)
+                            additional_options=pre_reserved_options)
 
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        pass
 
 
 @pytest.mark.sanity
@@ -53,7 +47,8 @@ def test_install():
 @pytest.mark.dcos_min_version('1.10')
 def test_marathon_volume_collission():
     # This test validates that a service registered in a sub-role of
-    # slave_public will _not_ unreserve Marathon volumes.
+    # slave_public will _not_ unreserve Marathon volumes RESERVED
+    # in the `slave_public` role.
 
     # Uninstall HW first
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -67,10 +62,6 @@ def test_marathon_volume_collission():
         "cmd": "echo 'this is a test' > persistent-volume/test && sleep 10000",
         "container": {
             "type": "MESOS",
-            "docker": {
-                "image": "ubuntu",
-                "forcePullImage": False
-            },
             "volumes": [
                 {
                     "persistent": {
