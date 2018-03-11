@@ -58,6 +58,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
             TaskTestUtils.generateStatus(TASK_B.getTaskId(), Protos.TaskState.TASK_ERROR);
 
     private StateStore stateStore;
+    private final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
+            .setName(TestConstants.SERVICE_NAME)
+            .setUser(TestConstants.SERVICE_USER)
+            .addRoles(TestConstants.ROLE)
+            .build();
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
@@ -195,6 +200,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testAllButDeregisteredPlanCompletes() throws Exception {
         // New empty state store: No framework ID is set yet, and there are no tasks, and no SchedulerDriver
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
+                frameworkInfo,
                 getServiceSpec(),
                 new StateStore(new MemPersister()),
                 mockConfigStore,
@@ -262,6 +268,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testUninstallPlanCustomizer() throws Exception {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
+                frameworkInfo,
                 getServiceSpec(),
                 stateStore,
                 mockConfigStore,
@@ -298,6 +305,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec) {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
+                frameworkInfo,
                 serviceSpec,
                 stateStore,
                 mockConfigStore,
