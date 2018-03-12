@@ -7,6 +7,8 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
+import sdk_plan
+import sdk_tasks
 import sdk_utils
 
 from security import kerberos as krb5
@@ -216,3 +218,20 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     _, _, stderr = sdk_cmd.task_exec(hdfs_client["id"], read_access_cmd)
     log.info("Bob can't read from alice's directory: %s", read_access_cmd)
     assert "cat: Permission denied: user=bob" in stderr
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_kill_all_journalnodes():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
+    name_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name')
+    data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data')
+
+    for journal_pod in config.get_pod_type_instances("journal", foldered_name):
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod restart {}'.format(journal_pod))
+        config.expect_recovery(service_name=foldered_name)
+
+    sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'data', data_ids)
