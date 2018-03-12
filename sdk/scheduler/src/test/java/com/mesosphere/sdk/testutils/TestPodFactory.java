@@ -30,6 +30,16 @@ public class TestPodFactory {
                 DISK);
     }
 
+    public static TaskSpec getFinishedTaskSpec(String name, String resourceSetId) {
+        return getTaskSpec(
+                name,
+                CMD.getValue(),
+                null,
+                getResourceSet(resourceSetId, CPU, MEM, DISK),
+                Collections.emptyList(),
+                GoalState.FINISHED);
+    }
+
     public static TaskSpec getTaskSpec(String name, String resourceSetId, String dnsPrefix) {
         return getTaskSpec(
                 name,
@@ -91,9 +101,19 @@ public class TestPodFactory {
             String dnsPrefix,
             ResourceSet resourceSet,
             Collection<ConfigFileSpec> configs) {
+        return getTaskSpec(name, cmd, dnsPrefix, resourceSet, configs, GoalState.RUNNING);
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            String dnsPrefix,
+            ResourceSet resourceSet,
+            Collection<ConfigFileSpec> configs,
+            GoalState goalState) {
         return DefaultTaskSpec.newBuilder()
                 .name(name)
-                .goalState(GoalState.RUNNING)
+                .goalState(goalState)
                 .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder(Collections.emptyMap())
                         .value(cmd)
