@@ -136,6 +136,7 @@ def hdfs_client(kerberos, hdfs_server):
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
                 "HDFS_SERVICE_NAME": config.SERVICE_NAME,
+                "HADOOP_VERSION": config.HADOOP_VERSION
             }
         }
 
@@ -197,10 +198,10 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
 
     test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4()))
-    write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
+    write_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.task_exec(hdfs_client["id"], write_cmd)
 
-    read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(test_filename))
+    read_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_read_command(test_filename))
     _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], read_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
 
