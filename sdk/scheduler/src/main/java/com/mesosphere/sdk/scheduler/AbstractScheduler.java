@@ -32,6 +32,7 @@ public abstract class AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScheduler.class);
 
+    protected final Protos.FrameworkInfo frameworkInfo;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final SchedulerConfig schedulerConfig;
@@ -64,10 +65,12 @@ public abstract class AbstractScheduler {
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
     protected AbstractScheduler(
+            Protos.FrameworkInfo frameworkInfo,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
+        this.frameworkInfo = frameworkInfo;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.schedulerConfig = schedulerConfig;
@@ -341,15 +344,14 @@ public abstract class AbstractScheduler {
                     TextFormat.shortDebugString(status));
             try {
                 processStatusUpdate(status);
-                reconciler.update(status);
-                TaskKiller.update(status);
-
-                Metrics.record(status);
             } catch (Exception e) {
                 LOGGER.warn("Failed to update TaskStatus received from Mesos. "
                         + "This may be expected if Mesos sent stale status information: " + status, e);
             }
 
+            reconciler.update(status);
+            TaskKiller.update(status);
+            Metrics.record(status);
             taskCleaner.statusUpdate(status);
         }
 

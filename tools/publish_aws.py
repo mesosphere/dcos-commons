@@ -32,7 +32,7 @@ class AWSPublisher(object):
             package_name,
             input_dir_path,
             artifact_paths,
-            package_version = 'stub-universe'):
+            package_version='stub-universe'):
         self._dry_run = os.environ.get('DRY_RUN', '')
         self._pkg_name = package_name
         self._pkg_version = package_version
@@ -80,7 +80,6 @@ class AWSPublisher(object):
                 package_name,
                 dir_name))
 
-
     def _spam_universe_url(self, universe_url):
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get('WORKSPACE', '')
@@ -104,7 +103,8 @@ class AWSPublisher(object):
         package_manager = universe.PackageManager()
         builder = universe.UniversePackageBuilder(
             package_info, package_manager,
-            self._input_dir_path, self._http_directory_url, self._artifact_paths)
+            self._input_dir_path, self._http_directory_url, self._artifact_paths,
+            self._dry_run)
         universe_path = builder.build_package()
 
         # upload universe package definition first and get its URL

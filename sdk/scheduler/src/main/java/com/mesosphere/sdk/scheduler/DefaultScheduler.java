@@ -10,7 +10,7 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.*;
+import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
@@ -31,8 +31,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
 
-    private final ServiceSpec serviceSpec;
-
     private final OfferAccepter offerAccepter;
 
     private final Collection<Object> resources;
@@ -51,7 +49,8 @@ public class DefaultScheduler extends AbstractScheduler {
      * deployment should be organized.
      */
     public static SchedulerBuilder newBuilder(
-            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
+            ServiceSpec serviceSpec,
+            SchedulerConfig schedulerConfig) throws PersisterException {
         return new SchedulerBuilder(serviceSpec, schedulerConfig);
     }
 
@@ -62,7 +61,9 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     @VisibleForTesting
     public static SchedulerBuilder newBuilder(
-            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) throws PersisterException {
+            ServiceSpec serviceSpec,
+            SchedulerConfig schedulerConfig,
+            Persister persister) throws PersisterException {
         return new SchedulerBuilder(serviceSpec, schedulerConfig, persister);
     }
 
@@ -70,6 +71,7 @@ public class DefaultScheduler extends AbstractScheduler {
      * Creates a new DefaultScheduler. See information about parameters in {@link SchedulerBuilder}.
      */
     protected DefaultScheduler(
+            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             SchedulerConfig schedulerConfig,
             Collection<Object> customResources,
@@ -78,8 +80,7 @@ public class DefaultScheduler extends AbstractScheduler {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(stateStore, configStore, schedulerConfig, planCustomizer);
-        this.serviceSpec = serviceSpec;
+        super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
@@ -234,8 +235,9 @@ public class DefaultScheduler extends AbstractScheduler {
         // Note: If there are unused reserved resources on a dirtied offer, then it will be cleaned in the next
         // offer cycle.
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
-        ResourceCleanerScheduler cleanerScheduler =
-                new ResourceCleanerScheduler(new DefaultResourceCleaner(stateStore), offerAccepter);
+        ResourceCleanerScheduler cleanerScheduler = new ResourceCleanerScheduler(
+                new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)),
+                offerAccepter);
         List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 

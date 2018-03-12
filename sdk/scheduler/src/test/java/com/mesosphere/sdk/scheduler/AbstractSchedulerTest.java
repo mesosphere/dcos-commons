@@ -35,6 +35,11 @@ public class AbstractSchedulerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSchedulerTest.class);
 
     private StateStore stateStore;
+    private final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
+            .setName(TestConstants.SERVICE_NAME)
+            .setUser(TestConstants.SERVICE_USER)
+            .addRoles(TestConstants.ROLE)
+            .build();
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
@@ -140,7 +145,10 @@ public class AbstractSchedulerTest {
     private TestScheduler getScheduler(boolean waitForApiServer, boolean multithreaded, int offerQueueSize)
             throws PersisterException {
         TestScheduler scheduler = new TestScheduler(
-                stateStore, mockConfigStore, SchedulerConfigTestUtils.getTestSchedulerConfig());
+                frameworkInfo,
+                stateStore,
+                mockConfigStore,
+                SchedulerConfigTestUtils.getTestSchedulerConfig());
         // Customize...
         if (!waitForApiServer) {
             scheduler.disableApiServer();
@@ -165,8 +173,11 @@ public class AbstractSchedulerTest {
         private final Set<String> receivedOfferIds = new HashSet<>();
 
         protected TestScheduler(
-                StateStore stateStore, ConfigStore<ServiceSpec> configStore, SchedulerConfig schedulerConfig) {
-            super(stateStore, configStore, schedulerConfig, Optional.empty());
+                Protos.FrameworkInfo frameworkInfo,
+                StateStore stateStore,
+                ConfigStore<ServiceSpec> configStore,
+                SchedulerConfig schedulerConfig) {
+            super(frameworkInfo, stateStore, configStore, schedulerConfig, Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }
