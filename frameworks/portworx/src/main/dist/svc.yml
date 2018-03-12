@@ -96,8 +96,8 @@ pods:
                 ln -sf /etc/systemd/system/portworx.service /etc/systemd/system/dcos.target.wants/portworx.service &&
                 systemctl daemon-reload &&
                 systemctl enable portworx &&
-                systemctl start portworx
-
+                systemctl start portworx &&
+                while ! /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'; do /opt/pwx/bin/pxctl status; sleep 5 ; done
       upgrade:
         goal: FINISH
         resource-set: px-resources
