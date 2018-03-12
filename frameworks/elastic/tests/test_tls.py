@@ -1,11 +1,12 @@
 import pytest
 import shakedown
 
-import sdk_cmd
 import sdk_install
 import sdk_plan
-import sdk_security
 import sdk_utils
+
+from security import transport_encryption
+
 from tests import config
 
 pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
@@ -13,19 +14,18 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 
 
 @pytest.fixture(scope='module')
-def service_account():
+def service_account(configure_security):
     """
-    Creates service account with `elastic` name and yields the name.
+    Sets up a service account for use with TLS.
     """
-    name = config.SERVICE_NAME
-    sdk_security.create_service_account(
-        service_account_name=name, service_account_secret=name)
-    # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-    sdk_cmd.run_cli(
-        "security org groups add_user superusers {name}".format(name=name))
-    yield name
-    sdk_security.delete_service_account(
-        service_account_name=name, service_account_secret=name)
+    try:
+        name = config.SERVICE_NAME
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
+    finally:
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module')
@@ -36,8 +36,8 @@ def elastic_service_tls(service_account):
         expected_running_tasks=config.DEFAULT_TASK_COUNT,
         additional_options={
             "service": {
-                "service_account_secret": service_account,
-                "service_account": service_account,
+                "service_account_secret": service_account["name"],
+                "service_account": service_account["secret"],
                 "security": {
                     "transport_encryption": {
                         "enabled": True

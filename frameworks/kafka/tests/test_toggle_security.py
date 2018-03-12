@@ -9,7 +9,6 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
-import sdk_security
 import sdk_utils
 
 from security import transport_encryption
@@ -36,20 +35,16 @@ MESSAGES = []
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
-    Creates service account and yields the name and corresponding secret name.
+    Sets up a service account for use with TLS.
     """
     try:
         name = config.SERVICE_NAME
-        secret = "{}-secret".format(name)
-        sdk_security.create_service_account(
-            service_account_name=name, service_account_secret=secret)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        sdk_cmd.run_cli(
-            "security org groups add_user superusers {name}".format(name=name))
-        yield {"name": name, "secret": secret}
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=secret)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -239,7 +234,8 @@ def test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
 
     tls_brokers = service_get_brokers(kafka_server, "broker-tls")
 
-    assert set(_get_hostnames(brokers)) == set(_get_hostnames(tls_brokers)), "TLS and non-TLS broker hostnames should match"
+    assert set(_get_hostnames(brokers)) == set(_get_hostnames(tls_brokers)), "TLS and non-TLS broker " \
+                                                                             "hostnames should match"
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", kerberos)
@@ -334,7 +330,8 @@ def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server):
 
     non_tls_brokers = service_get_brokers(kafka_server, "broker")
 
-    assert set(_get_hostnames(brokers)) == set(_get_hostnames(non_tls_brokers)), "TLS and non-TLS broker hostnames should match"
+    assert set(_get_hostnames(brokers)) == set(_get_hostnames(non_tls_brokers)), "TLS and non-TLS broker " \
+                                                                                 "hostnames should match"
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", None)
@@ -446,7 +443,8 @@ def test_reverse_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
 
     non_tls_brokers = service_get_brokers(kafka_server, "broker")
 
-    assert set(_get_hostnames(brokers)) == set(_get_hostnames(non_tls_brokers)), "TLS and non-TLS broker hostnames should match"
+    assert set(_get_hostnames(brokers)) == set(_get_hostnames(non_tls_brokers)), "TLS and non-TLS broker " \
+                                                                                 "hostnames should match"
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", kerberos)
