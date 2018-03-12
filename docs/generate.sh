@@ -12,7 +12,6 @@ cd $DOCS_DIR
 
 # Inputs (relative to dcos-commons/docs/):
 PAGES_PATH=${DOCS_DIR}/pages
-PAGES_FRAMEWORKS_PATH_PATTERN=${DOCS_DIR}/../frameworks/*/docs/
 JAVADOC_SDK_PATH_PATTERN=${DOCS_DIR}/../sdk/*/src/main/
 
 # Output directory:
@@ -63,13 +62,10 @@ fi
 # 1. Generate common pages + framework docs using jekyll
 # Workaround: '--layouts' flag seems to be ignored. cd into pages dir to generate.
 pushd $PAGES_PATH
+# TODO: Remove the following cleanup of old services docs after April 2018
 rm -rf services
-mkdir -p services
-for dir in $(ls -d $PAGES_FRAMEWORKS_PATH_PATTERN); do
-    framework=$(echo $dir | awk -F "/" '{print $(NF-2)}')
-    ln -s -v $dir services/$framework
-done
-# Errors? Do this!:
+
+# Errors here? Do this!:
 # sudo gem install jekyll jekyll-redirect-from jekyll-toc
 run_cmd jekyll build --destination ${DOCS_DIR}/${OUTPUT_DIR}
 popd

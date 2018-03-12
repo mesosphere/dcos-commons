@@ -1,5 +1,6 @@
 ---
 title: DC/OS Service SDK
+menu: false
 ---
 
 __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration and automation of stateful services, such as databases, message brokers, and caching services with [DC/OS](https://dcos.io/).
