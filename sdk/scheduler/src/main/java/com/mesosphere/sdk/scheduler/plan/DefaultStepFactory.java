@@ -125,7 +125,7 @@ public class DefaultStepFactory implements StepFactory {
 
         if (hasReachedGoal) {
             GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
-            if (goalState.equals(GoalState.ONCE)) {
+            if (goalState.equals(GoalState.FINISHED) || goalState.equals(GoalState.ONCE)) {
                 LOGGER.info("Automatically on target configuration due to having reached {} goal.", goalState);
                 isOnTarget = true;
             }

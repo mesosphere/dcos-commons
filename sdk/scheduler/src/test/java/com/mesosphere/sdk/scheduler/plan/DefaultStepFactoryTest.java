@@ -131,7 +131,7 @@ public class DefaultStepFactoryTest {
         Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
-        PodInstance podInstance = getPodInstanceWithFinishedTask();
+        PodInstance podInstance = getPodInstanceWithGoalState(GoalState.FINISHED);
         List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
                 .map(taskSpec -> taskSpec.getName())
                 .collect(Collectors.toList());
@@ -172,6 +172,99 @@ public class DefaultStepFactoryTest {
         assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(true));
     }
 
+    @Test
+    public void testTaskWithFinishGoalStateCanReachGoalState() throws Exception {
+        Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(true);
+        Capabilities.overrideCapabilities(mockCapabilities);
+
+        PodInstance podInstance = getPodInstanceWithGoalState(GoalState.FINISH);
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+        UUID configId = UUID.randomUUID();
+
+        configStore.setTargetConfig(configId);
+
+        String taskName = podInstance.getName() + '-' + tasksToLaunch.get(0);
+        stateStore.storeTasks(ImmutableList.of(
+                Protos.TaskInfo.newBuilder()
+                        .setName(taskName)
+                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setSlaveId(Protos.SlaveID.newBuilder()
+                                .setValue("proto-field-required")
+                        )
+                        .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                                .setTargetConfiguration(configId)
+                                .toProto())
+                        .build()));
+        Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
+
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_RUNNING)
+                        .setTaskId(taskInfo.getTaskId())
+                        .build());
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(false));
+
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_FINISHED)
+                        .setTaskId(taskInfo.getTaskId())
+                        .build());
+
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(true));
+    }
+
+    @Test
+    public void testTaskWithOnceGoalStateCanReachGoalState() throws Exception {
+        Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(true);
+        Capabilities.overrideCapabilities(mockCapabilities);
+
+        PodInstance podInstance = getPodInstanceWithGoalState(GoalState.ONCE);
+        List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+        UUID configId = UUID.randomUUID();
+
+        configStore.setTargetConfig(configId);
+
+        String taskName = podInstance.getName() + '-' + tasksToLaunch.get(0);
+        stateStore.storeTasks(ImmutableList.of(
+                Protos.TaskInfo.newBuilder()
+                        .setName(taskName)
+                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setSlaveId(Protos.SlaveID.newBuilder()
+                                .setValue("proto-field-required")
+                        )
+                        .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                                .setTargetConfiguration(configId)
+                                .toProto())
+                        .build()));
+        Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
+
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_RUNNING)
+                        .setTaskId(taskInfo.getTaskId())
+                        .build());
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(false));
+
+        stateStore.storeStatus(taskName,
+                Protos.TaskStatus.newBuilder()
+                        .setState(Protos.TaskState.TASK_FINISHED)
+                        .setTaskId(taskInfo.getTaskId())
+                        .build());
+
+
+        assertThat(((DefaultStepFactory) stepFactory).hasReachedGoalState(podInstance, stateStore.fetchTask(taskName).get()), is(true));
+    }
 
     @Test
     public void testInitialStateForRunningTaskOnCustomExecutorIsRunning() throws Exception {
@@ -286,9 +379,9 @@ public class DefaultStepFactoryTest {
         return new DefaultPodInstance(podSpec, 0);
     }
 
-    private PodInstance getPodInstanceWithFinishedTask() throws Exception {
-        TaskSpec taskSpec =
-                TestPodFactory.getFinishedTaskSpec(TestConstants.TASK_NAME, TestConstants.RESOURCE_SET_ID);
+    private PodInstance getPodInstanceWithGoalState(GoalState goalState) throws Exception {
+        TaskSpec taskSpec = TestPodFactory.getTaskSpecWithGoalState(
+                TestConstants.TASK_NAME, TestConstants.RESOURCE_SET_ID, goalState);
         PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
                 .type(TestConstants.POD_TYPE)
                 .count(1)

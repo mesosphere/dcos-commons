@@ -30,14 +30,14 @@ public class TestPodFactory {
                 DISK);
     }
 
-    public static TaskSpec getFinishedTaskSpec(String name, String resourceSetId) {
+    public static TaskSpec getTaskSpecWithGoalState(String name, String resourceSetId, GoalState goalState) {
         return getTaskSpec(
                 name,
                 CMD.getValue(),
                 null,
                 getResourceSet(resourceSetId, CPU, MEM, DISK),
                 Collections.emptyList(),
-                GoalState.FINISHED);
+                goalState);
     }
 
     public static TaskSpec getTaskSpec(String name, String resourceSetId, String dnsPrefix) {
