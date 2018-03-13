@@ -109,6 +109,13 @@ pods:
             fi
             if [ ! -f rolledEdits ]; then
               export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+              {{#SECURITY_KERBEROS_ENABLED}}
+              export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+              {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+              export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+              {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+              KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
+              {{/SECURITY_KERBEROS_ENABLED}}
               # By doing a rollEdits, the name node flushes the edits to the journal nodes so that the standby
               # name node can read the latest edits. When a journal node restart, it will not resume processing
               # edits in its latest edits_inprogress and instead waits for the next segment to be opened. rollEdits
