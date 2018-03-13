@@ -96,8 +96,8 @@ class UniversePackageBuilder(object):
         if self._dry_run:
             logger.info("(dryrun) Generating hash for DRY_RUN")
             hasher = hashlib.sha256()
-            hasher.update(manifest_url)
-            hasher.update(filename)
+            hasher.update(manifest_url.encode('utf-8'))
+            hasher.update(filename.encode('utf-8'))
             return hasher.hexdigest()
 
         with urllib.request.urlopen(manifest_url) as manifest_file:
