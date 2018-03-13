@@ -5,7 +5,7 @@
     "container": {
         "type": "MESOS",
         "docker": {
-            "image": "elezar/hdfs-client:dev",
+            "image": "nvaziri/hdfs-client:stable",
             "forcePullImage": true
         },
         "volumes": [
@@ -30,6 +30,7 @@
         "KDC_ADDRESS": "kdc.marathon.autoip.dcos.thisdcos.directory:2500",
         "JAVA_HOME": "/usr/lib/jvm/default-java",
         "KRB5_CONFIG": "/etc/krb5.conf",
-        "HDFS_SERVICE_NAME": "hdfs"
+        "HDFS_SERVICE_NAME": "hdfs",
+        "HADOOP_VERSION": "hadoop-2.6.0-cdh5.9.1"
     }
 }

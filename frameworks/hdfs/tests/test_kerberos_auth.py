@@ -110,12 +110,12 @@ def hdfs_client(kerberos, hdfs_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "elezar/hdfs-client:dev",
+                    "image": "nvaziri/hdfs-client:stable",
                     "forcePullImage": True
                 },
                 "volumes": [
                     {
-                        "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
+                        "containerPath": "/{}/hdfs.keytab".format(config.HADOOP_VERSION),
                         "secret": "hdfs_keytab"
                     }
                 ]
@@ -136,6 +136,7 @@ def hdfs_client(kerberos, hdfs_server):
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
                 "HDFS_SERVICE_NAME": sdk_hosts._safe_name(config.FOLDERED_SERVICE_NAME),
+                "HADOOP_VERSION": config.HADOOP_VERSION
             }
         }
 
@@ -189,14 +190,14 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice"))
-    write_access_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(
+    write_access_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(
         config.TEST_CONTENT_SMALL,
         "/users/alice/{}".format(test_filename)))
     log.info("Alice can write: %s", write_access_cmd)
     rc, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], write_access_cmd)
     assert stdout == '' and rc == 0
 
-    read_access_cmd = config.hdfs_read_command("/users/alice/{}".format(test_filename))
+    read_access_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command("/users/alice/{}".format(test_filename)))
     log.info("Alice can read: %s", read_access_cmd)
     _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], read_access_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
