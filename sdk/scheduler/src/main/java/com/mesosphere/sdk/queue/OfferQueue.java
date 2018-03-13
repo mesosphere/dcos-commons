@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.queue;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.OfferUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +23,10 @@ public class OfferQueue {
     private static final Duration DEFAULT_OFFER_WAIT = Duration.ofSeconds(5);
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
+    private final Protos.FrameworkInfo frameworkInfo;
 
-    public OfferQueue() {
-        this(DEFAULT_CAPACITY);
+    public OfferQueue(Protos.FrameworkInfo frameworkInfo) {
+        this(frameworkInfo, DEFAULT_CAPACITY);
     }
 
     /**
@@ -32,7 +34,8 @@ public class OfferQueue {
      *
      * @param capacity the maximum size of the queue, or zero for unlimited queue size
      */
-    public OfferQueue(int capacity) {
+    public OfferQueue(Protos.FrameworkInfo frameworkInfo, int capacity) {
+        this.frameworkInfo = frameworkInfo;
         this.queue = capacity == 0 ? new LinkedBlockingQueue<>() : new LinkedBlockingQueue<>(capacity);
     }
 
@@ -73,7 +76,7 @@ public class OfferQueue {
      * @return true if the Offer was successfully put in the queue, false otherwise
      */
     public boolean offer(Protos.Offer offer) {
-        return queue.offer(offer);
+        return queue.offer(OfferUtils.clean(offer, frameworkInfo));
     }
 
     /**

@@ -46,7 +46,7 @@ public abstract class AbstractScheduler {
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded = true;
 
-    private final MesosScheduler mesosScheduler = new MesosScheduler();
+    private final MesosScheduler mesosScheduler;
 
     private final Object inProgressLock = new Object();
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
@@ -71,6 +71,7 @@ public abstract class AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
         this.frameworkInfo = frameworkInfo;
+        this.mesosScheduler = new MesosScheduler(frameworkInfo);
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.schedulerConfig = schedulerConfig;
@@ -188,7 +189,7 @@ public abstract class AbstractScheduler {
      */
     @VisibleForTesting
     public AbstractScheduler setOfferQueueSize(int queueSize) {
-        mesosScheduler.offerQueue = new OfferQueue(queueSize);
+        mesosScheduler.offerQueue = new OfferQueue(frameworkInfo, queueSize);
         return this;
     }
 
@@ -241,12 +242,16 @@ public abstract class AbstractScheduler {
         private final AtomicBoolean isInitialized = new AtomicBoolean(false);
 
         // May be overridden in tests:
-        private OfferQueue offerQueue = new OfferQueue();
+        private OfferQueue offerQueue;
 
         // These are all (re)assigned when the scheduler has (re)registered:
         private ReviveManager reviveManager;
         private Reconciler reconciler;
         private TaskCleaner taskCleaner;
+
+        private MesosScheduler(Protos.FrameworkInfo frameworkInfo) {
+            this.offerQueue = new OfferQueue(frameworkInfo);
+        }
 
         @Override
         public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {

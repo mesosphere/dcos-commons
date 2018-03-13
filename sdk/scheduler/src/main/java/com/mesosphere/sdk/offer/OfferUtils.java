@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.Metrics;
 import org.apache.mesos.Protos;
@@ -7,6 +8,7 @@ import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -82,5 +84,23 @@ public class OfferUtils {
                 .setRefuseSeconds(refuseSeconds)
                 .build();
         offerIds.forEach(offerId -> driver.get().declineOffer(offerId, filters));
+    }
+
+    public static boolean isProcessable(Protos.Resource resource, Protos.FrameworkInfo frameworkInfo) {
+        boolean hasDynamicReservations = ResourceUtils.getDynamicReservations(resource).size() > 0;
+        return !hasDynamicReservations || ResourceUtils.isOwnedByThisFramework(resource, frameworkInfo);
+    }
+
+    public static Protos.Offer clean(Protos.Offer offer, Protos.FrameworkInfo frameworkInfo) {
+        List<Protos.Resource> cleanResources = new ArrayList<>();
+        for (Protos.Resource resource : offer.getResourcesList()) {
+            if (isProcessable(resource, frameworkInfo)) {
+                cleanResources.add(resource);
+            } else {
+                LOGGER.warn("Ignoring alien resource: {}", TextFormat.shortDebugString(resource));
+            }
+        }
+
+        return offer.toBuilder().clearResources().addAllResources(cleanResources).build();
     }
 }
