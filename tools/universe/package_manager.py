@@ -25,8 +25,10 @@ class PackageManager:
     """A simple package manager for retrieving universe packages"""
     def __init__(self, universe_url="https://universe.mesosphere.com/repo",
                  dcos_version="1.10",
-                 package_version="4"):
+                 package_version="4",
+                 dry_run=False):
 
+        self._dry_run = dry_run
         self._universe_url = universe_url
         self._headers = {
             "User-Agent": "dcos/{}".format(dcos_version),
@@ -61,6 +63,9 @@ class PackageManager:
 
     def get_packages(self):
         """Query the uninverse to get a list of packages"""
+        if self._dry_run:
+            return DryRunPackages()
+
         if not self.__package_cache:
             LOGGER.info("Package cache is empty. Retrieving package information")
             raw_package_list = self._get_packages(self._universe_url, self._headers)
@@ -126,3 +131,9 @@ def _get_packages_with_requests(universe_url, headers):
         packages = []
 
     return packages
+
+
+class DryRunPackages:
+    def get(self, package_name, default):
+        return [package.Package(package_name,
+                                package.Version(0, "DRY_RUN_VERSION")), ]
