@@ -1,8 +1,10 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
@@ -14,13 +16,14 @@ import org.mockito.MockitoAnnotations;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.verify;
 
-public class OfferUtilsTest {
+public class OfferUtilsTest extends DefaultCapabilitiesTestSuite {
     public static final int SUFFICIENT_CPUS = 2;
     public static final int SUFFICIENT_MEM = 2000;
     public static final int SUFFICIENT_DISK = 10000;
@@ -80,6 +83,22 @@ public class OfferUtilsTest {
         OfferUtils.declineLong(offers);
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
         verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
+    }
+
+    @Test
+    public void testUnreservedResourcesIsProcessable() {
+        Protos.Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
+        Assert.assertTrue(ResourceUtils.isProcessable(resource, null));
+    }
+
+    @Test
+    public void testReservedByThisFrameworkIsProcessable() {
+        Protos.Resource resource = ResourceTestUtils.getReservedCpus(1.0, UUID.randomUUID().toString());
+        final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
+                .setName(TestConstants.SERVICE_NAME)
+                .setUser(TestConstants.SERVICE_USER)
+                .build();
+        Assert.assertTrue(ResourceUtils.isProcessable(resource, frameworkInfo));
     }
 
     private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {

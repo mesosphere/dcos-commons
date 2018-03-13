@@ -13,16 +13,21 @@ import java.util.UUID;
  */
 public class OfferQueueTest {
     private static final int TEST_CAPACITY = 10;
+    private static final Protos.FrameworkInfo frameworkInfo =  Protos.FrameworkInfo.newBuilder()
+            .setName(TestConstants.SERVICE_NAME)
+            .setUser(TestConstants.SERVICE_USER)
+            .addRoles(TestConstants.ROLE)
+            .build();
 
     @Test
     public void testEmptyQueue() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo);
         Assert.assertTrue(offerQueue.isEmpty());
     }
 
     @Test
     public void testEnqueueOffer() {
-        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo, TEST_CAPACITY);
         offerQueue.offer(getOffer());
         Assert.assertEquals(1, offerQueue.getSize());
         Assert.assertEquals(TEST_CAPACITY - 1, offerQueue.getRemainingCapacity());
@@ -30,7 +35,7 @@ public class OfferQueueTest {
 
     @Test
     public void testExceedCapacity() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo);
         int capacity = offerQueue.getRemainingCapacity();
         for (int i = 0; i < capacity; i++) {
             Assert.assertTrue(offerQueue.offer(getOffer()));
@@ -42,7 +47,7 @@ public class OfferQueueTest {
 
     @Test
     public void testTakeOne() {
-        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo, TEST_CAPACITY);
         offerQueue.offer(getOffer());
         List<Protos.Offer> offers = offerQueue.takeAll();
         Assert.assertEquals(1, offers.size());
@@ -51,7 +56,7 @@ public class OfferQueueTest {
 
     @Test
     public void testTakeMultiple() {
-        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo, TEST_CAPACITY);
         int halfCapacity = offerQueue.getRemainingCapacity() / 2;
         for (int i = 0; i < halfCapacity; i++) {
             offerQueue.offer(getOffer());
@@ -64,7 +69,7 @@ public class OfferQueueTest {
 
     @Test
     public void testTakeFull() {
-        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo, TEST_CAPACITY);
         int capacity = offerQueue.getRemainingCapacity();
         for (int i = 0; i < capacity; i++) {
             offerQueue.offer(getOffer());
@@ -77,7 +82,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveFromEmptyQueue() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo);
         Assert.assertTrue(offerQueue.isEmpty());
         offerQueue.remove(TestConstants.OFFER_ID);
         Assert.assertTrue(offerQueue.isEmpty());
@@ -85,7 +90,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveFromSingleOfferQueue() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo);
         offerQueue.offer(getOffer());
         Assert.assertEquals(1, offerQueue.getSize());
         offerQueue.remove(TestConstants.OFFER_ID);
@@ -94,7 +99,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveUnknownOffer() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo);
         offerQueue.offer(getOffer(UUID.randomUUID().toString()));
         Assert.assertEquals(1, offerQueue.getSize());
         offerQueue.remove(TestConstants.OFFER_ID);
@@ -103,7 +108,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveOneLeaveOthers() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(frameworkInfo);
         int halfCapacity = offerQueue.getRemainingCapacity() / 2;
         // Add many offers with random ids
         for (int i = 0; i < halfCapacity; i++) {

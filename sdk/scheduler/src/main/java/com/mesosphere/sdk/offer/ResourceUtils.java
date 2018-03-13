@@ -132,6 +132,29 @@ public class ResourceUtils {
         return hasResourceId && matchingRoles;
     }
 
+    public static Collection<Resource.ReservationInfo> getReservations(Resource resource) {
+        Set<Resource.ReservationInfo> reservations =
+                new HashSet<>(resource.getReservationsList().stream().collect(Collectors.toSet()));
+        if (resource.hasReservation()) {
+            reservations.add(resource.getReservation());
+        }
+
+        return reservations;
+    }
+
+    public static Collection<Resource.ReservationInfo> getDynamicReservations(Resource resource) {
+        return getReservations(resource).stream()
+                .filter(reservationInfo -> reservationInfo.hasType())
+                .filter(reservationInfo -> reservationInfo.getType()
+                        .equals(Protos.Resource.ReservationInfo.Type.DYNAMIC))
+                .collect(Collectors.toSet());
+    }
+
+    public static boolean isProcessable(Protos.Resource resource, Protos.FrameworkInfo frameworkInfo) {
+        boolean hasDynamicReservations = ResourceUtils.getDynamicReservations(resource).size() > 0;
+        return !hasDynamicReservations || ResourceUtils.isOwnedByThisFramework(resource, frameworkInfo);
+    }
+
     private static Set<String> getRoles(FrameworkInfo frameworkInfo) {
         Set<String> roles = frameworkInfo.getRolesList().stream().collect(Collectors.toSet());
         if (frameworkInfo.hasRole()) {
@@ -142,26 +165,16 @@ public class ResourceUtils {
     }
 
     private static Set<String> getRoles(Resource resource) {
-        Set<Resource.ReservationInfo> reservations =
-                new HashSet<>(resource.getReservationsList().stream().collect(Collectors.toSet()));
-        if (resource.hasReservation()) {
-            reservations.add(resource.getReservation());
-        }
-
+        Collection<Resource.ReservationInfo> reservations = getDynamicReservations(resource);
         Set<String> roles =
                 new HashSet<>(
                         reservations.stream()
-                                .filter(
-                                        reservationInfo ->
-                                                reservationInfo.getType()
-                                                        .equals(Resource.ReservationInfo.Type.DYNAMIC))
                                 .map(Resource.ReservationInfo::getRole)
                                 .collect(Collectors.toSet()));
 
         if (resource.hasRole()) {
             roles.add(resource.getRole());
         }
-
 
         return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
     }
