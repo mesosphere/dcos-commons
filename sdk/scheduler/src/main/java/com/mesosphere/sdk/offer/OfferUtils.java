@@ -86,15 +86,10 @@ public class OfferUtils {
         offerIds.forEach(offerId -> driver.get().declineOffer(offerId, filters));
     }
 
-    public static boolean isProcessable(Protos.Resource resource, Protos.FrameworkInfo frameworkInfo) {
-        boolean hasDynamicReservations = ResourceUtils.getDynamicReservations(resource).size() > 0;
-        return !hasDynamicReservations || ResourceUtils.isOwnedByThisFramework(resource, frameworkInfo);
-    }
-
     public static Protos.Offer clean(Protos.Offer offer, Protos.FrameworkInfo frameworkInfo) {
         List<Protos.Resource> cleanResources = new ArrayList<>();
         for (Protos.Resource resource : offer.getResourcesList()) {
-            if (isProcessable(resource, frameworkInfo)) {
+            if (ResourceUtils.isProcessable(resource, frameworkInfo)) {
                 cleanResources.add(resource);
             } else {
                 LOGGER.warn("Ignoring alien resource: {}", TextFormat.shortDebugString(resource));

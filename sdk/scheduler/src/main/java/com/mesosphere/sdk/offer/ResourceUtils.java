@@ -150,6 +150,11 @@ public class ResourceUtils {
                 .collect(Collectors.toSet());
     }
 
+    public static boolean isProcessable(Protos.Resource resource, Protos.FrameworkInfo frameworkInfo) {
+        boolean hasDynamicReservations = ResourceUtils.getDynamicReservations(resource).size() > 0;
+        return !hasDynamicReservations || ResourceUtils.isOwnedByThisFramework(resource, frameworkInfo);
+    }
+
     private static Set<String> getRoles(FrameworkInfo frameworkInfo) {
         Set<String> roles = frameworkInfo.getRolesList().stream().collect(Collectors.toSet());
         if (frameworkInfo.hasRole()) {
