@@ -8,8 +8,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mesosphere/dcos-commons/cli/config"
 	"github.com/BurntSushi/toml"
+	"github.com/mesosphere/dcos-commons/cli/config"
 )
 
 const dcosConfigDirName = ".dcos"
@@ -32,7 +32,8 @@ func RunCLICommand(arg ...string) (string, error) {
 			PrintMessage("Please perform one of the following fixes, then try again:")
 			PrintMessage("- Update your PATH environment to include the path to the 'dcos' executable, or...")
 			PrintMessage("- Move the 'dcos' executable into a directory listed in your current PATH (see below).")
-			PrintMessageAndExit("Current PATH is: %s", os.Getenv("PATH"))
+			PrintMessage("Current PATH is: %s", os.Getenv("PATH"))
+			os.Exit(1)
 		}
 		return string(outBytes), err
 	}
@@ -47,11 +48,13 @@ func RequiredCLIConfigValue(name string, description string, errorInstruction st
 		PrintMessage("Unable to retrieve configuration value %s (%s) from CLI. %s:",
 			name, description, errorInstruction)
 		PrintMessage("Error: %s", err.Error())
-		PrintMessageAndExit("Output: %s", output)
+		PrintMessage("Output: %s", output)
+		os.Exit(1)
 	}
 	if len(output) == 0 {
-		PrintMessageAndExit("CLI configuration value %s (%s) is missing/unset. %s",
+		PrintMessage("CLI configuration value %s (%s) is missing/unset. %s",
 			name, description, errorInstruction)
+		os.Exit(1)
 	}
 	return output
 }
@@ -89,7 +92,7 @@ func configDir() (string, error) {
 	homeDrive := os.Getenv("HOMEDRIVE")
 	homePath := os.Getenv("HOMEPATH")
 	if len(homeDrive) != 0 && len(homePath) != 0 {
-		return path.Join(homeDrive + homePath, dcosConfigDirName), nil
+		return path.Join(homeDrive+homePath, dcosConfigDirName), nil
 	}
 	homeDir = os.Getenv("USERPROFILE")
 	if len(homeDir) != 0 {

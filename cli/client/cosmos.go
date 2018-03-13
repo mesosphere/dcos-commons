@@ -26,7 +26,7 @@ const (
 
 // HTTPCosmosPostJSON triggers a HTTP POST request containing jsonPayload to
 // https://dcos.cluster/cosmos/service/<urlPath>
-func HTTPCosmosPostJSON(urlPath, jsonPayload string) ([]byte, error) {
+func HTTPCosmosPostJSON(urlPath string, jsonPayload []byte) ([]byte, error) {
 	SetCustomResponseCheck(checkCosmosHTTPResponse)
 	return CheckHTTPResponse(HTTPQuery(createCosmosHTTPJSONRequest("POST", urlPath, jsonPayload)))
 }
@@ -145,7 +145,7 @@ func checkCosmosHTTPResponse(response *http.Response, body []byte) error {
 	return nil
 }
 
-func createCosmosHTTPJSONRequest(method, urlPath, jsonPayload string) *http.Request {
+func createCosmosHTTPJSONRequest(method, urlPath string, jsonPayload []byte) *http.Request {
 	// NOTE: this explicitly only allows use of /service/ endpoints within Cosmos. See DCOS-15772
 	// for the "correct" solution to allow cleaner use of /package/ endpoints.
 	endpoint := strings.Replace(urlPath, "/", ".", -1)

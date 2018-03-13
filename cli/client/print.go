@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"os"
 
 	"github.com/mesosphere/dcos-commons/cli/config"
 )
@@ -13,18 +12,8 @@ import (
 // fmt.Println(fmt.Sprintf()) to allow assertions against captured output.
 var PrintMessage = printMessage
 
-// PrintMessageAndExit is a placeholder function that wraps a call to
-// PrintMessage() before exiting to allow assertions against captured output.
-var PrintMessageAndExit = printMessageAndExit
-
 func printMessage(format string, a ...interface{}) (int, error) {
-	return fmt.Println(fmt.Sprintf(format, a...))
-}
-
-func printMessageAndExit(format string, a ...interface{}) (int, error) {
-	PrintMessage(format, a...)
-	os.Exit(1)
-	return 0, nil
+	return fmt.Printf(format+"\n", a...)
 }
 
 // PrintVerbose prints a message using PrintMessage iff config.Verbose is enabled

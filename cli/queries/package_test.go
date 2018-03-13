@@ -1,4 +1,4 @@
-package commands
+package queries
 
 import (
 	"bytes"
@@ -58,7 +58,6 @@ func (suite *UpdateTestSuite) SetupSuite() {
 
 	// reassign printing functions to allow us to check output
 	client.PrintMessage = suite.printRecorder
-	client.PrintMessageAndExit = suite.printRecorder
 }
 
 func (suite *UpdateTestSuite) SetupTest() {
@@ -82,7 +81,7 @@ func TestUpdateTestSuite(t *testing.T) {
 
 func (suite *UpdateTestSuite) TestDescribe() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe.json")
-	describe()
+	NewPackage().Describe()
 	// assert that request contains our appId
 	requestBody, err := client.UnmarshalJSON(suite.requestBody)
 	if err != nil {
@@ -122,7 +121,7 @@ func (suite *UpdateTestSuite) TestDescribe() {
 
 func (suite *UpdateTestSuite) TestDescribeNoOptions() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/open/describe.json")
-	describe()
+	NewPackage().Describe()
 	// assert that user receives an error message
 	expectedOutput := `Package configuration is not available for service hello-world.
 This command is only available for packages installed with Enterprise DC/OS 1.10 or newer.
@@ -132,7 +131,7 @@ This command is only available for packages installed with Enterprise DC/OS 1.10
 
 func (suite *UpdateTestSuite) TestUpdatePackageVersions() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe.json")
-	printPackageVersions()
+	NewPackage().VersionInfo()
 	expectedOutput := `Current package version is: "v1.0"
 Package can be downgraded to: ["v0.8", "v0.9"]
 Package can be upgraded to: ["v1.1", "v2.0"]
@@ -142,7 +141,7 @@ Package can be upgraded to: ["v1.1", "v2.0"]
 
 func (suite *UpdateTestSuite) TestUpdatePackageVersionsNoPackageVersions() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe-no-package-versions.json")
-	printPackageVersions()
+	NewPackage().VersionInfo()
 	expectedOutput := `Current package version is: "v1.0"
 No valid package downgrade versions.
 No valid package upgrade versions.
@@ -152,7 +151,7 @@ No valid package upgrade versions.
 
 func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("testdata/input/config.json", "", false)
+	NewPackage().Update("testdata/input/config.json", "", false)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update-configuration.json")
@@ -165,7 +164,7 @@ func (suite *UpdateTestSuite) TestUpdateConfiguration() {
 
 func (suite *UpdateTestSuite) TestUpdateConfigurationOverwrite() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("testdata/input/config.json", "", true)
+	NewPackage().Update("testdata/input/config.json", "", true)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update-configuration-replace.json")
@@ -178,7 +177,7 @@ func (suite *UpdateTestSuite) TestUpdateConfigurationOverwrite() {
 
 func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("", "stub-universe", false)
+	NewPackage().Update("", "stub-universe", false)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update-package-version.json")
@@ -191,7 +190,7 @@ func (suite *UpdateTestSuite) TestUpdatePackageVersion() {
 
 func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/update.json")
-	doUpdate("testdata/input/config.json", "stub-universe", false)
+	NewPackage().Update("testdata/input/config.json", "stub-universe", false)
 
 	// assert request is what we expect
 	expectedRequest := suite.loadFile("testdata/requests/update.json")
@@ -203,19 +202,19 @@ func (suite *UpdateTestSuite) TestUpdateConfigurationAndPackageVersion() {
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithWrongPath() {
-	doUpdate("testdata/input/emptyASDF.json", "", false)
-	expectedOutput := "Failed to load specified options file testdata/input/emptyASDF.json: open testdata/input/emptyASDF.json: no such file or directory\n"
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	err := NewPackage().Update("testdata/input/emptyASDF.json", "", false)
+	expectedOutput := "Failed to read specified options file testdata/input/emptyASDF.json: open testdata/input/emptyASDF.json: no such file or directory"
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithEmptyFile() {
-	doUpdate("testdata/input/empty.json", "", false)
-	expectedOutput := "Failed to parse JSON in specified options file testdata/input/empty.json: unexpected end of JSON input\nContent (1 bytes):  \n"
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	err := NewPackage().Update("testdata/input/empty.json", "", false)
+	expectedOutput := "Failed to parse JSON in provided options: unexpected end of JSON input\nContent (1 bytes):  "
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
 func (suite *UpdateTestSuite) TestUpdateWithMalformedFile() {
-	doUpdate("testdata/input/malformed.json", "", false)
-	expectedOutput := fmt.Sprintf("Failed to parse JSON in specified options file testdata/input/malformed.json: unexpected end of JSON input\nContent (340 bytes): %s\n", suite.loadFile("testdata/input/malformed.json"))
-	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
+	err := NewPackage().Update("testdata/input/malformed.json", "", false)
+	expectedOutput := fmt.Sprintf("Failed to parse JSON in provided options: unexpected end of JSON input\nContent (340 bytes): %s", suite.loadFile("testdata/input/malformed.json"))
+	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
