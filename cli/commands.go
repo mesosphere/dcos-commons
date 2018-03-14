@@ -42,10 +42,12 @@ func HandleDefaultSections(app *kingpin.Application) {
 	planQueries := queries.NewPlan()
 
 	commands.HandleDebugSection(app, queries.NewConfig(), podQueries, queries.NewState())
+	commands.HandleDeprecatedConfigSection(app)
 	commands.HandleDescribeSection(app, packageQueries)
 	commands.HandleEndpointsSection(app, queries.NewEndpoints())
 	commands.HandlePlanSection(app, planQueries)
 	commands.HandlePodSection(app, podQueries)
+	commands.HandleDeprecatedStateSection(app)
 	commands.HandleUpdateSection(app, packageQueries, planQueries)
 }
 

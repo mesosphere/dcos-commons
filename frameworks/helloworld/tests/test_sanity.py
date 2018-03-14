@@ -193,7 +193,7 @@ def test_pod_info():
 def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state properties', json=True)
     # Just check that some expected properties are present. The following may also be present:
     # - "suppressed": Depends on internal scheduler state at the time of the query.
     # - "world-[2,3]-server:task-status": Leftovers from an earlier expansion to 4 world tasks.
@@ -213,6 +213,46 @@ def test_state_properties_get():
 
 
 @pytest.mark.sanity
+def test_help_cli():
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), 'help')
+
+
+@pytest.mark.sanity
+def test_config_cli():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    configs = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config list', json=True)
+    assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
+
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
+        'debug config show {}'.format(configs[0]), print_output=False) # noisy output
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config target', json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config target_id', json=True)
+
+
+@pytest.mark.sanity
+def test_plan_cli():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan list', json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan show {}'.format(config.DEFAULT_PLAN_NAME))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
+        'plan show --json {}'.format(config.DEFAULT_PLAN_NAME), json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
+        'plan show {} --json'.format(config.DEFAULT_PLAN_NAME), json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan force-restart {}'.format(config.DEFAULT_PLAN_NAME))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
+        'plan interrupt {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
+        'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+
+
+@pytest.mark.sanity
+def test_state_cli():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state framework_id', json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state properties', json=True)
+
+
+@pytest.mark.sanity
 def test_state_refresh_disable_cache():
     '''Disables caching via a scheduler envvar'''
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
@@ -220,7 +260,7 @@ def test_state_refresh_disable_cache():
     task_ids = sdk_tasks.get_task_ids(foldered_name, '')
 
     # caching enabled by default:
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
+    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state refresh_cache')
     assert "Received cmd: refresh" in stdout
 
     marathon_config = sdk_marathon.get_config(foldered_name)
@@ -236,7 +276,7 @@ def test_state_refresh_disable_cache():
         stop_max_delay=120*1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
-        output = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
+        output = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state refresh_cache')
         if "failed: 409 Conflict" in output:
             return True
         return False
@@ -257,7 +297,7 @@ def test_state_refresh_disable_cache():
         stop_max_delay=120*1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh():
-        return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
+        return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state refresh_cache')
 
     stdout = check_cache_refresh()
     assert "Received cmd: refresh" in stdout
