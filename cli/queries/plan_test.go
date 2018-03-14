@@ -114,15 +114,15 @@ func (suite *PlanTestSuite) TestMultipleVariablesAreMarshaledToJSON() {
 	assert.Equal(suite.T(), expectedParameters, result)
 }
 
-func (suite *PlanTestSuite) TestParseJSONResponse() {
+func (suite *PlanTestSuite) TestValidateJSONResponse() {
 	valid := []byte(`{"message":"Hi!"}`)
-	assert.True(suite.T(), parsePlansJSONResponse(valid))
+	assert.True(suite.T(), validatePlansJSONResponse(valid))
 
 	validJSONInvalidResponse := []byte(`{"not-a-valid-key":"Nope!"}`)
-	assert.False(suite.T(), parsePlansJSONResponse(validJSONInvalidResponse))
+	assert.False(suite.T(), validatePlansJSONResponse(validJSONInvalidResponse))
 
 	invalidJSON := []byte(`{"message":"Lost a bracket!"`)
-	assert.False(suite.T(), parsePlansJSONResponse(invalidJSON))
+	assert.False(suite.T(), validatePlansJSONResponse(invalidJSON))
 }
 
 func (suite *PlanTestSuite) TestGetQuery() {
