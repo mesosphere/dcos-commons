@@ -75,7 +75,7 @@ def test_pod_replace_then_immediate_config_update():
     sdk_marathon.update_app(foldered_name, cfg)
 
     # ensure all nodes, especially data-0, get launched with the updated config
-    config.check_plugin_installed(plugin_name, service_name=foldered_name)
+    config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
 
@@ -189,6 +189,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
 
     log.info("\n***** Set/verify X-Pack enabled in elasticsearch. Requires parallel upgrade strategy for full restart.")
     config.set_xpack(True, service_name=foldered_name)
+    config.check_elasticsearch_plugin_installed(config.XPACK_PLUGIN_NAME, service_name=foldered_name)
     config.verify_commercial_api_status(True, service_name=foldered_name)
     config.verify_xpack_license(service_name=foldered_name)
 
@@ -214,6 +215,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
         wait_for_deployment=False,
         insert_strict_options=False)
+    config.check_kibana_plugin_installed(config.XPACK_PLUGIN_NAME, service_name=config.KIBANA_PACKAGE_NAME)
     config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
     log.info("\n***** Uninstall kibana with X-Pack enabled")
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
@@ -291,10 +293,10 @@ def test_coordinator_node_replace():
 def test_plugin_install_and_uninstall(default_populated_index):
     plugin_name = 'analysis-phonetic'
     config.update_app(foldered_name, {'TASKCFG_ALL_ELASTICSEARCH_PLUGINS': plugin_name}, current_expected_task_count)
-    config.check_plugin_installed(plugin_name, service_name=foldered_name)
+    config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
 
     config.update_app(foldered_name, {'TASKCFG_ALL_ELASTICSEARCH_PLUGINS': ''}, current_expected_task_count)
-    config.check_plugin_uninstalled(plugin_name, service_name=foldered_name)
+    config.check_elasticsearch_plugin_uninstalled(plugin_name, service_name=foldered_name)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
 

@@ -1,6 +1,6 @@
 ---
 title: SDK Developer Guide
-menuWeight: 1
+menuWeight: 0
 redirect_from:
 - /dev-guide/developer-guide
 - /developer-guide.html

@@ -43,6 +43,7 @@
     "SETUP_HELPER_URI": "{{resource.assets.uris.setup-helper-zip}}",
     "ZOOKEEPER_CLIENT_URI": "{{resource.assets.uris.zookeeper-client-jar}}",
     "CUSTOM_KAFKA_PRINCIPAL_URI": "{{resource.assets.uris.custom-kafka-principal-jar}}",
+    "KAFKA_VERSION": "{{kafka-version}}",
 
     "PLACEMENT_CONSTRAINTS": "{{{service.placement_constraint}}}",
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
@@ -108,7 +109,7 @@
     "TASKCFG_ALL_SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND": "{{service.security.authorization.allow_everyone_if_no_acl_found}}",
     {{/service.security.authorization.enabled}}
 
-    "KAFKA_VERSION_PATH": "kafka_2.11-1.0.0",
+    "KAFKA_VERSION_PATH": "kafka_{{kafka-version}}",
 
     "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",
 

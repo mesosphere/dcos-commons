@@ -7,10 +7,12 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_security
+import sdk_plan
+import sdk_tasks
 import sdk_utils
 
 from security import kerberos as krb5
+from security import transport_encryption
 
 from tests import auth
 from tests import config
@@ -26,19 +28,16 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
-    Creates service account and yields the name.
+    Sets up a service account for use with TLS.
     """
     try:
         name = config.SERVICE_NAME
-        sdk_security.create_service_account(
-            service_account_name=name, service_account_secret=name)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        sdk_cmd.run_cli(
-            "security org groups add_user superusers {name}".format(name=name))
-        yield name
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=name)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -66,8 +65,8 @@ def hdfs_server(kerberos, service_account):
     service_kerberos_options = {
         "service": {
             "name": config.FOLDERED_SERVICE_NAME,
-            "service_account": service_account,
-            "service_account_secret": service_account,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -111,12 +110,12 @@ def hdfs_client(kerberos, hdfs_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "elezar/hdfs-client:dev",
+                    "image": "nvaziri/hdfs-client:stable",
                     "forcePullImage": True
                 },
                 "volumes": [
                     {
-                        "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
+                        "containerPath": "/{}/hdfs.keytab".format(config.HADOOP_VERSION),
                         "secret": "hdfs_keytab"
                     }
                 ]
@@ -137,6 +136,7 @@ def hdfs_client(kerberos, hdfs_server):
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
                 "HDFS_SERVICE_NAME": sdk_hosts._safe_name(config.FOLDERED_SERVICE_NAME),
+                "HADOOP_VERSION": config.HADOOP_VERSION
             }
         }
 
@@ -190,14 +190,14 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice"))
-    write_access_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(
+    write_access_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(
         config.TEST_CONTENT_SMALL,
         "/users/alice/{}".format(test_filename)))
     log.info("Alice can write: %s", write_access_cmd)
     rc, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], write_access_cmd)
     assert stdout == '' and rc == 0
 
-    read_access_cmd = config.hdfs_read_command("/users/alice/{}".format(test_filename))
+    read_access_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command("/users/alice/{}".format(test_filename)))
     log.info("Alice can read: %s", read_access_cmd)
     _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], read_access_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
@@ -219,3 +219,20 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     _, _, stderr = sdk_cmd.task_exec(hdfs_client["id"], read_access_cmd)
     log.info("Bob can't read from alice's directory: %s", read_access_cmd)
     assert "cat: Permission denied: user=bob" in stderr
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_kill_all_journalnodes():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
+    name_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name')
+    data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data')
+
+    for journal_pod in config.get_pod_type_instances("journal", foldered_name):
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod restart {}'.format(journal_pod))
+        config.expect_recovery(service_name=foldered_name)
+
+    sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'data', data_ids)

@@ -7,7 +7,6 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_security
 import sdk_utils
 
 from security import kerberos as krb5
@@ -27,19 +26,16 @@ pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
 @pytest.fixture(scope='module', autouse=True)
 def service_account(configure_security):
     """
-    Creates service account and yields the name.
+    Sets up a service account for use with TLS.
     """
     try:
         name = config.SERVICE_NAME
-        sdk_security.create_service_account(
-            service_account_name=name, service_account_secret=name)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        sdk_cmd.run_cli(
-            "security org groups add_user superusers {name}".format(name=name))
-        yield name
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=name)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -67,8 +63,8 @@ def hdfs_server(kerberos, service_account):
     service_kerberos_options = {
         "service": {
             "name": config.SERVICE_NAME,
-            "service_account": service_account,
-            "service_account_secret": service_account,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -140,6 +136,7 @@ def hdfs_client(kerberos, hdfs_server):
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
                 "HDFS_SERVICE_NAME": config.SERVICE_NAME,
+                "HADOOP_VERSION": config.HADOOP_VERSION
             }
         }
 
@@ -201,10 +198,10 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
 
     test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4()))
-    write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
+    write_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.task_exec(hdfs_client["id"], write_cmd)
 
-    read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(test_filename))
+    read_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_read_command(test_filename))
     _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], read_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
 

@@ -4,6 +4,9 @@ set -e
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT_DIR=$(dirname $(dirname $FRAMEWORK_DIR))
 
+# grab TEMPLATE_x vars for use in universe template:
+source $FRAMEWORK_DIR/versions.sh
+
 # Build SDK artifacts (executor, bootstrap) to be included in our release, but skip SDK tests
 # since since that's not in our scope. Projects that aren't colocated in dcos-commons should skip
 # this step, and should omit the "REPO_ROOT_DIR" artifacts listed below.

@@ -18,6 +18,8 @@ SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
 
+XPACK_PLUGIN_NAME = 'x-pack'
+
 # sum of default pod counts, with one task each:
 # - master: 3
 # - data: 2
@@ -109,7 +111,17 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
     wait_fixed=1000,
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
-def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
+def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
+    cmd = "bash -c '$MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana-plugin list'"
+    _, stdout, _ = sdk_cmd.task_exec(service_name, cmd)
+    return plugin_name in stdout
+
+
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
+def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and len(result) == DEFAULT_TASK_COUNT
 
@@ -118,7 +130,7 @@ def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     wait_fixed=1000,
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
-def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
+def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and result == []
 
