@@ -112,7 +112,7 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
-    cmd = "KIBANA_DIRECTORY=$(ls -d $MESOS_SANDBOX/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list"
+    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d $MESOS_SANDBOX/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'"
     _, stdout, _ = sdk_cmd.task_exec(service_name, cmd)
     return plugin_name in stdout
 
