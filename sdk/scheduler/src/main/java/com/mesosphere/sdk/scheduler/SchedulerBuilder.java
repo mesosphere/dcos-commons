@@ -11,6 +11,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -40,7 +41,6 @@ import com.mesosphere.sdk.storage.PersisterException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  */
 public class SchedulerBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerBuilder.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerBuilder.class);
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
 
     private ServiceSpec serviceSpec;

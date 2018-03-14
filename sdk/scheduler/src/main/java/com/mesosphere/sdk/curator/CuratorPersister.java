@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.curator;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -16,7 +17,6 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class CuratorPersister implements Persister {
 
-    private static final Logger logger = LoggerFactory.getLogger(CuratorPersister.class);
+    private static final Logger logger = LoggingUtils.getLogger(CuratorPersister.class);
 
     /**
      * Number of times to attempt an atomic write transaction in storeMany().

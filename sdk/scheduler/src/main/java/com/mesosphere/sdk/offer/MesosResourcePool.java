@@ -6,7 +6,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -15,7 +14,7 @@ import java.util.*;
  * consumption of the {@link Offer}'s resources.
  */
 public class MesosResourcePool {
-    private static final Logger logger = LoggerFactory.getLogger(MesosResourcePool.class);
+    private static final Logger logger = LoggingUtils.getLogger(MesosResourcePool.class);
     private Offer offer;
 
     /**

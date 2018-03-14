@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.concurrent.atomic.AtomicLong;
@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * rate-limiting purposes.
  */
 public class TimedLaunchConstrainer implements LaunchConstrainer {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private AtomicLong lastPermanentRecoveryLaunchMs;
     private Duration minDelay;

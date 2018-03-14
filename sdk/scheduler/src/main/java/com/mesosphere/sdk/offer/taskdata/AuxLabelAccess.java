@@ -10,12 +10,12 @@ import java.util.UUID;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 
 /**
@@ -26,7 +26,7 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
  */
 public class AuxLabelAccess {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuxLabelAccess.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(AuxLabelAccess.class);
 
     private AuxLabelAccess() {
         // do not instantiate

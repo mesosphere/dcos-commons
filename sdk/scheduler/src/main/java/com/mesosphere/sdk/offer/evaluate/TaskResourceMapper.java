@@ -2,12 +2,12 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * of expected {@link ResourceSpec}s for that task.
  */
 class TaskResourceMapper {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
     private final String taskSpecName;

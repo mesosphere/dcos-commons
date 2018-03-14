@@ -15,7 +15,6 @@ import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
  * in reference to {@link PodInstanceRequirement}s.
  */
 public class OfferEvaluator {
-    private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
+    private static final Logger logger = LoggingUtils.getLogger(OfferEvaluator.class);
 
     private final StateStore stateStore;
     private final OfferOutcomeTracker offerOutcomeTracker;

@@ -11,7 +11,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultPlanScheduler implements PlanScheduler {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultPlanScheduler.class);
+    private static final Logger logger = LoggingUtils.getLogger(DefaultPlanScheduler.class);
 
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;

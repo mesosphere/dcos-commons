@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -19,7 +18,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
 public class VolumeEvaluationStage implements OfferEvaluationStage {
-    private static final Logger logger = LoggerFactory.getLogger(VolumeEvaluationStage.class);
+    private static final Logger logger = LoggingUtils.getLogger(VolumeEvaluationStage.class);
     private final VolumeSpec volumeSpec;
     private final Optional<String> persistenceId;
     private final String taskName;

@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * @param <C> the type of the child elements
  */
 public interface ParentElement<C extends Element> extends Element, Interruptible {
-    static final Logger LOGGER = LoggerFactory.getLogger(ParentElement.class);
+    static final Logger LOGGER = LoggingUtils.getLogger(ParentElement.class);
 
     /**
      * Gets the children of this Element.

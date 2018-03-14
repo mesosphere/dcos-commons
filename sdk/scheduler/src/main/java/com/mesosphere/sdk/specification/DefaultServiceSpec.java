@@ -16,6 +16,7 @@ import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
@@ -28,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
-    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceSpec.class);
+    private static final Logger logger = LoggingUtils.getLogger(DefaultServiceSpec.class);
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")

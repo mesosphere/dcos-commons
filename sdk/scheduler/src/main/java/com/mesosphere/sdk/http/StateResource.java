@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
@@ -16,7 +17,6 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Path("/v1/state")
 public class StateResource {
 
-    private static final Logger logger = LoggerFactory.getLogger(StateResource.class);
+    private static final Logger logger = LoggingUtils.getLogger(StateResource.class);
     protected static final String FILE_NAME_PREFIX = "file-";
     protected static final Charset FILE_ENCODING = StandardCharsets.UTF_8;
     protected static final int FILE_SIZE = 1024; // state store shouldn't be holding big files anyway...

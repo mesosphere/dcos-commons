@@ -2,10 +2,9 @@ package com.mesosphere.sdk.dcos;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
-
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -13,7 +12,7 @@ import java.io.IOException;
  * This class represents a set of capabilities that may or may not be supported in a given version of DC/OS.
  */
 public class Capabilities {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Capabilities.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(Capabilities.class);
     private static final Object lock = new Object();
     private static Capabilities capabilities;
 

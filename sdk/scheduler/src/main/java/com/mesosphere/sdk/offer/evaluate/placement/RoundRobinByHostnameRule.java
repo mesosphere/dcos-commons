@@ -2,13 +2,13 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,7 +43,7 @@ import java.util.Optional;
  */
 public class RoundRobinByHostnameRule extends AbstractRoundRobinRule {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(RoundRobinByHostnameRule.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(RoundRobinByHostnameRule.class);
 
     public RoundRobinByHostnameRule(Optional<Integer> agentCount) {
         this(agentCount, null);

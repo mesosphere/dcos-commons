@@ -2,12 +2,12 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -28,7 +28,7 @@ import java.util.*;
  */
 public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigStore.class);
+    private static final Logger logger = LoggingUtils.getLogger(ConfigStore.class);
 
     /**
      * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION

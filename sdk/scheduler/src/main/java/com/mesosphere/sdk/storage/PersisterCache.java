@@ -7,7 +7,8 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 /**
  * A transparent write-through cache for an underlying {@link Persister} instance. Each cache instance is thread-safe,
@@ -15,7 +16,7 @@ import org.slf4j.LoggerFactory;
  */
 public class PersisterCache implements Persister {
 
-    private static final Logger logger = LoggerFactory.getLogger(PersisterCache.class);
+    private static final Logger logger = LoggingUtils.getLogger(PersisterCache.class);
 
     private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
     private final Lock rlock = internalLock.readLock();

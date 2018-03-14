@@ -3,8 +3,8 @@ package com.mesosphere.sdk.scheduler.decommission;
 import java.util.Optional;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallStep;
@@ -14,7 +14,7 @@ import com.mesosphere.sdk.state.StateStore;
  * A step which erases a specified task's state from zookeeper.
  */
 public class EraseTaskStateStep extends UninstallStep {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EraseTaskStateStep.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(EraseTaskStateStep.class);
 
     private final StateStore stateStore;
     private final String taskName;

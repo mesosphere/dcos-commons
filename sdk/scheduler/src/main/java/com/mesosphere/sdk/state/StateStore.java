@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.state;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -10,7 +11,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -41,7 +41,7 @@ import java.util.*;
  */
 public class StateStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(StateStore.class);
+    private static final Logger logger = LoggingUtils.getLogger(StateStore.class);
 
     /**
      * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION

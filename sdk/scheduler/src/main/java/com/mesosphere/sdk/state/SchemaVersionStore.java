@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -7,7 +8,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Used by StateStore and ConfigStore implementations to retrieve and validate the Schema Version against whatever
@@ -24,7 +24,7 @@ public class SchemaVersionStore {
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-    private static final Logger logger = LoggerFactory.getLogger(SchemaVersionStore.class);
+    private static final Logger logger = LoggingUtils.getLogger(SchemaVersionStore.class);
 
     /**
      * Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that

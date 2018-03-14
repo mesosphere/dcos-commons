@@ -2,6 +2,7 @@ package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
@@ -19,7 +20,6 @@ import com.mesosphere.sdk.storage.Persister;
 import org.apache.mesos.SchedulerDriver;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.*;
@@ -30,7 +30,7 @@ import java.util.*;
  */
 public class ServiceTestRunner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTestRunner.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ServiceTestRunner.class);
     private static final Random RANDOM = new Random();
 
     /**
