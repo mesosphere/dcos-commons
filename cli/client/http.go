@@ -116,8 +116,8 @@ func HTTPServicePutJSON(urlPath string, jsonPayload []byte) ([]byte, error) {
 	return CheckHTTPResponse(HTTPQuery(CreateServiceHTTPJSONRequest("PUT", urlPath, jsonPayload)))
 }
 
-// HTTPQuery does a HTTP query
-func HTTPQuery(request *http.Request) *http.Response {
+// HTTPQuery does a HTTP query, returning the response if it's successful, or an error otherwise
+func HTTPQuery(request *http.Request) (*http.Response, error) {
 	client := &http.Client{
 		Transport: &http.Transport{
 			// Support for 'HTTP[S]_PROXY'/'NO_PROXY' envvars
@@ -126,29 +126,7 @@ func HTTPQuery(request *http.Request) *http.Response {
 			TLSClientConfig: buildTLSConfig(),
 		},
 	}
-	var err interface{}
-	response, err := client.Do(request)
-	switch err.(type) {
-	case *url.Error:
-		// extract wrapped error
-		err = err.(*url.Error).Err
-	}
-	if err != nil {
-		switch err.(type) {
-		case x509.UnknownAuthorityError:
-			// custom suggestions for a certificate error:
-			PrintMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			PrintMessage("- Is the cluster CA certificate configured correctly? Check 'dcos config show core.ssl_verify'.")
-			PrintMessage("- To ignore the unvalidated certificate and force your command (INSECURE), use --force-insecure")
-		default:
-			PrintMessage("HTTP %s Query for %s failed: %s", request.Method, request.URL, err)
-			PrintMessage("- Is 'core.dcos_url' set correctly? Check 'dcos config show core.dcos_url'.")
-			PrintMessage("- Is 'core.dcos_acs_token' set correctly? Run 'dcos auth login' to log in.")
-			PrintMessage("- Are any needed proxy settings set correctly via HTTP_PROXY/HTTPS_PROXY/NO_PROXY? Check with your network administrator.")
-		}
-		os.Exit(1)
-	}
-	return response
+	return client.Do(request)
 }
 
 // CreateServiceHTTPJSONRequest creates a service HTTP JSON request

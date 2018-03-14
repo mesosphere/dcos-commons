@@ -57,52 +57,59 @@ func (q *Pod) Status(podName string, rawJSON bool) error {
 	return nil
 }
 
-func toServiceTree(podsJSONBytes []byte) (string, error) {
-	response, err := client.UnmarshalJSON(podsJSONBytes)
+type podTaskResponse struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+
+type podInstanceResponse struct {
+	Name  string            `json:"name"`
+	Tasks []podTaskResponse `json:"tasks"`
+}
+
+type podTypeResponse struct {
+	Name      string                `json:"name"`
+	Instances []podInstanceResponse `json:"instances"`
+}
+
+type serviceResponse struct {
+	Service string            `json:"service"`
+	Pods    []podTypeResponse `json:"pods"`
+}
+
+func toServiceTree(podsBytes []byte) (string, error) {
+	service := serviceResponse{}
+	err := json.Unmarshal(podsBytes, &service)
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse JSON in pods response: %s", err)
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("%s\n", response["service"]))
-
-	rawPodTypes, ok := response["pods"].([]interface{})
-	if !ok {
-		return "", fmt.Errorf("Failed to parse JSON pods in response")
-	}
-	for i, rawPodType := range rawPodTypes {
-		appendPodType(&buf, rawPodType, i == len(rawPodTypes)-1)
+	buf.WriteString(fmt.Sprintf("%s\n", service.Service))
+	for i, podType := range service.Pods {
+		appendPodType(&buf, &podType, i == len(service.Pods)-1)
 	}
 
 	return strings.TrimRight(buf.String(), "\n"), nil
 }
 
-func toSinglePodTree(podsJSONBytes []byte) (string, error) {
-	response, err := client.UnmarshalJSON(podsJSONBytes)
+func toSinglePodTree(podsBytes []byte) (string, error) {
+	instance := podInstanceResponse{}
+	err := json.Unmarshal(podsBytes, &instance)
 	if err != nil {
 		return "", fmt.Errorf("Failed to parse JSON in pod response: %s", err)
 	}
 
 	var buf bytes.Buffer
-	buf.WriteString(fmt.Sprintf("%s\n", response["name"]))
-
-	rawTasks, ok := response["tasks"].([]interface{})
-	if !ok {
-		return "", fmt.Errorf("Failed to parse JSON pods in response")
-	}
-	for i, rawTask := range rawTasks {
-		appendTask(&buf, rawTask, "", i == len(rawTasks)-1)
+	buf.WriteString(fmt.Sprintf("%s\n", instance.Name))
+	for i, task := range instance.Tasks {
+		appendTask(&buf, &task, "", i == len(instance.Tasks)-1)
 	}
 
 	return strings.TrimRight(buf.String(), "\n"), nil
 }
 
-func appendPodLayer(buf *bytes.Buffer, rawPodType interface{}, lastPodType bool) {
-	podType, ok := rawPodType.(map[string]interface{})
-	if !ok {
-		return
-	}
-
+func appendPodType(buf *bytes.Buffer, podType *podTypeResponse, lastPodType bool) {
 	var headerPrefix string
 	var childPrefix string
 	if lastPodType {
@@ -113,50 +120,13 @@ func appendPodLayer(buf *bytes.Buffer, rawPodType interface{}, lastPodType bool)
 		childPrefix = "│  "
 	}
 
-	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podType["name"]))
-
-	rawPodInstances, ok := podType["instances"].([]interface{})
-	if !ok {
-		return
-	}
-	for i, rawPodInstance := range rawPodInstances {
-		appendPodInstance(buf, rawPodInstance, childPrefix, i == len(rawPodInstances)-1)
+	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podType.Name))
+	for i, instance := range podType.Instances {
+		appendPodInstance(buf, &instance, childPrefix, i == len(podType.Instances)-1)
 	}
 }
 
-func appendPodType(buf *bytes.Buffer, rawPodType interface{}, lastPodType bool) {
-	podType, ok := rawPodType.(map[string]interface{})
-	if !ok {
-		return
-	}
-
-	var headerPrefix string
-	var childPrefix string
-	if lastPodType {
-		headerPrefix = "└─ "
-		childPrefix = "   "
-	} else {
-		headerPrefix = "├─ "
-		childPrefix = "│  "
-	}
-
-	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podType["name"]))
-
-	rawPodInstances, ok := podType["instances"].([]interface{})
-	if !ok {
-		return
-	}
-	for i, rawPodInstance := range rawPodInstances {
-		appendPodInstance(buf, rawPodInstance, childPrefix, i == len(rawPodInstances)-1)
-	}
-}
-
-func appendPodInstance(buf *bytes.Buffer, rawPodInstance interface{}, prefix string, lastPodInstance bool) {
-	podInstance, ok := rawPodInstance.(map[string]interface{})
-	if !ok {
-		return
-	}
-
+func appendPodInstance(buf *bytes.Buffer, instance *podInstanceResponse, prefix string, lastPodInstance bool) {
 	var headerPrefix string
 	var childPrefix string
 	if lastPodInstance {
@@ -167,39 +137,26 @@ func appendPodInstance(buf *bytes.Buffer, rawPodInstance interface{}, prefix str
 		childPrefix = prefix + "│  "
 	}
 
-	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, podInstance["name"]))
+	buf.WriteString(fmt.Sprintf("%s%s\n", headerPrefix, instance.Name))
 
-	tasks, ok := podInstance["tasks"].([]interface{})
-	if !ok {
-		return
-	}
-	for i, rawTask := range tasks {
-		appendTask(buf, rawTask, childPrefix, i == len(tasks)-1)
+	for i, task := range instance.Tasks {
+		appendTask(buf, &task, childPrefix, i == len(instance.Tasks)-1)
 	}
 }
 
-func appendTask(buf *bytes.Buffer, rawTask interface{}, prefix string, lastTask bool) {
-	task, ok := rawTask.(map[string]interface{})
-	if !ok {
-		return
-	}
-
+func appendTask(buf *bytes.Buffer, task *podTaskResponse, prefix string, lastTask bool) {
 	if lastTask {
 		prefix += "└─ "
 	} else {
 		prefix += "├─ "
 	}
-
-	taskName, ok := task["name"]
-	if !ok {
-		taskName = "<UNKNOWN>"
+	if len(task.Name) == 0 {
+		task.Name = unknownValue
 	}
-	taskStatus, ok := task["status"]
-	if !ok {
-		taskStatus = "<UNKNOWN>"
+	if len(task.Status) == 0 {
+		task.Status = unknownValue
 	}
-
-	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", prefix, taskName, taskStatus))
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", prefix, task.Name, task.Status))
 }
 
 func (q *Pod) Info(podName string) error {

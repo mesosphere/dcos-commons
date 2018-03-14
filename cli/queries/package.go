@@ -21,6 +21,18 @@ type updateRequest struct {
 	Replace        bool                   `json:"replace"`
 }
 
+type describePackageResponse struct {
+	Version string `json:"version"`
+}
+
+type describeResponse struct {
+	Package         describePackageResponse `json:"package"`
+	UpgradesTo      []string                `json:"upgradesTo"`
+	DowngradesTo    []string                `json:"downgradesTo"`
+	// Note: ResolvedOptions is only provided on DC/OS EE 1.10 or later
+	ResolvedOptions map[string]interface{}  `json:"resolvedOptions"`
+}
+
 type Package struct {
 }
 
@@ -37,14 +49,19 @@ func (q *Package) Describe() error {
 	if err != nil {
 		return err
 	}
+	response := describeResponse{}
+	err = json.Unmarshal(responseBytes, &response)
+	if err != nil {
+		return fmt.Errorf("Failed to decode 'describe' response. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
+	}
 	// This attempts to retrieve resolvedOptions from the response. This field is only provided by
 	// Cosmos running on Enterprise DC/OS 1.10 clusters or later.
-	resolvedOptionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "resolvedOptions")
-	if err != nil {
-		return fmt.Errorf("Failed to get 'resolvedOptions' field. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
-	}
-	if resolvedOptionsBytes != nil {
-		client.PrintJSONBytes(resolvedOptionsBytes)
+	if len(response.ResolvedOptions) > 0 {
+		optionsStr, err := json.MarshalIndent(response.ResolvedOptions, "", "  ")
+		if err != nil {
+			return fmt.Errorf("Failed to encode resolved options. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
+		}
+		client.PrintMessage("%s", optionsStr)
 	} else {
 		client.PrintMessage("Package configuration is not available for service %s.", config.ServiceName)
 		client.PrintMessage("This command is only available for packages installed with Enterprise DC/OS 1.10 or newer.")
@@ -58,41 +75,23 @@ func (q *Package) VersionInfo() error {
 	if err != nil {
 		return err
 	}
-	packageBytes, err := client.GetValueFromJSONResponse(responseBytes, "package")
+
+	response := describeResponse{}
+	err = json.Unmarshal(responseBytes, &response)
 	if err != nil {
-		return fmt.Errorf("Failed to get 'package' field. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
-	}
-	currentVersionBytes, err := client.GetValueFromJSONResponse(packageBytes, "version")
-	if err != nil {
-		return fmt.Errorf("Failed to get 'package.version' field. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
-	}
-	downgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "downgradesTo")
-	if err != nil {
-		return fmt.Errorf("Failed to get 'downgradesTo' field. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
-	}
-	downgradeVersions, err := client.JSONBytesToArray(downgradeVersionsBytes)
-	if err != nil {
-		return fmt.Errorf("Failed to convert 'downgradesTo' to array. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
-	}
-	upgradeVersionsBytes, err := client.GetValueFromJSONResponse(responseBytes, "upgradesTo")
-	if err != nil {
-		return fmt.Errorf("Failed to get 'upgradesTo' field. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
-	}
-	updateVersions, err := client.JSONBytesToArray(upgradeVersionsBytes)
-	if err != nil {
-		return fmt.Errorf("Failed to convert 'upgradesTo' to array. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
+		return fmt.Errorf("Failed to decode 'describe' response. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
 	}
 
-	client.PrintMessage("Current package version is: %s", currentVersionBytes)
+	client.PrintMessage("Current package version is: %s", response.Package.Version)
 
-	if len(downgradeVersions) > 0 {
-		client.PrintMessage("Package can be downgraded to: %s", client.PrettyPrintSlice(downgradeVersions))
+	if len(response.DowngradesTo) > 0 {
+		client.PrintMessage("Package can be downgraded to:\n%s", client.FormatList(response.DowngradesTo))
 	} else {
 		client.PrintMessage("No valid package downgrade versions.")
 	}
 
-	if len(updateVersions) > 0 {
-		client.PrintMessage("Package can be upgraded to: %s", client.PrettyPrintSlice(updateVersions))
+	if len(response.UpgradesTo) > 0 {
+		client.PrintMessage("Package can be upgraded to:\n%s", client.FormatList(response.UpgradesTo))
 	} else {
 		client.PrintMessage("No valid package upgrade versions.")
 	}
@@ -124,7 +123,8 @@ func (q *Package) Update(optionsFile, packageVersion string, replace bool) error
 				return fmt.Errorf("Failed to read specified options file %s: %s", optionsFile, err)
 			}
 		}
-		optionsJSON, err := client.UnmarshalJSON(fileBytes)
+		var optionsJSON map[string]interface{}
+		err = json.Unmarshal(fileBytes, &optionsJSON)
 		if err != nil {
 			return fmt.Errorf("Failed to parse JSON in provided options: %s\nContent (%d bytes): %s", err, len(fileBytes), string(fileBytes))
 		}
@@ -138,7 +138,9 @@ func (q *Package) Update(optionsFile, packageVersion string, replace bool) error
 	if err != nil {
 		return err
 	}
-	_, err = client.UnmarshalJSON(responseBytes)
+	// To determine if the request was successful, just try to trivially decode the response as JSON
+	var response map[string]interface{}
+	err = json.Unmarshal(responseBytes, &response)
 	if err != nil {
 		return fmt.Errorf("Failed to unmarshal response. Error: %s\nOriginal data:\n%s", err, string(responseBytes))
 	}

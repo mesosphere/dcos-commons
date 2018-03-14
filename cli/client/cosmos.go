@@ -64,9 +64,9 @@ type cosmosErrorResponse struct {
 func createBadVersionError(data cosmosData) error {
 	var buf bytes.Buffer
 	writer := bufio.NewWriter(&buf)
-	fmt.Fprintf(writer, "Unable to update %s to requested version: \"%s\"\n", config.ServiceName, data.UpdateVersion)
+	fmt.Fprintf(writer, "Unable to update %s to requested version: %s\n", config.ServiceName, data.UpdateVersion)
 	if len(data.ValidVersions) > 0 {
-		fmt.Fprintf(writer, "Valid package versions are: %s", PrettyPrintSlice(data.ValidVersions))
+		fmt.Fprintf(writer, "Valid package versions are:\n%s", FormatList(data.ValidVersions))
 	} else {
 		fmt.Fprint(writer, "No valid package versions to update to.")
 	}

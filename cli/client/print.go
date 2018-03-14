@@ -44,3 +44,19 @@ func PrintJSONBytes(responseBytes []byte) {
 func PrintResponseText(body []byte) {
 	PrintMessage("%s\n", string(body))
 }
+
+// FormatList outputs the provided entries as a list:
+// - foo
+// - bar
+// ...
+func FormatList(entries []string) string {
+	var buf bytes.Buffer
+	for _, element := range entries {
+		buf.WriteString(fmt.Sprintf("- %s\n", element))
+	}
+	// Remove trailing newline:
+	if buf.Len() > 0 {
+		buf.Truncate(buf.Len() - 1)
+	}
+	return buf.String()
+}

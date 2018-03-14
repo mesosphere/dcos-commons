@@ -2,6 +2,7 @@ package queries
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -83,7 +84,8 @@ func (suite *UpdateTestSuite) TestDescribe() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe.json")
 	NewPackage().Describe()
 	// assert that request contains our appId
-	requestBody, err := client.UnmarshalJSON(suite.requestBody)
+	var requestBody map[string]interface{}
+	err := json.Unmarshal(suite.requestBody, &requestBody)
 	if err != nil {
 		suite.T().Fatal(err)
 	}
@@ -132,9 +134,13 @@ This command is only available for packages installed with Enterprise DC/OS 1.10
 func (suite *UpdateTestSuite) TestUpdatePackageVersions() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe.json")
 	NewPackage().VersionInfo()
-	expectedOutput := `Current package version is: "v1.0"
-Package can be downgraded to: ["v0.8", "v0.9"]
-Package can be upgraded to: ["v1.1", "v2.0"]
+	expectedOutput := `Current package version is: v1.0
+Package can be downgraded to:
+- v0.9
+- v0.8
+Package can be upgraded to:
+- v1.1
+- v2.0
 `
 	assert.Equal(suite.T(), string(expectedOutput), suite.capturedOutput.String())
 }
@@ -142,7 +148,7 @@ Package can be upgraded to: ["v1.1", "v2.0"]
 func (suite *UpdateTestSuite) TestUpdatePackageVersionsNoPackageVersions() {
 	suite.responseBody = suite.loadFile("testdata/responses/cosmos/1.10/enterprise/describe-no-package-versions.json")
 	NewPackage().VersionInfo()
-	expectedOutput := `Current package version is: "v1.0"
+	expectedOutput := `Current package version is: v1.0
 No valid package downgrade versions.
 No valid package upgrade versions.
 `

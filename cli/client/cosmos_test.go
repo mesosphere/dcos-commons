@@ -66,8 +66,8 @@ func TestUpdateTestSuite(t *testing.T) {
 }
 
 func (suite *CosmosTestSuite) createExampleRequest() (*http.Request, []byte) {
-	requestBody := `{ "appId" : "my-app" }`
-	return createCosmosHTTPJSONRequest("POST", "describe", []byte(requestBody)), []byte(requestBody)
+	requestBody := []byte(`{ "appId" : "my-app" }`)
+	return createCosmosHTTPJSONRequest("POST", "describe", requestBody), requestBody
 }
 
 func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename string) (http.Response, []byte) {
@@ -119,10 +119,14 @@ Possible causes:
 func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
 	// create 400 responses for BadVersionUpdate
 	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version.json",
-		`Unable to update hello-world to requested version: "not-a-valid"
-Valid package versions are: ["v0.8", "v0.9", "v1.1", "v2.0"]`)
+		`Unable to update hello-world to requested version: not-a-valid
+Valid package versions are:
+- v0.8
+- v0.9
+- v1.1
+- v2.0`)
 	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version-no-versions.json",
-		`Unable to update hello-world to requested version: "not-a-valid"
+		`Unable to update hello-world to requested version: not-a-valid
 No valid package versions to update to.`)
 }
 

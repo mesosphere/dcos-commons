@@ -13,15 +13,16 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/client"
 )
 
-const UNKNOWN_VALUE = "<UNKNOWN>"
+const unknownValue = "<UNKNOWN>"
 
-var errPlanStatus417 = errors.New("plan endpoint returned HTTP status code 417")
+// A separate error for this case, allowing the Status call to ignore it.
+var errPlanStatus417 = errors.New("Plan endpoint returned HTTP Expectation Failed response")
 
 type plansResponse struct {
 	Message string `json:"message"`
 }
 
-func parsePlansJSONResponse(jsonBytes []byte) bool {
+func validatePlansJSONResponse(jsonBytes []byte) bool {
 	var response plansResponse
 	err := json.Unmarshal(jsonBytes, &response)
 	if err != nil {
@@ -79,7 +80,7 @@ func (q *Plan) ForceComplete(planName, phase, step string) error {
 	if err != nil {
 		return err
 	}
-	if parsePlansJSONResponse(responseBytes) {
+	if validatePlansJSONResponse(responseBytes) {
 		client.PrintMessage("\"%s\" plan: step \"%s\" in phase \"%s\" has been forced to complete.", planName, step, phase)
 	} else {
 		client.PrintMessage("\"%s\" plan: step \"%s\" in phase \"%s\" could not be forced to complete.", planName, step, phase)
@@ -94,7 +95,7 @@ func (q *Plan) ForceRestart(planName, phase, step string) error {
 	if err != nil {
 		return err
 	}
-	if parsePlansJSONResponse(responseBytes) {
+	if validatePlansJSONResponse(responseBytes) {
 		if step == "" && phase == "" {
 			client.PrintMessage("\"%s\" plan has been restarted.", planName)
 		} else if step == "" {
@@ -130,7 +131,7 @@ func (q *Plan) Pause(planName, phase string) error {
 	if err != nil {
 		return err
 	}
-	if parsePlansJSONResponse(responseBytes) {
+	if validatePlansJSONResponse(responseBytes) {
 		if phase == "" {
 			client.PrintMessage("\"%s\" plan has been paused.", planName)
 		} else {
@@ -153,7 +154,7 @@ func (q *Plan) Resume(planName, phase string) error {
 	if err != nil {
 		return err
 	}
-	if parsePlansJSONResponse(responseBytes) {
+	if validatePlansJSONResponse(responseBytes) {
 		if phase == "" {
 			client.PrintMessage("\"%s\" plan has been resumed.", planName)
 		} else {
@@ -236,34 +237,45 @@ func (q *Plan) Stop(planName string) error {
 	return nil
 }
 
+type stepResponse struct {
+	Name   string `json:"name"`
+	Status string `json:"status"`
+}
+type phaseResponse struct {
+	Name     string         `json:"name"`
+	Status   string         `json:"status"`
+	Strategy string         `json:"strategy"`
+	Steps    []stepResponse `json:"steps"`
+}
+
+type planResponse struct {
+	Status   string          `json:"status"`
+	Strategy string          `json:"strategy"`
+	Phases   []phaseResponse `json:"phases"`
+	Errors   []interface{}   `json:"errors"`
+}
+
 func toPlanStatusTree(planName string, planJSONBytes []byte) (string, error) {
-	planJSON, err := client.UnmarshalJSON(planJSONBytes)
+	plan := planResponse{}
+	err := json.Unmarshal(planJSONBytes, &plan)
 	if err != nil {
 		return "", err
 	}
 	var buf bytes.Buffer
 
-	planStatus, ok := planJSON["status"]
-	if !ok {
-		planStatus = UNKNOWN_VALUE
+	if len(plan.Status) == 0 {
+		plan.Status = unknownValue
 	}
-	planStrategy, ok := planJSON["strategy"]
-	if !ok {
-		planStrategy = UNKNOWN_VALUE
+	if len(plan.Strategy) == 0 {
+		plan.Strategy = unknownValue
 	}
-	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, planStrategy, planStatus))
-
-	rawPhases, ok := planJSON["phases"].([]interface{})
-	if ok {
-		for i, rawPhase := range rawPhases {
-			appendPhase(&buf, rawPhase, i == len(rawPhases)-1)
-		}
+	buf.WriteString(fmt.Sprintf("%s (%s strategy) (%s)\n", planName, plan.Strategy, plan.Status))
+	for i, phase := range plan.Phases {
+		appendPhase(&buf, &phase, i == len(plan.Phases)-1)
 	}
-
-	errors, ok := planJSON["errors"].([]interface{})
-	if ok && len(errors) > 0 {
+	if len(plan.Errors) > 0 {
 		buf.WriteString("\nErrors:\n")
-		for _, error := range errors {
+		for _, error := range plan.Errors {
 			buf.WriteString(fmt.Sprintf("- %s\n", error))
 		}
 	}
@@ -271,7 +283,7 @@ func toPlanStatusTree(planName string, planJSONBytes []byte) (string, error) {
 	return strings.TrimRight(buf.String(), "\n"), nil
 }
 
-func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
+func appendPhase(buf *bytes.Buffer, phase *phaseResponse, lastPhase bool) {
 	var phasePrefix string
 	var stepPrefix string
 	if lastPhase {
@@ -282,60 +294,33 @@ func appendPhase(buf *bytes.Buffer, rawPhase interface{}, lastPhase bool) {
 		stepPrefix = "│  "
 	}
 
-	phase, ok := rawPhase.(map[string]interface{})
-	if !ok {
-		return
+	if len(phase.Name) == 0 {
+		phase.Name = unknownValue
 	}
-
-	buf.WriteString(fmt.Sprintf("%s%s\n", phasePrefix, phaseString(phase)))
-
-	rawSteps, ok := phase["steps"].([]interface{})
-	if !ok {
-		return
+	if len(phase.Status) == 0 {
+		phase.Status = unknownValue
 	}
-	for i, rawStep := range rawSteps {
-		appendStep(buf, rawStep, stepPrefix, i == len(rawSteps)-1)
+	if len(phase.Strategy) == 0 {
+		phase.Strategy = unknownValue
+	}
+	buf.WriteString(fmt.Sprintf("%s%s (%s strategy) (%s)\n", phasePrefix, phase.Name, phase.Strategy, phase.Status))
+	for i, step := range phase.Steps {
+		appendStep(buf, &step, stepPrefix, i == len(phase.Steps)-1)
 	}
 }
 
-func appendStep(buf *bytes.Buffer, rawStep interface{}, prefix string, lastStep bool) {
-	step, ok := rawStep.(map[string]interface{})
-	if !ok {
-		return
-	}
-
+func appendStep(buf *bytes.Buffer, step *stepResponse, prefix string, lastStep bool) {
 	if lastStep {
 		prefix += "└─ "
 	} else {
 		prefix += "├─ "
 	}
-	buf.WriteString(fmt.Sprintf("%s%s\n", prefix, stepString(step)))
-}
 
-func phaseString(phase map[string]interface{}) string {
-	phaseName, ok := phase["name"]
-	if !ok {
-		phaseName = UNKNOWN_VALUE
+	if len(step.Name) == 0 {
+		step.Name = unknownValue
 	}
-	phaseStrategy, ok := phase["strategy"]
-	if !ok {
-		phaseStrategy = UNKNOWN_VALUE
+	if len(step.Status) == 0 {
+		step.Status = unknownValue
 	}
-	phaseStatus, ok := phase["status"]
-	if !ok {
-		phaseStatus = UNKNOWN_VALUE
-	}
-	return fmt.Sprintf("%s (%s strategy) (%s)", phaseName, phaseStrategy, phaseStatus)
-}
-
-func stepString(step map[string]interface{}) string {
-	stepName, ok := step["name"]
-	if !ok {
-		stepName = UNKNOWN_VALUE
-	}
-	stepStatus, ok := step["status"]
-	if !ok {
-		stepStatus = UNKNOWN_VALUE
-	}
-	return fmt.Sprintf("%s (%s)", stepName, stepStatus)
+	buf.WriteString(fmt.Sprintf("%s%s (%s)\n", prefix, step.Name, step.Status))
 }
