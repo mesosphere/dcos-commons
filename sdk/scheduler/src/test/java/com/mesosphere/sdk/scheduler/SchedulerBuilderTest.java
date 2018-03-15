@@ -58,8 +58,8 @@ public class SchedulerBuilderTest {
     }
 
     @Test
-    public void constraintToSingleRegion() {
-        PlacementRule placementRule = SchedulerBuilder.getRegionRule(null);
+    public void constrainToSingleRegion() {
+        PlacementRule placementRule = SchedulerBuilder.getRegionRule(Optional.empty());
         Assert.assertTrue(placementRule instanceof IsLocalRegionRule);
 
         placementRule = SchedulerBuilder.getRegionRule(Optional.of("USA"));
