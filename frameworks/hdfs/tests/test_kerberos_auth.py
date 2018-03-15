@@ -7,7 +7,6 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
-import sdk_plan
 import sdk_tasks
 import sdk_utils
 
@@ -21,8 +20,10 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                                reason='Feature only supported in DC/OS EE')
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="Kerberos tests require DC/OS 1.10 or higher")]
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -62,7 +63,7 @@ def hdfs_server(kerberos, service_account):
 
     On teardown, the service is uninstalled.
     """
-    service_kerberos_options = {
+    service_options = {
         "service": {
             "name": config.FOLDERED_SERVICE_NAME,
             "service_account": service_account["name"],
@@ -91,10 +92,10 @@ def hdfs_server(kerberos, service_account):
             config.PACKAGE_NAME,
             config.FOLDERED_SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
-            additional_options=service_kerberos_options,
+            additional_options=service_options,
             timeout_seconds=30 * 60)
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME)
 
@@ -149,8 +150,6 @@ def hdfs_client(kerberos, hdfs_server):
         sdk_marathon.destroy_app(client_id)
 
 
-@pytest.mark.dcos_min_version('1.10')
-@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
@@ -165,8 +164,6 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     assert stdout == config.TEST_CONTENT_SMALL
 
 
-@pytest.mark.dcos_min_version('1.10')
-@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_users_have_appropriate_permissions(hdfs_client, kerberos):
@@ -220,18 +217,19 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     assert "cat: Permission denied: user=bob" in stderr
 
 
+@pytest.mark.auth
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_journalnodes():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
-    name_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'name')
-    data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), 'data')
+def test_kill_all_journalnodes(hdfs_server):
+    service_name = hdfs_server["service"]["name"]
+    journal_ids = sdk_tasks.get_task_ids(service_name, 'journal')
+    name_ids = sdk_tasks.get_task_ids(service_name, 'name')
+    data_ids = sdk_tasks.get_task_ids(service_name, 'data')
 
-    for journal_pod in config.get_pod_type_instances("journal", foldered_name):
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod restart {}'.format(journal_pod))
-        config.expect_recovery(service_name=foldered_name)
+    for journal_pod in config.get_pod_type_instances("journal", service_name):
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'pod restart {}'.format(journal_pod))
+        config.expect_recovery(service_name=service_name)
 
-    sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'data', data_ids)
+    sdk_tasks.check_tasks_updated(service_name, 'journal', journal_ids)
+    sdk_tasks.check_tasks_not_updated(service_name, 'name', name_ids)
+    sdk_tasks.check_tasks_not_updated(service_name, 'data', data_ids)
