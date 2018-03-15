@@ -42,7 +42,7 @@ def test_nodes_can_deploy_to_remote_region():
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         3,
-        additional_options={"service": "region": "Europe"})
+        additional_options={"service": {"region": "Europe"}})
 
     sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
 
