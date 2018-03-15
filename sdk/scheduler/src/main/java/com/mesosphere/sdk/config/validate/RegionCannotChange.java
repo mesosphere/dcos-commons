@@ -21,7 +21,14 @@ public class RegionCannotChange implements ConfigValidator<ServiceSpec> {
         }
 
         List<ConfigValidationError> errors = new ArrayList<>();
-        if (oldConfig.get().getRegion() != null && !oldConfig.get().getRegion().equals(newConfig.getRegion())) {
+        boolean regionWasAdded = oldConfig.isPresent() && !oldConfig.get().getRegion().isPresent() &&
+                newConfig.getRegion().isPresent();
+        boolean regionWasUnset = oldConfig.isPresent() && oldConfig.get().getRegion().isPresent() &&
+                !newConfig.getRegion().isPresent();
+        boolean regionWasChanged = oldConfig.isPresent() && oldConfig.get().getRegion().isPresent() &&
+                newConfig.getRegion().isPresent() &&
+                !newConfig.getRegion().get().equals(oldConfig.get().getRegion().get());
+        if (regionWasAdded || regionWasUnset || regionWasChanged) {
             errors.add(ConfigValidationError.transitionError(
                     "region",
                     oldConfig.get().getUser(),

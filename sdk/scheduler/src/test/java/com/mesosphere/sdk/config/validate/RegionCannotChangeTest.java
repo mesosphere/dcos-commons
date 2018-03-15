@@ -79,6 +79,7 @@ public class RegionCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec))
+                .region(REGION_A)
                 .build();
 
         ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
@@ -86,7 +87,6 @@ public class RegionCannotChangeTest {
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .pods(Arrays.asList(mockPodSpec))
-                .region(REGION_A)
                 .build();
 
         Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
@@ -109,5 +109,25 @@ public class RegionCannotChangeTest {
                 .build();
 
         Assert.assertEquals(0, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
+    }
+
+    @Test
+    public void testUpdateToRegionFromBlank() {
+        ServiceSpec oldServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec))
+                .build();
+
+        ServiceSpec newServiceSpec = DefaultServiceSpec.newBuilder()
+                .name("svc")
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .pods(Arrays.asList(mockPodSpec))
+                .region(REGION_A)
+                .build();
+
+        Assert.assertEquals(1, VALIDATOR.validate(Optional.of(oldServiceSpec), newServiceSpec).size());
     }
 }

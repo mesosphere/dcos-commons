@@ -9,6 +9,8 @@ import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -60,7 +62,7 @@ public class SchedulerBuilderTest {
         PlacementRule placementRule = SchedulerBuilder.getRegionRule(null);
         Assert.assertTrue(placementRule instanceof IsLocalRegionRule);
 
-        placementRule = SchedulerBuilder.getRegionRule("USA");
+        placementRule = SchedulerBuilder.getRegionRule(Optional.of("USA"));
         Assert.assertTrue(placementRule instanceof RegionRule);
     }
 

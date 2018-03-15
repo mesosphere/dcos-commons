@@ -218,7 +218,7 @@ public class SchedulerBuilder {
     }
 
     public SchedulerBuilder withSingleRegionConstraint() {
-         String schedulerRegion = schedulerConfig.getSchedulerRegion();
+         Optional<String> schedulerRegion = schedulerConfig.getSchedulerRegion();
          PlacementRule regionRule = getRegionRule(schedulerRegion);
 
          List<PodSpec> updatedPodSpecs = serviceSpec.getPods().stream()
@@ -231,12 +231,12 @@ public class SchedulerBuilder {
     }
 
     @VisibleForTesting
-    static PlacementRule getRegionRule(String schedulerRegion) {
-        if (schedulerRegion == null) {
+    static PlacementRule getRegionRule(Optional<String> schedulerRegion) {
+        if (!schedulerRegion.isPresent()) {
             return new IsLocalRegionRule();
         }
 
-        return RegionRuleFactory.getInstance().require(ExactMatcher.create(schedulerRegion));
+        return RegionRuleFactory.getInstance().require(ExactMatcher.create(schedulerRegion.get()));
     }
 
     private static PodSpec podWithPlacementRule(PodSpec podSpec, PlacementRule placementRule) {
