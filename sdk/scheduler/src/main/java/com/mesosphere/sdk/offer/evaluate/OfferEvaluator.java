@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.history.OfferOutcome;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
@@ -34,6 +35,7 @@ public class OfferEvaluator {
     private final OfferOutcomeTracker offerOutcomeTracker;
     private final String serviceName;
     private final UUID targetConfigId;
+    private final ArtifactQueries.TemplateUrlFactory templateUrlFactory;
     private final SchedulerConfig schedulerConfig;
     private final boolean useDefaultExecutor;
 
@@ -42,12 +44,14 @@ public class OfferEvaluator {
             OfferOutcomeTracker offerOutcomeTracker,
             String serviceName,
             UUID targetConfigId,
+            ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
         this.stateStore = stateStore;
         this.offerOutcomeTracker = offerOutcomeTracker;
         this.serviceName = serviceName;
         this.targetConfigId = targetConfigId;
+        this.templateUrlFactory = templateUrlFactory;
         this.schedulerConfig = schedulerConfig;
         this.useDefaultExecutor = useDefaultExecutor;
     }
@@ -88,6 +92,7 @@ public class OfferEvaluator {
                     podInstanceRequirement,
                     serviceName,
                     getTargetConfig(podInstanceRequirement, thisPodTasks.values()),
+                    templateUrlFactory,
                     schedulerConfig,
                     thisPodTasks.values(),
                     stateStore.fetchFrameworkId().get(),

@@ -9,6 +9,8 @@ import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.http.endpoints.ArtifactResource;
+import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
@@ -37,6 +39,7 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -69,6 +72,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
+    private Optional<ArtifactQueries.TemplateUrlFactory> templateUrlFactory = Optional.empty();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -217,8 +221,22 @@ public class SchedulerBuilder {
         return this;
     }
 
+    /**
+     * Assigns a {@link PlanCustomizer} to be used for customizing plans.
+     *
+     * @param planCustomizer the plan customizer
+     */
     public SchedulerBuilder setPlanCustomizer(PlanCustomizer planCustomizer) {
         this.planCustomizer = planCustomizer;
+        return this;
+    }
+
+    /**
+     * Assigns a custom factory for generating config template URLs. Otherwise a default suitable for use with
+     * {@link ArtifactResource} is used.
+     */
+    public SchedulerBuilder setTemplateUrlFactory(ArtifactQueries.TemplateUrlFactory templateUrlFactory) {
+        this.templateUrlFactory = Optional.of(templateUrlFactory);
         return this;
     }
 
@@ -360,6 +378,7 @@ public class SchedulerBuilder {
                 Optional.ofNullable(planCustomizer),
                 stateStore,
                 configStore,
+                templateUrlFactory.orElse(ArtifactResource.getUrlFactory(serviceSpec.getName())),
                 endpointProducers);
     }
 

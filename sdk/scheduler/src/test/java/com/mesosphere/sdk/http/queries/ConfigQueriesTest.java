@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.config.StringConfiguration;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -17,7 +17,7 @@ import java.util.UUID;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-public class ConfigResourceTest {
+public class ConfigQueriesTest {
 
     private static final UUID ID1 = UUID.randomUUID();
     private static final UUID ID2 = UUID.randomUUID();
@@ -25,18 +25,15 @@ public class ConfigResourceTest {
 
     @Mock private ConfigStore<StringConfiguration> mockConfigStore;
 
-    private ConfigResource<ConfigStore<StringConfiguration>> resource;
-
     @Before
-    public void beforeAll() {
+    public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        resource = new ConfigResource<>(mockConfigStore);
     }
 
     @Test
     public void testGetConfigIds() throws ConfigStoreException {
         when(mockConfigStore.list()).thenReturn(Arrays.asList(ID1, ID2));
-        Response response = resource.getConfigurationIds();
+        Response response = ConfigQueries.getConfigurationIds(mockConfigStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(2, json.length());
@@ -47,42 +44,42 @@ public class ConfigResourceTest {
     @Test
     public void testGetConfigIdsFails() throws ConfigStoreException {
         when(mockConfigStore.list()).thenThrow(new ConfigStoreException(Reason.STORAGE_ERROR, "hello"));
-        Response response = resource.getConfigurationIds();
+        Response response = ConfigQueries.getConfigurationIds(mockConfigStore);
         assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testGetConfig() throws ConfigStoreException {
         when(mockConfigStore.fetch(ID1)).thenReturn(CONFIG1);
-        Response response = resource.getConfiguration(ID1.toString());
+        Response response = ConfigQueries.getConfiguration(mockConfigStore, ID1.toString());
         assertEquals(200, response.getStatus());
         assertEquals(CONFIG1, response.getEntity());
     }
 
     @Test
     public void testGetConfigBadId() throws ConfigStoreException {
-        Response response = resource.getConfiguration("hello");
+        Response response = ConfigQueries.getConfiguration(mockConfigStore, "hello");
         assertEquals(400, response.getStatus());
     }
 
     @Test
     public void testGetConfigNotFound() throws ConfigStoreException {
         when(mockConfigStore.fetch(ID1)).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "hi"));
-        Response response = resource.getConfiguration(ID1.toString());
+        Response response = ConfigQueries.getConfiguration(mockConfigStore, ID1.toString());
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetConfigStorageFails() throws ConfigStoreException {
         when(mockConfigStore.fetch(ID1)).thenThrow(new ConfigStoreException(Reason.STORAGE_ERROR, "hi"));
-        Response response = resource.getConfiguration(ID1.toString());
+        Response response = ConfigQueries.getConfiguration(mockConfigStore, ID1.toString());
         assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testGetTargetId() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenReturn(ID2);
-        Response response = resource.getTargetId();
+        Response response = ConfigQueries.getTargetId(mockConfigStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(1, json.length());
@@ -92,14 +89,14 @@ public class ConfigResourceTest {
     @Test
     public void testGetTargetIdMissing() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "hi"));
-        Response response = resource.getTargetId();
+        Response response = ConfigQueries.getTargetId(mockConfigStore);
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetTargetIdFails() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.STORAGE_ERROR, "hi"));
-        Response response = resource.getTargetId();
+        Response response = ConfigQueries.getTargetId(mockConfigStore);
         assertEquals(500, response.getStatus());
     }
 
@@ -107,7 +104,7 @@ public class ConfigResourceTest {
     public void testGetTarget() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenReturn(ID2);
         when(mockConfigStore.fetch(ID2)).thenReturn(CONFIG1);
-        Response response = resource.getTarget();
+        Response response = ConfigQueries.getTarget(mockConfigStore);
         assertEquals(200, response.getStatus());
         assertEquals(CONFIG1, response.getEntity());
     }
@@ -115,14 +112,14 @@ public class ConfigResourceTest {
     @Test
     public void testGetTargetMissingTargetId() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "hi"));
-        Response response = resource.getTarget();
+        Response response = ConfigQueries.getTarget(mockConfigStore);
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetTargetFailsTargetId() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.STORAGE_ERROR, "hi"));
-        Response response = resource.getTarget();
+        Response response = ConfigQueries.getTarget(mockConfigStore);
         assertEquals(500, response.getStatus());
     }
 
@@ -130,7 +127,7 @@ public class ConfigResourceTest {
     public void testGetTargetMissingConfig() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenReturn(ID2);
         when(mockConfigStore.fetch(ID2)).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "hi"));
-        Response response = resource.getTarget();
+        Response response = ConfigQueries.getTarget(mockConfigStore);
         assertEquals(500, response.getStatus());
     }
 
@@ -138,7 +135,7 @@ public class ConfigResourceTest {
     public void testGetTargetFailsConfig() throws ConfigStoreException {
         when(mockConfigStore.getTargetConfig()).thenReturn(ID2);
         when(mockConfigStore.fetch(ID2)).thenThrow(new ConfigStoreException(Reason.STORAGE_ERROR, "hi"));
-        Response response = resource.getTarget();
+        Response response = ConfigQueries.getTarget(mockConfigStore);
         assertEquals(500, response.getStatus());
     }
 }

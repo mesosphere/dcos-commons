@@ -3,13 +3,12 @@ package com.mesosphere.sdk.scheduler;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
-import com.mesosphere.sdk.http.HealthResource;
-import com.mesosphere.sdk.http.PlansResource;
+import com.mesosphere.sdk.http.endpoints.HealthResource;
+import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -160,17 +159,14 @@ public class SchedulerRunner implements Runnable {
                 }
             };
 
-            PlanManager emptyPlanManager = DefaultPlanManager.createProceeding(emptyDeployPlan);
-            PlansResource emptyPlanResource = new PlansResource();
-            emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
-
             schedulerBuilder.getStateStore().clearAllData();
 
             SchedulerApiServer apiServer = new SchedulerApiServer(
                     schedulerConfig,
                     Arrays.asList(
-                            emptyPlanResource,
-                            new HealthResource()));
+                            new PlansResource(Collections.singletonList(
+                                    DefaultPlanManager.createProceeding(emptyDeployPlan))),
+                            new HealthResource(Collections.emptyList())));
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
