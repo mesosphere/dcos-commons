@@ -112,7 +112,14 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
     stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
-    cmd = "bash -c '$MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana-plugin list'"
+    task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
+    # Environment variables aren't available on DC/OS 1.9 so we manually inject
+    # MESOS_SANDBOX (and can't use ELASTIC_VERSION).
+    #
+    # TODO(mpereira): improve this by making task environment variables
+    # available in sdk_cmd.task_exec commands on 1.9.
+    # Ticket: https://jira.mesosphere.com/browse/INFINITY-3360
+    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(task_sandbox)
     _, stdout, _ = sdk_cmd.task_exec(service_name, cmd)
     return plugin_name in stdout
 
