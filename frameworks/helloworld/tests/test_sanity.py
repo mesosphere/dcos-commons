@@ -231,18 +231,27 @@ def test_config_cli():
 
 @pytest.mark.sanity
 def test_plan_cli():
+    plan_name = 'deploy'
+    phase_name = 'world'
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan list', json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan show {}'.format(config.DEFAULT_PLAN_NAME))
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan show {}'.format(plan_name))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan show --json {}'.format(config.DEFAULT_PLAN_NAME), json=True)
+        'plan show --json {}'.format(plan_name), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan show {} --json'.format(config.DEFAULT_PLAN_NAME), json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan force-restart {}'.format(config.DEFAULT_PLAN_NAME))
+        'plan show {} --json'.format(plan_name), json=True)
+
+    # trigger a restart so that the plan is in a non-complete state.
+    # the 'interrupt' command will fail if the plan is already complete:
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan force-restart {}'.format(plan_name))
+
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan interrupt {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+        'plan interrupt {} {}'.format(plan_name, phase_name))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+        'plan continue {} {}'.format(plan_name, phase_name))
+
+    # now wait for plan to finish before continuing to other tests:
+    assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
 
 
 @pytest.mark.sanity
@@ -276,10 +285,12 @@ def test_state_refresh_disable_cache():
         stop_max_delay=120*1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
-        output = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state refresh_cache')
-        if "failed: 409 Conflict" in output:
-            return True
-        return False
+        output = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME,
+            foldered_name,
+            'debug state refresh_cache',
+            return_stderr_in_stdout=True)
+        return "failed: 409 Conflict" in output
 
     check_cache_refresh_fails_409conflict()
 

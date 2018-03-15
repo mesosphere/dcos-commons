@@ -162,7 +162,7 @@ func (suite *PlanTestSuite) TestPauseBadName() {
 
 	err := NewPlan().Pause("bad-name", "")
 
-	expectedOutput := "Plan, phase, and/or step does not exist."
+	expectedOutput := "Plan, phase, and/or step does not exist"
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -172,7 +172,7 @@ func (suite *PlanTestSuite) TestPauseBadPhase() {
 
 	err := NewPlan().Pause("deploy", "bad-phase")
 
-	expectedOutput := "Plan, phase, and/or step does not exist."
+	expectedOutput := "Plan, phase, and/or step does not exist"
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -182,7 +182,7 @@ func (suite *PlanTestSuite) TestPauseAlreadyPaused() {
 
 	err := NewPlan().Pause("deploy", "hello")
 
-	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed"
 	assert.Equal(suite.T(), string(expectedOutput), err.Error())
 }
 
@@ -192,7 +192,7 @@ func (suite *PlanTestSuite) TestPauseAlreadyCompleted() {
 
 	err := NewPlan().Pause("deploy", "hello")
 
-	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed"
 	assert.Equal(suite.T(), expectedOutput, err.Error())
 }
 
@@ -212,7 +212,7 @@ func (suite *PlanTestSuite) TestResumeBadPlan() {
 
 	err := NewPlan().Resume("bad-name", "")
 
-	expectedOutput := "Plan, phase, and/or step does not exist."
+	expectedOutput := "Plan, phase, and/or step does not exist"
 	assert.Equal(suite.T(), expectedOutput, err.Error())
 }
 
@@ -222,7 +222,7 @@ func (suite *PlanTestSuite) TestResumeBadPhase() {
 
 	err := NewPlan().Resume("deploy", "bad-phase")
 
-	expectedOutput := "Plan, phase, and/or step does not exist."
+	expectedOutput := "Plan, phase, and/or step does not exist"
 	assert.Equal(suite.T(), expectedOutput, err.Error())
 }
 
@@ -232,7 +232,7 @@ func (suite *PlanTestSuite) TestResumeInProgress() {
 
 	err := NewPlan().Resume("deploy", "hello")
 
-	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed"
 	assert.Equal(suite.T(), expectedOutput, err.Error())
 }
 
@@ -242,7 +242,7 @@ func (suite *PlanTestSuite) TestResumeAlreadyCompleted() {
 
 	err := NewPlan().Resume("deploy", "hello")
 
-	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed."
+	expectedOutput := "Cannot execute command. Command has already been issued or the plan has completed"
 	assert.Equal(suite.T(), expectedOutput, err.Error())
 }
 

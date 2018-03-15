@@ -42,10 +42,10 @@ func checkPlansResponse(response *http.Response, body []byte) error {
 	case response.StatusCode == http.StatusNotFound:
 		if string(body) == "Element not found" {
 			// The scheduler itself is returning the 404 (otherwise we fall through to the default Adminrouter case)
-			return errors.New("Plan, phase, and/or step does not exist.")
+			return errors.New("Plan, phase, and/or step does not exist")
 		}
 	case response.StatusCode == http.StatusAlreadyReported:
-		return errors.New("Cannot execute command. Command has already been issued or the plan has completed.")
+		return errors.New("Cannot execute command. Command has already been issued or the plan has completed")
 	case response.StatusCode == http.StatusExpectationFailed:
 		return errPlanStatus417
 	}
