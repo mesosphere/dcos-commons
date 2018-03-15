@@ -55,6 +55,15 @@ public class SchedulerBuilderTest {
         Assert.assertTrue(PlacementUtils.placementRuleReferencesRegion(updatedPodSpec));
     }
 
+    @Test
+    public void constraintToSingleRegion() {
+        PlacementRule placementRule = SchedulerBuilder.getRegionRule(null);
+        Assert.assertTrue(placementRule instanceof IsLocalRegionRule);
+
+        placementRule = SchedulerBuilder.getRegionRule("USA");
+        Assert.assertTrue(placementRule instanceof RegionRule);
+    }
+
     private PlacementRule getRemoteRegionRule() {
         return RegionRuleFactory.getInstance().require(ExactMatcher.create(TestConstants.REMOTE_REGION));
     }

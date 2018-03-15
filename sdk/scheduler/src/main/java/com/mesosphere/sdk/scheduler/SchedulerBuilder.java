@@ -230,7 +230,8 @@ public class SchedulerBuilder {
          return this;
     }
 
-    private static PlacementRule getRegionRule(String schedulerRegion) {
+    @VisibleForTesting
+    static PlacementRule getRegionRule(String schedulerRegion) {
         if (schedulerRegion == null) {
             return new IsLocalRegionRule();
         }
