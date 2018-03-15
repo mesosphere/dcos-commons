@@ -271,19 +271,12 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
 
-    if sdk_utils.dcos_version_less_than("1.10"):
-        sandbox_path = get_task_sandbox_path(task_name)
-        # SDK task environment variables aren't available in task containers on 1.9,
-        # so we inject these manually.
-        environment_variables = [
-            "LIBPROCESS_IP=0.0.0.0",
-            "MESOS_SANDBOX={}".format(sandbox_path)
-        ]
+    if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
+        full_cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
 
-        if cmd.startswith("./"):
-            cmd = os.path.join(sandbox_path, cmd)
-
-        full_cmd = "bash -c '{}; {}'".format(' '.join(environment_variables), cmd)
+        if cmd.startswith("./bootstrap"):
+            # On 1.9 we need to set LIB_PROCESS_IP for bootstrap
+            full_cmd = "bash -c \"LIBPROCESS_IP=0.0.0.0 {}\"".format(full_cmd)
     else:
         full_cmd = cmd
 
