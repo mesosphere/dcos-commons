@@ -29,7 +29,7 @@ public class LoggingUtils {
      * @param name  an additional context label detailing e.g. the name of the service being managed
      */
     public static Logger getLogger(Class<?> clazz, String name) {
-        if (StringUtils.isEmpty(name)) {
+        if (StringUtils.isBlank(name)) {
             return getLogger(clazz);
         } else {
             return LoggerFactory.getLogger(String.format("(%s) %s", name, getClassName(clazz)));

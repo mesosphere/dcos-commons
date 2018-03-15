@@ -56,7 +56,7 @@ public class ServiceTestRunner {
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
     private boolean supportsDefaultExecutor = true;
-    private List<ConfigValidator<ServiceSpec>> validators = Collections.emptyList();
+    private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
     /**
      * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
@@ -242,8 +242,8 @@ public class ServiceTestRunner {
         return this;
     }
 
-    public ServiceTestRunner setCustomValidators(ConfigValidator<ServiceSpec>... validators) {
-        this.validators = Arrays.asList(validators);
+    public ServiceTestRunner addCustomValidator(ConfigValidator<ServiceSpec> validator) {
+        this.validators.add(validator);
         return this;
     }
 
