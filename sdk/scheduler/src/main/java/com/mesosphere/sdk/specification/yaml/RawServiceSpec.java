@@ -23,7 +23,7 @@ import org.slf4j.Logger;
  * Root of the parsed YAML object model.
  */
 public class RawServiceSpec {
-    private static final Logger LOGGER = LoggingUtils.getLogger(Builder.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(RawServiceSpec.class);
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     /**

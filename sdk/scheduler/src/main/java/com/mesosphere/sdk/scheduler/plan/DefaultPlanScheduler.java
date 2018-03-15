@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultPlanScheduler implements PlanScheduler {
 
-    private static final Logger logger = LoggingUtils.getLogger(DefaultPlanScheduler.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultPlanScheduler.class);
 
     private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
@@ -36,7 +36,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
     @Override
     public Collection<OfferID> resourceOffers(final List<Offer> offers, final Collection<? extends Step> steps) {
         if (offers == null || steps == null) {
-            logger.error("Unexpected null argument(s) encountered: offers='{}', steps='{}'", offers, steps);
+            LOGGER.error("Unexpected null argument(s) encountered: offers='{}', steps='{}'", offers, steps);
             return Collections.emptyList();
         }
 
@@ -54,24 +54,24 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private Collection<OfferID> resourceOffers(List<Offer> offers, Step step) {
 
         if (offers == null) {
-            logger.error("Unexpected null argument: 'offers'");
+            LOGGER.error("Unexpected null argument: 'offers'");
             return Collections.emptyList();
         }
 
         if (step == null) {
-            logger.info("Ignoring resource offers for null step.");
+            LOGGER.info("Ignoring resource offers for null step.");
             return Collections.emptyList();
         }
 
         if (!(step.isPending() || step.isPrepared())) {
-            logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
+            LOGGER.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return Collections.emptyList();
         }
 
-        logger.info("Processing resource offers for step: {}", step.getName());
+        LOGGER.info("Processing resource offers for step: {}", step.getName());
         Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.start();
         if (!podInstanceRequirementOptional.isPresent()) {
-            logger.info("No PodInstanceRequirement for step: {}", step.getName());
+            LOGGER.info("No PodInstanceRequirement for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
@@ -88,13 +88,13 @@ public class DefaultPlanScheduler implements PlanScheduler {
         try {
             recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
         } catch (InvalidRequirementException | IOException e) {
-            logger.error("Failed generate OfferRecommendations.", e);
+            LOGGER.error("Failed generate OfferRecommendations.", e);
             return Collections.emptyList();
         }
 
         if (recommendations.isEmpty()) {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
-            logger.warn(
+            LOGGER.warn(
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
                     step.getName(), podInstanceRequirement);
             step.updateOfferStatus(Collections.emptyList());
@@ -118,21 +118,21 @@ public class DefaultPlanScheduler implements PlanScheduler {
     private void killTasks(PodInstanceRequirement podInstanceRequirement) {
         Map<String, TaskInfo> taskInfoMap = new HashMap<>();
         stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
-        logger.info("Killing tasks for pod instance requirement: {}:{}",
+        LOGGER.info("Killing tasks for pod instance requirement: {}:{}",
                 podInstanceRequirement.getPodInstance().getName(),
                 podInstanceRequirement.getTasksToLaunch());
 
         List<TaskSpec> taskSpecsToLaunch = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
                 .collect(Collectors.toList());
-        logger.info("TaskSpecs to launch: {}",
+        LOGGER.info("TaskSpecs to launch: {}",
                 taskSpecsToLaunch.stream().map(taskSpec -> taskSpec.getName()).collect(Collectors.toList()));
 
         List<String> resourceSetsToConsume = taskSpecsToLaunch.stream()
                 .map(taskSpec -> taskSpec.getResourceSet())
                 .map(resourceSet -> resourceSet.getId())
                 .collect(Collectors.toList());
-        logger.info("Resource sets to consume: {}",
+        LOGGER.info("Resource sets to consume: {}",
                 podInstanceRequirement.getPodInstance().getName(),
                 resourceSetsToConsume);
 
@@ -140,7 +140,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
                 .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
                 .collect(Collectors.toList());
-        logger.info("Tasks to kill: {}", tasksToKill);
+        LOGGER.info("Tasks to kill: {}", tasksToKill);
 
         for (String taskName : tasksToKill) {
             TaskInfo taskInfo = taskInfoMap.get(taskName);

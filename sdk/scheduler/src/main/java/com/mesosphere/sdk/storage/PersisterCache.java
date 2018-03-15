@@ -16,7 +16,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
  */
 public class PersisterCache implements Persister {
 
-    private static final Logger logger = LoggingUtils.getLogger(PersisterCache.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PersisterCache.class);
 
     private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
     private final Lock rlock = internalLock.readLock();
@@ -107,7 +107,7 @@ public class PersisterCache implements Persister {
                 // We don't throw an exception here if our 'data' cache lacks the value. In theory 'persister' should've
                 // thrown in that case anyway -- so we're effectively replicating what the underlying persister does.
                 // This shouldn't happen assuming a well-behaved Persisters, but just in case...
-                logger.error("Didn't find value {} in cache to delete, but underlying storage had the value", path);
+                LOGGER.error("Didn't find value {} in cache to delete, but underlying storage had the value", path);
             }
         } finally {
             rwlock.unlock();
@@ -134,7 +134,7 @@ public class PersisterCache implements Persister {
         rwlock.lock();
         try {
             if (cache != null) {
-                logger.info("Cache content before refresh:\n{}", cache.getDebugString());
+                LOGGER.info("Cache content before refresh:\n{}", cache.getDebugString());
             }
             cache = null;
             getCache(); // recreate cache
@@ -147,7 +147,7 @@ public class PersisterCache implements Persister {
         if (cache == null) {
             // We already have our own locking, so we can disable locking in the underlying MemPersister:
             cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
-            logger.info("Loaded data from persister:\n{}", cache.getDebugString());
+            LOGGER.info("Loaded data from persister:\n{}", cache.getDebugString());
         }
         return cache;
     }

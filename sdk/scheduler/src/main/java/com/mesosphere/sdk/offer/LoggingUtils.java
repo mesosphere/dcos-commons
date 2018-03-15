@@ -9,8 +9,6 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingUtils {
 
-    private static boolean loggingNamesEnabled = true;
-
     private LoggingUtils() {
         // do not instantiate
     }
@@ -21,9 +19,7 @@ public class LoggingUtils {
      * @param clazz the class using this logger
      */
     public static Logger getLogger(Class<?> clazz) {
-        // Note: This currently results in a name like "LoggingUtils" in logs.
-        // Consider including an abbreviated package prefix, e.g. "c.m.s.o.LoggingUtils"?
-        return LoggerFactory.getLogger(clazz.getSimpleName());
+        return LoggerFactory.getLogger(getClassName(clazz));
     }
 
     /**
@@ -33,19 +29,19 @@ public class LoggingUtils {
      * @param name  an additional context label detailing e.g. the name of the service being managed
      */
     public static Logger getLogger(Class<?> clazz, String name) {
-        if (StringUtils.isEmpty(name) || !loggingNamesEnabled) {
+        if (StringUtils.isEmpty(name)) {
             return getLogger(clazz);
         } else {
-            return LoggerFactory.getLogger(String.format("(%s) %s", name, clazz.getSimpleName()));
+            return LoggerFactory.getLogger(String.format("(%s) %s", name, getClassName(clazz)));
         }
     }
 
     /**
-     * Disables logger names in output.
+     * Returns a class name suitable for using in logs.
      *
-     * @see #getLogger(Class, String)
+     * <p>At the moment this results in a class name of just e.g. "{@code LoggingUtils}".
      */
-    public static void disableNames() {
-        loggingNamesEnabled = false;
+    private static String getClassName(Class<?> clazz) {
+        return clazz.getSimpleName();
     }
 }

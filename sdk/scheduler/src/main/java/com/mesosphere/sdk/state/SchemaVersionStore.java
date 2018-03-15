@@ -24,7 +24,7 @@ public class SchemaVersionStore {
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-    private static final Logger logger = LoggingUtils.getLogger(SchemaVersionStore.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(SchemaVersionStore.class);
 
     /**
      * Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that
@@ -70,14 +70,14 @@ public class SchemaVersionStore {
      */
     public int fetch() throws StateStoreException {
         try {
-            logger.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
+            LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
             byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
             if (bytes.length == 0) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Invalid data when fetching schema version in '%s'", SCHEMA_VERSION_NAME));
             }
             String rawString = new String(bytes, CHARSET);
-            logger.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
+            LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
             try {
                 return Integer.parseInt(rawString);
             } catch (NumberFormatException e) {
@@ -88,7 +88,7 @@ public class SchemaVersionStore {
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // The schema version doesn't exist yet. Initialize to the current version.
-                logger.debug("Schema version not found at path: {}. New service install? " +
+                LOGGER.debug("Schema version not found at path: {}. New service install? " +
                         "Initializing path to schema version: {}.",
                         SCHEMA_VERSION_NAME, CURRENT_SCHEMA_VERSION);
                 store(CURRENT_SCHEMA_VERSION);
@@ -109,7 +109,7 @@ public class SchemaVersionStore {
     public void store(int version) throws StateStoreException {
         try {
             String versionStr = String.valueOf(version);
-            logger.debug("Storing schema version: '{}' into path: {}",
+            LOGGER.debug("Storing schema version: '{}' into path: {}",
                     versionStr, SCHEMA_VERSION_NAME);
             persister.set(SCHEMA_VERSION_NAME, versionStr.getBytes(CHARSET));
         } catch (Exception e) {

@@ -41,7 +41,7 @@ import java.util.*;
  */
 public class StateStore {
 
-    private static final Logger logger = LoggingUtils.getLogger(StateStore.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(StateStore.class);
 
     /**
      * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION
@@ -112,7 +112,7 @@ public class StateStore {
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent FrameworkID should not result in an exception from us.
-                logger.warn("Cleared unset FrameworkID, continuing silently", e);
+                LOGGER.warn("Cleared unset FrameworkID, continuing silently", e);
             } else {
                 throw new StateStoreException(e);
             }
@@ -136,7 +136,7 @@ public class StateStore {
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No FrameworkId found at: {}", FWK_ID_PATH_NAME);
+                LOGGER.warn("No FrameworkId found at: {}", FWK_ID_PATH_NAME);
                 return Optional.empty();
             } else {
                 throw new StateStoreException(e);
@@ -196,7 +196,7 @@ public class StateStore {
         }
 
         String path = getTaskStatusPath(taskName);
-        logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
+        LOGGER.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
             persister.set(path, status.toByteArray());
@@ -217,7 +217,7 @@ public class StateStore {
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Task should not result in an exception from us.
-                logger.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
+                LOGGER.warn("Cleared nonexistent Task, continuing silently: {}", taskName, e);
             } else {
                 throw new StateStoreException(e);
             }
@@ -291,7 +291,7 @@ public class StateStore {
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
+                LOGGER.warn("No TaskInfo found for the requested name: {} at: {}", taskName, path);
                 return Optional.empty();
             } else {
                 throw new StateStoreException(e, String.format("Failed to retrieve task named %s", taskName));
@@ -350,7 +350,7 @@ public class StateStore {
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
+                LOGGER.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
                 return Optional.empty();
             } else {
                 throw new StateStoreException(e);
@@ -376,7 +376,7 @@ public class StateStore {
         validateValue(value);
         try {
             final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
-            logger.debug("Storing property key: {} into path: {}", key, path);
+            LOGGER.debug("Storing property key: {} into path: {}", key, path);
             persister.set(path, value);
         } catch (PersisterException e) {
             throw new StateStoreException(e);
@@ -395,7 +395,7 @@ public class StateStore {
         validateKey(key);
         try {
             final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
-            logger.debug("Fetching property key: {} from path: {}", key, path);
+            LOGGER.debug("Fetching property key: {} from path: {}", key, path);
             return persister.get(path);
         } catch (PersisterException e) {
             throw new StateStoreException(e);
@@ -431,12 +431,12 @@ public class StateStore {
         validateKey(key);
         try {
             final String path = PersisterUtils.join(PROPERTIES_PATH_NAME, key);
-            logger.debug("Removing property key: {} from path: {}", key, path);
+            LOGGER.debug("Removing property key: {} from path: {}", key, path);
             persister.recursiveDelete(path);
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Property should not result in an exception from us.
-                logger.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
+                LOGGER.warn("Cleared nonexistent Property, continuing silently: {}", key, e);
             } else {
                 throw new StateStoreException(e);
             }
@@ -490,7 +490,7 @@ public class StateStore {
                 return GoalStateOverride.Status.INACTIVE;
             } else if (nameBytes == null || statusBytes == null) {
                 // This shouldn't happen, but let's just play it safe and assume that the override shouldn't be set.
-                logger.error("Task is missing override name or override status. Expected either both or neither: {}",
+                LOGGER.error("Task is missing override name or override status. Expected either both or neither: {}",
                         values);
                 return GoalStateOverride.Status.INACTIVE;
             }
@@ -510,7 +510,7 @@ public class StateStore {
         // The override name isn't recognized. This could happen during a downgrade or similar scenario where a task
         // previously has an override that is no longer recognized by the scheduler. The most reasonable thing in this
         // case would be to fall back to a no-override state.
-        logger.warn("Task '{}' has unrecognized override named '{}'. Left over from a recent upgrade/downgrade? "
+        LOGGER.warn("Task '{}' has unrecognized override named '{}'. Left over from a recent upgrade/downgrade? "
                 + "Falling back to inactive override target.", taskName, overrideName);
         return GoalStateOverride.Status.INACTIVE.target;
     }
@@ -526,7 +526,7 @@ public class StateStore {
         // The progress name isn't recognized. This could happen during a downgrade or similar scenario where a task
         // previously has a state that is no longer recognized by the scheduler. The most reasonable thing in this
         // case is to fall back to a no-override state.
-        logger.warn("Task '{}' has unrecognized override progress '{}'. Left over from a recent upgrade/downgrade? "
+        LOGGER.warn("Task '{}' has unrecognized override progress '{}'. Left over from a recent upgrade/downgrade? "
                 + "Falling back to inactive override progress.", taskName, progressName);
         return GoalStateOverride.Status.INACTIVE.progress;
     }

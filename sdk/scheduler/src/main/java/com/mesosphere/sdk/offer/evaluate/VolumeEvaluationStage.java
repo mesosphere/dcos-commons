@@ -18,7 +18,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
 public class VolumeEvaluationStage implements OfferEvaluationStage {
-    private static final Logger logger = LoggingUtils.getLogger(VolumeEvaluationStage.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(VolumeEvaluationStage.class);
     private final VolumeSpec volumeSpec;
     private final Optional<String> persistenceId;
     private final String taskName;
@@ -151,7 +151,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
             if (!resourceId.isPresent()) {
                 // Initial reservation of resources
-                logger.info("    Resource '{}' requires a RESERVE operation", volumeSpec.getName());
+                LOGGER.info("    Resource '{}' requires a RESERVE operation", volumeSpec.getName());
                 offerRecommendations.add(new ReserveOfferRecommendation(
                         mesosResourcePool.getOffer(),
                         resource));
@@ -159,11 +159,11 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         }
 
         if (createsVolume()) {
-            logger.info("    Resource '{}' requires a CREATE operation", volumeSpec.getName());
+            LOGGER.info("    Resource '{}' requires a CREATE operation", volumeSpec.getName());
             offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
         }
 
-        logger.info("  Generated '{}' resource for task: [{}]",
+        LOGGER.info("  Generated '{}' resource for task: [{}]",
                 volumeSpec.getName(), TextFormat.shortDebugString(resource));
         OfferEvaluationUtils.setProtos(podInfoBuilder, resource, getTaskName());
 

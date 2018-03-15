@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
  */
 public class PersisterCacheTest {
 
-    private static final Logger logger = LoggingUtils.getLogger(PersisterCacheTest.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PersisterCacheTest.class);
 
     private static final String KEY = "key";
     private static final byte[] VAL = "someval".getBytes(StandardCharsets.UTF_8);
@@ -317,7 +317,7 @@ public class PersisterCacheTest {
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
                     synchronized (lock) {
-                        logger.error(t.getName(), e);
+                        LOGGER.error(t.getName(), e);
                         errors.add(e);
                     }
                 }
