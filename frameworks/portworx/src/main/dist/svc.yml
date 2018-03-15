@@ -6,7 +6,7 @@ pods:
     user: {{SERVICE_USER}}
     count: {{NODE_COUNT}}
     resource-sets:
-      px-resources:
+      px-install-resources:
         cpus: 0.3
         memory: 512
         # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
@@ -14,13 +14,35 @@ pods:
           path: temp
           size: 1
           type: ROOT
+      px-start-resources:
+        cpus: 0.3
+        memory: 512
     placement: {{NODE_PLACEMENT}}
     tasks:
       install:
         goal: FINISH
-        resource-set: px-resources
-        cmd: >
+        resource-set: px-install-resources
+        cmd: |
+                docker pull {{{PORTWORX_IMAGE_NAME}}}
 
+                systemctl stop portworx
+
+                set -e
+
+                docker run --entrypoint /runc-entry-point.sh \
+                   --rm -i --privileged=true \
+                   -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
+                   {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
+
+                if systemctl start portworx; then
+                   echo "Portworx image upgraded successfully"
+                else
+                   echo "Portworx image installed successfully"
+                fi
+      start:
+        goal: RUNNING
+        resource-set: px-start-resources
+        cmd: |
                 {{#LIGHTHOUSE_ENABLED}}
                 if ! [ -x "$(command -v curl)" ]; then
                     echo 'Error: curl is not installed.' >&2
@@ -50,15 +72,6 @@ pods:
                 if [ -z "$coreos" ];then
                     USR_SRC_MOUNT="-v /usr/src:/usr/src"
                 fi
-
-                docker pull {{{PORTWORX_IMAGE_NAME}}}
-
-                systemctl stop portworx
-
-                docker run --entrypoint /runc-entry-point.sh \
-                   --rm -i --privileged=true \
-                   -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                   {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade &&
 
                 echo "[Unit]
                     Description=Portworx Container
@@ -99,10 +112,15 @@ pods:
                 systemctl daemon-reload &&
                 systemctl enable portworx &&
                 systemctl start portworx &&
-                while ! /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'; do /opt/pwx/bin/pxctl status; sleep 5 ; done
+                journalctl -lfu portworx
+        readiness-check:
+          cmd: /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
+          interval: 5
+          delay: 0
+          timeout: 60
       upgrade:
         goal: FINISH
-        resource-set: px-resources
+        resource-set: px-install-resources
         cmd: >
              docker pull {{{PORTWORX_IMAGE_NAME}}} &&
              systemctl stop portworx &&
@@ -240,11 +258,11 @@ plans:
         steps:
           - default : [[start]]
       {{/LIGHTHOUSE_ENABLED}}
-      portworx-deploy:
+      portworx-install:
         strategy: serial
         pod: portworx
         steps:
-          - default : [[install]]
+          - default : [[install], [start]]
   upgrade-portworx:
     strategy: serial
     phases:
