@@ -84,7 +84,7 @@
           "default": "serial"
         },
         "region": {
-          "description": "The name of the region that nodes in the Cassandra cluster should run in.",
+          "description": "The Cassandra cluster should run in this region.  When no region is specified the cluster is constrained to the local region.",
           "type": "string",
           "default": ""
         },
