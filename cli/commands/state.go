@@ -3,65 +3,39 @@ package commands
 import (
 	"fmt"
 
-	"github.com/mesosphere/dcos-commons/cli/client"
+	"github.com/mesosphere/dcos-commons/cli/config"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
-type debugStateHandler struct {
+type deprecatedStateHandler struct {
 	PropertyName string
 }
 
-func (cmd *debugStateHandler) handleConfigStateFrameworkID(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServiceGet("v1/state/frameworkId")
-	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	}
-	client.PrintJSONBytes(body)
-	return nil
+func (cmd *deprecatedStateHandler) handleStateFrameworkID(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	return fmt.Errorf("This command is deprecated, use 'dcos %s debug state framework_id' instead", config.ModuleName)
 }
-func (cmd *debugStateHandler) handleConfigStateProperties(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServiceGet("v1/state/properties")
-	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	}
-	client.PrintJSONBytes(body)
-
-	return nil
+func (cmd *deprecatedStateHandler) handleStateProperties(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	return fmt.Errorf("This command is deprecated, use 'dcos %s debug state properties' instead", config.ModuleName)
 }
-func (cmd *debugStateHandler) handleConfigStateProperty(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServiceGet(fmt.Sprintf("v1/state/properties/%s", cmd.PropertyName))
-	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	}
-	client.PrintJSONBytes(body)
-	return nil
+func (cmd *deprecatedStateHandler) handleStateProperty(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	return fmt.Errorf("This command is deprecated, use 'dcos %s debug state property' instead", config.ModuleName)
 }
-func (cmd *debugStateHandler) handleConfigStateRefreshCache(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
-	// TODO: figure out KingPin's error handling
-	body, err := client.HTTPServicePut("v1/state/refresh")
-	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	}
-	client.PrintJSONBytes(body)
-	return nil
+func (cmd *deprecatedStateHandler) handleStateRefreshCache(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
+	return fmt.Errorf("This command is deprecated, use 'dcos %s debug state refresh_cache' instead", config.ModuleName)
 }
 
-// TODO: deprecated -> commands/debug.go, handlers ^^ should remain here to organize the debug sub-command tree, seealso commands/config.go
-// HandleStateSection adds state subcommands to the passed in kingpin.Application.
-func HandleStateSection(app *kingpin.Application) {
+// TODO(nickbp): Remove this at some point. For now it's not hurting anything because the commands are no longer shown in the help output.
+func HandleDeprecatedStateSection(app *kingpin.Application) {
 	// state <framework_id, status, task, tasks>
-	cmd := &debugStateHandler{}
-	state := app.Command("state", "[Deprecated (TBR 1.11, -> debug state)] View persisted state")
+	cmd := &deprecatedStateHandler{}
+	state := app.Command("state", "(DEPRECATED, use 'state config') View persisted state").Hidden()
 
-	state.Command("framework_id", "[Deprecated (TBR 1.11, -> debug state framework_id)] Display the Mesos framework ID").Action(cmd.handleConfigStateFrameworkID)
+	state.Command("framework_id", "(DEPRECATED, use 'debug state framework_id') Display the Mesos framework ID").Hidden().Action(cmd.handleStateFrameworkID)
 
-	state.Command("properties", "[Deprecated (TBR 1.11, -> debug state properties)] List names of all custom properties").Action(cmd.handleConfigStateProperties)
+	state.Command("properties", "(DEPRECATED, use 'debug state properties') List names of all custom properties").Hidden().Action(cmd.handleStateProperties)
 
-	task := state.Command("property", "[Deprecated (TBR 1.11, -> debug state property)] Display the content of a specified property").Action(cmd.handleConfigStateProperty)
+	task := state.Command("property", "(DEPRECATED, use 'debug state property') Display the content of a specified property").Hidden().Action(cmd.handleStateProperty)
 	task.Arg("name", "Name of the property to display").Required().StringVar(&cmd.PropertyName)
 
-	state.Command("refresh_cache", "[Deprecated (TBR 1.11, -> debug state refresh_cache)] Refresh the state cache, used for debugging").Action(cmd.handleConfigStateRefreshCache)
+	state.Command("refresh_cache", "(DEPRECATED, use 'debug state refresh_cache') Refresh the state cache, used for debugging").Hidden().Action(cmd.handleStateRefreshCache)
 }

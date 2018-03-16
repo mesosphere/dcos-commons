@@ -12,6 +12,7 @@ import (
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"github.com/mesosphere/dcos-commons/cli/commands"
 	"github.com/mesosphere/dcos-commons/cli/config"
+	"github.com/mesosphere/dcos-commons/cli/queries"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
 )
 
@@ -36,14 +37,18 @@ func GetArguments() []string {
 // HandleDefaultSections is a utility method to allow applications built around this library to provide
 // all of the standard subcommands of the CLI.
 func HandleDefaultSections(app *kingpin.Application) {
-	commands.HandleConfigSection(app)
-	commands.HandleDebugSection(app)
-	commands.HandleDescribeSection(app)
-	commands.HandleEndpointsSection(app)
-	commands.HandlePlanSection(app)
-	commands.HandlePodSection(app)
-	commands.HandleStateSection(app)
-	commands.HandleUpdateSection(app)
+	podQueries := queries.NewPod()
+	packageQueries := queries.NewPackage()
+	planQueries := queries.NewPlan()
+
+	commands.HandleDebugSection(app, queries.NewConfig(), podQueries, queries.NewState())
+	commands.HandleDeprecatedConfigSection(app)
+	commands.HandleDescribeSection(app, packageQueries)
+	commands.HandleEndpointsSection(app, queries.NewEndpoints())
+	commands.HandlePlanSection(app, planQueries)
+	commands.HandlePodSection(app, podQueries)
+	commands.HandleDeprecatedStateSection(app)
+	commands.HandleUpdateSection(app, packageQueries, planQueries)
 }
 
 // New instantiates a new kingpin.Application and returns a reference to it.
@@ -66,7 +71,8 @@ func New() *kingpin.Application {
 	var err error
 	config.ModuleName, err = GetModuleName()
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
+		client.PrintMessage(err.Error())
+		os.Exit(1)
 	}
 	app := kingpin.New(fmt.Sprintf("dcos %s", config.ModuleName), "")
 
