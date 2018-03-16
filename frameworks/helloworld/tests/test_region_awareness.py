@@ -24,7 +24,7 @@ def test_nodes_deploy_to_local_region_by_default():
         3,
         additional_options={"service": {"scenario": "MULTI_REGION"}})
 
-    sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     for pod_name in POD_NAMES:
         info = sdk_cmd.service_request(
@@ -48,7 +48,7 @@ def test_nodes_can_deploy_to_remote_region():
         3,
         additional_options={"service": {"scenario": "MULTI_REGION", "region": "Europe"}})
 
-    sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     for pod_name in POD_NAMES:
         info = sdk_cmd.service_request(
@@ -73,15 +73,16 @@ def test_region_config_update_does_not_succeed():
         3,
         additional_options={"service": {"scenario": "MULTI_REGION"}})
 
-    sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     change_region_config('Europe')
-    sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
+    plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
+    assert plan.get('errors', [])
 
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     info = sdk_cmd.service_request(
-        'GET', config.SERVICE_NAME, '/v1/pod/hello-0/info'.format(pod_name)
+        'GET', config.SERVICE_NAME, '/v1/pod/hello-0/info'
     ).json()[0]['info']
 
     assert (
@@ -92,6 +93,6 @@ def test_region_config_update_does_not_succeed():
 
 
 def change_region_config(region_name):
-    config = sdk_marathon.get_config(config.SERVICE_NAME)
-    config['env']['SERVICE_REGION'] = region_name
-    sdk_marathon.update_app(config.SERVICE_NAME, config)
+    service_config = sdk_marathon.get_config(config.SERVICE_NAME)
+    service_config['env']['SERVICE_REGION'] = region_name
+    sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)

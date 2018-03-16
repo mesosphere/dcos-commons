@@ -225,7 +225,11 @@ public class SchedulerBuilder {
                  .map(p -> podWithPlacementRule(p, regionRule))
                  .collect(Collectors.toList());
 
-         serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).pods(updatedPodSpecs).build();
+         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder(serviceSpec).pods(updatedPodSpecs);
+         if (schedulerRegion.isPresent()) {
+             builder.region(schedulerRegion.get());
+         }
+         serviceSpec = builder.build();
 
          return this;
     }
