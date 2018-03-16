@@ -10,8 +10,10 @@ from security import transport_encryption
 
 from tests import config
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                                reason='Feature only supported in DC/OS EE')
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10 or higher")]
 
 
 @pytest.fixture(scope='module')
@@ -88,14 +90,12 @@ def kibana_application_tls(elastic_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.smoke
-@pytest.mark.dcos_min_version('1.10')
 def test_healthy(elastic_service_tls):
     assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
 def test_crud_over_tls(elastic_service_tls):
     config.create_index(
         config.DEFAULT_INDEX_NAME,
@@ -121,6 +121,5 @@ def test_crud_over_tls(elastic_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
 def test_kibana_tls(kibana_application_tls):
     config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
