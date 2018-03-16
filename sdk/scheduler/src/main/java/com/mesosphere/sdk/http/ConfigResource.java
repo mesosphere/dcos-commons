@@ -12,13 +12,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.json.JSONArray;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A read-only API for accessing active and inactive configurations from persistent storage.
@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 @Path("/v1/configurations")
 public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private final T configStore;
 

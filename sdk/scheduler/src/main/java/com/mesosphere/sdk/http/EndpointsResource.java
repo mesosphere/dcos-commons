@@ -14,6 +14,7 @@ import javax.ws.rs.core.Response;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -29,14 +30,13 @@ import org.apache.mesos.Protos.TaskStatus;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A read-only API for accessing information about how to connect to the service.
  */
 @Path("/v1/endpoints")
 public class EndpointsResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EndpointsResource.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(EndpointsResource.class);
 
     private static final String RESPONSE_KEY_DNS = "dns";
     private static final String RESPONSE_KEY_ADDRESS = "address";

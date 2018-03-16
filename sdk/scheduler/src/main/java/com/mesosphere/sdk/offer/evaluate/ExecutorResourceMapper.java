@@ -3,12 +3,12 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
  * of expected {@link VolumeSpec}s for that Executor.
  */
 public class ExecutorResourceMapper {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ExecutorResourceMapper.class);
-    private final Protos.ExecutorInfo executorInfo;
+    private static final Logger LOGGER = LoggingUtils.getLogger(ExecutorResourceMapper.class);
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
     private final List<Protos.Resource> resources;
@@ -32,7 +31,6 @@ public class ExecutorResourceMapper {
             Collection<ResourceSpec> resourceSpecs,
             Protos.ExecutorInfo executorInfo,
             boolean useDefaultExecutor) {
-        this.executorInfo = executorInfo;
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
         this.resources = executorInfo.getResourcesList();

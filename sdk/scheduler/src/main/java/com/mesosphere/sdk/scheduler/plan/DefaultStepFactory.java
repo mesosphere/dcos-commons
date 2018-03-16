@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -15,7 +16,6 @@ import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * This class is a default implementation of the {@link StepFactory} interface.
  */
 public class DefaultStepFactory implements StepFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultStepFactory.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultStepFactory.class);
 
     private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;

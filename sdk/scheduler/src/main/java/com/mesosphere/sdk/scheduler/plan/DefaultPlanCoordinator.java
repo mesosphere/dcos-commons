@@ -2,7 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
  * A {@link DefaultPlanCoordinator} is an {@link Observable} and will forward updates from its plans.
  */
 public class DefaultPlanCoordinator implements PlanCoordinator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPlanCoordinator.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultPlanCoordinator.class);
 
     private final List<PlanManager> planManagers = new LinkedList<>();
 

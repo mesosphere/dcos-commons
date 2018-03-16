@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.http;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -9,7 +10,6 @@ import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class ArtifactResource {
     private static final String ARTIFACT_URI_FORMAT = "http://%s/v1/artifacts/template/%s/%s/%s/%s";
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private final ConfigStore<ServiceSpec> configStore;
 

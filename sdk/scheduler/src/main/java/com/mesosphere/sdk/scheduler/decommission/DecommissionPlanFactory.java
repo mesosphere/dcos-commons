@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.decommission;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -17,7 +18,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * one pod at a time, and only unreserve pods that are marked as DECOMMISSIONED+IN_PROGRESS.</li></ul>
  */
 public class DecommissionPlanFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DecommissionPlanFactory.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DecommissionPlanFactory.class);
 
     /**
      * The status for a task whose resources should be unreserved because its resources are currently being

@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.queue.OfferQueue;
@@ -16,7 +17,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractScheduler.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(AbstractScheduler.class);
 
     protected final Protos.FrameworkInfo frameworkInfo;
     protected final StateStore stateStore;

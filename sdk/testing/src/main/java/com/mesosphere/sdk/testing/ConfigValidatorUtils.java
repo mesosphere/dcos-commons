@@ -55,7 +55,7 @@ public class ConfigValidatorUtils {
 
         testRunner
                 .setSchedulerEnv(placementEnvKey, newPlacement)
-                .setCustomValidators(configValidator)
+                .addCustomValidator(configValidator)
                 .setState(result)
                 .run(ticks);
     }

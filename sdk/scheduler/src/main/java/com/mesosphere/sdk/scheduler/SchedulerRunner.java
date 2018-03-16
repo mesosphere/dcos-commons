@@ -6,6 +6,7 @@ import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.http.HealthResource;
 import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -22,7 +23,6 @@ import org.apache.mesos.Scheduler;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.time.Instant;
@@ -32,7 +32,7 @@ import java.util.*;
  * Class which sets up and executes the correct {@link AbstractScheduler} instance.
  */
 public class SchedulerRunner implements Runnable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerRunner.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerRunner.class);
 
     private final SchedulerBuilder schedulerBuilder;
 

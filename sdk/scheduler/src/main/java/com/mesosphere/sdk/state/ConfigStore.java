@@ -2,12 +2,12 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.config.ConfigurationFactory;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -28,7 +28,7 @@ import java.util.*;
  */
 public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(ConfigStore.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ConfigStore.class);
 
     /**
      * @see SchemaVersionStore#CURRENT_SCHEMA_VERSION
@@ -97,7 +97,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
         }
 
         String path = getConfigPath(id);
-        logger.info("Fetching configuration with ID={} from {}", id, path);
+        LOGGER.info("Fetching configuration with ID={} from {}", id, path);
         byte[] data;
         try {
             data = persister.get(path);
@@ -130,7 +130,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Configuration should not result in an exception.
-                logger.warn("Requested configuration '{}' to be deleted does not exist at path '{}'", id, path);
+                LOGGER.warn("Requested configuration '{}' to be deleted does not exist at path '{}'", id, path);
                 return;
             } else {
                 throw new ConfigStoreException(e, String.format(
@@ -161,7 +161,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // Clearing a non-existent Configuration should not result in an exception.
-                logger.warn("Configuration list at path '{}' does not exist: returning empty list",
+                LOGGER.warn("Configuration list at path '{}' does not exist: returning empty list",
                         CONFIGURATIONS_PATH_NAME);
                 return new ArrayList<>();
             } else {

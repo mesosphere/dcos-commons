@@ -10,7 +10,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -25,7 +24,7 @@ import java.util.stream.IntStream;
  * environments.
  */
 public class PortEvaluationStage implements OfferEvaluationStage {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PortEvaluationStage.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PortEvaluationStage.class);
 
     private final PortSpec portSpec;
     private final String taskName;

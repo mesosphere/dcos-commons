@@ -3,6 +3,7 @@ package com.mesosphere.sdk.http;
 import com.mesosphere.sdk.http.types.GroupedTasks;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
@@ -15,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  */
 @Path("/v1/pod")
 public class PodResource extends PrettyJsonResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PodResource.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PodResource.class);
 
     /**
      * Pod 'name' to use in responses for tasks which have no pod information.

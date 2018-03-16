@@ -3,7 +3,8 @@ package com.mesosphere.sdk.scheduler.plan;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -16,7 +17,7 @@ public abstract class AbstractStep implements Step {
     /**
      * Non-static to ensure that we inherit the names of subclasses.
      */
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final Logger logger = LoggingUtils.getLogger(getClass());
 
     protected UUID id = UUID.randomUUID();
     private final String name;

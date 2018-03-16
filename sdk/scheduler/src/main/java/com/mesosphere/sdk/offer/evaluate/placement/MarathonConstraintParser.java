@@ -3,9 +3,10 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
+
 import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -17,7 +18,7 @@ import java.util.*;
  */
 public class MarathonConstraintParser {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MarathonConstraintParser.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(MarathonConstraintParser.class);
     private static final char ESCAPE_CHAR = '\\';
 
     private static final Map<String, Operator> SUPPORTED_OPERATORS = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);

@@ -5,6 +5,8 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
 import com.mesosphere.mesos.protobuf.EvolverDevolver;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.LoggingUtils;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.Credential;
@@ -14,14 +16,13 @@ import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Factory class for creating {@link MesosSchedulerDriver}s.
  */
 public class SchedulerDriverFactory {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerDriverFactory.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerDriverFactory.class);
 
     /**
      * Creates and returns a new {@link SchedulerDriver} without a credential secret.

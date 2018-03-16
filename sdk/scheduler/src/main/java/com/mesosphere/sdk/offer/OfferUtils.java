@@ -5,7 +5,6 @@ import com.mesosphere.sdk.scheduler.Metrics;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -16,7 +15,7 @@ import java.util.stream.Collectors;
  * This class provides commonly used utilities for offer handling.
  */
 public class OfferUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OfferUtils.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(OfferUtils.class);
 
     /**
      * Filters out accepted offers and returns back a list of unused offers.
