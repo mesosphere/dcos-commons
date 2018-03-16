@@ -150,6 +150,7 @@ public class ZoneValidatorTest {
                 "http://zookeeper",
                 Arrays.asList(podSpec),
                 null,
-                TestConstants.SERVICE_USER);
+                TestConstants.SERVICE_USER,
+                null);
     }
 }

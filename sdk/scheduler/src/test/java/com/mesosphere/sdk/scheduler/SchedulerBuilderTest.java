@@ -9,6 +9,8 @@ import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Optional;
+
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -53,6 +55,15 @@ public class SchedulerBuilderTest {
         Assert.assertTrue(updatedPodSpec.getPlacementRule().isPresent());
         Assert.assertTrue(updatedPodSpec.getPlacementRule().get() instanceof AndRule);
         Assert.assertTrue(PlacementUtils.placementRuleReferencesRegion(updatedPodSpec));
+    }
+
+    @Test
+    public void constrainToSingleRegion() {
+        PlacementRule placementRule = SchedulerBuilder.getRegionRule(Optional.empty());
+        Assert.assertTrue(placementRule instanceof IsLocalRegionRule);
+
+        placementRule = SchedulerBuilder.getRegionRule(Optional.of("USA"));
+        Assert.assertTrue(placementRule instanceof RegionRule);
     }
 
     private PlacementRule getRemoteRegionRule() {
