@@ -2,7 +2,7 @@ botocore
 py==1.5.1
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc#egg=dcoscli&subdirectory=cli
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc
-dcos-shakedown==1.4.12
+dcos-shakedown==1.5.0
 git+https://github.com/dcos/dcos-test-utils.git@c9a4fc583a4a0bca18040ad4c7772e187e51aa74
 git+https://github.com/dcos/dcos-launch.git@e44c5cb521925cd6efd71da343a806ce2f22b496
 teamcity-messages
