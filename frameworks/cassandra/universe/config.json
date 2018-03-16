@@ -83,6 +83,11 @@
           ],
           "default": "serial"
         },
+        "region": {
+          "description": "The name of the region that nodes in the Cassandra cluster should run in.",
+          "type": "string",
+          "default": ""
+        },
         "security": {
           "description": "Cassandra security settings",
           "type": "object",
