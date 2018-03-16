@@ -31,57 +31,59 @@ def service_account(configure_security):
 
 @pytest.fixture(scope='module')
 def elastic_service_tls(service_account):
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        service_name=config.SERVICE_NAME,
-        expected_running_tasks=config.DEFAULT_TASK_COUNT,
-        additional_options={
-            "service": {
-                "service_account_secret": service_account["name"],
-                "service_account": service_account["secret"],
-                "security": {
-                    "transport_encryption": {
-                        "enabled": True
+    try:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            service_name=config.SERVICE_NAME,
+            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            additional_options={
+                "service": {
+                    "service_account_secret": service_account["name"],
+                    "service_account": service_account["secret"],
+                    "security": {
+                        "transport_encryption": {
+                            "enabled": True
+                        }
                     }
+                },
+                "elasticsearch": {
+                    "xpack_enabled": True,
                 }
-            },
-            "elasticsearch": {
-                "xpack_enabled": True,
             }
-        }
-    )
+        )
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    # Wait for service health check to pass
-    shakedown.service_healthy(config.SERVICE_NAME)
+        # Wait for service health check to pass
+        shakedown.service_healthy(config.SERVICE_NAME)
 
-    yield
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        yield
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.fixture(scope='module')
 def kibana_application_tls(elastic_service_tls):
-    elasticsearch_url = "https://" + sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
+    try:
+        elasticsearch_url = "https://" + sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
 
-    sdk_install.install(
-        config.KIBANA_PACKAGE_NAME,
-        service_name=config.KIBANA_PACKAGE_NAME,
-        expected_running_tasks=0,
-        additional_options={
-            "kibana": {
-                "xpack_enabled": True,
-                "elasticsearch_tls": True,
-                "elasticsearch_url": elasticsearch_url
-            }
-        },
-        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
-        wait_for_deployment=False)
+        sdk_install.install(
+            config.KIBANA_PACKAGE_NAME,
+            service_name=config.KIBANA_PACKAGE_NAME,
+            expected_running_tasks=0,
+            additional_options={
+                "kibana": {
+                    "xpack_enabled": True,
+                    "elasticsearch_tls": True,
+                    "elasticsearch_url": elasticsearch_url
+                }
+            },
+            timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+            wait_for_deployment=False)
 
-    yield
-
-    sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
+        yield
+    finally:
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
 
 @pytest.mark.tls
