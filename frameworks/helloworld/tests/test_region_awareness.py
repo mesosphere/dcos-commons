@@ -18,7 +18,11 @@ POD_NAMES = ['hello-0', 'world-0', 'world-1']
 @pytest.mark.region_awareness
 @sdk_utils.dcos_ee_only
 def test_nodes_deploy_to_local_region_by_default():
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        3,
+        additional_options={"service": {"scenario": "MULTI_REGION"}})
 
     sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
 
@@ -42,7 +46,7 @@ def test_nodes_can_deploy_to_remote_region():
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         3,
-        additional_options={"service": {"region": "Europe"}})
+        additional_options={"service": {"scenario": "MULTI_REGION", "region": "Europe"}})
 
     sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
 
@@ -63,7 +67,11 @@ def test_nodes_can_deploy_to_remote_region():
 @pytest.mark.region_awareness
 @sdk_utils.dcos_ee_only
 def test_region_config_update_does_not_succeed():
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        3,
+        additional_options={"service": {"scenario": "MULTI_REGION"}})
 
     sdk_plan.wait_for_completed_deploy(config.SERVICE_NAME)
     change_region_config('Europe')
