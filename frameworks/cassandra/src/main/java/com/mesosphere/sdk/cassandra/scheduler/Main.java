@@ -46,7 +46,8 @@ public class Main {
                                 TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)
                 .setCustomResources(getResources(localSeeds))
-                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
+                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory())
+                .withSingleRegionConstraint();
     }
 
     private static Collection<Object> getResources(List<String> localSeeds) {

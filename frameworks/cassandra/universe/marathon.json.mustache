@@ -73,6 +73,9 @@
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
+    {{#service.region}}
+    "SERVICE_REGION": "{{service.region}}",
+    {{/service.region}}
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",
