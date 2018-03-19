@@ -80,7 +80,7 @@ def kibana_application_tls(elastic_service_tls):
                     "elasticsearch_url": elasticsearch_url
                 }
             },
-            timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+            timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
             wait_for_deployment=False)
 
         yield
@@ -122,4 +122,4 @@ def test_crud_over_tls(elastic_service_tls):
 @pytest.mark.tls
 @pytest.mark.sanity
 def test_kibana_tls(kibana_application_tls):
-    config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_PACKAGE_NAME))
+    config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_SERVICE_NAME))

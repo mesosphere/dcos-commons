@@ -51,7 +51,7 @@ def test_service_health():
 @pytest.mark.dcos_min_version('1.9')
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=config.DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=config.DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def test_indexing(default_populated_index):
     indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
