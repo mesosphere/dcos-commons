@@ -21,7 +21,9 @@ def local_service():
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             3,
-            additional_options={"service": {"scenario": "MULTI_REGION"}})
+            additional_options={
+                "service": {"scenario": "MULTI_REGION", "allow_region_awareness": "true"}
+            })
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
         yield
@@ -35,7 +37,11 @@ def remote_service():
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         3,
-        additional_options={"service": {"scenario": "MULTI_REGION", "region": "Europe"}})
+        additional_options={
+            "service": {
+                "scenario": "MULTI_REGION", "allow_region_awareness": "true", "region": "Europe"
+            }
+        })
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     yield
