@@ -49,11 +49,6 @@
           ],
           "default": "INFO"
         },
-        "region": {
-          "description": "The region that the service's tasks should run in.",
-          "type": "string",
-          "default": ""
-        },
         "sleep": {
           "description": "The sleep duration in seconds before tasks exit.",
           "type": "number",
@@ -71,8 +66,7 @@
             "YAML",
             "JAVA",
             "CUSTOM_PLAN",
-            "CUSTOM_DECOMMISSION",
-            "MULTI_REGION"
+            "CUSTOM_DECOMMISSION"
           ],
           "default": "YAML"
         },

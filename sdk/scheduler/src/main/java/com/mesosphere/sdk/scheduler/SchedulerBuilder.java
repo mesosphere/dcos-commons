@@ -13,11 +13,9 @@ import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
-import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
-import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
@@ -222,40 +220,6 @@ public class SchedulerBuilder {
     public SchedulerBuilder setPlanCustomizer(PlanCustomizer planCustomizer) {
         this.planCustomizer = planCustomizer;
         return this;
-    }
-
-    public SchedulerBuilder withSingleRegionConstraint() {
-         Optional<String> schedulerRegion = schedulerConfig.getSchedulerRegion();
-         PlacementRule regionRule = getRegionRule(schedulerRegion);
-
-         List<PodSpec> updatedPodSpecs = serviceSpec.getPods().stream()
-                 .map(p -> podWithPlacementRule(p, regionRule))
-                 .collect(Collectors.toList());
-
-         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder(serviceSpec).pods(updatedPodSpecs);
-         if (schedulerRegion.isPresent()) {
-             builder.region(schedulerRegion.get());
-         }
-         serviceSpec = builder.build();
-
-         return this;
-    }
-
-    @VisibleForTesting
-    static PlacementRule getRegionRule(Optional<String> schedulerRegion) {
-        if (!schedulerRegion.isPresent()) {
-            return new IsLocalRegionRule();
-        }
-
-        return RegionRuleFactory.getInstance().require(ExactMatcher.create(schedulerRegion.get()));
-    }
-
-    private static PodSpec podWithPlacementRule(PodSpec podSpec, PlacementRule placementRule) {
-        if (podSpec.getPlacementRule().isPresent()) {
-            placementRule = new AndRule(placementRule, podSpec.getPlacementRule().get());
-        }
-
-        return DefaultPodSpec.newBuilder(podSpec).placementRule(placementRule).build();
     }
 
     /**

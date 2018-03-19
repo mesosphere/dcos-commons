@@ -66,8 +66,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Valid
     private ReplacementFailurePolicy replacementFailurePolicy;
 
-    private String region;
-
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
@@ -77,8 +75,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
-            @JsonProperty("user") String user,
-            @JsonProperty("region") String region) {
+            @JsonProperty("user") String user) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -89,7 +86,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
         this.user = getUser(user, pods);
-        this.region = region;
         ValidationUtils.validate(this);
     }
 
@@ -122,8 +118,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.zookeeperConnection,
                 builder.pods,
                 builder.replacementFailurePolicy,
-                builder.user,
-                builder.region);
+                builder.user);
     }
 
     /**
@@ -179,7 +174,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.pods = copy.getPods();
         builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
         builder.user = copy.getUser();
-        builder.region = copy.getRegion().orElse(null);
         return builder;
     }
 
@@ -216,11 +210,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
         return Optional.ofNullable(replacementFailurePolicy);
-    }
-
-    @Override
-    public Optional<String> getRegion() {
-        return Optional.ofNullable(region);
     }
 
     @Override
@@ -514,7 +503,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
         private String user;
-        private String region;
 
         private Builder() {
         }
@@ -574,18 +562,6 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder user(String user) {
             this.user = user;
-            return this;
-        }
-
-        /**
-         * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param region the {@code region} to set
-         * @return a reference to this Builder
-         */
-        public Builder region(String region) {
-            this.region = region;
             return this;
         }
 
