@@ -1,4 +1,5 @@
 import pytest
+import retrying
 
 import sdk_cmd
 import sdk_install
@@ -97,6 +98,9 @@ def test_zookeeper_reresolution(kafka_server):
         restart_zookeeper_node(id)
 
     # Now, verify that Kafka remains happy
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=2*60*1000)
     def check_broker(id: int):
         rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 15".format(id))
 
