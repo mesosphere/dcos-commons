@@ -16,16 +16,17 @@ POD_NAMES = ['hello-0', 'world-0', 'world-1']
 
 @pytest.fixture
 def local_service():
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        3,
-        additional_options={"service": {"scenario": "MULTI_REGION"}})
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    try:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            3,
+            additional_options={"service": {"scenario": "MULTI_REGION"}})
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    yield
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        yield
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.fixture
