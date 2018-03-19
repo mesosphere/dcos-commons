@@ -74,6 +74,7 @@
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
     {{#service.region}}
+    "ALLOW_REGION_AWARENESS": "true",
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",

@@ -65,6 +65,7 @@ public class ServiceTest {
                 .setPodEnv("node", getDefaultNodeEnv())
                 .run();
         Assert.assertEquals(result.getSchedulerEnvironment().get("SERVICE_REGION"), "Europe");
+        Assert.assertEquals(result.getSchedulerEnvironment().get("ALLOW_REGION_AWARENESS"), "true");
     }
 
     private static Map<String, String> getDefaultNodeEnv() {
