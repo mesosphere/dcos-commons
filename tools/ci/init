@@ -197,7 +197,7 @@ def move_java_files(output_path: str, framework_name: str):
 def update_files(output_path: str, framework_name: str):
     # Replace all instances of "template" but the ones that look like shell
     # flags named "template", e.g. -template=false.
-    template_pattern = "(?<!-)template"
+    template_pattern = "(?<!-|_)template(?!_)"
 
     matcher = re.compile(template_pattern)
 
@@ -208,6 +208,7 @@ def update_files(output_path: str, framework_name: str):
             if matcher.search(contents):
                 LOGGER.info("Updating %s", full_path)
                 write_file(full_path, matcher.sub(framework_name, contents))
+
 
 def write_standalone_resource_json(output_path: str, framework_name: str):
     contents = """{
