@@ -64,28 +64,18 @@ They store the desired configuration of a service and all relevant information r
 
 ## Creating a new standalone framework
 
-The `mesosphere/dcos-commons:latest` Docker image is able to set up a development environment for creating a new standalone framework.
+The `mesosphere/dcos-commons:latest` Docker image contains a development environment capable of creating new standalone frameworks.
 
-In order to set up this environment run the following command:
+In order to set up this environment run the following commands:
 ```bash
-$ FRAMEWORK_ROOT=/home/elezar/frameworks
+$ docker pull mesosphere/dcos-commons:latest # make sure you have the latest image
+$ export FRAMEWORK_ROOT=$HOME/frameworks
 $ docker run --rm -ti \
     -v ${FRAMEWORK_ROOT}:${FRAMEWORK_ROOT} \
         mesosphere/dcos-commons:latest \
-            init ${FRAMEWORK_ROOT} --create-framework pyframework
+            init ${FRAMEWORK_ROOT} --create-framework myframework
 ```
-This will create a folder `/home/elezar/frameworks/myframework` (for example) containing a framework based on the DC/OS SDK template framework. The rest of thes instructions are relative to this folder.
-
-## Creating a new framework in the DC/OS SDK repository
-
-Assuming you are in the root of the `dcos-commons` repository (indicated by the environment variable `DCOS_COMMONS_ROOT`):
-```bash
-$ cd ${DCOS_COMMONS_ROOT}
-$ ./new-framework.sh frameworks/myframework
-$ cd frameworks/myframework
-```
-
-`new-framework.sh` creates a skeleton framework. You will extend this skeleton, with the rest of these instructions relative to the `${DCOS_COMMONS_ROOT}/frameworks/myframework` directory.
+This will create a `$HOME/frameworks/myframework` directory containing a framework based on the DC/OS SDK template framework. The rest of the instructions are relative to this directory.
 
 ## Editing the framework
 
@@ -97,39 +87,42 @@ $ cd frameworks/myframework
 
    Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
 
-1. Build a [package](#packaging). You must run the build.sh that is within `frameworks/myframework` directory that was just generated.
+## Building a package
 
-   ```bash
-   $ ./build.sh aws
-   ```
+It is best to [build packages](#packaging) from within the dcos-commons Docker container (based on `mesosphere/dcos-commons:latest`).  To run an interactive shell session in that container you should run `./test.sh -i`.  Once you're in, you can use `build.sh` to build the package.
 
-   You will deploy your framework to DC/OS as a
-   [package](#packaging).  `build.sh` creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.
+```bash
+$ ./test.sh -i
+# ./build.sh aws
+```
 
-1. Install your package.
+This will deploy your framework to DC/OS as a [package](#packaging). `build.sh` creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.
 
-   `build.sh` prints instructions for installing the package that look something like this:
+**Note:** Uploading packages to the private Mesosphere AWS S3 buckets (the default) requires authenticating with [maws](https://github.com/mesosphere/maws). You'll need to export the `AWS_PROFILE` given by maws inside the container prior to running `build.sh`.
 
-   ```bash
-   $ dcos package repo remove myframework-aws
-   $ dcos package repo add --index=0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
-   $ dcos package install --yes myframework
-   ```
+## Installing your package
 
-   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/latest/gui/#services) to view the deployment.
+`build.sh` prints instructions for installing the package that look something like this:
 
-1. Uninstall your package.
+```bash
+$ dcos package repo remove myframework-aws
+$ dcos package repo add --index=0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
+$ dcos package install --yes myframework
+```
 
-   ```
-   $ dcos package uninstall myframework
-   $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework"
-   ```
+Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/latest/gui/#services) to view the deployment.
 
-   The second command above runs the **janitor** script.  The janitor
-   script runs inside the DC/OS cluster, cleaning up ZooKeeper state
-   and resource reservations made by a framework.  DC/OS will soon
-   support uninstall hooks so this can happen automatically, but for
-   now, you must manually run the janitor script as shown above.
+## Uninstalling your package.
+
+```bash
+$ dcos package uninstall myframework
+```
+
+**Note:** If you're **Note:** using DC/OS 1.9 or older you also need to run the **janitor** script. The janitor script runs inside the DC/OS cluster, cleaning up ZooKeeper state and resource reservations made by a framework.
+
+```bash
+$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework"
+```
 
 # Introduction to DC/OS Service Definitions
 

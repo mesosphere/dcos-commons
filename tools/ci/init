@@ -185,7 +185,6 @@ def write_gradle_settings(output_path: str, framework_name: str):
 
 
 def move_java_files(output_path: str, framework_name: str):
-
     folders = [
              "src/test/java/com/mesosphere/sdk/template/",
              "src/main/java/com/mesosphere/sdk/template/"]
@@ -196,9 +195,9 @@ def move_java_files(output_path: str, framework_name: str):
 
 
 def update_files(output_path: str, framework_name: str):
-
-    template_pattern = "([^-])template([^_]?)"
-    framework_pattern = "\\1{}\\2".format(framework_name)
+    # Replace all instances of "template" but the ones that look like shell
+    # flags named "template", e.g. -template=false.
+    template_pattern = "(?<!-|_)template(?!_)"
 
     matcher = re.compile(template_pattern)
 
@@ -208,8 +207,7 @@ def update_files(output_path: str, framework_name: str):
             contents = read_file(full_path)
             if matcher.search(contents):
                 LOGGER.info("Updating %s", full_path)
-                write_file(full_path,
-                           matcher.sub(framework_pattern, contents))
+                write_file(full_path, matcher.sub(framework_name, contents))
 
 
 def write_standalone_resource_json(output_path: str, framework_name: str):
