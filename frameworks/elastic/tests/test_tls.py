@@ -51,13 +51,7 @@ def elastic_service_tls(service_account):
                 "elasticsearch": {
                     "xpack_enabled": True,
                 }
-            }
-        )
-
-        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-        # Wait for service health check to pass
-        shakedown.service_healthy(config.SERVICE_NAME)
+            })
 
         yield
     finally:
