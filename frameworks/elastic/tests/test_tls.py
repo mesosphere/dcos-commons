@@ -34,6 +34,7 @@ def service_account(configure_security):
 @pytest.fixture(scope='module')
 def elastic_service_tls(service_account):
     try:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
@@ -63,9 +64,10 @@ def kibana_application_tls(elastic_service_tls):
     try:
         elasticsearch_url = "https://" + sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
 
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_SERVICE_NAME)
         sdk_install.install(
             config.KIBANA_PACKAGE_NAME,
-            service_name=config.KIBANA_PACKAGE_NAME,
+            service_name=config.KIBANA_SERVICE_NAME,
             expected_running_tasks=0,
             additional_options={
                 "kibana": {
