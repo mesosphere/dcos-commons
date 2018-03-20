@@ -625,6 +625,11 @@ This can be set either to <code class="highlighter-rouge">TLS</code> for PEM enc
 
             <p>For detailed information see the <a href="../developer-guide/#tls">SDK Developer Guide</a>.</p>
           </li>
+          <li>
+            <p><code class="highlighter-rouge">kill-grace-period</code></p>
+
+            <p>When the scheduler is instructed to kill a task, it first sends a <code class="highlighter-rouge">SIGTERM</code> signal to that task so that it can optionally perform any necessary cleanup before it terminates, and then sends a <code class="highlighter-rouge">SIGKILL</code> signal afterward. This field specifies the duration in seconds between when the scheduler sends <code class="highlighter-rouge">SIGTERM</code> and <code class="highlighter-rouge">SIGKILL</code>.</p>
+          </li>
         </ul>
       </li>
     </ul>
