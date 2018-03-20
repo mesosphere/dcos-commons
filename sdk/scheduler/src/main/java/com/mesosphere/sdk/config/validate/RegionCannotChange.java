@@ -25,7 +25,7 @@ public class RegionCannotChange implements ConfigValidator<ServiceSpec> {
             errors.add(ConfigValidationError.transitionError(
                     "region",
                     oldConfig.get().getRegion().toString(),
-                    newConfig.getUser(),
+                    newConfig.getRegion().toString(),
                     "Region for old service must remain the same across deployments."
             ));
         }
