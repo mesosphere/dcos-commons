@@ -72,6 +72,11 @@
             "type": "application/x-zone-constraints+json"
           }
         },
+        "region": {
+          "description": "All Kafka brokers should run in this region.  When no region is specified the brokers are constrained to the local region.",
+          "type": "string",
+          "default": ""
+        },
         "deploy_strategy": {
           "description": "Deployment phase strategy. See documentation. [serial, serial-canary, parallel-canary, parallel]",
           "type": "string",
