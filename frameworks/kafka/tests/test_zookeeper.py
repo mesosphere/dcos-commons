@@ -1,4 +1,5 @@
 import pytest
+import retrying
 
 import sdk_cmd
 import sdk_install
@@ -97,13 +98,22 @@ def test_zookeeper_reresolution(kafka_server):
         restart_zookeeper_node(id)
 
     # Now, verify that Kafka remains happy
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_attempt_number=3)
     def check_broker(id: int):
-        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 15".format(id))
+        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 100".format(id))
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
 
-        assert "java.net.NoRouteToHostException: No route to host" not in stdout
+        expired_index = stdout.rfind("zookeeper state changed (Expired) (org.I0Itec.zkclient.ZkClient)")
+        exception_index = stdout.rfind("java.net.NoRouteToHostException: No route to host")
+
+        success_index = stdout.rfind("zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)")
+
+        assert max(expired_index, exception_index) > -1
+        assert max(expired_index, exception_index) < success_index
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
         check_broker(id)
