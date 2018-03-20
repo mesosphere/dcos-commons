@@ -81,7 +81,7 @@ def kibana_application_tls(elastic_service_tls):
 
         yield
     finally:
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
+        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_SERVICE_NAME)
 
 
 @pytest.mark.tls
