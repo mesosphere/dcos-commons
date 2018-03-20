@@ -102,13 +102,18 @@ def test_zookeeper_reresolution(kafka_server):
         wait_fixed=1000,
         stop_max_delay=2*60*1000)
     def check_broker(id: int):
-        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 15".format(id))
+        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 100".format(id))
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
 
-        if "java.net.NoRouteToHostException: No route to host" not in stdout:
-            assert "zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)" in stdout
+        expired_index = stdout.rfind("zookeeper state changed (Expired) (org.I0Itec.zkclient.ZkClient)")
+        exception_index = stdout.rfind("java.net.NoRouteToHostException: No route to host")
+
+        success_index = stdout.rfind("zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)")
+
+        assert max(expired_index, exception_index) > -1
+        assert max(expired_index, exception_index) < success_index
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
         check_broker(id)
