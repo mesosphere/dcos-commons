@@ -107,7 +107,8 @@ def test_zookeeper_reresolution(kafka_server):
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
 
-        assert "java.net.NoRouteToHostException: No route to host" not in stdout
+        if "java.net.NoRouteToHostException: No route to host" not in stdout:
+            assert "zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)" in stdout
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
         check_broker(id)
