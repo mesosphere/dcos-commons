@@ -85,6 +85,7 @@ def test_region_config_update_does_not_succeed(local_service):
     assert plan.get('errors', [])
 
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
+    sdk_plan.wait_for_in_progress_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     pod_region = get_pod_region(config.SERVICE_NAME, 'hello-0')
