@@ -100,7 +100,7 @@ def test_zookeeper_reresolution(kafka_server):
     # Now, verify that Kafka remains happy
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=2*60*1000)
+        stop_max_attempt_number=3)
     def check_broker(id: int):
         rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 100".format(id))
 
