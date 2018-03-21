@@ -1,15 +1,12 @@
 package com.mesosphere.sdk.http;
 
-import static org.junit.Assert.assertEquals;
-
+import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import org.junit.Test;
-
-import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 import org.mockito.Mockito;
 
-import java.util.Optional;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests for {@link EndpointUtils}.
@@ -32,7 +29,7 @@ public class EndpointUtilsTest {
     @Test
     public void testToAutoIpEndpointCustomTLD() {
         SchedulerConfig mockSchedulerConfig = SchedulerConfigTestUtils.getTestSchedulerConfig();
-        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Optional.of("what.a.fun.test.tld"));
+        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn("what.a.fun.test.tld");
 
         assertEquals("task.svc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5, mockSchedulerConfig));
         assertEquals("task.pathtosvc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5, mockSchedulerConfig));

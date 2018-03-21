@@ -24,7 +24,6 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-@pytest.mark.ben
 def test_custom_service_tld():
     # Go figure out the crypto id...
     ok, crypto_id = shakedown.run_command_on_master("curl localhost:62080/lashup/key/ | jq -r .zbase32_public_key")

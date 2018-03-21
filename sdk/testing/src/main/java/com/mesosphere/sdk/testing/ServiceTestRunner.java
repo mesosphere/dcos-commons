@@ -2,6 +2,7 @@ package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -283,7 +284,7 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
-        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Optional.empty());
+        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);

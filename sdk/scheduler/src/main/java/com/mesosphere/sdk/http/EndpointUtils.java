@@ -1,10 +1,7 @@
 package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.offer.Constants;
-
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-
-import java.util.Optional;
 
 /**
  * Utilities relating to the creation and interpretation of endpoints between DC/OS tasks.
@@ -48,7 +45,9 @@ public class EndpointUtils {
      */
     public static String toAutoIpDomain(String serviceName, SchedulerConfig schedulerConfig) {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), schedulerConfig.getServiceTLD());
+        return String.format("%s.%s",
+                removeSlashes(replaceDotsWithDashes(serviceName)),
+                schedulerConfig.getServiceTLD());
     }
 
     /**
