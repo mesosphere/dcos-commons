@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 /**
  * This class is a collection of useful utilities for use by Cassandra components.
@@ -22,10 +23,12 @@ public class CassandraSeedUtils {
      * Returns the names the autoip based names of the Cassandra seed nodes based on the service name.
      * e.g. 'node-0-server.<svcname>.autoip...,node-1-server.<svcname>.autoip...'
      */
-    public static List<String> getLocalSeeds(String serviceName) {
+    public static List<String> getLocalSeeds(String serviceName, SchedulerConfig schedulerConfig) {
         List<String> localSeeds = new ArrayList<>();
         for (int i = 0; i < getSeedsCount(); ++i) {
-            localSeeds.add(EndpointUtils.toAutoIpHostname(serviceName, String.format("node-%d-server", i), null));
+            localSeeds.add(EndpointUtils.toAutoIpHostname(serviceName,
+                    String.format("node-%d-server", i),
+                    schedulerConfig));
         }
         return localSeeds;
     }
