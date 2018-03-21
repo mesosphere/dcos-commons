@@ -16,7 +16,6 @@ import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
  * in reference to {@link PodInstanceRequirement}s.
  */
 public class OfferEvaluator {
-    private static final Logger logger = LoggerFactory.getLogger(OfferEvaluator.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(OfferEvaluator.class);
 
     private final StateStore stateStore;
     private final OfferOutcomeTracker offerOutcomeTracker;
@@ -119,7 +118,7 @@ public class OfferEvaluator {
             }
 
             if (failedOutcomeCount != 0) {
-                logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
+                LOGGER.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
                         i + 1,
                         offer.getId().getValue(),
                         failedOutcomeCount,
@@ -136,7 +135,7 @@ public class OfferEvaluator {
                         .map(outcome -> outcome.getOfferRecommendations())
                         .flatMap(xs -> xs.stream())
                         .collect(Collectors.toList());
-                logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
+                LOGGER.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
                         i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
 
                 offerOutcomeTracker.track(new OfferOutcome(
@@ -181,7 +180,7 @@ public class OfferEvaluator {
             description = "existing";
             shouldGetNewRequirement = false;
         }
-        logger.info("Generating requirement for {} pod '{}' containing tasks: {}.",
+        LOGGER.info("Generating requirement for {} pod '{}' containing tasks: {}.",
                 description,
                 podInstanceRequirement.getPodInstance().getName(),
                 podInstanceRequirement.getTasksToLaunch());
@@ -229,7 +228,7 @@ public class OfferEvaluator {
 
         for (Protos.TaskInfo taskInfo : executorReuseCandidates) {
             if (taskHasReusableExecutor(taskInfo)) {
-                logger.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
+                LOGGER.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
                 return taskInfo.getExecutor();
             }
         }
@@ -240,7 +239,7 @@ public class OfferEvaluator {
                 .getExecutor().toBuilder()
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
                 .build();
-        logger.info("Using old executor: {}", TextFormat.shortDebugString(executorInfo));
+        LOGGER.info("Using old executor: {}", TextFormat.shortDebugString(executorInfo));
 
         return executorInfo;
     }
@@ -468,7 +467,7 @@ public class OfferEvaluator {
             Protos.TaskInfo taskInfo =
                     getTaskInfoSharingResourceSet(podInstanceRequirement.getPodInstance(), taskSpec, podTasks);
             if (taskInfo == null) {
-                logger.error("Failed to fetch task {}.  Cannot generate resource map.", taskInstanceName);
+                LOGGER.error("Failed to fetch task {}.  Cannot generate resource map.", taskInstanceName);
                 return Collections.emptyList();
             }
 
@@ -528,7 +527,7 @@ public class OfferEvaluator {
             try {
                 return new TaskLabelReader(taskInfo).getTargetConfiguration();
             } catch (TaskException e) {
-                logger.error(String.format(
+                LOGGER.error(String.format(
                         "Falling back to current target configuration '%s'. " +
                                 "Failed to determine target configuration for task: %s",
                                 targetConfigId, TextFormat.shortDebugString(taskInfo)), e);

@@ -14,8 +14,8 @@ import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
@@ -24,7 +24,7 @@ import com.mesosphere.sdk.state.StateStore;
  * Utility class for sorting/grouping {@link TaskInfo}s and/or their associated {@link TaskStatus}es into pods.
  */
 public class GroupedTasks {
-    private static final Logger LOGGER = LoggerFactory.getLogger(GroupedTasks.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(GroupedTasks.class);
 
     /**
      * Mapping of pod type => pod index => to tasks in that pod.

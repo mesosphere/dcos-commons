@@ -29,19 +29,17 @@ type BrokerHandler struct {
 func (cmd *BrokerHandler) runList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/brokers")
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *BrokerHandler) runView(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/brokers/%s", cmd.broker))
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 
@@ -71,19 +69,17 @@ type TopicHandler struct {
 func (cmd *TopicHandler) runList(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/topics")
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runDescribe(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet(fmt.Sprintf("v1/topics/%s", cmd.topic))
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runCreate(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -92,28 +88,25 @@ func (cmd *TopicHandler) runCreate(a *kingpin.Application, e *kingpin.ParseEleme
 	query.Set("replication", strconv.FormatInt(int64(cmd.createReplication), 10))
 	responseBytes, err := client.HTTPServicePutQuery(fmt.Sprintf("v1/topics/%s", cmd.topic), query.Encode())
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runUnavailablePartitions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/topics/unavailable_partitions")
 	if err != nil {
-		client.PrintMessage(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runUnderReplicatedPartitions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceGet("v1/topics/under_replicated_partitions")
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runPartitions(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -122,10 +115,9 @@ func (cmd *TopicHandler) runPartitions(a *kingpin.Application, e *kingpin.ParseE
 	query.Set("partitions", strconv.FormatInt(int64(cmd.partitionCount), 10))
 	responseBytes, err := client.HTTPServicePutQuery(fmt.Sprintf("v1/topics/%s/operation/partitions", cmd.topic), query.Encode())
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runProducerTest(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -133,10 +125,9 @@ func (cmd *TopicHandler) runProducerTest(a *kingpin.Application, e *kingpin.Pars
 	query.Set("messages", strconv.FormatInt(int64(cmd.produceMessageCount), 10))
 	responseBytes, err := client.HTTPServicePutQuery(fmt.Sprintf("v1/topics/%s/operation/producer-test", cmd.topic), query.Encode())
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runProducerTestTLS(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -144,19 +135,17 @@ func (cmd *TopicHandler) runProducerTestTLS(a *kingpin.Application, e *kingpin.P
 	query.Set("messages", strconv.FormatInt(int64(cmd.produceMessageCount), 10))
 	responseBytes, err := client.HTTPServicePutQuery(fmt.Sprintf("v1/topics/%s/operation/producer-test-tls", cmd.topic), query.Encode())
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runDelete(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
 	responseBytes, err := client.HTTPServiceDelete(fmt.Sprintf("v1/topics/%s", cmd.topic))
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 func (cmd *TopicHandler) runOffsets(a *kingpin.Application, e *kingpin.ParseElement, c *kingpin.ParseContext) error {
@@ -177,10 +166,9 @@ func (cmd *TopicHandler) runOffsets(a *kingpin.Application, e *kingpin.ParseElem
 	query.Set("time", strconv.FormatInt(timeVal, 10))
 	responseBytes, err := client.HTTPServiceGetQuery(fmt.Sprintf("v1/topics/%s/offsets", cmd.topic), query.Encode())
 	if err != nil {
-		client.PrintMessageAndExit(err.Error())
-	} else {
-		client.PrintJSONBytes(responseBytes)
+		return err
 	}
+	client.PrintJSONBytes(responseBytes)
 	return nil
 }
 

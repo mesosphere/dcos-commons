@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,7 +16,7 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
  * service by marking them with a tombstone id, then notifying the uninstall plan of the changes.
  */
 public class UninstallRecorder implements OperationRecorder {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
     private final StateStore stateStore;
     private final Collection<ResourceCleanupStep> resourceSteps;
 

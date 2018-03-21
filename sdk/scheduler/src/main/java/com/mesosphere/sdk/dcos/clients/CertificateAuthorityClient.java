@@ -19,10 +19,10 @@ import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.security.PEMUtils;
 
 /**
@@ -31,7 +31,7 @@ import com.mesosphere.sdk.offer.evaluate.security.PEMUtils;
  */
 public class CertificateAuthorityClient {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private DcosHttpExecutor httpExecutor;
     private CertificateFactory certificateFactory;

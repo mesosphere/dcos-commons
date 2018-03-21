@@ -6,8 +6,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.StandardCharsets;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
  */
 public class PersisterCacheTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(PersisterCacheTest.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PersisterCacheTest.class);
 
     private static final String KEY = "key";
     private static final byte[] VAL = "someval".getBytes(StandardCharsets.UTF_8);
@@ -317,7 +317,7 @@ public class PersisterCacheTest {
                 @Override
                 public void uncaughtException(Thread t, Throwable e) {
                     synchronized (lock) {
-                        logger.error(t.getName(), e);
+                        LOGGER.error(t.getName(), e);
                         errors.add(e);
                     }
                 }

@@ -7,10 +7,11 @@ import com.mesosphere.sdk.scheduler.Driver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -21,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class Reconciler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Reconciler.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(Reconciler.class);
 
     // Exponential backoff between explicit reconcile requests: minimum 8s, maximum 30s
     private static final int MULTIPLIER = 2;

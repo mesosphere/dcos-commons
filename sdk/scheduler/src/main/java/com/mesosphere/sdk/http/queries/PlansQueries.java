@@ -3,6 +3,7 @@ package com.mesosphere.sdk.http.queries;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -10,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 
@@ -22,9 +22,8 @@ import java.util.stream.Collectors;
  */
 public class PlansQueries extends PrettyJsonResource {
 
+    private static final Logger LOGGER = LoggingUtils.getLogger(PlansQueries.class);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlansQueries.class);
 
     private PlansQueries() {
         // do not instantiate

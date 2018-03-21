@@ -5,14 +5,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 /**
  * This class encapsulates constants common to DC/OS and its services.
  */
 public class DcosConstants {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DcosConstants.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DcosConstants.class);
 
     private static final String MESOS_MASTER = "master.mesos";
     private static final String MESOS_LEADER = "leader.mesos";

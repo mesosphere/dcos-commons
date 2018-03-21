@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.time.Duration;
 import java.util.concurrent.Executors;
@@ -18,7 +19,7 @@ public class TokenBucket {
     public static final Duration DEFAULT_ACQUIRE_INTEVAL = Duration.ofSeconds(5);
     public static final Duration DEFAULT_INCREMENT_INTERVAL = Duration.ofSeconds(DEFAULT_CAPACITY);
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
     private final int initial;
     private final int capacity;

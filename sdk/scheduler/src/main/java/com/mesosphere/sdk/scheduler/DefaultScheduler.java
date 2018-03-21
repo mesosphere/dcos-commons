@@ -18,7 +18,6 @@ import com.mesosphere.sdk.storage.PersisterException;
 
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultScheduler extends AbstractScheduler {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultScheduler.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultScheduler.class);
 
     private final OfferAccepter offerAccepter;
 

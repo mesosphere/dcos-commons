@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.queue;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Collection;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 public class OfferQueue {
     private static final int DEFAULT_CAPACITY = 100;
     private static final Duration DEFAULT_OFFER_WAIT = Duration.ofSeconds(5);
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
 
     public OfferQueue() {

@@ -1,11 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.HashSet;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
  * Mesos doesn't know anything about this task.
  */
 public final class TaskKiller {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TaskKiller.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(TaskKiller.class);
 
     private static final Duration KILL_INTERVAL = Duration.ofSeconds(5);
     private static final Set<TaskID> TASKS_TO_KILL = new HashSet<>();

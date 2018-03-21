@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -8,7 +9,6 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,7 +20,7 @@ import java.util.Optional;
  */
 abstract class AbstractRoundRobinRule implements PlacementRule {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRoundRobinRule.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(AbstractRoundRobinRule.class);
 
     protected final StringMatcher taskFilter;
     protected final Optional<Integer> distinctKeyCount;

@@ -9,20 +9,20 @@ import java.util.UUID;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.config.Configuration;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.json.JSONArray;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * A read-only API for accessing active and inactive configurations from persistent storage.
  */
 public class ConfigQueries {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactQueries.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ConfigQueries.class);
 
     private ConfigQueries() {
         // Do not instantiate

@@ -12,11 +12,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -32,7 +32,7 @@ import com.mesosphere.sdk.testutils.TestConstants;
  */
 public class AbstractSchedulerTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSchedulerTest.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(AbstractSchedulerTest.class);
 
     private StateStore stateStore;
     private final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()

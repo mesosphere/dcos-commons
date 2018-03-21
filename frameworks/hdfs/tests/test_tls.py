@@ -42,8 +42,8 @@ def hdfs_service_tls(service_account):
             expected_running_tasks=config.DEFAULT_TASK_COUNT,
             additional_options={
                 "service": {
-                    "service_account_secret": service_account["name"],
-                    "service_account": service_account["secret"],
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True

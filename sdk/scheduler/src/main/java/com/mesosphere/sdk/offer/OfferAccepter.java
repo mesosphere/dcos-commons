@@ -8,7 +8,6 @@ import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.OfferID;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -17,7 +16,7 @@ import java.util.*;
  * Operations.
  */
 public class OfferAccepter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OfferAccepter.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(OfferAccepter.class);
     private static final Filters FILTERS = Filters.newBuilder().setRefuseSeconds(1).build();
 
     private final Collection<OperationRecorder> recorders = new ArrayList<>();

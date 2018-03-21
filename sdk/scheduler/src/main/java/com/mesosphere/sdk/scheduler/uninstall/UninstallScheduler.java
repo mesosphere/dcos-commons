@@ -16,7 +16,6 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public class UninstallScheduler extends AbstractScheduler {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private final Optional<SecretsClient> secretsClient;
 

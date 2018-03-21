@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -7,7 +8,6 @@ import com.mesosphere.sdk.specification.PodSpec;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class PlacementUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlacementUtils.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PlacementUtils.class);
 
     private static final String HOSTNAME_FIELD_LEGACY = "hostname";
     private static final String HOSTNAME_FIELD = "@hostname";

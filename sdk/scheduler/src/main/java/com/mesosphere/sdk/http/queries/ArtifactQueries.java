@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -10,7 +11,6 @@ import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public class ArtifactQueries {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ArtifactQueries.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ArtifactQueries.class);
 
     /**
      * Generates template URLs suitable for use with fetching template URLs. Schedulers using {@link ArtifactResource}

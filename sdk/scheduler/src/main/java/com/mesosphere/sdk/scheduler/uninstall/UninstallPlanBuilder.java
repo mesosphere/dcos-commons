@@ -10,12 +10,12 @@ import java.util.stream.Collectors;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -36,7 +36,7 @@ import com.mesosphere.sdk.state.StateStore;
  * Handles creation of the uninstall plan, returning information about the plan contents back to the caller.
  */
 public class UninstallPlanBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(UninstallPlanBuilder.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(UninstallPlanBuilder.class);
 
     private static final String TASK_KILL_PHASE = "kill-tasks";
     private static final String RESOURCE_PHASE = "unreserve-resources";

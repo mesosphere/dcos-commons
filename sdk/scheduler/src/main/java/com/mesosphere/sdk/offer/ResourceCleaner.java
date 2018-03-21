@@ -4,7 +4,6 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
  */
 public class ResourceCleaner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResourceCleaner.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ResourceCleaner.class);
 
     private final Collection<Resource> expectedResources;
     private final Protos.FrameworkInfo frameworkInfo;

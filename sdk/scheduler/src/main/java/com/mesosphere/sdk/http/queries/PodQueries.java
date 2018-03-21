@@ -5,6 +5,7 @@ import com.mesosphere.sdk.http.RequestUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.GroupedTasks;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -21,7 +22,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
 
@@ -36,7 +36,8 @@ import java.util.stream.Collectors;
  * pods.
  */
 public class PodQueries {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PodQueries.class);
+
+    private static final Logger LOGGER = LoggingUtils.getLogger(PodQueries.class);
     private static final FailureSetter DEFAULT_FAILURE_SETTER = new FailureSetter();
 
     /**

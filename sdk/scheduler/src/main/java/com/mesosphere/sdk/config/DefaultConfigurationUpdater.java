@@ -7,6 +7,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
@@ -22,7 +23,6 @@ import difflib.DiffUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -32,7 +32,7 @@ import java.util.*;
  */
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConfigurationUpdater.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultConfigurationUpdater.class);
 
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;

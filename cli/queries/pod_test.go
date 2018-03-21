@@ -1,4 +1,4 @@
-package commands
+package queries
 
 import (
 	"testing"
@@ -64,7 +64,8 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorld() {
    └─ world-1
       └─ world-1-server (RUNNING)`
 
-	result := toServiceTree([]byte(inputJSON))
+	result, err := toServiceTree([]byte(inputJSON))
+	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -135,7 +136,8 @@ func (suite *PodsTestSuite) TestStatusTreeServiceHelloWorldMoreTasks() {
       ├─ world-1-server (RUNNING)
       └─ world-1-sidecar (ONCE)`
 
-	result := toServiceTree([]byte(inputJSON))
+	result, err := toServiceTree([]byte(inputJSON))
+	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -162,7 +164,8 @@ func (suite *PodsTestSuite) TestStatusTreeServiceSingleTask() {
    └─ hello-0
       └─ hello-0-server (KILLED)`
 
-	result := toServiceTree([]byte(inputJSON))
+	result, err := toServiceTree([]byte(inputJSON))
+	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -175,7 +178,8 @@ func (suite *PodsTestSuite) TestStatusTreeServiceNoTasks() {
 
 	expectedOutput := `hello-world`
 
-	result := toServiceTree([]byte(inputJSON))
+	result, err := toServiceTree([]byte(inputJSON))
+	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -198,7 +202,8 @@ func (suite *PodsTestSuite) TestStatusTreePodTwoTasks() {
 ├─ world-0-server (PAUSING)
 └─ world-0-sidecar (PAUSED)`
 
-	result := toSinglePodTree([]byte(inputJSON))
+	result, err := toSinglePodTree([]byte(inputJSON))
+	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expectedOutput, result)
 }
 
@@ -215,6 +220,7 @@ func (suite *PodsTestSuite) TestStatusTreePodOneTask() {
 	expectedOutput := `world-0
 └─ world-0-server (PAUSED)`
 
-	result := toSinglePodTree([]byte(inputJSON))
+	result, err := toSinglePodTree([]byte(inputJSON))
+	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), expectedOutput, result)
 }

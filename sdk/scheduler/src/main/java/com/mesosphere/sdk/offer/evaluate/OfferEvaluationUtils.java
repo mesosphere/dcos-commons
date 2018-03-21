@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -18,7 +17,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * This class encapsulates shared offer evaluation logic for evaluation stages.
  */
 class OfferEvaluationUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OfferEvaluationUtils.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(OfferEvaluationUtils.class);
 
     private OfferEvaluationUtils() {
         // Do not instantiate this class.

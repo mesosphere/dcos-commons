@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.util.*;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
  * to which they are attached.
  */
 public class PodInfoBuilder {
-    private static final Logger LOGGER = LoggerFactory.getLogger(PodInfoBuilder.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PodInfoBuilder.class);
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
     private Set<Long> assignedOverlayPorts = new HashSet<>();

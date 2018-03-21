@@ -6,6 +6,7 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,13 +18,12 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Root of the parsed YAML object model.
  */
 public class RawServiceSpec {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Builder.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(RawServiceSpec.class);
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
 
     /**

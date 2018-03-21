@@ -139,7 +139,7 @@ def test_metrics():
         config.PACKAGE_NAME,
         foldered_name,
         "data-0-node",
-        config.DEFAULT_ELASTIC_TIMEOUT,
+        config.DEFAULT_TIMEOUT,
         expected_metrics_exist)
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
@@ -179,7 +179,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         { "kibana": {
             "elasticsearch_url": elasticsearch_url
         }},
-        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
         wait_for_deployment=False,
         insert_strict_options=False)
     config.check_kibana_adminrouter_integration(
@@ -212,7 +212,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
             "elasticsearch_url": elasticsearch_url,
             "xpack_enabled": True
         }},
-        timeout_seconds=config.DEFAULT_KIBANA_TIMEOUT,
+        timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
         wait_for_deployment=False,
         insert_strict_options=False)
     config.check_kibana_plugin_installed(config.XPACK_PLUGIN_NAME, service_name=config.KIBANA_PACKAGE_NAME)

@@ -6,9 +6,9 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -19,7 +19,7 @@ import com.mesosphere.sdk.storage.PersisterUtils;
  * same service.
  */
 public class CuratorLocker {
-    private static final Logger LOGGER = LoggerFactory.getLogger(CuratorUtils.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(CuratorUtils.class);
 
     private static final int LOCK_ATTEMPTS = 3;
     static final String LOCK_PATH_NAME = "lock";

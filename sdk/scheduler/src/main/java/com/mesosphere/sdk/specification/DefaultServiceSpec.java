@@ -16,6 +16,7 @@ import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
@@ -28,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
-    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceSpec.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultServiceSpec.class);
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
@@ -66,6 +66,8 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Valid
     private ReplacementFailurePolicy replacementFailurePolicy;
 
+    private String region;
+
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
@@ -75,7 +77,8 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
-            @JsonProperty("user") String user) {
+            @JsonProperty("user") String user,
+            @JsonProperty("region") String region) {
         this.name = name;
         this.role = role;
         this.principal = principal;
@@ -86,6 +89,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
         this.user = getUser(user, pods);
+        this.region = region;
         ValidationUtils.validate(this);
     }
 
@@ -118,7 +122,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.zookeeperConnection,
                 builder.pods,
                 builder.replacementFailurePolicy,
-                builder.user);
+                builder.user,
+                builder.region);
     }
 
     /**
@@ -174,6 +179,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.pods = copy.getPods();
         builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
         builder.user = copy.getUser();
+        builder.region = copy.getRegion().orElse(null);
         return builder;
     }
 
@@ -210,6 +216,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
         return Optional.ofNullable(replacementFailurePolicy);
+    }
+
+    @Override
+    public Optional<String> getRegion() {
+        return Optional.ofNullable(region);
     }
 
     @Override
@@ -285,8 +296,8 @@ public class DefaultServiceSpec implements ServiceSpec {
             // Serialize and then deserialize:
             loopbackSpecification = factory.parse(serviceSpec.getBytes());
         } catch (Exception e) {
-            logger.error("Failed to parse JSON for loopback validation", e);
-            logger.error("JSON to be parsed was:\n{}",
+            LOGGER.error("Failed to parse JSON for loopback validation", e);
+            LOGGER.error("JSON to be parsed was:\n{}",
                     new String(serviceSpec.getBytes(), StandardCharsets.UTF_8));
             throw e;
         }
@@ -426,7 +437,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 } else if (value.equals("RUNNING")) {
                     return GoalState.RUNNING;
                 } else {
-                    logger.warn("Found unknown goal state in config store: {}", value);
+                    LOGGER.warn("Found unknown goal state in config store: {}", value);
                     return GoalState.UNKNOWN;
                 }
             }
@@ -503,6 +514,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
         private String user;
+        private String region;
 
         private Builder() {
         }
@@ -562,6 +574,18 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder user(String user) {
             this.user = user;
+            return this;
+        }
+
+        /**
+         * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param region the {@code region} to set
+         * @return a reference to this Builder
+         */
+        public Builder region(String region) {
+            this.region = region;
             return this;
         }
 
