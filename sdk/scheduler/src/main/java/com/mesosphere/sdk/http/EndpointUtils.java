@@ -47,11 +47,8 @@ public class EndpointUtils {
      * Returns the correct DNS domain for tasks within the service.
      */
     public static String toAutoIpDomain(String serviceName, SchedulerConfig schedulerConfig) {
-        Optional<String> customTLD = schedulerConfig.getCustomServiceTLD();
-        String tld = customTLD.orElse(Constants.DNS_TLD);
-
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), tld);
+        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), schedulerConfig.getServiceTLD());
     }
 
     /**

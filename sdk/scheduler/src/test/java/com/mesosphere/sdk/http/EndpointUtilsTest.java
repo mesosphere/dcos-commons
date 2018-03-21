@@ -32,7 +32,7 @@ public class EndpointUtilsTest {
     @Test
     public void testToAutoIpEndpointCustomTLD() {
         SchedulerConfig mockSchedulerConfig = SchedulerConfigTestUtils.getTestSchedulerConfig();
-        Mockito.when(mockSchedulerConfig.getCustomServiceTLD()).thenReturn(Optional.of("what.a.fun.test.tld"));
+        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Optional.of("what.a.fun.test.tld"));
 
         assertEquals("task.svc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5, mockSchedulerConfig));
         assertEquals("task.pathtosvc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5, mockSchedulerConfig));
