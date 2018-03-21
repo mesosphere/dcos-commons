@@ -1,9 +1,15 @@
 package com.mesosphere.sdk.http;
 
 import static org.junit.Assert.assertEquals;
+
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import org.junit.Test;
 
 import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
+import org.mockito.Mockito;
+
+import java.util.Optional;
 
 /**
  * Tests for {@link EndpointUtils}.
@@ -17,10 +23,21 @@ public class EndpointUtilsTest {
 
     @Test
     public void testToAutoIpEndpoint() {
-        assertEquals("task.svc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5));
-        assertEquals("task.pathtosvc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5));
-        assertEquals("task.pathtosvc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("path/to/svc", "task", 5));
-        assertEquals("task.pathtosvc-with-dots.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("path/to/svc.with.dots", "task", 5));
+        assertEquals("task.svc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5, SchedulerConfigTestUtils.getTestSchedulerConfig()));
+        assertEquals("task.pathtosvc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5, SchedulerConfigTestUtils.getTestSchedulerConfig()));
+        assertEquals("task.pathtosvc.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("path/to/svc", "task", 5, SchedulerConfigTestUtils.getTestSchedulerConfig()));
+        assertEquals("task.pathtosvc-with-dots.autoip.dcos.thisdcos.directory:5", EndpointUtils.toAutoIpEndpoint("path/to/svc.with.dots", "task", 5, SchedulerConfigTestUtils.getTestSchedulerConfig()));
+    }
+
+    @Test
+    public void testToAutoIpEndpointCustomTLD() {
+        SchedulerConfig mockSchedulerConfig = SchedulerConfigTestUtils.getTestSchedulerConfig();
+        Mockito.when(mockSchedulerConfig.getCustomServiceTLD()).thenReturn(Optional.of("what.a.fun.test.tld"));
+
+        assertEquals("task.svc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5, mockSchedulerConfig));
+        assertEquals("task.pathtosvc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5, mockSchedulerConfig));
+        assertEquals("task.pathtosvc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("path/to/svc", "task", 5, mockSchedulerConfig));
+        assertEquals("task.pathtosvc-with-dots.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("path/to/svc.with.dots", "task", 5, mockSchedulerConfig));
     }
 
     @Test

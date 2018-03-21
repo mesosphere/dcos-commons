@@ -81,6 +81,7 @@
           "type": "string",
           "enum": [
             "canary",
+            "custom_tld",
             "discovery",
             "enable-disable",
             "executor_volume",
@@ -112,6 +113,11 @@
           "description": "Allow region awareness",
           "type": "boolean",
           "default": true
+        },
+        "custom_service_tld": {
+          "description": "Specifies a custom TLD to use for endpoints",
+          "type": "string",
+          "default": ""
         }
       }
     },

@@ -87,7 +87,10 @@
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",
     "TEST_BOOLEAN": "{{service.test_boolean}}",
     "SCENARIO": "{{service.scenario}}",
-    "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}"
+    "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}",
+    {{#service.custom_service_tld}}
+    "CUSTOM_SERVICE_TLD": "{{service.custom_service_tld}}"
+    {{/service.custom_service_tld}}
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },

@@ -225,7 +225,10 @@ public class PodInfoBuilder {
 
         if (taskSpec.getCommand().isPresent()) {
             Protos.CommandInfo.Builder commandBuilder = taskInfoBuilder.getCommandBuilder();
-            commandBuilder.setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+            commandBuilder.setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName,
+                    podInstance,
+                    taskSpec,
+                    schedulerConfig)));
 
             if (override.equals(GoalStateOverride.PAUSED)) {
                 LOGGER.info("Overriding task command: {}", override);
@@ -290,8 +293,8 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
-        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override);
-        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override);
+        setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
+        setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
         setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
 
         return taskInfoBuilder;
@@ -375,7 +378,7 @@ public class PodInfoBuilder {
      */
     @VisibleForTesting
     public static Map<String, String> getTaskEnvironment(
-            String serviceName, PodInstance podInstance, TaskSpec taskSpec) {
+            String serviceName, PodInstance podInstance, TaskSpec taskSpec, SchedulerConfig schedulerConfig) {
         Map<String, String> environmentMap = new TreeMap<>();
 
         // Task envvars from either of the following sources:
@@ -394,7 +397,8 @@ public class PodInfoBuilder {
         // Inject Framework Name (raw, not safe for use in hostnames)
         environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject Framework pod host domain (with hostname-safe framework name)
-        environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
+        environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV,
+                EndpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
         // Inject Framework VIP domain (with hostname-safe framework name)
         environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, EndpointUtils.toVipDomain(serviceName));
         // Inject Scheduler API hostname (with hostname-safe scheduler name)
@@ -458,7 +462,8 @@ public class PodInfoBuilder {
             String serviceName,
             PodInstance podInstance,
             TaskSpec taskSpec,
-            GoalStateOverride override) {
+            GoalStateOverride override,
+            SchedulerConfig schedulerConfig) {
         if (!taskSpec.getHealthCheck().isPresent()) {
             LOGGER.debug("No health check defined for taskSpec: {}", taskSpec.getName());
             return;
@@ -484,7 +489,10 @@ public class PodInfoBuilder {
 
         healthCheckBuilder.getCommandBuilder()
                 .setValue(healthCheckSpec.getCommand())
-                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+                .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName,
+                        podInstance,
+                        taskSpec,
+                        schedulerConfig)));
     }
 
     private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
@@ -505,7 +513,8 @@ public class PodInfoBuilder {
             String serviceName,
             PodInstance podInstance,
             TaskSpec taskSpec,
-            GoalStateOverride override) {
+            GoalStateOverride override,
+            SchedulerConfig schedulerConfig) {
 
         Optional<ReadinessCheckSpec> readinessCheckSpecOptional = getReadinessCheck(taskSpec, override);
         if (!readinessCheckSpecOptional.isPresent()) {
@@ -524,7 +533,10 @@ public class PodInfoBuilder {
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
             builder.getCommandBuilder().getCommandBuilder()
                     .setValue(readinessCheckSpec.getCommand())
-                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName,
+                            podInstance,
+                            taskSpec,
+                            schedulerConfig)));
         } else {
             // Custom executor implies older Mesos where TaskInfo.check doesn't exist yet. Fall back to label hack:
             Protos.HealthCheck.Builder builder = Protos.HealthCheck.newBuilder()
@@ -533,7 +545,10 @@ public class PodInfoBuilder {
                     .setTimeoutSeconds(readinessCheckSpec.getTimeout());
             builder.getCommandBuilder()
                     .setValue(readinessCheckSpec.getCommand())
-                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName, podInstance, taskSpec)));
+                    .setEnvironment(EnvUtils.toProto(getTaskEnvironment(serviceName,
+                            podInstance,
+                            taskSpec,
+                            schedulerConfig)));
             taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                     .setReadinessCheck(builder.build())
                     .toProto());

@@ -2,6 +2,10 @@ package com.mesosphere.sdk.http;
 
 import com.mesosphere.sdk.offer.Constants;
 
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
+import java.util.Optional;
+
 /**
  * Utilities relating to the creation and interpretation of endpoints between DC/OS tasks.
  */
@@ -42,24 +46,31 @@ public class EndpointUtils {
     /**
      * Returns the correct DNS domain for tasks within the service.
      */
-    public static String toAutoIpDomain(String serviceName) {
+    public static String toAutoIpDomain(String serviceName, SchedulerConfig schedulerConfig) {
+        Optional<String> customTLD = schedulerConfig.getCustomServiceTLD();
+        String tld = customTLD.orElse(Constants.DNS_TLD);
+
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), Constants.DNS_TLD);
+        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(serviceName)), tld);
     }
 
     /**
      * Returns the correct DNS hostname for the provided task running within the service.
      */
-    public static String toAutoIpHostname(String serviceName, String taskName) {
+    public static String toAutoIpHostname(String serviceName, String taskName, SchedulerConfig schedulerConfig) {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(taskName)), toAutoIpDomain(serviceName));
+        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(taskName)),
+                toAutoIpDomain(serviceName, schedulerConfig));
     }
 
     /**
      * Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.
      */
-    public static String toAutoIpEndpoint(String serviceName, String taskName, int port) {
-        return toEndpoint(toAutoIpHostname(serviceName, taskName), port);
+    public static String toAutoIpEndpoint(String serviceName,
+                                          String taskName,
+                                          int port,
+                                          SchedulerConfig schedulerConfig) {
+        return toEndpoint(toAutoIpHostname(serviceName, taskName, schedulerConfig), port);
     }
 
     /**

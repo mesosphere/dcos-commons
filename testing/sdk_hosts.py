@@ -14,7 +14,7 @@ LOG = logging.getLogger(__name__)
 
 
 SYSTEM_HOST_SUFFIX = 'mesos'
-AUTOIP_HOST_SUFFIX = 'autoip.dcos.thisdcos.directory'
+AUTOIP_HOST_SUFFIX = 'na2c.dcos.fakejpmc.net'
 VIP_HOST_SUFFIX = 'l4lb.thisdcos.directory'
 
 

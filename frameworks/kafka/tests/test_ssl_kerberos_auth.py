@@ -1,6 +1,7 @@
 import logging
 import uuid
 import pytest
+import time
 
 import sdk_auth
 import sdk_cmd
@@ -160,7 +161,10 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
+@pytest.mark.ben
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
+    time.sleep(1000000)
+
     client_id = kafka_client["id"]
 
     auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])

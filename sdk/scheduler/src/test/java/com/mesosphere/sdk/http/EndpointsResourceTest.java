@@ -3,6 +3,7 @@ package com.mesosphere.sdk.http;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -175,7 +176,7 @@ public class EndpointsResourceTest {
     }
 
     private static EndpointsResource buildResource(StateStore stateStore, String serviceName) {
-        EndpointsResource resource = new EndpointsResource(stateStore, serviceName);
+        EndpointsResource resource = new EndpointsResource(stateStore, serviceName, SchedulerConfig.fromEnv());
         resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
         return resource;
     }

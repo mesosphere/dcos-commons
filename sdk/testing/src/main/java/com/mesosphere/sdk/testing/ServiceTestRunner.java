@@ -283,6 +283,7 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
+        Mockito.when(mockSchedulerConfig.getCustomServiceTLD()).thenReturn(Optional.empty());
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -411,7 +412,10 @@ public class ServiceTestRunner {
 
     private static Map<String, String> getTaskEnv(ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec) {
         Map<String, String> taskEnv = new HashMap<>();
-        taskEnv.putAll(PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec));
+        taskEnv.putAll(PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(),
+                podInstance,
+                taskSpec,
+                SchedulerConfig.fromEnv()));
         taskEnv.putAll(DCOS_TASK_ENVVARS);
         // Inject envvars for any ports with envvar advertisement configured:
         for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {
