@@ -4,6 +4,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -41,7 +43,10 @@ public class Main {
 
     private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+
+        Map<String, String> env = new HashMap<>(System.getenv());
+        env.put("ALLOW_REGION_AWARENESS", "true");
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
 
         // Allow users to manually specify a ZK location for kafka itself. Otherwise default to our service ZK location:
         String kafkaZookeeperUri = System.getenv(KAFKA_ZK_URI_ENV);
@@ -64,7 +69,8 @@ public class Main {
 
         return schedulerBuilder
                 .setEndpointProducer("zookeeper", EndpointProducer.constant(kafkaZookeeperUri))
-                .setCustomResources(getResources(kafkaZookeeperUri));
+                .setCustomResources(getResources(kafkaZookeeperUri))
+                .withSingleRegionConstraint();
     }
 
     private static Collection<Object> getResources(String kafkaZookeeperUri) {
