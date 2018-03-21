@@ -46,6 +46,9 @@
     "KAFKA_VERSION": "{{kafka-version}}",
 
     "PLACEMENT_CONSTRAINTS": "{{{service.placement_constraint}}}",
+    {{#service.region}}
+    "SERVICE_REGION": "{{service.region}}",
+    {{/service.region}}
     "DEPLOY_STRATEGY":"{{service.deploy_strategy}}",
     "BROKER_COUNT": "{{brokers.count}}",
     {{^service.security.kerberos.enabled}}

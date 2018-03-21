@@ -225,6 +225,11 @@ public class SchedulerBuilder {
     }
 
     public SchedulerBuilder withSingleRegionConstraint() {
+         if (!Capabilities.getInstance().supportsDomains()) {
+             // If this is an older version of DC/OS that doesn't support multi-region deployments, this is a noop.
+             return this;
+         }
+
          Optional<String> schedulerRegion = schedulerConfig.getSchedulerRegion();
          PlacementRule regionRule = getRegionRule(schedulerRegion);
 
