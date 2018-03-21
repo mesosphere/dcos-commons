@@ -85,6 +85,17 @@ def kafka_server(zookeeper_server):
 @pytest.mark.zookeeper
 def test_zookeeper_reresolution(kafka_server):
 
+    # First get the last logs lines for the kafka brokers
+    broker_log_line = []
+
+    for id in range(0, config.DEFAULT_BROKER_COUNT):
+        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 1".format(id))
+
+        if rc or not stdout:
+            raise Exception("No task logs for kafka-{}-broker".format(id))
+
+        broker_log_line.append(stdout)
+
     def restart_zookeeper_node(id: int):
         sdk_cmd.svc_cli(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME,
                         "pod restart zookeeper-{}".format(id))
@@ -102,18 +113,17 @@ def test_zookeeper_reresolution(kafka_server):
         wait_fixed=1000,
         stop_max_attempt_number=3)
     def check_broker(id: int):
-        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 100".format(id))
+        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 1000".format(id), print_output=False)
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
 
-        expired_index = stdout.rfind("zookeeper state changed (Expired) (org.I0Itec.zkclient.ZkClient)")
-        exception_index = stdout.rfind("java.net.NoRouteToHostException: No route to host")
-
+        last_log_index = stdout.rfind(broker_log_line[id])
         success_index = stdout.rfind("zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)")
 
-        assert max(expired_index, exception_index) > -1
-        assert max(expired_index, exception_index) < success_index
+        assert last_log_index > -1 and last_log_index < success_index, "{}:{} STDOUT: {}".format(last_log_index,
+                                                                                                 success_index,
+                                                                                                 stdout)
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
         check_broker(id)
