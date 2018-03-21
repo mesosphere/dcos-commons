@@ -41,9 +41,12 @@ def test_custom_service_tld():
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         1,
-        additional_options={"service": {
-            "custom_service_tld": custom_tld, "yaml": "custom_tld"
-        }})
+        additional_options={
+            "service": {
+                "custom_service_tld": custom_tld,
+                "yaml": "custom_tld",
+            }
+        })
 
     # Verify the endpoints are correct
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "test", 2)
