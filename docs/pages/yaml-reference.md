@@ -470,6 +470,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       For detailed information see the [SDK Developer Guide](../developer-guide/#tls).
 
+    * `kill-grace-period`
+
+      When the scheduler is instructed to kill a task, it first sends a `SIGTERM` signal to that task so that it can optionally perform any necessary cleanup before it terminates, and then sends a `SIGKILL` signal afterward. This field specifies the duration in seconds between when the scheduler sends `SIGTERM` and `SIGKILL`.
+
 * `plans`
 
   This section allows specifying custom deployment behavior, either by replacing the default `deploy` plan, replacing the default `update` plan (otherwise `deploy` is used for updates), and/or by adding new custom plans. This can be useful for overriding the default behavior, which is sequentially deploying all the tasks in the order that they were declared above. Plans are listed in this section by name, with the content of each Plan listing the Phases and Steps to be run within them. See the [SDK Developer Guide](../developer-guide/#plans) for some examples and additional information on customizing Plans.
