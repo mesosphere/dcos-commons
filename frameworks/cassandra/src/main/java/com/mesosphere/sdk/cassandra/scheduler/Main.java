@@ -29,9 +29,12 @@ public class Main {
     }
 
     private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        Map<String, String> env = new HashMap<>(System.getenv());
+        env.put("ALLOW_REGION_AWARENESS", "true");
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName(), schedulerConfig);
+
         return DefaultScheduler.newBuilder(
                 DefaultServiceSpec
                         .newGenerator(rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
