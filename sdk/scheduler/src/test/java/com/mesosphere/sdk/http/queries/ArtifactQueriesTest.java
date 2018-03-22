@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
@@ -24,38 +24,35 @@ import javax.ws.rs.core.Response;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-public class ArtifactResourceTest {
+public class ArtifactQueriesTest {
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private ServiceSpec mockServiceSpec;
     @Mock private PodSpec mockPodSpec;
     @Mock private TaskSpec mockTaskSpec;
 
-    private ArtifactResource resource;
-
     @Before
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
-        resource = new ArtifactResource(mockConfigStore);
     }
 
     @Test
     public void testGetTemplateBadUUID() throws ConfigStoreException {
-        assertEquals(400, resource.getTemplate("bad uuid", "pod", "task", "conffile").getStatus());
+        assertEquals(400, ArtifactQueries.getTemplate(mockConfigStore, "bad uuid", "pod", "task", "conffile").getStatus());
     }
 
     @Test
     public void testGetTemplateServiceConfigNotFound() throws ConfigStoreException {
         UUID uuid = UUID.randomUUID();
         when(mockConfigStore.fetch(uuid)).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "hi"));
-        assertEquals(404, resource.getTemplate(uuid.toString(), "pod", "task", "conffile").getStatus());
+        assertEquals(404, ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile").getStatus());
     }
 
     @Test
     public void testGetTemplateServiceConfigReadFailed() throws ConfigStoreException {
         UUID uuid = UUID.randomUUID();
         when(mockConfigStore.fetch(uuid)).thenThrow(new ConfigStoreException(Reason.STORAGE_ERROR, "hi"));
-        assertEquals(500, resource.getTemplate(uuid.toString(), "pod", "task", "conffile").getStatus());
+        assertEquals(500, ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile").getStatus());
     }
 
     @Test
@@ -63,7 +60,7 @@ public class ArtifactResourceTest {
         UUID uuid = UUID.randomUUID();
         when(mockConfigStore.fetch(uuid)).thenReturn(mockServiceSpec);
         when(mockServiceSpec.getPods()).thenReturn(Collections.emptyList());
-        assertEquals(404, resource.getTemplate(uuid.toString(), "pod", "task", "conffile").getStatus());
+        assertEquals(404, ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile").getStatus());
     }
 
     @Test
@@ -73,7 +70,7 @@ public class ArtifactResourceTest {
         when(mockServiceSpec.getPods()).thenReturn(Arrays.asList(mockPodSpec));
         when(mockPodSpec.getType()).thenReturn("pod");
         when(mockPodSpec.getTasks()).thenReturn(Collections.emptyList());
-        assertEquals(404, resource.getTemplate(uuid.toString(), "pod", "task", "conffile").getStatus());
+        assertEquals(404, ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile").getStatus());
     }
 
     @Test
@@ -85,7 +82,7 @@ public class ArtifactResourceTest {
         when(mockPodSpec.getTasks()).thenReturn(Arrays.asList(mockTaskSpec));
         when(mockTaskSpec.getName()).thenReturn("task");
         when(mockTaskSpec.getConfigFiles()).thenReturn(Collections.emptyList());
-        assertEquals(404, resource.getTemplate(uuid.toString(), "pod", "task", "conffile").getStatus());
+        assertEquals(404, ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile").getStatus());
     }
 
     @Test
@@ -98,23 +95,9 @@ public class ArtifactResourceTest {
         when(mockTaskSpec.getName()).thenReturn("task");
         ConfigFileSpec configSpec = new DefaultConfigFileSpec("conffile", "../conf/confpath.xml", "content goes here");
         when(mockTaskSpec.getConfigFiles()).thenReturn(Arrays.asList(configSpec));
-        Response r = resource.getTemplate(uuid.toString(), "pod", "task", "conffile");
+        Response r = ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile");
         assertEquals(200, r.getStatus());
         assertEquals(MediaType.TEXT_PLAIN_TYPE, r.getMediaType());
         assertEquals(configSpec.getTemplateContent(), r.getEntity());
-    }
-
-    @Test
-    public void testGetTemplateUrl() {
-        UUID uuid = UUID.randomUUID();
-        assertEquals(
-                "http://api.svc-name.marathon.l4lb.thisdcos.directory/v1/artifacts/template/"
-                        + uuid.toString() + "/some-pod/some-task/some-config",
-                ArtifactResource.getTemplateUrl("svc-name", uuid, "some-pod", "some-task", "some-config"));
-        assertEquals(
-                "http://api.pathtosvc-name.marathon.l4lb.thisdcos.directory/v1/artifacts/template/"
-                        + uuid.toString() + "/some-pod/some-task/some-config",
-                ArtifactResource.getTemplateUrl("/path/to/svc-name", uuid, "some-pod", "some-task", "some-config"));
-
     }
 }

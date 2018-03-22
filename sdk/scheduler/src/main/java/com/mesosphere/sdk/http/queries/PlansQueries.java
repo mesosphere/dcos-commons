@@ -1,5 +1,6 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
+import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -11,16 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import static com.mesosphere.sdk.http.ResponseUtils.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,47 +20,29 @@ import java.util.stream.Collectors;
 /**
  * API for management of Plan(s).
  */
-@Path("/v1")
-public class PlansResource extends PrettyJsonResource {
+public class PlansQueries extends PrettyJsonResource {
 
+    private static final Logger LOGGER = LoggingUtils.getLogger(PlansQueries.class);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
 
-    private final Logger logger = LoggingUtils.getLogger(getClass());
-
-    private final Collection<PlanManager> planManagers = new ArrayList<>();
-    private final Object planManagersLock = new Object();
-
-    /**
-     * Assigns the list of plans to be managed via this endpoint.
-     *
-     * @return this
-     */
-    public PlansResource setPlanManagers(Collection<PlanManager> planManagers) {
-        synchronized (planManagersLock) {
-            this.planManagers.clear();
-            this.planManagers.addAll(planManagers);
-        }
-        return this;
+    private PlansQueries() {
+        // do not instantiate
     }
 
     /**
      * Returns list of all configured plans.
      */
-    @GET
-    @Path("/plans")
-    public Response listPlans() {
-        return jsonOkResponse(new JSONArray(getPlanNames()));
+    public static Response list(Collection<PlanManager> planManagers) {
+        return ResponseUtils.jsonOkResponse(new JSONArray(getPlanNames(planManagers)));
     }
 
     /**
      * Returns a full list of the {@link Plan}'s contents (incl all {@link Phase}s/{@link Step}s).
      */
-    @GET
-    @Path("/plans/{planName}")
-    public Response getPlanInfo(@PathParam("planName") String planName) {
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+    public static Response get(Collection<PlanManager> planManagers, String planName) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);
         if (!planManagerOptional.isPresent()) {
-            return elementNotFoundResponse();
+            return planNotFoundResponse(planName);
         }
 
         Plan plan = planManagerOptional.get().getPlan();
@@ -78,42 +52,37 @@ public class PlansResource extends PrettyJsonResource {
         } else if (plan.isComplete()) {
             response = Response.Status.OK;
         }
-        return jsonResponseBean(PlanInfo.forPlan(plan), response);
+        return ResponseUtils.jsonResponseBean(PlanInfo.forPlan(plan), response);
     }
 
     /**
      * Idempotently starts a plan.  If a plan is complete, it restarts the plan.  If it is interrupted, in makes the
      * plan proceed.  If a plan is already in progress, it has no effect.
      */
-    @POST
-    @Path("/plans/{planName}/start")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response startPlan(@PathParam("planName") String planName, Map<String, String> parameters) {
+    public static Response start(
+            Collection<PlanManager> planManagers, String planName, Map<String, String> parameters) {
         try {
             validate(parameters);
         } catch (ValidationException e) {
             return invalidParameterResponse(e.getMessage());
         }
 
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
-        if (planManagerOptional.isPresent()) {
-            Plan plan = planManagerOptional.get().getPlan();
-            plan.updateParameters(parameters);
-            if (plan.isComplete()) {
-                plan.restart();
-            }
-
-            plan.proceed();
-
-            logger.info("Started plan {} with parameters {} by user request", planName, parameters);
-
-            return jsonOkResponse(getCommandResult(String.format("%s %s with parameters: %s",
-                    "start",
-                    planName,
-                    parameters.toString())));
-        } else {
-            return elementNotFoundResponse();
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);
+        if (!planManagerOptional.isPresent()) {
+            return planNotFoundResponse(planName);
         }
+        Plan plan = planManagerOptional.get().getPlan();
+        plan.updateParameters(parameters);
+        if (plan.isComplete()) {
+            plan.restart();
+        }
+
+        plan.proceed();
+
+        LOGGER.info("Started plan {} with parameters {} by user request", planName, parameters);
+
+        return ResponseUtils.jsonOkResponse(getCommandResult(String.format("start %s with parameters: %s",
+                planName, parameters.toString())));
     }
 
     /**
@@ -122,33 +91,27 @@ public class PlansResource extends PrettyJsonResource {
      *
      * @see #interruptCommand(String, String) for the distinctions between Stop and Interrupt actions.
      */
-    @POST
-    @Path("/plans/{planName}/stop")
-    public Response stopPlan(@PathParam("planName") String planName) {
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+    public static Response stop(Collection<PlanManager> planManagers, String planName) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);
         if (!planManagerOptional.isPresent()) {
-            return elementNotFoundResponse();
+            return planNotFoundResponse(planName);
         }
         Plan plan = planManagerOptional.get().getPlan();
         plan.interrupt();
         plan.restart();
-        return jsonOkResponse(getCommandResult("stop"));
+        return ResponseUtils.jsonOkResponse(getCommandResult("stop"));
     }
 
-    @POST
-    @Path("/plans/{planName}/continue")
-    public Response continueCommand(
-            @PathParam("planName") String planName,
-            @QueryParam("phase") String phase) {
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+    public static Response continuePlan(Collection<PlanManager> planManagers, String planName, String phase) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);
         if (!planManagerOptional.isPresent()) {
-            return elementNotFoundResponse();
+            return planNotFoundResponse(planName);
         }
 
         if (phase != null) {
             List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
-                return elementNotFoundResponse();
+                return phaseNotFoundResponse(phase);
             }
 
             boolean allInProgress = phases.stream()
@@ -159,19 +122,19 @@ public class PlansResource extends PrettyJsonResource {
                     .filter(phz -> phz.isComplete()).count() == phases.size();
 
             if (allInProgress || allComplete) {
-                return alreadyReportedResponse();
+                return ResponseUtils.alreadyReportedResponse();
             }
 
             phases.forEach(ParentElement::proceed);
         } else {
             Plan plan = planManagerOptional.get().getPlan();
             if (plan.isRunning() || plan.isComplete()) {
-                return alreadyReportedResponse();
+                return ResponseUtils.alreadyReportedResponse();
             }
             plan.proceed();
         }
 
-        return jsonOkResponse(getCommandResult("continue"));
+        return ResponseUtils.jsonOkResponse(getCommandResult("continue"));
     }
 
     /**
@@ -188,20 +151,16 @@ public class PlansResource extends PrettyJsonResource {
      * B) Interrupt updates the underlying Phase/Step state. Stop not only updates the underlying state, but
      *    also restarts the Plan.
      */
-    @POST
-    @Path("/plans/{planName}/interrupt")
-    public Response interruptCommand(
-            @PathParam("planName") String planName,
-            @QueryParam("phase") String phase) {
-        final Optional<PlanManager> planManagerOptional = getPlanManager(planName);
+    public static Response interrupt(Collection<PlanManager> planManagers, String planName, String phase) {
+        final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);
         if (!planManagerOptional.isPresent()) {
-            return elementNotFoundResponse();
+            return planNotFoundResponse(planName);
         }
 
         if (phase != null) {
             List<Phase> phases = getPhases(planManagerOptional.get(), phase);
             if (phases.isEmpty()) {
-                return elementNotFoundResponse();
+                return phaseNotFoundResponse(phase);
             }
 
             boolean allInterrupted = phases.stream()
@@ -211,130 +170,104 @@ public class PlansResource extends PrettyJsonResource {
                     .filter(phz -> phz.isComplete()).count() == phases.size();
 
             if (allInterrupted || allComplete) {
-                return alreadyReportedResponse();
+                return ResponseUtils.alreadyReportedResponse();
             }
 
             phases.forEach(p -> p.getStrategy().interrupt());
         } else {
             Plan plan = planManagerOptional.get().getPlan();
             if (plan.isInterrupted() || plan.isComplete()) {
-                return alreadyReportedResponse();
+                return ResponseUtils.alreadyReportedResponse();
             }
             plan.interrupt();
         }
 
-        return jsonOkResponse(getCommandResult("interrupt"));
+        return ResponseUtils.jsonOkResponse(getCommandResult("interrupt"));
     }
 
-    @POST
-    @Path("/plans/{planName}/forceComplete")
-    public Response forceCompleteCommand(
-            @PathParam("planName") String planName,
-            @QueryParam("phase") String phaseName,
-            @QueryParam("step") String stepName) {
-        Optional<? extends Element> element = getElement(planName, phaseName, stepName);
-        if (!element.isPresent()) {
-            return elementNotFoundResponse();
+    public static Response forceComplete(
+            Collection<PlanManager> planManagers, String planName, String phaseName, String stepName) {
+        ElementOrError elementOrError = getElementOrError(planManagers, planName, phaseName, stepName);
+        if (elementOrError.error != null) {
+            return elementOrError.error;
         }
 
-        if (element.get().isComplete()) {
-            return alreadyReportedResponse();
+        if (elementOrError.element.isComplete()) {
+            return ResponseUtils.alreadyReportedResponse();
         }
 
-        element.get().forceComplete();
-        return jsonOkResponse(getPlanCommandResult("forceComplete", planName, phaseName, stepName));
+        elementOrError.element.forceComplete();
+        return ResponseUtils.jsonOkResponse(getPlanCommandResult("forceComplete", planName, phaseName, stepName));
     }
 
-    @POST
-    @Path("/plans/{planName}/restart")
-    public Response restartCommand(
-            @PathParam("planName") String planName,
-            @QueryParam("phase") String phaseName,
-            @QueryParam("step") String stepName) {
-        Optional<? extends Element> element = getElement(planName, phaseName, stepName);
-        if (!element.isPresent()) {
-            return elementNotFoundResponse();
+    public static Response restart(
+            Collection<PlanManager> planManagers, String planName, String phaseName, String stepName) {
+        ElementOrError elementOrError = getElementOrError(planManagers, planName, phaseName, stepName);
+        if (elementOrError.error != null) {
+            return elementOrError.error;
         }
 
-        if (element.get().isPending()) {
-            return alreadyReportedResponse();
+        if (elementOrError.element.isPending()) {
+            return ResponseUtils.alreadyReportedResponse();
         }
 
-        if (element.get() instanceof Interruptible) {
-            ((Interruptible) element.get()).proceed();
+        if (elementOrError.element instanceof Interruptible) {
+            ((Interruptible) elementOrError.element).proceed();
         }
 
-        element.get().restart();
-        return jsonOkResponse(getPlanCommandResult("restart", planName, phaseName, stepName));
+        elementOrError.element.restart();
+        return ResponseUtils.jsonOkResponse(getPlanCommandResult("restart", planName, phaseName, stepName));
     }
 
-    private Optional<? extends Element> getElement(String planName, String phaseName, String stepName) {
-        final Optional<PlanManager> planManager = getPlanManager(planName);
+    private static class ElementOrError {
+        Element element;
+        Response error;
 
+        private static ElementOrError element(Element element) {
+            ElementOrError e = new ElementOrError();
+            e.element = element;
+            return e;
+        }
+
+        private static ElementOrError error(Response error) {
+            ElementOrError e = new ElementOrError();
+            e.error = error;
+            return e;
+        }
+    }
+
+    private static ElementOrError getElementOrError(
+            Collection<PlanManager> planManagers, String planName, String phaseName, String stepName) {
+        final Optional<PlanManager> planManager = getPlanManager(planManagers, planName);
         if (!planManager.isPresent()) {
-            return Optional.empty();
+            return ElementOrError.error(planNotFoundResponse(planName));
         }
 
         // Plan is present, but no Phase or Step
         if (StringUtils.isBlank(phaseName) && StringUtils.isBlank(stepName)) {
-            return Optional.of(planManager.get().getPlan());
+            return ElementOrError.element(planManager.get().getPlan());
         }
 
         if (StringUtils.isBlank(phaseName)) {
-            return Optional.empty();
+            // Specified step but not phase
+            return ElementOrError.error(ResponseUtils.plainResponse("Missing phase", Response.Status.BAD_REQUEST));
         }
 
         Optional<Phase> phase = getPhases(planManager.get(), phaseName).stream().findFirst();
         if (!phase.isPresent()) {
-            return Optional.empty();
+            return ElementOrError.error(phaseNotFoundResponse(phaseName));
         }
 
         // Plan and Phase are present but no Step
         if (StringUtils.isBlank(stepName)) {
-            return Optional.of(phase.get());
+            return ElementOrError.element(phase.get());
         }
 
         // Plan and Phase and Step are present
-        return getStep(Arrays.asList(phase.get()), stepName);
-    }
-
-    @GET
-    @Deprecated
-    @Path("/plan")
-    public Response getFullInfo() {
-        return getPlanInfo("deploy");
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/continue")
-    public Response continueCommand() {
-        return continueCommand("deploy", null);
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/interrupt")
-    public Response interruptCommand() {
-        return interruptCommand("deploy", null);
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/forceComplete")
-    public Response forceCompleteCommand(
-            @QueryParam("phase") String phaseId,
-            @QueryParam("step") String stepId) {
-        return forceCompleteCommand("deploy", phaseId, stepId);
-    }
-
-    @POST
-    @Deprecated
-    @Path("/plan/restart")
-    public Response restartCommand(
-            @QueryParam("phase") String phaseId,
-            @QueryParam("step") String stepId) {
-        return restartCommand("deploy", phaseId, stepId);
+        Optional<Step> step = getStep(Arrays.asList(phase.get()), stepName);
+        return step.isPresent()
+                ? ElementOrError.element(step.get())
+                : ElementOrError.error(stepNotFoundResponse(stepName));
     }
 
     private static List<Phase> getPhases(PlanManager manager, String phaseIdOrName) {
@@ -351,7 +284,7 @@ public class PlansResource extends PrettyJsonResource {
         }
     }
 
-    private Optional<Step> getStep(List<Phase> phases, String stepIdOrName) {
+    private static Optional<Step> getStep(List<Phase> phases, String stepIdOrName) {
         List<Step> steps;
         try {
             UUID stepId = UUID.fromString(stepIdOrName);
@@ -369,34 +302,39 @@ public class PlansResource extends PrettyJsonResource {
         if (steps.size() == 1) {
             return Optional.of(steps.get(0));
         } else {
-            logger.error("Expected 1 step '{}' across {} phases, got: {}", stepIdOrName, phases.size(), steps);
+            LOGGER.error("Expected 1 step '{}' across {} phases, got: {}", stepIdOrName, phases.size(), steps);
             return Optional.empty();
         }
     }
 
-    private List<String> getPlanNames() {
-        synchronized (planManagersLock) {
-            return planManagers.stream()
-                    .map(planManager -> planManager.getPlan().getName())
-                    .collect(Collectors.toList());
-        }
+    private static List<String> getPlanNames(Collection<PlanManager> planManagers) {
+        return planManagers.stream()
+                .map(planManager -> planManager.getPlan().getName())
+                .collect(Collectors.toList());
     }
 
-    private Optional<PlanManager> getPlanManager(String planName) {
-        synchronized (planManagersLock) {
-            if (planManagers.isEmpty()) {
-                logger.error("Plan managers haven't been initialized yet. Unable to retrieve plan {}", planName);
-            }
-            return planManagers.stream()
-                    .filter(planManager -> planManager.getPlan().getName().equals(planName))
-                    .findFirst();
-        }
+    private static Optional<PlanManager> getPlanManager(Collection<PlanManager> planManagers, String planName) {
+        return planManagers.stream()
+                .filter(planManager -> planManager.getPlan().getName().equals(planName))
+                .findFirst();
     }
 
     private static Response invalidParameterResponse(String message) {
-        return plainResponse(
+        return ResponseUtils.plainResponse(
                 String.format("Couldn't parse parameters: %s", message),
                 Response.Status.BAD_REQUEST);
+    }
+
+    private static Response planNotFoundResponse(String plan) {
+        return ResponseUtils.notFoundResponse(String.format("Plan %s", plan));
+    }
+
+    private static Response phaseNotFoundResponse(String phase) {
+        return ResponseUtils.notFoundResponse(String.format("Phase %s", phase));
+    }
+
+    private static Response stepNotFoundResponse(String step) {
+        return ResponseUtils.notFoundResponse(String.format("Step %s", step));
     }
 
     private static void validate(Map<String, String> parameters) throws ValidationException {

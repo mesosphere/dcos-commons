@@ -2,8 +2,8 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.http.HealthResource;
-import com.mesosphere.sdk.http.PlansResource;
+import com.mesosphere.sdk.http.endpoints.HealthResource;
+import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -70,8 +70,8 @@ public class UninstallScheduler extends AbstractScheduler {
 
         this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
         this.resources = Arrays.asList(
-                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
-                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
+                new PlansResource(Collections.singletonList(uninstallPlanManager)),
+                new HealthResource(Collections.singletonList(uninstallPlanManager)));
 
         List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())

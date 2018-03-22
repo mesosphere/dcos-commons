@@ -2,7 +2,8 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.http.*;
+import com.mesosphere.sdk.http.endpoints.*;
+import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
@@ -10,11 +11,11 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionRecorder;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.DefaultTaskFailureListener;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -78,6 +79,7 @@ public class DefaultScheduler extends AbstractScheduler {
             Optional<PlanCustomizer> planCustomizer,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
+            ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
         super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
         this.planCoordinator = planCoordinator;
@@ -92,14 +94,12 @@ public class DefaultScheduler extends AbstractScheduler {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
         }
         this.resources.add(endpointsResource);
-        this.plansResource = new PlansResource();
+        this.plansResource = new PlansResource(planCoordinator.getPlanManagers());
         this.resources.add(this.plansResource);
-        this.healthResource = new HealthResource();
+        this.healthResource = new HealthResource(
+                Arrays.asList(getDeploymentManager(planCoordinator), getRecoveryManager(planCoordinator)));
         this.resources.add(this.healthResource);
-        this.podResource = new PodResource(
-                stateStore,
-                serviceSpec.getName(),
-                new DefaultTaskFailureListener(stateStore, configStore));
+        this.podResource = new PodResource(stateStore, configStore, serviceSpec.getName());
         this.resources.add(this.podResource);
         this.resources.add(new StateResource(stateStore, new StringPropertyDeserializer()));
 
@@ -112,12 +112,10 @@ public class DefaultScheduler extends AbstractScheduler {
                         offerOutcomeTracker,
                         serviceSpec.getName(),
                         configStore.getTargetConfig(),
+                        templateUrlFactory,
                         schedulerConfig,
                         Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore);
-        this.plansResource.setPlanManagers(planCoordinator.getPlanManagers());
-        this.healthResource.setHealthyPlanManagers(
-                Arrays.asList(getDeploymentManager(planCoordinator), getRecoveryManager(planCoordinator)));
     }
 
     private static OfferAccepter getOfferAccepter(

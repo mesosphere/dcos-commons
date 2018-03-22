@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.testing;
 
-import com.mesosphere.sdk.http.PodResource;
+import com.mesosphere.sdk.http.endpoints.PodResource;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -53,8 +53,7 @@ public interface Send extends SimulationTick {
                 PodResource r = (PodResource) state.getResources().stream()
                         .filter(resource -> resource instanceof PodResource)
                         .findAny().get();
-
-                r.replacePod(podName);
+                r.replace(podName);
             }
 
             @Override

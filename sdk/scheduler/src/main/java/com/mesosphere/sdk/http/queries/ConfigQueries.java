@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import static com.mesosphere.sdk.http.ResponseUtils.jsonOkResponse;
 import static com.mesosphere.sdk.http.ResponseUtils.jsonResponseBean;
@@ -6,12 +6,9 @@ import static com.mesosphere.sdk.http.ResponseUtils.jsonResponseBean;
 import java.util.Arrays;
 import java.util.UUID;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
-import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.config.Configuration;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -22,29 +19,25 @@ import org.slf4j.Logger;
 
 /**
  * A read-only API for accessing active and inactive configurations from persistent storage.
- *
- * @param <T> The configuration type which is being stored by the framework.
  */
-@Path("/v1/configurations")
-public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource {
+public class ConfigQueries {
 
-    private final Logger logger = LoggingUtils.getLogger(getClass());
+    private static final Logger LOGGER = LoggingUtils.getLogger(ConfigQueries.class);
 
-    private final T configStore;
-
-    public ConfigResource(T configStore) {
-        this.configStore = configStore;
+    private ConfigQueries() {
+        // Do not instantiate
     }
 
     /**
      * Produces an ID listing of all stored configurations.
+     *
+     * @param <T> The configuration type which is being stored by the service.
      */
-    @GET
-    public Response getConfigurationIds() {
+    public static <T extends Configuration> Response getConfigurationIds(ConfigStore<T> configStore) {
         try {
             return jsonOkResponse(new JSONArray(configStore.list()));
         } catch (Exception ex) {
-            logger.error("Failed to fetch list of configuration ids", ex);
+            LOGGER.error("Failed to fetch list of configuration ids", ex);
             return Response.serverError().build();
         }
     }
@@ -53,26 +46,25 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      * Produces the content of the provided configuration ID, or returns an error if that ID doesn't
      * exist or the data couldn't be read.
      */
-    @Path("/{configurationId}")
-    @GET
-    public Response getConfiguration(@PathParam("configurationId") String configurationId) {
-        logger.info("Attempting to fetch config with id '{}'", configurationId);
+    public static <T extends Configuration> Response getConfiguration(
+            ConfigStore<T> configStore, String configurationId) {
+        LOGGER.info("Attempting to fetch config with id '{}'", configurationId);
         UUID uuid;
         try {
             uuid = UUID.fromString(configurationId);
         } catch (Exception ex) {
-            logger.warn(String.format(
+            LOGGER.warn(String.format(
                     "Failed to parse requested configuration id '%s' as a UUID", configurationId), ex);
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         try {
-            return fetchConfig(uuid);
+            return fetchConfig(configStore, uuid);
         } catch (ConfigStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
-                logger.warn(String.format("Requested configuration '%s' doesn't exist", configurationId), ex);
+                LOGGER.warn(String.format("Requested configuration '%s' doesn't exist", configurationId), ex);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            logger.error(String.format(
+            LOGGER.error(String.format(
                     "Failed to fetch requested configuration with id '%s'", configurationId), ex);
             return Response.serverError().build();
         }
@@ -82,19 +74,17 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      * Produces the ID of the current target configuration, or returns an error if reading that
      * data failed.
      */
-    @Path("/targetId")
-    @GET
-    public Response getTargetId() {
+    public static <T extends Configuration> Response getTargetId(ConfigStore<T> configStore) {
         try {
             // return a JSONArray to line up with getConfigurationIds()
             JSONArray configArray = new JSONArray(Arrays.asList(configStore.getTargetConfig()));
             return jsonOkResponse(configArray);
         } catch (ConfigStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No target configuration exists", ex);
+                LOGGER.warn("No target configuration exists", ex);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            logger.error("Failed to fetch target configuration", ex);
+            LOGGER.error("Failed to fetch target configuration", ex);
             return Response.serverError().build();
         }
     }
@@ -103,25 +93,23 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
      * Produces the content of the current target configuration, or returns an error if reading that
      * data failed.
      */
-    @Path("/target")
-    @GET
-    public Response getTarget() {
+    public static <T extends Configuration> Response getTarget(ConfigStore<T> configStore) {
         UUID targetId;
         try {
             targetId = configStore.getTargetConfig();
         } catch (ConfigStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No target configuration exists", ex);
+                LOGGER.warn("No target configuration exists", ex);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            logger.error("Failed to fetch ID of target configuration", ex);
+            LOGGER.error("Failed to fetch ID of target configuration", ex);
             return Response.serverError().build();
         }
         try {
-            return fetchConfig(targetId);
+            return fetchConfig(configStore, targetId);
         } catch (ConfigStoreException ex) {
             // Return 500 even if exception is NOT_FOUND: The data should be present.
-            logger.error(String.format("Failed to fetch target configuration '%s'", targetId), ex);
+            LOGGER.error(String.format("Failed to fetch target configuration '%s'", targetId), ex);
             return Response.serverError().build();
         }
     }
@@ -129,7 +117,8 @@ public class ConfigResource<T extends ConfigStore<?>> extends PrettyJsonResource
     /**
      * Returns an HTTP response containing the content of the requested configuration.
      */
-    private Response fetchConfig(UUID id) throws ConfigStoreException {
+    private static <T extends Configuration> Response fetchConfig(ConfigStore<T> configStore, UUID id)
+            throws ConfigStoreException {
         // return the content provided by the config verbatim, treat as plaintext
         return jsonResponseBean(configStore.fetch(id), Response.Status.OK);
     }
