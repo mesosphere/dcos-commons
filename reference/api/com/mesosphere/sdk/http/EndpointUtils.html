@@ -163,22 +163,25 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpDomain-java.lang.String-">toAutoIpDomain</a></span>(java.lang.String&nbsp;serviceName)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpDomain-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toAutoIpDomain</a></span>(java.lang.String&nbsp;serviceName,
+              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Returns the correct DNS domain for tasks within the service.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-">toAutoIpEndpoint</a></span>(java.lang.String&nbsp;serviceName,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-com.mesosphere.sdk.scheduler.SchedulerConfig-">toAutoIpEndpoint</a></span>(java.lang.String&nbsp;serviceName,
                 java.lang.String&nbsp;taskName,
-                int&nbsp;port)</code>
+                int&nbsp;port,
+                <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-">toAutoIpHostname</a></span>(java.lang.String&nbsp;serviceName,
-                java.lang.String&nbsp;taskName)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toAutoIpHostname</a></span>(java.lang.String&nbsp;serviceName,
+                java.lang.String&nbsp;taskName,
+                <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </td>
 </tr>
@@ -248,28 +251,30 @@ extends java.lang.Object</pre>
 <div class="block">Concatenates the provided hostname/port in "hostname:port" format.</div>
 </li>
 </ul>
-<a name="toAutoIpDomain-java.lang.String-">
+<a name="toAutoIpDomain-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>toAutoIpDomain</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;toAutoIpDomain(java.lang.String&nbsp;serviceName)</pre>
+<pre>public static&nbsp;java.lang.String&nbsp;toAutoIpDomain(java.lang.String&nbsp;serviceName,
+                                              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Returns the correct DNS domain for tasks within the service.</div>
 </li>
 </ul>
-<a name="toAutoIpHostname-java.lang.String-java.lang.String-">
+<a name="toAutoIpHostname-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>toAutoIpHostname</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;toAutoIpHostname(java.lang.String&nbsp;serviceName,
-                                                java.lang.String&nbsp;taskName)</pre>
+                                                java.lang.String&nbsp;taskName,
+                                                <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </li>
 </ul>
-<a name="toAutoIpEndpoint-java.lang.String-java.lang.String-int-">
+<a name="toAutoIpEndpoint-java.lang.String-java.lang.String-int-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -277,7 +282,8 @@ extends java.lang.Object</pre>
 <h4>toAutoIpEndpoint</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;toAutoIpEndpoint(java.lang.String&nbsp;serviceName,
                                                 java.lang.String&nbsp;taskName,
-                                                int&nbsp;port)</pre>
+                                                int&nbsp;port,
+                                                <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.</div>
 </li>
 </ul>

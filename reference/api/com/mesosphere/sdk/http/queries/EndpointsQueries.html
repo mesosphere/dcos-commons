@@ -130,18 +130,20 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoint-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-java.lang.String-">getEndpoint</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoint-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">getEndpoint</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
            java.lang.String&nbsp;frameworkName,
            java.util.Map&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpoints,
-           java.lang.String&nbsp;endpointName)</code>
+           java.lang.String&nbsp;endpointName,
+           <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Produces the content of the specified endpoint.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoints-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-">getEndpoints</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoints-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-com.mesosphere.sdk.scheduler.SchedulerConfig-">getEndpoints</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
             java.lang.String&nbsp;frameworkName,
-            java.util.Map&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpoints)</code>
+            java.util.Map&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpoints,
+            <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Produces a listing of all endpoint names.</div>
 </td>
 </tr>
@@ -167,7 +169,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getEndpoints-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-">
+<a name="getEndpoints-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -175,11 +177,12 @@ extends java.lang.Object</pre>
 <h4>getEndpoints</h4>
 <pre>public static&nbsp;Response&nbsp;getEndpoints(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                     java.lang.String&nbsp;frameworkName,
-                                    java.util.Map&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpoints)</pre>
+                                    java.util.Map&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpoints,
+                                    <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Produces a listing of all endpoint names.</div>
 </li>
 </ul>
-<a name="getEndpoint-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-java.lang.String-">
+<a name="getEndpoint-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -188,7 +191,8 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;Response&nbsp;getEndpoint(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                    java.lang.String&nbsp;frameworkName,
                                    java.util.Map&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpoints,
-                                   java.lang.String&nbsp;endpointName)</pre>
+                                   java.lang.String&nbsp;endpointName,
+                                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Produces the content of the specified endpoint.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

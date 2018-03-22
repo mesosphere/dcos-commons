@@ -477,7 +477,7 @@
 <dd>
 <div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>CertificateNamesGenerator</code></a> creates relevant TLS certificate names for given pod instance.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html#CertificateNamesGenerator-java.lang.String-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.PodInstance-">CertificateNamesGenerator(String, TaskSpec, PodInstance)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html#CertificateNamesGenerator-java.lang.String-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.scheduler.SchedulerConfig-">CertificateNamesGenerator(String, TaskSpec, PodInstance, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/CertificateNamesGenerator.html" title="class in com.mesosphere.sdk.offer.evaluate.security">CertificateNamesGenerator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html#chainWithRootCert-java.security.cert.X509Certificate-">chainWithRootCert(X509Certificate)</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a></dt>
 <dd>
@@ -1502,7 +1502,7 @@
 <dd>
 <div class="block">A read-only API for accessing information about how to connect to the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html#EndpointsResource-com.mesosphere.sdk.state.StateStore-java.lang.String-">EndpointsResource(StateStore, String)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints">EndpointsResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html#EndpointsResource-com.mesosphere.sdk.state.StateStore-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">EndpointsResource(StateStore, String, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints">EndpointsResource</a></dt>
 <dd>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>,
  using the provided <code>serviceName</code> for endpoint paths.</div>
@@ -2422,7 +2422,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html#getEndpoint-java.lang.String-">getEndpoint(String)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints">EndpointsResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoint-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-java.lang.String-">getEndpoint(StateStore, String, Map&lt;String, EndpointProducer&gt;, String)</a></span> - Static method in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html" title="class in com.mesosphere.sdk.http.queries">EndpointsQueries</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoint-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">getEndpoint(StateStore, String, Map&lt;String, EndpointProducer&gt;, String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html" title="class in com.mesosphere.sdk.http.queries">EndpointsQueries</a></dt>
 <dd>
 <div class="block">Produces the content of the specified endpoint.</div>
 </dd>
@@ -2432,7 +2432,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html#getEndpoints--">getEndpoints()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints">EndpointsResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoints-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-">getEndpoints(StateStore, String, Map&lt;String, EndpointProducer&gt;)</a></span> - Static method in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html" title="class in com.mesosphere.sdk.http.queries">EndpointsQueries</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html#getEndpoints-com.mesosphere.sdk.state.StateStore-java.lang.String-java.util.Map-com.mesosphere.sdk.scheduler.SchedulerConfig-">getEndpoints(StateStore, String, Map&lt;String, EndpointProducer&gt;, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/EndpointsQueries.html" title="class in com.mesosphere.sdk.http.queries">EndpointsQueries</a></dt>
 <dd>
 <div class="block">Produces a listing of all endpoint names.</div>
 </dd>
@@ -3535,6 +3535,10 @@
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> (translated Service Specification) which was generated by the test.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getServiceTLD--">getServiceTLD()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>
+<div class="block">Returns an optional of the custom Service TLD.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getSharePidNamespace--">getSharePidNamespace()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodSpec.html#getSharePidNamespace--">getSharePidNamespace()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></dt>
@@ -3686,7 +3690,7 @@
 <div class="block">Returns the specified rendered task config content, or throws <code>IllegalArgumentException</code> if no such config
  was found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskEnvironment-java.lang.String-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-">getTaskEnvironment(String, PodInstance, TaskSpec)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getTaskEnvironment-java.lang.String-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">getTaskEnvironment(String, PodInstance, TaskSpec, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>
 <div class="block">Generates a Task environment containing the configured environment values from the <a href="com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification"><code>CommandSpec</code></a>, along
  with a set of default environment variables that all SDK tasks get for free.</div>
@@ -7543,7 +7547,7 @@
 <div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>TLSEvaluationStage</code></a> is responsible for provisioning X.509 certificates, converting them to
  PEM and KeyStore formats and injecting them to the container as a secret.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html#TLSEvaluationStage-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater-">TLSEvaluationStage(String, String, String, TLSArtifactsUpdater)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html#TLSEvaluationStage-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater-com.mesosphere.sdk.scheduler.SchedulerConfig-">TLSEvaluationStage(String, String, String, TLSArtifactsUpdater, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">TLSEvaluationStage.Builder</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
 <dd>
@@ -7556,15 +7560,15 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html#TLSRequiresServiceAccount-com.mesosphere.sdk.scheduler.SchedulerConfig-">TLSRequiresServiceAccount(SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate">TLSRequiresServiceAccount</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpDomain-java.lang.String-">toAutoIpDomain(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpDomain-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toAutoIpDomain(String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS domain for tasks within the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-">toAutoIpEndpoint(String, String, int)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpEndpoint-java.lang.String-java.lang.String-int-com.mesosphere.sdk.scheduler.SchedulerConfig-">toAutoIpEndpoint(String, String, int, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-">toAutoIpHostname(String, String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toAutoIpHostname-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toAutoIpHostname(String, String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </dd>
