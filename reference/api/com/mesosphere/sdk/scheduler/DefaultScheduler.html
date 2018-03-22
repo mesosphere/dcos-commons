@@ -152,7 +152,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Map-">DefaultScheduler</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-java.util.Map-">DefaultScheduler</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
                 <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                 <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                 java.util.Collection&lt;java.lang.Object&gt;&nbsp;customResources,
@@ -160,6 +160,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
                 java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
                 <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                 <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                <a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory,
                 java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpointProducers)</code>
 <div class="block">Creates a new DefaultScheduler.</div>
 </td>
@@ -258,7 +259,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Map-">
+<a name="DefaultScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -272,6 +273,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
                            java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
                            <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                            <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                           <a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory,
                            java.util.Map&lt;java.lang.String,<a href="../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&gt;&nbsp;customEndpointProducers)
                     throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
 <div class="block">Creates a new DefaultScheduler. See information about parameters in <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerBuilder</code></a>.</div>

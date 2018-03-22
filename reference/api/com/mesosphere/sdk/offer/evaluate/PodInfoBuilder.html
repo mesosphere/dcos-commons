@@ -131,9 +131,10 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">PodInfoBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">PodInfoBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
               java.lang.String&nbsp;serviceName,
               java.util.UUID&nbsp;targetConfigId,
+              <a href="../../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory,
               <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;currentPodTasks,
               Protos.FrameworkID&nbsp;frameworkID,
@@ -254,7 +255,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">
+<a name="PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -263,6 +264,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;PodInfoBuilder(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
                       java.lang.String&nbsp;serviceName,
                       java.util.UUID&nbsp;targetConfigId,
+                      <a href="../../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory,
                       <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                       java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;currentPodTasks,
                       Protos.FrameworkID&nbsp;frameworkID,

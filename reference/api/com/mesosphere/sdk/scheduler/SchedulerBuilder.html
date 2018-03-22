@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":10,"i3":10,"i4":9,"i5":10,"i6":10,"i7":10,"i8":9,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":9,"i18":10};
+var methods = {"i0":10,"i1":9,"i2":10,"i3":10,"i4":9,"i5":10,"i6":10,"i7":10,"i8":9,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":9,"i19":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -234,7 +234,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setPlanCustomizer-com.mesosphere.sdk.scheduler.plan.PlanCustomizer-">setPlanCustomizer</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&nbsp;planCustomizer)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setPlanCustomizer-com.mesosphere.sdk.scheduler.plan.PlanCustomizer-">setPlanCustomizer</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&nbsp;planCustomizer)</code>
+<div class="block">Assigns a <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCustomizer</code></a> to be used for customizing plans.</div>
+</td>
 </tr>
 <tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
@@ -256,12 +258,18 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i17" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setTemplateUrlFactory-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-">setTemplateUrlFactory</a></span>(<a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory)</code>
+<div class="block">Assigns a custom factory for generating config template URLs.</div>
+</td>
+</tr>
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#updatePodPlacement-com.mesosphere.sdk.specification.PodSpec-">updatePodPlacement</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</code>
 <div class="block">Update pods with appropriate placement constraints to enforce user REGION intent.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--">withSingleRegionConstraint</a></span>()</code>&nbsp;</td>
 </tr>
@@ -473,6 +481,11 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setPlanCustomizer</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setPlanCustomizer(<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&nbsp;planCustomizer)</pre>
+<div class="block">Assigns a <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCustomizer</code></a> to be used for customizing plans.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>planCustomizer</code> - the plan customizer</dd>
+</dl>
 </li>
 </ul>
 <a name="withSingleRegionConstraint--">
@@ -491,6 +504,17 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getRegionRule</h4>
 <pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;getRegionRule(java.util.Optional&lt;java.lang.String&gt;&nbsp;schedulerRegion)</pre>
+</li>
+</ul>
+<a name="setTemplateUrlFactory-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setTemplateUrlFactory</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setTemplateUrlFactory(<a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory)</pre>
+<div class="block">Assigns a custom factory for generating config template URLs. Otherwise a default suitable for use with
+ <a href="../../../../com/mesosphere/sdk/http/endpoints/ArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>ArtifactResource</code></a> is used.</div>
 </li>
 </ul>
 <a name="build--">

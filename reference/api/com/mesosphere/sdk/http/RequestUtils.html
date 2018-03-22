@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9,"i1":9,"i2":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -142,6 +142,15 @@ extends java.lang.Object</pre>
 <div class="block">Parses a JSON list payload in the form of a string, returning the corresponding Java list.</div>
 </td>
 </tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>static byte[]</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/RequestUtils.html#readData-java.io.InputStream-FormDataContentDisposition-int-">readData</a></span>(java.io.InputStream&nbsp;inputStream,
+        FormDataContentDisposition&nbsp;fileDetails,
+        int&nbsp;sizeLimit)</code>
+<div class="block">Reads the content of the provided payload, enforcing the specified size limit, while being permissive/dismissive
+ about provided Content-Length in the header metadata.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -182,7 +191,7 @@ extends java.lang.Object</pre>
 <a name="filterPodTasks-java.lang.String-java.util.Collection-java.util.Set-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>filterPodTasks</h4>
 <pre>public static&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types">TaskInfoAndStatus</a>&gt;&nbsp;filterPodTasks(java.lang.String&nbsp;podName,
@@ -190,6 +199,31 @@ extends java.lang.Object</pre>
                                                                      java.util.Set&lt;java.lang.String&gt;&nbsp;taskNameFilter)</pre>
 <div class="block">Returns a new list which contains only the tasks for a given pod which matched the provided task names.
  For example, a task named "foo" in "pod-0" will be returned if the filter contains either "foo" or "pod-0-foo".</div>
+</li>
+</ul>
+<a name="readData-java.io.InputStream-FormDataContentDisposition-int-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>readData</h4>
+<pre>public static&nbsp;byte[]&nbsp;readData(java.io.InputStream&nbsp;inputStream,
+                              FormDataContentDisposition&nbsp;fileDetails,
+                              int&nbsp;sizeLimit)
+                       throws java.io.IOException</pre>
+<div class="block">Reads the content of the provided payload, enforcing the specified size limit, while being permissive/dismissive
+ about provided Content-Length in the header metadata.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>inputStream</code> - The input stream containing the data</dd>
+<dd><code>fileDetails</code> - The HTTP header details of the stream</dd>
+<dd><code>sizeLimit</code> - limit in bytes for the returned data, or no limit if <= 0</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>the resulting buffer</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.IllegalArgumentException</code> - if the stream is missing, or its size exceeds <code>sizeLimit</code></dd>
+<dd><code>java.io.IOException</code> - if copying the stream's data failed</dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -219,7 +253,7 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/http/PodResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

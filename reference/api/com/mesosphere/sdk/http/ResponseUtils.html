@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li>Next&nbsp;Class</li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/http/ResponseUtils.html" target="_top">Frames</a></li>
@@ -136,67 +136,67 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#elementNotFoundResponse--">elementNotFoundResponse</a></span>()</code>
-<div class="block">Returns a "404 Element not found" response.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#htmlOkResponse-java.lang.String-">htmlOkResponse</a></span>(java.lang.String&nbsp;html)</code>
 <div class="block">Returns a 200 OK response containing the provided html .</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#htmlResponse-java.lang.String-Response.Status-">htmlResponse</a></span>(java.lang.String&nbsp;html,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a response containing the provided html  with the provided status .</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonOkResponse-JSONArray-">jsonOkResponse</a></span>(JSONArray&nbsp;jsonArray)</code>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONArray</code>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonOkResponse-JSONObject-">jsonOkResponse</a></span>(JSONObject&nbsp;jsonObject)</code>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonOkResponse-Message-">jsonOkResponse</a></span>(Message&nbsp;protoMessage)</code>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-JSONArray-Response.Status-">jsonResponse</a></span>(JSONArray&nbsp;jsonArray,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a response containing the provided <code>JSONArray</code>.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-JSONObject-Response.Status-">jsonResponse</a></span>(JSONObject&nbsp;jsonObject,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-Message-Response.Status-">jsonResponse</a></span>(Message&nbsp;protoMessage,
             Response.Status&nbsp;status)</code>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#jsonResponseBean-java.lang.Object-Response.Status-">jsonResponseBean</a></span>(java.lang.Object&nbsp;entity,
                 Response.Status&nbsp;status)</code>
 <div class="block">Returns a 200 OK response containing the provided JSON <code>String</code>.</div>
+</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>static Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#notFoundResponse-java.lang.String-">notFoundResponse</a></span>(java.lang.String&nbsp;itemType)</code>
+<div class="block">Returns a "404 [itemType] not found" response.</div>
 </td>
 </tr>
 <tr id="i11" class="rowColor">
@@ -353,14 +353,14 @@ extends java.lang.Object</pre>
  provided statusCode.</div>
 </li>
 </ul>
-<a name="elementNotFoundResponse--">
+<a name="notFoundResponse-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>elementNotFoundResponse</h4>
-<pre>public static&nbsp;Response&nbsp;elementNotFoundResponse()</pre>
-<div class="block">Returns a "404 Element not found" response.</div>
+<h4>notFoundResponse</h4>
+<pre>public static&nbsp;Response&nbsp;notFoundResponse(java.lang.String&nbsp;itemType)</pre>
+<div class="block">Returns a "404 [itemType] not found" response.</div>
 </li>
 </ul>
 <a name="alreadyReportedResponse--">
@@ -422,7 +422,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/http/StateResource.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li>Next&nbsp;Class</li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/http/ResponseUtils.html" target="_top">Frames</a></li>
