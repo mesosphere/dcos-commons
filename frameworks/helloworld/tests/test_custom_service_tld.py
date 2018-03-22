@@ -4,6 +4,7 @@ import pytest
 import shakedown
 import time
 
+import sdk_hosts
 import sdk_install
 import sdk_networks
 
@@ -25,17 +26,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_custom_service_tld():
-    # Go figure out the crypto id...
-    ok, crypto_id = shakedown.run_command_on_master("curl localhost:62080/lashup/key/ | jq -r .zbase32_public_key")
-    assert ok
-
-    # Instead of using "autoip.dcos.thisdcos.directory", use "autoip.dcos.<cryptoid>.dcos.directory".
-    # These addresses are routable in the cluster, but let us verify that we're fully replacing
-    # all TLD usage with a different TLD.
-
-    # A service yaml is used which will make sure task DNS resolves and then sleep so advertised endpoints
-    # can be checked.
-    custom_tld = "autoip.dcos.{}.dcos.directory".format(crypto_id.strip())
+    custom_tld = sdk_hosts.get_crypto_id_domain()
     sdk_install.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
