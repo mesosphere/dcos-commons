@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.testutils;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 import java.time.Duration;
@@ -22,6 +23,7 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getDcosSpace()).thenReturn("/");
         when(schedulerConfig.getSecretsNamespace(TestConstants.SERVICE_NAME)).thenReturn(TestConstants.SERVICE_NAME);
         when(schedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
+        when(schedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
         return schedulerConfig;
     }
 }

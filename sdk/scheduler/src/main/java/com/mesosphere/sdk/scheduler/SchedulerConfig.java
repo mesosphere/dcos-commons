@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos.Credential;
@@ -156,6 +157,11 @@ public class SchedulerConfig {
      * Environment variable for allowing region awareness.
      */
     private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
+
+    /**
+     * Environment variable for setting a custom TLD for the service (replaces Constants.TLD_NET).
+     */
+    private static final String USER_SPECIFIED_TLD_ENVVAR = "SERVICE_TLD";
 
     /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -339,6 +345,13 @@ public class SchedulerConfig {
 
     public boolean isregionAwarenessEnabled() {
         return Boolean.valueOf(envStore.getOptional(ALLOW_REGION_AWARENESS_ENV, "false"));
+    }
+
+    /**
+     * Returns an optional of the custom Service TLD.
+     */
+    public String getServiceTLD() {
+        return envStore.getOptional(USER_SPECIFIED_TLD_ENVVAR, Constants.DNS_TLD);
     }
 
     /**

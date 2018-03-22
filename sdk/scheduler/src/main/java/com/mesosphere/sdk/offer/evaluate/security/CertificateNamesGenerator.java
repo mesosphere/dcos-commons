@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -41,15 +42,19 @@ public class CertificateNamesGenerator {
     // ub-common-name INTEGER ::= 64
     private static final int CN_MAX_LENGTH = 64;
 
-    public CertificateNamesGenerator(String serviceName, TaskSpec taskSpec, PodInstance podInstance) {
+    public CertificateNamesGenerator(String serviceName,
+                                     TaskSpec taskSpec,
+                                     PodInstance podInstance,
+                                     SchedulerConfig schedulerConfig) {
         this.serviceName = serviceName;
         this.taskInstanceName = TaskSpec.getInstanceName(podInstance, taskSpec);
         // Task can specify its own service discovery name
         if (taskSpec.getDiscovery().isPresent() && taskSpec.getDiscovery().get().getPrefix().isPresent()) {
             this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName,
-                    String.format("%s-%d", taskSpec.getDiscovery().get().getPrefix().get(), podInstance.getIndex()));
+                    String.format("%s-%d", taskSpec.getDiscovery().get().getPrefix().get(), podInstance.getIndex()),
+                    schedulerConfig);
         } else {
-            this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName, this.taskInstanceName);
+            this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName, this.taskInstanceName, schedulerConfig);
         }
         this.vipSpecs = taskSpec.getResourceSet().getResources().stream()
                 .filter(resourceSpec -> resourceSpec instanceof NamedVIPSpec)
