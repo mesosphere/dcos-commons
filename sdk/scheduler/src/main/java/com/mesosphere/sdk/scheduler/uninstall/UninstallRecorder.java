@@ -16,11 +16,15 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
  * service by marking them with a tombstone id, then notifying the uninstall plan of the changes.
  */
 public class UninstallRecorder implements OperationRecorder {
-    private final Logger logger = LoggingUtils.getLogger(getClass());
+
+    private final Logger logger;
+    private final String serviceName;
     private final StateStore stateStore;
     private final Collection<ResourceCleanupStep> resourceSteps;
 
-    UninstallRecorder(StateStore stateStore, Collection<ResourceCleanupStep> resourceSteps) {
+    UninstallRecorder(String serviceName, StateStore stateStore, Collection<ResourceCleanupStep> resourceSteps) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
+        this.serviceName = serviceName;
         this.stateStore = stateStore;
         this.resourceSteps = resourceSteps;
     }
@@ -51,7 +55,7 @@ public class UninstallRecorder implements OperationRecorder {
                 tasksToUpdate.size() == 1 ? "" : "s",
                 tasksToUpdate.stream().map(Protos.TaskInfo::getName).collect(Collectors.toList()));
 
-        stateStore.storeTasks(updateResources(resource, tasksToUpdate));
+        stateStore.storeTasks(updateResources(serviceName, resource, tasksToUpdate));
 
         // Broadcast the resulting uninstallRecommendation to each resource step in the uninstall plan.
         // We need to manually pass the uninstall recommendation to the resource cleanup steps. They do not get this
@@ -71,7 +75,7 @@ public class UninstallRecorder implements OperationRecorder {
     }
 
     private static Collection<Protos.TaskInfo> updateResources(
-            Protos.Resource resource, Collection<Protos.TaskInfo> tasksToUpdate) {
+            String serviceName, Protos.Resource resource, Collection<Protos.TaskInfo> tasksToUpdate) {
         // create new copies of taskinfos with updated resources
         final Optional<String> initialResourceId = ResourceUtils.getResourceId(resource);
         Collection<Protos.TaskInfo> updatedTaskInfos = new ArrayList<>();
@@ -81,22 +85,23 @@ public class UninstallRecorder implements OperationRecorder {
         for (Protos.TaskInfo taskInfoToUpdate : tasksToUpdate) {
             updatedTaskInfos.add(Protos.TaskInfo.newBuilder(taskInfoToUpdate)
                     .clearResources()
-                    .addAllResources(updatedResources(initialResourceId.get(), taskInfoToUpdate.getResourcesList()))
+                    .addAllResources(
+                            updatedResources(serviceName, initialResourceId.get(), taskInfoToUpdate.getResourcesList()))
                     .build());
         }
         return updatedTaskInfos;
     }
 
     private static Collection<Protos.Resource> updatedResources(
-            String initialResourceId, Collection<Protos.Resource> resources) {
+            String serviceName, String initialResourceId, Collection<Protos.Resource> resources) {
         // find the matching resource in each task and update its resource_id
         final String uninstalledResourceId = TOMBSTONE_MARKER + initialResourceId;
         Collection<Protos.Resource> updatedResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
             Optional<String> thisResourceId = ResourceUtils.getResourceId(resource);
             if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
-                updatedResources.add(ResourceBuilder.fromExistingResource(resource)
-                        .setResourceId(Optional.of(uninstalledResourceId))
+                updatedResources.add(ResourceBuilder.fromExistingResource(serviceName, resource)
+                        .setResourceId(uninstalledResourceId)
                         .build());
             } else {
                 updatedResources.add(resource);

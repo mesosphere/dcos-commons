@@ -23,11 +23,13 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        MesosResourcePool mesosResourcePool =
+                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
+                TestConstants.SERVICE_NAME,
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 getTaskName(podInstanceRequirement.getPodInstance()),
                 true);
@@ -77,11 +79,13 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000);
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        MesosResourcePool mesosResourcePool =
+                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
+                TestConstants.SERVICE_NAME,
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 getTaskName(podInstanceRequirement.getPodInstance()),
                 true);

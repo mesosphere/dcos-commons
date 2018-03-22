@@ -24,14 +24,16 @@ import java.util.stream.IntStream;
  * environments.
  */
 public class PortEvaluationStage implements OfferEvaluationStage {
-    private static final Logger LOGGER = LoggingUtils.getLogger(PortEvaluationStage.class);
-
+    private final Logger logger;
+    private final String serviceName;
     private final PortSpec portSpec;
     private final String taskName;
     private final Optional<String> resourceId;
     private final boolean useHostPorts;
 
-    public PortEvaluationStage(PortSpec portSpec, String taskName, Optional<String> resourceId) {
+    public PortEvaluationStage(String serviceName, PortSpec portSpec, String taskName, Optional<String> resourceId) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
+        this.serviceName = serviceName;
         this.portSpec = portSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
@@ -48,7 +50,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             if (priorTaskPort.isPresent()) {
                 // Reuse the prior port value.
                 assignedPort = priorTaskPort.get();
-                LOGGER.info("Using previously reserved dynamic port: {}", assignedPort);
+                logger.info("Using previously reserved dynamic port: {}", assignedPort);
             } else {
                 // Choose a new port value.
                 Optional<Integer> dynamicPort = useHostPorts ?
@@ -66,7 +68,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                             .build();
                 }
                 assignedPort = dynamicPort.get();
-                LOGGER.info("Claiming new dynamic port: {}", assignedPort);
+                logger.info("Claiming new dynamic port: {}", assignedPort);
             }
         }
 
@@ -80,14 +82,15 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
         if (useHostPorts) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                    OfferEvaluationUtils.evaluateSimpleResource(this, updatedPortSpec, resourceId, mesosResourcePool);
+                    OfferEvaluationUtils.evaluateSimpleResource(
+                            serviceName, this, updatedPortSpec, resourceId, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
 
             Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult).build());
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(serviceName, updatedPortSpec, resourceIdResult).build());
             return EvaluationOutcome.pass(
                     this,
                     evaluationOutcome.getOfferRecommendations(),
@@ -98,7 +101,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     .mesosResource(evaluationOutcome.getMesosResource().get())
                     .build();
         } else {
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(updatedPortSpec, resourceId).build());
+            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(serviceName, updatedPortSpec, resourceId).build());
             return EvaluationOutcome.pass(
                     this,
                     "Port %s doesn't require resource reservation, ignoring resource requirements and using port %d",
@@ -144,7 +147,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     healthCheckCmdBuilder.setEnvironment(
                             EnvUtils.withEnvVar(healthCheckCmdBuilder.getEnvironment(), portEnvKey, portEnvVal));
                 } else {
-                    LOGGER.info("Health check is not defined for task: {}", taskName);
+                    logger.info("Health check is not defined for task: {}", taskName);
                 }
 
                 // Add port to the readiness check environment (if a readiness check is defined):
@@ -162,7 +165,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                                 .setReadinessCheckEnvvar(portEnvKey, portEnvVal)
                                 .toProto());
                     } catch (TaskException e) {
-                        LOGGER.error("Got exception while adding PORT env var to ReadinessCheck", e);
+                        logger.error("Got exception while adding PORT env var to ReadinessCheck", e);
                     }
                 }
             }

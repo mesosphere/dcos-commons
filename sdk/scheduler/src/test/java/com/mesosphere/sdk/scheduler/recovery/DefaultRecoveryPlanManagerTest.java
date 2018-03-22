@@ -106,7 +106,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         .setIndex(0)
                         .toProto())
                 .setName("test-task-type-0-test-task-name")
-                .setTaskId(CommonIdUtils.toTaskId("test-task-type-0-test-task-name"))
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "test-task-type-0-test-task-name"))
                 .build();
 
         taskInfos = Collections.singletonList(taskInfo);

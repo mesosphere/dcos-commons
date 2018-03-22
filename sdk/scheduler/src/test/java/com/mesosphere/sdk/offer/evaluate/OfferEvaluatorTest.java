@@ -653,6 +653,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
     }
 
+    @SuppressWarnings("deprecated")
     @Test
     public void testResourceRefinementSucceeds() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
@@ -731,6 +732,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         }
     }
 
+    @SuppressWarnings("deprecated")
     @Test
     public void testResourceRefinementFailsForDifferentPreReservation() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
@@ -871,9 +873,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
-        OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
+        OperationRecorder recorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
         for (OfferRecommendation recommendation : recommendations) {
-            operationRecorder.record(recommendation);
+            recorder.record(recommendation);
         }
     }
 
@@ -883,6 +885,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         return DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
+    @SuppressWarnings("deprecated")
     static void validateRole(Resource resource) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
             Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());

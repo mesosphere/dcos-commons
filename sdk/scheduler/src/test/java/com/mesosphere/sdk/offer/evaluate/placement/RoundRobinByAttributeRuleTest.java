@@ -16,6 +16,7 @@ import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -49,7 +50,7 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
     private static TaskInfo getTaskInfo(String taskName, String attrName, String attrVal) {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName));
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName));
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder)
                 .setOfferAttributes(offerWithAttribute(attrName, attrVal))
                 .toProto());
@@ -62,6 +63,7 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
 
     private static Offer offerWithAttribute(String name, String value) {
         Protos.Resource resource = ResourceBuilder.fromUnreservedValue(
+                TestConstants.SERVICE_NAME,
                 "cpus",
                 Protos.Value.newBuilder()
                         .setType(Protos.Value.Type.SCALAR)

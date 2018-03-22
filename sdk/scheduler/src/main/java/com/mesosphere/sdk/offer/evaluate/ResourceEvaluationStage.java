@@ -18,9 +18,10 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link ReserveOfferRecommendation} or {@link UnreserveOfferRecommendation} where necessary.
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
-    private final String taskName;
-    private final Optional<String> requiredResourceId;
+    private final String serviceName;
     private final ResourceSpec resourceSpec;
+    private final Optional<String> requiredResourceId;
+    private final String taskName;
 
     /**
      * Creates a new instance for basic resource evaluation.
@@ -29,7 +30,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
      * @param requiredResourceId any previously reserved resource ID to be required, or empty for a new reservation
      * @param taskName the name of the task which will use this resource
      */
-    public ResourceEvaluationStage(ResourceSpec resourceSpec, Optional<String> requiredResourceId, String taskName) {
+    public ResourceEvaluationStage(
+            String serviceName, ResourceSpec resourceSpec, String taskName, Optional<String> requiredResourceId) {
+        this.serviceName = serviceName;
         this.resourceSpec = resourceSpec;
         this.requiredResourceId = requiredResourceId;
         this.taskName = taskName;
@@ -45,7 +48,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
             OfferEvaluationUtils.setProtos(
                     podInfoBuilder,
-                    ResourceBuilder.fromSpec(resourceSpec, requiredResourceId).build(),
+                    ResourceBuilder.fromSpec(serviceName, resourceSpec, requiredResourceId).build(),
                     Optional.ofNullable(taskName));
             return pass(
                     this,
@@ -56,7 +59,8 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         }
 
         OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
-                OfferEvaluationUtils.evaluateSimpleResource(this, resourceSpec, requiredResourceId, mesosResourcePool);
+                OfferEvaluationUtils.evaluateSimpleResource(
+                        serviceName, this, resourceSpec, requiredResourceId, mesosResourcePool);
 
         EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
         if (!evaluationOutcome.isPassing()) {
@@ -66,7 +70,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
         // Use the reservation outcome's resourceId, which is a newly generated UUID if requiredResourceId was empty.
         OfferEvaluationUtils.setProtos(
                 podInfoBuilder,
-                ResourceBuilder.fromSpec(resourceSpec, reserveEvaluationOutcome.getResourceId()).build(),
+                ResourceBuilder.fromSpec(serviceName, resourceSpec, reserveEvaluationOutcome.getResourceId()).build(),
                 Optional.ofNullable(taskName));
 
         return evaluationOutcome;

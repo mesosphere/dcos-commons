@@ -47,7 +47,7 @@ public class DeploymentStepTest {
         String podInstanceName = PodInstance.getName(TestConstants.POD_TYPE, 0);
         when(mockPodInstance.getName()).thenReturn(podInstanceName);
         taskName = TaskSpec.getInstanceName(mockPodInstance, mockTaskSpec);
-        taskID = CommonIdUtils.toTaskId(taskName);
+        taskID = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName);
 
         when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_0))
                 .thenReturn(GoalStateOverride.Status.INACTIVE);
@@ -239,8 +239,8 @@ public class DeploymentStepTest {
                 .build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
-        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TaskSpec.getInstanceName(podInstance, taskName0));
-        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(TaskSpec.getInstanceName(podInstance, taskName1));
+        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName0));
+        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName1));
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,

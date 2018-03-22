@@ -42,6 +42,7 @@ class OfferEvaluationUtils {
     }
 
     static ReserveEvaluationOutcome evaluateSimpleResource(
+            String serviceName,
             OfferEvaluationStage offerEvaluationStage,
             ResourceSpec resourceSpec,
             Optional<String> resourceId,
@@ -71,7 +72,7 @@ class OfferEvaluationUtils {
             if (!resourceId.isPresent()) {
                 // Initial reservation of resources
                 LOGGER.info("    Resource '{}' requires a RESERVE operation", resourceSpec.getName());
-                Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId)
+                Protos.Resource resource = ResourceBuilder.fromSpec(serviceName, resourceSpec, resourceId)
                         .setMesosResource(mesosResource)
                         .build();
                 offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
@@ -132,7 +133,7 @@ class OfferEvaluationUtils {
                 }
 
                 mesosResource = mesosResourceOptional.get();
-                Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId)
+                Protos.Resource resource = ResourceBuilder.fromSpec(serviceName, resourceSpec, resourceId)
                         .setValue(mesosResource.getValue())
                         .build();
                 // Reservation of additional resources
@@ -159,7 +160,7 @@ class OfferEvaluationUtils {
                         TextFormat.shortDebugString(resourceSpec.getValue()),
                         TextFormat.shortDebugString(unreserve));
 
-                Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId)
+                Protos.Resource resource = ResourceBuilder.fromSpec(serviceName, resourceSpec, resourceId)
                         .setValue(unreserve)
                         .build();
                 // Unreservation of no longer needed resources

@@ -139,8 +139,9 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        Protos.TaskStatus taskStatus =
-                newTaskStatus(CommonIdUtils.toTaskId("not-" + TestConstants.TASK_NAME), Protos.TaskState.TASK_UNKNOWN);
+        Protos.TaskStatus taskStatus = newTaskStatus(
+                CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "not-" + TestConstants.TASK_NAME),
+                Protos.TaskState.TASK_UNKNOWN);
 
         assertThat(taskInfo.getTaskId(), is(not(taskStatus.getTaskId())));
         StateStoreUtils.getTaskName(stateStore, taskStatus);
@@ -176,7 +177,7 @@ public class StateStoreUtilsTest {
     public void testRepairTaskIdsMismatchedIds() {
         Protos.TaskInfo taskInfo = newTaskInfo(TestConstants.TASK_NAME);
         stateStore.storeTasks(ImmutableList.of(taskInfo));
-        Protos.TaskID taskID = CommonIdUtils.toTaskId("not-" + TestConstants.TASK_NAME);
+        Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "not-" + TestConstants.TASK_NAME);
         Protos.TaskStatus taskStatus = newTaskStatus(taskID, Protos.TaskState.TASK_UNKNOWN);
         stateStore.storeStatus(TestConstants.TASK_NAME, taskStatus);
 
@@ -426,7 +427,7 @@ public class StateStoreUtilsTest {
     }
 
     private static Protos.TaskInfo newTaskInfo(final String taskName) {
-        return newTaskInfo(taskName, CommonIdUtils.toTaskId(taskName));
+        return newTaskInfo(taskName, CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName));
     }
 
     private static Protos.TaskInfo newTaskInfo(final String taskName, final Protos.TaskID taskID) {
@@ -464,7 +465,7 @@ public class StateStoreUtilsTest {
     public static Protos.TaskInfo createTask(String taskName) {
         return Protos.TaskInfo.newBuilder()
                 .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName))
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
                 .setSlaveId(Protos.SlaveID.newBuilder().setValue("ignored")) // proto field required
                 .build();
     }

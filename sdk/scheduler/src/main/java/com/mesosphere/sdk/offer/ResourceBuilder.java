@@ -24,26 +24,32 @@ public class ResourceBuilder {
     private Value value;
     private Optional<String> role;
     private final String preReservedRole;
+    private final String serviceName;
     private Optional<String> resourceId;
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
     private Optional<DiskInfo.Source> diskMountInfo;
     private MesosResource mesosResource;
 
-    public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
-        return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
+    public static ResourceBuilder fromSpec(String serviceName, ResourceSpec spec, Optional<String> resourceId) {
+        ResourceBuilder b = new ResourceBuilder(serviceName, spec.getName(), spec.getValue(), spec.getPreReservedRole())
                 .setRole(Optional.of(spec.getRole()))
-                .setPrincipal(Optional.of(spec.getPrincipal()))
-                .setResourceId(resourceId);
+                .setPrincipal(Optional.of(spec.getPrincipal()));
+        if (resourceId.isPresent()) {
+            b.setResourceId(resourceId.get());
+        } else {
+            b.clearResourceId();
+        }
+        return b;
     }
 
     public static ResourceBuilder fromSpec(
+            String serviceName,
             VolumeSpec spec,
             Optional<String> resourceId,
             Optional<String> persistenceId,
             Optional<String> sourceRoot) {
-
-        ResourceBuilder resourceBuilder = fromSpec(spec, resourceId);
+        ResourceBuilder resourceBuilder = fromSpec(serviceName, spec, resourceId);
         switch (spec.getType()) {
             case ROOT:
                 return resourceBuilder.setRootVolume(spec.getContainerPath(), persistenceId);
@@ -57,22 +63,22 @@ public class ResourceBuilder {
         }
     }
 
-    public static ResourceBuilder fromExistingResource(Resource resource) {
+    public static ResourceBuilder fromExistingResource(String serviceName, Resource resource) {
         Optional<String> resourceId = ResourceUtils.getResourceId(resource);
 
         if (!resource.hasDisk()) {
             ResourceSpec resourceSpec = getResourceSpec(resource);
-            return fromSpec(resourceSpec, resourceId);
+            return fromSpec(serviceName, resourceSpec, resourceId);
         } else {
             VolumeSpec volumeSpec = getVolumeSpec(resource);
             Optional<String> persistenceId = ResourceUtils.getPersistenceId(resource);
             Optional<String> sourceRoot = ResourceUtils.getSourceRoot(resource);
-            return fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot);
+            return fromSpec(serviceName, volumeSpec, resourceId, persistenceId, sourceRoot);
         }
     }
 
-    public static ResourceBuilder fromUnreservedValue(String resourceName, Value value) {
-        return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
+    public static ResourceBuilder fromUnreservedValue(String serviceName, String resourceName, Value value) {
+        return new ResourceBuilder(serviceName, resourceName, value, Constants.ANY_ROLE);
     }
 
     @SuppressWarnings("deprecation")
@@ -102,12 +108,13 @@ public class ResourceBuilder {
                 resource.getDisk().getPersistence().getPrincipal());
     }
 
-    private ResourceBuilder(String resourceName, Value value, String preReservedRole) {
+    private ResourceBuilder(String serviceName, String resourceName, Value value, String preReservedRole) {
         this.resourceName = resourceName;
         this.value = value;
         this.preReservedRole = preReservedRole;
         this.role = Optional.empty();
         this.principal = Optional.empty();
+        this.serviceName = serviceName;
         this.resourceId = Optional.empty();
         this.diskContainerPath = Optional.empty();
         this.diskPersistenceId = Optional.empty();
@@ -126,8 +133,8 @@ public class ResourceBuilder {
      * Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
      * runs. This may be used with e.g. restarting a task at its prior location.
      */
-    public ResourceBuilder setResourceId(Optional<String> resourceId) {
-        this.resourceId = resourceId;
+    public ResourceBuilder setResourceId(String resourceId) {
+        this.resourceId = Optional.of(resourceId);
         return this;
     }
 
@@ -211,8 +218,8 @@ public class ResourceBuilder {
         // todo (bwood): @gabriel, why do we not just re-run if resource id is already set?
         // is the reservation setting destructive / non-repeatable?
         if (role.isPresent() && !ResourceUtils.hasResourceId(builder.build())) {
-            String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
-            Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
+            Resource.ReservationInfo reservationInfo = getReservationInfo(
+                    serviceName, role.get(), resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString());
 
             if (preReservedSupported) {
                 if (!preReservedRole.equals(Constants.ANY_ROLE) && mesosResource == null) {
@@ -250,27 +257,27 @@ public class ResourceBuilder {
         return setValue(builder, value).build();
     }
 
-    private Resource.ReservationInfo getReservationInfo(String role, String resId) {
+    private Resource.ReservationInfo getReservationInfo(String serviceName, String role, String resourceId) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
-            return getRefinedReservationInfo(role, resId);
+            return getRefinedReservationInfo(serviceName, resourceId, role);
         } else {
-            return getLegacyReservationInfo(resId);
+            return getLegacyReservationInfo(serviceName, resourceId);
         }
     }
 
-    private Resource.ReservationInfo getRefinedReservationInfo(String role, String resId) {
+    private Resource.ReservationInfo getRefinedReservationInfo(String serviceName, String resourceId, String role) {
         Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
                 .setRole(role)
                 .setType(Resource.ReservationInfo.Type.DYNAMIC)
                 .setPrincipal(principal.get());
-        AuxLabelAccess.setResourceId(reservationBuilder, resId);
+        AuxLabelAccess.setResourceLabels(reservationBuilder, serviceName, resourceId);
         return reservationBuilder.build();
     }
 
-    private Resource.ReservationInfo getLegacyReservationInfo(String resId) {
+    private Resource.ReservationInfo getLegacyReservationInfo(String serviceName, String resourceId) {
         Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
                 .setPrincipal(principal.get());
-        AuxLabelAccess.setResourceId(reservationBuilder, resId);
+        AuxLabelAccess.setResourceLabels(reservationBuilder, serviceName, resourceId);
         return reservationBuilder.build();
     }
 

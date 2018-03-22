@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OperationRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 
 import org.apache.mesos.Protos;
 import org.junit.Test;
@@ -17,7 +18,7 @@ public class UninstallRecorderTest {
         Protos.Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         OfferRecommendation unsupportedOfferRecommendation = new CreateOfferRecommendation(null, resource);
         StateStore mockStateStore = mock(StateStore.class);
-        OperationRecorder operationRecorder = new UninstallRecorder(mockStateStore, null);
+        OperationRecorder operationRecorder = new UninstallRecorder(TestConstants.SERVICE_NAME, mockStateStore, null);
         // should just return without error
         operationRecorder.record(unsupportedOfferRecommendation);
     }

@@ -18,22 +18,26 @@ import java.util.stream.Collectors;
  * of expected {@link VolumeSpec}s for that Executor.
  */
 public class ExecutorResourceMapper {
-    private static final Logger LOGGER = LoggingUtils.getLogger(ExecutorResourceMapper.class);
+    private final Logger logger;
+    private final String serviceName;
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
-    private final List<Protos.Resource> resources;
+    private final Collection<Protos.Resource> executorResources;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
     private final boolean useDefaultExecutor;
 
     public ExecutorResourceMapper(
+            String serviceName,
             PodSpec podSpec,
             Collection<ResourceSpec> resourceSpecs,
-            Protos.ExecutorInfo executorInfo,
+            Collection<Protos.Resource> executorResources,
             boolean useDefaultExecutor) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
+        this.serviceName = serviceName;
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
-        this.resources = executorInfo.getResourcesList();
+        this.executorResources = executorResources;
         this.useDefaultExecutor = useDefaultExecutor;
         this.evaluationStages = getEvaluationStagesInternal();
     }
@@ -54,7 +58,7 @@ public class ExecutorResourceMapper {
         }
 
         List<ResourceLabels> matchingResources = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
+        for (Protos.Resource resource : executorResources) {
             Optional<ResourceLabels> matchingResource;
             if (resource.getName().equals(Constants.DISK_RESOURCE_TYPE) && resource.hasDisk()) {
                 matchingResource = findMatchingDiskSpec(resource, remainingResourceSpecs);
@@ -71,7 +75,7 @@ public class ExecutorResourceMapper {
                 }
                 matchingResources.add(matchingResource.get());
             } else {
-                LOGGER.warn("Failed to find match for resource: {}", TextFormat.shortDebugString(resource));
+                logger.warn("Failed to find match for resource: {}", TextFormat.shortDebugString(resource));
                 if (resource.hasDisk()) {
                     orphanedResources.add(resource);
                 }
@@ -81,19 +85,19 @@ public class ExecutorResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            LOGGER.info("Orphaned executor resources no longer in executor: {}",
+            logger.info("Orphaned executor resources no longer in executor: {}",
                     orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
         }
 
         if (!matchingResources.isEmpty()) {
-            LOGGER.info("Matching executor resources: {}", matchingResources);
+            logger.info("Matching executor resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(resourceLabels));
             }
         }
 
         if (!remainingResourceSpecs.isEmpty()) {
-            LOGGER.info("Missing resources not found in executor: {}", remainingResourceSpecs);
+            logger.info("Missing resources not found in executor: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
                 stages.add(newCreateEvaluationStage(missingResource));
             }
@@ -113,7 +117,7 @@ public class ExecutorResourceMapper {
                     ((VolumeSpec) resourceSpec).getContainerPath())) {
                 Optional<String> resourceId = ResourceUtils.getResourceId(executorResource);
                 if (!resourceId.isPresent()) {
-                    LOGGER.error("Failed to find resource ID for resource: {}", executorResource);
+                    logger.error("Failed to find resource ID for resource: {}", executorResource);
                     continue;
                 }
 
@@ -138,7 +142,7 @@ public class ExecutorResourceMapper {
             if (resourceSpec.getName().equals(taskResource.getName())) {
                 Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
-                    LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                    logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
                 }
 
@@ -154,6 +158,7 @@ public class ExecutorResourceMapper {
 
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getExisting(
+                    serviceName,
                     (VolumeSpec) resourceSpec,
                     null,
                     resourceId,
@@ -161,15 +166,15 @@ public class ExecutorResourceMapper {
                     resourceLabels.getSourceRoot(),
                     useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, resourceId, null);
+            return new ResourceEvaluationStage(serviceName, resourceSpec, null, resourceId);
         }
     }
 
     private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
         if (resourceSpec instanceof VolumeSpec) {
-            return VolumeEvaluationStage.getNew((VolumeSpec) resourceSpec, null, useDefaultExecutor);
+            return VolumeEvaluationStage.getNew(serviceName, (VolumeSpec) resourceSpec, null, useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), null);
+            return new ResourceEvaluationStage(serviceName, resourceSpec, null, Optional.empty());
         }
     }
 }

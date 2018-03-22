@@ -69,30 +69,30 @@ public class PodQueriesTest {
                 .setType("test")
                 .setIndex(0)
                 .toProto());
-        POD_0_TASK_A = infoBuilder.setName("test-0-a").setTaskId(CommonIdUtils.toTaskId("a")).build();
+        POD_0_TASK_A = infoBuilder.setName("test-0-a").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "a")).build();
         POD_0_STATUS_A = TaskTestUtils.generateStatus(POD_0_TASK_A.getTaskId(), TaskState.TASK_RUNNING);
 
-        POD_0_TASK_B = POD_0_TASK_A.toBuilder().setName("test-0-b").setTaskId(CommonIdUtils.toTaskId("b")).build();
+        POD_0_TASK_B = POD_0_TASK_A.toBuilder().setName("test-0-b").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "b")).build();
         POD_0_STATUS_B = TaskTestUtils.generateStatus(POD_0_TASK_B.getTaskId(), TaskState.TASK_STAGING);
 
-        POD_0_TASK_C = POD_0_TASK_A.toBuilder().setName("test-0-c").setTaskId(CommonIdUtils.toTaskId("c")).build();
+        POD_0_TASK_C = POD_0_TASK_A.toBuilder().setName("test-0-c").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "c")).build();
         POD_0_STATUS_C = TaskTestUtils.generateStatus(POD_0_TASK_C.getTaskId(), TaskState.TASK_RUNNING);
 
-        POD_0_TASK_D = POD_0_TASK_A.toBuilder().setName("test-0-d").setTaskId(CommonIdUtils.toTaskId("d")).build();
+        POD_0_TASK_D = POD_0_TASK_A.toBuilder().setName("test-0-d").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "d")).build();
 
         // pod 1
         infoBuilder = POD_0_TASK_A.toBuilder();
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(1).toProto());
-        POD_1_TASK_A = infoBuilder.setName("test-1-a").setTaskId(CommonIdUtils.toTaskId("a")).build();
+        POD_1_TASK_A = infoBuilder.setName("test-1-a").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "a")).build();
         POD_1_STATUS_A = TaskTestUtils.generateStatus(POD_1_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
 
-        POD_1_TASK_B = POD_1_TASK_A.toBuilder().setName("test-1-b").setTaskId(CommonIdUtils.toTaskId("b")).build();
+        POD_1_TASK_B = POD_1_TASK_A.toBuilder().setName("test-1-b").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "b")).build();
         POD_1_STATUS_B = TaskTestUtils.generateStatus(POD_1_TASK_B.getTaskId(), TaskState.TASK_RUNNING);
 
         // pod 2
         infoBuilder = POD_0_TASK_A.toBuilder();
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setIndex(2).toProto());
-        POD_2_TASK_A = infoBuilder.setName("test-2-a").setTaskId(CommonIdUtils.toTaskId("a")).build();
+        POD_2_TASK_A = infoBuilder.setName("test-2-a").setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "a")).build();
         POD_2_STATUS_A = TaskTestUtils.generateStatus(POD_2_TASK_A.getTaskId(), TaskState.TASK_FINISHED);
     }
     private static final Collection<TaskInfo> TASK_INFOS = Arrays.asList(
@@ -192,6 +192,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-0-a", task.getString("name"));
         Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("RUNNING", task.getString("status"));
 
@@ -199,6 +200,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-0-b", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("b", CommonIdUtils.toTaskName(taskId));
         assertEquals("STARTING", task.getString("status"));
 
@@ -206,6 +208,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-0-c", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("c", CommonIdUtils.toTaskName(taskId));
         assertEquals("PAUSING", task.getString("status"));
 
@@ -213,6 +216,7 @@ public class PodQueriesTest {
         assertEquals(2, task.length());
         assertEquals("test-0-d", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("d", CommonIdUtils.toTaskName(taskId));
 
         podInstance = instances.getJSONObject(1);
@@ -224,6 +228,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-a", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("FINISHED", task.getString("status"));
 
@@ -231,6 +236,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-b", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("b", CommonIdUtils.toTaskName(taskId));
         assertEquals("STARTING", task.getString("status"));
 
@@ -243,6 +249,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-2-a", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("FINISHED", task.getString("status"));
 
@@ -260,6 +267,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-task-name", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("test-task-name", CommonIdUtils.toTaskName(taskId));
         assertEquals("PAUSED", task.getString("status"));
     }
@@ -285,6 +293,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-a", task.getString("name"));
         Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("FINISHED", task.getString("status"));
 
@@ -292,6 +301,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-b", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
         assertEquals("b", CommonIdUtils.toTaskName(taskId));
         assertEquals("PAUSING", task.getString("status"));
     }

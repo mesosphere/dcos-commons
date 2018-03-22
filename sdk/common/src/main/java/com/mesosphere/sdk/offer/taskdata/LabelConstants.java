@@ -21,8 +21,6 @@ class LabelConstants {
     static final String GOAL_STATE_LABEL = "goal_state";
     /** Identifies the target configuration UUID used by a given task. */
     static final String TARGET_CONFIGURATION_LABEL = "target_configuration";
-    /** Identifies a 'task' which isn't actually launched, but is instead created to fill reserved resources. */
-    static final String TRANSIENT_FLAG_LABEL = "transient";
 
     /** Storage of the original Offer's attributes (in a string representation), for use in placement constraints. */
     static final String OFFER_ATTRIBUTES_LABEL = "offer_attributes";
@@ -49,8 +47,10 @@ class LabelConstants {
 
     // ReservationInfo
 
-    /** Label used to uniquely map tasks to reserved resources. */
+    /** Label used to uniquely map resources to tasks. */
     static final String RESOURCE_ID_RESERVATION_LABEL = "resource_id";
+    /** Label used to uniquely map resources to services. */
+    static final String SERVICE_NAME_RESERVATION_LABEL = "service_name";
 
     // ExecutorInfo
 

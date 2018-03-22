@@ -47,7 +47,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         // Mark this one as permanently failed. Doesn't take effect unless the task is ALSO in an error state:
         Protos.TaskInfo.Builder builder = Protos.TaskInfo.newBuilder(
                 TaskTestUtils.getTaskInfo(Arrays.asList(RESERVED_RESOURCE_2, RESERVED_RESOURCE_4)))
-                .setTaskId(CommonIdUtils.toTaskId("other-task-info"))
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "other-task-info"))
                 .setName("other-task-info");
         builder.setLabels(new TaskLabelWriter(builder)
                 .setPermanentlyFailed()

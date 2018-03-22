@@ -29,7 +29,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     public void beforeEach() throws InvalidRequirementException {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
 
-        stage = new LaunchEvaluationStage(TestConstants.TASK_NAME);
+        stage = new LaunchEvaluationStage(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME, true, true);
         offer = OfferTestUtils.getOffer(offeredResource);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
         podInfoBuilder = new PodInfoBuilder(
@@ -47,7 +47,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void isPassing() {
         EvaluationOutcome outcome = stage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
     }
@@ -55,7 +55,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void labelsAreCorrect() {
         stage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
@@ -91,7 +91,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
         stage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
@@ -103,7 +103,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void regionAndZoneNotInjected() {
         stage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 

@@ -59,6 +59,7 @@ public class ResourceTestUtils {
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
         return ResourceBuilder.fromSpec(
+                TestConstants.SERVICE_NAME,
                 volumeSpec,
                 Optional.of(resourceId),
                 Optional.of(persistenceId),
@@ -137,12 +138,12 @@ public class ResourceTestUtils {
             Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.addReservationsBuilder()
                     .setRole(TestConstants.ROLE)
                     .setPrincipal(TestConstants.PRINCIPAL);
-            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+            AuxLabelAccess.setResourceLabels(reservationBuilder, TestConstants.SERVICE_NAME, resourceId);
         } else {
             builder.setRole(TestConstants.ROLE);
             Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.getReservationBuilder()
                     .setPrincipal(TestConstants.PRINCIPAL);
-            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+            AuxLabelAccess.setResourceLabels(reservationBuilder, TestConstants.SERVICE_NAME, resourceId);
         }
         return builder;
     }

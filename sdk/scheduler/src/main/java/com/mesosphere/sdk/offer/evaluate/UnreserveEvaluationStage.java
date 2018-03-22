@@ -17,7 +17,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 public class UnreserveEvaluationStage implements OfferEvaluationStage {
     private final Protos.Resource resource;
 
-    public UnreserveEvaluationStage (Protos.Resource resource) {
+    public UnreserveEvaluationStage(Protos.Resource resource) {
         this.resource = resource;
     }
 

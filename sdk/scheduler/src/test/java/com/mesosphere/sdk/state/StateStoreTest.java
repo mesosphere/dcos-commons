@@ -23,7 +23,7 @@ public class StateStoreTest {
             Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(CommonIdUtils.toTaskId(TestConstants.TASK_NAME))
+            .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME))
             .setState(TASK_STATE)
             .build();
     public static final String PROPERTY_VALUE = "DC/OS";
@@ -470,7 +470,7 @@ public class StateStoreTest {
 
     @Test
     public void testMismatchedTaskIds() {
-        Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.TASK_NAME);
+        Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME);
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(TestConstants.TASK_INFO)
                 .setTaskId(taskID)
                 .build();
