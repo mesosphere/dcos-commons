@@ -42,7 +42,6 @@ public class SchemaVersionStore {
      * {@link ConfigStore} or {@link StateStore}.
      */
     public SchemaVersionStore(Persister persister) {
-        TODO check version in ServiceRunner or thereabouts
         this.persister = persister;
     }
 

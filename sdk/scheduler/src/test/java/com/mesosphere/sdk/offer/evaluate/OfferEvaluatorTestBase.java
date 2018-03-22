@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -42,11 +43,27 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         frameworkStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         stateStore = new StateStore(persister);
         targetConfig = UUID.randomUUID();
-        evaluator = new OfferEvaluator(frameworkStore, stateStore, new OfferOutcomeTracker(), TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, true);
+        evaluator = new OfferEvaluator(
+                frameworkStore,
+                stateStore,
+                new OfferOutcomeTracker(),
+                TestConstants.SERVICE_NAME,
+                targetConfig,
+                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                SCHEDULER_CONFIG,
+                true);
     }
 
     protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(frameworkStore, stateStore, new OfferOutcomeTracker(), TestConstants.SERVICE_NAME, targetConfig, SCHEDULER_CONFIG, false);
+        evaluator = new OfferEvaluator(
+                frameworkStore,
+                stateStore,
+                new OfferOutcomeTracker(),
+                TestConstants.SERVICE_NAME,
+                targetConfig,
+                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                SCHEDULER_CONFIG,
+                false);
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {

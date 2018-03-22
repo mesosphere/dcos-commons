@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
@@ -24,12 +24,13 @@ import javax.ws.rs.core.Response;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-public class EndpointsResourceTest {
+public class EndpointsQueriesTest {
 
     private static final String CUSTOM_KEY = "custom";
     private static final TaskInfo TASK_EMPTY = TaskTestUtils.getTaskInfo(Collections.emptyList());
@@ -160,30 +161,24 @@ public class EndpointsResourceTest {
             TASK_WITH_VIPS_1,
             TASK_WITH_VIPS_2);
     private static final String CUSTOM_VALUE = "hi\nhey\nhello";
+    private static final String SERVICE_NAME = "svc-name";
+    private static final Map<String, EndpointProducer> CUSTOM_ENDPOINTS =
+            Collections.singletonMap(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
 
     @Mock private StateStore mockStateStore;
 
-    private EndpointsResource resource;
-
     @Before
-    public void beforeAll() {
+    public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         for (TaskInfo taskInfo : TASK_INFOS) {
             when(mockStateStore.fetchStatus(taskInfo.getName())).thenReturn(Optional.empty());
         }
-        resource = buildResource(mockStateStore, "svc-name");
-    }
-
-    private static EndpointsResource buildResource(StateStore stateStore, String serviceName) {
-        EndpointsResource resource = new EndpointsResource(stateStore, serviceName);
-        resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
-        return resource;
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private void testEndpoint(String expectedHostname) throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint("porta");
+        Response response = EndpointsQueries.getEndpoint(mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, "porta");
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 3, json.length());
@@ -214,9 +209,8 @@ public class EndpointsResourceTest {
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private void allEndpointsTest(String serviceName, String serviceNetworkName) {
-        resource = buildResource(mockStateStore, serviceName);
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoints();
+        Response response = EndpointsQueries.getEndpoints(mockStateStore, serviceName, CUSTOM_ENDPOINTS);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(json.toString(), 4, json.length());
@@ -226,10 +220,11 @@ public class EndpointsResourceTest {
         assertEquals("porta", json.get(2));
         assertEquals("portb", json.get(3));
 
-        assertEquals(CUSTOM_VALUE, resource.getEndpoint(CUSTOM_KEY).getEntity());
+        assertEquals(CUSTOM_VALUE, EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, CUSTOM_KEY).getEntity());
 
         // 'novip' port is listed across the two 'vips-' tasks
-        JSONObject endpointNoVip = new JSONObject((String) resource.getEndpoint("novip").getEntity());
+        JSONObject endpointNoVip = new JSONObject(
+                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "novip").getEntity());
         assertEquals(2, endpointNoVip.length());
         JSONArray dns = endpointNoVip.getJSONArray("dns");
         assertEquals(2, dns.length());
@@ -241,7 +236,8 @@ public class EndpointsResourceTest {
         assertEquals(TestConstants.HOSTNAME + ":3459", address.get(1));
 
         // 'porta' is listed across the two 'ports-' tasks and the two 'vips-' tasks
-        JSONObject endpointPortA = new JSONObject((String) resource.getEndpoint("porta").getEntity());
+        JSONObject endpointPortA = new JSONObject(
+                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "porta").getEntity());
         assertEquals(3, endpointPortA.length());
         assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", endpointPortA.get("vip"));
         dns = endpointPortA.getJSONArray("dns");
@@ -258,7 +254,8 @@ public class EndpointsResourceTest {
         assertEquals(TestConstants.HOSTNAME + ":3456", address.get(3));
 
         // 'portb' is just listed in the 'ports-1' and 'vips-2' tasks
-        JSONObject endpointPortB = new JSONObject((String) resource.getEndpoint("portb").getEntity());
+        JSONObject endpointPortB = new JSONObject(
+                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "portb").getEntity());
         assertEquals(3, endpointPortB.length());
         dns = endpointPortB.getJSONArray("dns");
         assertEquals(2, dns.length());
@@ -319,7 +316,7 @@ public class EndpointsResourceTest {
     @Test
     public void testGetOneCustomEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = resource.getEndpoint(CUSTOM_KEY);
+        Response response = EndpointsQueries.getEndpoint(mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, CUSTOM_KEY);
         assertEquals(200, response.getStatus());
         assertEquals(CUSTOM_VALUE, response.getEntity());
     }

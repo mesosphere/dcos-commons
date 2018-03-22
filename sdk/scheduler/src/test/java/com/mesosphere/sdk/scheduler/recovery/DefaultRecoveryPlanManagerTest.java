@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferAccepter;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -129,6 +130,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         new OfferOutcomeTracker(),
                         serviceSpec.getName(),
                         configTarget,
+                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         true),
                 stateStore);

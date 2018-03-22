@@ -1,22 +1,15 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosVersion;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.PersisterCache;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -24,11 +17,8 @@ import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.SchedulerDriver;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -186,6 +176,7 @@ public class DefaultSchedulerTest {
         };
     }
 
+    private Persister persister;
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
@@ -197,9 +188,10 @@ public class DefaultSchedulerTest {
 
         when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
-        stateStore = new StateStore(new PersisterCache(new MemPersister()));
+        persister = new MemPersister();
+        stateStore = new StateStore(persister);
         configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         Capabilities.overrideCapabilities(getCapabilitiesWithDefaultGpuSupport());
         defaultScheduler = getScheduler(serviceSpec);
     }
@@ -599,30 +591,6 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testDeployPlanOverriddenDuringUpdate() {
-        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), true);
-
-        Assert.assertEquals(1, plans.size());
-        Plan deployPlan = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst().get();
-
-        Assert.assertEquals(1, deployPlan.getChildren().size());
-    }
-
-    @Test
-    public void testDeployPlanPreservedDuringInstall() {
-        Collection<Plan> plans = SchedulerBuilder.selectDeployPlan(getDeployUpdatePlans(), false);
-
-        Assert.assertEquals(2, plans.size());
-        Plan deployPlan = plans.stream()
-                .filter(plan -> plan.isDeployPlan())
-                .findFirst().get();
-
-        Assert.assertEquals(2, deployPlan.getChildren().size());
-    }
-
-    @Test
     public void testDecommissionPlanCustomization() throws Exception {
         AtomicBoolean decommissionPlanCustomized = new AtomicBoolean(false);
         PlanCustomizer planCustomizer = new PlanCustomizer() {
@@ -652,9 +620,7 @@ public class DefaultSchedulerTest {
                 .build();
 
         DefaultScheduler.newBuilder(
-                getServiceSpec(podA, scaledInPodB), SchedulerConfigTestUtils.getTestSchedulerConfig(), new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
+                getServiceSpec(podA, scaledInPodB), SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
                 .setPlanCustomizer(planCustomizer)
                 .build()
                 .disableApiServer()
@@ -662,19 +628,6 @@ public class DefaultSchedulerTest {
                 .start();
 
         Assert.assertTrue(decommissionPlanCustomized.get());
-    }
-
-    // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
-    private static Collection<Plan> getDeployUpdatePlans() {
-        Phase phase = mock(Phase.class);
-
-        Plan deployPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Arrays.asList(phase, phase));
-        Assert.assertEquals(2, deployPlan.getChildren().size());
-
-        Plan updatePlan = new DefaultPlan(Constants.UPDATE_PLAN_NAME, Arrays.asList(phase));
-        Assert.assertEquals(1, updatePlan.getChildren().size());
-
-        return Arrays.asList(deployPlan, updatePlan);
     }
 
     private static int countOperationType(
@@ -840,58 +793,9 @@ public class DefaultSchedulerTest {
         return taskIds;
     }
 
-    private static class PlacementRuleMissingEquality implements PlacementRule {
-        @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
-        }
-
-        @Override
-        public Collection<PlacementField> getPlacementFields() {
-            return Collections.emptyList();
-        }
-    }
-
-    private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
-
-        private final String fork;
-
-        @JsonCreator
-        PlacementRuleMismatchedAnnotations(@JsonProperty("wrong") String spoon) {
-            this.fork = spoon;
-        }
-
-        @Override
-        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-            return EvaluationOutcome.pass(this, "test pass").build();
-        }
-
-        @Override
-        public Collection<PlacementField> getPlacementFields() {
-            return Collections.emptyList();
-        }
-
-        @JsonProperty("message")
-        private String getMsg() {
-            return fork;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
-        }
-
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
-        }
-    }
-
     private DefaultScheduler getScheduler(ServiceSpec serviceSpec) throws PersisterException {
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(
-                serviceSpec, SchedulerConfigTestUtils.getTestSchedulerConfig(), new MemPersister())
-                .setStateStore(stateStore)
-                .setConfigStore(configStore)
+                serviceSpec, SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
                 .build()
                 .disableApiServer()
                 .disableThreading()

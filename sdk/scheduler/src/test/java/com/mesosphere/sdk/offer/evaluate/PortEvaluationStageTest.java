@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -36,6 +37,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
+                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
@@ -452,6 +454,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
+                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
@@ -477,6 +480,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
+                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
@@ -497,6 +501,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
+                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,

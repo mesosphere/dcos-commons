@@ -93,10 +93,10 @@ public class ResponseUtils {
     }
 
     /**
-     * Returns a "404 Element not found" response.
+     * Returns a "404 [itemType] not found" response.
      */
-    public static Response elementNotFoundResponse() {
-        return plainResponse("Element not found", Response.Status.NOT_FOUND);
+    public static Response notFoundResponse(String itemType) {
+        return plainResponse(itemType + " not found", Response.Status.NOT_FOUND);
     }
 
     /**

@@ -13,8 +13,6 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
-import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import org.apache.mesos.SchedulerDriver;
@@ -315,8 +313,6 @@ public class ServiceTestRunner {
 
         // Test 3: Does the scheduler build?
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
-                .setStateStore(new StateStore(persister))
-                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
                 .setCustomConfigValidators(validators)
