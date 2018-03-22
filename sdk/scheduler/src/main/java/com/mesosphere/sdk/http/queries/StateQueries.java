@@ -1,5 +1,7 @@
-package com.mesosphere.sdk.http;
+package com.mesosphere.sdk.http.queries;
 
+import com.mesosphere.sdk.http.RequestUtils;
+import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -10,16 +12,12 @@ import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.mesos.Protos;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -31,53 +29,27 @@ import java.util.stream.Collectors;
  * An API for reading task and frameworkId state from persistent storage, and resetting the state store cache if one is
  * being used.
  */
-@Path("/v1/state")
-public class StateResource {
+public class StateQueries {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(StateResource.class);
-    protected static final String FILE_NAME_PREFIX = "file-";
-    protected static final Charset FILE_ENCODING = StandardCharsets.UTF_8;
-    protected static final int FILE_SIZE = 1024; // state store shouldn't be holding big files anyway...
-    protected static final String UPLOAD_TOO_BIG_ERROR_MESSAGE = "File size is restricted to "
-            + FILE_SIZE + " bytes.";
-    protected static final String NO_FILE_ERROR_MESSAGE = "Only the first 1024 bytes of a file can be uploaded.";
+    private static final Logger LOGGER = LoggingUtils.getLogger(StateQueries.class);
 
-    private final StateStore stateStore;
-    private final PropertyDeserializer propertyDeserializer;
+    static final String FILE_NAME_PREFIX = "file-";
+    static final Charset FILE_ENCODING = StandardCharsets.UTF_8;
+    static final int FILE_SIZE_LIMIT = 1024; // state store shouldn't be holding big files anyway...
+    static final String NO_FILENAME_ERROR_MESSAGE = "Missing filename metadata in Content-Disposition header";
 
-    /**
-     * Creates a new StateResource which cannot deserialize Properties. Callers will receive a
-     * "204 NO_CONTENT" HTTP response when attempting to view the content of a property.
-     *
-     * @param stateStore     the source of data to be returned to callers
-     */
-    public StateResource(StateStore stateStore) {
-        this(stateStore, null);
-    }
-
-    /**
-     * Creates a new StateResource which can deserialize Properties. Callers will be able to view
-     * the content of individual Properties.
-     *
-     * @param stateStore           the source of data to be returned to callers
-     * @param propertyDeserializer a deserializer which can turn any Property in the provided
-     *                             {@code stateStore} to valid JSON
-     */
-    public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
-        this.stateStore = stateStore;
-        this.propertyDeserializer = propertyDeserializer;
+    private StateQueries() {
+        // do not instantiate
     }
 
     /**
      * Produces the configured ID of the framework, or returns an error if reading that data failed.
      */
-    @Path("/frameworkId")
-    @GET
-    public Response getFrameworkId() {
+    public static Response getFrameworkId(StateStore stateStore) {
         try {
-            Optional<Protos.FrameworkID> frameworkIDOptional = stateStore.fetchFrameworkId();
-            if (frameworkIDOptional.isPresent()) {
-                JSONArray idArray = new JSONArray(Arrays.asList(frameworkIDOptional.get().getValue()));
+            Optional<Protos.FrameworkID> frameworkIdOptional = stateStore.fetchFrameworkId();
+            if (frameworkIdOptional.isPresent()) {
+                JSONArray idArray = new JSONArray(Arrays.asList(frameworkIdOptional.get().getValue()));
                 return ResponseUtils.jsonOkResponse(idArray);
             } else {
                 LOGGER.warn("No framework ID exists");
@@ -90,22 +62,7 @@ public class StateResource {
 
     }
 
-    @Path("/properties")
-    @GET
-    public Response getPropertyKeys() {
-        try {
-            JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
-            return ResponseUtils.jsonOkResponse(keyArray);
-        } catch (StateStoreException ex) {
-            LOGGER.error("Failed to fetch list of property keys", ex);
-            return Response.serverError().build();
-        }
-    }
-
-    @Path("/files")
-    @Produces(MediaType.TEXT_PLAIN)
-    @GET
-    public Response getFiles() {
+    public static Response getFiles(StateStore stateStore) {
         try {
             LOGGER.info("Getting all files");
             Collection<String> fileNames = getFileNames(stateStore);
@@ -116,15 +73,12 @@ public class StateResource {
         }
     }
 
-    @Path("/files/{file}")
-    @Produces(MediaType.TEXT_PLAIN)
-    @GET
-    public Response getFile(@PathParam("file") String fileName) {
+    public static Response getFile(StateStore stateStore, String fileName) {
         try {
             LOGGER.info("Getting file {}", fileName);
-            return ResponseUtils.plainOkResponse(getFile(stateStore, fileName));
+            return ResponseUtils.plainOkResponse(getFileContent(stateStore, fileName));
         } catch (StateStoreException e) {
-            LOGGER.error("Failed to get file {}: {}", fileName, e);
+            LOGGER.error(String.format("Failed to get file %s", fileName), e);
             return ResponseUtils.plainResponse(
                     String.format("Failed to get the file"),
                     Response.Status.NOT_FOUND
@@ -137,33 +91,29 @@ public class StateResource {
 
     /**
      * Endpoint for uploading arbitrary files of size up to 1024 Bytes.
+     *
      * @param uploadedInputStream The input stream containing the data.
      * @param fileDetails The details of the file to upload.
      * @return response indicating result of put operation.
      */
-    @Path("/files/{file}")
-    @PUT
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response putFile(
-            @FormDataParam("file") InputStream uploadedInputStream,
-            @FormDataParam("file") FormDataContentDisposition fileDetails
-    ) {
+    public static Response putFile(
+            StateStore stateStore, InputStream uploadedInputStream, FormDataContentDisposition fileDetails) {
         LOGGER.info(fileDetails.toString());
         String fileName = fileDetails.getFileName();
-        if (uploadedInputStream == null || fileName == null) {
-            return ResponseUtils.plainResponse(NO_FILE_ERROR_MESSAGE, Response.Status.BAD_REQUEST);
+        if (fileName == null) {
+            return ResponseUtils.plainResponse(NO_FILENAME_ERROR_MESSAGE, Response.Status.BAD_REQUEST);
         }
-
-        if (fileDetails.getSize() > FILE_SIZE) {
-           return ResponseUtils.plainResponse(UPLOAD_TOO_BIG_ERROR_MESSAGE, Response.Status.BAD_REQUEST);
-        }
+        LOGGER.info("Storing {}", fileName);
 
         try {
-            LOGGER.info("Storing {}", fileName);
-            storeFile(stateStore, fileName, uploadedInputStream, fileDetails);
+            byte[] data = RequestUtils.readData(uploadedInputStream, fileDetails, FILE_SIZE_LIMIT);
+            stateStore.storeProperty(FILE_NAME_PREFIX + fileName, data);
             return Response.status(Response.Status.OK).build();
+        } catch (IllegalArgumentException e) {
+            // Size limit exceeded or other user input error
+            return ResponseUtils.plainResponse(e.getMessage(), Response.Status.BAD_REQUEST);
         } catch (StateStoreException | IOException e) {
-            LOGGER.error("Failed to store file {}: {}", fileName, e);
+            LOGGER.error(String.format("Failed to store file %s", fileName), e);
             return Response.serverError().build();
         }
     }
@@ -171,9 +121,7 @@ public class StateResource {
     /**
      * Returns the Zone information for all of the tasks of the service.
      */
-    @Path("/zone/tasks")
-    @GET
-    public Response getTaskNamesToZones() {
+    public static Response getTaskNamesToZones(StateStore stateStore) {
         try {
             return ResponseUtils.jsonOkResponse(new JSONObject(getTasksZones(stateStore)));
         } catch (StateStoreException ex) {
@@ -185,9 +133,7 @@ public class StateResource {
     /**
      * Returns the Zone information for a given task.
      */
-    @Path("/zone/tasks/{taskName}")
-    @GET
-    public Response getTaskNameToZone(@PathParam("taskName") String taskName) {
+    public static Response getTaskNameToZone(StateStore stateStore, String taskName) {
         try {
             Map<String, String> tasksZones = getTasksZones(stateStore);
             if (tasksZones.containsKey(taskName)) {
@@ -205,13 +151,11 @@ public class StateResource {
     /**
      * Returns the Zone information for a given pod type and an IP address.
      */
-    @Path("/zone/{podType}/{ip}")
-    @GET
-    public Response getTaskIPsToZones(@PathParam("podType") String podType, @PathParam("ip") String ip) {
+    public static Response getTaskIPsToZones(StateStore stateStore, String podType, String ip) {
         try {
             String zone = getZoneFromTaskNameAndIP(stateStore, podType, ip);
             if (zone.isEmpty()) {
-                LOGGER.error("Failed to find a zone for pod type = %s, ip address = %s", podType, ip);
+                LOGGER.error("Failed to find a zone for pod type = {}, ip address = {}", podType, ip);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
             return ResponseUtils.plainOkResponse(zone);
@@ -222,22 +166,27 @@ public class StateResource {
     }
 
     /**
-     * Produces the TaskInfo for the provided task name, or returns an error if that name doesn't
-     * exist or the data couldn't be read.
+     * Produces a list of known properties.
      */
-    @Path("/properties/{key}")
-    @GET
-    public Response getProperty(@PathParam("key") String key) {
+    public static Response getPropertyKeys(StateStore stateStore) {
         try {
-            if (propertyDeserializer == null) {
-                LOGGER.warn("Cannot deserialize requested Property '{}': " +
-                        "No deserializer was provided to StateResource constructor", key);
-                return Response.status(Response.Status.CONFLICT).build();
-            } else {
-                LOGGER.info("Attempting to fetch property '{}'", key);
-                return ResponseUtils.jsonResponseBean(
-                        propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)), Response.Status.OK);
-            }
+            JSONArray keyArray = new JSONArray(stateStore.fetchPropertyKeys());
+            return ResponseUtils.jsonOkResponse(keyArray);
+        } catch (StateStoreException ex) {
+            LOGGER.error("Failed to fetch list of property keys", ex);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Produces the value for the provided property, or returns an error if that property doesn't exist or the data
+     * couldn't be read.
+     */
+    public static Response getProperty(StateStore stateStore, PropertyDeserializer propertyDeserializer, String key) {
+        try {
+            LOGGER.info("Attempting to fetch property '{}'", key);
+            return ResponseUtils.jsonResponseBean(
+                    propertyDeserializer.toJsonString(key, stateStore.fetchProperty(key)), Response.Status.OK);
         } catch (StateStoreException ex) {
             if (ex.getReason() == Reason.NOT_FOUND) {
                 LOGGER.warn(String.format("Requested property '%s' wasn't found", key), ex);
@@ -252,9 +201,7 @@ public class StateResource {
      * Refreshes the state store cache to reflect current data on ZK. Should only be needed if ZK was edited behind the
      * scheduler's back, or if there's a bug in the cache handling.
      */
-    @Path("/refresh")
-    @PUT
-    public Response refreshCache() {
+    public static Response refreshCache(StateStore stateStore) {
         PersisterCache cache = getPersisterCache(stateStore);
         if (cache == null) {
             LOGGER.warn("State store is not cached: Refresh is not applicable");
@@ -293,43 +240,25 @@ public class StateResource {
 
     /**
      * Retrieves the contents of a file based on file name.
-     * @param stateStore The state store to get file content from.
-     * @param fileName The name of the file to retrieve.
-     * @return Contents of the file.
+     *
+     * @param stateStore The state store to get file content from
+     * @param fileName The name of the file to retrieve
+     * @return Contents of the file
      * @throws UnsupportedEncodingException
      */
-    protected static String getFile(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
+    private static String getFileContent(StateStore stateStore, String fileName) throws UnsupportedEncodingException {
         fileName = FILE_NAME_PREFIX + fileName;
         return new String(stateStore.fetchProperty(fileName), FILE_ENCODING);
     }
 
     /**
-     * Stores the file in the state store.
-     * @param stateStore The state store to store the file in.
-     * @param fileName The name of the file to store.
-     * @param uploadedInputStream The input stream holding the content of the file.
-     */
-    protected static void storeFile(
-            StateStore stateStore,
-            String fileName,
-            InputStream uploadedInputStream,
-            FormDataContentDisposition fileDetails
-    ) throws StateStoreException, IOException {
-        StringWriter writer = new StringWriter();
-        Reader reader = new InputStreamReader(uploadedInputStream, FILE_ENCODING);
-        // only copy the number of bytes the metadata specifies
-        IOUtils.copyLarge(reader, writer, 0, fileDetails.getSize());
-        fileName = FILE_NAME_PREFIX + fileName;
-        stateStore.storeProperty(fileName, writer.toString().getBytes(FILE_ENCODING));
-    }
-
-    /**
      * Gets the name of the files that are stored in the state store. The files stored in the state store are prefixed
      * with "file_".
-     * @param stateStore The state store to get files names from.
-     * @return The set of all file names stored.
+     *
+     * @param stateStore The state store to get files names from
+     * @return the set of all file names stored
      */
-    protected static Collection<String> getFileNames(StateStore stateStore) {
+    static Collection<String> getFileNames(StateStore stateStore) {
         return stateStore.fetchPropertyKeys().stream()
                 .filter(key -> key.startsWith(FILE_NAME_PREFIX))
                 .map(file_name -> file_name.replaceFirst(FILE_NAME_PREFIX, ""))
@@ -338,8 +267,9 @@ public class StateResource {
 
     /**
      * Constructs a map of task names to zones indicating in what zone the respective task name is in.
-     * @param stateStore The state store to get task infos from.
-     * @return Returns the map of task names to zones.
+     *
+     * @param stateStore The state store to get task infos from
+     * @return the map of task names to zones
      */
     private static Map<String, String> getTasksZones(StateStore stateStore) {
         Collection<String> taskNames = stateStore.fetchTaskNames();
@@ -355,10 +285,11 @@ public class StateResource {
 
     /**
      * Gets the zone of a pod given its pod type and the IP address of the pod.
-     * @param stateStore The {@link StateStore} from which to get task info and task status from.
-     * @param podType The type of the pod to get zone information for.
-     * @param ipAddress The IP address of the pod to get zone information for.
-     * @return A string indicating the zone of the pod.
+     *
+     * @param stateStore The {@link StateStore} from which to get task info and task status from
+     * @param podType The type of the pod to get zone information for
+     * @param ipAddress The IP address of the pod to get zone information for
+     * @return A string indicating the zone of the pod
      */
     private static String getZoneFromTaskNameAndIP(StateStore stateStore, String podType, String ipAddress) {
         Collection<String> taskNames = stateStore.fetchTaskNames();

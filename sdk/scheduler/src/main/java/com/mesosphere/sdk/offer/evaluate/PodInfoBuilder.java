@@ -2,8 +2,8 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.http.ArtifactResource;
 import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
@@ -47,6 +47,7 @@ public class PodInfoBuilder {
             PodInstanceRequirement podInstanceRequirement,
             String serviceName,
             UUID targetConfigId,
+            ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             SchedulerConfig schedulerConfig,
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
@@ -64,6 +65,7 @@ public class PodInfoBuilder {
                     podInstanceRequirement.getEnvironment(),
                     serviceName,
                     targetConfigId,
+                    templateUrlFactory,
                     schedulerConfig,
                     overrideMap.get(taskSpec));
             // Store tasks against the task spec name 'node' instead of 'broker-0-node': the pod segment is redundant
@@ -79,7 +81,7 @@ public class PodInfoBuilder {
         }
 
         this.executorBuilder = getExecutorInfoBuilder(
-                serviceName, podInstance, frameworkID, targetConfigId, schedulerConfig);
+                serviceName, podInstance, frameworkID, targetConfigId, templateUrlFactory, schedulerConfig);
 
         this.podInstance = podInstance;
         this.portsByTask = new HashMap<>();
@@ -203,6 +205,7 @@ public class PodInfoBuilder {
             Map<String, String> environment,
             String serviceName,
             UUID targetConfigurationId,
+            ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             SchedulerConfig schedulerConfig,
             GoalStateOverride override) throws InvalidRequirementException {
         if (override == null) {
@@ -250,12 +253,8 @@ public class PodInfoBuilder {
 
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
                     commandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
+                            .setValue(templateUrlFactory.get(
+                                    targetConfigurationId, podSpec.getType(), taskSpec.getName(), config.getName()))
                             .setOutputFile(getConfigTemplateDownloadPath(config))
                             .setExtract(false);
                 }
@@ -302,6 +301,7 @@ public class PodInfoBuilder {
             PodInstance podInstance,
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
+            ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             SchedulerConfig schedulerConfig) throws IllegalStateException {
         PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
@@ -350,12 +350,8 @@ public class PodInfoBuilder {
             for (TaskSpec taskSpec : podSpec.getTasks()) {
                 for (ConfigFileSpec config : taskSpec.getConfigFiles()) {
                     executorCommandBuilder.addUrisBuilder()
-                            .setValue(ArtifactResource.getTemplateUrl(
-                                    serviceName,
-                                    targetConfigurationId,
-                                    podSpec.getType(),
-                                    taskSpec.getName(),
-                                    config.getName()))
+                            .setValue(templateUrlFactory.get(
+                                    targetConfigurationId, podSpec.getType(), taskSpec.getName(), config.getName()))
                             .setOutputFile(getConfigTemplateDownloadPath(config))
                             .setExtract(false);
                 }
