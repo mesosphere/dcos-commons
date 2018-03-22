@@ -95,6 +95,9 @@
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
+    {{#service.region}}
+    "SERVICE_REGION": "{{service.region}}",
+    {{/service.region}}
     "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
     "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
