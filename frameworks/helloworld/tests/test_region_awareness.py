@@ -1,4 +1,3 @@
-import json
 import logging
 
 import pytest
@@ -44,8 +43,8 @@ def remote_service():
             3,
             additional_options={
                 "service": {
-                    "scenario": "MULTI_REGION", 
-                    "allow_region_awareness": "true",
+                    "scenario": "MULTI_REGION",
+                    "allow_region_awareness": True,
                     "region": REMOTE_REGION
                 }
             })
