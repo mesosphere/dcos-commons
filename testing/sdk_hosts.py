@@ -5,6 +5,7 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import json
 import logging
 import shakedown
 
@@ -128,8 +129,9 @@ def get_crypto_id_domain():
     These addresses are routable within the cluster but can be used to test setting a custom
     service domain.
     """
-    # Go figure out the crypto id...
-    ok, crypto_id = shakedown.run_command_on_master("curl localhost:62080/lashup/key/ | jq -r .zbase32_public_key")
+    ok, lashup_response = shakedown.run_command_on_master("curl localhost:62080/lashup/key/")
     assert ok
 
-    return "autoip.dcos.{}.dcos.directory".format(crypto_id.strip())
+    crypto_id = json.loads(lashup_response.strip())["zbase32_public_key"]
+
+    return "autoip.dcos.{}.dcos.directory".format(crypto_id)
