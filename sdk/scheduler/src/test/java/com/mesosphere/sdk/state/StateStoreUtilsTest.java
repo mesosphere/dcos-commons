@@ -139,8 +139,9 @@ public class StateStoreUtilsTest {
         // Add a task to the state store
         stateStore.storeTasks(ImmutableList.of(taskInfo));
 
-        Protos.TaskStatus taskStatus =
-                newTaskStatus(CommonIdUtils.toTaskId("not-" + TestConstants.TASK_NAME), Protos.TaskState.TASK_UNKNOWN);
+        Protos.TaskStatus taskStatus = newTaskStatus(
+                CommonIdUtils.toTaskId("not-" + TestConstants.TASK_NAME),
+                Protos.TaskState.TASK_UNKNOWN);
 
         assertThat(taskInfo.getTaskId(), is(not(taskStatus.getTaskId())));
         StateStoreUtils.getTaskName(stateStore, taskStatus);

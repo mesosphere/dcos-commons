@@ -5,8 +5,10 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -89,14 +91,17 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
-        stateStore = new StateStore(new MemPersister());
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        Persister persister = new MemPersister();
+        FrameworkStore frameworkStore = new FrameworkStore(persister);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        stateStore = new StateStore(persister);
         stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
 
         planScheduler = new DefaultPlanScheduler(
                 new OfferAccepter(Arrays.asList()),
                 new OfferEvaluator(
+                        frameworkStore,
                         stateStore,
                         new OfferOutcomeTracker(),
                         TestConstants.SERVICE_NAME,

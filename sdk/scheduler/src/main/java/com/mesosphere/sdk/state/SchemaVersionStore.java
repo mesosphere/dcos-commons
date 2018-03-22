@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.state;
 
-import com.mesosphere.sdk.offer.LoggingUtils;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -8,6 +8,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Used by StateStore and ConfigStore implementations to retrieve and validate the Schema Version against whatever
@@ -24,21 +25,7 @@ public class SchemaVersionStore {
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(SchemaVersionStore.class);
-
-    /**
-     * Increment this whenever CuratorStateStore or CuratorConfigStore change in a way that
-     * requires explicit migration.
-     *
-     * The migration implementation itself is not yet defined (let's wait until we need to actually
-     * do it..)
-     *
-     * @see ConfigStore#MIN_SUPPORTED_SCHEMA_VERSION
-     * @see ConfigStore#MAX_SUPPORTED_SCHEMA_VERSION
-     * @see StateStore#MIN_SUPPORTED_SCHEMA_VERSION
-     * @see StateStore#MAX_SUPPORTED_SCHEMA_VERSION
-     */
-    private static final int CURRENT_SCHEMA_VERSION = 1;
+    private static final Logger logger = LoggerFactory.getLogger(SchemaVersionStore.class);
 
     /**
      * This name/path must remain the same forever. It's the basis of all other migrations.
@@ -54,7 +41,8 @@ public class SchemaVersionStore {
      * Creates a new version store against the provided Framework Name, as would be provided to
      * {@link ConfigStore} or {@link StateStore}.
      */
-    SchemaVersionStore(Persister persister) {
+    public SchemaVersionStore(Persister persister) {
+        TODO check version in ServiceRunner or thereabouts
         this.persister = persister;
     }
 
@@ -65,36 +53,44 @@ public class SchemaVersionStore {
      * compatible. Note that this may auto-populate the underlying schema version if the value isn't
      * currently present.
      *
-     * @return the current schema version, which may be auto-populated with the current version
+     * @param expectedVersion the expected schema version to be stored if no version is currently set or to be checked
+     *                        for equality if a version is currently set
      * @throws StateStoreException if retrieving the schema version fails
+     * @throws IllegalStateException if a value is present which doesn't match the expected value
      */
-    public int fetch() throws StateStoreException {
+    public void check(int expectedVersion) throws StateStoreException {
         try {
-            LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
+            logger.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
             byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
             if (bytes.length == 0) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Invalid data when fetching schema version in '%s'", SCHEMA_VERSION_NAME));
             }
             String rawString = new String(bytes, CHARSET);
-            LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
+            logger.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
+            int currentVersion;
             try {
-                return Integer.parseInt(rawString);
+                currentVersion = Integer.parseInt(rawString);
             } catch (NumberFormatException e) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Unable to parse fetched schema version: '%s' from path: %s",
                         rawString, SCHEMA_VERSION_NAME), e);
             }
+            if (!SchemaVersionStore.isSupported(currentVersion, expectedVersion, expectedVersion)) {
+                throw new IllegalStateException(String.format(
+                        "Storage schema version %d is not supported by this software (expected: %d)",
+                        currentVersion, expectedVersion));
+            }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // The schema version doesn't exist yet. Initialize to the current version.
-                LOGGER.debug("Schema version not found at path: {}. New service install? " +
+                logger.debug("Schema version not found at path: {}. New service install? " +
                         "Initializing path to schema version: {}.",
-                        SCHEMA_VERSION_NAME, CURRENT_SCHEMA_VERSION);
-                store(CURRENT_SCHEMA_VERSION);
-                return CURRENT_SCHEMA_VERSION;
+                        SCHEMA_VERSION_NAME, expectedVersion);
+                store(expectedVersion);
             } else {
-                throw new StateStoreException(Reason.STORAGE_ERROR, "Storage error when fetching schema version", e);
+                throw new StateStoreException(
+                        Reason.STORAGE_ERROR, "Storage error when fetching schema storage", e);
             }
         }
     }
@@ -106,10 +102,11 @@ public class SchemaVersionStore {
      * @param version the new schema version to store
      * @throws StateStoreException if storing the schema version fails
      */
-    public void store(int version) throws StateStoreException {
+    @VisibleForTesting
+    void store(int version) throws StateStoreException {
         try {
             String versionStr = String.valueOf(version);
-            LOGGER.debug("Storing schema version: '{}' into path: {}",
+            logger.debug("Storing schema version: '{}' into path: {}",
                     versionStr, SCHEMA_VERSION_NAME);
             persister.set(SCHEMA_VERSION_NAME, versionStr.getBytes(CHARSET));
         } catch (Exception e) {

@@ -2,7 +2,6 @@ package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
@@ -13,6 +12,7 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +24,8 @@ import java.util.stream.Collectors;
  */
 public class StateStoreUtils {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(StateStoreUtils.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
+
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
@@ -215,14 +216,17 @@ public class StateStoreUtils {
     }
 
     /**
-     * Returns the current value of the 'uninstall' property in the provided {@link StateStore}.
+     * Returns the current value of the 'uninstall' property in the provided {@link StateStore}. If the
+     * {@link StateStore} was created against a namespaced service, then this returns whether that service is
+     * uninstalling.
      */
     public static boolean isUninstalling(StateStore stateStore) throws StateStoreException {
         return fetchBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY);
     }
 
     /**
-     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}.
+     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}. If the {@link StateStore} was
+     * created against a namespaced service, then this returns whether that service is uninstalling.
      */
     public static void setUninstalling(StateStore stateStore) {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);

@@ -13,6 +13,7 @@ import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -60,6 +61,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
     private DefaultRecoveryPlanManager recoveryManager;
     private OfferAccepter offerAccepter;
+    private FrameworkStore frameworkStore;
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private TestingFailureMonitor failureMonitor;
@@ -91,6 +93,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer = spy(new TestingLaunchConstrainer());
         offerAccepter = mock(OfferAccepter.class);
         Persister persister = new MemPersister();
+        frameworkStore = new FrameworkStore(persister);
         stateStore = new StateStore(persister);
 
         File recoverySpecFile = new File(getClass().getClassLoader().getResource("recovery-plan-manager-test.yml").getPath());
@@ -121,6 +124,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
+                        frameworkStore,
                         stateStore,
                         new OfferOutcomeTracker(),
                         serviceSpec.getName(),
@@ -175,7 +179,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         launchConstrainer.setCanLaunch(true);
 
@@ -205,7 +209,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(step.getName()).thenReturn("different-name");
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn((Collection) Arrays.asList(step));
@@ -263,7 +267,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any())).thenReturn(Arrays.asList(offers.get(0).getId()));
 
         recoveryManager.update(status);
@@ -303,7 +307,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 
         recoveryManager.update(status);
@@ -340,7 +344,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(infos);
         stateStore.storeStatus(taskInfo.getName(), status);
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         when(offerAccepter.accept(any())).thenReturn(Arrays.asList(offers.get(0).getId()));
         when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
 

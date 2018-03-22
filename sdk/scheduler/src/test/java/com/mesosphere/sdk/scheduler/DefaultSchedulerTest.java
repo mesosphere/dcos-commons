@@ -204,49 +204,6 @@ public class DefaultSchedulerTest {
         defaultScheduler = getScheduler(serviceSpec);
     }
 
-    @Test(expected = ConfigStoreException.class)
-    public void testConstructConfigStoreWithUnknownCustomType() throws ConfigStoreException {
-        ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
-                        .placementRule(TestPlacementUtils.PASS)
-                        .build());
-        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        SchedulerBuilder.createConfigStore(serviceSpecification, Collections.emptyList(), new MemPersister());
-    }
-
-    @Test(expected = ConfigStoreException.class)
-    public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() throws ConfigStoreException {
-        ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
-                        .placementRule(new PlacementRuleMissingEquality())
-                        .build());
-        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        SchedulerBuilder.createConfigStore(
-                serviceSpecification, Arrays.asList(PlacementRuleMissingEquality.class), new MemPersister());
-    }
-
-    @Test(expected = ConfigStoreException.class)
-    public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() throws ConfigStoreException {
-        ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
-                        .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
-                        .build());
-        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        SchedulerBuilder.createConfigStore(
-                serviceSpecification, Arrays.asList(PlacementRuleMismatchedAnnotations.class), new MemPersister());
-    }
-
-    @Test
-    public void testConstructConfigStoreWithRegisteredGoodCustomType() throws ConfigStoreException {
-        ServiceSpec serviceSpecification = getServiceSpec(
-                DefaultPodSpec.newBuilder(podA)
-                        .placementRule(TestPlacementUtils.PASS)
-                        .build());
-        Assert.assertTrue(serviceSpecification.getPods().get(0).getPlacementRule().isPresent());
-        SchedulerBuilder.createConfigStore(
-                serviceSpecification, Arrays.asList(TestPlacementUtils.PASS.getClass()), new MemPersister());
-    }
-
     @Test
     public void testEmptyOffers() {
         defaultScheduler.getMesosScheduler().get()

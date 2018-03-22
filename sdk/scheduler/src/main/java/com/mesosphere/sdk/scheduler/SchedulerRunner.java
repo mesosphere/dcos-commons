@@ -18,6 +18,8 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
@@ -164,7 +166,12 @@ public class SchedulerRunner implements Runnable {
             PlansResource emptyPlanResource = new PlansResource();
             emptyPlanResource.setPlanManagers(Arrays.asList(emptyPlanManager));
 
-            schedulerBuilder.getStateStore().clearAllData();
+            try {
+                PersisterUtils.clearAllData(schedulerBuilder.getPersister());
+            } catch (PersisterException e) {
+                // Best effort.
+                LOGGER.error("Failed to clear all data", e);
+            }
 
             SchedulerApiServer apiServer = new SchedulerApiServer(
                     schedulerConfig,

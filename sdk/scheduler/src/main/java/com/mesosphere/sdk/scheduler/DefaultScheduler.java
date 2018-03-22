@@ -76,10 +76,11 @@ public class DefaultScheduler extends AbstractScheduler {
             Collection<Object> customResources,
             PlanCoordinator planCoordinator,
             Optional<PlanCustomizer> planCustomizer,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, planCustomizer);
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
@@ -108,6 +109,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.planScheduler = new DefaultPlanScheduler(
                 offerAccepter,
                 new OfferEvaluator(
+                        frameworkStore,
                         stateStore,
                         offerOutcomeTracker,
                         serviceSpec.getName(),

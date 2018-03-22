@@ -11,6 +11,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class OfferEvaluator {
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferEvaluator.class);
 
+    private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
     private final OfferOutcomeTracker offerOutcomeTracker;
     private final String serviceName;
@@ -37,12 +39,14 @@ public class OfferEvaluator {
     private final boolean useDefaultExecutor;
 
     public OfferEvaluator(
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             OfferOutcomeTracker offerOutcomeTracker,
             String serviceName,
             UUID targetConfigId,
             SchedulerConfig schedulerConfig,
             boolean useDefaultExecutor) {
+        this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
         this.offerOutcomeTracker = offerOutcomeTracker;
         this.serviceName = serviceName;
@@ -89,7 +93,7 @@ public class OfferEvaluator {
                     getTargetConfig(podInstanceRequirement, thisPodTasks.values()),
                     schedulerConfig,
                     thisPodTasks.values(),
-                    stateStore.fetchFrameworkId().get(),
+                    frameworkStore.fetchFrameworkId().get(),
                     useDefaultExecutor,
                     overrideMap);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
