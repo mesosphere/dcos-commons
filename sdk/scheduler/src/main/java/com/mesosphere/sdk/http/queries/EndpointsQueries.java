@@ -16,6 +16,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.StateStore;
 
 import com.mesosphere.sdk.state.StateStoreUtils;
@@ -47,11 +48,14 @@ public class EndpointsQueries {
      * Produces a listing of all endpoint names.
      */
     public static Response getEndpoints(
-            StateStore stateStore, String frameworkName, Map<String, EndpointProducer> customEndpoints) {
+            StateStore stateStore,
+            String frameworkName,
+            Map<String, EndpointProducer> customEndpoints,
+            SchedulerConfig schedulerConfig) {
         try {
             Set<String> endpoints = new TreeSet<>();
             endpoints.addAll(customEndpoints.keySet());
-            endpoints.addAll(getDiscoveryEndpoints(stateStore, frameworkName).keySet());
+            endpoints.addAll(getDiscoveryEndpoints(stateStore, frameworkName, schedulerConfig).keySet());
             return jsonOkResponse(new JSONArray(endpoints));
         } catch (Exception ex) {
             LOGGER.error("Failed to fetch list of endpoints", ex);
@@ -68,7 +72,8 @@ public class EndpointsQueries {
             StateStore stateStore,
             String frameworkName,
             Map<String, EndpointProducer> customEndpoints,
-            String endpointName) {
+            String endpointName,
+            SchedulerConfig schedulerConfig) {
         try {
             // Check for custom value before emitting any default values:
             EndpointProducer customValue = customEndpoints.get(endpointName);
@@ -78,7 +83,7 @@ public class EndpointsQueries {
             }
 
             // Fall back to checking default values:
-            JSONObject endpoint = getDiscoveryEndpoints(stateStore, frameworkName).get(endpointName);
+            JSONObject endpoint = getDiscoveryEndpoints(stateStore, frameworkName, schedulerConfig).get(endpointName);
             if (endpoint != null) {
                 return jsonOkResponse(endpoint);
             }
@@ -93,7 +98,9 @@ public class EndpointsQueries {
     /**
      * Returns a mapping of endpoint type to host:port (or ip:port) endpoints, endpoint type.
      */
-    private static Map<String, JSONObject> getDiscoveryEndpoints(StateStore stateStore, String frameworkName)
+    private static Map<String, JSONObject> getDiscoveryEndpoints(StateStore stateStore,
+                                                                 String frameworkName,
+                                                                 SchedulerConfig schedulerConfig)
             throws TaskException {
         Map<String, JSONObject> endpointsByName = new TreeMap<>();
         for (TaskInfo taskInfo : stateStore.fetchTasks()) {
@@ -137,7 +144,10 @@ public class EndpointsQueries {
                         frameworkName,
                         taskInfo.getName(),
                         port,
-                        EndpointUtils.toAutoIpEndpoint(frameworkName, autoIpTaskName, port.getNumber()),
+                        EndpointUtils.toAutoIpEndpoint(frameworkName,
+                                autoIpTaskName,
+                                port.getNumber(),
+                                schedulerConfig),
                         EndpointUtils.toEndpoint(hostIpString, port.getNumber()));
             }
         }

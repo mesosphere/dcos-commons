@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifact;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
@@ -47,7 +48,11 @@ public class TLSEvaluationStageTest {
                 TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME,
                 sanHash);
         tlsEvaluationStage = new TLSEvaluationStage(
-                TestConstants.SERVICE_NAME, TestConstants.TASK_NAME, "test-namespace", mockTLSArtifactsUpdater);
+                TestConstants.SERVICE_NAME,
+                TestConstants.TASK_NAME,
+                "test-namespace",
+                mockTLSArtifactsUpdater,
+                SchedulerConfig.fromEnv());
     }
 
     private static PodInstanceRequirement getRequirementWithTransportEncryption(

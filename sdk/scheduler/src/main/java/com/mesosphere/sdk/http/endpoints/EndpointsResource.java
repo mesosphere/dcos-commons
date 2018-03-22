@@ -8,6 +8,7 @@ import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.http.queries.EndpointsQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos.DiscoveryInfo;
@@ -22,14 +23,16 @@ public class EndpointsResource {
     private final StateStore stateStore;
     private final String serviceName;
     private final Map<String, EndpointProducer> customEndpoints = new HashMap<>();
+    private final SchedulerConfig schedulerConfig;
 
     /**
      * Creates a new instance which retrieves task/pod state from the provided {@link StateStore},
      * using the provided {@code serviceName} for endpoint paths.
      */
-    public EndpointsResource(StateStore stateStore, String serviceName) {
+    public EndpointsResource(StateStore stateStore, String serviceName, SchedulerConfig schedulerConfig) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
+        this.schedulerConfig = schedulerConfig;
     }
 
     /**
@@ -60,7 +63,7 @@ public class EndpointsResource {
      */
     @GET
     public Response getEndpoints() {
-        return EndpointsQueries.getEndpoints(stateStore, serviceName, customEndpoints);
+        return EndpointsQueries.getEndpoints(stateStore, serviceName, customEndpoints, schedulerConfig);
     }
 
     /**
@@ -69,6 +72,6 @@ public class EndpointsResource {
     @Path("/{name}")
     @GET
     public Response getEndpoint(@PathParam("name") String name) {
-        return EndpointsQueries.getEndpoint(stateStore, serviceName, customEndpoints, name);
+        return EndpointsQueries.getEndpoint(stateStore, serviceName, customEndpoints, name, schedulerConfig);
     }
 }

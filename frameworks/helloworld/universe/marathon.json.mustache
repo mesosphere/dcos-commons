@@ -82,6 +82,10 @@
     "DISCOVERY_TASK_PREFIX": "{{tls.discovery_task_prefix}}",
     {{/tls.discovery_task_prefix}}
 
+    {{#service.custom_service_tld}}
+    "SERVICE_TLD": "{{service.custom_service_tld}}",
+    {{/service.custom_service_tld}}
+
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",

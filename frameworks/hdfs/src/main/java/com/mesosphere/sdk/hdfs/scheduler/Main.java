@@ -65,13 +65,15 @@ public class Main {
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec)
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
+                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName(), schedulerConfig)))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())))
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName(), schedulerConfig)))
                 .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()));
     }
 
-    private static String renderTemplate(File configFile, String serviceName) throws Exception {
+    private static String renderTemplate(File configFile,
+                                         String serviceName,
+                                         SchedulerConfig schedulerConfig) throws Exception {
         byte[] bytes;
         try {
             bytes = Files.readAllBytes(configFile.toPath());
@@ -84,7 +86,7 @@ public class Main {
         // Simulate the envvars that would be passed to a task. We want to render the config as though it was being done
         // in a task. Manually copy over a couple envvars which is included in tasks by default.
         Map<String, String> env = new HashMap<>(new TaskEnvRouter().getConfig("ALL"));
-        env.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName));
+        env.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         env.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV, EndpointUtils.toSchedulerApiVipHostname(serviceName));
         env.put("MESOS_SANDBOX", "sandboxpath");
