@@ -226,7 +226,8 @@ public class StateStoreUtils {
 
     /**
      * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}. If the {@link StateStore} was
-     * created against a namespaced service, then this returns whether that service is uninstalling.
+     * created against a namespaced service, then this flags that service as uninstalling. This value may be checked
+     * using {@link #isUninstalling(StateStore)}.
      */
     public static void setUninstalling(StateStore stateStore) {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);
