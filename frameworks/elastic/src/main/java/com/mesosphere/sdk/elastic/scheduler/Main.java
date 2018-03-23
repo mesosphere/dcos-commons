@@ -8,6 +8,8 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Main entry point for the Scheduler.
@@ -26,7 +28,10 @@ public class Main {
 
     private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+
+        Map<String, String> env = new HashMap<>(System.getenv());
+        env.put("ALLOW_REGION_AWARENESS", "true");
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
 
         // Modify pod environments in two ways:
         // 1) Elastic is unhappy if cluster.name contains slashes. Replace any slashes with double-underscores.
@@ -45,6 +50,7 @@ public class Main {
 
         return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
                 .setCustomConfigValidators(Arrays.asList(new ElasticZoneValidator()))
-                .setPlansFrom(rawServiceSpec);
+                .setPlansFrom(rawServiceSpec)
+                .withSingleRegionConstraint();
     }
 }

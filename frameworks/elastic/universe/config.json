@@ -82,6 +82,11 @@
           ],
           "default": "serial"
         },
+        "region": {
+          "description": "All Elastic nodes will run in this region.  When no region is specified the nodes are constrained to the local region.",
+          "type": "string",
+          "default": ""
+        },
         "security": {
           "description": "Elastic security settings",
           "type": "object",
