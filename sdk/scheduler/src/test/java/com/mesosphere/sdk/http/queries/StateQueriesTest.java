@@ -8,6 +8,7 @@ import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -34,13 +35,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class StateQueriesTest {
-    @Mock private StateStore mockStateStore;
-    @Mock private Persister mockPersister;
-    @Mock private PersisterCache mockPersisterCache;
+
     private static final String FILE_NAME = "test-file";
     private static final String FILE_CONTENT = "test data";
 
-    @Mock FormDataContentDisposition formDataContentDisposition;
+    @Mock private FrameworkStore mockFrameworkStore;
+    @Mock private StateStore mockStateStore;
+    @Mock private Persister mockPersister;
+    @Mock private PersisterCache mockPersisterCache;
+    @Mock private FormDataContentDisposition formDataContentDisposition;
 
     @Before
     public void beforeEach() {
@@ -50,8 +53,8 @@ public class StateQueriesTest {
     @Test
     public void testGetFrameworkId() {
         FrameworkID id = FrameworkID.newBuilder().setValue("aoeu-asdf").build();
-        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.of(id));
-        Response response = StateQueries.getFrameworkId(mockStateStore);
+        when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.of(id));
+        Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(1, json.length());
@@ -60,15 +63,15 @@ public class StateQueriesTest {
 
     @Test
     public void testGetFrameworkIdMissing() {
-        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.empty());
-        Response response = StateQueries.getFrameworkId(mockStateStore);
+        when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.empty());
+        Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(404, response.getStatus());
     }
 
     @Test
     public void testGetFrameworkIdFails() {
-        when(mockStateStore.fetchFrameworkId()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
-        Response response = StateQueries.getFrameworkId(mockStateStore);
+        when(mockFrameworkStore.fetchFrameworkId()).thenThrow(new StateStoreException(Reason.UNKNOWN, "hi"));
+        Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(500, response.getStatus());
     }
 

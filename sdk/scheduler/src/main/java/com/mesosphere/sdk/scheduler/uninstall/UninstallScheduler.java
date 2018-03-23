@@ -11,6 +11,7 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -42,26 +43,37 @@ public class UninstallScheduler extends AbstractScheduler {
     public UninstallScheduler(
             Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
-        this(frameworkInfo, serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
+        this(
+                frameworkInfo,
+                serviceSpec,
+                frameworkStore,
+                stateStore,
+                configStore,
+                schedulerConfig,
+                planCustomizer,
+                Optional.empty());
     }
 
     protected UninstallScheduler(
             Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(frameworkInfo, stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, planCustomizer);
         this.secretsClient = customSecretsClientForTests;
 
         Plan plan = new UninstallPlanBuilder(
                 serviceSpec,
+                frameworkStore,
                 stateStore,
                 configStore,
                 schedulerConfig,
@@ -90,7 +102,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     public Optional<Scheduler> getMesosScheduler() {
-        if (allButStateStoreUninstalled(stateStore, schedulerConfig)) {
+        if (allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig)) {
             logger.info("Not registering framework because there are no resources left to unreserve.");
             return Optional.empty();
         }
@@ -158,7 +170,8 @@ public class UninstallScheduler extends AbstractScheduler {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
     }
 
-    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerConfig schedulerConfig) {
+    private static boolean allButStateStoreUninstalled(
+            FrameworkStore frameworkStore, StateStore stateStore, SchedulerConfig schedulerConfig) {
         // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
         // details) we have to clear everything under it. This results in a race condition, where DefaultService can
         // have register() called after the StateStore already has the uninstall bit wiped.
@@ -168,7 +181,7 @@ public class UninstallScheduler extends AbstractScheduler {
         // StateStoreUtils.isUninstalling().
 
         // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return !stateStore.fetchFrameworkId().isPresent() &&
+        return !frameworkStore.fetchFrameworkId().isPresent() &&
                 ResourceUtils.getResourceIds(
                         ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
                         .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));

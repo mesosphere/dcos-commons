@@ -1,27 +1,35 @@
 package com.mesosphere.sdk.specification;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementField;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.TestPlacementUtils;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
-import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.TestPodFactory;
+
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.TaskInfo;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,13 +49,22 @@ import static org.mockito.Mockito.when;
 
 
 public class DefaultServiceSpecTest {
+
     private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
+
+    private static final PodSpec POD_SPEC = TestPodFactory.getPodSpec(
+            "POD-A",
+            TestConstants.RESOURCE_SET_ID + "-A",
+            "A",
+            "echo A",
+            TestConstants.SERVICE_USER,
+            1,
+            1.0,
+            1000.0,
+            1500.0);
+
     @Mock
     private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
-    @Mock
-    private ConfigStore<ServiceSpec> mockConfigStore;
-    @Mock
-    private StateStore mockStateStore;
     @Mock
     private Capabilities capabilities;
 
@@ -82,34 +99,17 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void validSimple() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-simple.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue(PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec) ==
-                DcosConstants.DEFAULT_GPU_POLICY);
         validateServiceSpec("valid-simple.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
 
     @Test
     public void validGpuResource() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue("Expected serviceSpec to request support GPUs",
-                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
         validateServiceSpec("valid-gpu-resource.yml", true);
     }
 
     @Test
     public void validGpuResourceSet() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertNotNull(serviceSpec);
-        Assert.assertTrue("Expected serviceSpec to request support GPUs",
-                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
+        validateServiceSpec("valid-gpu-resourceset.yml", true);
     }
 
     @Test
@@ -355,12 +355,8 @@ public class DefaultServiceSpecTest {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
-        when(mockConfigStore.getTargetConfig()).thenThrow(new ConfigStoreException(Reason.NOT_FOUND, "prior config not found"));
-        when(mockStateStore.fetchFrameworkId()).thenReturn(Optional.empty());
         DefaultScheduler.newBuilder(
                 DefaultServiceSpec.newGenerator(rawSpec, SCHEDULER_CONFIG, file.getParentFile()).build(), SCHEDULER_CONFIG, new MemPersister())
-                .setConfigStore(mockConfigStore)
-                .setStateStore(mockStateStore)
                 .setPlansFrom(rawSpec)
                 .build();
     }
@@ -668,12 +664,8 @@ public class DefaultServiceSpecTest {
         when(capabilities.supportsCNINetworking()).thenReturn(true);
         when(capabilities.supportsDomains()).thenReturn(true);
 
-        Persister persister = new MemPersister();
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, SCHEDULER_CONFIG, new MemPersister())
-                .setStateStore(new StateStore(persister))
-                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
-                .build();
+        DefaultScheduler.newBuilder(serviceSpec, SCHEDULER_CONFIG, new MemPersister()).build();
     }
 
     @Test
@@ -684,7 +676,7 @@ public class DefaultServiceSpecTest {
 
         ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
         DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) serviceSpec.getConfigurationFactory(serviceSpec))
+                ((DefaultServiceSpec.ConfigFactory) DefaultServiceSpec.getConfigurationFactory(serviceSpec))
                         .getGoalStateDeserializer();
 
         SimpleModule module = new SimpleModule();
@@ -705,7 +697,7 @@ public class DefaultServiceSpecTest {
 
         ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
         DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) serviceSpec.getConfigurationFactory(serviceSpec))
+                ((DefaultServiceSpec.ConfigFactory) DefaultServiceSpec.getConfigurationFactory(serviceSpec))
                         .getGoalStateDeserializer();
 
         SimpleModule module = new SimpleModule();
@@ -716,5 +708,103 @@ public class DefaultServiceSpecTest {
                 GoalState.FINISHED, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
         Assert.assertEquals(
                 GoalState.FINISHED, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructConfigStoreWithUnknownCustomType() {
+        ServiceSpec serviceSpec = getServiceSpec(
+                DefaultPodSpec.newBuilder(POD_SPEC)
+                        .placementRule(TestPlacementUtils.PASS)
+                        .build());
+        Assert.assertTrue(serviceSpec.getPods().get(0).getPlacementRule().isPresent());
+        DefaultServiceSpec.getConfigurationFactory(serviceSpec);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructConfigStoreWithRegisteredCustomTypeMissingEquals() {
+        ServiceSpec serviceSpec = getServiceSpec(
+                DefaultPodSpec.newBuilder(POD_SPEC)
+                        .placementRule(new PlacementRuleMissingEquality())
+                        .build());
+        Assert.assertTrue(serviceSpec.getPods().get(0).getPlacementRule().isPresent());
+        DefaultServiceSpec.getConfigurationFactory(serviceSpec, Arrays.asList(PlacementRuleMissingEquality.class));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testConstructConfigStoreWithRegisteredCustomTypeBadAnnotations() {
+        ServiceSpec serviceSpec = getServiceSpec(
+                DefaultPodSpec.newBuilder(POD_SPEC)
+                        .placementRule(new PlacementRuleMismatchedAnnotations("hi"))
+                        .build());
+        Assert.assertTrue(serviceSpec.getPods().get(0).getPlacementRule().isPresent());
+        DefaultServiceSpec.getConfigurationFactory(serviceSpec, Arrays.asList(PlacementRuleMismatchedAnnotations.class));
+    }
+
+    @Test
+    public void testConstructConfigStoreWithRegisteredGoodCustomType() {
+        ServiceSpec serviceSpec = getServiceSpec(
+                DefaultPodSpec.newBuilder(POD_SPEC)
+                        .placementRule(TestPlacementUtils.PASS)
+                        .build());
+        Assert.assertTrue(serviceSpec.getPods().get(0).getPlacementRule().isPresent());
+        DefaultServiceSpec.getConfigurationFactory(serviceSpec, Arrays.asList(TestPlacementUtils.PASS.getClass()));
+    }
+
+    private static ServiceSpec getServiceSpec(PodSpec... pods) {
+        return DefaultServiceSpec.newBuilder()
+                .name(TestConstants.SERVICE_NAME)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .zookeeperConnection("badhost-shouldbeignored:2181")
+                .pods(Arrays.asList(pods))
+                .user(TestConstants.SERVICE_USER)
+                .build();
+    }
+
+    private static class PlacementRuleMissingEquality implements PlacementRule {
+        @Override
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.pass(this, "test pass").build();
+        }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
+    }
+
+    private static class PlacementRuleMismatchedAnnotations implements PlacementRule {
+
+        private final String fork;
+
+        @JsonCreator
+        PlacementRuleMismatchedAnnotations(@JsonProperty("wrong") String spoon) {
+            this.fork = spoon;
+        }
+
+        @Override
+        public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
+            return EvaluationOutcome.pass(this, "test pass").build();
+        }
+
+        @Override
+        public Collection<PlacementField> getPlacementFields() {
+            return Collections.emptyList();
+        }
+
+        @JsonProperty("message")
+        private String getMsg() {
+            return fork;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
     }
 }

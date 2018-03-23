@@ -21,8 +21,10 @@ import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -34,6 +36,7 @@ public class AbstractSchedulerTest {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(AbstractSchedulerTest.class);
 
+    private FrameworkStore frameworkStore;
     private StateStore stateStore;
     private final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
             .setName(TestConstants.SERVICE_NAME)
@@ -48,7 +51,9 @@ public class AbstractSchedulerTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        stateStore = new StateStore(new MemPersister());
+        Persister persister = new MemPersister();
+        frameworkStore = new FrameworkStore(persister);
+        stateStore = new StateStore(persister);
     }
 
     @Test
@@ -146,6 +151,7 @@ public class AbstractSchedulerTest {
             throws PersisterException {
         TestScheduler scheduler = new TestScheduler(
                 frameworkInfo,
+                frameworkStore,
                 stateStore,
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig());
@@ -174,10 +180,11 @@ public class AbstractSchedulerTest {
 
         protected TestScheduler(
                 Protos.FrameworkInfo frameworkInfo,
+                FrameworkStore frameworkStore,
                 StateStore stateStore,
                 ConfigStore<ServiceSpec> configStore,
                 SchedulerConfig schedulerConfig) {
-            super(frameworkInfo, stateStore, configStore, schedulerConfig, Optional.empty());
+            super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }

@@ -30,7 +30,10 @@ import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * Handles creation of the uninstall plan, returning information about the plan contents back to the caller.
@@ -47,15 +50,21 @@ public class UninstallPlanBuilder {
 
     UninstallPlanBuilder(
             ServiceSpec serviceSpec,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
 
         // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
-        if (!stateStore.fetchFrameworkId().isPresent()) {
+        if (!frameworkStore.fetchFrameworkId().isPresent()) {
             LOGGER.info("Framework ID is unset. Clearing state data and using an empty completed plan.");
-            stateStore.clearAllData();
+            try {
+                PersisterUtils.clearAllData(stateStore.getPersister());
+            } catch (PersisterException e) {
+                // Best effort.
+                LOGGER.error("Failed to clear all data", e);
+            }
             plan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
             return;
         }
@@ -132,7 +141,7 @@ public class UninstallPlanBuilder {
         // We don't have access to the SchedulerDriver yet. That will be set via setSchedulerDriver() below.
         phases.add(new DefaultPhase(
                 DEREGISTER_PHASE,
-                Collections.singletonList(new DeregisterStep(stateStore)),
+                Collections.singletonList(new DeregisterStep(frameworkStore, stateStore)),
                 new SerialStrategy<>(),
                 Collections.emptyList()));
 
