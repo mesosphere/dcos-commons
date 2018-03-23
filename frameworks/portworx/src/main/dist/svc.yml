@@ -240,11 +240,13 @@ plans:
         pod: etcd-cluster
         steps:
           - default : [[node]]
+      {{#ETCD_PROXY_ENABLED}}
       etcd-proxy:
         strategy: serial
         pod: etcd-proxy
         steps:
           - default : [[start]]
+      {{/ETCD_PROXY_ENABLED}}
       {{/ETCD_ENABLED}}
       {{#LIGHTHOUSE_ENABLED}}
       influxdb-deploy:

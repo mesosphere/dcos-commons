@@ -103,6 +103,12 @@
             "type": "boolean",
             "default":false
           },
+          "proxy_enabled": {
+            "title": "Start the etcd proxy",
+            "description": "Enable if you had installed an older version of the framework which had the etcd proxy. Not required for newer installations.",
+            "type": "boolean",
+            "default":false
+          },
           "placement_constraint": {
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
