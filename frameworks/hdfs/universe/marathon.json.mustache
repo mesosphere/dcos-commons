@@ -57,6 +57,10 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "ZONE_RESOLVER": "{{resource.assets.uris.zone-resolver-sh}}",
 
+    {{#service.region}}
+    "SERVICE_REGION": "{{service.region}}",
+    {{/service.region}}
+
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
