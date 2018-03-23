@@ -6,7 +6,9 @@ import org.apache.mesos.Protos;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
+import com.mesosphere.sdk.storage.StorageError;
 
 import org.junit.*;
 
@@ -19,17 +21,17 @@ import static org.junit.Assert.*;
  * Tests to validate the operation of the {@link StateStore}.
  */
 public class StateStoreTest {
-    private static final Protos.FrameworkID FRAMEWORK_ID =
-            Protos.FrameworkID.newBuilder().setValue("test-framework-id").build();
     private static final Protos.TaskState TASK_STATE = Protos.TaskState.TASK_STAGING;
     private static final Protos.TaskStatus TASK_STATUS = Protos.TaskStatus.newBuilder()
-            .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME))
+            .setTaskId(TestConstants.TASK_ID)
             .setState(TASK_STATE)
             .build();
-    public static final String PROPERTY_VALUE = "DC/OS";
-    public static final String GOOD_PROPERTY_KEY = "hey";
-    public static final String WHITESPACE_PROPERTY_KEY = "            ";
-    public static final String SLASH_PROPERTY_KEY = "hey/hi";
+    private static final String NAMESPACE = "test-namespace";
+    private static final String NAMESPACE_PATH = "Services/" + NAMESPACE;
+    private static final String PROPERTY_VALUE = "DC/OS";
+    private static final String GOOD_PROPERTY_KEY = "hey";
+    private static final String WHITESPACE_PROPERTY_KEY = "            ";
+    private static final String SLASH_PROPERTY_KEY = "hey/hi";
 
     private Persister persister;
     private StateStore store;
@@ -38,44 +40,69 @@ public class StateStoreTest {
     public void beforeEach() throws Exception {
         persister = new MemPersister();
         store = new StateStore(persister);
-
-        // Check that schema version was created in the correct location:
-        assertEquals("1", new String(persister.get("SchemaVersion"), StandardCharsets.UTF_8));
     }
 
-    @Test
-    public void testStoreFetchFrameworkId() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        assertEquals(FRAMEWORK_ID, store.fetchFrameworkId().get());
-    }
+    // persister paths
 
     @Test
     public void testRootPathMapping() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        assertArrayEquals(FRAMEWORK_ID.toByteArray(), persister.get("FrameworkID"));
+        Collection<Protos.TaskInfo> tasks = createTasks(TestConstants.TASK_NAME);
+        store.storeTasks(tasks);
+        store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
+        GoalStateOverride.Status status = GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.PENDING);
+        store.storeGoalOverrideStatus(TestConstants.TASK_NAME, status);
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
+
+        // Check that data is at root path:
+        assertNotEquals(0, persister.get("Tasks/" + TestConstants.TASK_NAME + "/TaskInfo"));
+        assertNotEquals(0, persister.get("Tasks/" + TestConstants.TASK_NAME + "/TaskStatus"));
+        assertEquals("PAUSED", new String(persister.get("Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override"), StandardCharsets.UTF_8));
+        assertEquals("PENDING", new String(persister.get("Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status"), StandardCharsets.UTF_8));
+        assertEquals(PROPERTY_VALUE, new String(persister.get("Properties/" + GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
+
+        // Check that data is NOT in namespaced path:
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskInfo");
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskStatus");
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override");
+        checkPathNotFound(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status");
+        checkPathNotFound(NAMESPACE_PATH + "/Properties/" + GOOD_PROPERTY_KEY);
+
+        // Check that data is accessible as expected:
+        assertEquals(tasks.iterator().next(), store.fetchTask(TestConstants.TASK_NAME).get());
+        assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
+        assertEquals(status, store.fetchGoalOverrideStatus(TestConstants.TASK_NAME));
+        assertEquals(PROPERTY_VALUE, new String(store.fetchProperty(GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
     }
 
     @Test
-    public void testFetchEmptyFrameworkId() throws Exception {
-        assertFalse(store.fetchFrameworkId().isPresent());
-    }
+    public void testNamespacedPathMapping() throws Exception {
+        store = new StateStore(persister, NAMESPACE);
+        Collection<Protos.TaskInfo> tasks = createTasks(TestConstants.TASK_NAME);
+        store.storeTasks(tasks);
+        store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
+        GoalStateOverride.Status status = GoalStateOverride.PAUSED.newStatus(GoalStateOverride.Progress.PENDING);
+        store.storeGoalOverrideStatus(TestConstants.TASK_NAME, status);
+        store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
 
-    @Test
-    public void testStoreClearFrameworkId() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        store.clearFrameworkId();
-    }
+        // Check that data is in namespaced path:
+        assertNotEquals(0, persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskInfo"));
+        assertNotEquals(0, persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/TaskStatus"));
+        assertEquals("PAUSED", new String(persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override"), StandardCharsets.UTF_8));
+        assertEquals("PENDING", new String(persister.get(NAMESPACE_PATH + "/Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status"), StandardCharsets.UTF_8));
+        assertEquals(PROPERTY_VALUE, new String(persister.get(NAMESPACE_PATH + "/Properties/" + GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
 
-    @Test
-    public void testStoreClearFetchFrameworkId() throws Exception {
-        store.storeFrameworkId(FRAMEWORK_ID);
-        store.clearFrameworkId();
-        assertFalse(store.fetchFrameworkId().isPresent());
-    }
+        // Check that data is NOT at root path:
+        checkPathNotFound("Tasks/" + TestConstants.TASK_NAME + "/TaskInfo");
+        checkPathNotFound("Tasks/" + TestConstants.TASK_NAME + "/TaskStatus");
+        checkPathNotFound("Tasks/" + TestConstants.TASK_NAME + "/Metadata/goal-state-override");
+        checkPathNotFound("Tasks/" + TestConstants.TASK_NAME + "/Metadata/override-status");
+        checkPathNotFound("Properties/" + GOOD_PROPERTY_KEY);
 
-    @Test
-    public void testClearEmptyFrameworkId() throws Exception {
-        store.clearFrameworkId();
+        // Check that data is accessible as expected:
+        assertEquals(tasks.iterator().next(), store.fetchTask(TestConstants.TASK_NAME).get());
+        assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
+        assertEquals(status, store.fetchGoalOverrideStatus(TestConstants.TASK_NAME));
+        assertEquals(PROPERTY_VALUE, new String(store.fetchProperty(GOOD_PROPERTY_KEY), StandardCharsets.UTF_8));
     }
 
     // task
@@ -131,11 +158,10 @@ public class StateStoreTest {
     @Test
     public void testStoreClearAllData() throws Exception {
         store.storeTasks(createTasks(TestConstants.TASK_NAME));
-        store.storeFrameworkId(FRAMEWORK_ID);
         store.storeProperty(GOOD_PROPERTY_KEY, PROPERTY_VALUE.getBytes(StandardCharsets.UTF_8));
-        assertEquals(7, PersisterUtils.getAllKeys(persister).size());
+        assertEquals(5, PersisterUtils.getAllKeys(persister).size());
 
-        store.clearAllData();
+        PersisterUtils.clearAllData(persister);
 
         // Verify nothing is left under the root.
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());
@@ -157,17 +183,6 @@ public class StateStoreTest {
         String testTaskName0 = testTaskNamePrefix + "-0";
         String testTaskName1 = testTaskNamePrefix + "-1";
 
-        store.storeTasks(createTasks(testTaskName0, testTaskName1));
-        assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
-    }
-
-    @Test
-    public void testFetchTaskNamesWithFrameworkIdSet() throws Exception {
-        String testTaskNamePrefix = "test-executor";
-        String testTaskName0 = testTaskNamePrefix + "-0";
-        String testTaskName1 = testTaskNamePrefix + "-1";
-
-        store.storeFrameworkId(FRAMEWORK_ID);
         store.storeTasks(createTasks(testTaskName0, testTaskName1));
         assertEquals(Arrays.asList(testTaskName0, testTaskName1), store.fetchTaskNames());
     }
@@ -470,6 +485,7 @@ public class StateStoreTest {
 
     @Test
     public void testMismatchedTaskIds() {
+        // Generate a different UUID:
         Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME);
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(TestConstants.TASK_INFO)
                 .setTaskId(taskID)
@@ -524,6 +540,31 @@ public class StateStoreTest {
         store.storeStatus(TestConstants.TASK_NAME, status);
     }
 
+    @Test
+    public void testDeleteDataIfNamespaced_notNamespaced() {
+        store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+        store.deleteAllDataIfNamespaced();
+
+        // no change because it's not namespaced:
+        assertTrue(store.fetchStatus(TestConstants.TASK_NAME).isPresent());
+    }
+
+    @Test
+    public void testDeleteDataIfNamespaced_isNamespaced() {
+        StateStore store2 = new StateStore(persister, NAMESPACE + "-two");
+        store2.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+
+        store = new StateStore(persister, NAMESPACE);
+        store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
+        store.deleteAllDataIfNamespaced();
+
+        // this namespace is deleted:
+        assertFalse(store.fetchStatus(TestConstants.TASK_NAME).isPresent());
+
+        // the other namespace is not deleted:
+        assertTrue(store2.fetchStatus(TestConstants.TASK_NAME).isPresent());
+    }
+
     private static Collection<Protos.TaskInfo> createTasks(String... taskNames) {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : taskNames) {
@@ -532,4 +573,11 @@ public class StateStoreTest {
         return taskInfos;
     }
 
+    private void checkPathNotFound(String path) {
+        try {
+            persister.get(path);
+        } catch (PersisterException e) {
+            assertEquals(StorageError.Reason.NOT_FOUND, e.getReason());
+        }
+    }
 }

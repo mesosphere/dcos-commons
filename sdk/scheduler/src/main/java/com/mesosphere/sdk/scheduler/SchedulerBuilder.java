@@ -37,6 +37,7 @@ import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
@@ -56,16 +57,12 @@ import java.util.stream.Collectors;
  */
 public class SchedulerBuilder {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerBuilder.class);
+    private final Logger logger;
     private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
 
     private ServiceSpec serviceSpec;
     private final SchedulerConfig schedulerConfig;
     private final Persister persister;
-
-    // When these optionals are unset, we use default values:
-    private Optional<StateStore> stateStoreOptional = Optional.empty();
-    private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
 
     // When these collections are empty, we don't do anything extra:
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
@@ -74,6 +71,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
+    private Optional<String> storageNamespace = Optional.empty();
     private Optional<ArtifactQueries.TemplateUrlFactory> templateUrlFactory = Optional.empty();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
@@ -85,10 +83,10 @@ public class SchedulerBuilder {
                         CuratorPersister.newBuilder(serviceSpec).build());
     }
 
-    SchedulerBuilder(
-            ServiceSpec serviceSpec,
-            SchedulerConfig schedulerConfig,
-            Persister persister) {
+    SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
+        // NOTE: we specifically avoid accessing the provided persister before build() is called.
+        // This is to ensure that upstream has a chance to e.g. lock it via CuratorLocker.
+        this.logger = LoggingUtils.getLogger(getClass(), serviceSpec.getName());
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
         this.persister = persister;
@@ -109,65 +107,11 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Specifies a custom {@link StateStore}.  The state store persists copies of task information and task status for
-     * all tasks running in the service.
-     *
-     * @throws IllegalStateException if the state store is already set, via a previous call to either
-     * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+     * Returns the {@link Persister} object which was provided via the constructor, or which was created by default
+     * internally.
      */
-    public SchedulerBuilder setStateStore(StateStore stateStore) {
-        if (stateStoreOptional.isPresent()) {
-            // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
-            throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
-        }
-        this.stateStoreOptional = Optional.ofNullable(stateStore);
-        return this;
-    }
-
-    /**
-     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
-     *
-     * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
-     */
-    public StateStore getStateStore() {
-        if (!stateStoreOptional.isPresent()) {
-            setStateStore(new StateStore(persister));
-        }
-        return stateStoreOptional.get();
-    }
-
-    /**
-     * Specifies a custom {@link ConfigStore}.
-     *
-     * The config store persists a copy of the current configuration ('target' configuration),
-     * while also storing historical configurations.
-     */
-    public SchedulerBuilder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-        if (configStoreOptional.isPresent()) {
-            // Any customization of the config store must be applied BEFORE getConfigStore() is ever called.
-            throw new IllegalStateException(
-                    "Config store is already set. Was getConfigStore() invoked before this?");
-        }
-        this.configStoreOptional = Optional.ofNullable(configStore);
-        return this;
-    }
-
-    /**
-     * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default.
-     *
-     * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
-     */
-    public ConfigStore<ServiceSpec> getConfigStore() {
-        if (!configStoreOptional.isPresent()) {
-            try {
-                setConfigStore(createConfigStore(serviceSpec, Collections.emptyList(), persister));
-            } catch (ConfigStoreException e) {
-                throw new IllegalStateException("Failed to create default config store", e);
-            }
-        }
-        return configStoreOptional.get();
+    public Persister getPersister() {
+        return persister;
     }
 
     /**
@@ -233,6 +177,9 @@ public class SchedulerBuilder {
         return this;
     }
 
+    /**
+     * Configures the resulting scheduler instance with a region constraint.
+     */
     public SchedulerBuilder withSingleRegionConstraint() {
          if (!Capabilities.getInstance().supportsDomains()) {
              // If this is an older version of DC/OS that doesn't support multi-region deployments, this is a noop.
@@ -273,6 +220,17 @@ public class SchedulerBuilder {
     }
 
     /**
+     * Assigns a custom framework configuration for this service. This is only relevant when a single framework is
+     * running multiple services. By default the framework configuration is derived from the {@link ServiceSpec}.
+     *
+     * @param storageNamespace storage namespace to use for this service
+     */
+    public SchedulerBuilder setStorageNamespace(String storageNamespace) {
+        this.storageNamespace = Optional.of(storageNamespace);
+        return this;
+    }
+
+    /**
      * Assigns a custom factory for generating config template URLs. Otherwise a default suitable for use with
      * {@link ArtifactResource} is used.
      */
@@ -289,39 +247,62 @@ public class SchedulerBuilder {
      * @throws IllegalArgumentException if validating the provided configuration failed
      */
     public AbstractScheduler build() {
-        // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
-        final StateStore stateStore = getStateStore();
-        final ConfigStore<ServiceSpec> configStore = getConfigStore();
-        final Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, stateStore);
+        // NOTE: we specifically avoid accessing the provided persister before build() is called.
+        // This is to ensure that upstream has a chance to e.g. lock it via CuratorLocker.
+
+        // When multi-service is enabled, state/configs are stored within a namespace matching the service name.
+        // Otherwise use an empty namespace, which indicates single-service mode.
+        String storageNamespaceStr = storageNamespace.orElse("");
+        FrameworkStore frameworkStore = new FrameworkStore(persister);
+        StateStore stateStore = new StateStore(persister, storageNamespaceStr);
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, storageNamespaceStr);
+
+        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, frameworkStore);
 
         if (schedulerConfig.isUninstallEnabled()) {
-            if (!StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
-                        "Uninstall cannot be canceled once enabled.");
-                StateStoreUtils.setUninstalling(stateStore);
-            }
-
+            // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
+            // uninstall mode. UninstallScheduler will internally flag the stateStore with an uninstall bit if needed.
             return new UninstallScheduler(
                     frameworkInfo,
                     serviceSpec,
+                    frameworkStore,
                     stateStore,
                     configStore,
                     schedulerConfig,
                     Optional.ofNullable(planCustomizer));
-        } else {
-            if (StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+        }
+
+        if (StateStoreUtils.isUninstalling(stateStore)) {
+            // SERVICE UNINSTALL: The service has an uninstall bit set in its (potentially namespaced) state store.
+            if (storageNamespace.isPresent()) {
+                // This namespaced service is partway through being removed from the parent multi-service scheduler.
+                // Launch the service in uninstall mode so that it can continue with whatever may be left.
+                return new UninstallScheduler(
+                        frameworkInfo,
+                        serviceSpec,
+                        frameworkStore,
+                        stateStore,
+                        configStore,
+                        schedulerConfig,
+                        Optional.ofNullable(planCustomizer));
+            } else {
+                // This is an illegal state for a single-service scheduler. SchedulerConfig's uninstall bit should have
+                // also been enabled. If we got here, it means that the user likely tampered with the scheduler env
+                // after having previously triggered an uninstall, which had set the bit in stateStore. Just exit,
+                // because the service is likely now in an inconsistent state resulting from the incomplete uninstall.
+                logger.error("Service has been previously told to uninstall, this cannot be reversed. " +
                         "Reenable the uninstall flag to complete the process.");
                 SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
             }
+        }
 
-            try {
-                return getDefaultScheduler(frameworkInfo, stateStore, configStore);
-            } catch (ConfigStoreException e) {
-                LOGGER.error("Failed to construct scheduler.", e);
-                SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
-                return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
-            }
+        try {
+            return getDefaultScheduler(frameworkInfo, frameworkStore, stateStore, configStore);
+        } catch (ConfigStoreException e) {
+            logger.error("Failed to construct scheduler.", e);
+            SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+            return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
         }
     }
 
@@ -333,6 +314,7 @@ public class SchedulerBuilder {
      */
     private DefaultScheduler getDefaultScheduler(
             Protos.FrameworkInfo frameworkInfo,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
 
@@ -344,16 +326,16 @@ public class SchedulerBuilder {
                 // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
-                Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
+                Optional<Plan> deployPlan = getDeployPlan(
                         getPlans(stateStore, configStore, lastServiceSpec, yamlPlans));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                    LOGGER.info("Marking deployment as having been previously completed");
+                    logger.info("Marking deployment as having been previously completed");
                     StateStoreUtils.setDeploymentWasCompleted(stateStore);
                     hasCompletedDeployment = true;
                 }
             } catch (ConfigStoreException e) {
                 // This is expected during initial deployment, when there is no prior configuration.
-                LOGGER.info("Unable to retrieve last configuration. Assuming that no prior deployment has completed");
+                logger.info("Unable to retrieve last configuration. Assuming that no prior deployment has completed");
             }
         }
 
@@ -369,13 +351,13 @@ public class SchedulerBuilder {
         final ConfigurationUpdater.UpdateResult configUpdateResult =
                 updateConfig(serviceSpec, stateStore, configStore, configValidators);
         if (!configUpdateResult.getErrors().isEmpty()) {
-            LOGGER.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
+            logger.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
             try {
                 // If there were errors, stick with the last accepted target configuration.
                 serviceSpec = configStore.fetch(configStore.getTargetConfig());
             } catch (ConfigStoreException e) {
                 // Uh oh. Bail.
-                LOGGER.error("Failed to retrieve previous target configuration", e);
+                logger.error("Failed to retrieve previous target configuration", e);
                 throw new IllegalArgumentException(e);
             }
         }
@@ -383,7 +365,7 @@ public class SchedulerBuilder {
         // Now that a ServiceSpec has been chosen, generate the plans.
         Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, yamlPlans);
         plans = selectDeployPlan(plans, hasCompletedDeployment);
-        Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
+        Optional<Plan> deployPlan = getDeployPlan(plans);
         if (!deployPlan.isPresent()) {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
@@ -397,7 +379,7 @@ public class SchedulerBuilder {
         }
 
         PlanManager deploymentPlanManager =
-                DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
+                DefaultPlanManager.createProceeding(getDeployPlan(plans).get());
         PlanManager recoveryPlanManager = getRecoveryPlanManager(
                 Optional.ofNullable(recoveryPlanOverriderFactory),
                 stateStore,
@@ -405,6 +387,7 @@ public class SchedulerBuilder {
                 plans);
         Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(stateStore);
         PlanCoordinator planCoordinator = buildPlanCoordinator(
+                serviceSpec.getName(),
                 deploymentPlanManager,
                 recoveryPlanManager,
                 decommissionPlanManager,
@@ -417,6 +400,7 @@ public class SchedulerBuilder {
                 customResources,
                 planCoordinator,
                 Optional.ofNullable(planCustomizer),
+                frameworkStore,
                 stateStore,
                 configStore,
                 templateUrlFactory.orElse(ArtifactResource.getUrlFactory(serviceSpec.getName())),
@@ -431,7 +415,7 @@ public class SchedulerBuilder {
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
+            logger.info("Adding overriding recovery plan manager.");
             overrideRecoveryPlanManagers.add(recoveryOverriderFactory.get().create(stateStore, plans));
         }
         final LaunchConstrainer launchConstrainer;
@@ -457,7 +441,7 @@ public class SchedulerBuilder {
                 overrideRecoveryPlanManagers);
     }
 
-    public Optional<PlanManager> getDecommissionPlanManager(StateStore stateStore) {
+    private Optional<PlanManager> getDecommissionPlanManager(StateStore stateStore) {
         DecommissionPlanFactory decommissionPlanFactory = new DecommissionPlanFactory(serviceSpec, stateStore);
         Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
         if (decommissionPlan.isPresent()) {
@@ -470,7 +454,8 @@ public class SchedulerBuilder {
         return Optional.empty();
     }
 
-    private PlanCoordinator buildPlanCoordinator(
+    private static PlanCoordinator buildPlanCoordinator(
+            String serviceName,
             PlanManager deploymentPlanManager,
             PlanManager recoveryPlanManager,
             Optional<PlanManager> decommissionPlanManager,
@@ -523,7 +508,7 @@ public class SchedulerBuilder {
      * @param configStore The config store to use for plan generation.
      * @return a collection of plans
      */
-    private static Collection<Plan> getPlans(
+    private Collection<Plan> getPlans(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
@@ -553,12 +538,24 @@ public class SchedulerBuilder {
             }
         }
 
-        LOGGER.info("Got {} {} plan{}: {}",
+        logger.info("Got {} {} plan{}: {}",
                 plans.size(),
                 plansType,
                 plans.size() == 1 ? "" : "s",
                 plans.stream().map(plan -> plan.getName()).collect(Collectors.toList()));
         return plans;
+    }
+
+    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans = plans.stream().filter(Plan::isDeployPlan).collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            throw new IllegalStateException(String.format("Found multiple deploy plans: %s", deployPlans));
+        }
     }
 
     /**
@@ -582,32 +579,23 @@ public class SchedulerBuilder {
         return updatedPlans;
     }
 
-    @VisibleForTesting
-    static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
-                    throws ConfigStoreException {
-        return new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
-                persister);
-    }
-
     /**
      * Replaces the deploy plan with an update plan, in the case that an update deployment is being performed AND that
      * a custom update plan has been specified.
      */
     @VisibleForTesting
-    static Collection<Plan> selectDeployPlan(Collection<Plan> plans, boolean hasCompletedDeployment) {
+    Collection<Plan> selectDeployPlan(Collection<Plan> plans, boolean hasCompletedDeployment) {
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
 
         if (!hasCompletedDeployment || !updatePlanOptional.isPresent()) {
-            LOGGER.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
+            logger.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
                     hasCompletedDeployment, updatePlanOptional.isPresent());
             return plans;
         }
 
-        LOGGER.info("Overriding deploy plan with custom update plan. " +
+        logger.info("Overriding deploy plan with custom update plan. " +
                 "(Has completed deployment: {}, Custom update plan defined: {})",
                 hasCompletedDeployment, updatePlanOptional.isPresent());
         Collection<Plan> newPlans = new ArrayList<>();
@@ -635,23 +623,23 @@ public class SchedulerBuilder {
      * @return the config update result, which may contain one or more validation errors produced by
      *     {@code configValidators}
      */
-    private static ConfigurationUpdater.UpdateResult updateConfig(
+    private ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             Collection<ConfigValidator<ServiceSpec>> configValidators) {
-        LOGGER.info("Updating config with {} validators...", configValidators.size());
+        logger.info("Updating config with {} validators...", configValidators.size());
         ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
                 stateStore, configStore, DefaultServiceSpec.getComparatorInstance(), configValidators);
         try {
             return configurationUpdater.updateConfiguration(serviceSpec);
         } catch (ConfigStoreException e) {
-            LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
+            logger.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
         }
     }
 
-    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, StateStore stateStore) {
+    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, FrameworkStore frameworkStore) {
         Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
                 .setName(serviceSpec.getName())
                 .setPrincipal(serviceSpec.getPrincipal())
@@ -662,7 +650,7 @@ public class SchedulerBuilder {
         setRoles(fwkInfoBuilder, serviceSpec);
 
         // The framework ID is not available when we're being started for the first time.
-        Optional<Protos.FrameworkID> optionalFrameworkId = stateStore.fetchFrameworkId();
+        Optional<Protos.FrameworkID> optionalFrameworkId = frameworkStore.fetchFrameworkId();
         optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
 
         if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {

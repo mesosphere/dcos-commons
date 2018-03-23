@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.http.queries;
 
-import com.mesosphere.sdk.framework.Driver;
-import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;

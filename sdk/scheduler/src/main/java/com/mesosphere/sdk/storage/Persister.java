@@ -45,7 +45,7 @@ public interface Persister {
 
     /**
      * Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
-     * missing will be unset in the returned {@link Map}.
+     * missing will be set to {@code null} in the returned {@link Map}.
      *
      * @see #get(String)
      * @throws PersisterException in the event of an access error

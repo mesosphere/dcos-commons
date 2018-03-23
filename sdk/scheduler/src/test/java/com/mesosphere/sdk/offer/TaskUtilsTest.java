@@ -428,10 +428,9 @@ public class TaskUtilsTest {
                 .name("svc")
                 .addPod(podBuilder.build())
                 .build();
-        ConfigStore<ServiceSpec> configStore;
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
         try {
-            configStore = new ConfigStore<>(
-                    DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
             configStore.setTargetConfig(configStore.store(serviceSpec));
         } catch (ConfigStoreException e) {
             throw new IllegalStateException(e);

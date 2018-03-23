@@ -15,8 +15,10 @@ import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
@@ -31,7 +33,13 @@ import java.util.*;
  * Class which sets up and executes the correct {@link AbstractScheduler} instance.
  */
 public class SchedulerRunner implements Runnable {
+
     private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerRunner.class);
+
+    /**
+     * Schema version used by single-service schedulers, which is what {@link SchedulerRunner} runs.
+     */
+    private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
 
     private final SchedulerBuilder schedulerBuilder;
 
@@ -105,6 +113,8 @@ public class SchedulerRunner implements Runnable {
         }));
         locker.lock();
 
+        new SchemaVersionStore(schedulerBuilder.getPersister()).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);
+
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         Metrics.configureStatsd(schedulerConfig);
         AbstractScheduler scheduler = schedulerBuilder.build();
@@ -123,8 +133,7 @@ public class SchedulerRunner implements Runnable {
                     scheduler.frameworkInfo,
                     mesosScheduler.get(),
                     schedulerBuilder.getServiceSpec(),
-                    schedulerBuilder.getSchedulerConfig(),
-                    schedulerBuilder.getStateStore());
+                    schedulerBuilder.getSchedulerConfig());
         } else {
             /**
              * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
@@ -159,7 +168,12 @@ public class SchedulerRunner implements Runnable {
                 }
             };
 
-            schedulerBuilder.getStateStore().clearAllData();
+            try {
+                PersisterUtils.clearAllData(schedulerBuilder.getPersister());
+            } catch (PersisterException e) {
+                // Best effort.
+                LOGGER.error("Failed to clear all data", e);
+            }
 
             SchedulerApiServer apiServer = new SchedulerApiServer(
                     schedulerConfig,
@@ -180,8 +194,7 @@ public class SchedulerRunner implements Runnable {
             Protos.FrameworkInfo frameworkInfo,
             Scheduler mesosScheduler,
             ServiceSpec serviceSpec,
-            SchedulerConfig schedulerConfig,
-            StateStore stateStore) {
+            SchedulerConfig schedulerConfig) {
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()

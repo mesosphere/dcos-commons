@@ -117,6 +117,9 @@ public class MemPersister implements Persister {
 
     @Override
     public void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException {
+        if (pathBytesMap.isEmpty()) {
+            return;
+        }
         lockRW();
         try {
             for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {

@@ -5,6 +5,7 @@ import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
@@ -45,9 +46,9 @@ public class StateQueries {
     /**
      * Produces the configured ID of the framework, or returns an error if reading that data failed.
      */
-    public static Response getFrameworkId(StateStore stateStore) {
+    public static Response getFrameworkId(FrameworkStore frameworkStore) {
         try {
-            Optional<Protos.FrameworkID> frameworkIdOptional = stateStore.fetchFrameworkId();
+            Optional<Protos.FrameworkID> frameworkIdOptional = frameworkStore.fetchFrameworkId();
             if (frameworkIdOptional.isPresent()) {
                 JSONArray idArray = new JSONArray(Arrays.asList(frameworkIdOptional.get().getValue()));
                 return ResponseUtils.jsonOkResponse(idArray);

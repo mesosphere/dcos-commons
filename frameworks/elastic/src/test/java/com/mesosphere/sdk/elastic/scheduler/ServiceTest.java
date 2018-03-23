@@ -3,6 +3,7 @@ package com.mesosphere.sdk.elastic.scheduler;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testing.*;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ServiceTest {
@@ -38,6 +39,14 @@ public class ServiceTest {
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "INGEST_NODE_PLACEMENT");
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "COORDINATOR_NODE_PLACEMENT");
+    }
+
+    @Test
+    public void testRegionAwareness() throws Exception {
+        ServiceTestResult result = getDefaultRunner()
+                .setOptions("service.region", "Europe")
+                .run();
+        Assert.assertEquals(result.getSchedulerEnvironment().get("SERVICE_REGION"), "Europe");
     }
 
     private ServiceTestRunner getDefaultRunner() {

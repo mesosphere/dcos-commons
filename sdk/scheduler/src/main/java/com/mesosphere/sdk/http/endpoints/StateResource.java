@@ -2,6 +2,7 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.queries.StateQueries;
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -17,6 +18,7 @@ import java.io.*;
 @Path("/v1/state")
 public class StateResource {
 
+    private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
     private final PropertyDeserializer propertyDeserializer;
 
@@ -29,7 +31,9 @@ public class StateResource {
      * @param propertyDeserializer a deserializer which can turn any Property in the provided
      *                             {@code stateStore} to valid JSON
      */
-    public StateResource(StateStore stateStore, PropertyDeserializer propertyDeserializer) {
+    public StateResource(
+            FrameworkStore frameworkStore, StateStore stateStore, PropertyDeserializer propertyDeserializer) {
+        this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
         this.propertyDeserializer = propertyDeserializer;
     }
@@ -40,7 +44,7 @@ public class StateResource {
     @Path("/frameworkId")
     @GET
     public Response getFrameworkId() {
-        return StateQueries.getFrameworkId(stateStore);
+        return StateQueries.getFrameworkId(frameworkStore);
     }
 
     /**

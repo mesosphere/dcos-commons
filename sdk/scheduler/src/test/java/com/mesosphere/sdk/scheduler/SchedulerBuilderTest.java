@@ -1,28 +1,48 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
+import com.mesosphere.sdk.scheduler.plan.Phase;
+import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Optional;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * This class tests the {@link SchedulerBuilder}.
  */
 public class SchedulerBuilderTest {
+
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
+
+    @Mock private Capabilities mockCapabilities;
+
+    @Before
+    public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
+        when(mockCapabilities.supportsDomains()).thenReturn(true);
+        Capabilities.overrideCapabilities(mockCapabilities);
+    }
+
     @Test
     public void leaveRegionRuleUnmodified() {
         PodSpec originalPodSpec = DefaultPodSpec.newBuilder(getPodSpec())
@@ -35,10 +55,6 @@ public class SchedulerBuilderTest {
 
     @Test
     public void setLocalRegionRule() {
-        Capabilities capabilities = mock(Capabilities.class);
-        when(capabilities.supportsDomains()).thenReturn(true);
-        Capabilities.overrideCapabilities(capabilities);
-
         PodSpec originalPodSpec = getPodSpec();
         PodSpec updatedPodSpec = SchedulerBuilder.updatePodPlacement(originalPodSpec);
 
@@ -48,10 +64,6 @@ public class SchedulerBuilderTest {
 
     @Test
     public void addLocalRegionRule() {
-        Capabilities capabilities = mock(Capabilities.class);
-        when(capabilities.supportsDomains()).thenReturn(true);
-        Capabilities.overrideCapabilities(capabilities);
-
         PodSpec originalPodSpec = DefaultPodSpec.newBuilder(getPodSpec())
                 .placementRule(ZoneRuleFactory.getInstance().require(ExactMatcher.create(TestConstants.ZONE)))
                 .build();
@@ -63,34 +75,39 @@ public class SchedulerBuilderTest {
     }
 
     @Test
-    public void doNotConstrainToRegionWhenNotSupported() throws Exception {
-        Capabilities capabilities = mock(Capabilities.class);
-        when(capabilities.supportsDomains()).thenReturn(false);
-        Capabilities.overrideCapabilities(capabilities);
+    public void testDeployPlanOverriddenDuringUpdate() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Persister persister = new MemPersister();
+        SchedulerBuilder builder = new SchedulerBuilder(serviceSpec, SCHEDULER_CONFIG, persister);
 
-        ServiceSpec serviceSpec = DefaultServiceSpec.newBuilder()
-                .name(TestConstants.SERVICE_NAME)
-                .role(TestConstants.ROLE)
-                .principal(TestConstants.PRINCIPAL)
-                .zookeeperConnection("badhost-shouldbeignored:2181")
-                .pods(Arrays.asList(getPodSpec()))
-                .user(TestConstants.SERVICE_USER)
-                .build();
+        Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), true);
 
-        SchedulerBuilder builder = DefaultScheduler.newBuilder(
-                serviceSpec, SchedulerConfig.fromMap(new HashMap<>()), new MemPersister());
-        Optional<PlacementRule> placementRule = builder.getServiceSpec().getPods().get(0).getPlacementRule();
+        Assert.assertEquals(1, plans.size());
+        Plan deployPlan = plans.stream()
+                .filter(plan -> plan.isDeployPlan())
+                .findFirst().get();
 
-        assert !placementRule.isPresent();
+        Assert.assertEquals(1, deployPlan.getChildren().size());
     }
 
     @Test
-    public void constrainToSingleRegion() {
-        PlacementRule placementRule = SchedulerBuilder.getRegionRule(Optional.empty());
-        Assert.assertTrue(placementRule instanceof IsLocalRegionRule);
+    public void testDeployPlanPreservedDuringInstall() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Persister persister = new MemPersister();
+        SchedulerBuilder builder = new SchedulerBuilder(serviceSpec, SCHEDULER_CONFIG, persister);
 
-        placementRule = SchedulerBuilder.getRegionRule(Optional.of("USA"));
-        Assert.assertTrue(placementRule instanceof RegionRule);
+        Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), false);
+
+        Assert.assertEquals(2, plans.size());
+        Plan deployPlan = plans.stream()
+                .filter(plan -> plan.isDeployPlan())
+                .findFirst().get();
+
+        Assert.assertEquals(2, deployPlan.getChildren().size());
     }
 
     private PlacementRule getRemoteRegionRule() {
@@ -108,5 +125,18 @@ public class SchedulerBuilderTest {
                 1.0,
                 256,
                 4096);
+    }
+
+    // Deploy plan has 2 phases, update plan has 1 for distinguishing which was chosen.
+    private static Collection<Plan> getDeployUpdatePlans() {
+        Phase phase = mock(Phase.class);
+
+        Plan deployPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Arrays.asList(phase, phase));
+        Assert.assertEquals(2, deployPlan.getChildren().size());
+
+        Plan updatePlan = new DefaultPlan(Constants.UPDATE_PLAN_NAME, Arrays.asList(phase));
+        Assert.assertEquals(1, updatePlan.getChildren().size());
+
+        return Arrays.asList(deployPlan, updatePlan);
     }
 }
