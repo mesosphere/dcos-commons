@@ -12,11 +12,19 @@ import org.junit.Test;
 public class CommonIdUtilsTest {
     private static final String TEST_SERVICE_NAME = "test-service_name";
     private static final String TEST_FOLDERED_SERVICE_NAME = "/path/to/test-service_name";
-    private static final String TEST_FOLDERED_SANITIZED_NAME = "pathtotest-service_name";
-    private static final String TEST_FOLDERED_SERVICE_NAME2 = "path/to/test-service_name";
-    private static final String TEST_FOLDERED_SANITIZED_NAME2 = "pathtotest-service_name";
+    private static final String TEST_FOLDERED_SERVICE_NAME2 = "path/to.test-service_name";
+    private static final String TEST_FOLDERED_SANITIZED_NAME = "path.to.test-service_name";
     private static final String TEST_TASK_NAME = "test_task-name";
     private static final String TEST_OTHER_NAME = "test-other_name";
+
+    @Test
+    public void testSanitizedNames() {
+        Assert.assertEquals("path.to.service", CommonIdUtils.toSanitizedServiceName("/path/to/service"));
+        Assert.assertEquals("path.to.service", CommonIdUtils.toSanitizedServiceName("//path/to/service///"));
+        Assert.assertEquals("path.to.service", CommonIdUtils.toSanitizedServiceName("path/to/service"));
+        Assert.assertEquals("service", CommonIdUtils.toSanitizedServiceName("/service"));
+        Assert.assertEquals("service", CommonIdUtils.toSanitizedServiceName("///service//"));
+    }
 
     // Task id
 
@@ -76,10 +84,10 @@ public class CommonIdUtilsTest {
     @Test
     public void testFoldered2ToTaskId() throws Exception {
         Protos.TaskID taskId = CommonIdUtils.toTaskId(TEST_FOLDERED_SERVICE_NAME2, TEST_TASK_NAME);
-        Assert.assertTrue(taskId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME2 + "__" + TEST_TASK_NAME + "__"));
+        Assert.assertTrue(taskId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME + "__" + TEST_TASK_NAME + "__"));
         Assert.assertNotNull(UUID.fromString(taskId.getValue().split("__")[2]));
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(taskId));
-        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME2, CommonIdUtils.toSanitizedServiceName(taskId).get());
+        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -157,10 +165,10 @@ public class CommonIdUtilsTest {
     @Test
     public void testFoldered2ToExecutorId() throws Exception {
         Protos.ExecutorID executorId = CommonIdUtils.toExecutorId(TEST_FOLDERED_SERVICE_NAME2, TEST_TASK_NAME);
-        Assert.assertTrue(executorId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME2 + "__" + TEST_TASK_NAME + "__"));
+        Assert.assertTrue(executorId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME + "__" + TEST_TASK_NAME + "__"));
         Assert.assertNotNull(UUID.fromString(executorId.getValue().split("__")[2]));
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(executorId));
-        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME2, CommonIdUtils.toSanitizedServiceName(executorId).get());
+        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME, CommonIdUtils.toSanitizedServiceName(executorId).get());
     }
 
     @Test(expected = IllegalArgumentException.class)

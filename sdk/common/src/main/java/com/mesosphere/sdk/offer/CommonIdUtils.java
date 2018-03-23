@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 
 /**
@@ -14,6 +15,17 @@ public class CommonIdUtils {
      * Used in task and executor IDs to separate the task/executor name from a UUID.
      */
     private static final String NAME_ID_DELIM = "__";
+
+    /**
+     * Mesos disallows slashes in task/executor ids. We therefore need to sanitize service names before embedding them
+     * in task/executor ids.
+     */
+    private static final String SANITIZE_ID_FROM = "/";
+
+    /**
+     * As a part of sanitizing task/executor ids, we replace any slashes with dots.
+     */
+    private static final String SANITIZE_ID_TO = ".";
 
     private static final Protos.TaskID EMPTY_TASK_ID = Protos.TaskID.newBuilder().setValue("").build();
     private static final Protos.SlaveID EMPTY_AGENT_ID = Protos.SlaveID.newBuilder().setValue("").build();
@@ -116,12 +128,13 @@ public class CommonIdUtils {
     /**
      * Returns a sanitized version of the provided service name, suitable for storing in executor/task ids. Note that
      * this sanitized version cannot be directly converted back to the original service name. This utility method is
-     * therefore intended to allow comparison between sanitized names.
+     * therefore make public to allow comparison between sanitized names as needed.
+     * <p>
+     * For example: {@code /path/to/service} => {@code path.to.service}
      */
     public static String toSanitizedServiceName(String serviceName) {
-        // Remove any slashes from the service name. Note that certain endpoints already do this, so there's an implicit
-        // uniqueness requirement between e.g. "/path/to/service" and "pathtoservice". See EndpointUtils.
-        return serviceName.replace("/", "");
+        // Remove any leading/trailing slashes. Replace any other slashes with dots.
+        return StringUtils.strip(serviceName, SANITIZE_ID_FROM).replace(SANITIZE_ID_FROM, SANITIZE_ID_TO);
     }
 
     /**
