@@ -23,20 +23,23 @@ public class CommonIdUtils {
     }
 
     /**
-     * Converts the unique {@link TaskID} into a Service name.
+     * Returns the embedded de-slashed service name, or an empty Optional if no service name was found. The returned
+     * value will omit any slashes which may have been present in the original service name. Service names are only
+     * embedded in task IDs as of SDK 0.50.
      * <p>
-     * For example: "service__instance-0__aoeu5678" => "instance-0", or "instance-0__aoeu5678" => Empty
+     * For example: "pathtoservice__instance-0__aoeu5678" => "pathtoservice" (NOT "/path/to/service"),
+     * or "instance-0__aoeu5678" => Empty
      *
      * @see #toTaskId(String)
      */
-    public static Optional<String> toServiceName(Protos.TaskID taskId) throws TaskException {
+    public static Optional<String> toSanitizedServiceName(Protos.TaskID taskId) throws TaskException {
         return extractFirstNameFromId(taskId.getValue());
     }
 
     /**
      * Converts the unique {@link TaskID} into a Framework defined task name.
      * <p>
-     * For example: "service__instance-0__aoeu5678" => "instance-0"
+     * For example: "pathtoservice__instance-0__aoeu5678" => "instance-0"
      *
      * @see #toTaskId(String)
      */
@@ -47,30 +50,34 @@ public class CommonIdUtils {
     /**
      * Converts the Framework defined task name into a unique {@link TaskID}.
      * <p>
-     * For example: "instance-0" => "instance-0__aoeu5678"
+     * For example: "/path/to/service" + "instance-0" => "pathtoservice__instance-0__aoeu5678"
      *
-     * @throws IllegalArgumentException if the provided {@code name} contains the "__" delimiter
-     * @see #toTaskName(TaskID)
+     * @throws IllegalArgumentException if the provided {@code serviceName} or {@code taskName} contain "__"
+     * @see #toTaskName(org.apache.mesos.Protos.TaskID)
+     * @see #toSanitizedServiceName(org.apache.mesos.Protos.TaskID)
      */
     public static Protos.TaskID toTaskId(String serviceName, String taskName) throws IllegalArgumentException {
-        return Protos.TaskID.newBuilder().setValue(generateIdString(serviceName, taskName)).build();
+        return Protos.TaskID.newBuilder().setValue(toIdString(serviceName, taskName)).build();
     }
 
     /**
-     * Converts the unique {@link Protos.ExecutorID} into a Service name.
+     * Returns the embedded de-slashed service name, or an empty Optional if no service name was found. The returned
+     * value will omit any slashes which may have been present in the original service name. Service names are only
+     * embedded in executor IDs as of SDK 0.50.
      * <p>
-     * For example: "service__instance-0__aoeu5678" => "service", or "instance-0__aoeu5678" => Empty
+     * For example: "pathtoservice__instance-0__aoeu5678" => "pathtoservice" (NOT "/path/to/service"),
+     * or "instance-0__aoeu5678" => Empty
      *
      * @see #toExecutorId(String)
      */
-    public static Optional<String> toServiceName(Protos.ExecutorID executorId) throws TaskException {
+    public static Optional<String> toSanitizedServiceName(Protos.ExecutorID executorId) throws TaskException {
         return extractFirstNameFromId(executorId.getValue());
     }
 
     /**
      * Converts the unique {@link Protos.ExecutorID} into a Framework defined executor name.
      * <p>
-     * For example: "service__instance-0__aoeu5678" => "instance-0"
+     * For example: "__path__to__service__instance-0__aoeu5678" => "instance-0"
      *
      * @see #toExecutorId(String)
      */
@@ -81,14 +88,15 @@ public class CommonIdUtils {
     /**
      * Converts the Framework defined Executor name into a unique {@link Protos.ExecutorID}.
      * <p>
-     * For example: "instance-0" => "instance-0_aoeu5678"
+     * For example: "/path/to/service" + "instance-0" => "__path__to__service__instance-0__aoeu5678"
      *
-     * @throws IllegalArgumentException if the provided {@code name} contains the "__" delimiter
-     * @see #toExecutorName(ExecutorID)
+     * @throws IllegalArgumentException if the provided {@code serviceName} or {@code taskName} contain "__"
+     * @see #toExecutorName(org.apache.mesos.Protos.ExecutorID)
+     * @see #toSanitizedServiceName(org.apache.mesos.Protos.ExecutorID)
      */
     public static Protos.ExecutorID toExecutorId(String serviceName, String executorName)
             throws IllegalArgumentException {
-        return Protos.ExecutorID.newBuilder().setValue(generateIdString(serviceName, executorName)).build();
+        return Protos.ExecutorID.newBuilder().setValue(toIdString(serviceName, executorName)).build();
     }
 
     /**
@@ -106,6 +114,17 @@ public class CommonIdUtils {
     }
 
     /**
+     * Returns a sanitized version of the provided service name, suitable for storing in executor/task ids. Note that
+     * this sanitized version cannot be directly converted back to the original service name. This utility method is
+     * therefore intended to allow comparison between sanitized names.
+     */
+    public static String toSanitizedServiceName(String serviceName) {
+        // Remove any slashes from the service name. Note that certain endpoints already do this, so there's an implicit
+        // uniqueness requirement between e.g. "/path/to/service" and "pathtoservice". See EndpointUtils.
+        return serviceName.replace("/", "");
+    }
+
+    /**
      * Returns a new unique task or executor ID.
      *
      * @throws IllegalArgumentException if the provided {@code name} contains the "__" delimiter
@@ -113,7 +132,7 @@ public class CommonIdUtils {
      * @see #extractFirstNameFromId(String)
      * @see #extractLastNameFromId(String)
      */
-    private static String generateIdString(String serviceName, String itemName) throws IllegalArgumentException {
+    private static String toIdString(String serviceName, String itemName) throws IllegalArgumentException {
         if (serviceName.contains(NAME_ID_DELIM)) {
             throw new IllegalArgumentException(
                     String.format("Service cannot contain delimiter '%s': %s", NAME_ID_DELIM, serviceName));
@@ -122,7 +141,9 @@ public class CommonIdUtils {
             throw new IllegalArgumentException(
                     String.format("Name cannot contain delimiter '%s': %s", NAME_ID_DELIM, itemName));
         }
-        return serviceName + NAME_ID_DELIM + itemName + NAME_ID_DELIM + UUID.randomUUID();
+        // Remove any slashes from the service name. Note that certain endpoints already do this, so there's an implicit
+        // uniqueness requirement between e.g. "/path/to/service" and "pathtoservice". See EndpointUtils.
+        return toSanitizedServiceName(serviceName) + NAME_ID_DELIM + itemName + NAME_ID_DELIM + UUID.randomUUID();
     }
 
     /**

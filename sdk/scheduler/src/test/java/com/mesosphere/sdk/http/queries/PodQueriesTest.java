@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.http.queries;
 
+import com.mesosphere.sdk.framework.Driver;
+import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
-import com.mesosphere.sdk.scheduler.Driver;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -192,7 +192,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-0-a", task.getString("name"));
         Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("RUNNING", task.getString("status"));
 
@@ -200,7 +200,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-0-b", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("b", CommonIdUtils.toTaskName(taskId));
         assertEquals("STARTING", task.getString("status"));
 
@@ -208,7 +208,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-0-c", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("c", CommonIdUtils.toTaskName(taskId));
         assertEquals("PAUSING", task.getString("status"));
 
@@ -216,7 +216,7 @@ public class PodQueriesTest {
         assertEquals(2, task.length());
         assertEquals("test-0-d", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("d", CommonIdUtils.toTaskName(taskId));
 
         podInstance = instances.getJSONObject(1);
@@ -228,7 +228,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-a", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("FINISHED", task.getString("status"));
 
@@ -236,7 +236,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-b", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("b", CommonIdUtils.toTaskName(taskId));
         assertEquals("STARTING", task.getString("status"));
 
@@ -249,7 +249,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-2-a", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("FINISHED", task.getString("status"));
 
@@ -267,7 +267,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-task-name", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("test-task-name", CommonIdUtils.toTaskName(taskId));
         assertEquals("PAUSED", task.getString("status"));
     }
@@ -293,7 +293,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-a", task.getString("name"));
         Protos.TaskID taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("a", CommonIdUtils.toTaskName(taskId));
         assertEquals("FINISHED", task.getString("status"));
 
@@ -301,7 +301,7 @@ public class PodQueriesTest {
         assertEquals(3, task.length());
         assertEquals("test-1-b", task.getString("name"));
         taskId = Protos.TaskID.newBuilder().setValue(task.getString("id")).build();
-        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        assertEquals(TestConstants.SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
         assertEquals("b", CommonIdUtils.toTaskName(taskId));
         assertEquals("PAUSING", task.getString("status"));
     }

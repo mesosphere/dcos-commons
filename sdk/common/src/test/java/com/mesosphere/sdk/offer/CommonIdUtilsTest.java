@@ -11,6 +11,10 @@ import org.junit.Test;
  */
 public class CommonIdUtilsTest {
     private static final String TEST_SERVICE_NAME = "test-service_name";
+    private static final String TEST_FOLDERED_SERVICE_NAME = "/path/to/test-service_name";
+    private static final String TEST_FOLDERED_SANITIZED_NAME = "pathtotest-service_name";
+    private static final String TEST_FOLDERED_SERVICE_NAME2 = "path/to/test-service_name";
+    private static final String TEST_FOLDERED_SANITIZED_NAME2 = "pathtotest-service_name";
     private static final String TEST_TASK_NAME = "test_task-name";
     private static final String TEST_OTHER_NAME = "test-other_name";
 
@@ -20,35 +24,35 @@ public class CommonIdUtilsTest {
     public void testValidToTaskName() throws Exception {
         Protos.TaskID validTaskId = getTaskId(TEST_TASK_NAME + "__id");
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
-        Assert.assertFalse(CommonIdUtils.toServiceName(validTaskId).isPresent());
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validTaskId).isPresent());
     }
 
     @Test
     public void testValidToUnderscoreTaskName() throws Exception {
         Protos.TaskID validTaskId = getTaskId("___id");
         Assert.assertEquals("_", CommonIdUtils.toTaskName(validTaskId));
-        Assert.assertFalse(CommonIdUtils.toServiceName(validTaskId).isPresent());
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validTaskId).isPresent());
     }
 
     @Test
     public void testMultiValidToTaskName() throws Exception {
         Protos.TaskID validTaskId = getTaskId(TEST_OTHER_NAME + "__" + TEST_TASK_NAME + "__id");
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
-        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toServiceName(validTaskId).get());
+        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toSanitizedServiceName(validTaskId).get());
     }
 
     @Test
     public void testMultiValidToEmptyTaskName() throws Exception {
         Protos.TaskID validTaskId = getTaskId(TEST_OTHER_NAME + "____id");
         Assert.assertEquals("", CommonIdUtils.toTaskName(validTaskId));
-        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toServiceName(validTaskId).get());
+        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toSanitizedServiceName(validTaskId).get());
     }
 
     @Test
     public void testMultiToUnderscoreTaskName() throws Exception {
         Protos.TaskID validTaskId = getTaskId(TEST_OTHER_NAME + "___id");
         Assert.assertEquals(TEST_OTHER_NAME + "_", CommonIdUtils.toTaskName(validTaskId));
-        Assert.assertFalse(CommonIdUtils.toServiceName(validTaskId).isPresent());
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validTaskId).isPresent());
     }
 
     @Test
@@ -57,7 +61,25 @@ public class CommonIdUtilsTest {
         Assert.assertTrue(taskId.getValue().startsWith(TEST_SERVICE_NAME + "__" + TEST_TASK_NAME + "__"));
         Assert.assertNotNull(UUID.fromString(taskId.getValue().split("__")[2]));
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(taskId));
-        Assert.assertEquals(TEST_SERVICE_NAME, CommonIdUtils.toServiceName(taskId).get());
+        Assert.assertEquals(TEST_SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
+    }
+
+    @Test
+    public void testFoldered1ToTaskId() throws Exception {
+        Protos.TaskID taskId = CommonIdUtils.toTaskId(TEST_FOLDERED_SERVICE_NAME, TEST_TASK_NAME);
+        Assert.assertTrue(taskId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME + "__" + TEST_TASK_NAME + "__"));
+        Assert.assertNotNull(UUID.fromString(taskId.getValue().split("__")[2]));
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(taskId));
+        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
+    }
+
+    @Test
+    public void testFoldered2ToTaskId() throws Exception {
+        Protos.TaskID taskId = CommonIdUtils.toTaskId(TEST_FOLDERED_SERVICE_NAME2, TEST_TASK_NAME);
+        Assert.assertTrue(taskId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME2 + "__" + TEST_TASK_NAME + "__"));
+        Assert.assertNotNull(UUID.fromString(taskId.getValue().split("__")[2]));
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(taskId));
+        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME2, CommonIdUtils.toSanitizedServiceName(taskId).get());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -83,35 +105,35 @@ public class CommonIdUtilsTest {
     public void testValidToExecutorName() throws Exception {
         Protos.ExecutorID validExecutorId = getExecutorId(TEST_TASK_NAME + "__id");
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(validExecutorId));
-        Assert.assertFalse(CommonIdUtils.toServiceName(validExecutorId).isPresent());
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validExecutorId).isPresent());
     }
 
     @Test
     public void testValidToUnderscoreExecutorName() throws Exception {
         Protos.ExecutorID validExecutorId = getExecutorId("___id");
         Assert.assertEquals("_", CommonIdUtils.toExecutorName(validExecutorId));
-        Assert.assertFalse(CommonIdUtils.toServiceName(validExecutorId).isPresent());
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validExecutorId).isPresent());
     }
 
     @Test
     public void testMultiValidToExecutorName() throws Exception {
         Protos.ExecutorID validExecutorId = getExecutorId(TEST_OTHER_NAME + "__" + TEST_TASK_NAME + "__id");
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(validExecutorId));
-        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toServiceName(validExecutorId).get());
+        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toSanitizedServiceName(validExecutorId).get());
     }
 
     @Test
     public void testMultiValidToEmptyExecutorName() throws Exception {
         Protos.ExecutorID validExecutorId = getExecutorId(TEST_OTHER_NAME + "____id");
         Assert.assertEquals("", CommonIdUtils.toExecutorName(validExecutorId));
-        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toServiceName(validExecutorId).get());
+        Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toSanitizedServiceName(validExecutorId).get());
     }
 
     @Test
     public void testMultiToUnderscoreExecutorName() throws Exception {
         Protos.ExecutorID validExecutorId = getExecutorId(TEST_OTHER_NAME + "___id");
         Assert.assertEquals(TEST_OTHER_NAME + "_", CommonIdUtils.toExecutorName(validExecutorId));
-        Assert.assertFalse(CommonIdUtils.toServiceName(validExecutorId).isPresent());
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validExecutorId).isPresent());
     }
 
     @Test
@@ -120,7 +142,25 @@ public class CommonIdUtilsTest {
         Assert.assertTrue(executorId.getValue().startsWith(TEST_SERVICE_NAME + "__" + TEST_TASK_NAME + "__"));
         Assert.assertNotNull(UUID.fromString(executorId.getValue().split("__")[2]));
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(executorId));
-        Assert.assertEquals(TEST_SERVICE_NAME, CommonIdUtils.toServiceName(executorId).get());
+        Assert.assertEquals(TEST_SERVICE_NAME, CommonIdUtils.toSanitizedServiceName(executorId).get());
+    }
+
+    @Test
+    public void testFoldered1ToExecutorId() throws Exception {
+        Protos.ExecutorID executorId = CommonIdUtils.toExecutorId(TEST_FOLDERED_SERVICE_NAME, TEST_TASK_NAME);
+        Assert.assertTrue(executorId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME + "__" + TEST_TASK_NAME + "__"));
+        Assert.assertNotNull(UUID.fromString(executorId.getValue().split("__")[2]));
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(executorId));
+        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME, CommonIdUtils.toSanitizedServiceName(executorId).get());
+    }
+
+    @Test
+    public void testFoldered2ToExecutorId() throws Exception {
+        Protos.ExecutorID executorId = CommonIdUtils.toExecutorId(TEST_FOLDERED_SERVICE_NAME2, TEST_TASK_NAME);
+        Assert.assertTrue(executorId.getValue().startsWith(TEST_FOLDERED_SANITIZED_NAME2 + "__" + TEST_TASK_NAME + "__"));
+        Assert.assertNotNull(UUID.fromString(executorId.getValue().split("__")[2]));
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(executorId));
+        Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME2, CommonIdUtils.toSanitizedServiceName(executorId).get());
     }
 
     @Test(expected = IllegalArgumentException.class)
