@@ -1,10 +1,14 @@
 import logging
 
+import dcos
 import pytest
+import shakedown
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_tasks
 import sdk_utils
 from tests import config
 
@@ -86,9 +90,23 @@ def test_region_config_update_does_not_succeed(local_service):
 
 
 def change_region_config(region_name):
+    current_scheduler_id = get_scheduler_task_id()
+
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
     service_config['env']['SERVICE_REGION'] = region_name
     sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
+    sdk_tasks.check_task_relaunched(config.SERVICE_NAME, current_scheduler_id)
+
+
+def get_scheduler_task_id():
+    try:
+        tasks = [
+            t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == config.SERVICE_NAME
+        ]
+    except dcos.errors.DCOSHTTPException:
+        tasks = []
+
+    return tasks[0] if tasks else None
 
 
 def get_pod_region(service_name, pod_name):
