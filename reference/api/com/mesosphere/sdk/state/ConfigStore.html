@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -122,12 +122,11 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <div class="block">An implementation of <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which relies on the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> for data persistence.
  <p>
  <p>The ZNode structure in Zookeeper is as follows:
- <br>rootPath/
- <br>&nbsp;-> ConfigTarget (contains UUID)
- <br>&nbsp;-> Configurations/
- <br>&nbsp;&nbsp;-> [Config-ID-0] (contains serialized config)
- <br>&nbsp;&nbsp;-> [Config-ID-1] (contains serialized config)
- <br>&nbsp;&nbsp;-> ...</div>
+ <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
+ <br>&nbsp; ConfigTarget (contains UUID)
+ <br>&nbsp; Configurations/
+ <br>&nbsp; &nbsp; UUID-0 (contains serialized config)
+ <br>&nbsp; &nbsp; UUID-1 (contains serialized config)</div>
 </li>
 </ul>
 </div>
@@ -148,7 +147,16 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">ConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
            <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data within
+ the root namespace.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-java.lang.String-">ConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
+           <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+           java.lang.String&nbsp;namespace)</code>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data within
+ the provided <code>namespace</code>.</div>
 </td>
 </tr>
 </table>
@@ -188,22 +196,42 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#hasKey-java.util.UUID-">hasKey</a></span>(java.util.UUID&nbsp;id)</code>
+<div class="block">Indicates whether the provided key is present in the store.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.util.UUID&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#list--">list</a></span>()</code>
 <div class="block">Returns a list of all stored configuration UUIDs, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setConfigurationFactory-com.mesosphere.sdk.config.ConfigurationFactory-">setConfigurationFactory</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory)</code>
+<div class="block">Overrides the configuration factory which was provided in the constructor.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></span>(java.util.UUID&nbsp;id)</code>
 <div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#store-T-">store</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&nbsp;config)</code>
 <div class="block">Serializes the provided <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> using its <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>
  function, writes it to storage, and returns the UUID which it was stored against.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#store-java.util.UUID-T-">store</a></span>(java.util.UUID&nbsp;id,
+     <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&nbsp;config)</code>
+<div class="block">Serializes the provided <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> using its <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>
+ function, writes it to storage with the provided ID as a key.</div>
 </td>
 </tr>
 </table>
@@ -231,12 +259,37 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <a name="ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>ConfigStore</h4>
 <pre>public&nbsp;ConfigStore(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
                    <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data.</div>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data within
+ the root namespace.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>factory</code> - The factory used to convert raw bytes to config objects of type <code>T</code></dd>
+<dd><code>persister</code> - The persister which holds the config data</dd>
+</dl>
+</li>
+</ul>
+<a name="ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>ConfigStore</h4>
+<pre>public&nbsp;ConfigStore(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
+                   <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+                   java.lang.String&nbsp;namespace)</pre>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data within
+ the provided <code>namespace</code>.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>factory</code> - The factory used to convert raw bytes to config objects of type <code>T</code></dd>
+<dd><code>persister</code> - The persister which holds the config data</dd>
+<dd><code>namespace</code> - The namespace for data to be stored within, or an empty string for no namespacing</dd>
+</dl>
 </li>
 </ul>
 </li>
@@ -247,6 +300,31 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="setConfigurationFactory-com.mesosphere.sdk.config.ConfigurationFactory-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setConfigurationFactory</h4>
+<pre>public&nbsp;void&nbsp;setConfigurationFactory(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory)</pre>
+<div class="block">Overrides the configuration factory which was provided in the constructor.</div>
+</li>
+</ul>
+<a name="hasKey-java.util.UUID-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>hasKey</h4>
+<pre>public&nbsp;boolean&nbsp;hasKey(java.util.UUID&nbsp;id)
+               throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
+<div class="block">Indicates whether the provided key is present in the store.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code></dd>
+</dl>
+</li>
+</ul>
 <a name="store-com.mesosphere.sdk.config.Configuration-">
 <!--   -->
 </a><a name="store-T-">
@@ -262,6 +340,25 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if serialization or writing fails</dd>
+</dl>
+</li>
+</ul>
+<a name="store-java.util.UUID-com.mesosphere.sdk.config.Configuration-">
+<!--   -->
+</a><a name="store-java.util.UUID-T-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>store</h4>
+<pre>public&nbsp;void&nbsp;store(java.util.UUID&nbsp;id,
+                  <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&nbsp;config)
+           throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
+<div class="block">Serializes the provided <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> using its <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>
+ function, writes it to storage with the provided ID as a key.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - is serialization or writing fails</dd>
 </dl>
 </li>
 </ul>

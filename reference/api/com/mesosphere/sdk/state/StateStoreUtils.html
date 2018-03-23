@@ -355,7 +355,9 @@ extends java.lang.Object</pre>
 <h4>isUninstalling</h4>
 <pre>public static&nbsp;boolean&nbsp;isUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)
                               throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<div class="block">Returns the current value of the 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>. If the
+ <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> was created against a namespaced service, then this returns whether that service is
+ uninstalling.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
@@ -369,7 +371,9 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setUninstalling</h4>
 <pre>public static&nbsp;void&nbsp;setUninstalling(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>.</div>
+<div class="block">Sets an 'uninstall' property in the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> to <code>true</code>. If the <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> was
+ created against a namespaced service, then this flags that service as uninstalling. This value may be checked
+ using <a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#isUninstalling-com.mesosphere.sdk.state.StateStore-"><code>isUninstalling(StateStore)</code></a>.</div>
 </li>
 </ul>
 <a name="fetchBooleanProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">

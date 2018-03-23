@@ -157,7 +157,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#DeregisterStep-com.mesosphere.sdk.state.StateStore-">DeregisterStep</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#DeregisterStep-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-">DeregisterStep</a></span>(<a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
+              <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Creates a new instance with initial <code>status</code>.</div>
 </td>
 </tr>
@@ -232,13 +233,14 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DeregisterStep-com.mesosphere.sdk.state.StateStore-">
+<a name="DeregisterStep-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DeregisterStep</h4>
-<pre>DeregisterStep(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+<pre>DeregisterStep(<a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
+               <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 <div class="block">Creates a new instance with initial <code>status</code>. The <code>SchedulerDriver</code> must be
  set separately.</div>
 </li>

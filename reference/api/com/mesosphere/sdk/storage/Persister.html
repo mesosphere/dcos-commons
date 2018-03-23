@@ -258,7 +258,7 @@ var activeTableTab = "activeTableTab";
 <pre>java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;getMany(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)
                                         throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block">Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
- missing will be unset in the returned <code>Map</code>.</div>
+ missing will be set to <code>null</code> in the returned <code>Map</code>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error</dd>

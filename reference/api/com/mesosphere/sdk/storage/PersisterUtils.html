@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -156,26 +156,52 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#clearAllData-com.mesosphere.sdk.storage.Persister-">clearAllData</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
+<div class="block">Deletes all data in the provided persister, or does nothing if the persister is already empty.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>static java.util.Collection&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#fetchServiceNamespaces-com.mesosphere.sdk.storage.Persister-">fetchServiceNamespaces</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
+<div class="block">Returns all <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or an empty collection if
+ none could be found.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.Map&lt;java.lang.String,byte[]&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getAllData-com.mesosphere.sdk.storage.Persister-">getAllData</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
 <div class="block">Returns all data present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat map, omitting any stub parent entries
  with <code>null</code> data.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getAllKeys-com.mesosphere.sdk.storage.Persister-">getAllKeys</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
 <div class="block">Returns a complete list of all keys present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat list, including stub
  parent entries which may lack data.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getParentPaths-java.lang.String-">getParentPaths</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Returns a recursive list of all paths which are the parent of the provided path.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getServiceNamespacedRoot-java.lang.String-">getServiceNamespacedRoot</a></span>(java.lang.String&nbsp;namespace)</code>
+<div class="block">Returns the root path for the provided namespace.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getServiceNamespacedRootPath-java.lang.String-java.lang.String-">getServiceNamespacedRootPath</a></span>(java.lang.String&nbsp;namespace,
+                            java.lang.String&nbsp;pathName)</code>
+<div class="block">Returns a namespaced path or non-namespaced path, depending on the provided namespace value.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#join-java.lang.String-java.lang.String-">join</a></span>(java.lang.String&nbsp;first,
     java.lang.String&nbsp;second)</code>
@@ -236,6 +262,60 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="fetchServiceNamespaces-com.mesosphere.sdk.storage.Persister-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>fetchServiceNamespaces</h4>
+<pre>public static&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;fetchServiceNamespaces(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
+                                                                     throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block">Returns all <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or an empty collection if
+ none could be found.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>persister</code> - the persister to be scanned</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if there's a storage error other than data not found</dd>
+</dl>
+</li>
+</ul>
+<a name="getServiceNamespacedRoot-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getServiceNamespacedRoot</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;getServiceNamespacedRoot(java.lang.String&nbsp;namespace)</pre>
+<div class="block">Returns the root path for the provided namespace.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>namespace</code> - the namespace to use</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd><code>Services/[namespace]</code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.IllegalArgumentException</code> - if the provided namespace is an empty string</dd>
+</dl>
+</li>
+</ul>
+<a name="getServiceNamespacedRootPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getServiceNamespacedRootPath</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;getServiceNamespacedRootPath(java.lang.String&nbsp;namespace,
+                                                            java.lang.String&nbsp;pathName)</pre>
+<div class="block">Returns a namespaced path or non-namespaced path, depending on the provided namespace value.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>namespace</code> - the namespace to use, or an empty string if no namespace is applicable</dd>
+<dd><code>pathName</code> - the path to be namespaced (or not)</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd><code>Services/[namespace]/pathName</code>, or <code>pathName</code></dd>
+</dl>
+</li>
+</ul>
 <a name="join-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
@@ -245,6 +325,13 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.lang.String&nbsp;join(java.lang.String&nbsp;first,
                                     java.lang.String&nbsp;second)</pre>
 <div class="block">Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>first</code> - The first element of the path</dd>
+<dd><code>second</code> - The second element of the path (within <code>first</code>)</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd><code>first/second</code>, with any duplicate slashes cleaned up</dd>
+</dl>
 </li>
 </ul>
 <a name="getParentPaths-java.lang.String-">
@@ -278,7 +365,7 @@ extends java.lang.Object</pre>
 <a name="getAllKeys-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getAllKeys</h4>
 <pre>public static&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getAllKeys(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
@@ -288,6 +375,21 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> couldn't be accessed</dd>
+</dl>
+</li>
+</ul>
+<a name="clearAllData-com.mesosphere.sdk.storage.Persister-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>clearAllData</h4>
+<pre>public static&nbsp;void&nbsp;clearAllData(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
+                         throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block">Deletes all data in the provided persister, or does nothing if the persister is already empty.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code></dd>
 </dl>
 </li>
 </ul>

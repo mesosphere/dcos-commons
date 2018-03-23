@@ -129,7 +129,8 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/StateResource.html#StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">StateResource</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/StateResource.html#StateResource-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">StateResource</a></span>(<a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
+             <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
              <a href="../../../../../com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types">PropertyDeserializer</a>&nbsp;propertyDeserializer)</code>
 <div class="block">Creates a new StateResource which can deserialize Properties.</div>
 </td>
@@ -213,13 +214,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="StateResource-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">
+<a name="StateResource-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.http.types.PropertyDeserializer-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>StateResource</h4>
-<pre>public&nbsp;StateResource(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<pre>public&nbsp;StateResource(<a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
+                     <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                      <a href="../../../../../com/mesosphere/sdk/http/types/PropertyDeserializer.html" title="interface in com.mesosphere.sdk.http.types">PropertyDeserializer</a>&nbsp;propertyDeserializer)</pre>
 <div class="block">Creates a new StateResource which can deserialize Properties. Callers will be able to view
  the content of individual Properties.</div>

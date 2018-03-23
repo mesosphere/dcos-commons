@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":9,"i14":9,"i15":10,"i16":9,"i17":9,"i18":9,"i19":10,"i20":10,"i21":10,"i22":10,"i23":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":9,"i12":9,"i13":10,"i14":9,"i15":9,"i16":9,"i17":9,"i18":10,"i19":10,"i20":10,"i21":10,"i22":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -119,18 +119,22 @@ extends java.lang.Object</pre>
  change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
 
  <p>The structure used in the underlying persister is as follows:
- <br>rootPath/
- <br>&nbsp;-> FrameworkID
- <br>&nbsp;-> Tasks/
- <br>&nbsp;&nbsp;-> [TaskName-0]/
- <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
- <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
- <br>&nbsp;&nbsp;-> [TaskName-1]/
- <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
- <br>&nbsp;&nbsp;-> [TaskName-2]/
- <br>&nbsp;&nbsp;&nbsp;-> TaskInfo
- <br>&nbsp;&nbsp;&nbsp;-> TaskStatus
- <br>&nbsp;&nbsp;-> ...</div>
+ <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
+ <br>&nbsp; Tasks/
+ <br>&nbsp; &nbsp; task-a/
+ <br>&nbsp; &nbsp; &nbsp; TaskInfo
+ <br>&nbsp; &nbsp; &nbsp; TaskStatus
+ <br>&nbsp; &nbsp; &nbsp; Metadata/
+ <br>&nbsp; &nbsp; &nbsp; &nbsp; goal-state-override
+ <br>&nbsp; &nbsp; &nbsp; &nbsp; override-status
+ <br>&nbsp; &nbsp; task-b/
+ <br>&nbsp; &nbsp; &nbsp; TaskInfo
+ <br>&nbsp; &nbsp; task-c/
+ <br>&nbsp; &nbsp; &nbsp; TaskInfo
+ <br>&nbsp; &nbsp; &nbsp; TaskStatus
+ <br>&nbsp; Properties/
+ <br>&nbsp; &nbsp; some-property
+ <br>&nbsp; &nbsp; another-property</div>
 </li>
 </ul>
 </div>
@@ -150,6 +154,10 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#namespace">namespace</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#persister">persister</a></span></code>&nbsp;</td>
 </tr>
@@ -172,6 +180,12 @@ extends java.lang.Object</pre>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
 </td>
 </tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#StateStore-com.mesosphere.sdk.storage.Persister-java.lang.String-">StateStore</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+          java.lang.String&nbsp;namespace)</code>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> where data is placed within a namespace under the provided name.</div>
+</td>
+</tr>
 </table>
 </li>
 </ul>
@@ -189,136 +203,134 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearAllData--">clearAllData</a></span>()</code>
-<div class="block">Clears the root service node, leaving just the root node behind.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearFrameworkId--">clearFrameworkId</a></span>()</code>
-<div class="block">Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearProperty-java.lang.String-">clearProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Clears a given property from the StateStore, or does nothing if no such property exists.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#clearTask-java.lang.String-">clearTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Removes all data associated with a particular Task including any stored TaskInfo and/or TaskStatus.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>java.util.Optional&lt;Protos.FrameworkID&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchFrameworkId--">fetchFrameworkId</a></span>()</code>
-<div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#deleteAllDataIfNamespaced--">deleteAllDataIfNamespaced</a></span>()</code>
+<div class="block">Deletes all data in the state store, but only if it's under a namespace.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchGoalOverrideStatus-java.lang.String-">fetchGoalOverrideStatus</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Retrieves the goal state override status of a particular task.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>byte[]</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchProperty-java.lang.String-">fetchProperty</a></span>(java.lang.String&nbsp;key)</code>
 <div class="block">Fetches the value byte array, stored against the Property <code>key</code>, or throws an error if no matching <code>key</code> is found.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchPropertyKeys--">fetchPropertyKeys</a></span>()</code>
 <div class="block">Fetches the list of Property keys, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatus-java.lang.String-">fetchStatus</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskStatus for a particular Task, or returns an empty Optional if no matching status is found.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchStatuses--">fetchStatuses</a></span>()</code>
 <div class="block">Fetches all <code>Protos.TaskStatus</code>es from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTask-java.lang.String-">fetchTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Fetches the TaskInfo for a particular Task, or returns an empty Optional if no matching task is found.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTaskNames--">fetchTaskNames</a></span>()</code>
 <div class="block">Fetches all the Task names listed in the underlying storage.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#fetchTasks--">fetchTasks</a></span>()</code>
 <div class="block">Fetches and returns all <code>Protos.TaskInfo</code>s from the underlying storage, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getGoalOverridePath-java.lang.String-">getGoalOverridePath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getGoalOverridePath-java.lang.String-java.lang.String-">getGoalOverridePath</a></span>(java.lang.String&nbsp;namespace,
+                   java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+</tr>
+<tr id="i12" class="altColor">
+<td class="colFirst"><code>protected static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getGoalOverrideStatusPath-java.lang.String-java.lang.String-">getGoalOverrideStatusPath</a></span>(java.lang.String&nbsp;namespace,
+                         java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getPersister--">getPersister</a></span>()</code>
+<div class="block">Returns the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>.</div>
+</td>
 </tr>
 <tr id="i14" class="altColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getGoalOverrideStatusPath-java.lang.String-">getGoalOverrideStatusPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getPropertyPath-java.lang.String-java.lang.String-">getPropertyPath</a></span>(java.lang.String&nbsp;namespace,
+               java.lang.String&nbsp;propertyName)</code>&nbsp;</td>
 </tr>
 <tr id="i15" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getPersister--">getPersister</a></span>()</code>
-<div class="block">Returns the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object for direct access.</div>
-</td>
+<td class="colFirst"><code>protected static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskInfoPath-java.lang.String-java.lang.String-">getTaskInfoPath</a></span>(java.lang.String&nbsp;namespace,
+               java.lang.String&nbsp;taskName)</code>&nbsp;</td>
 </tr>
 <tr id="i16" class="altColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskInfoPath-java.lang.String-">getTaskInfoPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskPath-java.lang.String-java.lang.String-">getTaskPath</a></span>(java.lang.String&nbsp;namespace,
+           java.lang.String&nbsp;taskName)</code>&nbsp;</td>
 </tr>
 <tr id="i17" class="rowColor">
 <td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskPath-java.lang.String-">getTaskPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskStatusPath-java.lang.String-java.lang.String-">getTaskStatusPath</a></span>(java.lang.String&nbsp;namespace,
+                 java.lang.String&nbsp;taskName)</code>&nbsp;</td>
 </tr>
 <tr id="i18" class="altColor">
-<td class="colFirst"><code>protected static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#getTaskStatusPath-java.lang.String-">getTaskStatusPath</a></span>(java.lang.String&nbsp;taskName)</code>&nbsp;</td>
-</tr>
-<tr id="i19" class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeFrameworkId-Protos.FrameworkID-">storeFrameworkId</a></span>(Protos.FrameworkID&nbsp;fwkId)</code>
-<div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
-</td>
-</tr>
-<tr id="i20" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeGoalOverrideStatus-java.lang.String-com.mesosphere.sdk.state.GoalStateOverride.Status-">storeGoalOverrideStatus</a></span>(java.lang.String&nbsp;taskName,
                        <a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a>&nbsp;status)</code>
 <div class="block">Stores the goal state override status of a particular Task.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i19" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeProperties-java.util.Map-">storeProperties</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;properties)</code>
+<div class="block">Stores multiple key/value pairs atomically.</div>
+</td>
+</tr>
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeProperty-java.lang.String-byte:A-">storeProperty</a></span>(java.lang.String&nbsp;key,
              byte[]&nbsp;value)</code>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-">storeStatus</a></span>(java.lang.String&nbsp;taskName,
            Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks</a></span>(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</code>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
@@ -349,10 +361,19 @@ extends java.lang.Object</pre>
 <a name="persister">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>persister</h4>
 <pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a> persister</pre>
+</li>
+</ul>
+<a name="namespace">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>namespace</h4>
+<pre>protected final&nbsp;java.lang.String namespace</pre>
 </li>
 </ul>
 </li>
@@ -366,7 +387,7 @@ extends java.lang.Object</pre>
 <a name="StateStore-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>StateStore</h4>
 <pre>public&nbsp;StateStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
@@ -374,6 +395,22 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>persister</code> - The persister which holds the state data</dd>
+</dl>
+</li>
+</ul>
+<a name="StateStore-com.mesosphere.sdk.storage.Persister-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>StateStore</h4>
+<pre>public&nbsp;StateStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+                  java.lang.String&nbsp;namespace)</pre>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> where data is placed within a namespace under the provided name.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>persister</code> - The persister which holds the state data</dd>
+<dd><code>namespace</code> - The namespace for data to be stored within, or an empty string for no namespacing</dd>
 </dl>
 </li>
 </ul>
@@ -385,53 +422,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="storeFrameworkId-Protos.FrameworkID-">
+<a name="getPersister--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>storeFrameworkId</h4>
-<pre>public&nbsp;void&nbsp;storeFrameworkId(Protos.FrameworkID&nbsp;fwkId)
-                      throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>fwkId</code> - FrameworkID to be store</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when storing the FrameworkID fails</dd>
-</dl>
-</li>
-</ul>
-<a name="clearFrameworkId--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>clearFrameworkId</h4>
-<pre>public&nbsp;void&nbsp;clearFrameworkId()
-                      throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Removes any previously stored FrameworkID or does nothing if no FrameworkID was previously stored.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when clearing a FrameworkID fails</dd>
-</dl>
-</li>
-</ul>
-<a name="fetchFrameworkId--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>fetchFrameworkId</h4>
-<pre>public&nbsp;java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;fetchFrameworkId()
-                                                        throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Fetches the previously stored FrameworkID, or returns an empty Optional if no FrameworkId was previously stored.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The previously stored FrameworkID, or an empty Optional indicating the FrameworkID has not been set.</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when fetching the FrameworkID fails</dd>
-</dl>
+<h4>getPersister</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;getPersister()</pre>
+<div class="block">Returns the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>.</div>
 </li>
 </ul>
 <a name="storeTasks-java.util.Collection-">
@@ -607,6 +605,26 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="storeProperties-java.util.Map-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>storeProperties</h4>
+<pre>public&nbsp;void&nbsp;storeProperties(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;properties)
+                     throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<div class="block">Stores multiple key/value pairs atomically.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>properties</code> - mapping of keys to values</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if the key or value fail validation, or if storing the data otherwise fails</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/state/StateStore.html#validateKey-java.lang.String-"><code>validateKey(String)</code></a>, 
+<a href="../../../../com/mesosphere/sdk/state/StateStore.html#validateValue-byte:A-"><code>validateValue(byte[])</code></a></dd>
+</dl>
+</li>
+</ul>
 <a name="fetchProperty-java.lang.String-">
 <!--   -->
 </a>
@@ -691,77 +709,101 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="clearAllData--">
+<a name="deleteAllDataIfNamespaced--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>clearAllData</h4>
-<pre>public&nbsp;void&nbsp;clearAllData()
-                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Clears the root service node, leaving just the root node behind.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
-</dl>
+<h4>deleteAllDataIfNamespaced</h4>
+<pre>public&nbsp;void&nbsp;deleteAllDataIfNamespaced()</pre>
+<div class="block">Deletes all data in the state store, but only if it's under a namespace. This is used to clear a namespaced
+ service's data when it's being removed from a multi-service system.</div>
 </li>
 </ul>
-<a name="getPersister--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getPersister</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;getPersister()</pre>
-<div class="block">Returns the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object for direct access.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-</dl>
-</li>
-</ul>
-<a name="getTaskInfoPath-java.lang.String-">
+<a name="getTaskInfoPath-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskInfoPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getTaskInfoPath(java.lang.String&nbsp;taskName)</pre>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskInfoPath(java.lang.String&nbsp;namespace,
+                                                  java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/TaskInfo, or Tasks/[taskName]/TaskInfo</dd>
+</dl>
 </li>
 </ul>
-<a name="getTaskStatusPath-java.lang.String-">
+<a name="getTaskStatusPath-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getTaskStatusPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getTaskStatusPath(java.lang.String&nbsp;taskName)</pre>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskStatusPath(java.lang.String&nbsp;namespace,
+                                                    java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/TaskStatus, or Tasks/[taskName]/TaskStatus</dd>
+</dl>
 </li>
 </ul>
-<a name="getGoalOverridePath-java.lang.String-">
+<a name="getGoalOverridePath-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getGoalOverridePath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverridePath(java.lang.String&nbsp;taskName)</pre>
+<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverridePath(java.lang.String&nbsp;namespace,
+                                                      java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/Metadata/goal-state-override, or
+         Tasks/[taskName]/Metadata/goal-state-override</dd>
+</dl>
 </li>
 </ul>
-<a name="getGoalOverrideStatusPath-java.lang.String-">
+<a name="getGoalOverrideStatusPath-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getGoalOverrideStatusPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverrideStatusPath(java.lang.String&nbsp;taskName)</pre>
+<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverrideStatusPath(java.lang.String&nbsp;namespace,
+                                                            java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/Metadata/override-status, or
+         Tasks/[taskName]/Metadata/override-status</dd>
+</dl>
 </li>
 </ul>
-<a name="getTaskPath-java.lang.String-">
+<a name="getTaskPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskPath(java.lang.String&nbsp;namespace,
+                                              java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName], or Tasks/[taskName]</dd>
+</dl>
+</li>
+</ul>
+<a name="getPropertyPath-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getTaskPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getTaskPath(java.lang.String&nbsp;taskName)</pre>
+<h4>getPropertyPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getPropertyPath(java.lang.String&nbsp;namespace,
+                                                  java.lang.String&nbsp;propertyName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Properties/[propertyName], or Properties/[propertyName]</dd>
+</dl>
 </li>
 </ul>
 </li>

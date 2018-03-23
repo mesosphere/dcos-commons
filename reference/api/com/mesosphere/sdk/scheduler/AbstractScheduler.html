@@ -142,14 +142,18 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkInfo">frameworkInfo</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkStore">frameworkStore</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#schedulerConfig">schedulerConfig</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected java.util.concurrent.ExecutorService</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></span></code>
 <div class="block">Executor for handling TaskStatus updates in <code>Scheduler#statusUpdate(SchedulerDriver, Protos.TaskStatus)</code>.</div>
@@ -172,7 +176,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#AbstractScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">AbstractScheduler</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#AbstractScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">AbstractScheduler</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
+                 <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                  <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                  <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                  <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
@@ -304,6 +309,15 @@ extends java.lang.Object</pre>
 <pre>protected final&nbsp;Protos.FrameworkInfo frameworkInfo</pre>
 </li>
 </ul>
+<a name="frameworkStore">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>frameworkStore</h4>
+<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a> frameworkStore</pre>
+</li>
+</ul>
 <a name="stateStore">
 <!--   -->
 </a>
@@ -349,13 +363,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="AbstractScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">
+<a name="AbstractScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>AbstractScheduler</h4>
 <pre>protected&nbsp;AbstractScheduler(Protos.FrameworkInfo&nbsp;frameworkInfo,
+                            <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                             <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                             <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,

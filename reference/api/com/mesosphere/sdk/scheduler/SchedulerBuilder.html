@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":10,"i3":10,"i4":9,"i5":10,"i6":10,"i7":10,"i8":9,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10,"i18":9,"i19":10};
+var methods = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":9,"i15":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -159,58 +159,37 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-com.mesosphere.sdk.storage.Persister-">createConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                 java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;customDeserializationSubtypes,
-                 <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getConfigStore--">getConfigStore</a></span>()</code>
-<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>setConfigStore(ConfigStore)</code></a>, or a reasonable default.</div>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getPersister--">getPersister</a></span>()</code>
+<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object which was provided via the constructor, or which was created by default
+ internally.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getDecommissionPlanManager-com.mesosphere.sdk.state.StateStore-">getDecommissionPlanManager</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
-</tr>
-<tr id="i4" class="altColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getRegionRule-java.util.Optional-">getRegionRule</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;schedulerRegion)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getSchedulerConfig--">getSchedulerConfig</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> object which was provided via the constructor.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getServiceSpec--">getServiceSpec</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> which was provided via the constructor.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getStateStore--">getStateStore</a></span>()</code>
-<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a>, or a reasonable default.</div>
-</td>
-</tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>(package private) static java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;</code></td>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>(package private) java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#selectDeployPlan-java.util.Collection-boolean-">selectDeployPlan</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans,
                 boolean&nbsp;hasCompletedDeployment)</code>
 <div class="block">Replaces the deploy plan with an update plan, in the case that an update deployment is being performed AND that
  a custom update plan has been specified.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-">setConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</code>
-<div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a>.</div>
-</td>
-</tr>
-<tr id="i10" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setCustomConfigValidators-java.util.Collection-">setCustomConfigValidators</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;customConfigValidators)</code>
 <div class="block">Specifies a custom list of configuration validators to be run when updating to a new target configuration,
@@ -218,60 +197,62 @@ extends java.lang.Object</pre>
  <a href="../../../../com/mesosphere/sdk/config/validate/DefaultConfigValidators.html#getValidators-com.mesosphere.sdk.scheduler.SchedulerConfig-"><code>DefaultConfigValidators.getValidators(SchedulerConfig)</code></a>.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setCustomResources-java.util.Collection-">setCustomResources</a></span>(java.util.Collection&lt;java.lang.Object&gt;&nbsp;customResources)</code>
 <div class="block">Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
  to the defaults.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setEndpointProducer-java.lang.String-com.mesosphere.sdk.http.types.EndpointProducer-">setEndpointProducer</a></span>(java.lang.String&nbsp;name,
                    <a href="../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&nbsp;endpointProducer)</code>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><code>EndpointProducer</code></a> to be added to the /endpoints API.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setPlanCustomizer-com.mesosphere.sdk.scheduler.plan.PlanCustomizer-">setPlanCustomizer</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&nbsp;planCustomizer)</code>
 <div class="block">Assigns a <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCustomizer</code></a> to be used for customizing plans.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setPlansFrom-com.mesosphere.sdk.specification.yaml.RawServiceSpec-">setPlansFrom</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)</code>
 <div class="block">Sets the <a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>s from the provided <a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> to this instance, using a
  <a href="../../../../com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification"><code>DefaultPlanGenerator</code></a> to handle conversion.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">setRecoveryManagerFactory</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&nbsp;recoveryPlanOverriderFactory)</code>
 <div class="block">Assigns a <a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryPlanOverriderFactory</code></a> to be used for generating the recovery plan manager.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setStateStore-com.mesosphere.sdk.state.StateStore-">setStateStore</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setStorageNamespace-java.lang.String-">setStorageNamespace</a></span>(java.lang.String&nbsp;storageNamespace)</code>
+<div class="block">Assigns a custom framework configuration for this service.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setTemplateUrlFactory-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-">setTemplateUrlFactory</a></span>(<a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory)</code>
 <div class="block">Assigns a custom factory for generating config template URLs.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#updatePodPlacement-com.mesosphere.sdk.specification.PodSpec-">updatePodPlacement</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</code>
 <div class="block">Update pods with appropriate placement constraints to enforce user REGION intent.</div>
 </td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--">withSingleRegionConstraint</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--">withSingleRegionConstraint</a></span>()</code>
+<div class="block">Configures the resulting scheduler instance with a region constraint.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -349,59 +330,15 @@ extends java.lang.Object</pre>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> object which was provided via the constructor.</div>
 </li>
 </ul>
-<a name="setStateStore-com.mesosphere.sdk.state.StateStore-">
+<a name="getPersister--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setStateStore</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setStateStore(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-<div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.  The state store persists copies of task information and task status for
- all tasks running in the service.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalStateException</code> - if the state store is already set, via a previous call to either
- <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> or to <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getStateStore--"><code>getStateStore()</code></a></dd>
-</dl>
-</li>
-</ul>
-<a name="getStateStore--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getStateStore</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;getStateStore()</pre>
-<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a>, or a reasonable default.
-
- In order to avoid cohesiveness issues between this setting and the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#build--"><code>build()</code></a> step,
- <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setStateStore-com.mesosphere.sdk.state.StateStore-"><code>setStateStore(StateStore)</code></a> may not be invoked after this has been called.</div>
-</li>
-</ul>
-<a name="setConfigStore-com.mesosphere.sdk.state.ConfigStore-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setConfigStore</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setConfigStore(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore)</pre>
-<div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a>.
-
- The config store persists a copy of the current configuration ('target' configuration),
- while also storing historical configurations.</div>
-</li>
-</ul>
-<a name="getConfigStore--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getConfigStore</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigStore()</pre>
-<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> provided via <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>setConfigStore(ConfigStore)</code></a>, or a reasonable default.
-
- In order to avoid cohesiveness issues between this setting and the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#build--"><code>build()</code></a> step,
- <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setConfigStore-com.mesosphere.sdk.state.ConfigStore-"><code>setConfigStore(ConfigStore)</code></a> may not be invoked after this has been called.</div>
+<h4>getPersister</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;getPersister()</pre>
+<div class="block">Returns the <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object which was provided via the constructor, or which was created by default
+ internally.</div>
 </li>
 </ul>
 <a name="setCustomResources-java.util.Collection-">
@@ -495,6 +432,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>withSingleRegionConstraint</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;withSingleRegionConstraint()</pre>
+<div class="block">Configures the resulting scheduler instance with a region constraint.</div>
 </li>
 </ul>
 <a name="getRegionRule-java.util.Optional-">
@@ -504,6 +442,21 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getRegionRule</h4>
 <pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;getRegionRule(java.util.Optional&lt;java.lang.String&gt;&nbsp;schedulerRegion)</pre>
+</li>
+</ul>
+<a name="setStorageNamespace-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setStorageNamespace</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setStorageNamespace(java.lang.String&nbsp;storageNamespace)</pre>
+<div class="block">Assigns a custom framework configuration for this service. This is only relevant when a single framework is
+ running multiple services. By default the framework configuration is derived from the <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>storageNamespace</code> - storage namespace to use for this service</dd>
+</dl>
 </li>
 </ul>
 <a name="setTemplateUrlFactory-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-">
@@ -534,15 +487,6 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="getDecommissionPlanManager-com.mesosphere.sdk.state.StateStore-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDecommissionPlanManager</h4>
-<pre>public&nbsp;java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getDecommissionPlanManager(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-</li>
-</ul>
 <a name="updatePodPlacement-com.mesosphere.sdk.specification.PodSpec-">
 <!--   -->
 </a>
@@ -561,30 +505,14 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="createConfigStore-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-com.mesosphere.sdk.storage.Persister-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>createConfigStore</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;createConfigStore(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                                                  java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;customDeserializationSubtypes,
-                                                  <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
-                                           throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code></dd>
-</dl>
-</li>
-</ul>
 <a name="selectDeployPlan-java.util.Collection-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>selectDeployPlan</h4>
-<pre>static&nbsp;java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;selectDeployPlan(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans,
-                                                   boolean&nbsp;hasCompletedDeployment)</pre>
+<pre>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;selectDeployPlan(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans,
+                                            boolean&nbsp;hasCompletedDeployment)</pre>
 <div class="block">Replaces the deploy plan with an update plan, in the case that an update deployment is being performed AND that
  a custom update plan has been specified.</div>
 </li>
