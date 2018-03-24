@@ -35,19 +35,14 @@ public class AuxLabelAccess {
     // Reservation labels: Resource ID and Service Name
 
     /**
-     * Assigns labels to the provided reservation:
-     * <ul><li>The service name which owns the reservation</li>
-     * <li>A UUID for tracking the reservation</li></ul>
+     * Assigns a resource ID label to the provided reservation.
      *
      * @param reservationBuilder the reservation where labels should be added
-     * @param serviceName the name of the service which owns the reservation
      * @param resourceId a unique id for tracking the reservation
      */
-    public static void setResourceLabels(
-            Protos.Resource.ReservationInfo.Builder reservationBuilder, String serviceName, String resourceId) {
+    public static void setResourceId(Protos.Resource.ReservationInfo.Builder reservationBuilder, String resourceId) {
         Map<String, String> map = LabelUtils.toMap(reservationBuilder.getLabels());
         map.put(LabelConstants.RESOURCE_ID_RESERVATION_LABEL, resourceId);
-        map.put(LabelConstants.SERVICE_NAME_RESERVATION_LABEL, serviceName);
         reservationBuilder.setLabels(LabelUtils.toProto(map));
     }
 
@@ -60,11 +55,24 @@ public class AuxLabelAccess {
     }
 
     /**
+     * Assigns a resource ID label to the provided reservation.
+     *
+     * @param reservationBuilder the reservation where labels should be added
+     * @param namespace a namespace to be assigned
+     */
+    public static void setResourceNamespace(
+            Protos.Resource.ReservationInfo.Builder reservationBuilder, String namespace) {
+        Map<String, String> map = LabelUtils.toMap(reservationBuilder.getLabels());
+        map.put(LabelConstants.NAMESPACE_RESERVATION_LABEL, namespace);
+        reservationBuilder.setLabels(LabelUtils.toProto(map));
+    }
+
+    /**
      * Returns the service name embedded in the reservation, or an empty optional if none is present. This label is only
      * present in reservations which were created in SDK 0.50 or later.
      */
-    public static Optional<String> getServiceName(Protos.Resource.ReservationInfo reservation) {
-        return getLabel(reservation.getLabels(), LabelConstants.SERVICE_NAME_RESERVATION_LABEL);
+    public static Optional<String> getResourceNamespace(Protos.Resource.ReservationInfo reservation) {
+        return getLabel(reservation.getLabels(), LabelConstants.NAMESPACE_RESERVATION_LABEL);
     }
 
     // DC/OS Space

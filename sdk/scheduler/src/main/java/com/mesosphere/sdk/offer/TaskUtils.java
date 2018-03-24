@@ -556,34 +556,31 @@ public class TaskUtils {
     /**
      * Returns TaskInfos will all reservations and persistence IDs removed from their Resources.
      */
-    public static Collection<Protos.TaskInfo> clearReservations(
-            String serviceName, Collection<Protos.TaskInfo> taskInfos) {
+    public static Collection<Protos.TaskInfo> clearReservations(Collection<Protos.TaskInfo> taskInfos) {
         return taskInfos.stream()
-                .map(taskInfo -> clearReservationIds(serviceName, taskInfo))
+                .map(taskInfo -> clearReservationIds(taskInfo))
                 .collect(Collectors.toList());
     }
 
-    private static Protos.TaskInfo clearReservationIds(String serviceName, Protos.TaskInfo taskInfo) {
+    private static Protos.TaskInfo clearReservationIds(Protos.TaskInfo taskInfo) {
         Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
                 .clearResources()
-                .addAllResources(clearReservationIds(serviceName, taskInfo.getResourcesList()));
+                .addAllResources(clearReservationIds(taskInfo.getResourcesList()));
 
         if (taskInfo.hasExecutor()) {
             taskInfoBuilder.getExecutorBuilder()
                     .clearResources()
-                    .addAllResources(
-                            clearReservationIds(serviceName, taskInfoBuilder.getExecutor().getResourcesList()));
+                    .addAllResources(clearReservationIds(taskInfoBuilder.getExecutor().getResourcesList()));
         }
 
         return taskInfoBuilder.build();
     }
 
-    private static List<Protos.Resource> clearReservationIds(String serviceName, List<Protos.Resource> resources) {
+    private static List<Protos.Resource> clearReservationIds(List<Protos.Resource> resources) {
         List<Protos.Resource> clearedResources = new ArrayList<>();
         for (Protos.Resource resource : resources) {
-            clearedResources.add(ResourceBuilder.fromExistingResource(serviceName, resource)
-                    .clearResourceId()
-                    .clearPersistenceId()
+            clearedResources.add(ResourceBuilder.fromExistingResource(resource)
+                    .clearResourceAndPersistenceIds()
                     .build());
         }
         return clearedResources;

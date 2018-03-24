@@ -18,58 +18,62 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
 public class VolumeEvaluationStage implements OfferEvaluationStage {
+
     private final Logger logger;
-    private final String serviceName;
     private final VolumeSpec volumeSpec;
     private final Optional<String> persistenceId;
-    private final String taskName;
+    private final Optional<String> taskName;
     private final Optional<String> resourceId;
+    private final Optional<String> resourceNamespace;
     private final boolean useDefaultExecutor;
     private final Optional<String> sourceRoot;
 
     public static VolumeEvaluationStage getNew(
-            String serviceName, VolumeSpec volumeSpec, String taskName, boolean useDefaultExecutor) {
+            VolumeSpec volumeSpec,
+            Optional<String> taskName,
+            Optional<String> resourceNamespace,
+            boolean useDefaultExecutor) {
         return new VolumeEvaluationStage(
-                serviceName,
                 volumeSpec,
                 taskName,
                 Optional.empty(),
+                resourceNamespace,
                 Optional.empty(),
                 Optional.empty(),
                 useDefaultExecutor);
     }
 
     public static VolumeEvaluationStage getExisting(
-            String serviceName,
             VolumeSpec volumeSpec,
-            String taskName,
+            Optional<String> taskName,
             Optional<String> resourceId,
+            Optional<String> resourceNamespace,
             Optional<String> persistenceId,
             Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
         return new VolumeEvaluationStage(
-                serviceName,
                 volumeSpec,
                 taskName,
                 resourceId,
+                resourceNamespace,
                 persistenceId,
                 sourceRoot,
                 useDefaultExecutor);
     }
 
     private VolumeEvaluationStage(
-            String serviceName,
             VolumeSpec volumeSpec,
-            String taskName,
+            Optional<String> taskName,
             Optional<String> resourceId,
+            Optional<String> resourceNamespace,
             Optional<String> persistenceId,
             Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
-        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
-        this.serviceName = serviceName;
+        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
+        this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
         this.sourceRoot = sourceRoot;
         this.useDefaultExecutor = useDefaultExecutor;
@@ -89,15 +93,15 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
         boolean isRunningExecutor =
                 OfferEvaluationUtils.isRunningExecutor(podInfoBuilder, mesosResourcePool.getOffer());
-        if (taskName == null && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
+        if (!taskName.isPresent() && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo.
             podInfoBuilder.setExecutorVolume(volumeSpec);
 
             Resource volume = PodInfoBuilder.getExistingExecutorVolume(
-                    serviceName,
                     volumeSpec,
                     resourceId,
+                    resourceNamespace,
                     persistenceId,
                     sourceRoot,
                     useDefaultExecutor);
@@ -116,7 +120,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
-                            serviceName, this, volumeSpec, resourceId, mesosResourcePool);
+                            this, volumeSpec, resourceId, resourceNamespace, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
@@ -125,9 +129,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             offerRecommendations.addAll(evaluationOutcome.getOfferRecommendations());
             mesosResource = evaluationOutcome.getMesosResource().get();
             resource = ResourceBuilder.fromSpec(
-                    serviceName,
                     volumeSpec,
                     reserveEvaluationOutcome.getResourceId(),
+                    resourceNamespace,
                     persistenceId,
                     Optional.empty())
                     .setMesosResource(mesosResource)
@@ -148,9 +152,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
             mesosResource = mesosResourceOptional.get();
             resource = ResourceBuilder.fromSpec(
-                    serviceName,
                     volumeSpec,
                     resourceId,
+                    resourceNamespace,
                     persistenceId,
                     Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
                     .setValue(mesosResource.getValue())
@@ -173,9 +177,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
         logger.info("Generated '{}' resource for task: [{}]",
                 volumeSpec.getName(), TextFormat.shortDebugString(resource));
-        OfferEvaluationUtils.setProtos(podInfoBuilder, resource, getTaskName());
+        OfferEvaluationUtils.setProtos(podInfoBuilder, resource, taskName);
 
-        if (taskName == null && useDefaultExecutor) {
+        if (!taskName.isPresent() && useDefaultExecutor) {
             podInfoBuilder.setExecutorVolume(volumeSpec);
         }
 
@@ -189,9 +193,5 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 persistenceId)
                 .mesosResource(mesosResource)
                 .build();
-    }
-
-    private Optional<String> getTaskName() {
-        return Optional.ofNullable(taskName);
     }
 }

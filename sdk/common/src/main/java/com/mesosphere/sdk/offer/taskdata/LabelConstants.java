@@ -49,8 +49,8 @@ class LabelConstants {
 
     /** Label used to uniquely map resources to tasks. */
     static final String RESOURCE_ID_RESERVATION_LABEL = "resource_id";
-    /** Label used to uniquely map resources to services. */
-    static final String SERVICE_NAME_RESERVATION_LABEL = "service_name";
+    /** Label used to map resources to namespaced services. Only used by namespaced services. */
+    static final String NAMESPACE_RESERVATION_LABEL = "namespace";
 
     // ExecutorInfo
 

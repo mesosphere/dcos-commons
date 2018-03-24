@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.offer;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,13 @@ public class LoggingUtils {
         } else {
             return LoggerFactory.getLogger(String.format("(%s) %s", name, getClassName(clazz)));
         }
+    }
+
+    /**
+     * Creates a logger which is tagged with the provided class and optionally the provided custom label.
+     */
+    public static Logger getLogger(Class<?> clazz, Optional<String> name) {
+        return name.isPresent() ? getLogger(clazz, name.get()) : getLogger(clazz);
     }
 
     /**

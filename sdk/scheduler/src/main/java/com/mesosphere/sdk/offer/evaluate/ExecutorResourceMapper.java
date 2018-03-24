@@ -18,26 +18,27 @@ import java.util.stream.Collectors;
  * of expected {@link VolumeSpec}s for that Executor.
  */
 public class ExecutorResourceMapper {
+
     private final Logger logger;
-    private final String serviceName;
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
     private final Collection<Protos.Resource> executorResources;
+    private final Optional<String> resourceNamespace;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
     private final boolean useDefaultExecutor;
 
     public ExecutorResourceMapper(
-            String serviceName,
             PodSpec podSpec,
             Collection<ResourceSpec> resourceSpecs,
             Collection<Protos.Resource> executorResources,
+            Optional<String> resourceNamespace,
             boolean useDefaultExecutor) {
-        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
-        this.serviceName = serviceName;
+        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
         this.executorResources = executorResources;
+        this.resourceNamespace = resourceNamespace;
         this.useDefaultExecutor = useDefaultExecutor;
         this.evaluationStages = getEvaluationStagesInternal();
     }
@@ -158,23 +159,24 @@ public class ExecutorResourceMapper {
 
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getExisting(
-                    serviceName,
                     (VolumeSpec) resourceSpec,
-                    null,
+                    Optional.empty(),
                     resourceId,
+                    resourceNamespace,
                     resourceLabels.getPersistenceId(),
                     resourceLabels.getSourceRoot(),
                     useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(serviceName, resourceSpec, null, resourceId);
+            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), resourceId, resourceNamespace);
         }
     }
 
     private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
         if (resourceSpec instanceof VolumeSpec) {
-            return VolumeEvaluationStage.getNew(serviceName, (VolumeSpec) resourceSpec, null, useDefaultExecutor);
+            return VolumeEvaluationStage.getNew(
+                    (VolumeSpec) resourceSpec, Optional.empty(), resourceNamespace, useDefaultExecutor);
         } else {
-            return new ResourceEvaluationStage(serviceName, resourceSpec, null, Optional.empty());
+            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), Optional.empty(), resourceNamespace);
         }
     }
 }

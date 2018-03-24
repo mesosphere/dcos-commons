@@ -116,7 +116,7 @@ public class TLSEvaluationStageTest {
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
@@ -144,7 +144,7 @@ public class TLSEvaluationStageTest {
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
@@ -172,7 +172,7 @@ public class TLSEvaluationStageTest {
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
@@ -203,7 +203,7 @@ public class TLSEvaluationStageTest {
         PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
 
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertFalse(outcome.isPassing());
     }

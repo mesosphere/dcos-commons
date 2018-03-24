@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -51,6 +52,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 targetConfig,
                 ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SCHEDULER_CONFIG,
+                Optional.empty(),
                 true);
     }
 
@@ -63,6 +65,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 targetConfig,
                 ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SCHEDULER_CONFIG,
+                Optional.empty(),
                 false);
     }
 

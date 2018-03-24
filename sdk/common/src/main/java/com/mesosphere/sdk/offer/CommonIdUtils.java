@@ -39,7 +39,7 @@ public class CommonIdUtils {
      * value will omit any slashes which may have been present in the original service name. Service names are only
      * embedded in task IDs as of SDK 0.50.
      * <p>
-     * For example: "pathtoservice__instance-0__aoeu5678" => "pathtoservice" (NOT "/path/to/service"),
+     * For example: "path.to.service__instance-0__aoeu5678" => "path.to.service" (NOT "/path/to/service"),
      * or "instance-0__aoeu5678" => Empty
      *
      * @see #toTaskId(String)
@@ -51,7 +51,7 @@ public class CommonIdUtils {
     /**
      * Converts the unique {@link TaskID} into a Framework defined task name.
      * <p>
-     * For example: "pathtoservice__instance-0__aoeu5678" => "instance-0"
+     * For example: "path.to.service__instance-0__aoeu5678" => "instance-0"
      *
      * @see #toTaskId(String)
      */
@@ -62,7 +62,7 @@ public class CommonIdUtils {
     /**
      * Converts the Framework defined task name into a unique {@link TaskID}.
      * <p>
-     * For example: "/path/to/service" + "instance-0" => "pathtoservice__instance-0__aoeu5678"
+     * For example: "/path/to/service" + "instance-0" => "path.to.service__instance-0__aoeu5678"
      *
      * @throws IllegalArgumentException if the provided {@code serviceName} or {@code taskName} contain "__"
      * @see #toTaskName(org.apache.mesos.Protos.TaskID)
@@ -77,7 +77,7 @@ public class CommonIdUtils {
      * value will omit any slashes which may have been present in the original service name. Service names are only
      * embedded in executor IDs as of SDK 0.50.
      * <p>
-     * For example: "pathtoservice__instance-0__aoeu5678" => "pathtoservice" (NOT "/path/to/service"),
+     * For example: "path.to.service__instance-0__aoeu5678" => "path.to.service" (NOT "/path/to/service"),
      * or "instance-0__aoeu5678" => Empty
      *
      * @see #toExecutorId(String)
@@ -89,7 +89,7 @@ public class CommonIdUtils {
     /**
      * Converts the unique {@link Protos.ExecutorID} into a Framework defined executor name.
      * <p>
-     * For example: "__path__to__service__instance-0__aoeu5678" => "instance-0"
+     * For example: "path.to.service__instance-0__aoeu5678" => "instance-0"
      *
      * @see #toExecutorId(String)
      */
@@ -100,7 +100,7 @@ public class CommonIdUtils {
     /**
      * Converts the Framework defined Executor name into a unique {@link Protos.ExecutorID}.
      * <p>
-     * For example: "/path/to/service" + "instance-0" => "__path__to__service__instance-0__aoeu5678"
+     * For example: "/path/to/service" + "instance-0" => "path.to.service__instance-0__aoeu5678"
      *
      * @throws IllegalArgumentException if the provided {@code serviceName} or {@code taskName} contain "__"
      * @see #toExecutorName(org.apache.mesos.Protos.ExecutorID)

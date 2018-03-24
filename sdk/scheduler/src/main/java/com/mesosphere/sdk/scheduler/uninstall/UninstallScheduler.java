@@ -91,7 +91,7 @@ public class UninstallScheduler extends AbstractScheduler {
                 .map(step -> (ResourceCleanupStep) step)
                 .collect(Collectors.toList());
         this.offerAccepter = new OfferAccepter(Collections.singletonList(
-                new UninstallRecorder(serviceSpec.getName(), stateStore, resourceCleanupSteps)));
+                new UninstallRecorder(stateStore, resourceCleanupSteps)));
 
         try {
             logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));

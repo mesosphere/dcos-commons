@@ -25,18 +25,22 @@ import java.util.stream.IntStream;
  */
 public class PortEvaluationStage implements OfferEvaluationStage {
     private final Logger logger;
-    private final String serviceName;
     private final PortSpec portSpec;
     private final String taskName;
     private final Optional<String> resourceId;
+    private final Optional<String> resourceNamespace;
     private final boolean useHostPorts;
 
-    public PortEvaluationStage(String serviceName, PortSpec portSpec, String taskName, Optional<String> resourceId) {
-        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
-        this.serviceName = serviceName;
+    public PortEvaluationStage(
+            PortSpec portSpec,
+            String taskName,
+            Optional<String> resourceId,
+            Optional<String> resourceNamespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.portSpec = portSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
+        this.resourceNamespace = resourceNamespace;
         this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
     }
 
@@ -83,14 +87,15 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         if (useHostPorts) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
-                            serviceName, this, updatedPortSpec, resourceId, mesosResourcePool);
+                            this, updatedPortSpec, resourceId, resourceNamespace, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;
             }
 
             Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(serviceName, updatedPortSpec, resourceIdResult).build());
+            setProtos(podInfoBuilder,
+                    ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult, resourceNamespace).build());
             return EvaluationOutcome.pass(
                     this,
                     evaluationOutcome.getOfferRecommendations(),
@@ -101,7 +106,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                     .mesosResource(evaluationOutcome.getMesosResource().get())
                     .build();
         } else {
-            setProtos(podInfoBuilder, ResourceBuilder.fromSpec(serviceName, updatedPortSpec, resourceId).build());
+            setProtos(podInfoBuilder,
+                    ResourceBuilder.fromSpec(updatedPortSpec, resourceId, resourceNamespace).build());
             return EvaluationOutcome.pass(
                     this,
                     "Port %s doesn't require resource reservation, ignoring resource requirements and using port %d",

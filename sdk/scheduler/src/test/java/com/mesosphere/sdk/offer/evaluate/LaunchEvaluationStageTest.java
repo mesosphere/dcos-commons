@@ -46,17 +46,14 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void isPassing() {
-        EvaluationOutcome outcome = stage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
+        EvaluationOutcome outcome = stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
     }
 
     @Test
     public void labelsAreCorrect() {
-        stage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+        stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
         // labels are sorted alphabetically (see LabelUtils):
@@ -90,9 +87,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         offer = offer.toBuilder()
                 .setDomain(TestConstants.LOCAL_DOMAIN_INFO)
                 .build();
-        stage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+        stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
         Map<String, String> env = EnvUtils.toMap(taskBuilder.getCommand().getEnvironment());
@@ -102,9 +97,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void regionAndZoneNotInjected() {
-        stage.evaluate(
-                new MesosResourcePool(TestConstants.SERVICE_NAME, offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+        stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
         Map<String, String> env = EnvUtils.toMap(taskBuilder.getCommand().getEnvironment());

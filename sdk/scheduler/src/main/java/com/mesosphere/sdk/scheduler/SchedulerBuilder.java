@@ -71,7 +71,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
-    private Optional<String> storageNamespace = Optional.empty();
+    private Optional<String> namespace = Optional.empty();
     private Optional<ArtifactQueries.TemplateUrlFactory> templateUrlFactory = Optional.empty();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
@@ -220,13 +220,12 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Assigns a custom framework configuration for this service. This is only relevant when a single framework is
-     * running multiple services. By default the framework configuration is derived from the {@link ServiceSpec}.
-     *
-     * @param storageNamespace storage namespace to use for this service
+     * Assigns a custom namespace for this service. This is only relevant when a single framework is running multiple
+     * services, where different services need to be differentiated from each other. The namespace is used for both
+     * storage in ZK ({@link StateStore}/{@link ConfigStore}), as well as in resource labels.
      */
-    public SchedulerBuilder setStorageNamespace(String storageNamespace) {
-        this.storageNamespace = Optional.of(storageNamespace);
+    public SchedulerBuilder setNamespace(String namespace) {
+        this.namespace = Optional.of(namespace);
         return this;
     }
 
@@ -252,11 +251,11 @@ public class SchedulerBuilder {
 
         // When multi-service is enabled, state/configs are stored within a namespace matching the service name.
         // Otherwise use an empty namespace, which indicates single-service mode.
-        String storageNamespaceStr = storageNamespace.orElse("");
+        String namespaceStr = namespace.orElse("");
         FrameworkStore frameworkStore = new FrameworkStore(persister);
-        StateStore stateStore = new StateStore(persister, storageNamespaceStr);
+        StateStore stateStore = new StateStore(persister, namespaceStr);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, storageNamespaceStr);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespaceStr);
 
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, frameworkStore);
 
@@ -275,7 +274,7 @@ public class SchedulerBuilder {
 
         if (StateStoreUtils.isUninstalling(stateStore)) {
             // SERVICE UNINSTALL: The service has an uninstall bit set in its (potentially namespaced) state store.
-            if (storageNamespace.isPresent()) {
+            if (namespace.isPresent()) {
                 // This namespaced service is partway through being removed from the parent multi-service scheduler.
                 // Launch the service in uninstall mode so that it can continue with whatever may be left.
                 return new UninstallScheduler(
@@ -397,6 +396,7 @@ public class SchedulerBuilder {
                 frameworkInfo,
                 serviceSpec,
                 schedulerConfig,
+                namespace,
                 customResources,
                 planCoordinator,
                 Optional.ofNullable(planCustomizer),

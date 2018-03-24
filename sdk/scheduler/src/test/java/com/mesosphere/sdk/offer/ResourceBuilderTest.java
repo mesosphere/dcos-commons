@@ -34,9 +34,10 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
             .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0))
             .build();
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testUnreservedResource() {
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromUnreservedValue(TestConstants.SERVICE_NAME, "cpus", value);
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromUnreservedValue("cpus", value);
         Protos.Resource resource = resourceBuilder.build();
         Assert.assertEquals("cpus", resource.getName());
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
@@ -54,7 +55,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(TestConstants.SERVICE_NAME, resourceSpec, Optional.empty());
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty(), Optional.empty());
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
@@ -120,7 +121,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                     TestConstants.ROLE,
                     TestConstants.PRE_RESERVED_ROLE,
                     TestConstants.PRINCIPAL);
-            ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(TestConstants.SERVICE_NAME, resourceSpec, Optional.empty());
+            ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty(), Optional.empty());
 
             Protos.Resource resource = resourceBuilder.build();
             Assert.assertEquals(2, resource.getReservationsCount());
@@ -141,7 +142,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
-        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(TestConstants.SERVICE_NAME, resourceSpec, resourceId);
+        ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, resourceId, Optional.empty());
 
         Protos.Resource resource = resourceBuilder.build();
         validateScalarResoure(resource);
@@ -173,8 +174,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
-                TestConstants.SERVICE_NAME,
                 volumeSpec,
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty());
@@ -234,9 +235,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
-                TestConstants.SERVICE_NAME,
                 volumeSpec,
                 resourceId,
+                Optional.empty(),
                 persistenceId,
                 Optional.empty());
 
@@ -272,8 +273,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
-                TestConstants.SERVICE_NAME,
                 volumeSpec,
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of(TestConstants.MOUNT_SOURCE_ROOT));
@@ -346,9 +347,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(
-                TestConstants.SERVICE_NAME,
                 volumeSpec,
                 resourceId,
+                Optional.empty(),
                 persistenceId,
                 Optional.of(TestConstants.MOUNT_SOURCE_ROOT));
 
@@ -391,9 +392,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource =
-                ResourceBuilder.fromSpec(TestConstants.SERVICE_NAME, resourceSpec, resourceId).build();
+                ResourceBuilder.fromSpec(resourceSpec, resourceId, Optional.empty()).build();
         Protos.Resource reconstructedResource =
-                ResourceBuilder.fromExistingResource(TestConstants.SERVICE_NAME, originalResource).build();
+                ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
     }
@@ -420,14 +421,14 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource = ResourceBuilder.fromSpec(
-                TestConstants.SERVICE_NAME,
                 volumeSpec,
                 resourceId,
+                Optional.empty(),
                 persistenceId,
                 Optional.empty())
                 .build();
         Protos.Resource reconstructedResource =
-                ResourceBuilder.fromExistingResource(TestConstants.SERVICE_NAME, originalResource).build();
+                ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
     }
@@ -455,14 +456,14 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Optional<String> persistenceId = Optional.of(UUID.randomUUID().toString());
         Optional<String> sourceRoot = Optional.of(TestConstants.MOUNT_SOURCE_ROOT);
         Protos.Resource originalResource = ResourceBuilder.fromSpec(
-                TestConstants.SERVICE_NAME,
                 volumeSpec,
                 resourceId,
+                Optional.empty(),
                 persistenceId,
                 sourceRoot)
                 .build();
         Protos.Resource reconstructedResource =
-                ResourceBuilder.fromExistingResource(TestConstants.SERVICE_NAME, originalResource).build();
+                ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
     }
@@ -477,6 +478,11 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         }
     }
 
+    @Test
+    public void testAllWithResourceNamespace() {
+        Assert.fail("TODO");
+    }
+
     private void validateScalarResoure(Protos.Resource resource) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
             validateScalarResourceRefined(resource);
@@ -485,6 +491,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         }
     }
 
+    @SuppressWarnings("deprecation")
     private void validateScalarResourceRefined(Protos.Resource resource) {
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
         Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
@@ -495,9 +502,10 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(TestConstants.ROLE, reservationInfo.getRole());
         Assert.assertEquals(2, reservationInfo.getLabels().getLabelsCount());
         Assert.assertEquals(36, AuxLabelAccess.getResourceId(reservationInfo).get().length());
-        Assert.assertEquals(TestConstants.SERVICE_NAME, AuxLabelAccess.getServiceName(reservationInfo).get());
+        Assert.assertEquals(TestConstants.SERVICE_NAME, AuxLabelAccess.getResourceNamespace(reservationInfo).get());
     }
 
+    @SuppressWarnings("deprecation")
     private void validateScalarResourceLegacy(Protos.Resource resource) {
         Assert.assertEquals(Protos.Value.Type.SCALAR, resource.getType());
         Assert.assertEquals(TestConstants.ROLE, resource.getRole());
@@ -509,7 +517,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
         Assert.assertFalse(reservationInfo.hasRole());
         Assert.assertEquals(2, reservationInfo.getLabels().getLabelsCount());
         Assert.assertEquals(36, AuxLabelAccess.getResourceId(reservationInfo).get().length());
-        Assert.assertEquals(TestConstants.SERVICE_NAME, AuxLabelAccess.getServiceName(reservationInfo).get());
+        Assert.assertEquals(TestConstants.SERVICE_NAME, AuxLabelAccess.getResourceNamespace(reservationInfo).get());
     }
 
     private void validateDisk(Protos.Resource resource) {
