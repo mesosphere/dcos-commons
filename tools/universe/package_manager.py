@@ -51,6 +51,10 @@ class PackageManager:
         return packages.get(package_name, [])
 
     def get_latest(self, package_name):
+
+        if self._dry_run:
+            return "(dryrun) previous-version"
+
         if isinstance(package_name, package.Package):
             package_name = package_name.get_name()
 
