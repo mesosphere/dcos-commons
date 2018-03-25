@@ -375,7 +375,7 @@ public class OfferEvaluator {
                 // The default executor needs a constant amount of resources, account for them here.
                 for (ResourceSpec resourceSpec : getExecutorResources(preReservedRole, role, principal)) {
                     evaluationStages.add(new ResourceEvaluationStage(
-                            resourceSpec, Optional.empty(), resourceNamespace, Optional.empty()));
+                            resourceSpec, Optional.empty(), Optional.empty(), resourceNamespace));
                 }
                 shouldAddExecutorResources = false;
             }

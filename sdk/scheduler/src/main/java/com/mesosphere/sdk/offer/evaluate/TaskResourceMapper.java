@@ -17,15 +17,18 @@ import java.util.stream.Collectors;
  * of expected {@link ResourceSpec}s for that task.
  */
 class TaskResourceMapper {
+
     private final Logger logger;
+
     private final Optional<String> resourceNamespace;
     private final String taskSpecName;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
-    private final List<OfferEvaluationStage> evaluationStages;
     private final Collection<ResourceSpec> resourceSpecs;
     private final TaskPortLookup taskPortFinder;
     private final Collection<Protos.Resource> resources;
     private final boolean useDefaultExecutor;
+
+    private final List<OfferEvaluationStage> evaluationStages;
 
     public TaskResourceMapper(
             TaskSpec taskSpec,
@@ -40,8 +43,10 @@ class TaskResourceMapper {
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
         this.taskPortFinder = new TaskPortLookup(taskInfo);
         this.resources = taskInfo.getResourcesList();
-        this.evaluationStages = getEvaluationStagesInternal();
         this.useDefaultExecutor = useDefaultExecutor;
+
+        // ONLY call this AFTER initializing all members above:
+        this.evaluationStages = getEvaluationStagesInternal();
     }
 
     public List<Protos.Resource> getOrphanedResources() {
