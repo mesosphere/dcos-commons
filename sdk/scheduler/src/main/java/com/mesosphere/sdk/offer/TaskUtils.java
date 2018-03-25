@@ -554,39 +554,6 @@ public class TaskUtils {
     }
 
     /**
-     * Returns TaskInfos will all reservations and persistence IDs removed from their Resources.
-     */
-    public static Collection<Protos.TaskInfo> clearReservations(Collection<Protos.TaskInfo> taskInfos) {
-        return taskInfos.stream()
-                .map(taskInfo -> clearReservationIds(taskInfo))
-                .collect(Collectors.toList());
-    }
-
-    private static Protos.TaskInfo clearReservationIds(Protos.TaskInfo taskInfo) {
-        Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder(taskInfo)
-                .clearResources()
-                .addAllResources(clearReservationIds(taskInfo.getResourcesList()));
-
-        if (taskInfo.hasExecutor()) {
-            taskInfoBuilder.getExecutorBuilder()
-                    .clearResources()
-                    .addAllResources(clearReservationIds(taskInfoBuilder.getExecutor().getResourcesList()));
-        }
-
-        return taskInfoBuilder.build();
-    }
-
-    private static List<Protos.Resource> clearReservationIds(List<Protos.Resource> resources) {
-        List<Protos.Resource> clearedResources = new ArrayList<>();
-        for (Protos.Resource resource : resources) {
-            clearedResources.add(ResourceBuilder.fromExistingResource(resource)
-                    .clearResourceAndPersistenceIds()
-                    .build());
-        }
-        return clearedResources;
-    }
-
-    /**
      * Determines if a task is launched in any zones.
      * @param taskInfo The {@link TaskInfo} to get zone information from.
      * @return A boolean indicating whether the task is in a zone.

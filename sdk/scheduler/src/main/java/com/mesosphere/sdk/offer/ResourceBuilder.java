@@ -148,15 +148,6 @@ public class ResourceBuilder {
     }
 
     /**
-     * Clears previously set resource and/or disk persistence IDs, if either is set.
-     */
-    public ResourceBuilder clearResourceAndPersistenceIds() {
-        this.resourceId = Optional.empty();
-        this.diskPersistenceId = Optional.empty();
-        return this;
-    }
-
-    /**
      * Assigns information relating to {@code ROOT} disk volumes for this resource.
      *
      * @param existingPersistenceId the persistence ID of a previously reserved disk resource to be associated with

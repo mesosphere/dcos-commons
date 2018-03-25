@@ -90,6 +90,16 @@ public class CommonIdUtilsTest {
         Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME, CommonIdUtils.toSanitizedServiceName(taskId).get());
     }
 
+    @Test
+    public void testExtractTaskFromExtraElements() throws Exception {
+        // Just in case, we support additional elements at the start of the id for future use.
+        Protos.TaskID taskId = Protos.TaskID.newBuilder()
+                .setValue("something-else__" + TEST_FOLDERED_SERVICE_NAME2 + "__" + TEST_TASK_NAME + "__uuid")
+                .build();
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(taskId));
+        Assert.assertEquals(TEST_FOLDERED_SERVICE_NAME2, CommonIdUtils.toSanitizedServiceName(taskId).get());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidServiceToTaskId() throws Exception {
         // Disallow double underscores in service names, reserved for multipart:
@@ -169,6 +179,16 @@ public class CommonIdUtilsTest {
         Assert.assertNotNull(UUID.fromString(executorId.getValue().split("__")[2]));
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(executorId));
         Assert.assertEquals(TEST_FOLDERED_SANITIZED_NAME, CommonIdUtils.toSanitizedServiceName(executorId).get());
+    }
+
+    @Test
+    public void testExtractExecutorFromExtraElements() throws Exception {
+        // Just in case, we support additional elements at the start of the id for future use.
+        Protos.ExecutorID executorId = Protos.ExecutorID.newBuilder()
+                .setValue("something-else__" + TEST_FOLDERED_SERVICE_NAME2 + "__" + TEST_TASK_NAME + "__uuid")
+                .build();
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(executorId));
+        Assert.assertEquals(TEST_FOLDERED_SERVICE_NAME2, CommonIdUtils.toSanitizedServiceName(executorId).get());
     }
 
     @Test(expected = IllegalArgumentException.class)
