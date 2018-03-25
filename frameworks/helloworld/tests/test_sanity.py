@@ -151,6 +151,8 @@ def test_pod_list():
 @pytest.mark.sanity
 def test_pod_status_all():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    # /test/integration/hello-world => test.integration.hello-world
+    sanitized_name = foldered_name.lstrip('/').replace('/', '.')
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status --json', json=True)
     assert jsonobj['service'] == foldered_name
     for pod in jsonobj['pods']:
@@ -159,20 +161,22 @@ def test_pod_status_all():
             assert re.match('(hello|world)-[0-9]+', instance['name'])
             for task in instance['tasks']:
                 assert len(task) == 3
-                assert re.match('(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
+                assert re.match(sanitized_name + '__(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
                 assert re.match('(hello|world)-[0-9]+-server', task['name'])
                 assert task['status'] == 'RUNNING'
 
 
 @pytest.mark.sanity
 def test_pod_status_one():
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status --json hello-0', json=True)
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    # /test/integration/hello-world => test.integration.hello-world
+    sanitized_name = foldered_name.lstrip('/').replace('/', '.')
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status --json hello-0', json=True)
     assert jsonobj['name'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
     task = jsonobj['tasks'][0]
     assert len(task) == 3
-    assert re.match('hello-0-server__[0-9a-f-]+', task['id'])
+    assert re.match(sanitized_name + '__hello-0-server__[0-9a-f-]+', task['id'])
     assert task['name'] == 'hello-0-server'
     assert task['status'] == 'RUNNING'
 
