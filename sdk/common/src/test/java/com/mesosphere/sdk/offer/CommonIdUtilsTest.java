@@ -47,6 +47,14 @@ public class CommonIdUtilsTest {
         Protos.TaskID validTaskId = getTaskId(TEST_OTHER_NAME + "__" + TEST_TASK_NAME + "__id");
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
         Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toSanitizedServiceName(validTaskId).get());
+
+        validTaskId = getTaskId(TEST_OTHER_NAME + "___" + TEST_TASK_NAME + "__id");
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
+        Assert.assertEquals(TEST_OTHER_NAME + "_", CommonIdUtils.toSanitizedServiceName(validTaskId).get());
+
+        validTaskId = getTaskId("_" + TEST_OTHER_NAME + "___" + TEST_TASK_NAME + "__id");
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
+        Assert.assertEquals("_" + TEST_OTHER_NAME + "_", CommonIdUtils.toSanitizedServiceName(validTaskId).get());
     }
 
     @Test
@@ -60,6 +68,10 @@ public class CommonIdUtilsTest {
     public void testMultiToUnderscoreTaskName() throws Exception {
         Protos.TaskID validTaskId = getTaskId(TEST_OTHER_NAME + "___id");
         Assert.assertEquals(TEST_OTHER_NAME + "_", CommonIdUtils.toTaskName(validTaskId));
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validTaskId).isPresent());
+
+        validTaskId = getTaskId("_" + TEST_OTHER_NAME + "___id");
+        Assert.assertEquals("_" + TEST_OTHER_NAME + "_", CommonIdUtils.toTaskName(validTaskId));
         Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validTaskId).isPresent());
     }
 
@@ -138,6 +150,14 @@ public class CommonIdUtilsTest {
         Protos.ExecutorID validExecutorId = getExecutorId(TEST_OTHER_NAME + "__" + TEST_TASK_NAME + "__id");
         Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(validExecutorId));
         Assert.assertEquals(TEST_OTHER_NAME, CommonIdUtils.toSanitizedServiceName(validExecutorId).get());
+
+        validExecutorId = getExecutorId(TEST_OTHER_NAME + "___" + TEST_TASK_NAME + "__id");
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(validExecutorId));
+        Assert.assertEquals(TEST_OTHER_NAME + "_", CommonIdUtils.toSanitizedServiceName(validExecutorId).get());
+
+        validExecutorId = getExecutorId("_" + TEST_OTHER_NAME + "___" + TEST_TASK_NAME + "__id");
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toExecutorName(validExecutorId));
+        Assert.assertEquals("_" + TEST_OTHER_NAME + "_", CommonIdUtils.toSanitizedServiceName(validExecutorId).get());
     }
 
     @Test
@@ -151,6 +171,10 @@ public class CommonIdUtilsTest {
     public void testMultiToUnderscoreExecutorName() throws Exception {
         Protos.ExecutorID validExecutorId = getExecutorId(TEST_OTHER_NAME + "___id");
         Assert.assertEquals(TEST_OTHER_NAME + "_", CommonIdUtils.toExecutorName(validExecutorId));
+        Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validExecutorId).isPresent());
+
+        validExecutorId = getExecutorId("_" + TEST_OTHER_NAME + "___id");
+        Assert.assertEquals("_" + TEST_OTHER_NAME + "_", CommonIdUtils.toExecutorName(validExecutorId));
         Assert.assertFalse(CommonIdUtils.toSanitizedServiceName(validExecutorId).isPresent());
     }
 
