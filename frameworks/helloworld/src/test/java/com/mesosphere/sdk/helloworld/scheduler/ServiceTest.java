@@ -11,7 +11,6 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.*;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -23,7 +22,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
