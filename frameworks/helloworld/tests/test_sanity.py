@@ -152,7 +152,7 @@ def test_pod_list():
 def test_pod_status_all():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # /test/integration/hello-world => test.integration.hello-world
-    sanitized_name = foldered_name.lstrip('/').replace('/', '.')
+    sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status --json', json=True)
     assert jsonobj['service'] == foldered_name
     for pod in jsonobj['pods']:
@@ -170,7 +170,7 @@ def test_pod_status_all():
 def test_pod_status_one():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # /test/integration/hello-world => test.integration.hello-world
-    sanitized_name = foldered_name.lstrip('/').replace('/', '.')
+    sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status --json hello-0', json=True)
     assert jsonobj['name'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1

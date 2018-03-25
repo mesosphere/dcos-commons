@@ -186,19 +186,19 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
 @retrying.retry(stop_max_attempt_number=3,
                 wait_fixed=1000,
                 retry_on_result=lambda result: not result)
-def create_task_text_file(task_name: str, filename: str, lines: list) -> bool:
+def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -> bool:
     output_cmd = """bash -c \"cat >{output_file} << EOL
 {content}
 EOL\"""".format(output_file=filename, content="\n".join(lines))
     log.info("Running: %s", output_cmd)
-    rc, stdout, stderr = task_exec(task_name, output_cmd)
+    rc, stdout, stderr = marathon_task_exec(marathon_task_name, output_cmd)
 
     if rc or stderr:
         log.error("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
         return False
 
     linecount_cmd = "wc -l {output_file}".format(output_file=filename)
-    rc, stdout, stderr = task_exec(task_name, linecount_cmd)
+    rc, stdout, stderr = marathon_task_exec(marathon_task_name, linecount_cmd)
 
     if rc or stderr:
         log.error("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
@@ -263,14 +263,28 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
 
 
-def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+def marathon_task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     """
-    Invokes the given command on the task via `dcos task exec`.
+    Invokes the given command on the Marathon task via `dcos task exec`.
     :param task_name: Name of task to run command on.
     :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
+    return _task_exec(task_name, cmd, None, return_stderr_in_stdout)
 
+
+def service_task_exec(service_name: str, task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+    """
+    Invokes the given command on the SDK service task via `dcos task exec`.
+    :param service_name: Name of the service running the task.
+    :param task_name: Name of task to run command on.
+    :param cmd: The command to execute.
+    :return: a tuple consisting of the task exec's return code, stdout, and stderr
+    """
+    return _task_exec(task_name, cmd, service_name, return_stderr_in_stdout)
+
+
+def _task_exec(task_name: str, cmd: str, service_name: str = None, return_stderr_in_stdout: bool = False) -> tuple:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
         full_cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
 
@@ -280,13 +294,55 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     else:
         full_cmd = cmd
 
-    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=full_cmd)
+    if service_name:
+        # Contrary to CLI's help text for 'dcos task exec':
+        # - 'partial task ID' is only prefix/startswith matching, not 'contains' as the wording would imply.
+        # - Regexes don't work at all.
+        # Therefore, we need to provide a full TaskID prefix, including "servicename__taskname":
+        exec_cmd = "task exec {sanitized_service_name}__{task_name}__ {cmd}".format(
+            sanitized_service_name=sdk_utils.get_task_id_service_name(service_name),
+            task_name=task_name,
+            cmd=full_cmd)
+    else:
+        # Marathon meanwhile puts the task name at the start of the task id, so we're good there.
+        exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=full_cmd)
+
     rc, stdout, stderr = run_raw_cli(exec_cmd)
 
     if return_stderr_in_stdout:
         return rc, stdout + "\n" + stderr
 
     return rc, stdout, stderr
+
+
+def resolve_hosts(marathon_task_name: str, hosts: list) -> bool:
+    """
+    Use bootstrap to resolve the specified list of hosts
+    """
+    bootstrap_cmd = [
+        './bootstrap',
+        '-print-env=false',
+        '-template=false',
+        '-install-certs=false',
+        '-self-resolve=false',
+        '-resolve-hosts', ','.join(hosts)]
+    log.info("Running bootstrap to wait for DNS resolution of %s\n\t%s", hosts, bootstrap_cmd)
+    return_code, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
+
+    log.info("bootstrap return code: %s", return_code)
+    log.info("bootstrap STDOUT: %s", bootstrap_stdout)
+    log.info("bootstrap STDERR: %s", bootstrap_stderr)
+
+    # Note that bootstrap returns its output in STDERR
+    resolved = 'SDK Bootstrap successful.' in bootstrap_stderr
+    if not resolved:
+        for host in hosts:
+            resolved_host_string = "Resolved '{host}' =>".format(host=host)
+            host_resolved = resolved_host_string in bootstrap_stdout
+            if not host_resolved:
+                log.error("Could not resolve: %s", host)
+
+    return resolved
 
 
 def get_json_output(cmd, print_output=True):

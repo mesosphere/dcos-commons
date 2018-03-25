@@ -1,9 +1,7 @@
-import json
 import logging
 import retrying
 
 import sdk_cmd
-import sdk_hosts
 import sdk_tasks
 from tests import config
 
@@ -55,7 +53,7 @@ def wait_for_broker_dns(package_name: str, service_name: str):
     log.info("Scheduler task ID: %s", scheduler_task_id)
     log.info("Waiting for brokers: %s", broker_dns)
 
-    assert sdk_hosts.resolve_hosts(scheduler_task_id, broker_dns)
+    assert sdk_cmd.resolve_hosts(scheduler_task_id, broker_dns)
 
 
 def create_topic(topic_name, service_name=config.SERVICE_NAME):

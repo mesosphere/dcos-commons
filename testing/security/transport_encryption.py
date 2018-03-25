@@ -70,7 +70,7 @@ def cleanup_service_account(service_name: str, service_account_info: dict):
                                   service_account_secret=secret)
 
 
-def fetch_dcos_ca_bundle(task: str) -> str:
+def fetch_dcos_ca_bundle(marathon_task: str) -> str:
     """Fetch the DC/OS CA bundle from the leading Mesos master"""
     local_bundle_file = "dcos-ca.crt"
 
@@ -78,24 +78,24 @@ def fetch_dcos_ca_bundle(task: str) -> str:
            "leader.mesos/ca/dcos-ca.crt",
            "-o", local_bundle_file]
 
-    sdk_cmd.task_exec(task, " ".join(cmd))
+    sdk_cmd.marathon_task_exec(marathon_task, " ".join(cmd))
 
     return local_bundle_file
 
 
-def create_tls_artifacts(cn: str, task: str) -> str:
+def create_tls_artifacts(cn: str, marathon_task: str) -> str:
     pub_path = "{}_pub.crt".format(cn)
     priv_path = "{}_priv.key".format(cn)
-    log.info("Generating certificate. cn={}, task={}".format(cn, task))
+    log.info("Generating certificate. cn={}, task={}".format(cn, marathon_task))
 
-    output = sdk_cmd.task_exec(
-        task,
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task,
         'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr '
         '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
     log.info(output)
     assert output[0] is 0
 
-    rc, raw_csr, _ = sdk_cmd.task_exec(task, 'cat request.csr')
+    rc, raw_csr, _ = sdk_cmd.marathon_task_exec(marathon_task, 'cat request.csr')
     assert rc is 0
     request = {
         "certificate_request": raw_csr
@@ -103,8 +103,8 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     token = sdk_cmd.run_cli("config show core.dcos_acs_token")
 
-    output = sdk_cmd.task_exec(
-        task,
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task,
         "curl --insecure -L -X POST "
         "-H 'Authorization: token={}' "
         "leader.mesos/ca/api/v2/sign "
@@ -114,26 +114,26 @@ def create_tls_artifacts(cn: str, task: str) -> str:
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_cmd.task_exec(task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    output = sdk_cmd.marathon_task_exec(marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
     log.info(output)
     assert output[0] is 0
 
-    create_keystore_truststore(cn, task)
+    _create_keystore_truststore(cn, marathon_task)
     return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
 
 
-def create_keystore_truststore(cn: str, task: str):
+def _create_keystore_truststore(cn: str, marathon_task: str):
     pub_path = "{}_pub.crt".format(cn)
     priv_path = "{}_priv.key".format(cn)
     keystore_path = "{}_keystore.jks".format(cn)
     truststore_path = "{}_truststore.jks".format(cn)
 
-    log.info("Generating keystore and truststore, task:{}".format(task))
-    dcos_ca_bundle = fetch_dcos_ca_bundle(task)
+    log.info("Generating keystore and truststore, task:{}".format(marathon_task))
+    dcos_ca_bundle = fetch_dcos_ca_bundle(marathon_task)
 
     # Convert to a PKCS12 key
-    output = sdk_cmd.task_exec(
-        task,
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task,
         'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && '
         'openssl pkcs12 -export -in {} -inkey {} '
         '-out keypair.p12 -name keypair -passout pass:export '
@@ -143,8 +143,8 @@ def create_keystore_truststore(cn: str, task: str):
 
     log.info("Generating certificate: importing into keystore and truststore")
     # Import into the keystore and truststore
-    output = sdk_cmd.task_exec(
-        task,
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task,
         "keytool -importkeystore "
         "-deststorepass changeit -destkeypass changeit -destkeystore {} "
         "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
@@ -152,8 +152,8 @@ def create_keystore_truststore(cn: str, task: str):
     log.info(output)
     assert output[0] is 0
 
-    output = sdk_cmd.task_exec(
-        task,
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task,
         "keytool -import -trustcacerts -noprompt "
         "-file {} -storepass changeit "
         "-keystore {}".format(dcos_ca_bundle, truststore_path))

@@ -6,8 +6,8 @@ import sdk_auth
 import sdk_cmd
 import sdk_install
 import sdk_marathon
-import sdk_utils
 import sdk_networks
+import sdk_utils
 
 from tests import auth
 from tests import config
@@ -137,7 +137,7 @@ def test_no_vip(kafka_client, kafka_server, kerberos):
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    sdk_cmd.resolve_hosts(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],

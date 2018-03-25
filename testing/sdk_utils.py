@@ -47,6 +47,21 @@ def get_foldered_name(service_name):
     return '/test/integration/' + service_name
 
 
+def get_task_id_service_name(service_name):
+    '''Converts the provided service name to a sanitized name as used in task ids.
+
+    For example: /test/integration/foo => test.integration.foo'''
+    return service_name.lstrip('/').replace('/', '.')
+
+
+def get_task_id_prefix(service_name, task_name):
+    '''Returns the TaskID prefix to be used for the provided service name and task name.
+    The full TaskID would consist of this prefix, plus two underscores and a UUID.
+
+    For example: /test/integration/foo + hello-0-server => test.integration.foo__hello-0-server'''
+    return '{}__{}'.format(get_task_id_service_name(service_name), task_name)
+
+
 def get_deslashed_service_name(service_name):
     # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'.
     return service_name.lstrip('/').replace('/', '__')

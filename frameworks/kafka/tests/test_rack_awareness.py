@@ -3,7 +3,6 @@ import pytest
 import sdk_cmd
 import sdk_fault_domain
 import sdk_install
-import sdk_tasks
 import sdk_utils
 
 from tests import config, test_utils

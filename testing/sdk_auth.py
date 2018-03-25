@@ -116,29 +116,29 @@ def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_file
     log.info("Downloaded %d bytes to %s", os.stat(output_filename).st_size, output_filename)
 
 
-def kinit(task_id: str, keytab: str, principal: str):
+def kinit(marathon_task_id: str, keytab: str, principal: str):
     """
     Performs a kinit command to authenticate the specified principal.
-    :param task_id: The task in whose environment the kinit will run.
+    :param marathon_task_id: The marathon task in whose environment the kinit will run.
     :param keytab: The keytab used by kinit to authenticate.
     :param principal: The name of the principal the user wants to authenticate as.
     """
     kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
-    rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
+    rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, kinit_cmd)
     if rc != 0:
         raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
                            "stdout: {}\n" \
                            "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
-def kdestroy(task_id: str):
+def kdestroy(marathon_task_id: str):
     """
     Performs a kdestroy command to erase an auth session for a principal.
-    :param task_id: The task in whose environment the kinit will run.
+    :param task_id: The marathon task in whose environment the kdestroy will run.
     """
     log.info("Erasing auth session:")
-    rc, stdout, stderr = sdk_cmd.task_exec(task_id, "kdestroy")
+    rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, "kdestroy")
     if rc != 0:
         raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
@@ -217,7 +217,7 @@ class KerberosEnvironment:
         )
 
         log.info("Running kadmin: {}".format(kadmin_cmd))
-        rc, stdout, stderr = sdk_cmd.task_exec(self.task_id, kadmin_cmd)
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
             raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
 
@@ -276,7 +276,7 @@ class KerberosEnvironment:
             return None
 
         log.info("Deleting any previous keytab just in case (kadmin will append to it)")
-        sdk_cmd.task_exec(self.task_id, "rm {}".format(name))
+        sdk_cmd.marathon_task_exec(self.task_id, "rm {}".format(name))
 
         kadmin_options = ["-l"]
         kadmin_cmd = "ext"
