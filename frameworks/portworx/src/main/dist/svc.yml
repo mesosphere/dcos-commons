@@ -5,6 +5,13 @@ pods:
   portworx:
     user: {{SERVICE_USER}}
     count: {{NODE_COUNT}}
+    secrets:
+      secrets_username:
+        secret: {{SECRETS_DCOS_USERNAME}}
+        env-key: DCOS_SECRETS_USERNAME
+      secrets_password:
+        secret: {{SECRETS_DCOS_PASSWORD}}
+        env-key: DCOS_SECRETS_PASSWORD
     resource-sets:
       px-install-resources:
         cpus: 0.3
@@ -96,6 +103,9 @@ pods:
                           {{#LIGHTHOUSE_ENABLED}}
                           -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
                           {{/LIGHTHOUSE_ENABLED}}
+                          -e DCOS_SECRETS_BASE_PATH={{SECRETS_BASE_PATH}} \
+                          -e DCOS_SECRETS_USERNAME=$DCOS_SECRETS_USERNAME \
+                          -e DCOS_SECRETS_PASSWORD=$DCOS_SECRETS_PASSWORD \
                           -name=%n \
                           -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
                           {{#LIGHTHOUSE_ENABLED}}

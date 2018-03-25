@@ -54,6 +54,10 @@
     "NODE_CONTAINER_PARAMETERS": "{{{node.container_parameters}}}",
     {{/node.container_parameters}}
 
+    "SECRETS_BASE_PATH": "{{node.dcos_secrets_base_path}}",
+    "SECRETS_DCOS_USERNAME": "{{node.dcos_username_secret}}",
+    "SECRETS_DCOS_PASSWORD": "{{node.dcos_password_secret}}",
+
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",

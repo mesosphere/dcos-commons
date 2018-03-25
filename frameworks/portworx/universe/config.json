@@ -84,6 +84,24 @@
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
             "default": "hostname:UNIQUE"
+          },
+          "dcos_secrets_base_path": {
+            "title": "Secrets base path",
+            "description": "The base path that is accessible to Portworx (DC/OS user provided to access secrets) for reading and writing secrets. These secrets are used for features like volume encryption, cloudsnap authentication, etc. If not provided, Portworx will look for secrets at the top level",
+            "type": "string",
+            "default": "portworx"
+          },
+          "dcos_username_secret": {
+            "title": "DC/OS username secret",
+            "description": "Secret path containing the username of the DC/OS user who has permissions to access the secrets under the secrets base path. Eg. portworx/dcos_username",
+            "type": "string",
+            "default": "portworx/dcos_username"
+          },
+          "dcos_password_secret": {
+            "title": "DC/OS password secret",
+            "description": "Secret path containing the password of the DC/OS user who has permissions to access the secrets under the secrets base path. Eg. portworx/dcos_password",
+            "type": "string",
+            "default": "portworx/dcos_password"
           }
         },
         "required":[
