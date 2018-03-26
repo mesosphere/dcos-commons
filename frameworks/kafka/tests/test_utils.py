@@ -91,7 +91,8 @@ def wait_for_topic(package_name: str, service_name: str, topic_name: str):
     """
     Execute `dcos kafka topic describe` to wait for topic creation.
     """
-    @retrying.retry(wait_exponential_multiplier=1000,
+    @retrying.retry(stop_max_delay=5*60*1000,
+                    wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000)
     def describe(topic):
         sdk_cmd.svc_cli(package_name, service_name,

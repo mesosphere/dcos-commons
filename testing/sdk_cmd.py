@@ -192,29 +192,28 @@ def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -
     output_cmd = """bash -c \"cat >{output_file} << EOL
 {content}
 EOL\"""".format(output_file=filename, content="\n".join(lines))
-    log.info("Running: %s", output_cmd)
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, output_cmd)
 
     if rc or stderr:
-        log.error("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        log.warning("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
         return False
 
     linecount_cmd = "wc -l {output_file}".format(output_file=filename)
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, linecount_cmd)
 
     if rc or stderr:
-        log.error("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        log.warning("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
         return False
 
     written_lines = 0
     try:
         written_lines = int(stdout.split(" ")[0])
     except Exception as e:
-        log.error(e)
+        log.warning(e)
 
     expected_lines = len("\n".join(lines).split("\n"))
     if written_lines != expected_lines:
-        log.error("Number of written lines do not match. stdout=%s expected=%s written=%s",
+        log.warning("Number of written lines do not match. stdout=%s expected=%s written=%s",
                   stdout, expected_lines, written_lines)
         return False
 
@@ -289,49 +288,48 @@ def agent_ssh(agent_host: str, cmd: str) -> tuple:
 
 def marathon_task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     """
-    Invokes the given command on the Marathon task via `dcos task exec`.
-    :param task_name: Name of task to run command on.
+    Invokes the given command on the named Marathon task via `dcos task exec`.
+    :param task_name: Name of task to run 'cmd' on.
     :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
-    return _task_exec(task_name, cmd, None, return_stderr_in_stdout)
+
+    # Marathon TaskIDs are of the form "<name>.<uuid>"
+    task_id_prefix = '{}.'.format(task_name)
+
+    return _task_exec(task_id_prefix, cmd, return_stderr_in_stdout)
 
 
 def service_task_exec(service_name: str, task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     """
-    Invokes the given command on the SDK service task via `dcos task exec`.
+    Invokes the given command on the named SDK service task via `dcos task exec`.
     :param service_name: Name of the service running the task.
-    :param task_name: Name of task to run command on.
+    :param task_name: Name of task to run 'cmd' on.
     :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
-    return _task_exec(task_name, cmd, service_name, return_stderr_in_stdout)
+
+    # Contrary to CLI's help text for 'dcos task exec':
+    # - 'partial task ID' is only prefix/startswith matching, not 'contains' as the wording would imply.
+    # - Regexes don't work at all.
+    # Therefore, we need to provide a full TaskID prefix, including "servicename__taskname":
+    task_id_prefix = '{}__{}__'.format(sdk_utils.get_task_id_service_name(service_name), task_name)
+
+    return _task_exec(task_id_prefix, cmd, return_stderr_in_stdout)
 
 
-def _task_exec(task_name: str, cmd: str, service_name: str = None, return_stderr_in_stdout: bool = False) -> tuple:
+def _task_exec(task_id_prefix: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
-        full_cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
+        # On 1.9 task exec is run relative to the host filesystem, not the container filesystem
+        full_cmd = os.path.join(get_task_sandbox_path(task_id_prefix), cmd)
 
         if cmd.startswith("./bootstrap"):
-            # On 1.9 we need to set LIB_PROCESS_IP for bootstrap
+            # On 1.9 we also need to set LIB_PROCESS_IP for bootstrap
             full_cmd = "bash -c \"LIBPROCESS_IP=0.0.0.0 {}\"".format(full_cmd)
     else:
         full_cmd = cmd
 
-    if service_name:
-        # Contrary to CLI's help text for 'dcos task exec':
-        # - 'partial task ID' is only prefix/startswith matching, not 'contains' as the wording would imply.
-        # - Regexes don't work at all.
-        # Therefore, we need to provide a full TaskID prefix, including "servicename__taskname":
-        exec_cmd = "task exec {sanitized_service_name}__{task_name}__ {cmd}".format(
-            sanitized_service_name=sdk_utils.get_task_id_service_name(service_name),
-            task_name=task_name,
-            cmd=full_cmd)
-    else:
-        # Marathon meanwhile puts the task name at the start of the task id, so we're good there.
-        exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=full_cmd)
-
-    rc, stdout, stderr = run_raw_cli(exec_cmd)
+    rc, stdout, stderr = run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
 
     if return_stderr_in_stdout:
         return rc, stdout + "\n" + stderr
@@ -360,7 +358,7 @@ def resolve_hosts(marathon_task_name: str, hosts: list) -> bool:
             resolved_host_string = "Resolved '{host}' =>".format(host=host)
             host_resolved = resolved_host_string in bootstrap_stdout
             if not host_resolved:
-                log.error("Could not resolve: %s", host)
+                log.warning("Could not resolve: %s", host)
 
     return resolved
 
@@ -380,39 +378,39 @@ def get_json_output(cmd, print_output=True):
     return json_stdout
 
 
-def get_task_sandbox_path(task_name: str) -> str:
-    task_info = get_task_info(task_name)
+def get_task_sandbox_path(task_id_prefix: str) -> str:
+    task_info = _get_task_info(task_id_prefix)
 
-    if task_info:
+    if not task_info:
+        return ""
 
-        executor_path = task_info["executor_id"]
-        if not executor_path:
-            executor_path = task_info["id"]
-        # Assume the latest run:
-        return os.path.join("/var/lib/mesos/slave/slaves", task_info["slave_id"],
-                            "frameworks", task_info["framework_id"],
-                            "executors", executor_path,
-                            "runs/latest")
+    executor_path = task_info["executor_id"]
+    if not executor_path:
+        executor_path = task_info["id"]
 
-    return ""
+    # Assume the latest run:
+    return os.path.join(
+        "/var/lib/mesos/slave/slaves", task_info["slave_id"],
+        "frameworks", task_info["framework_id"],
+        "executors", executor_path,
+        "runs/latest")
 
 
 @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
-def get_task_info(task_name: str) -> dict:
+def _get_task_info(task_id_prefix: str) -> dict:
     """
     :return (dict): Get the task information for the specified task
     """
-    log.info("Getting task information")
-    raw_tasks = run_cli("task {task_name} --json".format(task_name=task_name))
-    if raw_tasks:
-        tasks = jsonlib.loads(raw_tasks)
-        for task in tasks:
-            if task["name"] == task_name:
-                log.info("Matched on 'name'")
-                return task
-            if task.get("id", None) == task_name:
-                log.info("Matched on 'id'")
-                return task
+    raw_tasks = run_cli("task {task_id_prefix} --json".format(task_id_prefix=task_id_prefix))
+    if not raw_tasks:
+        log.warning("No data returned for tasks matching id '%s'", task_id_prefix)
+        return {}
 
-    log.error("Task %s not found.\nFound: %s", task_name, raw_tasks)
+    tasks = jsonlib.loads(raw_tasks)
+    for task in tasks:
+        if task.get("id", "").startswith(task_id_prefix):
+            log.info("Matched on 'id': ")
+            return task
+    log.warning("Didn't find task matching id '%s'. Found: %s",
+                task_id_prefix, ",".join([t.get("id", "NO-ID") for t in tasks]))
     return {}

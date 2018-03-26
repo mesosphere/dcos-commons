@@ -167,7 +167,8 @@ def test_srv_records():
 
     log.info("Getting framework srv records for %s", config.SERVICE_NAME)
 
-    @retrying.retry(wait_exponential_multiplier=1000,
+    @retrying.retry(stop_max_delay=5*60*1000,
+                    wait_exponential_multiplier=1000,
                     wait_exponential_max=120 * 1000)
     def call_shakedown():
         cmd = "curl localhost:8123/v1/enumerate"

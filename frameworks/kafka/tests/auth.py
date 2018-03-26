@@ -145,17 +145,21 @@ def write_to_topic(cn: str, marathon_task: str, topic: str, message: str,
             LOG.warning("Write failed with non-zero return code")
             return True
         if "UNKNOWN_TOPIC_OR_PARTITION" in stderr:
-            LOG.warning("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
+            LOG.warning("Write failed with UNKNOWN_TOPIC_OR_PARTITION")
             return True
-        if "LEADER_NOT_AVAILABLE" in stderr and "ERROR Error when sending message" in stderr:
-            LOG.warning("Write failed due to stderr: LEADER_NOT_AVAILABLE")
-            return True
+        if "ERROR Error when sending message" in stderr:
+            if "org.apache.kafka.common.errors.TimeoutException" in stderr:
+                LOG.warning("Write failed with TimeoutException")
+                return True
+            if "LEADER_NOT_AVAILABLE" in stderr:
+                LOG.warning("Write failed with LEADER_NOT_AVAILABLE")
+                return True
 
-        LOG.info("Output check passed")
-
+        LOG.info("Write appears to have succeeded")
         return False
 
-    @retrying.retry(wait_exponential_multiplier=1000,
+    @retrying.retry(stop_max_delay=5*60*1000,
+                    wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=write_failed)
     def write_wrapper():
@@ -182,7 +186,7 @@ def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int,
                 "--bootstrap-server", broker_list,
                 "--from-beginning",
                 "--max-messages", messages,
-                "--timeout-ms", 60000,
+                "--timeout-ms", 10000,
                 ]
 
     cmd = " ".join(str(c) for c in cmd_list)
@@ -199,11 +203,11 @@ def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int,
             LOG.warning("Read failed with timeout error")
             return True
 
-        LOG.info("Output check passed")
-
+        LOG.info("Read appears to have succeeded")
         return False
 
-    @retrying.retry(wait_exponential_multiplier=1000,
+    @retrying.retry(stop_max_delay=3*60*1000,
+                    wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=read_failed)
     def read_wrapper():
