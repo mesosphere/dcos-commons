@@ -72,6 +72,7 @@ def cluster_request(
 
     url = shakedown.dcos_url_path(cluster_path)
     cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
+    log.info('(HTTP {}) {}'.format(method.upper(), cluster_path))
 
     def fn():
         # Underlying dcos.http.request will wrap responses in custom exceptions. This messes with
@@ -133,6 +134,7 @@ def run_raw_cli(cmd, print_output=True):
     $ dcos package install <package-name>
     """
     dcos_cmd = "dcos {}".format(cmd)
+    log.info("(CLI) {}".format(dcos_cmd))
     result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = ""
     stderr = ""
@@ -173,9 +175,9 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
             "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
             "cut -d ' ' -f 1)".format(pattern))
         if agent_host is None:
-            exit_status, _ = shakedown.run_command_on_master(command)
+            exit_status, _ = master_ssh(command)
         else:
-            exit_status, _ = shakedown.run_command_on_agent(agent_host, command)
+            exit_status, _ = agent_ssh(agent_host, command)
 
         return exit_status
 
@@ -225,7 +227,7 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: not res)
     def fn():
-        ok, stdout = shakedown.run_command_on_agent(agent_ip, 'sudo shutdown -h +1')
+        ok, stdout = agent_ssh(agent_ip, 'sudo shutdown -h +1')
         log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(agent_ip, ok, stdout))
         return ok
     # Might not be able to connect to the agent on first try so we repeat until we can
@@ -261,6 +263,28 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     wait_for_unresponsive_agent()
 
     log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
+
+
+def master_ssh(cmd: str) -> tuple:
+    '''
+    Runs the provided command on the cluster master, using ssh.
+    Returns a boolean (==success) and a string (output)
+    '''
+    log.info('(SSH:master) {}'.format(cmd))
+    success, output = shakedown.run_command_on_master(cmd)
+    log.info('Output (success={}):\n{}'.format(success, output))
+    return success, output
+
+
+def agent_ssh(agent_host: str, cmd: str) -> tuple:
+    '''
+    Runs the provided command on the specified agent host, using ssh.
+    Returns a boolean (==success) and a string (output)
+    '''
+    log.info('(SSH:agent={}) {}'.format(agent_host, cmd))
+    success, output = shakedown.run_command_on_agent(agent_host, cmd)
+    log.info('Output (success={}):\n{}'.format(success, output))
+    return success, output
 
 
 def marathon_task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
@@ -326,12 +350,8 @@ def resolve_hosts(marathon_task_name: str, hosts: list) -> bool:
         '-install-certs=false',
         '-self-resolve=false',
         '-resolve-hosts', ','.join(hosts)]
-    log.info("Running bootstrap to wait for DNS resolution of %s\n\t%s", hosts, bootstrap_cmd)
-    return_code, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
-
-    log.info("bootstrap return code: %s", return_code)
-    log.info("bootstrap STDOUT: %s", bootstrap_stdout)
-    log.info("bootstrap STDERR: %s", bootstrap_stderr)
+    log.info("Running bootstrap to wait for DNS resolution of: %s", ', '.join(hosts))
+    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
 
     # Note that bootstrap returns its output in STDERR
     resolved = 'SDK Bootstrap successful.' in bootstrap_stderr

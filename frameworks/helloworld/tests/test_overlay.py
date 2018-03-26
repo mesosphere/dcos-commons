@@ -171,10 +171,8 @@ def test_srv_records():
                     wait_exponential_max=120 * 1000)
     def call_shakedown():
         cmd = "curl localhost:8123/v1/enumerate"
-        log.info("Running '%s' on master", cmd)
-        is_ok, out = shakedown.run_command_on_master(cmd)
-        log.info("Running command returned: is_ok=%s", is_ok)
-        assert is_ok, "Failed to get srv records. command was {}".format(cmd)
+        is_ok, out = sdk_cmd.master_ssh(cmd)
+        assert is_ok, "Failed to get srv records from master SSH: {}".format(cmd)
         try:
             srvs = json.loads(out)
         except Exception as e:

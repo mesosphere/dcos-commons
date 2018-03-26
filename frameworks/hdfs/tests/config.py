@@ -126,9 +126,7 @@ def run_hdfs_command(service_name, command):
         stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
         retry_on_result=lambda res: not res[0])
     def fn():
-        rc, output = shakedown.run_command_on_master(full_command)
-        log.info('Command output ({} bytes, success={}):\n{}'.format(len(output), rc, output))
-        return rc, output
+        return sdk_cmd.master_ssh(full_command)
     return fn()
 
 

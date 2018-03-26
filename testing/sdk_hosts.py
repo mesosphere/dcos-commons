@@ -6,8 +6,9 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 import json
-import shakedown
+import retrying
 
+import sdk_cmd
 import sdk_utils
 
 
@@ -89,6 +90,9 @@ def get_foldered_dns_name(service_name):
     return sdk_utils.get_foldered_name(service_name).replace("/", "")
 
 
+@retrying.retry(
+    wait_fixed=2000,
+    stop_max_delay=5*60*1000)
 def get_crypto_id_domain():
     """
     Returns the cluster cryptographic ID equivalent of autoip.dcos.thisdcos.directory.
@@ -96,7 +100,7 @@ def get_crypto_id_domain():
     These addresses are routable within the cluster but can be used to test setting a custom
     service domain.
     """
-    ok, lashup_response = shakedown.run_command_on_master("curl localhost:62080/lashup/key/")
+    ok, lashup_response = sdk_cmd.master_ssh("curl localhost:62080/lashup/key/")
     assert ok
 
     crypto_id = json.loads(lashup_response.strip())["zbase32_public_key"]

@@ -138,18 +138,17 @@ def write_to_topic(cn: str, marathon_task: str, topic: str, message: str,
     write_cmd = get_bash_command(cmd, environment)
 
     def write_failed(output) -> bool:
-        LOG.info("Checking write output: %s", output)
         rc = output[0]
         stderr = output[2]
 
         if rc:
-            LOG.error("Write failed with non-zero return code")
+            LOG.warning("Write failed with non-zero return code")
             return True
         if "UNKNOWN_TOPIC_OR_PARTITION" in stderr:
-            LOG.error("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
+            LOG.warning("Write failed due to stderr: UNKNOWN_TOPIC_OR_PARTITION")
             return True
         if "LEADER_NOT_AVAILABLE" in stderr and "ERROR Error when sending message" in stderr:
-            LOG.error("Write failed due to stderr: LEADER_NOT_AVAILABLE")
+            LOG.warning("Write failed due to stderr: LEADER_NOT_AVAILABLE")
             return True
 
         LOG.info("Output check passed")
@@ -160,11 +159,7 @@ def write_to_topic(cn: str, marathon_task: str, topic: str, message: str,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=write_failed)
     def write_wrapper():
-        LOG.info("Running: %s", write_cmd)
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task, write_cmd)
-        LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
-
-        return rc, stdout, stderr
+        return sdk_cmd.marathon_task_exec(marathon_task, write_cmd)
 
     rc, stdout, stderr = write_wrapper()
 
@@ -194,14 +189,14 @@ def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int,
     read_cmd = get_bash_command(cmd, environment)
 
     def read_failed(output) -> bool:
-        LOG.info("Checking read output: %s", output)
         rc = output[0]
         stderr = output[2]
 
         if rc:
-            LOG.error("Read failed with non-zero return code")
+            LOG.warning("Read failed with non-zero return code")
             return True
         if "kafka.consumer.ConsumerTimeoutException" in stderr:
+            LOG.warning("Read failed with timeout error")
             return True
 
         LOG.info("Output check passed")
@@ -212,11 +207,7 @@ def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=read_failed)
     def read_wrapper():
-        LOG.info("Running: %s", read_cmd)
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task, read_cmd)
-        LOG.info("rc=%s\nstdout=%s\nstderr=%s\n", rc, stdout, stderr)
-
-        return rc, stdout, stderr
+        return sdk_cmd.marathon_task_exec(marathon_task, read_cmd)
 
     output = read_wrapper()
 

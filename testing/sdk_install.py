@@ -151,7 +151,7 @@ def run_janitor(service_name, role, service_account, znode):
                 "--auth_token={}".format(auth_token)]
     cmd = " ".join(cmd_list)
 
-    shakedown.run_command_on_master(cmd)
+    sdk_cmd.master_ssh(cmd)
 
 
 @retrying.retry(stop_max_attempt_number=5,

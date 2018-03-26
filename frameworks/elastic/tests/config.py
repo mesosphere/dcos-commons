@@ -9,7 +9,6 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -67,7 +66,7 @@ DEFAULT_SETTINGS_MAPPINGS = {
 def check_kibana_adminrouter_integration(path):
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
         shakedown.dcos_acs_token(), shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
-    exit_ok, output = shakedown.run_command_on_master(curl_cmd)
+    exit_ok, output = sdk_cmd.master_ssh(curl_cmd)
     return exit_ok and output and "HTTP/1.1 200" in output
 
 

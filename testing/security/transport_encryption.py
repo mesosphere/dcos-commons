@@ -43,12 +43,11 @@ def setup_service_account(service_name: str,
 
         for acl in acls:
             cmd_list = ["security", "org", "users", "grant",
-                        "--description", "\"Permissing required to provision TLS certificates\"",
+                        "--description", "\"Allow provisioning TLS certificates\"",
                         name, acl["rid"], acl["action"]
                         ]
 
-            output = sdk_cmd.run_cli(" ".join(cmd_list))
-            log.info("output=%s", output)
+            sdk_cmd.run_cli(" ".join(cmd_list))
 
     return service_account_info
 
@@ -92,7 +91,6 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         marathon_task,
         'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr '
         '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
-    log.info(output)
     assert output[0] is 0
 
     rc, raw_csr, _ = sdk_cmd.marathon_task_exec(marathon_task, 'cat request.csr')
@@ -109,13 +107,11 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "-H 'Authorization: token={}' "
         "leader.mesos/ca/api/v2/sign "
         "-d '{}'".format(token, json.dumps(request)))
-    log.info(output)
     assert output[0] is 0
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
     output = sdk_cmd.marathon_task_exec(marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
-    log.info(output)
     assert output[0] is 0
 
     _create_keystore_truststore(cn, marathon_task)
@@ -138,7 +134,6 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         'openssl pkcs12 -export -in {} -inkey {} '
         '-out keypair.p12 -name keypair -passout pass:export '
         '-CAfile {} -caname root"'.format(pub_path, priv_path, dcos_ca_bundle))
-    log.info(output)
     assert output[0] is 0
 
     log.info("Generating certificate: importing into keystore and truststore")
@@ -149,7 +144,6 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-deststorepass changeit -destkeypass changeit -destkeystore {} "
         "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
         "-alias keypair".format(keystore_path))
-    log.info(output)
     assert output[0] is 0
 
     output = sdk_cmd.marathon_task_exec(
@@ -157,5 +151,4 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "keytool -import -trustcacerts -noprompt "
         "-file {} -storepass changeit "
         "-keystore {}".format(dcos_ca_bundle, truststore_path))
-    log.info(output)
     assert output[0] is 0

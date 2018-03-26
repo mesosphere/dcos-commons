@@ -1,11 +1,11 @@
 import pytest
 
+import sdk_cmd
 import sdk_install
 import sdk_hosts
 import sdk_plan
 import sdk_utils
 import retrying
-import shakedown
 
 from security import transport_encryption
 
@@ -100,8 +100,7 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
         stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
         retry_on_result=lambda res: not res)
     def fn():
-        exit_status, output = shakedown.run_command_on_master(
-            _curl_https_get_code(host))
+        exit_status, output = sdk_cmd.master_ssh(_curl_https_get_code(host))
         return exit_status and output == '200'
 
     assert fn()
