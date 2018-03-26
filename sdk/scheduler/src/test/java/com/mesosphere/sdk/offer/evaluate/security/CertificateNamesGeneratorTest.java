@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DiscoverySpec;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -47,7 +48,10 @@ public class CertificateNamesGeneratorTest {
     @Test
     public void testGetSubject() throws Exception {
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(TestConstants.SERVICE_NAME, mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(TestConstants.SERVICE_NAME,
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
         RDN[] cnRDNs = certificateNamesGenerator.getSubject().getRDNs(BCStyle.CN);
         Assert.assertEquals(cnRDNs.length, 1);
         Assert.assertEquals(String.format("%s-%s.%s", POD_NAME, TestConstants.TASK_NAME, TestConstants.SERVICE_NAME),
@@ -58,7 +62,10 @@ public class CertificateNamesGeneratorTest {
     public void testGetSubjectWithLongCN() throws Exception {
         Mockito.when(mockTaskSpec.getName()).thenReturn(UUID.randomUUID().toString());
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(UUID.randomUUID().toString(), mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(UUID.randomUUID().toString(),
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
         RDN[] cnRDNs = certificateNamesGenerator.getSubject().getRDNs(BCStyle.CN);
         Assert.assertEquals(cnRDNs.length, 1);
         Assert.assertEquals(64, cnRDNs[0].getFirst().getValue().toString().length());
@@ -67,7 +74,10 @@ public class CertificateNamesGeneratorTest {
     @Test
     public void testGetSANs() throws Exception {
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(TestConstants.SERVICE_NAME, mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(TestConstants.SERVICE_NAME,
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
 
         GeneralNames sans = certificateNamesGenerator.getSANs();
         Assert.assertEquals(1, sans.getNames().length);
@@ -89,7 +99,10 @@ public class CertificateNamesGeneratorTest {
         String serviceNameWithoutSlashes = "servicenamewithslashes";
 
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(serviceNameWithSlashes, mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(serviceNameWithSlashes,
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
 
         Assert.assertEquals(String.format("%s-%s.%s", POD_NAME, TestConstants.TASK_NAME, serviceNameWithoutSlashes),
                 certificateNamesGenerator.getSubject().getRDNs(BCStyle.CN)[0].getFirst().getValue().toString());
@@ -110,7 +123,10 @@ public class CertificateNamesGeneratorTest {
         Mockito.when(mockTaskSpec.getDiscovery()).thenReturn(Optional.of(mockDiscoverySpec));
         Mockito.when(mockDiscoverySpec.getPrefix()).thenReturn(Optional.of("custom-name"));
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(TestConstants.SERVICE_NAME, mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(TestConstants.SERVICE_NAME,
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
 
         GeneralNames sans = certificateNamesGenerator.getSANs();
         Assert.assertEquals(1, sans.getNames().length);
@@ -130,7 +146,10 @@ public class CertificateNamesGeneratorTest {
         Mockito.when(mockVIPSpec.getVipName()).thenReturn("test-vip");
         Mockito.when(mockVIPSpec.getPort()).thenReturn(8000L);
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(TestConstants.SERVICE_NAME, mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(TestConstants.SERVICE_NAME,
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
 
         GeneralNames sans = certificateNamesGenerator.getSANs();
         Assert.assertEquals(2, sans.getNames().length);

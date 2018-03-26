@@ -6,9 +6,9 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Ports;
@@ -175,7 +175,7 @@ public class EndpointsResourceTest {
     }
 
     private static EndpointsResource buildResource(StateStore stateStore, String serviceName) {
-        EndpointsResource resource = new EndpointsResource(stateStore, serviceName);
+        EndpointsResource resource = new EndpointsResource(stateStore, serviceName, SchedulerConfigTestUtils.getTestSchedulerConfig());
         resource.setCustomEndpoint(CUSTOM_KEY, EndpointProducer.constant(CUSTOM_VALUE));
         return resource;
     }

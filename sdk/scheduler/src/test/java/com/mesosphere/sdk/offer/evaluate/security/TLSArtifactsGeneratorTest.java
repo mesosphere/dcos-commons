@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -68,7 +69,10 @@ public class TLSArtifactsGeneratorTest {
         when(mockResourceSet.getResources()).thenReturn(Collections.emptyList());
 
         certificateNamesGenerator =
-                new CertificateNamesGenerator(TestConstants.SERVICE_NAME, mockTaskSpec, mockPodInstance);
+                new CertificateNamesGenerator(TestConstants.SERVICE_NAME,
+                        mockTaskSpec,
+                        mockPodInstance,
+                        SchedulerConfig.fromEnv());
         tlsArtifactsGenerator = new TLSArtifactsGenerator(mockCAClient, mockKeyPairGenerator);
     }
 

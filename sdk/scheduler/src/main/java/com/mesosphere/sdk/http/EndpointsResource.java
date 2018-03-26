@@ -17,6 +17,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.StateStore;
 
 import com.mesosphere.sdk.state.StateStoreUtils;
@@ -45,14 +46,16 @@ public class EndpointsResource {
     private final StateStore stateStore;
     private final String serviceName;
     private final Map<String, EndpointProducer> customEndpoints = new HashMap<>();
+    private final SchedulerConfig schedulerConfig;
 
     /**
      * Creates a new instance which retrieves task/pod state from the provided {@link StateStore},
      * using the provided {@code serviceName} for endpoint paths.
      */
-    public EndpointsResource(StateStore stateStore, String serviceName) {
+    public EndpointsResource(StateStore stateStore, String serviceName, SchedulerConfig schedulerConfig) {
         this.stateStore = stateStore;
         this.serviceName = serviceName;
+        this.schedulerConfig = schedulerConfig;
     }
 
     /**
@@ -169,7 +172,7 @@ public class EndpointsResource {
                         serviceName,
                         taskInfo.getName(),
                         port,
-                        EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber()),
+                        EndpointUtils.toAutoIpEndpoint(serviceName, autoIpTaskName, port.getNumber(), schedulerConfig),
                         EndpointUtils.toEndpoint(hostIpString, port.getNumber()));
             }
         }

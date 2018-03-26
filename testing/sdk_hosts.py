@@ -5,7 +5,9 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import json
 import logging
+import shakedown
 
 import sdk_cmd
 import sdk_utils
@@ -42,6 +44,17 @@ def autoip_host(service_name, task_name, port=-1):
         AUTOIP_HOST_SUFFIX,
         port)
 
+
+def custom_host(service_name, task_name, custom_domain, port=-1):
+    """
+    Returns a properly constructed hostname for the container of the given task using the
+    supplied custom domain.
+    """
+    return _to_host(
+        _safe_name(task_name),
+        _safe_name(service_name),
+        custom_domain,
+        port)
 
 def vip_host(service_name, vip_name, port=-1):
     '''Returns the hostname of a specified service VIP, with handling of foldered services.'''
@@ -107,3 +120,18 @@ def get_foldered_dns_name(service_name):
     if sdk_utils.dcos_version_less_than('1.10'):
         return service_name
     return sdk_utils.get_foldered_name(service_name).replace("/", "")
+
+
+def get_crypto_id_domain():
+    """
+    Returns the cluster cryptographic ID equivalent of autoip.dcos.thisdcos.directory.
+
+    These addresses are routable within the cluster but can be used to test setting a custom
+    service domain.
+    """
+    ok, lashup_response = shakedown.run_command_on_master("curl localhost:62080/lashup/key/")
+    assert ok
+
+    crypto_id = json.loads(lashup_response.strip())["zbase32_public_key"]
+
+    return "autoip.dcos.{}.dcos.directory".format(crypto_id)
