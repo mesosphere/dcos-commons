@@ -127,7 +127,9 @@ def kafka_client(kerberos, kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_no_vip(kafka_client, kafka_server, kerberos):
-    endpoints = sdk_networks.get_and_test_endpoints(kafka_server["package_name"], kafka_server["service"]["name"], "broker", 2)
+    endpoints = sdk_networks.get_and_test_endpoints(kafka_server["package_name"],
+                                                    kafka_server["service"]["name"],
+                                                    "broker", 2)
     assert "vip" not in endpoints
 
 
