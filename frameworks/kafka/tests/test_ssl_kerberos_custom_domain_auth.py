@@ -77,7 +77,7 @@ def kafka_server(kerberos, service_account):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
-                    "realm": sdk_auth.REALM,
+                    "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
                 "transport_encryption": {

@@ -78,7 +78,7 @@ def kafka_server(kerberos):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_client(kerberos, kafka_server):
+def kafka_client(kerberos):
     try:
         kafka_client = client.KafkaClient("kafka-client")
         kafka_client.install(kerberos)
