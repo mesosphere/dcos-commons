@@ -18,7 +18,7 @@ USERS = [
 ]
 
 
-def get_service_principals(service_name: str, realm: str) -> list:
+def get_service_principals(service_name: str, realm: str, custom_domain: str = None) -> list:
     """
     Sets up the appropriate principals needed for a kerberized deployment of HDFS.
     :return: A list of said principals
@@ -30,7 +30,11 @@ def get_service_principals(service_name: str, realm: str) -> list:
         "kafka-1-broker",
         "kafka-2-broker",
     ]
-    instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
+
+    if custom_domain:
+        instances = map(lambda task: sdk_hosts.custom_host(service_name, task, custom_domain), tasks)
+    else:
+        instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
 
     principals = kerberos.generate_principal_list(primaries, instances, realm)
     principals.extend(kerberos.generate_principal_list(USERS, [None, ], realm))
