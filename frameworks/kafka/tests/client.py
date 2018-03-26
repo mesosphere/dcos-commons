@@ -6,6 +6,7 @@ import uuid
 
 import sdk_auth
 import sdk_cmd
+import sdk_install
 import sdk_marathon
 
 from tests import auth
@@ -50,27 +51,24 @@ class KafkaClient:
     def __init__(self, id: str):
 
         self.id = id
-        self.MESSAGES = []
 
-        self._is_kerberos = True
+        self._is_kerberos = False
         self._is_tls = False
 
+        self.reset()
+
+    def reset(self):
+        self.MESSAGES = []
         self.brokers = None
         self.topic_name = None
 
     def get_id(self) -> str:
         return self.id
 
-    def install(self, kerberos: sdk_auth.KerberosEnvironment):
+    @staticmethod
+    def _get_kerberos_options(kerberos: sdk_auth.KerberosEnvironment) -> dict:
         options = {
-            "id": self.id,
-            "mem": 512,
             "container": {
-                "type": "MESOS",
-                "docker": {
-                    "image": "elezar/kafka-client:latest",
-                    "forcePullImage": True
-                },
                 "volumes": [
                     {
                         "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
@@ -82,6 +80,21 @@ class KafkaClient:
                 "kafka_keytab": {
                     "source": kerberos.get_keytab_path(),
 
+                }
+            }
+        }
+
+        return options
+
+    def install(self, kerberos: sdk_auth.KerberosEnvironment=None) -> dict:
+        options = {
+            "id": self.id,
+            "mem": 512,
+            "container": {
+                "type": "MESOS",
+                "docker": {
+                    "image": "elezar/kafka-client:latest",
+                    "forcePullImage": True
                 }
             },
             "networks": [
@@ -95,6 +108,11 @@ class KafkaClient:
                 "KAFKA_TOPIC": "securetest"
             }
         }
+
+        if kerberos is not None:
+            self._is_kerberos = True
+            options = sdk_install.merge_dictionaries(options, self._get_kerberos_options(kerberos))
+
         sdk_marathon.install_app(options)
 
         return options
@@ -145,6 +163,10 @@ class KafkaClient:
             self.topic_name = topic_name
 
         return True
+
+    def connect(self, kafka_server: dict) -> bool:
+        self.reset()
+        return self.wait_for(kafka_server, topic_name=None)
 
     def can_write_and_read(self, user: str, kafka_server: dict,
                            topic_name: str, krb5: sdk_auth.KerberosEnvironment) -> tuple:

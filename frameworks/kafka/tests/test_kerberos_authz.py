@@ -10,7 +10,6 @@ import sdk_utils
 from tests import auth
 from tests import client
 from tests import config
-from tests import test_utils
 
 
 log = logging.getLogger(__name__)
@@ -101,7 +100,7 @@ def test_authz_acls_required(kafka_client: client.KafkaClient,
                     "topic create {}".format(topic_name),
                     json=True)
 
-    kafka_client.wait_for(kafka_server, topic_name)
+    kafka_client.connect(kafka_server)
 
     # Since no ACLs are specified, only the super user can read and write
     for user in ["super", ]:
