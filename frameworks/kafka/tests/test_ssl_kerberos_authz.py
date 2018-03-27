@@ -54,49 +54,6 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos, service_account):
-    """
-    A pytest fixture that installs a Kerberized kafka service.
-
-    On teardown, the service is uninstalled.
-    """
-    service_kerberos_options = {
-        "service": {
-            "name": config.SERVICE_NAME,
-            "service_account": service_account["name"],
-            "service_account_secret": service_account["secret"],
-            "security": {
-                "kerberos": {
-                    "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port())
-                    },
-                    "realm": kerberos.get_realm(),
-                    "keytab_secret": kerberos.get_keytab_path(),
-                },
-                "transport_encryption": {
-                    "enabled": True
-                }
-            }
-        }
-    }
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    try:
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
-
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-@pytest.fixture(scope='module', autouse=True)
 def kafka_client(kerberos):
     try:
         kafka_client = client.KafkaClient("kafka-client")
@@ -148,6 +105,9 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, kerberos, service
                         },
                         "realm": kerberos.get_realm(),
                         "keytab_secret": kerberos.get_keytab_path(),
+                    },
+                    "transport_encryption": {
+                        "enabled": True
                     },
                     "authorization": {
                         "enabled": True,
@@ -235,6 +195,9 @@ def test_authz_acls_not_required(kafka_client: client.KafkaClient, kerberos, ser
                         },
                         "realm": kerberos.get_realm(),
                         "keytab_secret": kerberos.get_keytab_path(),
+                    },
+                    "transport_encryption": {
+                        "enabled": True
                     },
                     "authorization": {
                         "enabled": True,
