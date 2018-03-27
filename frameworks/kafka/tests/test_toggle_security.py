@@ -149,7 +149,7 @@ def kafka_client(kerberos):
         # Create a TLS certificate for the TLS tests
         transport_encryption.create_tls_artifacts(
             cn="client",
-            task=client_id)
+            marathon_task=client_id)
 
         yield {
             **client,
@@ -566,7 +566,7 @@ def client_can_read_and_write(test_id: str,
     broker_hosts = map(lambda b: b.split(":")[0], brokers_list)
     brokers = ",".join(brokers_list)
 
-    if not auth.wait_for_brokers(kafka_client["id"], broker_hosts):
+    if not sdk_cmd.resolve_hosts(kafka_client["id"], broker_hosts):
         log.error("Failed to resolve brokers: %s", broker_hosts)
         return False, []
 

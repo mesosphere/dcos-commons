@@ -12,10 +12,6 @@ import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.TaskState;
-import org.apache.mesos.Protos.TaskStatus;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -27,6 +23,7 @@ import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
 public class TaskUtils {
+
     private static final Logger LOGGER = LoggingUtils.getLogger(TaskUtils.class);
 
     private TaskUtils() {
@@ -37,7 +34,7 @@ public class TaskUtils {
      * Returns the {@link TaskSpec} in the provided {@link com.mesosphere.sdk.specification.DefaultServiceSpec}
      * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
      */
-    public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, TaskInfo taskInfo) throws TaskException {
+    public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, Protos.TaskInfo taskInfo) throws TaskException {
         String podType = new TaskLabelReader(taskInfo).getType();
 
         for (PodSpec podSpec : serviceSpec.getPods()) {
@@ -94,7 +91,7 @@ public class TaskUtils {
      * @param stateStore  A StateStore to search for the appropriate TaskInfos.
      * @return The list of TaskInfos associated with a PodInstance.
      */
-    public static List<TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
+    public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
         return stateStore.fetchTasks().stream()
                 .filter(taskInfo -> {
                     try {
@@ -111,14 +108,14 @@ public class TaskUtils {
      * Returns whether the provided {@link TaskInfo} (representing a launched task) and {@link PodInstance} (from the
      * {@link ServiceSpec}) are both effectively for the same pod instance.
      */
-    public static boolean isSamePodInstance(TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
+    public static boolean isSamePodInstance(Protos.TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
         return isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
     }
 
     /**
      * Returns whether the provided {@link TaskInfo} is in the provided pod type and index.
      */
-    public static boolean isSamePodInstance(TaskInfo taskInfo, String type, int index) throws TaskException {
+    public static boolean isSamePodInstance(Protos.TaskInfo taskInfo, String type, int index) throws TaskException {
         TaskLabelReader labels = new TaskLabelReader(taskInfo);
         return labels.getType().equals(type)
                 && labels.getIndex() == index;
@@ -355,14 +352,14 @@ public class TaskUtils {
      */
     public static List<PodInstanceRequirement> getPodRequirements(
             ConfigStore<ServiceSpec> configStore,
-            Collection<TaskInfo> failedTasks,
-            Collection<TaskInfo> allLaunchedTasks) {
+            Collection<Protos.TaskInfo> failedTasks,
+            Collection<Protos.TaskInfo> allLaunchedTasks) {
 
         // Mapping of pods, to failed tasks within those pods.
         // Arbitrary consistent ordering: by pod instance name (e.g. "otherpodtype-0","podtype-0","podtype-1")
         Map<PodInstance, Collection<TaskSpec>> podsToFailedTasks =
                 new TreeMap<>(Comparator.comparing(PodInstance::getName));
-        for (TaskInfo taskInfo : failedTasks) {
+        for (Protos.TaskInfo taskInfo : failedTasks) {
             try {
                 PodInstance podInstance = getPodInstance(configStore, taskInfo);
                 Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo.getName());
@@ -439,16 +436,17 @@ public class TaskUtils {
         return podInstanceRequirements;
     }
 
-    public static PodInstance getPodInstance(ConfigStore<ServiceSpec> configStore, TaskInfo taskInfo)
+    public static PodInstance getPodInstance(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
             throws TaskException {
         return getPodInstance(getPodSpec(configStore, taskInfo), taskInfo);
     }
 
-    public static PodInstance getPodInstance(PodSpec podSpec, TaskInfo taskInfo) throws TaskException {
+    public static PodInstance getPodInstance(PodSpec podSpec, Protos.TaskInfo taskInfo) throws TaskException {
         return new DefaultPodInstance(podSpec, new TaskLabelReader(taskInfo).getIndex());
     }
 
-    private static PodSpec getPodSpec(ConfigStore<ServiceSpec> configStore, TaskInfo taskInfo) throws TaskException {
+    private static PodSpec getPodSpec(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
+            throws TaskException {
         UUID configId = new TaskLabelReader(taskInfo).getTargetConfiguration();
         ServiceSpec serviceSpec;
 
@@ -472,7 +470,7 @@ public class TaskUtils {
     /**
      * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
      */
-    public static boolean isRecoveryNeeded(TaskStatus taskStatus) {
+    public static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
         switch (taskStatus.getState()) {
             case TASK_FINISHED:
             case TASK_FAILED:
@@ -493,14 +491,14 @@ public class TaskUtils {
     /**
      * Returns whether the provided {@link TaskStatus} has reached a terminal state.
      */
-    public static boolean isTerminal(TaskStatus taskStatus) {
+    public static boolean isTerminal(Protos.TaskStatus taskStatus) {
         return isTerminal(taskStatus.getState());
     }
 
     /**
      * Returns whether the provided {@link TaskState} has reached a terminal state.
      */
-    public static boolean isTerminal(TaskState taskState) {
+    public static boolean isTerminal(Protos.TaskState taskState) {
         switch (taskState) {
             case TASK_FINISHED:
             case TASK_FAILED:
@@ -526,7 +524,7 @@ public class TaskUtils {
      * @param taskStatus The status of the task.
      * @return true if recovery is needed, false otherwise.
      */
-    public static boolean needsRecovery(TaskSpec taskSpec, TaskStatus taskStatus) {
+    public static boolean needsRecovery(TaskSpec taskSpec, Protos.TaskStatus taskStatus) {
         // Tasks with a goal state of finished should never leave the purview of their original
         // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
         // which reached their goal state of RUNNING and then later failed.
@@ -556,45 +554,11 @@ public class TaskUtils {
     }
 
     /**
-     * Returns TaskInfos will all reservations and persistence IDs removed from their Resources.
-     */
-    public static Collection<TaskInfo> clearReservations(Collection<TaskInfo> taskInfos) {
-        return taskInfos.stream()
-                .map(TaskUtils::clearReservationIds)
-                .collect(Collectors.toList());
-    }
-
-    private static TaskInfo clearReservationIds(TaskInfo taskInfo) {
-        TaskInfo.Builder taskInfoBuilder = TaskInfo.newBuilder(taskInfo)
-                .clearResources()
-                .addAllResources(clearReservationIds(taskInfo.getResourcesList()));
-
-        if (taskInfo.hasExecutor()) {
-            taskInfoBuilder.getExecutorBuilder()
-                    .clearResources()
-                    .addAllResources(clearReservationIds(taskInfoBuilder.getExecutor().getResourcesList()));
-        }
-
-        return taskInfoBuilder.build();
-    }
-
-    private static List<Resource> clearReservationIds(List<Resource> resources) {
-        List<Resource> clearedResources = new ArrayList<>();
-        for (Resource resource : resources) {
-            clearedResources.add(ResourceBuilder.fromExistingResource(resource)
-                    .clearResourceId()
-                    .clearPersistenceId()
-                    .build());
-        }
-        return clearedResources;
-    }
-
-    /**
      * Determines if a task is launched in any zones.
      * @param taskInfo The {@link TaskInfo} to get zone information from.
      * @return A boolean indicating whether the task is in a zone.
      */
-    public static boolean taskHasZone(TaskInfo taskInfo) {
+    public static boolean taskHasZone(Protos.TaskInfo taskInfo) {
         return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
                 .anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
     }
@@ -604,7 +568,7 @@ public class TaskUtils {
      * @param taskInfo The {@link TaskInfo} to get zone information from.
      * @return A string indicating the zone the task is in.
      */
-    public static String getTaskZone(TaskInfo taskInfo) {
+    public static String getTaskZone(Protos.TaskInfo taskInfo) {
         return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
             .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
     }
@@ -614,7 +578,7 @@ public class TaskUtils {
      * @param taskStatus the {@link TaskStatus} to get the IP address from.
      * @return A String indicating the IP address associated with the task.
      */
-    public static String getTaskIPAddress(TaskStatus taskStatus) throws IllegalStateException {
+    public static String getTaskIPAddress(Protos.TaskStatus taskStatus) throws IllegalStateException {
         List<Protos.NetworkInfo> networkInfo = taskStatus.getContainerStatus().getNetworkInfosList();
         if (networkInfo.isEmpty()) {
             throw new IllegalStateException(

@@ -30,7 +30,8 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
         PlacementRule rule = AgentRule.require(agent);
         Protos.Offer offer = offerWithAgent(agent, offered);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        MesosResourcePool mesosResourcePool =
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
         DefaultPodSpec.newBuilder(podSpec)
@@ -69,7 +70,8 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
         PlacementRule rule = AgentRule.require(agent);
         Protos.Offer offer = offerWithAgent("other-agent", offered);
 
-        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+        MesosResourcePool mesosResourcePool =
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
         DefaultPodSpec.newBuilder(podSpec)
                 .placementRule(rule);

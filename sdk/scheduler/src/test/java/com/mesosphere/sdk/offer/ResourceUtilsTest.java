@@ -25,6 +25,7 @@ public class ResourceUtilsTest extends DefaultCapabilitiesTestSuite {
         Assert.assertFalse(ResourceUtils.isOwnedByThisFramework(UNEXPECTED_RESOURCE_1, frameworkInfo));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void resourceNotOwnedForDifferentRole() {
         final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
@@ -48,6 +49,7 @@ public class ResourceUtilsTest extends DefaultCapabilitiesTestSuite {
         Assert.assertFalse(ResourceUtils.isOwnedByThisFramework(UNEXPECTED_RESOURCE_1, frameworkInfo));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void resourceNotOwnedForDifferentRolesWithLegacy() {
         final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
@@ -71,6 +73,7 @@ public class ResourceUtilsTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(ResourceUtils.isOwnedByThisFramework(UNEXPECTED_RESOURCE_1, frameworkInfo));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void resourceOwnedForExactRolesLegacy() {
         final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
@@ -94,6 +97,7 @@ public class ResourceUtilsTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(ResourceUtils.isOwnedByThisFramework(UNEXPECTED_RESOURCE_1, frameworkInfo));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void resourceOwnedForSubsetOfRolesWithLegacy() {
         final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
@@ -106,6 +110,7 @@ public class ResourceUtilsTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(ResourceUtils.isOwnedByThisFramework(UNEXPECTED_RESOURCE_1, frameworkInfo));
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void resourceNotOwnedForPartialSubsetOfRoles() {
         final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()

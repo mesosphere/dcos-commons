@@ -56,6 +56,7 @@ def default_populated_index():
 
 
 @pytest.mark.smoke
+@pytest.mark.sanity
 def test_service_health():
     assert shakedown.service_healthy(foldered_name)
 

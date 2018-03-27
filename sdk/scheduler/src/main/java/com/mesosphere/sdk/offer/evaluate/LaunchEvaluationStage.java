@@ -16,14 +16,15 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
+
+    private final String serviceName;
     private final String taskName;
     private final boolean shouldLaunch;
     private final boolean useDefaultExecutor;
 
-    public LaunchEvaluationStage(String taskName) {
-        this(taskName, true, true);
-    }
-    public LaunchEvaluationStage(String taskName, boolean shouldLaunch, boolean useDefaultExecutor) {
+    public LaunchEvaluationStage(
+            String serviceName, String taskName, boolean shouldLaunch, boolean useDefaultExecutor) {
+        this.serviceName = serviceName;
         this.taskName = taskName;
         this.shouldLaunch = shouldLaunch;
         this.useDefaultExecutor = useDefaultExecutor;
@@ -34,7 +35,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-        taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
+        taskBuilder.setTaskId(CommonIdUtils.toTaskId(serviceName, taskBuilder.getName()));
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         TaskLabelWriter writer = new TaskLabelWriter(taskBuilder);

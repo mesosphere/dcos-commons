@@ -123,15 +123,6 @@ public class TaskLabelReader {
     }
 
     /**
-     * Returns whether the task is marked as transient. This identifies a 'task' which isn't actually launched, but is
-     * instead created to fill reserved resources.
-     */
-    public boolean isTransient() {
-        // null is false
-        return Boolean.valueOf(reader.getOptional(LabelConstants.TRANSIENT_FLAG_LABEL).orElse(null));
-    }
-
-    /**
      * Returns whether the task is marked as permanently failed. This is intentionally stored in the TaskInfo as it will
      * be automatically overwritten when the TaskInfo is replaced.
      */

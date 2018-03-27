@@ -106,6 +106,14 @@ public class ResourceUtils {
         return getResourceId(resource).isPresent();
     }
 
+    public static Optional<String> getResourceNamespace(Resource resource) {
+        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+        if (!reservationInfo.isPresent()) {
+            return Optional.empty();
+        }
+        return AuxLabelAccess.getResourceNamespace(reservationInfo.get());
+    }
+
     public static Optional<String> getPersistenceId(Resource resource) {
         if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
             return Optional.of(resource.getDisk().getPersistence().getId());
@@ -132,6 +140,7 @@ public class ResourceUtils {
         return hasResourceId && matchingRoles;
     }
 
+    @SuppressWarnings("deprecation")
     private static Set<String> getRoles(FrameworkInfo frameworkInfo) {
         Set<String> roles = frameworkInfo.getRolesList().stream().collect(Collectors.toSet());
         if (frameworkInfo.hasRole()) {
@@ -141,6 +150,7 @@ public class ResourceUtils {
         return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
     }
 
+    @SuppressWarnings("deprecation")
     private static Set<String> getRoles(Resource resource) {
         Set<Resource.ReservationInfo> reservations =
                 new HashSet<>(resource.getReservationsList().stream().collect(Collectors.toSet()));

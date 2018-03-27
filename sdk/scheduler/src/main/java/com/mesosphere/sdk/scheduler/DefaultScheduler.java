@@ -74,6 +74,7 @@ public class DefaultScheduler extends AbstractScheduler {
             Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             SchedulerConfig schedulerConfig,
+            Optional<String> resourceNamespace,
             Collection<Object> customResources,
             PlanCoordinator planCoordinator,
             Optional<PlanCustomizer> planCustomizer,
@@ -116,6 +117,7 @@ public class DefaultScheduler extends AbstractScheduler {
                         configStore.getTargetConfig(),
                         templateUrlFactory,
                         schedulerConfig,
+                        resourceNamespace,
                         Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore);
     }

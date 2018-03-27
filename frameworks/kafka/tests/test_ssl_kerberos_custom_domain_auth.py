@@ -31,13 +31,11 @@ def service_account(configure_security):
     Sets up a service account for use with TLS.
     """
     try:
-        name = config.SERVICE_NAME
-        service_account_info = transport_encryption.setup_service_account(name)
+        service_account_info = transport_encryption.setup_service_account(config.SERVICE_NAME)
 
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
-                                                     service_account_info)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -151,7 +149,7 @@ def kafka_client(kerberos, kafka_server):
 
         transport_encryption.create_tls_artifacts(
             cn="client",
-            task=client_id)
+            marathon_task=client_id)
 
         broker_hosts = list(map(lambda x: x.split(':')[0], brokers))
         yield {**client, **{"brokers": broker_hosts}}
@@ -166,7 +164,7 @@ def kafka_client(kerberos, kafka_server):
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    sdk_cmd.resolve_hosts(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],

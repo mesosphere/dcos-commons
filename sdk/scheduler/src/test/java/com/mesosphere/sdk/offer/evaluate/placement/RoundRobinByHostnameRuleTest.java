@@ -14,6 +14,8 @@ import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
@@ -40,7 +42,7 @@ public class RoundRobinByHostnameRuleTest extends DefaultCapabilitiesTestSuite {
     private static TaskInfo getTaskInfo(String name, String host) {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(name)
-                .setTaskId(CommonIdUtils.toTaskId(name));
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, name));
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder).setHostname(offerWithHost(host)).toProto());
         return infoBuilder.build();
     }

@@ -4,8 +4,8 @@ import pytest
 import sdk_auth
 import sdk_cmd
 import sdk_install
-import sdk_utils
 import sdk_networks
+import sdk_utils
 
 from tests import auth
 from tests import client

@@ -1,8 +1,6 @@
 import logging
 import pytest
-import shakedown
 import sdk_install
-import sdk_tasks
 import sdk_utils
 
 from tests import config
@@ -38,7 +36,7 @@ def test_rack():
             }
         })
 
-    raw_status = nodetool.cmd('node-0', 'status')
+    raw_status = nodetool.cmd(config.get_foldered_service_name(), 'node-0-server', 'status')
     log.info("raw_status: {}".format(raw_status))
     stdout = raw_status[1]
     log.info("stdout: {}".format(stdout))

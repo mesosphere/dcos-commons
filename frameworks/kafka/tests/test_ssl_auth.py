@@ -1,5 +1,4 @@
 import logging
-
 import pytest
 
 import sdk_cmd
@@ -55,16 +54,16 @@ def setup_principals(kafka_client: client.KafkaClient):
 
     transport_encryption.create_tls_artifacts(
         cn="kafka-tester",
-        task=client_id)
+        marathon_task=client_id)
     transport_encryption.create_tls_artifacts(
         cn="authorized",
-        task=client_id)
+        marathon_task=client_id)
     transport_encryption.create_tls_artifacts(
         cn="unauthorized",
-        task=client_id)
+        marathon_task=client_id)
     transport_encryption.create_tls_artifacts(
         cn="super",
-        task=client_id)
+        marathon_task=client_id)
 
 
 @pytest.mark.dcos_min_version('1.10')

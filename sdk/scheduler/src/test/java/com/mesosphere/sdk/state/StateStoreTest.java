@@ -486,7 +486,7 @@ public class StateStoreTest {
     @Test
     public void testMismatchedTaskIds() {
         // Generate a different UUID:
-        Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.TASK_NAME);
+        Protos.TaskID taskID = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME);
         Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder(TestConstants.TASK_INFO)
                 .setTaskId(taskID)
                 .build();

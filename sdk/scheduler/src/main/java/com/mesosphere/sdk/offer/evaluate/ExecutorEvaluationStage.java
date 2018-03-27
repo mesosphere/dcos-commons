@@ -15,6 +15,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  */
 public class ExecutorEvaluationStage implements OfferEvaluationStage {
 
+    private final String serviceName;
     private final Optional<Protos.ExecutorID> id;
 
     /**
@@ -22,7 +23,8 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
      * the offer will be rejected by this stage.
      * @param id the executor ID to look for in incoming offers
      */
-    public ExecutorEvaluationStage(Optional<Protos.ExecutorID> id) {
+    public ExecutorEvaluationStage(String serviceName, Optional<Protos.ExecutorID> id) {
+        this.serviceName = serviceName;
         this.id = id;
     }
 
@@ -48,7 +50,7 @@ public class ExecutorEvaluationStage implements OfferEvaluationStage {
                     "Offer contains the matching Executor ID: '%s'", idStr)
                     .build();
         } else {
-            Protos.ExecutorID executorID = CommonIdUtils.toExecutorId(executorBuilder.getName());
+            Protos.ExecutorID executorID = CommonIdUtils.toExecutorId(serviceName, executorBuilder.getName());
             executorBuilder.setExecutorId(executorID);
             return pass(
                     this,

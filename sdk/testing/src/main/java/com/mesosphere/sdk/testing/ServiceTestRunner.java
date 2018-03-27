@@ -7,6 +7,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -55,6 +56,7 @@ public class ServiceTestRunner {
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
     private boolean supportsDefaultExecutor = true;
+    private Optional<String> namespace = Optional.empty();
     private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
     /**
@@ -241,6 +243,9 @@ public class ServiceTestRunner {
         return this;
     }
 
+    /**
+     * Adds a custom config validator to the validators to be used by the service.
+     */
     public ServiceTestRunner addCustomValidator(ConfigValidator<ServiceSpec> validator) {
         this.validators.add(validator);
         return this;
@@ -249,10 +254,20 @@ public class ServiceTestRunner {
     /**
      * Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
      *
-     * Individual services shouldn't need to use this, it's more for testing of the SDK itself.
+     * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
      */
     public ServiceTestRunner setUseCustomExecutor() {
         this.supportsDefaultExecutor = false;
+        return this;
+    }
+
+    /**
+     * Simulates running the service within a configured namespace.
+     *
+     * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
+     */
+    public ServiceTestRunner setNamespace(String namespace) {
+        this.namespace = Optional.of(namespace);
         return this;
     }
 
@@ -314,10 +329,14 @@ public class ServiceTestRunner {
                 rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
-        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
+        SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
-                .setCustomConfigValidators(validators)
+                .setCustomConfigValidators(validators);
+        if (namespace.isPresent()) {
+            schedulerBuilder.setNamespace(namespace.get());
+        }
+        AbstractScheduler scheduler = schedulerBuilder
                 .build()
                 .disableThreading()
                 .disableApiServer();
@@ -365,17 +384,31 @@ public class ServiceTestRunner {
             Collection<SimulationTick> allTicks, SimulationTick failedTick, Throwable originalError) {
         StringJoiner errorRows = new StringJoiner("\n");
         errorRows.add(String.format("Expectation failed: %s", failedTick.getDescription()));
-        errorRows.add("Simulation steps:");
+        errorRows.add("Simulation ticks:");
+        // Display checkmarks for the ticks that passed, then an X mark for the tick that failed. Following that leave
+        // the others with an empty/blank status mark since they weren't run.
+        boolean seenFailedTick = false;
         for (SimulationTick tick : allTicks) {
-            String prefix = tick == failedTick ? ">>>FAIL<<< " : "";
-            if (tick instanceof Expect) {
-                prefix += "EXPECT";
-            } else if (tick instanceof Send) {
-                prefix += "SEND";
+            final String status;
+            if (tick == failedTick) {
+                seenFailedTick = true;
+                status = "✘";
+            } else if (seenFailedTick) {
+                status = " ";
             } else {
-                prefix += "???";
+                status = "✔";
             }
-            errorRows.add(String.format("- %s %s", prefix, tick.getDescription()));
+
+            final String type;
+            if (tick instanceof Expect) {
+                type = "EXPECT";
+            } else if (tick instanceof Send) {
+                type = "SEND  ";
+            } else {
+                type = "????  ";
+            }
+
+            errorRows.add(String.format("%s %s %s", status, type, tick.getDescription()));
         }
         // Print the original message last, because junit output will truncate based on its content:
         errorRows.add(String.format("Failure was: %s", originalError.getMessage()));

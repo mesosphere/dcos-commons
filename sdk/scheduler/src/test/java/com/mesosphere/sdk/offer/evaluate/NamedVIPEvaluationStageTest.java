@@ -68,7 +68,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 containerPort, Optional.empty(), Optional.of(overlayNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -108,7 +109,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 containerPort, Optional.empty(), Optional.of(bridgeNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -146,7 +148,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 containerPort, Optional.empty(), Optional.of(overlayNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -175,7 +178,11 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             int taskPort, Optional<String> resourceId, Optional<String> network) {
         Collection<String> networks = network.isPresent()
                 ? Collections.singleton(network.get()) : Collections.emptyList();
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networks), TestConstants.TASK_NAME, resourceId);
+        return new NamedVIPEvaluationStage(
+                getNamedVIPSpec(taskPort, networks),
+                TestConstants.TASK_NAME,
+                resourceId,
+                Optional.empty());
     }
 
     private static NamedVIPSpec getNamedVIPSpec(int taskPort, Collection<String> networkNames) {

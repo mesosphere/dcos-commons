@@ -9,7 +9,6 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -67,7 +66,7 @@ DEFAULT_SETTINGS_MAPPINGS = {
 def check_kibana_adminrouter_integration(path):
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
         shakedown.dcos_acs_token(), shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
-    exit_ok, output = shakedown.run_command_on_master(curl_cmd)
+    exit_ok, output = sdk_cmd.master_ssh(curl_cmd)
     return exit_ok and output and "HTTP/1.1 200" in output
 
 
@@ -118,10 +117,10 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     # MESOS_SANDBOX (and can't use ELASTIC_VERSION).
     #
     # TODO(mpereira): improve this by making task environment variables
-    # available in sdk_cmd.task_exec commands on 1.9.
+    # available in task_exec commands on 1.9.
     # Ticket: https://jira.mesosphere.com/browse/INFINITY-3360
     cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(task_sandbox)
-    _, stdout, _ = sdk_cmd.task_exec(service_name, cmd)
+    _, stdout, _ = sdk_cmd.marathon_task_exec(service_name, cmd)
     return plugin_name in stdout
 
 
@@ -267,7 +266,7 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
     if json_data:
         curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
     task_name = "master-0-node"
-    exit_code, stdout, stderr = sdk_cmd.task_exec(task_name, curl_cmd)
+    exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
 
     def build_errmsg(msg):
         return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)
