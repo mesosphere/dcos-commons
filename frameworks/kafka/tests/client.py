@@ -151,7 +151,7 @@ class KafkaClient:
             broker_hosts = map(lambda b: b.split(":")[0], brokers_list)
             brokers = ",".join(brokers_list)
 
-            if not sdk_cmd.resolve_hosts(self.id, broker_hosts, bootstrap_cmd='/opt/boostrap'):
+            if not sdk_cmd.resolve_hosts(self.id, broker_hosts, bootstrap_cmd='/opt/bootstrap'):
                 log.error("Failed to resolve brokers: %s", broker_hosts)
                 return False
             self.brokers = brokers
