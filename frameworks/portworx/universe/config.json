@@ -49,20 +49,20 @@
           "portworx_cluster": {
             "title": "Portworx Cluster Name",
             "type": "string",
-            "default":"portworx-dcos"
+            "default": "portworx-dcos"
           },
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default":"portworx/px-enterprise:1.2.22"
+            "default": "portworx/px-enterprise:1.2.22"
           },
           "portworx_options": {
             "title": "Portworx Options",
             "type": "string",
-            "default":"-a -x mesos"
+            "default": "-a -x mesos"
           },
           "kvdb_servers": {
-            "title":"KVDB servers",
+            "title": "KVDB servers",
             "description": "Comma seperated IP:PORT entries for the key value database (etcd or consul). If the etcd server is started using the pacakge this will be ignored",
             "type": "string",
             "default": ""
@@ -71,25 +71,43 @@
               "title": "Container parameters",
               "type": "string",
               "description": "Any additional paramters to pass in to the Portworx container. For example environment variables can be passed in using \"-e\"",
-              "default":""
+              "default": ""
           },
           "count": {
             "title": "Node count",
             "description": "Number of Portworx nodes to run",
             "type": "integer",
-            "default":3
+            "default": 3
           },
           "placement_constraint": {
             "title": "Placement constraint",
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
             "default": "hostname:UNIQUE"
+          }
+        },
+        "required":[
+          "count",
+          "portworx_cluster",
+          "portworx_image",
+          "portworx_options"
+        ]
+      },
+      "secrets": {
+        "description": "Use DC/OS Secrets for features like volume encryption, cloudsnap authentication, etc. This should be enabled only for DC/OS Enterprise edition.",
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "title": "Enable DC/OS secrets",
+            "description": "If enabled, provide valid credentials below, so that Portworx can access the secrets as needed",
+            "type": "boolean",
+            "default": false
           },
-          "dcos_secrets_base_path": {
+          "base_path": {
             "title": "Secrets base path",
-            "description": "The base path that is accessible to Portworx (DC/OS user provided to access secrets) for reading and writing secrets. These secrets are used for features like volume encryption, cloudsnap authentication, etc. If not provided, Portworx will look for secrets at the top level",
+            "description": "The secrets base path that is accessible to Portworx (DC/OS user provided to access secrets) for reading and writing secrets. If not provided, Portworx will look for secrets at the top level",
             "type": "string",
-            "default": "portworx"
+            "default": ""
           },
           "dcos_username_secret": {
             "title": "DC/OS username secret",
@@ -105,10 +123,8 @@
           }
         },
         "required":[
-          "count",
-          "portworx_cluster",
-          "portworx_image",
-          "portworx_options"
+          "dcos_username_secret",
+          "dcos_password_secret"
         ]
       },
       "etcd": {
@@ -119,13 +135,13 @@
             "title": "Start etcd",
             "description": "If disabled, please enter the external etcd server IP on the service tab.",
             "type": "boolean",
-            "default":false
+            "default": false
           },
           "proxy_enabled": {
             "title": "Start the etcd proxy",
             "description": "Enable if you had installed an older version of the framework which had the etcd proxy. Not required for newer installations.",
             "type": "boolean",
-            "default":false
+            "default": false
           },
           "placement_constraint": {
             "title": "Placement constraint",
@@ -136,19 +152,19 @@
           "image": {
             "title": "Etcd Image name",
             "type": "string",
-            "default":"mesosphere/etcd-mesos:latest"
+            "default": "mesosphere/etcd-mesos:latest"
           },
           "cpus": {
             "title": "CPU count",
             "description": "CPU requirements",
             "type": "number",
-            "default":0.3
+            "default": 0.3
           },
           "mem": {
             "title": "Memory size (MB)",
             "description": "Mem requirements (in MB)",
             "type": "integer",
-            "default":1024
+            "default": 1024
           },
           "disk_type": {
             "title": "Type of disk to use for persisting data",
@@ -165,19 +181,19 @@
             "title": "Cluster Node advertise port",
             "description": "Port on which the etcd cluster nodes will listen",
             "type": "integer",
-            "default":1026
+            "default": 1026
           },
           "node_peer_port": {
             "title": "Cluster Node peer port",
             "description": "Port on which the etcd cluster nodes will communicate with each other",
             "type": "integer",
-            "default":1027
+            "default": 1027
           },
           "proxy_advertise_port": {
             "title": "Cluster Proxy advertise port",
             "description": "Port on which the etcd proxy will listen",
             "type": "integer",
-            "default":2379
+            "default": 2379
           }
         },
         "required":[
@@ -205,7 +221,7 @@
             "title": "CPU count",
             "description": "CPU requirements",
             "type": "number",
-            "default":0.3
+            "default": 0.3
           },
           "mem": {
             "title": "Memory size (MB)",
@@ -227,14 +243,13 @@
           "image": {
             "title": "Influxdb Image name",
             "type": "string",
-            "default":"influxdb:latest"
+            "default": "influxdb:latest"
           },
           "listen_port": {
             "title": "The port on which influxdb listens for incoming requests",
             "type": "integer",
             "default": 8086
           }
-
         },
         "required":[
           "cpus",
@@ -253,7 +268,7 @@
             "title": "Start Lighthouse",
             "description": "Start the Lighthouse service. If this is disabled the influxdb service will also be disabled.",
             "type": "boolean",
-            "default":false
+            "default": false
           },
           "placement_constraint": {
             "title": "Placement constraint",
@@ -265,7 +280,7 @@
             "title": "CPU count",
             "description": "CPU requirements",
             "type": "number",
-            "default":0.3
+            "default": 0.3
           },
           "mem": {
             "title": "Memory size (MB)",
@@ -276,7 +291,7 @@
           "image": {
             "title": "Lighthouse Image name",
             "type": "string",
-            "default":"portworx/px-lighthouse:1.1.8"
+            "default": "portworx/px-lighthouse:1.1.8"
           },
           "webui_port": {
             "title": "WebUI Port",
