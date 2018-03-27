@@ -76,7 +76,8 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         # The return of this function triggers the restart.
         return not has_elements
 
-    @retrying.retry(wait_exponential_multiplier=1000,
+    @retrying.retry(stop_max_delay=5*60*1000,
+                    wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=offset_is_valid)
     def get_offset_change(topic_name, initial_offsets=[]):

@@ -148,7 +148,7 @@ def kafka_client(kerberos, kafka_server):
 
         transport_encryption.create_tls_artifacts(
             cn="client",
-            task=client_id)
+            marathon_task=client_id)
 
         broker_hosts = list(map(lambda x: x.split(':')[0], brokers))
         yield {**client, **{"brokers": broker_hosts}}
@@ -163,7 +163,7 @@ def kafka_client(kerberos, kafka_server):
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    sdk_cmd.resolve_hosts(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
@@ -187,15 +187,15 @@ def get_client_properties(cn: str) -> str:
     return client_properties_lines
 
 
-def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
+def write_to_topic(cn: str, marathon_task: str, topic: str, message: str, krb5: object) -> bool:
 
-    return auth.write_to_topic(cn, task, topic, message,
+    return auth.write_to_topic(cn, marathon_task, topic, message,
                                get_client_properties(cn),
-                               environment=auth.setup_krb5_env(cn, task, krb5))
+                               environment=auth.setup_krb5_env(cn, marathon_task, krb5))
 
 
-def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
+def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int, krb5: object) -> str:
 
-    return auth.read_from_topic(cn, task, topic, messages,
+    return auth.read_from_topic(cn, marathon_task, topic, messages,
                                 get_client_properties(cn),
-                                environment=auth.setup_krb5_env(cn, task, krb5))
+                                environment=auth.setup_krb5_env(cn, marathon_task, krb5))

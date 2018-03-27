@@ -16,6 +16,7 @@ import static com.mesosphere.sdk.offer.Constants.TOMBSTONE_MARKER;
  * service by marking them with a tombstone id, then notifying the uninstall plan of the changes.
  */
 public class UninstallRecorder implements OperationRecorder {
+
     private final Logger logger = LoggingUtils.getLogger(getClass());
     private final StateStore stateStore;
     private final Collection<ResourceCleanupStep> resourceSteps;
@@ -96,7 +97,7 @@ public class UninstallRecorder implements OperationRecorder {
             Optional<String> thisResourceId = ResourceUtils.getResourceId(resource);
             if (thisResourceId.isPresent() && initialResourceId.equals(thisResourceId.get())) {
                 updatedResources.add(ResourceBuilder.fromExistingResource(resource)
-                        .setResourceId(Optional.of(uninstalledResourceId))
+                        .setResourceId(uninstalledResourceId)
                         .build());
             } else {
                 updatedResources.add(resource);

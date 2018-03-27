@@ -168,10 +168,10 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
 
     test_filename = "test_auth_write_read"  # must be unique among tests in this suite
     write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
-    sdk_cmd.task_exec(hdfs_client["id"], write_cmd)
+    sdk_cmd.marathon_task_exec(hdfs_client["id"], write_cmd)
 
     read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(test_filename))
-    _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], read_cmd)
+    _, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], read_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
 
 
@@ -186,13 +186,13 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
 
     log.info("Creating directory for alice")
     make_user_directory_cmd = config.hdfs_command("mkdir -p /users/alice")
-    sdk_cmd.task_exec(hdfs_client["id"], make_user_directory_cmd)
+    sdk_cmd.marathon_task_exec(hdfs_client["id"], make_user_directory_cmd)
 
     change_ownership_cmd = config.hdfs_command("chown alice:users /users/alice")
-    sdk_cmd.task_exec(hdfs_client["id"], change_ownership_cmd)
+    sdk_cmd.marathon_task_exec(hdfs_client["id"], change_ownership_cmd)
 
     change_permissions_cmd = config.hdfs_command("chmod 700 /users/alice")
-    sdk_cmd.task_exec(hdfs_client["id"], change_permissions_cmd)
+    sdk_cmd.marathon_task_exec(hdfs_client["id"], change_permissions_cmd)
 
     test_filename = "test_user_permissions"  # must be unique among tests in this suite
 
@@ -203,16 +203,16 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
         config.TEST_CONTENT_SMALL,
         "/users/alice/{}".format(test_filename)))
     log.info("Alice can write: %s", write_access_cmd)
-    rc, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], write_access_cmd)
+    rc, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], write_access_cmd)
     assert stdout == '' and rc == 0
 
     read_access_cmd = config.hdfs_read_command("/users/alice/{}".format(test_filename))
     log.info("Alice can read: %s", read_access_cmd)
-    _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], read_access_cmd)
+    _, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], read_access_cmd)
     assert stdout == config.TEST_CONTENT_SMALL
 
     ls_cmd = config.hdfs_command("ls /users/alice")
-    _, stdout, _ = sdk_cmd.task_exec(hdfs_client["id"], ls_cmd)
+    _, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], ls_cmd)
     assert "/users/alice/{}".format(test_filename) in stdout
 
     # bob doesn't have read/write access to alice's directory
@@ -220,11 +220,11 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("bob"))
 
     log.info("Bob tries to wrtie to alice's directory: %s", write_access_cmd)
-    _, _, stderr = sdk_cmd.task_exec(hdfs_client["id"], write_access_cmd)
+    _, _, stderr = sdk_cmd.marathon_task_exec(hdfs_client["id"], write_access_cmd)
     log.info("Bob can't write to alice's directory: %s", write_access_cmd)
     assert "put: Permission denied: user=bob" in stderr
 
     log.info("Bob tries to read from alice's directory: %s", read_access_cmd)
-    _, _, stderr = sdk_cmd.task_exec(hdfs_client["id"], read_access_cmd)
+    _, _, stderr = sdk_cmd.marathon_task_exec(hdfs_client["id"], read_access_cmd)
     log.info("Bob can't read from alice's directory: %s", read_access_cmd)
     assert "cat: Permission denied: user=bob" in stderr

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -40,7 +39,6 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         Offer offer = OfferTestUtils.getCompleteOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
@@ -64,7 +62,6 @@ public class OfferAccepterTest {
         Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
         Offer offer = OfferTestUtils.getOffer(resource);
         TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder).setTransient().toProto());
 
         TestOperationRecorder recorder = new TestOperationRecorder();
         OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));

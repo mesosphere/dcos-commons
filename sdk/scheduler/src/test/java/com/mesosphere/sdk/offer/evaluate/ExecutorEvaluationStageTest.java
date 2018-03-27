@@ -42,11 +42,10 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         Protos.Resource expectedTaskCpu = ResourceTestUtils.getReservedCpus(1.0, resourceId);
 
         MesosResourcePool resources = new MesosResourcePool(
-                OfferTestUtils.getCompleteOffer(Arrays.asList(expectedTaskCpu)),
-                Optional.of(Constants.ANY_ROLE));
+                OfferTestUtils.getCompleteOffer(Arrays.asList(expectedTaskCpu)), Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor().getExecutorId()));
+                new ExecutorEvaluationStage(TestConstants.SERVICE_NAME, Optional.of(taskInfo.getExecutor().getExecutorId()));
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(
                         resources,
@@ -85,11 +84,10 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         Protos.Resource expectedTaskCpu = ResourceTestUtils.getReservedCpus(1.0, resourceId);
 
         MesosResourcePool resources = new MesosResourcePool(
-                OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)),
-                Optional.of(Constants.ANY_ROLE));
+                OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)), Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor().getExecutorId()));
+                new ExecutorEvaluationStage(TestConstants.SERVICE_NAME, Optional.of(taskInfo.getExecutor().getExecutorId()));
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(
                         resources,
@@ -133,7 +131,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         MesosResourcePool resources = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor().getExecutorId()));
+                new ExecutorEvaluationStage(TestConstants.SERVICE_NAME, Optional.of(taskInfo.getExecutor().getExecutorId()));
         PodInfoBuilder podInfoBuilder =
                 new PodInfoBuilder(
                         podInstanceRequirement,
@@ -181,7 +179,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         MesosResourcePool resources = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(Optional.of(taskInfo.getExecutor().getExecutorId()));
+                new ExecutorEvaluationStage(TestConstants.SERVICE_NAME, Optional.of(taskInfo.getExecutor().getExecutorId()));
         PodInfoBuilder podInfoBuilder =
                 new PodInfoBuilder(
                         podInstanceRequirement,

@@ -31,8 +31,8 @@ public class TestConstants {
     public static final String RESOURCE_ID = "test-resource-id";
     public static final String RESOURCE_SET_ID = "test-resource-set-id";
     public static final String TASK_DNS_PREFIX = "task-prefix";
-    public static final Protos.ExecutorID EXECUTOR_ID = CommonIdUtils.toExecutorId(EXECUTOR_NAME);
-    public static final Protos.TaskID TASK_ID = CommonIdUtils.toTaskId(TASK_NAME);
+    public static final Protos.ExecutorID EXECUTOR_ID = CommonIdUtils.toExecutorId(SERVICE_NAME, EXECUTOR_NAME);
+    public static final Protos.TaskID TASK_ID = CommonIdUtils.toTaskId(SERVICE_NAME, TASK_NAME);
     public static final String PORT_ENV_NAME = "TEST_PORT_NAME";
     public static final String VIP_NAME = "testvip";
     public static final int VIP_PORT = 1111;

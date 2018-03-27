@@ -7,7 +7,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_security
-import sdk_tasks
 import sdk_utils
 import shakedown
 from cryptography import x509
@@ -44,7 +43,6 @@ def configure_package(configure_security):
         # Create service account
         sdk_security.create_service_account(
             service_account_name=config.SERVICE_NAME, service_account_secret=config.SERVICE_NAME)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
         sdk_cmd.run_cli(
             "security org groups add_user superusers {name}".format(name=config.SERVICE_NAME))
 
@@ -99,9 +97,6 @@ def test_java_truststore():
     Make an HTTP request from CLI to nginx exposed service.
     Test that CLI reads and uses truststore to verify HTTPS connection.
     """
-    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "keystore")[0]
-    assert task_id
-
     # Make an http request from a CLI app using configured keystore to the
     # service itself exposed via VIP.
     # This will test whether the service is serving correct end-entity
@@ -110,9 +105,8 @@ def test_java_truststore():
     command = _java_command(
         'java -jar ' + KEYSTORE_APP_JAR_NAME + ' truststoretest '
         'integration-test.yml '
-        'https://' + sdk_hosts.vip_host(
-            config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
-    _, output, _ = sdk_cmd.task_exec(task_id, command)
+        'https://' + sdk_hosts.vip_host(config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME))
+    _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'keystore-0-webserver', command)
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
     # expected output.
@@ -124,15 +118,12 @@ def test_java_truststore():
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
 def test_tls_basic_artifacts():
-    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'artifacts')[0]
-    assert task_id
 
     # Load end-entity certificate from keystore and root CA cert from truststore
-    stdout = sdk_cmd.task_exec(task_id, 'cat secure-tls-pod.crt')[1].encode('ascii')
+    stdout = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'artifacts-0-node', 'cat secure-tls-pod.crt')[1].encode('ascii')
     end_entity_cert = x509.load_pem_x509_certificate(stdout, DEFAULT_BACKEND)
 
-    root_ca_cert_in_truststore = _export_cert_from_task_keystore(
-        task_id, 'keystore.truststore', 'dcos-root')
+    root_ca_cert_in_truststore = _export_cert_from_task_keystore('artifacts-0-node', 'keystore.truststore', 'dcos-root')
 
     # Check that certificate subject maches the service name
     common_name = end_entity_cert.subject.get_attributes_for_oid(
@@ -160,8 +151,6 @@ def test_java_keystore():
     Java `keystore-app` presents itself with provided TLS certificate
     from keystore.
     """
-    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'artifacts')[0]
-    assert task_id
 
     # Make a curl request from artifacts container to `keystore-app`
     # and make sure that mesos curl can verify certificate served by app
@@ -172,7 +161,7 @@ def test_java_keystore():
             config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
-    _, output = sdk_cmd.task_exec(task_id, curl, return_stderr_in_stdout=True)
+    _, output = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'artifacts-0-node', curl, return_stderr_in_stdout=True)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
@@ -198,15 +187,11 @@ def test_tls_nginx():
     # Use keystore-app `truststoretest` CLI command to run request against
     # the NGINX container to verify that nginx presents itself with end-entity
     # certificate that can be verified by with truststore.
-    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'keystore')[0]
-    assert task_id
-
     command = _java_command(
         'java -jar ' + KEYSTORE_APP_JAR_NAME + ' truststoretest '
         'integration-test.yml '
-        'https://' + sdk_hosts.vip_host(
-            config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
-    _, output, _ = sdk_cmd.task_exec(task_id, command)
+        'https://' + sdk_hosts.vip_host(config.SERVICE_NAME, NGINX_TASK_HTTPS_PORT_NAME) + '/')
+    _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'keystore-0-webserver', command)
 
     # Unfortunately the `dcos task exec` doesn't respect the return code
     # from executed command in container so we need to manually assert for
@@ -223,14 +208,9 @@ def test_changing_discovery_replaces_certificate_sans():
     Update service configuration to change discovery prefix of a task.
     Scheduler should update task and new SANs should be generated.
     """
-    original_tasks = sdk_tasks.get_task_ids(config.PACKAGE_NAME, 'discovery')
-    assert len(original_tasks) == 1, 'Expecting exactly one task ID'
-
-    task_id = original_tasks[0]
-    assert task_id
 
     # Load end-entity certificate from PEM encoded file
-    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat server.crt')
+    _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'discovery-0-node', 'cat server.crt')
     log.info('first server.crt: {}'.format(stdout))
 
     ascii_cert = stdout.encode('ascii')
@@ -256,9 +236,7 @@ def test_changing_discovery_replaces_certificate_sans():
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "discovery")[0]
-
-    _, stdout, _ = sdk_cmd.task_exec(task_id, 'cat server.crt')
+    _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'discovery-0-node', 'cat server.crt')
     log.info('second server.crt: {}'.format(stdout))
 
     ascii_cert = stdout.encode('ascii')
@@ -279,7 +257,7 @@ def test_changing_discovery_replaces_certificate_sans():
 
 
 def _export_cert_from_task_keystore(
-        task, keystore_path, alias, password=KEYSTORE_PASS):
+        task_name, keystore_path, alias, password=KEYSTORE_PASS):
     """
     Retrieves certificate from the keystore with given alias by executing
     a keytool in context of running container and loads the certificate to
@@ -300,8 +278,10 @@ def _export_cert_from_task_keystore(
 
     args_str = ' '.join(args)
 
-    cert_bytes = sdk_cmd.task_exec(
-        task, _keystore_export_command(keystore_path, alias, args_str))[1].encode('ascii')
+    cert_bytes = sdk_cmd.service_task_exec(
+        config.SERVICE_NAME,
+        task_name,
+        _keystore_export_command(keystore_path, alias, args_str))[1].encode('ascii')
 
     return x509.load_pem_x509_certificate(
         cert_bytes, DEFAULT_BACKEND)

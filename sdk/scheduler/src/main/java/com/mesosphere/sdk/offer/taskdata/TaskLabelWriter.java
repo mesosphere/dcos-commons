@@ -37,15 +37,6 @@ public class TaskLabelWriter {
     }
 
     /**
-     * Ensures that the task is identified as a transient task. This is a "task" which is never launched, only passed to
-     * Mesos as a way to capture some resources. This is used for e.g. reserving space to run sidecar tasks.
-     */
-    public TaskLabelWriter setTransient() {
-        writer.put(LabelConstants.TRANSIENT_FLAG_LABEL, LabelConstants.BOOLEAN_LABEL_TRUE_VALUE);
-        return this;
-    }
-
-    /**
      * Ensures that the task is identified as permanently failed. This is intentionally stored in the TaskInfo as it
      * will be automatically overwritten when the TaskInfo is replaced. As such it will automatically be "cleared" when
      * the TaskInfo is regenerated in the offer cycle.

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
@@ -39,7 +40,87 @@ public class ServiceTest {
      */
     @Test
     public void testDefaultDeployment() throws Exception {
-        runDefaultDeployment(true);
+        new ServiceTestRunner().run(getDefaultDeploymentTicks());
+    }
+
+    /**
+     * Validates service deployment in the default configuration case, but within custom namespaces.
+     */
+    @Test
+    public void testDefaultDeploymentWithNamespace() throws Exception {
+        // Exercise slashes in name:
+        ServiceTestResult result = new ServiceTestRunner()
+                .setNamespace("/path/to/namespace")
+                .run(getDefaultDeploymentTicks());
+        // Validate that nothing was stored under the default root persister paths:
+        checkNotFound(result.getPersister(), "/Tasks");
+        checkNotFound(result.getPersister(), "/Configurations");
+        byte[] frameworkId = result.getPersister().get("/FrameworkID");
+        checkNamespace(result, "/path/to/namespace", "/Services/path__to__namespace");
+
+        // A different namespace should ignore the state of the first namespace:
+        result = new ServiceTestRunner()
+                .setState(result)
+                .setNamespace("test-namespace")
+                .run(getDefaultDeploymentTicks());
+        // Again, nothing stored under the default root persister paths, but prior namespace IS present:
+        checkNotFound(result.getPersister(), "/Tasks");
+        checkNotFound(result.getPersister(), "/Configurations");
+        Assert.assertEquals(3, result.getPersister().getChildren("/Services/path__to__namespace/Tasks").size());
+        Assert.assertEquals(1, result.getPersister().getChildren("/Services/path__to__namespace/Configurations").size());
+        Assert.assertArrayEquals(frameworkId, result.getPersister().get("/FrameworkID"));
+        checkNamespace(result, "test-namespace", "/Services/test-namespace");
+
+        // No-namespace should ignore both of the above:
+        result = new ServiceTestRunner()
+                .setState(result)
+                .run(getDefaultDeploymentTicks());
+        // Finally, all three sets should be present. In practice this can't happen because of a schema version check in
+        // ServiceRunner, but this test suite doesn't exercise that code.
+        Assert.assertEquals(3, result.getPersister().getChildren("/Services/path__to__namespace/Tasks").size());
+        Assert.assertEquals(1, result.getPersister().getChildren("/Services/path__to__namespace/Configurations").size());
+        Assert.assertEquals(3, result.getPersister().getChildren("/Services/test-namespace/Tasks").size());
+        Assert.assertEquals(1, result.getPersister().getChildren("/Services/test-namespace/Configurations").size());
+        Assert.assertArrayEquals(frameworkId, result.getPersister().get("/FrameworkID"));
+        checkNamespace(result, null, "");
+    }
+
+    private static void checkNotFound(Persister persister, String path) {
+        try {
+            persister.getChildren(path);
+            Assert.fail("Expected not found: " + path);
+        } catch (Exception e) {
+            // expected
+        }
+    }
+
+    private static void checkNamespace(
+            ServiceTestResult result, String resourceNamespace, String persisterPrefix) throws Exception {
+        Collection<String> taskNames = Arrays.asList("hello-0-server", "world-0-server", "world-1-server");
+        // Persister: everything under a specified prefix (or no prefix).
+        Assert.assertEquals(new TreeSet<>(taskNames),
+                result.getPersister().getChildren(persisterPrefix + "/Tasks"));
+        Assert.assertEquals(1, result.getPersister().getChildren(persisterPrefix + "/Configurations").size());
+
+        for (String taskName : taskNames) {
+            LaunchedTask launchedTask = result.getClusterState().getLastLaunchedTask(taskName);
+
+            // Each task should have a taskId and executorId containing the service name, regardless of namespacing:
+            Assert.assertEquals("hello-world", CommonIdUtils.toSanitizedServiceName(launchedTask.getExecutor().getExecutorId()).get());
+            Assert.assertEquals("hello-world", CommonIdUtils.toSanitizedServiceName(launchedTask.getTask().getTaskId()).get());
+
+            if (resourceNamespace != null) {
+                // All task+executor resources should have a 'namespace' label
+                for (Protos.Resource resource : ResourceUtils.getAllResources(launchedTask.getTask())) {
+                    Assert.assertEquals(resourceNamespace, ResourceUtils.getResourceNamespace(resource).get());
+                }
+            } else {
+                // All task+executor resources should NOT have a 'namespace' label
+                for (Protos.Resource resource : ResourceUtils.getAllResources(launchedTask.getTask())) {
+                    Assert.assertFalse(ResourceUtils.getResourceNamespace(resource).isPresent());
+                }
+            }
+        }
     }
 
     /**
@@ -203,7 +284,7 @@ public class ServiceTest {
     @Test
     public void testHelloDecommissionNotAllowed() throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
-        ServiceTestResult result = runDefaultDeployment(true);
+        ServiceTestResult result = new ServiceTestRunner().run(getDefaultDeploymentTicks());
         Assert.assertEquals(
                 new TreeSet<>(Arrays.asList("hello-0-server", "world-0-server", "world-1-server")),
                 result.getPersister().getChildren("/Tasks"));
@@ -260,7 +341,11 @@ public class ServiceTest {
      */
     private void testWorldDecommission(boolean useDefaultExecutor) throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
-        ServiceTestResult result = runDefaultDeployment(useDefaultExecutor);
+        ServiceTestRunner runner = new ServiceTestRunner();
+        if (!useDefaultExecutor) {
+            runner.setUseCustomExecutor();
+        }
+        ServiceTestResult result = runner.run(getDefaultDeploymentTicks());
         Assert.assertEquals(
                 new TreeSet<>(Arrays.asList("hello-0-server", "world-0-server", "world-1-server")),
                 result.getPersister().getChildren("/Tasks"));
@@ -335,7 +420,7 @@ public class ServiceTest {
 
         ticks.add(Expect.allPlansComplete());
 
-        ServiceTestRunner runner = new ServiceTestRunner()
+        runner = new ServiceTestRunner()
                 .setOptions("world.count", "0")
                 .setState(result);
         if (!useDefaultExecutor) {
@@ -343,7 +428,7 @@ public class ServiceTest {
         }
         runner.run(ticks);
     }
-    
+
     @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
         Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
@@ -608,7 +693,7 @@ public class ServiceTest {
     /**
      * Runs a default hello world deployment and returns the persisted state that resulted.
      */
-    private ServiceTestResult runDefaultDeployment(boolean useDefaultExecutor) throws Exception {
+    private Collection<SimulationTick> getDefaultDeploymentTicks() throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
@@ -651,12 +736,7 @@ public class ServiceTest {
 
         ticks.add(Expect.allPlansComplete());
 
-        ServiceTestRunner runner = new ServiceTestRunner();
-        if (!useDefaultExecutor) {
-            runner.setUseCustomExecutor();
-        }
-
-        return runner.run(ticks);
+        return ticks;
     }
 
     /**

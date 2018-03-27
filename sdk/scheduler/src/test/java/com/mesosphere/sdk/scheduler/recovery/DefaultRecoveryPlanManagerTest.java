@@ -109,7 +109,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         .setIndex(0)
                         .toProto())
                 .setName("test-task-type-0-test-task-name")
-                .setTaskId(CommonIdUtils.toTaskId("test-task-type-0-test-task-name"))
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, "test-task-type-0-test-task-name"))
                 .build();
 
         taskInfos = Collections.singletonList(taskInfo);
@@ -132,6 +132,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         configTarget,
                         ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                        Optional.empty(),
                         true),
                 stateStore);
         planCoordinator = new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager));

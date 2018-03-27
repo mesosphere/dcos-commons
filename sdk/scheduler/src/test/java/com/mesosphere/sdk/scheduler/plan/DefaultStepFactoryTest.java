@@ -80,7 +80,7 @@ public class DefaultStepFactoryTest {
         stateStore.storeTasks(ImmutableList.of(
                 Protos.TaskInfo.newBuilder()
                         .setName(taskName)
-                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
                         .setSlaveId(Protos.SlaveID.newBuilder()
                                 .setValue("proto-field-required")
                         )
@@ -122,7 +122,6 @@ public class DefaultStepFactoryTest {
 
         assertThat(step.isComplete(), is(true));
         assertThat(step.isPending(), is(false));
-
     }
 
     @Test
@@ -144,7 +143,7 @@ public class DefaultStepFactoryTest {
         stateStore.storeTasks(ImmutableList.of(
                 Protos.TaskInfo.newBuilder()
                         .setName(taskName)
-                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
                         .setSlaveId(Protos.SlaveID.newBuilder()
                                 .setValue("proto-field-required")
                         )
@@ -191,7 +190,7 @@ public class DefaultStepFactoryTest {
         stateStore.storeTasks(ImmutableList.of(
                 Protos.TaskInfo.newBuilder()
                         .setName(taskName)
-                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
                         .setSlaveId(Protos.SlaveID.newBuilder()
                                 .setValue("proto-field-required")
                         )
@@ -238,7 +237,7 @@ public class DefaultStepFactoryTest {
         stateStore.storeTasks(ImmutableList.of(
                 Protos.TaskInfo.newBuilder()
                         .setName(taskName)
-                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
                         .setSlaveId(Protos.SlaveID.newBuilder()
                                 .setValue("proto-field-required")
                         )
@@ -286,7 +285,7 @@ public class DefaultStepFactoryTest {
         stateStore.storeTasks(ImmutableList.of(
                 Protos.TaskInfo.newBuilder()
                         .setName(taskName)
-                        .setTaskId(CommonIdUtils.toTaskId(taskName))
+                        .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
                         .setSlaveId(Protos.SlaveID.newBuilder()
                                 .setValue("proto-field-required")
                         )

@@ -16,7 +16,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 public class DestroyEvaluationStage implements OfferEvaluationStage {
     private final Protos.Resource resource;
 
-    public DestroyEvaluationStage (Protos.Resource resource) {
+    public DestroyEvaluationStage(Protos.Resource resource) {
         this.resource = resource;
     }
 

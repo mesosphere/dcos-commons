@@ -84,16 +84,16 @@ def setup_principals(kafka_client):
 
     transport_encryption.create_tls_artifacts(
         cn="kafka-tester",
-        task=client_id)
+        marathon_task=client_id)
     transport_encryption.create_tls_artifacts(
         cn="authorized",
-        task=client_id)
+        marathon_task=client_id)
     transport_encryption.create_tls_artifacts(
         cn="unauthorized",
-        task=client_id)
+        marathon_task=client_id)
     transport_encryption.create_tls_artifacts(
         cn="super",
-        task=client_id)
+        marathon_task=client_id)
 
 
 @pytest.mark.dcos_min_version('1.10')
@@ -125,7 +125,7 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
             })
 
         client_id = kafka_client["id"]
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+        sdk_cmd.resolve_hosts(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
                         "topic create tls.topic",
@@ -180,7 +180,7 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
                 }
             })
 
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+        sdk_cmd.resolve_hosts(client_id, kafka_client["brokers"])
 
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
                         "topic create authz.test",
@@ -254,7 +254,7 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                 }
             })
 
-        auth.wait_for_brokers(client_id, kafka_client["brokers"])
+        sdk_cmd.resolve_hosts(client_id, kafka_client["brokers"])
 
         # Create the topic
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,

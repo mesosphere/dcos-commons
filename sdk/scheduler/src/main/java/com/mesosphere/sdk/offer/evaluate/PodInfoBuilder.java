@@ -166,12 +166,13 @@ public class PodInfoBuilder {
     public static Protos.Resource getExistingExecutorVolume(
             VolumeSpec volumeSpec,
             Optional<String> resourceId,
+            Optional<String> resourceNamespace,
             Optional<String> persistenceId,
             Optional<String> sourceRoot,
             boolean useDefaultExecutor) {
 
         Protos.Resource.Builder builder = ResourceBuilder
-                .fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot)
+                .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, sourceRoot)
                 .build()
                 .toBuilder();
 

@@ -61,6 +61,7 @@ public class ResourceTestUtils {
         return ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.of(resourceId),
+                Optional.empty(),
                 Optional.of(persistenceId),
                 Optional.empty())
                 .build();

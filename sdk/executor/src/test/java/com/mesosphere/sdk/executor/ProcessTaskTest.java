@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.executor;
 
-import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.SlaveID;
@@ -19,22 +20,19 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.times;
 
 public class ProcessTaskTest {
-    private static final String EXECUTOR_NAME = "TEST_EXECUTOR";
-    private static final String TASK_NAME = "TEST_TASK";
-
     @Test
     public void testTaskStopped() throws Exception {
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
-                .setName(EXECUTOR_NAME)
-                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setName(TestConstants.EXECUTOR_NAME)
+                .setExecutorId(TestConstants.EXECUTOR_ID)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName(TASK_NAME)
-                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
@@ -56,14 +54,14 @@ public class ProcessTaskTest {
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
 
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
-                .setName(EXECUTOR_NAME)
-                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setName(TestConstants.EXECUTOR_NAME)
+                .setExecutorId(TestConstants.EXECUTOR_ID)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue(""))
                 .build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TASK_NAME)
-                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 1"))
                 .setExecutor(executorInfo)
@@ -89,14 +87,14 @@ public class ProcessTaskTest {
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
 
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo.newBuilder()
-                .setName(EXECUTOR_NAME)
-                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setName(TestConstants.EXECUTOR_NAME)
+                .setExecutorId(TestConstants.EXECUTOR_ID)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue(""))
                 .build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo.newBuilder()
-                .setName(TASK_NAME)
-                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 0"))
@@ -122,14 +120,14 @@ public class ProcessTaskTest {
         final ExecutorDriver mockExecutorDriver = Mockito.mock(ExecutorDriver.class);
         final Protos.ExecutorInfo executorInfo = Protos.ExecutorInfo
                 .newBuilder()
-                .setName(EXECUTOR_NAME)
-                .setExecutorId(CommonIdUtils.toExecutorId(EXECUTOR_NAME))
+                .setName(TestConstants.EXECUTOR_NAME)
+                .setExecutorId(TestConstants.EXECUTOR_ID)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("")).build();
 
         final Protos.TaskInfo taskInfo = Protos.TaskInfo
                 .newBuilder()
-                .setName(TASK_NAME)
-                .setTaskId(CommonIdUtils.toTaskId(TASK_NAME))
+                .setName(TestConstants.TASK_NAME)
+                .setTaskId(TestConstants.TASK_ID)
                 .setSlaveId(SlaveID.newBuilder().setValue("ignored"))
                 .setExecutor(executorInfo)
                 .setCommand(Protos.CommandInfo.newBuilder().setValue("exit 137"))

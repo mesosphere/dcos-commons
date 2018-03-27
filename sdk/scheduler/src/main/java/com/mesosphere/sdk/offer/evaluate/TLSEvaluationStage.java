@@ -25,8 +25,7 @@ import java.util.*;
  */
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
-    private final Logger logger = LoggingUtils.getLogger(getClass());
-
+    private final Logger logger;
     private final String serviceName;
     private final String taskName;
     private final String namespace;
@@ -76,6 +75,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                        String namespace,
                        TLSArtifactsUpdater tlsArtifactsUpdater,
                        SchedulerConfig schedulerConfig) {
+        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
         this.serviceName = serviceName;
         this.taskName = taskName;
         this.namespace = namespace;

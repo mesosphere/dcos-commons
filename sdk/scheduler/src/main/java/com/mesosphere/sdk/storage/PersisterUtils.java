@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
@@ -69,7 +70,7 @@ public class PersisterUtils {
         if (namespace.isEmpty()) {
             throw new IllegalArgumentException("Expected non-empty namespace");
         }
-        return join(SERVICE_NAMESPACE_ROOT_NAME, namespace);
+        return join(SERVICE_NAMESPACE_ROOT_NAME, SchedulerUtils.withEscapedSlashes(namespace));
     }
 
     /**

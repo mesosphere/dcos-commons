@@ -15,7 +15,7 @@ import java.util.*;
  */
 public class MesosResourcePool {
     private static final Logger LOGGER = LoggingUtils.getLogger(MesosResourcePool.class);
-    private Offer offer;
+    private final Offer offer;
 
     /**
      * In practice this is always unreserved MOUNT volumes.

@@ -6,16 +6,16 @@ import sdk_cmd
 LOG = logging.getLogger(__name__)
 
 
-def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
+def add_acls(user: str, marathon_task: str, topic: str, zookeeper_endpoint: str, env_str=None):
     """
     Add Porducer and Consumer ACLs for the specifed user and topic
     """
 
-    _add_role_acls("producer", user, task, topic, zookeeper_endpoint, env_str)
-    _add_role_acls("consumer --group=*", user, task, topic, zookeeper_endpoint, env_str)
+    _add_role_acls("producer", user, marathon_task, topic, zookeeper_endpoint, env_str)
+    _add_role_acls("consumer --group=*", user, marathon_task, topic, zookeeper_endpoint, env_str)
 
 
-def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
+def _add_role_acls(role: str, user: str, marathon_task: str, topic: str, zookeeper_endpoint: str, env_str=None):
     cmd = "bash -c \"{setup_env}kafka-acls \
         --topic {topic_name} \
         --authorizer-properties zookeeper.connect={zookeeper_endpoint} \
@@ -27,7 +27,7 @@ def _add_role_acls(role: str, user: str, task: str, topic: str, zookeeper_endpoi
                                                      user=user,
                                                      role=role)
     LOG.info("Running: %s", cmd)
-    output = sdk_cmd.task_exec(task, cmd)
+    output = sdk_cmd.marathon_task_exec(marathon_task, cmd)
     LOG.info(output)
 
 
