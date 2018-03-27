@@ -196,7 +196,7 @@ public class SchedulerRunner implements Runnable {
             ServiceSpec serviceSpec,
             SchedulerConfig schedulerConfig) {
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
-        String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
+        String zkUri = schedulerConfig.getZkUri(String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection()));
         Protos.Status status = new SchedulerDriverFactory()
                 .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig)
                 .run();

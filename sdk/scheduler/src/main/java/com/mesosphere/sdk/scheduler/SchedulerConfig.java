@@ -170,6 +170,11 @@ public class SchedulerConfig {
     private static final String USER_SPECIFIED_TLD_ENVVAR = "SERVICE_TLD";
 
     /**
+     * Environment variable for setting a custom zookeeper URI for Mesos.
+     */
+    private static final String MESOS_ZK_URI_ENVVAR = "MESOS_ZK_URI";
+
+    /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
      */
     public static SchedulerConfig fromEnv() {
@@ -363,6 +368,11 @@ public class SchedulerConfig {
     public String getServiceTLD() {
         return envStore.getOptional(USER_SPECIFIED_TLD_ENVVAR, Constants.DNS_TLD);
     }
+
+    /**
+     * Returns an the mesos zookeeper URI if provided
+     */
+    public String getZkUri(String defaultUri) { return envStore.getOptional(MESOS_ZK_URI_ENVVAR, defaultUri); }
 
     /**
      * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
