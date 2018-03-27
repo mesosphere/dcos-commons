@@ -197,6 +197,7 @@
 </ul>
 </li>
 <li class="toc-entry toc-h2"><a href="#installation-requirements">Installation requirements</a></li>
+<li class="toc-entry toc-h2"><a href="#externalizing-transport-encryption-and-security">Externalizing Transport Encryption and Security</a></li>
 </ul>
 </li>
 <li class="toc-entry toc-h1"><a href="#testing">Testing</a>
@@ -1914,6 +1915,21 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
     <p>This is a known limitation and it will get addressed in the future releases of the DC/OS.</p>
   </li>
 </ul>
+
+<h2 id="externalizing-transport-encryption-and-security">
+<a id="externalizing-transport-encryption-and-security" class="anchor" href="#externalizing-transport-encryption-and-security" aria-hidden="true"><span class="octicon octicon-link"></span></a>Externalizing Transport Encryption and Security</h2>
+
+<p>To use transport encryption when exposing a service outside of the cluster (e.g., putting clients on the same network as the private agents) it may be necessary to use either the DC/OS cluster’s external DNS addresses or a custom domain that fits within existing infrastructure. As such, the SDK provides a mechanism to override the domain used whenever a hostname is required (e.g., generating TLS certs)</p>
+
+<p>By default, the SDK uses <code class="highlighter-rouge">autoip.dcos.thisdcos.directory</code> as the default top-level domain for the cluster, but as noted this may not work outside of the cluster if either multiple DC/OS clusters are being used or it is desirable to have the service accessible from an existing non DC/OS domain.</p>
+
+<p>To set a custom top-level domain for the SDK, the scheduler environment variable <code class="highlighter-rouge">SERVICE_TLD</code> is used. In practice, this is done in the Marathon definition of the scheduler. Successfully using the custom domain requires setting up DNS forwarding.</p>
+
+<p>Every DC/OS cluster has a unique cryptographic ID which can be used to forward DNS queries to that Cluster. External clients must have an upstream resolver configured to forward DNS queries to the DC/OS cluster of the service as described <a href="https://docs.mesosphere.com/latest/networking/DNS/mesos-dns/expose-mesos-zone/">here</a>.</p>
+
+<p>With only forwarding configured, DNS entries within the DC/OS cluster will be resolvable at <code class="highlighter-rouge">&lt;task-domain&gt;.autoip.dcos.&lt;cryptographic-id&gt;.dcos.directory</code>. However, if you configure a DNS alias, you can use a custom domain. For example, <code class="highlighter-rouge">&lt;task-domain&gt;.cluster-1.acmeco.net</code>. If using a custom domain, you’ll also need to have the DC/OS cluster use that same upstream resolver so that the service DNS will resolve.</p>
+
+<p>With <code class="highlighter-rouge">SERVICE_TLD</code> set to <code class="highlighter-rouge">cluster-1.acemeco.net</code> and the correct DNS configurations then the service will use <code class="highlighter-rouge">&lt;task-domain&gt;.cluster-1.acemeco.net</code> for all of its DNS hosts.</p>
 
 <h1 id="testing">
 <a id="testing" class="anchor" href="#testing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Testing</h1>
