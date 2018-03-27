@@ -211,3 +211,10 @@ class KafkaClient:
         # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
         environment = None
         topics.add_acls(user, self.id, topic_name, service.get_zookeeper_connect(), environment)
+
+    def remove_acls(self, user: str, kafka_server: dict, topic_name: str):
+        service = KafkaService(kafka_server)
+
+        # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
+        environment = None
+        topics.remove_acls(user, self.id, topic_name, service.get_zookeeper_connect(), environment)

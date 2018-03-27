@@ -9,19 +9,30 @@ LOG = logging.getLogger(__name__)
 
 def add_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
     """
-    Add Porducer and Consumer ACLs for the specifed user and topic
+    Add Producer and Consumer ACLs for the specifed user and topic
     """
 
     _add_role_acls(["--producer", ], user, task, topic, zookeeper_endpoint, env_str)
     _add_role_acls(["--consumer", "--group=*"], user, task, topic, zookeeper_endpoint, env_str)
 
 
-def _add_role_acls(roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+def remove_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_str=None):
+    """
+    Remove Producer and Consumer ACLs for the specifed user and topic
+    """
+    _remove_role_acls(["--producer", ], user, task, topic, zookeeper_endpoint, env_str)
+    _remove_role_acls(["--consumer", "--group=*"], user, task, topic, zookeeper_endpoint, env_str)
+
+
+def _modify_role_acls(action: str, roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+
+    if not action.startswith("--"):
+        action = "--{}".format(action)
 
     cmd_list = ["kafka-acls",
                 "--topic", topic,
                 "--authorizer-properties", "zookeeper.connect={}".format(zookeeper_endpoint),
-                "--add",
+                action, "--force",
                 "--allow-principal", "User:{}".format(user), ]
     cmd_list.extend(roles)
 
@@ -30,6 +41,16 @@ def _add_role_acls(roles: list, user: str, task: str, topic: str, zookeeper_endp
     LOG.info("Running: %s", cmd)
     output = sdk_cmd.task_exec(task, cmd)
     LOG.info(output)
+
+    return output
+
+
+def _add_role_acls(roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+    return _modify_role_acls("add", roles, user, task, topic, zookeeper_endpoint, env_str)
+
+
+def _remove_role_acls(roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+    return _modify_role_acls("remove", roles, user, task, topic, zookeeper_endpoint, env_str)
 
 
 def filter_empty_offsets(offsets: list, additional: list=[]) -> list:
