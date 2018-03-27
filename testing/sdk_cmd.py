@@ -293,11 +293,8 @@ def marathon_task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool =
     :param cmd: The command to execute.
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
-
     # Marathon TaskIDs are of the form "<name>.<uuid>"
-    task_id_prefix = '{}.'.format(task_name)
-
-    return _task_exec(task_id_prefix, cmd, return_stderr_in_stdout)
+    return _task_exec(task_name, cmd, return_stderr_in_stdout)
 
 
 def service_task_exec(service_name: str, task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
