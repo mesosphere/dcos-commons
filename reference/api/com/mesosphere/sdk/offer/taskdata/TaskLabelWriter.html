@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -211,23 +211,17 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setTransient--">setTransient</a></span>()</code>
-<div class="block">Ensures that the task is identified as a transient task.</div>
-</td>
-</tr>
-<tr id="i11" class="rowColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setType-java.lang.String-">setType</a></span>(java.lang.String&nbsp;taskType)</code>
 <div class="block">Stores the provided task type string.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setZone-Protos.DomainInfo.FaultDomain.ZoneInfo-">setZone</a></span>(Protos.DomainInfo.FaultDomain.ZoneInfo&nbsp;zone)</code>
 <div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.ZoneInfo</code>.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>Labels</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#toProto--">toProto</a></span>()</code>
 <div class="block">Returns a protobuf representation of all contained label entries.</div>
@@ -289,17 +283,6 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setTransient--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setTransient</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;setTransient()</pre>
-<div class="block">Ensures that the task is identified as a transient task. This is a "task" which is never launched, only passed to
- Mesos as a way to capture some resources. This is used for e.g. reserving space to run sidecar tasks.</div>
-</li>
-</ul>
 <a name="setPermanentlyFailed--">
 <!--   -->
 </a>

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -142,7 +142,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static Protos.ExecutorID</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toExecutorId-java.lang.String-">toExecutorId</a></span>(java.lang.String&nbsp;executorName)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toExecutorId-java.lang.String-java.lang.String-">toExecutorId</a></span>(java.lang.String&nbsp;serviceName,
+            java.lang.String&nbsp;executorName)</code>
 <div class="block">Converts the Framework defined Executor name into a unique <code>Protos.ExecutorID</code>.</div>
 </td>
 </tr>
@@ -153,12 +154,25 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>static Protos.TaskID</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-">toTaskId</a></span>(java.lang.String&nbsp;taskName)</code>
-<div class="block">Converts the Framework defined task name into a unique <code>TaskID</code>.</div>
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toSanitizedServiceName-Protos.ExecutorID-">toSanitizedServiceName</a></span>(Protos.ExecutorID&nbsp;executorId)</code>
+<div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toSanitizedServiceName-Protos.TaskID-">toSanitizedServiceName</a></span>(Protos.TaskID&nbsp;taskId)</code>
+<div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static Protos.TaskID</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-java.lang.String-">toTaskId</a></span>(java.lang.String&nbsp;serviceName,
+        java.lang.String&nbsp;taskName)</code>
+<div class="block">Converts the Framework defined task name into a unique <code>TaskID</code>.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskName-Protos.TaskID-">toTaskName</a></span>(Protos.TaskID&nbsp;taskId)</code>
 <div class="block">Converts the unique <code>TaskID</code> into a Framework defined task name.</div>
@@ -186,6 +200,28 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="toSanitizedServiceName-Protos.TaskID-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toSanitizedServiceName</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;toSanitizedServiceName(Protos.TaskID&nbsp;taskId)
+                                                                   throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found. The returned
+ value will omit any slashes which may have been present in the original service name. Service names are only
+ embedded in task IDs as of SDK 0.50.
+ <p>
+ For example: "path.to.service__instance-0__aoeu5678" => "path.to.service" (NOT "/path/to/service"),
+ or "instance-0__aoeu5678" => Empty</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><code>#toTaskId(String)</code></dd>
+</dl>
+</li>
+</ul>
 <a name="toTaskName-Protos.TaskID-">
 <!--   -->
 </a>
@@ -196,31 +232,55 @@ extends java.lang.Object</pre>
                                    throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <div class="block">Converts the unique <code>TaskID</code> into a Framework defined task name.
  <p>
- For example: "instance-0__aoeu5678" => "instance-0"</div>
+ For example: "path.to.service__instance-0__aoeu5678" => "instance-0"</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-"><code>toTaskId(String)</code></a></dd>
+<dd><code>#toTaskId(String)</code></dd>
 </dl>
 </li>
 </ul>
-<a name="toTaskId-java.lang.String-">
+<a name="toTaskId-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>toTaskId</h4>
-<pre>public static&nbsp;Protos.TaskID&nbsp;toTaskId(java.lang.String&nbsp;taskName)
+<pre>public static&nbsp;Protos.TaskID&nbsp;toTaskId(java.lang.String&nbsp;serviceName,
+                                     java.lang.String&nbsp;taskName)
                               throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the Framework defined task name into a unique <code>TaskID</code>.
  <p>
- For example: "instance-0" => "instance-0__aoeu5678"</div>
+ For example: "/path/to/service" + "instance-0" => "path.to.service__instance-0__aoeu5678"</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalArgumentException</code> - if the provided <code>name</code> contains the "__" delimiter</dd>
+<dd><code>java.lang.IllegalArgumentException</code> - if the provided <code>serviceName</code> or <code>taskName</code> contain "__"</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>#toTaskName(TaskID)</code></dd>
+<dd><code>#toTaskName(org.apache.mesos.Protos.TaskID)</code>, 
+<code>#toSanitizedServiceName(org.apache.mesos.Protos.TaskID)</code></dd>
+</dl>
+</li>
+</ul>
+<a name="toSanitizedServiceName-Protos.ExecutorID-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toSanitizedServiceName</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;toSanitizedServiceName(Protos.ExecutorID&nbsp;executorId)
+                                                                   throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found. The returned
+ value will omit any slashes which may have been present in the original service name. Service names are only
+ embedded in executor IDs as of SDK 0.50.
+ <p>
+ For example: "path.to.service__instance-0__aoeu5678" => "path.to.service" (NOT "/path/to/service"),
+ or "instance-0__aoeu5678" => Empty</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><code>#toExecutorId(String)</code></dd>
 </dl>
 </li>
 </ul>
@@ -234,31 +294,33 @@ extends java.lang.Object</pre>
                                        throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <div class="block">Converts the unique <code>Protos.ExecutorID</code> into a Framework defined executor name.
  <p>
- For example: "instance-0_aoeu5678" => "instance-0"</div>
+ For example: "path.to.service__instance-0__aoeu5678" => "instance-0"</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toExecutorId-java.lang.String-"><code>toExecutorId(String)</code></a></dd>
+<dd><code>#toExecutorId(String)</code></dd>
 </dl>
 </li>
 </ul>
-<a name="toExecutorId-java.lang.String-">
+<a name="toExecutorId-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>toExecutorId</h4>
-<pre>public static&nbsp;Protos.ExecutorID&nbsp;toExecutorId(java.lang.String&nbsp;executorName)
+<pre>public static&nbsp;Protos.ExecutorID&nbsp;toExecutorId(java.lang.String&nbsp;serviceName,
+                                             java.lang.String&nbsp;executorName)
                                       throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the Framework defined Executor name into a unique <code>Protos.ExecutorID</code>.
  <p>
- For example: "instance-0" => "instance-0_aoeu5678"</div>
+ For example: "/path/to/service" + "instance-0" => "path.to.service__instance-0__aoeu5678"</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalArgumentException</code> - if the provided <code>name</code> contains the "__" delimiter</dd>
+<dd><code>java.lang.IllegalArgumentException</code> - if the provided <code>serviceName</code> or <code>taskName</code> contain "__"</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>#toExecutorName(ExecutorID)</code></dd>
+<dd><code>#toExecutorName(org.apache.mesos.Protos.ExecutorID)</code>, 
+<code>#toSanitizedServiceName(org.apache.mesos.Protos.ExecutorID)</code></dd>
 </dl>
 </li>
 </ul>

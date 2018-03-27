@@ -135,9 +135,10 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.lang.String-">ResourceEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+                       java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
                        java.util.Optional&lt;java.lang.String&gt;&nbsp;requiredResourceId,
-                       java.lang.String&nbsp;taskName)</code>
+                       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</code>
 <div class="block">Creates a new instance for basic resource evaluation.</div>
 </td>
 </tr>
@@ -186,21 +187,23 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.lang.String-">
+<a name="ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ResourceEvaluationStage</h4>
 <pre>public&nbsp;ResourceEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+                               java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
                                java.util.Optional&lt;java.lang.String&gt;&nbsp;requiredResourceId,
-                               java.lang.String&nbsp;taskName)</pre>
+                               java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
 <div class="block">Creates a new instance for basic resource evaluation.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>resourceSpec</code> - the resource spec to be evaluated</dd>
-<dd><code>requiredResourceId</code> - any previously reserved resource ID to be required, or empty for a new reservation</dd>
 <dd><code>taskName</code> - the name of the task which will use this resource</dd>
+<dd><code>requiredResourceId</code> - any previously reserved resource ID to be required, or empty for a new reservation</dd>
+<dd><code>resourceNamespace</code> - the namespace label, if any, to store in the resource</dd>
 </dl>
 </li>
 </ul>

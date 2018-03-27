@@ -134,7 +134,8 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html#ExecutorEvaluationStage-java.util.Optional-">ExecutorEvaluationStage</a></span>(java.util.Optional&lt;Protos.ExecutorID&gt;&nbsp;id)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExecutorEvaluationStage.html#ExecutorEvaluationStage-java.lang.String-java.util.Optional-">ExecutorEvaluationStage</a></span>(java.lang.String&nbsp;serviceName,
+                       java.util.Optional&lt;Protos.ExecutorID&gt;&nbsp;id)</code>
 <div class="block">Instantiate with an expected <code>org.apache.mesos.Protos.ExecutorID</code> to check for in offers.</div>
 </td>
 </tr>
@@ -183,13 +184,14 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ExecutorEvaluationStage-java.util.Optional-">
+<a name="ExecutorEvaluationStage-java.lang.String-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ExecutorEvaluationStage</h4>
-<pre>public&nbsp;ExecutorEvaluationStage(java.util.Optional&lt;Protos.ExecutorID&gt;&nbsp;id)</pre>
+<pre>public&nbsp;ExecutorEvaluationStage(java.lang.String&nbsp;serviceName,
+                               java.util.Optional&lt;Protos.ExecutorID&gt;&nbsp;id)</pre>
 <div class="block">Instantiate with an expected <code>org.apache.mesos.Protos.ExecutorID</code> to check for in offers. If not found,
  the offer will be rejected by this stage.</div>
 <dl>

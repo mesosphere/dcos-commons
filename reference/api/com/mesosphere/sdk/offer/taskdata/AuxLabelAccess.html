@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -133,31 +133,49 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#getResourceId-Protos.Resource.ReservationInfo-">getResourceId</a></span>(Protos.Resource.ReservationInfo&nbsp;reservation)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#getResourceId-Protos.Resource.ReservationInfo-">getResourceId</a></span>(Protos.Resource.ReservationInfo&nbsp;reservation)</code>
+<div class="block">Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
+ if none is present.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#getResourceNamespace-Protos.Resource.ReservationInfo-">getResourceNamespace</a></span>(Protos.Resource.ReservationInfo&nbsp;reservation)</code>
+<div class="block">Returns the service name embedded in the reservation, or an empty optional if none is present.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#getVIPsFromLabels-java.lang.String-Protos.Port-">getVIPsFromLabels</a></span>(java.lang.String&nbsp;taskName,
                  Protos.Port&nbsp;port)</code>
 <div class="block">Returns the VIP information, if any, within the provided <code>Protos.Port</code>.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setDcosSpace-Protos.ExecutorInfo.Builder-java.lang.String-">setDcosSpace</a></span>(Protos.ExecutorInfo.Builder&nbsp;executorInfoBuilder,
             java.lang.String&nbsp;dcosSpace)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setNetworkLabels-Protos.NetworkInfo.Builder-java.util.Map-">setNetworkLabels</a></span>(Protos.NetworkInfo.Builder&nbsp;networkInfoBuilder,
                 java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;labels)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setResourceId-Protos.Resource.ReservationInfo.Builder-java.lang.String-">setResourceId</a></span>(Protos.Resource.ReservationInfo.Builder&nbsp;reservationBuilder,
-             java.lang.String&nbsp;resourceId)</code>&nbsp;</td>
+             java.lang.String&nbsp;resourceId)</code>
+<div class="block">Assigns a resource ID label to the provided reservation.</div>
+</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setResourceNamespace-Protos.Resource.ReservationInfo.Builder-java.lang.String-">setResourceNamespace</a></span>(Protos.Resource.ReservationInfo.Builder&nbsp;reservationBuilder,
+                    java.lang.String&nbsp;namespace)</code>
+<div class="block">Assigns a resource ID label to the provided reservation.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setVIPLabels-Protos.Port.Builder-com.mesosphere.sdk.specification.NamedVIPSpec-">setVIPLabels</a></span>(Protos.Port.Builder&nbsp;portBuilder,
             <a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec)</code>
@@ -194,6 +212,12 @@ extends java.lang.Object</pre>
 <h4>setResourceId</h4>
 <pre>public static&nbsp;void&nbsp;setResourceId(Protos.Resource.ReservationInfo.Builder&nbsp;reservationBuilder,
                                  java.lang.String&nbsp;resourceId)</pre>
+<div class="block">Assigns a resource ID label to the provided reservation.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>reservationBuilder</code> - the reservation where labels should be added</dd>
+<dd><code>resourceId</code> - a unique id for tracking the reservation</dd>
+</dl>
 </li>
 </ul>
 <a name="getResourceId-Protos.Resource.ReservationInfo-">
@@ -203,6 +227,35 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getResourceId</h4>
 <pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceId(Protos.Resource.ReservationInfo&nbsp;reservation)</pre>
+<div class="block">Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
+ if none is present. This label should always be present in reservations which were created by the SDK.</div>
+</li>
+</ul>
+<a name="setResourceNamespace-Protos.Resource.ReservationInfo.Builder-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setResourceNamespace</h4>
+<pre>public static&nbsp;void&nbsp;setResourceNamespace(Protos.Resource.ReservationInfo.Builder&nbsp;reservationBuilder,
+                                        java.lang.String&nbsp;namespace)</pre>
+<div class="block">Assigns a resource ID label to the provided reservation.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>reservationBuilder</code> - the reservation where labels should be added</dd>
+<dd><code>namespace</code> - a namespace to be assigned</dd>
+</dl>
+</li>
+</ul>
+<a name="getResourceNamespace-Protos.Resource.ReservationInfo-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getResourceNamespace</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceNamespace(Protos.Resource.ReservationInfo&nbsp;reservation)</pre>
+<div class="block">Returns the service name embedded in the reservation, or an empty optional if none is present. This label is only
+ present in reservations which were created in SDK 0.50 or later.</div>
 </li>
 </ul>
 <a name="setDcosSpace-Protos.ExecutorInfo.Builder-java.lang.String-">

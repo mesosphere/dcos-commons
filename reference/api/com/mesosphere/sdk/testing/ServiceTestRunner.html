@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10};
+var methods = {"i0":10,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -161,7 +161,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#addCustomValidator-com.mesosphere.sdk.config.validate.ConfigValidator-">addCustomValidator</a></span>(<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;validator)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#addCustomValidator-com.mesosphere.sdk.config.validate.ConfigValidator-">addCustomValidator</a></span>(<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;validator)</code>
+<div class="block">Adds a custom config validator to the validators to be used by the service.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.io.File</code></td>
@@ -211,24 +213,30 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setNamespace-java.lang.String-">setNamespace</a></span>(java.lang.String&nbsp;namespace)</code>
+<div class="block">Simulates running the service within a configured namespace.</div>
+</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setOptions-java.util.Map-">setOptions</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;optionMap)</code>
 <div class="block">Equivalent of <a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setOptions-java.lang.String...-"><code>setOptions(String...)</code></a> for a <code>Map</code> instead of string pairs.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setOptions-java.lang.String...-">setOptions</a></span>(java.lang.String...&nbsp;optionKeyVals)</code>
 <div class="block">Configures the test with custom options as would be provided via an <code>options.json</code> file.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPodEnv-java.lang.String-java.util.Map-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
          java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;podEnvMap)</code>
 <div class="block">Equivalent of <a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPodEnv-java.lang.String-java.lang.String...-"><code>setPodEnv(String, String...)</code></a> for a <code>Map</code> instead of string pairs.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setPodEnv-java.lang.String-java.lang.String...-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
          java.lang.String...&nbsp;podEnvKeyVals)</code>
@@ -236,33 +244,33 @@ extends java.lang.Object</pre>
  included by the Scheduler or by Mesos.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">setRecoveryManagerFactory</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a>&nbsp;recoveryManagerFactory)</code>
 <div class="block">Allows the specification of custom recovery logic just as in
  <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-"><code>SchedulerBuilder.setRecoveryManagerFactory(RecoveryPlanOverriderFactory)</code></a>.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setSchedulerEnv-java.util.Map-">setSchedulerEnv</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;schedulerEnvMap)</code>
 <div class="block">Equivalent of <a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setSchedulerEnv-java.lang.String...-"><code>setSchedulerEnv(String...)</code></a> for a <code>Map</code> instead of string pairs.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setSchedulerEnv-java.lang.String...-">setSchedulerEnv</a></span>(java.lang.String...&nbsp;schedulerEnvKeyVals)</code>
 <div class="block">Configures the test with additional environment variables in the Scheduler beyond those which would be included
  by the service's <code>marathon.json.mustache</code>.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setState-com.mesosphere.sdk.testing.ServiceTestResult-">setState</a></span>(<a href="../../../../com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a>&nbsp;serviceTestResult)</code>
 <div class="block">Configures the test with the provided state from a prior run.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html#setUseCustomExecutor--">setUseCustomExecutor</a></span>()</code>
 <div class="block">Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.</div>
@@ -549,6 +557,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>addCustomValidator</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;addCustomValidator(<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;validator)</pre>
+<div class="block">Adds a custom config validator to the validators to be used by the service.</div>
 </li>
 </ul>
 <a name="setUseCustomExecutor--">
@@ -560,7 +569,19 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;setUseCustomExecutor()</pre>
 <div class="block">Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
 
- Individual services shouldn't need to use this, it's more for testing of the SDK itself.</div>
+ Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.</div>
+</li>
+</ul>
+<a name="setNamespace-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setNamespace</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/ServiceTestRunner.html" title="class in com.mesosphere.sdk.testing">ServiceTestRunner</a>&nbsp;setNamespace(java.lang.String&nbsp;namespace)</pre>
+<div class="block">Simulates running the service within a configured namespace.
+
+ Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.</div>
 </li>
 </ul>
 <a name="run--">
