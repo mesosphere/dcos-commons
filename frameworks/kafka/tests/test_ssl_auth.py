@@ -1,5 +1,4 @@
 import logging
-import uuid
 
 import pytest
 
@@ -12,8 +11,6 @@ from security import transport_encryption
 from tests import client
 from tests import config
 from tests import auth
-from tests import topics
-from tests import test_utils
 
 
 log = logging.getLogger(__name__)

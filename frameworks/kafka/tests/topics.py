@@ -24,7 +24,8 @@ def remove_acls(user: str, task: str, topic: str, zookeeper_endpoint: str, env_s
     _remove_role_acls(["--consumer", "--group=*"], user, task, topic, zookeeper_endpoint, env_str)
 
 
-def _modify_role_acls(action: str, roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+def _modify_role_acls(action: str, roles: list, user: str, task: str, topic: str,
+                      zookeeper_endpoint: str, env_str: str=None) -> tuple:
 
     if not action.startswith("--"):
         action = "--{}".format(action)
@@ -45,11 +46,13 @@ def _modify_role_acls(action: str, roles: list, user: str, task: str, topic: str
     return output
 
 
-def _add_role_acls(roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+def _add_role_acls(roles: list, user: str, task: str, topic: str,
+                   zookeeper_endpoint: str, env_str: str=None) -> tuple:
     return _modify_role_acls("add", roles, user, task, topic, zookeeper_endpoint, env_str)
 
 
-def _remove_role_acls(roles: list, user: str, task: str, topic: str, zookeeper_endpoint: str, env_str: str=None):
+def _remove_role_acls(roles: list, user: str, task: str, topic: str,
+                      zookeeper_endpoint: str, env_str: str=None) -> tuple:
     return _modify_role_acls("remove", roles, user, task, topic, zookeeper_endpoint, env_str)
 
 
