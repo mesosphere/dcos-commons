@@ -1,12 +1,17 @@
 import logging
 
+import dcos
 import pytest
+import shakedown
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_tasks
 import sdk_utils
 from tests import config
+from tests.conftest import configure_universe
 
 log = logging.getLogger(__name__)
 
@@ -57,7 +62,7 @@ def remote_service():
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.region_awareness
 @sdk_utils.dcos_ee_only
-def test_nodes_deploy_to_local_region_by_default(local_service):
+def test_nodes_deploy_to_local_region_by_default(configure_universe, local_service):
     for pod_name in POD_NAMES:
         pod_region = get_pod_region(config.SERVICE_NAME, pod_name)
 
@@ -67,7 +72,7 @@ def test_nodes_deploy_to_local_region_by_default(local_service):
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.region_awareness
 @sdk_utils.dcos_ee_only
-def test_nodes_can_deploy_to_remote_region(remote_service):
+def test_nodes_can_deploy_to_remote_region(configure_universe, remote_service):
     for pod_name in POD_NAMES:
         pod_region = get_pod_region(config.SERVICE_NAME, pod_name)
 
@@ -77,17 +82,21 @@ def test_nodes_can_deploy_to_remote_region(remote_service):
 @pytest.mark.dcos_min_version('1.11')
 @pytest.mark.region_awareness
 @sdk_utils.dcos_ee_only
-def test_region_config_update_does_not_succeed(local_service):
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+def test_region_config_update_does_not_succeed(configure_universe, local_service):
     change_region_config(REMOTE_REGION)
-    plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
+    sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'ERROR', timeout_seconds=180)
 
-    assert plan.get('errors', [])
+    change_region_config(None)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, timeout_seconds=180)
 
 
 def change_region_config(region_name):
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    service_config['env']['SERVICE_REGION'] = region_name
+    if region_name is None:
+        del service_config['env']['SERVICE_REGION']
+    else:
+        service_config['env']['SERVICE_REGION'] = region_name
+
     sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
 
 
