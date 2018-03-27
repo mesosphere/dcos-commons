@@ -149,7 +149,7 @@ def kafka_client(kerberos, kafka_server):
 
         transport_encryption.create_tls_artifacts(
             cn="client",
-            task=client_id)
+            marathon_task=client_id)
 
         broker_hosts = list(map(lambda x: x.split(':')[0], brokers))
         yield {**client, **{"brokers": broker_hosts}}
