@@ -8,8 +8,13 @@ Contributors Guide
 
 Discuss contributions to DC/OS SDK using GitHub [issues](https://github.com/mesosphere/dcos-commons/issues) and make contributions with GitHub [pull requests](https://github.com/mesosphere/dcos-commons/pulls).
 
-### Proposing Features
-If you would like to propose a new feature or a significant change, first open an issue to discuss it.  Project shepherds will provide feedback on the proposed change in terms of feasibility, design, and implementation guidance.  While all proposals are welcome, those that conflict with our roadmap or design principles may not be accepted.
+### Bugs / Feature Requests
+Think you’ve found a bug? Want to see a new feature? Please open a case in our issue management tool, JIRA:
+* Login to the [Mesosphere JIRA](jira.mesosphere.com).  You will need a github or google account to use this service.  
+* Navigate to the **DC/OS SDK project**.
+* Click **Create Issue** - Please provide as much information as possible about the issue type and how to reproduce it.
+* Github Issues for this project have been disabled.   
+* Bug reports in JIRA for the DC/OS SDK project are public.
 
 ### Creating Pull Requests
 Create pull requests against the [`master`](https://github.com/mesosphere/dcos-commons/tree/master) branch. Be sure to include unit tests and integration tests, as well as updates to the documentation, default scheduler, and reference framework if necessary.
