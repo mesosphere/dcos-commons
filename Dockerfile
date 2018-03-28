@@ -40,12 +40,16 @@ RUN mkdir /root/.ssh
 RUN mkdir /build-tools
 ENV PATH /build-tools:$PATH
 
+COPY tools/distribution/init /build-tools/
 COPY tools/ci/* /build-tools/
 
 # Create a folder to store the distributed artefacts
 RUN mkdir /dcos-commons-dist
 
 ENV DCOS_COMMONS_DIST_ROOT /dcos-commons-dist
+
+COPY tools/distribution/* ${DCOS_COMMONS_DIST_ROOT}/
+
 COPY test.sh ${DCOS_COMMONS_DIST_ROOT}/
 COPY TESTING.md ${DCOS_COMMONS_DIST_ROOT}/
 
