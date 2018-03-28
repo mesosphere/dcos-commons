@@ -154,4 +154,4 @@ Now add the changes to version control using the required git commants (`git add
 
 * See the SDK release notes for any changes required when consuming the SKD.
 * If the build process is heavily customized, it may be that additional changes will be required to the `build.sh` file in the repo.
-* The API of the testing tools in `testing` could have changed, and any integration tests may need to be updted.
+* The API of the testing tools in `testing` could have changed, and any integration tests may need to be updted. Run `git diff testing` to check for any relevant changes.
