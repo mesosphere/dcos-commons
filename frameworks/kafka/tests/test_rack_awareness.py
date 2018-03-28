@@ -39,7 +39,7 @@ def test_zones_not_referenced_in_placement_constraints():
             'broker get {}'.format(broker_id),
             json=True)
 
-        assert broker_info.get('rack') == None
+        assert broker_info.get('rack') is None
 
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 

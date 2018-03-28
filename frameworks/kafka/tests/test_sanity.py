@@ -58,6 +58,7 @@ def test_mesos_v0_api():
 @pytest.mark.sanity
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=120*1000,
@@ -143,7 +144,7 @@ def test_broker_invalid():
         assert False, "Should have failed"
     except AssertionError as arg:
         raise arg
-    except:
+    except Exception as e:
         pass  # expected to fail
 
 

@@ -92,9 +92,11 @@ socket.request.max.bytes={{KAFKA_SOCKET_REQUEST_MAX_BYTES}}
 authorizer.class.name=kafka.security.auth.SimpleAclAuthorizer
 super.users={{SETUP_HELPER_SUPER_USERS}}
 allow.everyone.if.no.acl.found={{SECURITY_AUTHORIZATION_ALLOW_EVERYONE_IF_NO_ACL_FOUND}}
+{{^SECURITY_KERBEROS_ENABLED}}
 {{#SECURITY_SSL_AUTHENTICATION_ENABLED}}
 principal.builder.class=de.thmshmm.kafka.CustomPrincipalBuilder
 {{/SECURITY_SSL_AUTHENTICATION_ENABLED}}
+{{/SECURITY_KERBEROS_ENABLED}}
 {{/SECURITY_AUTHORIZATION_ENABLED}}
 
 ############################# Log Basics #############################

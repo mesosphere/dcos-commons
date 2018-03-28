@@ -212,8 +212,8 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
 
     expected_lines = len("\n".join(lines).split("\n"))
     if written_lines != expected_lines:
-        log.error("Number of written lines do not match. stdout=%s expected=%s written=%s",
-                  stdout, expected_lines, written_lines)
+        log.warning("Number of written lines do not match. stdout=%s expected=%s written=%s",
+                    stdout, expected_lines, written_lines)
         return False
 
     return True
@@ -253,7 +253,8 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
             # If other agents are listed, but not OUR agent, assume that OUR agent is now inactive.
             # (Shouldn't happen, but just in case...)
             return agent_statuses.get(agent_ip, False)
-        except:
+        except Exception as e:
+            log.info(e)
             log.info(traceback.format_exc())
             # Try again. Wait for the ip to be definitively inactive.
             return True
@@ -287,6 +288,32 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
         return rc, stdout + "\n" + stderr
 
     return rc, stdout, stderr
+
+
+def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bootstrap') -> bool:
+    """
+    Use bootstrap to resolve the specified list of hosts
+    """
+    bootstrap_cmd = [
+        bootstrap_cmd,
+        '-print-env=false',
+        '-template=false',
+        '-install-certs=false',
+        '-self-resolve=false',
+        '-resolve-hosts', ','.join(hosts)]
+    log.info("Running bootstrap to wait for DNS resolution of: %s", ', '.join(hosts))
+    _, bootstrap_stdout, bootstrap_stderr = task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
+
+    # Note that bootstrap returns its output in STDERR
+    resolved = 'SDK Bootstrap successful.' in bootstrap_stderr
+    if not resolved:
+        for host in hosts:
+            resolved_host_string = "Resolved '{host}' =>".format(host=host)
+            host_resolved = resolved_host_string in bootstrap_stdout
+            if not host_resolved:
+                log.warning("Could not resolve: %s", host)
+
+    return resolved
 
 
 def get_json_output(cmd, print_output=True):
