@@ -256,6 +256,7 @@ public class SchedulerBuilder {
         StateStore stateStore = new StateStore(persister, namespaceStr);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespaceStr);
+        Capabilities.getInstance().setSchedulerConfig(schedulerConfig);
 
         Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, frameworkStore);
 
