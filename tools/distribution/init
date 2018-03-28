@@ -118,7 +118,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Init DC/OS test environment")
     parser.add_argument('output_path', type=str,
                         help='The absolute path where the testing tools should be created')
-    parser.add_argument("--update-sdk", nargs="?", type=str,
+    parser.add_argument("--update-sdk", type=str,
                         help="Update the SDK in the target framework.")
     return parser.parse_args()
 
