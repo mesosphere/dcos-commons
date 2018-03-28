@@ -180,7 +180,7 @@ def test_config_cli():
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'config show {}'.format(configs[0]), print_output=False) # noisy output
+                           'config show {}'.format(configs[0]), print_output=False)  # noisy output
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'config target', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'config target_id', json=True)
 
@@ -192,14 +192,14 @@ def test_plan_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan show {}'.format(config.DEFAULT_PLAN_NAME))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan show --json {}'.format(config.DEFAULT_PLAN_NAME), json=True)
+                           'plan show --json {}'.format(config.DEFAULT_PLAN_NAME), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan show {} --json'.format(config.DEFAULT_PLAN_NAME), json=True)
+                           'plan show {} --json'.format(config.DEFAULT_PLAN_NAME), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan force-restart {}'.format(config.DEFAULT_PLAN_NAME))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan interrupt {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+                           'plan interrupt {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
+                           'plan continue {} {}'.format(config.DEFAULT_PLAN_NAME, config.DEFAULT_PHASE_NAME))
 
 
 @pytest.mark.smoke
@@ -216,9 +216,9 @@ def test_pod_cli():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'pod status --json {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
+                           'pod status --json {}-0'.format(config.DEFAULT_POD_TYPE), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'pod info {}-0'.format(config.DEFAULT_POD_TYPE), print_output=False)  # noisy output
+                           'pod info {}-0'.format(config.DEFAULT_POD_TYPE), print_output=False)  # noisy output
 
 
 @pytest.mark.sanity
