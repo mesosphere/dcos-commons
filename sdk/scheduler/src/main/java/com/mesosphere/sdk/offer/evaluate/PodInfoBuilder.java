@@ -34,11 +34,13 @@ import java.util.stream.Collectors;
  */
 public class PodInfoBuilder {
     private static final Logger LOGGER = LoggingUtils.getLogger(PodInfoBuilder.class);
+
     private static final String CONFIG_TEMPLATE_KEY_FORMAT = "CONFIG_TEMPLATE_%s";
     private static final String CONFIG_TEMPLATE_DOWNLOAD_PATH = "config-templates/";
-    private Set<Long> assignedOverlayPorts = new HashSet<>();
+
+    private final Set<Long> assignedOverlayPorts = new HashSet<>();
     private final Map<String, Protos.TaskInfo.Builder> taskBuilders = new HashMap<>();
-    private Protos.ExecutorInfo.Builder executorBuilder;
+    private final Protos.ExecutorInfo.Builder executorBuilder;
     private final PodInstance podInstance;
     private final Map<String, TaskPortLookup> portsByTask;
     private final boolean useDefaultExecutor;
@@ -81,7 +83,7 @@ public class PodInfoBuilder {
         }
 
         this.executorBuilder = getExecutorInfoBuilder(
-                serviceName, podInstance, frameworkID, targetConfigId, templateUrlFactory, schedulerConfig);
+                podInstance, frameworkID, targetConfigId, templateUrlFactory, schedulerConfig);
 
         this.podInstance = podInstance;
         this.portsByTask = new HashMap<>();
@@ -246,7 +248,7 @@ public class PodInfoBuilder {
 
             // Always add the bootstrap URI as the paused command depends on it
             if (override.equals(GoalStateOverride.PAUSED)) {
-                commandBuilder.addUrisBuilder().setValue(SchedulerConfig.fromEnv().getBootstrapURI());
+                commandBuilder.addUrisBuilder().setValue(schedulerConfig.getBootstrapURI());
             }
 
             if (useDefaultExecutor) {
@@ -283,8 +285,6 @@ public class PodInfoBuilder {
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
-        //TODO(nickbp): This ContainerInfo handling has turned a bit spaghetti-like and needs cleaning up.
-        //              Currently blindly retaining prior behavior.
         if (useDefaultExecutor) {
             taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
         } else if (!podInstance.getPod().getNetworks().isEmpty()) {
@@ -301,7 +301,6 @@ public class PodInfoBuilder {
     }
 
     private Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
-            String serviceName,
             PodInstance podInstance,
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
@@ -620,6 +619,8 @@ public class PodInfoBuilder {
         // With the default executor, all NetworkInfos must be defined on the executor itself rather than individual
         // tasks. This check can be made much less ugly once the custom executor no longer need be supported.
         if (!podSpec.getNetworks().isEmpty() && (!useDefaultExecutor || !isTaskContainer)) {
+            LOGGER.info("Adding NetworkInfos for networks: {}",
+                    podSpec.getNetworks().stream().map(n -> n.getName()).collect(Collectors.toList()));
             containerInfo.addAllNetworkInfos(
                     podSpec.getNetworks().stream().map(PodInfoBuilder::getNetworkInfo).collect(Collectors.toList()));
         }
@@ -638,7 +639,6 @@ public class PodInfoBuilder {
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
-        LOGGER.info("Loading NetworkInfo for network named \"{}\"", networkSpec.getName());
         Protos.NetworkInfo.Builder netInfoBuilder = Protos.NetworkInfo.newBuilder();
         netInfoBuilder.setName(networkSpec.getName());
         DcosConstants.warnIfUnsupportedNetwork(networkSpec.getName());

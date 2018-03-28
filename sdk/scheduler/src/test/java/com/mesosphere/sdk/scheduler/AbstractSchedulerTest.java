@@ -45,6 +45,7 @@ public class AbstractSchedulerTest {
             .build();
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
+    @Mock private ServiceSpec mockServiceSpec;
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private SecretsClient mockSecretsClient;
 
@@ -153,7 +154,6 @@ public class AbstractSchedulerTest {
                 frameworkInfo,
                 frameworkStore,
                 stateStore,
-                mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig());
         // Customize...
         if (!waitForApiServer) {
@@ -172,7 +172,7 @@ public class AbstractSchedulerTest {
         return scheduler;
     }
 
-    private static class TestScheduler extends AbstractScheduler {
+    private class TestScheduler extends AbstractScheduler {
 
         private final PlanCoordinator mockPlanCoordinator = mock(PlanCoordinator.class);
 
@@ -182,9 +182,8 @@ public class AbstractSchedulerTest {
                 Protos.FrameworkInfo frameworkInfo,
                 FrameworkStore frameworkStore,
                 StateStore stateStore,
-                ConfigStore<ServiceSpec> configStore,
                 SchedulerConfig schedulerConfig) {
-            super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, Optional.empty());
+            super(frameworkInfo, frameworkStore, mockServiceSpec, stateStore, mockConfigStore, schedulerConfig, Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }

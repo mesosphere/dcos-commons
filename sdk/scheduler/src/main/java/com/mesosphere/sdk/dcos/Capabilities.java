@@ -3,7 +3,6 @@ package com.mesosphere.sdk.dcos;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -100,15 +99,10 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 11);
     }
 
-    public boolean supportsRegionAwareness() {
-        // This feature is in BETA for 1.11, so requires explicit opt-in by end-users.
-        return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
-    }
-
     public boolean supportsDomains() {
         // A given DC/OS cluster may or may not have domain information available in Offers.  This information is
-        // dependent upon the cluster operator and is unknown to the scheduler.  However it is only possible that
-        // domain information be present in DC/OS 1.11+ clusters.
+        // dependent upon the cluster operator and is unknown to the scheduler.  However domain information is only
+        // present on DC/OS 1.11+ clusters.
         return hasOrExceedsVersion(1, 11);
     }
 

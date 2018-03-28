@@ -253,9 +253,17 @@ public interface Expect extends SimulationTick {
                 verify(mockDriver, atLeastOnce()).reconcileTasks(statusCaptor.capture());
                 Set<Protos.TaskStatus> expected = new TreeSet<>(statusComparator);
                 expected.addAll(new StateStore(persisterWithStatuses).fetchStatuses());
-                Set<Protos.TaskStatus> got = new TreeSet<>(statusComparator);
-                got.addAll(statusCaptor.getValue());
-                Assert.assertEquals(expected, got);
+                // Iterate over all reconcile calls, look for any call that had matching arguments.
+                // We do this arg ourselves, since the in-mock comparison never matches.
+                for (Collection<Protos.TaskStatus> reconcileArgs : statusCaptor.getAllValues()) {
+                    Set<Protos.TaskStatus> got = new TreeSet<>(statusComparator);
+                    got.addAll(reconcileArgs);
+                    if (expected.equals(got)) {
+                        return; // Found matching call
+                    }
+                }
+                Assert.fail(String.format("Expected a task reconcile with arguments: %s, but actual calls were: %s",
+                        expected, statusCaptor.getAllValues()));
             }
 
             @Override

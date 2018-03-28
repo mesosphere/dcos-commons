@@ -13,12 +13,6 @@ repositories {
     }
 }
 
-ext {
-    junitVer = "4.12"
-    systemRulesVer = "1.16.0"
-    mockitoVer = "1.9.5"
-}
-
 dependencies {
     compile project(":scheduler")
     testCompile project(":testing")

@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
@@ -128,6 +129,7 @@ public class PodSpecsCannotUseUnsupportedFeaturesTest {
         checkValidationPasses(serviceSpec);
     }
 
+    @Test
     public void testSpecFailsWhenCniPortMappingIsNotSupported() throws Exception {
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
         when(mockCapabilities.supportsRLimits()).thenReturn(true);
@@ -144,6 +146,7 @@ public class PodSpecsCannotUseUnsupportedFeaturesTest {
         checkValidationErrorWithValue(serviceSpec, "network");
     }
 
+    @Test
     public void testSpecFailsWhenFileSecretIsNotSupported() throws Exception {
         when(mockCapabilities.supportsFileBasedSecrets()).thenReturn(false);
         when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
@@ -191,6 +194,36 @@ public class PodSpecsCannotUseUnsupportedFeaturesTest {
                 .setConfigTemplateReader(mockConfigTemplateReader)
                 .build();
         checkValidationPasses(serviceSpec);
+    }
+
+    @Test
+    public void validSimple() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-simple.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Assert.assertNotNull(serviceSpec);
+        Assert.assertEquals(DcosConstants.DEFAULT_GPU_POLICY,
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
+    }
+
+    @Test
+    public void validGpuResource() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-gpu-resource.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Assert.assertNotNull(serviceSpec);
+        Assert.assertTrue("Expected serviceSpec to request support GPUs",
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
+    }
+
+    @Test
+    public void validGpuResourceSet() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-gpu-resourceset.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Assert.assertNotNull(serviceSpec);
+        Assert.assertTrue("Expected serviceSpec to request support GPUs",
+                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec));
     }
 
     private static void checkValidationPasses(DefaultServiceSpec serviceSpec) {

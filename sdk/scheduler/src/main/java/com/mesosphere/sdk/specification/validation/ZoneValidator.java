@@ -17,6 +17,11 @@ import java.util.stream.Collectors;
  * 3. false --> false
  */
 public class ZoneValidator {
+
+    private ZoneValidator() {
+        // do not instantiate
+    }
+
     public static Collection<ConfigValidationError> validate(
             Optional<ServiceSpec> oldConfig,
             ServiceSpec newConfig,

@@ -35,6 +35,7 @@ public abstract class AbstractScheduler {
 
     protected final Protos.FrameworkInfo frameworkInfo;
     protected final FrameworkStore frameworkStore;
+    protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final SchedulerConfig schedulerConfig;
@@ -69,16 +70,25 @@ public abstract class AbstractScheduler {
     protected AbstractScheduler(
             Protos.FrameworkInfo frameworkInfo,
             FrameworkStore frameworkStore,
+            ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
         this.frameworkInfo = frameworkInfo;
         this.frameworkStore = frameworkStore;
+        this.serviceSpec = serviceSpec;
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.schedulerConfig = schedulerConfig;
         this.planCustomizer = planCustomizer;
+    }
+
+    /**
+     * Returns the service spec for this service.
+     */
+    public ServiceSpec getServiceSpec() {
+        return serviceSpec;
     }
 
     /**

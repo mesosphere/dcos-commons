@@ -31,7 +31,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
 
         for (PodSpec podSpec : newConfig.getPods()) {
             if (!supportsGpus && podRequestsGpuResources(podSpec)) {
-                errors.add(ConfigValidationError.valueError("pod:" + podSpec.getType(), "gpus",
+                errors.add(ConfigValidationError.valueError("pod:" + podSpec.getType(), Constants.GPUS_RESOURCE_TYPE,
                         "This DC/OS cluster does not support GPU resources"));
             }
 
@@ -64,12 +64,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
     }
 
     public static boolean serviceRequestsGpuResources(ServiceSpec serviceSpec) {
-        for (PodSpec podSpec : serviceSpec.getPods()) {
-            if (podRequestsGpuResources(podSpec)) {
-                return true;
-            }
-        }
-        return false;
+        return serviceSpec.getPods().stream().anyMatch(podSpec -> podRequestsGpuResources(podSpec));
     }
 
     private static boolean podRequestsGpuResources(PodSpec podSpec) {
@@ -80,7 +75,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
         }
         return podSpec.getTasks().stream()
                 .flatMap(taskSpec -> taskSpec.getResourceSet().getResources().stream())
-                .anyMatch(resourceSpec -> resourceSpec.getName().equals("gpus")
+                .anyMatch(resourceSpec -> resourceSpec.getName().equals(Constants.GPUS_RESOURCE_TYPE)
                         && resourceSpec.getValue().getScalar().getValue() >= 1);
     }
 

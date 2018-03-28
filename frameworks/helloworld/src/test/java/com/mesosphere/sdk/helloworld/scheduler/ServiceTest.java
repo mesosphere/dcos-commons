@@ -112,12 +112,12 @@ public class ServiceTest {
             if (resourceNamespace != null) {
                 // All task+executor resources should have a 'namespace' label
                 for (Protos.Resource resource : ResourceUtils.getAllResources(launchedTask.getTask())) {
-                    Assert.assertEquals(resourceNamespace, ResourceUtils.getResourceNamespace(resource).get());
+                    Assert.assertEquals(resourceNamespace, ResourceUtils.getNamespace(resource).get());
                 }
             } else {
                 // All task+executor resources should NOT have a 'namespace' label
                 for (Protos.Resource resource : ResourceUtils.getAllResources(launchedTask.getTask())) {
-                    Assert.assertFalse(ResourceUtils.getResourceNamespace(resource).isPresent());
+                    Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
                 }
             }
         }
@@ -131,7 +131,6 @@ public class ServiceTest {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
-
         ticks.add(Expect.reconciledImplicitly());
 
         // Verify that service launches 1 hello pod.
@@ -180,7 +179,6 @@ public class ServiceTest {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
-
         ticks.add(Expect.reconciledImplicitly());
 
         // Verify that service launches 1 hello pod.
@@ -230,7 +228,6 @@ public class ServiceTest {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
-
         ticks.add(Expect.reconciledImplicitly());
 
         // Verify that service launches 1 hello pod.
@@ -244,6 +241,7 @@ public class ServiceTest {
                 .setTaskId(taskId)
                 .build());
 
+        // Unknown task that we made up above was killed, but the launched task was not killed:
         ticks.add(Expect.taskIdKilled(taskId));
         ticks.add(Expect.taskNameNotKilled("hello-0-server"));
 
@@ -446,7 +444,6 @@ public class ServiceTest {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
-
         ticks.add(Expect.reconciledImplicitly());
 
         // Verify that service launches 1 hello pod then 2 world pods.
@@ -659,7 +656,11 @@ public class ServiceTest {
             for (StepCount stepCount : stepCounts) {
                 Phase phase = phases.get(stepCount.phaseName);
                 Map<String, Status> stepStatuses = phase.getChildren().stream()
-                        .collect(Collectors.toMap(Step::getName, Step::getStatus));
+                        .collect(Collectors.toMap(
+                                Step::getName,
+                                Step::getStatus,
+                                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                                TreeMap::new));
                 Assert.assertEquals(
                         String.format("Number of steps doesn't match expectation in %s: %s", stepCount, stepStatuses),
                         stepCount.pendingCount + stepCount.preparedCount + stepCount.completedCount,
@@ -672,7 +673,7 @@ public class ServiceTest {
         }
 
         private static Map<String, Status> getExpectedStepStatuses(ClusterState state, StepCount stepCount) {
-            Map<String, Status> expectedSteps = new HashMap<>();
+            Map<String, Status> expectedSteps = new TreeMap<>();
             expectedSteps.put(String.format("kill-%s-server", stepCount.phaseName),
                     stepCount.statusOfStepIndex(expectedSteps.size()));
             LaunchedPod pod = state.getLastLaunchedPod(stepCount.phaseName);
@@ -697,7 +698,6 @@ public class ServiceTest {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
-
         ticks.add(Expect.reconciledImplicitly());
 
         // Verify that service launches 1 hello pod then 2 world pods.

@@ -11,7 +11,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
@@ -24,26 +23,84 @@ public class CuratorLocker {
     private static final int LOCK_ATTEMPTS = 3;
     static final String LOCK_PATH_NAME = "lock";
 
+    private static boolean enabled = true;
+    private static final Object INSTANCE_LOCK = new Object();
+    private static CuratorLocker instance = null;
+    private static final Thread SHUTDOWN_HOOK = new Thread(() -> {
+        if (instance != null) {
+            LOGGER.info("Shutdown initiated, releasing curator lock");
+            instance.unlockInternal();
+        }
+    });
+
     private final String serviceName;
-    private final String zookeeperConnection;
+    private final String zookeeperHostPort;
 
     private CuratorFramework curatorClient;
     private InterProcessSemaphoreMutex curatorMutex;
 
-    public CuratorLocker(ServiceSpec serviceSpec) {
-        this.serviceName = serviceSpec.getName();
-        this.zookeeperConnection = serviceSpec.getZookeeperConnection();
+    /**
+     * Locks curator. This should only be called once per process. Throws if called a second time.
+     *
+     * @param serviceName the name of the service to be locked
+     * @param zookeeperHostPort the connection string for the ZK instance, e.g. {@code master.mesos:2181}
+     */
+    public static void lock(String serviceName, String zookeeperHostPort) {
+        synchronized (INSTANCE_LOCK) {
+            if (!enabled) {
+                return;
+            }
+            if (instance != null) {
+                throw new IllegalStateException("Already locked");
+            }
+            instance = new CuratorLocker(serviceName, zookeeperHostPort);
+            instance.lockInternal();
+
+            Runtime.getRuntime().addShutdownHook(SHUTDOWN_HOOK);
+        }
+    }
+
+    /**
+     * Allows disabling locking for unit tests of things that internally try to acquire a curator lock.
+     */
+    @VisibleForTesting
+    public static void setEnabledForTests(boolean enabled) {
+        CuratorLocker.enabled = enabled;
+    }
+
+    @VisibleForTesting
+    static void unlock() {
+        synchronized (INSTANCE_LOCK) {
+            if (instance == null) {
+                return; // No-op
+            }
+            instance.unlockInternal();
+            instance = null;
+
+            Runtime.getRuntime().removeShutdownHook(SHUTDOWN_HOOK);
+        }
+    }
+
+    /**
+     * @param serviceName the name of the service to be locked
+     * @param zookeeperHostPort the connection string for the ZK instance, e.g. {@code master.mesos:2181}
+     */
+    @VisibleForTesting
+    CuratorLocker(String serviceName, String zookeeperHostPort) {
+        this.serviceName = serviceName;
+        this.zookeeperHostPort = zookeeperHostPort;
     }
 
     /**
      * Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
      * same service.
      */
-    public void lock() {
+    @VisibleForTesting
+    void lockInternal() {
         if (curatorClient != null) {
             throw new IllegalStateException("Already locked");
         }
-        curatorClient = CuratorFrameworkFactory.newClient(zookeeperConnection, CuratorUtils.getDefaultRetry());
+        curatorClient = CuratorFrameworkFactory.newClient(zookeeperHostPort, CuratorUtils.getDefaultRetry());
         curatorClient.start();
 
         final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
@@ -76,7 +133,8 @@ public class CuratorLocker {
     /**
      * Releases the lock previously obtained via {@link #lock()}.
      */
-    public void unlock() {
+    @VisibleForTesting
+    void unlockInternal() {
         if (curatorClient == null) {
             throw new IllegalStateException("Already unlocked");
         }

@@ -83,7 +83,7 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkInfo, frameworkStore, serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer);
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 

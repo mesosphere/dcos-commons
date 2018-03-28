@@ -22,7 +22,6 @@ public class ExactMatcher implements StringMatcher {
     }
 
     private String str;
-    private static final Double epsilon = 0.0001;
     private static final DecimalFormat format = new DecimalFormat("0.###");
 
     @JsonCreator

@@ -46,8 +46,8 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void isPassing() {
-        EvaluationOutcome outcome = stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+        EvaluationOutcome outcome = stage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
     }
 

@@ -404,10 +404,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
-        Protos.Resource originalResource =
-                ResourceBuilder.fromSpec(resourceSpec, resourceId, namespace).build();
-        Protos.Resource reconstructedResource =
-                ResourceBuilder.fromExistingResource(originalResource).build();
+        Protos.Resource originalResource = ResourceBuilder.fromSpec(resourceSpec, resourceId, namespace).build();
+        Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
     }
@@ -443,8 +441,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 persistenceId,
                 Optional.empty())
                 .build();
-        Protos.Resource reconstructedResource =
-                ResourceBuilder.fromExistingResource(originalResource).build();
+        Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
     }
@@ -481,8 +478,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 persistenceId,
                 sourceRoot)
                 .build();
-        Protos.Resource reconstructedResource =
-                ResourceBuilder.fromExistingResource(originalResource).build();
+        Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
     }

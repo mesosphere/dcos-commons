@@ -68,7 +68,7 @@ public class UninstallScheduler extends AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkInfo, frameworkStore, serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer);
         this.secretsClient = customSecretsClientForTests;
 
         Plan plan = new UninstallPlanBuilder(

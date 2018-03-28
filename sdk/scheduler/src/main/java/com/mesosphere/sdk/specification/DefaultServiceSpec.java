@@ -16,6 +16,7 @@ import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -49,47 +50,47 @@ public class DefaultServiceSpec implements ServiceSpec {
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
-    private String name;
-    private String role;
-    private String principal;
-    private String user;
+    private final String name;
+    private final String role;
+    private final String principal;
+    private final String user;
 
-    private String webUrl;
-    private String zookeeperConnection;
+    private final String webUrl;
+    private final String zookeeperConnection;
 
     @Valid
     @NotNull
     @Size(min = 1, message = "At least one pod must be configured.")
     @UniquePodType(message = "Pod types must be unique")
-    private List<PodSpec> pods;
+    private final List<PodSpec> pods;
 
     @Valid
-    private ReplacementFailurePolicy replacementFailurePolicy;
+    private final ReplacementFailurePolicy replacementFailurePolicy;
 
-    private String region;
+    private final String region;
 
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
+            @JsonProperty("user") String user,
+            @JsonProperty("region") String region,
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
-            @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
-            @JsonProperty("user") String user,
-            @JsonProperty("region") String region) {
+            @JsonProperty("pod-specs") List<PodSpec> pods) {
         this.name = name;
         this.role = role;
         this.principal = principal;
+        this.user = getUser(user, pods);
+        this.region = region;
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
-        this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = getUser(user, pods);
-        this.region = region;
+        this.pods = pods;
         ValidationUtils.validate(this);
     }
 
@@ -118,12 +119,12 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.name,
                 builder.role,
                 builder.principal,
+                builder.user,
+                builder.region,
                 builder.webUrl,
                 builder.zookeeperConnection,
-                builder.pods,
                 builder.replacementFailurePolicy,
-                builder.user,
-                builder.region);
+                builder.pods);
     }
 
     /**
@@ -174,12 +175,12 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.name = copy.getName();
         builder.role = copy.getRole();
         builder.principal = copy.getPrincipal();
-        builder.zookeeperConnection = copy.getZookeeperConnection();
-        builder.webUrl = copy.getWebUrl();
-        builder.pods = copy.getPods();
-        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
         builder.user = copy.getUser();
         builder.region = copy.getRegion().orElse(null);
+        builder.webUrl = copy.getWebUrl();
+        builder.zookeeperConnection = copy.getZookeeperConnection();
+        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
+        builder.pods = copy.getPods();
         return builder;
     }
 
@@ -199,6 +200,16 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
+    public String getUser() {
+        return user;
+    }
+
+    @Override
+    public Optional<String> getRegion() {
+        return Optional.ofNullable(region);
+    }
+
+    @Override
     public String getWebUrl() {
         return webUrl;
     }
@@ -209,18 +220,13 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public List<PodSpec> getPods() {
-        return pods;
-    }
-
-    @Override
     public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
         return Optional.ofNullable(replacementFailurePolicy);
     }
 
     @Override
-    public Optional<String> getRegion() {
-        return Optional.ofNullable(region);
+    public List<PodSpec> getPods() {
+        return pods;
     }
 
     @Override
@@ -239,11 +245,6 @@ public class DefaultServiceSpec implements ServiceSpec {
      */
     public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
         return COMPARATOR;
-    }
-
-    @Override
-    public String getUser() {
-        return user;
     }
 
     /**
@@ -281,9 +282,8 @@ public class DefaultServiceSpec implements ServiceSpec {
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
      * @param serviceSpec                  specification to test for successful serialization/deserialization
-     * @param additionalSubtypesToRegister any class subtypes which should be registered with
-     *                    Jackson for deserialization. any custom placement rule implementations
-     *                    must be provided
+     * @param additionalSubtypesToRegister any class subtypes which should be registered with Jackson for
+     *                                     deserialization. any custom placement rule implementations must be provided
      * @throws IllegalArgumentException    if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
@@ -482,6 +482,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private final RawServiceSpec rawServiceSpec;
         private final SchedulerConfig schedulerConfig;
         private final TaskEnvRouter taskEnvRouter;
+        private Optional<FrameworkConfig> multiServiceFrameworkConfig;
         private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
 
         private Generator(
@@ -492,6 +493,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             this.rawServiceSpec = rawServiceSpec;
             this.schedulerConfig = schedulerConfig;
             this.taskEnvRouter = taskEnvRouter;
+            this.multiServiceFrameworkConfig = Optional.empty();
             this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
         }
 
@@ -516,6 +518,15 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
+         * Assigns a custom framework config. In the default single-service case, this is derived from the
+         * {@link RawServiceSpec} provided in the constructor.
+         */
+        public Generator setMultiServiceFrameworkConfig(FrameworkConfig multiServiceFrameworkConfig) {
+            this.multiServiceFrameworkConfig = Optional.of(multiServiceFrameworkConfig);
+            return this;
+        }
+
+        /**
          * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
          * templates.  This is exposed to support mocking in tests.
          */
@@ -527,7 +538,12 @@ public class DefaultServiceSpec implements ServiceSpec {
 
         public DefaultServiceSpec build() throws Exception {
             return YAMLToInternalMappers.convertServiceSpec(
-                    rawServiceSpec, schedulerConfig, taskEnvRouter, configTemplateReader);
+                    rawServiceSpec,
+                    // Use provided multi-service config, or derive single-service config from the RawServiceSpec:
+                    multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec)),
+                    schedulerConfig,
+                    taskEnvRouter,
+                    configTemplateReader);
         }
     }
 
@@ -539,12 +555,12 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String name;
         private String role;
         private String principal;
-        private String webUrl;
-        private String zookeeperConnection;
-        private List<PodSpec> pods = new ArrayList<>();
-        private ReplacementFailurePolicy replacementFailurePolicy;
         private String user;
         private String region;
+        private String webUrl;
+        private String zookeeperConnection;
+        private ReplacementFailurePolicy replacementFailurePolicy;
+        private List<PodSpec> pods = new ArrayList<>();
 
         private Builder() {
         }
@@ -584,20 +600,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
-         * can be chained together.
-         *
-         * @param webUrl the web URL to set
-         * @return a reference to this Builder
-         */
-        public Builder webUrl(String webUrl) {
-            this.webUrl = webUrl;
-            return this;
-        }
-
-        /**
-         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained
-         * together.
+         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
          *
          * @param user the {@code principal} to set
          * @return a reference to this Builder
@@ -608,14 +611,25 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
-         * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained
-         * together.
+         * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained together.
          *
          * @param region the {@code region} to set
          * @return a reference to this Builder
          */
         public Builder region(String region) {
             this.region = region;
+            return this;
+        }
+
+        /**
+         * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
+         * can be chained together.
+         *
+         * @param webUrl the web URL to set
+         * @return a reference to this Builder
+         */
+        public Builder webUrl(String webUrl) {
+            this.webUrl = webUrl;
             return this;
         }
 

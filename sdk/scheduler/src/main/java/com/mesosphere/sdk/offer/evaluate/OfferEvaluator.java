@@ -82,8 +82,7 @@ public class OfferEvaluator {
             Protos.Offer offer = offers.get(i);
 
             MesosResourcePool resourcePool = new MesosResourcePool(
-                    offer,
-                    OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
+                    offer, OfferEvaluationUtils.getRole(podInstanceRequirement.getPodInstance().getPod()));
 
             Map<TaskSpec, GoalStateOverride> overrideMap = new HashMap<>();
             for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {

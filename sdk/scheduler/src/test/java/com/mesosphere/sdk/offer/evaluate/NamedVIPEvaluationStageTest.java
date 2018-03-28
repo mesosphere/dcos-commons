@@ -33,8 +33,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         // Evaluate stage
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStageOnNetwork(10000, Optional.empty(), Optional.empty());
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -68,8 +67,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 containerPort, Optional.empty(), Optional.of(overlayNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -109,8 +107,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 containerPort, Optional.empty(), Optional.of(bridgeNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -148,8 +145,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 containerPort, Optional.empty(), Optional.of(overlayNetwork));
 
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
