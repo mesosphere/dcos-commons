@@ -9,6 +9,9 @@ import sdk_utils
 from tests import config, test_utils
 
 
+pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is better implemented")
+
+
 @pytest.fixture(scope='module', autouse=True)
 def zookeeper_server(configure_security):
     service_options = {
