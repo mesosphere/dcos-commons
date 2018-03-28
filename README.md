@@ -12,8 +12,6 @@
 ---
 __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration of technologies such as Kafka, Cassandra, HDFS, Spark, and TensorFlow with DC/OS.
 
-DC/OS SDK is progressing toward a 1.0 release, but is still under heavy development.
-
 ---
 ### Understanding the Hello World Service Specification
 
