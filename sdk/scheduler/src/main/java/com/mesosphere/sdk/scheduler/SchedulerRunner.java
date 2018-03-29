@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.curator.CuratorLocker;
-import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
@@ -16,6 +15,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
@@ -26,7 +26,6 @@ import org.eclipse.jetty.util.component.LifeCycle;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.time.Instant;
 import java.util.*;
 
 /**
@@ -87,16 +86,6 @@ public class SchedulerRunner implements Runnable {
 
     private SchedulerRunner(SchedulerBuilder schedulerBuilder) {
         this.schedulerBuilder = schedulerBuilder;
-        SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
-
-        LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                schedulerConfig.getPackageName(),
-                schedulerConfig.getPackageVersion(),
-                Instant.ofEpochMilli(schedulerConfig.getPackageBuildTimeMs()),
-
-                SDKBuildInfo.VERSION,
-                SDKBuildInfo.GIT_SHA,
-                Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
     }
 
     /**
@@ -105,17 +94,15 @@ public class SchedulerRunner implements Runnable {
      */
     @Override
     public void run() {
-        CuratorLocker locker = new CuratorLocker(schedulerBuilder.getServiceSpec());
+        SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
+        ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
+        Persister persister = schedulerBuilder.getPersister();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            LOGGER.info("Shutdown initiated, releasing curator lock");
-            locker.unlock();
-        }));
-        locker.lock();
+        // Get a curator lock, then check the schema version:
+        CuratorLocker.lock(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+        // Check and/or initialize schema version before doing any other storage access:
+        new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);
 
-        new SchemaVersionStore(schedulerBuilder.getPersister()).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);
-
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         Metrics.configureStatsd(schedulerConfig);
         AbstractScheduler scheduler = schedulerBuilder.build();
         scheduler.start();
@@ -129,11 +116,7 @@ public class SchedulerRunner implements Runnable {
                 }
             });
 
-            runScheduler(
-                    scheduler.frameworkInfo,
-                    mesosScheduler.get(),
-                    schedulerBuilder.getServiceSpec(),
-                    schedulerBuilder.getSchedulerConfig());
+            runScheduler(scheduler.frameworkInfo, mesosScheduler.get(), serviceSpec, schedulerConfig);
         } else {
             /**
              * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
@@ -169,7 +152,7 @@ public class SchedulerRunner implements Runnable {
             };
 
             try {
-                PersisterUtils.clearAllData(schedulerBuilder.getPersister());
+                PersisterUtils.clearAllData(persister);
             } catch (PersisterException e) {
                 // Best effort.
                 LOGGER.error("Failed to clear all data", e);

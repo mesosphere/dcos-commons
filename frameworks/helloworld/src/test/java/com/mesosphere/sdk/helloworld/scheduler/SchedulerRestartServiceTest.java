@@ -42,9 +42,8 @@ public class SchedulerRestartServiceTest {
     }
 
 
-    private void testTaskWithReadinessCheckHasStatus(int readinessCheckStatusCode,
-                                                     Status expectedStatus,
-                                                     boolean useDefaultExecutor) throws Exception {
+    private void testTaskWithReadinessCheckHasStatus(
+            int readinessCheckStatusCode, Status expectedStatus, boolean useDefaultExecutor) throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());

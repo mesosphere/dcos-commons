@@ -298,6 +298,7 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
         Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
+        Mockito.when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-scheduler-region"));
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -336,22 +337,22 @@ public class ServiceTestRunner {
         if (namespace.isPresent()) {
             schedulerBuilder.setNamespace(namespace.get());
         }
-        AbstractScheduler scheduler = schedulerBuilder
+        AbstractScheduler abstractScheduler = schedulerBuilder
                 .build()
                 .disableThreading()
                 .disableApiServer();
 
         // Test 4: Can we render the per-task config templates without any missing values?
-        Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
+        Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec, mockSchedulerConfig);
 
         // Test 5: Run simulation, if any was provided
         ClusterState clusterState;
         if (oldClusterState == null) {
             // Initialize new cluster state
-            clusterState = ClusterState.create(serviceSpec, scheduler);
+            clusterState = ClusterState.create(serviceSpec, abstractScheduler);
         } else {
             // Carry over prior cluster state
-            clusterState = ClusterState.withUpdatedConfig(oldClusterState, serviceSpec, scheduler);
+            clusterState = ClusterState.withUpdatedConfig(oldClusterState, serviceSpec, abstractScheduler);
         }
         SchedulerDriver mockDriver = Mockito.mock(SchedulerDriver.class);
         for (SimulationTick tick : ticks) {
@@ -364,7 +365,7 @@ public class ServiceTestRunner {
                 }
             } else if (tick instanceof Send) {
                 LOGGER.info("SEND:   {}", tick.getDescription());
-                ((Send) tick).send(clusterState, mockDriver, scheduler.getMesosScheduler().get());
+                ((Send) tick).send(clusterState, mockDriver, abstractScheduler.getMesosScheduler().get());
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
             }
@@ -415,13 +416,14 @@ public class ServiceTestRunner {
         return new AssertionError(errorRows.toString(), originalError);
     }
 
-    private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(ServiceSpec serviceSpec) {
+    private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) {
         Collection<ServiceTestResult.TaskConfig> taskConfigs = new ArrayList<>();
         for (PodSpec podSpec : serviceSpec.getPods()) {
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
             Map<String, String> customEnv = customPodEnvs.get(podSpec.getType());
             for (TaskSpec taskSpec : podSpec.getTasks()) {
-                Map<String, String> taskEnv = getTaskEnv(serviceSpec, podInstance, taskSpec);
+                Map<String, String> taskEnv = getTaskEnv(serviceSpec, podInstance, taskSpec, schedulerConfig);
                 if (customEnv != null) {
                     taskEnv.putAll(customEnv);
                 }
@@ -440,12 +442,11 @@ public class ServiceTestRunner {
         return taskConfigs;
     }
 
-    private static Map<String, String> getTaskEnv(ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec) {
+    private static Map<String, String> getTaskEnv(
+            ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec, SchedulerConfig schedulerConfig) {
         Map<String, String> taskEnv = new HashMap<>();
-        taskEnv.putAll(PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(),
-                podInstance,
-                taskSpec,
-                SchedulerConfig.fromEnv()));
+        taskEnv.putAll(
+                PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec, schedulerConfig));
         taskEnv.putAll(DCOS_TASK_ENVVARS);
         // Inject envvars for any ports with envvar advertisement configured:
         for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {

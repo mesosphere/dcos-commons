@@ -67,12 +67,12 @@ public class ResourceBuilder {
             return fromSpec(
                     getResourceSpec(resource),
                     ResourceUtils.getResourceId(resource),
-                    ResourceUtils.getResourceNamespace(resource));
+                    ResourceUtils.getNamespace(resource));
         } else {
             return fromSpec(
                     getVolumeSpec(resource),
                     ResourceUtils.getResourceId(resource),
-                    ResourceUtils.getResourceNamespace(resource),
+                    ResourceUtils.getNamespace(resource),
                     ResourceUtils.getPersistenceId(resource),
                     ResourceUtils.getSourceRoot(resource));
         }

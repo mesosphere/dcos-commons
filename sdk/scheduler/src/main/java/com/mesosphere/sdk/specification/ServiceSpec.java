@@ -19,8 +19,11 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("principal")
     String getPrincipal();
 
-    @JsonProperty("pod-specs")
-    List<PodSpec> getPods();
+    @JsonProperty("user")
+    String getUser();
+
+    @JsonProperty("region")
+    Optional<String> getRegion();
 
     @JsonProperty("web-url")
     String getWebUrl();
@@ -31,9 +34,6 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("replacement-failure-policy")
     Optional<ReplacementFailurePolicy> getReplacementFailurePolicy();
 
-    @JsonProperty("user")
-    String getUser();
-
-    @JsonProperty("region")
-    Optional<String> getRegion();
+    @JsonProperty("pod-specs")
+    List<PodSpec> getPods();
 }

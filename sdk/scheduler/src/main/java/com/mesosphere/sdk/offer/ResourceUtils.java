@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.*;
 
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
@@ -18,7 +17,7 @@ public class ResourceUtils {
      * Returns a list of all the resources associated with one or more tasks, including {@link Executor} resources.
      * The returned resources may contain duplicates if multiple tasks have copies of the same resource.
      */
-    public static List<Protos.Resource> getAllResources(Collection<TaskInfo> taskInfos) {
+    public static List<Protos.Resource> getAllResources(Collection<Protos.TaskInfo> taskInfos) {
         return taskInfos.stream()
                 .map(ResourceUtils::getAllResources)
                 .flatMap(Collection::stream)
@@ -32,7 +31,7 @@ public class ResourceUtils {
      * @return a list of {@link Protos.Resource}s.
      */
     public static List<Protos.Resource> getAllResources(Protos.TaskInfo taskInfo) {
-        List<Resource> resources = new ArrayList<>();
+        List<Protos.Resource> resources = new ArrayList<>();
         // Get all resources from both the task level and the executor level
         resources.addAll(taskInfo.getResourcesList());
         if (taskInfo.hasExecutor()) {
@@ -47,7 +46,7 @@ public class ResourceUtils {
      * @param resources Collection of resources from which to extract the unique resource IDs
      * @return List of unique resource IDs
      */
-    public static List<String> getResourceIds(Collection<Resource> resources) {
+    public static List<String> getResourceIds(Collection<Protos.Resource> resources) {
         return resources.stream()
                 .map(ResourceUtils::getResourceId)
                 .filter(resourceId -> resourceId.isPresent())
@@ -56,12 +55,12 @@ public class ResourceUtils {
                 .collect(Collectors.toList());
     }
 
-    public static String getRole(Resource resource) {
+    public static String getRole(Protos.Resource resource) {
         return new MesosResource(resource).getRole();
     }
 
-    public static Optional<String> getPrincipal(Resource resource) {
-        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+    public static Optional<String> getPrincipal(Protos.Resource resource) {
+        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
 
         if (reservationInfo.isPresent()) {
             return Optional.of(reservationInfo.get().getPrincipal());
@@ -70,7 +69,7 @@ public class ResourceUtils {
         }
     }
 
-    public static Optional<Resource.ReservationInfo> getReservation(Resource resource) {
+    public static Optional<Protos.Resource.ReservationInfo> getReservation(Protos.Resource resource) {
         if (resource.getReservationsCount() > 0) {
             return getRefinedReservation(resource);
         } else {
@@ -78,7 +77,7 @@ public class ResourceUtils {
         }
     }
 
-    private static Optional<Resource.ReservationInfo> getRefinedReservation(Resource resource) {
+    private static Optional<Protos.Resource.ReservationInfo> getRefinedReservation(Protos.Resource resource) {
         if (resource.getReservationsCount() == 0) {
             return Optional.empty();
         }
@@ -86,7 +85,7 @@ public class ResourceUtils {
         return Optional.of(resource.getReservations(resource.getReservationsCount() - 1));
     }
 
-    private static Optional<Resource.ReservationInfo> getLegacyReservation(Resource resource) {
+    private static Optional<Protos.Resource.ReservationInfo> getLegacyReservation(Protos.Resource resource) {
         if (resource.hasReservation()) {
             return Optional.of(resource.getReservation());
         } else {
@@ -94,27 +93,27 @@ public class ResourceUtils {
         }
     }
 
-    public static Optional<String> getResourceId(Resource resource) {
-        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
-        if (!reservationInfo.isPresent()) {
-            return Optional.empty();
-        }
-        return AuxLabelAccess.getResourceId(reservationInfo.get());
-    }
-
-    public static boolean hasResourceId(Resource resource) {
-        return getResourceId(resource).isPresent();
-    }
-
-    public static Optional<String> getResourceNamespace(Resource resource) {
-        Optional<Resource.ReservationInfo> reservationInfo = getReservation(resource);
+    public static Optional<String> getNamespace(Protos.Resource resource) {
+        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
         if (!reservationInfo.isPresent()) {
             return Optional.empty();
         }
         return AuxLabelAccess.getResourceNamespace(reservationInfo.get());
     }
 
-    public static Optional<String> getPersistenceId(Resource resource) {
+    public static Optional<String> getResourceId(Protos.Resource resource) {
+        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
+        if (!reservationInfo.isPresent()) {
+            return Optional.empty();
+        }
+        return AuxLabelAccess.getResourceId(reservationInfo.get());
+    }
+
+    public static boolean hasResourceId(Protos.Resource resource) {
+        return getResourceId(resource).isPresent();
+    }
+
+    public static Optional<String> getPersistenceId(Protos.Resource resource) {
         if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
             return Optional.of(resource.getDisk().getPersistence().getId());
         }
@@ -122,7 +121,7 @@ public class ResourceUtils {
         return Optional.empty();
     }
 
-    public static Optional<String> getSourceRoot(Resource resource) {
+    public static Optional<String> getSourceRoot(Protos.Resource resource) {
         if (!isMountVolume(resource)) {
             return Optional.empty();
         }
@@ -130,7 +129,7 @@ public class ResourceUtils {
         return Optional.of(resource.getDisk().getSource().getMount().getRoot());
     }
 
-    public static boolean isOwnedByThisFramework(Resource resource, FrameworkInfo frameworkInfo) {
+    public static boolean isOwnedByThisFramework(Protos.Resource resource, Protos.FrameworkInfo frameworkInfo) {
         final Set<String> frameworkRoles = getRoles(frameworkInfo);
         final Set<String> resourceRoles = getRoles(resource);
 
@@ -141,7 +140,7 @@ public class ResourceUtils {
     }
 
     @SuppressWarnings("deprecation")
-    private static Set<String> getRoles(FrameworkInfo frameworkInfo) {
+    private static Set<String> getRoles(Protos.FrameworkInfo frameworkInfo) {
         Set<String> roles = frameworkInfo.getRolesList().stream().collect(Collectors.toSet());
         if (frameworkInfo.hasRole()) {
             roles.add(frameworkInfo.getRole());
@@ -151,8 +150,8 @@ public class ResourceUtils {
     }
 
     @SuppressWarnings("deprecation")
-    private static Set<String> getRoles(Resource resource) {
-        Set<Resource.ReservationInfo> reservations =
+    private static Set<String> getRoles(Protos.Resource resource) {
+        Set<Protos.Resource.ReservationInfo> reservations =
                 new HashSet<>(resource.getReservationsList().stream().collect(Collectors.toSet()));
         if (resource.hasReservation()) {
             reservations.add(resource.getReservation());
@@ -164,8 +163,8 @@ public class ResourceUtils {
                                 .filter(
                                         reservationInfo ->
                                                 reservationInfo.getType()
-                                                        .equals(Resource.ReservationInfo.Type.DYNAMIC))
-                                .map(Resource.ReservationInfo::getRole)
+                                                        .equals(Protos.Resource.ReservationInfo.Type.DYNAMIC))
+                                .map(Protos.Resource.ReservationInfo::getRole)
                                 .collect(Collectors.toSet()));
 
         if (resource.hasRole()) {
@@ -176,11 +175,11 @@ public class ResourceUtils {
         return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
     }
 
-    private static boolean isMountVolume(Resource resource) {
+    private static boolean isMountVolume(Protos.Resource resource) {
         return resource.hasDisk()
                 && resource.getDisk().hasSource()
                 && resource.getDisk().getSource().hasType()
                 && resource.getDisk().getSource().getType()
-                .equals(Resource.DiskInfo.Source.Type.MOUNT);
+                .equals(Protos.Resource.DiskInfo.Source.Type.MOUNT);
     }
 }

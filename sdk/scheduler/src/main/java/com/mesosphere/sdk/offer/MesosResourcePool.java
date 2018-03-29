@@ -216,8 +216,8 @@ public class MesosResourcePool {
     private void freeMergedResource(MesosResource mesosResource) {
         if (mesosResource.getResourceId().isPresent()) {
             dynamicallyReservedPoolByResourceId.remove(mesosResource.getResourceId().get());
-            LOGGER.info("Freed resource: {}", !dynamicallyReservedPoolByResourceId
-                    .containsKey(mesosResource.getResourceId().get()));
+            LOGGER.info("Freed resource: {}",
+                    !dynamicallyReservedPoolByResourceId.containsKey(mesosResource.getResourceId().get()));
         }
 
         String previousRole = mesosResource.getPreviousRole();

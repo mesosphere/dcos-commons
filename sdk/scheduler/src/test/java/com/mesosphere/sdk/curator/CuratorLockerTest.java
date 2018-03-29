@@ -1,14 +1,11 @@
 package com.mesosphere.sdk.curator;
 
 import org.junit.*;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.when;
 
 import java.util.concurrent.TimeUnit;
 
@@ -18,7 +15,6 @@ import org.apache.curator.test.TestingServer;
  * Tests for {@link CuratorLocker}.
  */
 public class CuratorLockerTest {
-    @Mock private ServiceSpec mockServiceSpec;
 
     private static TestingServer testZk;
     private TestCuratorLocker locker1;
@@ -34,57 +30,72 @@ public class CuratorLockerTest {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testZk);
 
-        // easier than creating a real ServiceSpec just for two fields (zk connect string is set in tests):
-        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
-        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-
-        locker1 = new TestCuratorLocker(mockServiceSpec);
-        locker2 = new TestCuratorLocker(mockServiceSpec);
+        locker1 = new TestCuratorLocker(TestConstants.SERVICE_NAME, testZk.getConnectString());
+        locker2 = new TestCuratorLocker(TestConstants.SERVICE_NAME, testZk.getConnectString());
     }
 
     @Test
     public void testMultiAccess() throws Exception {
-        locker1.lock();
+        locker1.lockInternal();
         assertFalse(locker1.checkExited());
-        locker2.lock();
+        locker2.lockInternal();
         assertTrue(locker2.checkExited());
-        locker1.unlock();
+        locker1.unlockInternal();
 
-        locker2.lock();
+        locker2.lockInternal();
         assertFalse(locker2.checkExited());
-        locker1.lock();
+        locker1.lockInternal();
         assertTrue(locker1.checkExited());
-        locker2.unlock();
-        locker1.lock();
+        locker2.unlockInternal();
+        locker1.lockInternal();
         assertFalse(locker1.checkExited());
-        locker1.unlock();
+        locker1.unlockInternal();
     }
 
     @Test
     public void testDoubleLockFails() throws Exception {
-        locker1.lock();
+        locker1.lockInternal();
         // custom exception test handling so that we clean up with an unlock() afterwards:
         boolean hadError = false;
         try {
-            locker1.lock();
+            locker1.lockInternal();
         } catch (IllegalStateException e) {
             hadError = true;
         }
         assertTrue(hadError);
-        locker1.unlock();
+        locker1.unlockInternal();
     }
 
     @Test(expected = IllegalStateException.class)
     public void testDoubleUnlockFails() throws Exception {
-        locker1.unlock();
-        locker1.unlock();
+        locker1.unlockInternal();
+        locker1.unlockInternal();
+    }
+
+    @Test
+    public void testStaticDoubleLockFails() throws Exception {
+        CuratorLocker.lock(TestConstants.SERVICE_NAME, testZk.getConnectString());
+        // custom exception test handling so that we clean up with an unlock() afterwards:
+        boolean hadError = false;
+        try {
+            CuratorLocker.lock(TestConstants.SERVICE_NAME, testZk.getConnectString());
+        } catch (IllegalStateException e) {
+            hadError = true;
+        }
+        assertTrue(hadError);
+        CuratorLocker.unlock();
+    }
+
+    public void testStaticDoubleUnlockNoop() throws Exception {
+        CuratorLocker.unlock();
+        CuratorLocker.unlock();
     }
 
     private static class TestCuratorLocker extends CuratorLocker {
         private boolean exited;
 
-        TestCuratorLocker(ServiceSpec serviceSpec) {
-            super(serviceSpec);
+        TestCuratorLocker(String serviceName, String zookeeperConnection) {
+            super(serviceName, zookeeperConnection);
             this.exited = false;
         }
 

@@ -37,8 +37,7 @@ public class Main {
         switch (scenario) {
             case Java:
                 // Create a sample config in Java
-                runner = SchedulerRunner.fromServiceSpec(
-                        createSampleServiceSpec(schedulerConfig), schedulerConfig);
+                runner = SchedulerRunner.fromServiceSpec(createSampleServiceSpec(schedulerConfig), schedulerConfig);
                 break;
             case YAML:
                 // Read config from provided file, and assume any config templates

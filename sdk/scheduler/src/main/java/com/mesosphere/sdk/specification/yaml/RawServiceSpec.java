@@ -2,7 +2,9 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.google.common.annotations.VisibleForTesting;
@@ -25,17 +27,24 @@ import org.slf4j.Logger;
 public class RawServiceSpec {
     private static final Logger LOGGER = LoggingUtils.getLogger(RawServiceSpec.class);
     private static final ObjectMapper YAML_MAPPER = new ObjectMapper(new YAMLFactory());
+    static {
+        // If the user provides duplicate fields (e.g. 'count' twice), throw an error instead of silently dropping data:
+        YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+    }
 
     /**
-     * Handles rendering of {@link RawServiceSpec}s based on the Scheduler's environment variables.
+     * Generates a {@link RawServiceSpec} object representation from the provided plain YAML content.
+     * Mustache handling is not done here. For that you need {@link #newBuilder(File)}.
+     */
+    public static RawServiceSpec fromBytes(byte[] yamlContent)
+            throws JsonParseException, JsonMappingException, IOException {
+        return YAML_MAPPER.readValue(yamlContent, RawServiceSpec.class);
+    }
+
+    /**
+     * Handles mustache rendering of {@link RawServiceSpec}s based on the Scheduler's environment variables.
      */
     public static class Builder {
-
-        static {
-            // If the user provides duplicate fields (e.g. 'count' twice), throw an error instead of silently dropping
-            // data:
-            YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
-        }
 
         private final File pathToYamlTemplate;
         private Map<String, String> env;
@@ -69,7 +78,7 @@ public class RawServiceSpec {
                     missingValues);
             LOGGER.info("Rendered ServiceSpec from {}:\nMissing template values: {}\n{}",
                     pathToYamlTemplate.getAbsolutePath(), missingValues, yamlWithEnv);
-            return YAML_MAPPER.readValue(yamlWithEnv.getBytes(StandardCharsets.UTF_8), RawServiceSpec.class);
+            return fromBytes(yamlWithEnv.getBytes(StandardCharsets.UTF_8));
         }
     }
 

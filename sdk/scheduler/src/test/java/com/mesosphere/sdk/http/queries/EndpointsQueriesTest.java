@@ -175,7 +175,8 @@ public class EndpointsQueriesTest {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private void testEndpoint(String expectedHostname) throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = EndpointsQueries.getEndpoint(mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, "porta", SchedulerConfigTestUtils.getTestSchedulerConfig());
+        Response response = EndpointsQueries.getEndpoint(
+                mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, "porta", SchedulerConfigTestUtils.getTestSchedulerConfig());
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 3, json.length());
@@ -314,7 +315,8 @@ public class EndpointsQueriesTest {
     @Test
     public void testGetOneCustomEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = EndpointsQueries.getEndpoint(mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, CUSTOM_KEY, SchedulerConfigTestUtils.getTestSchedulerConfig());
+        Response response = EndpointsQueries.getEndpoint(
+                mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, CUSTOM_KEY, SchedulerConfigTestUtils.getTestSchedulerConfig());
         assertEquals(200, response.getStatus());
         assertEquals(CUSTOM_VALUE, response.getEntity());
     }
