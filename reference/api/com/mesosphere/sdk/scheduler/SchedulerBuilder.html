@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":9,"i15":10};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -146,7 +146,7 @@ extends java.lang.Object</pre>
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -166,19 +166,22 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getRegionRule-java.util.Optional-">getRegionRule</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;schedulerRegion)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getSchedulerConfig--">getSchedulerConfig</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> object which was provided via the constructor.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getServiceSpec--">getServiceSpec</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> which was provided via the constructor.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#isRegionAwarenessEnabled--">isRegionAwarenessEnabled</a></span>()</code>
+<div class="block">Returns whether the developer has enabled region awareness for this service, either via
+ <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--"><code>withSingleRegionConstraint()</code></a> or via the scheduler process environment.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -243,12 +246,6 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i14" class="altColor">
-<td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#updatePodPlacement-com.mesosphere.sdk.specification.PodSpec-">updatePodPlacement</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</code>
-<div class="block">Update pods with appropriate placement constraints to enforce user REGION intent.</div>
-</td>
-</tr>
-<tr id="i15" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--">withSingleRegionConstraint</a></span>()</code>
 <div class="block">Configures the resulting scheduler instance with a region constraint.</div>
@@ -339,6 +336,17 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;getPersister()</pre>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object which was provided via the constructor, or which was created by default
  internally.</div>
+</li>
+</ul>
+<a name="isRegionAwarenessEnabled--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isRegionAwarenessEnabled</h4>
+<pre>public&nbsp;boolean&nbsp;isRegionAwarenessEnabled()</pre>
+<div class="block">Returns whether the developer has enabled region awareness for this service, either via
+ <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--"><code>withSingleRegionConstraint()</code></a> or via the scheduler process environment.</div>
 </li>
 </ul>
 <a name="setCustomResources-java.util.Collection-">
@@ -435,15 +443,6 @@ extends java.lang.Object</pre>
 <div class="block">Configures the resulting scheduler instance with a region constraint.</div>
 </li>
 </ul>
-<a name="getRegionRule-java.util.Optional-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getRegionRule</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;getRegionRule(java.util.Optional&lt;java.lang.String&gt;&nbsp;schedulerRegion)</pre>
-</li>
-</ul>
 <a name="setNamespace-java.lang.String-">
 <!--   -->
 </a>
@@ -481,24 +480,6 @@ extends java.lang.Object</pre>
 <dd>a new Mesos scheduler instance to be registered, or an empty <code>Optional</code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if validating the provided configuration failed</dd>
-</dl>
-</li>
-</ul>
-<a name="updatePodPlacement-com.mesosphere.sdk.specification.PodSpec-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>updatePodPlacement</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;updatePodPlacement(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</pre>
-<div class="block">Update pods with appropriate placement constraints to enforce user REGION intent.
- If a pod's placement rules do not explicitly reference a REGION the assumption should be that
- the user intends that a pod be restriced to the local REGION.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>podSpec</code> - The <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a> whose placement rule will be updated to enforce appropriate region placement.</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>The updated <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a></dd>
 </dl>
 </li>
 </ul>

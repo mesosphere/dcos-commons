@@ -147,7 +147,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;Protos.Resource&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getAllResources-java.util.Collection-">getAllResources</a></span>(java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getAllResources-java.util.Collection-">getAllResources</a></span>(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</code>
 <div class="block">Returns a list of all the resources associated with one or more tasks, including <code>Executor</code> resources.</div>
 </td>
 </tr>
@@ -159,46 +159,46 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Resource-">getPersistenceId</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getNamespace-Protos.Resource-">getNamespace</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPrincipal-Resource-">getPrincipal</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Protos.Resource-">getPersistenceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>static java.util.Optional&lt;Resource.ReservationInfo&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getReservation-Resource-">getReservation</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPrincipal-Protos.Resource-">getPrincipal</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceId-Resource-">getResourceId</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colFirst"><code>static java.util.Optional&lt;Protos.Resource.ReservationInfo&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getReservation-Protos.Resource-">getReservation</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceId-Protos.Resource-">getResourceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceIds-java.util.Collection-">getResourceIds</a></span>(java.util.Collection&lt;Resource&gt;&nbsp;resources)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceIds-java.util.Collection-">getResourceIds</a></span>(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</code>
 <div class="block">Returns a list of unique resource IDs associated with <code>Resource</code>s.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceNamespace-Resource-">getResourceNamespace</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getRole-Resource-">getRole</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getRole-Protos.Resource-">getRole</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getSourceRoot-Resource-">getSourceRoot</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getSourceRoot-Protos.Resource-">getSourceRoot</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#hasResourceId-Resource-">hasResourceId</a></span>(Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#hasResourceId-Protos.Resource-">hasResourceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isOwnedByThisFramework-Resource-FrameworkInfo-">isOwnedByThisFramework</a></span>(Resource&nbsp;resource,
-                      FrameworkInfo&nbsp;frameworkInfo)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isOwnedByThisFramework-Protos.Resource-Protos.FrameworkInfo-">isOwnedByThisFramework</a></span>(Protos.Resource&nbsp;resource,
+                      Protos.FrameworkInfo&nbsp;frameworkInfo)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -245,7 +245,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getAllResources</h4>
-<pre>public static&nbsp;java.util.List&lt;Protos.Resource&gt;&nbsp;getAllResources(java.util.Collection&lt;TaskInfo&gt;&nbsp;taskInfos)</pre>
+<pre>public static&nbsp;java.util.List&lt;Protos.Resource&gt;&nbsp;getAllResources(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</pre>
 <div class="block">Returns a list of all the resources associated with one or more tasks, including <code>Executor</code> resources.
  The returned resources may contain duplicates if multiple tasks have copies of the same resource.</div>
 </li>
@@ -272,7 +272,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>getResourceIds</h4>
-<pre>public static&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getResourceIds(java.util.Collection&lt;Resource&gt;&nbsp;resources)</pre>
+<pre>public static&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getResourceIds(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</pre>
 <div class="block">Returns a list of unique resource IDs associated with <code>Resource</code>s.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -282,86 +282,86 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="getRole-Resource-">
+<a name="getRole-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getRole</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;getRole(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;java.lang.String&nbsp;getRole(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="getPrincipal-Resource-">
+<a name="getPrincipal-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getPrincipal</h4>
-<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPrincipal(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPrincipal(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="getReservation-Resource-">
+<a name="getReservation-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getReservation</h4>
-<pre>public static&nbsp;java.util.Optional&lt;Resource.ReservationInfo&gt;&nbsp;getReservation(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;java.util.Optional&lt;Protos.Resource.ReservationInfo&gt;&nbsp;getReservation(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="getResourceId-Resource-">
+<a name="getNamespace-Protos.Resource-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNamespace</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getNamespace(Protos.Resource&nbsp;resource)</pre>
+</li>
+</ul>
+<a name="getResourceId-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getResourceId</h4>
-<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceId(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceId(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="hasResourceId-Resource-">
+<a name="hasResourceId-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>hasResourceId</h4>
-<pre>public static&nbsp;boolean&nbsp;hasResourceId(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;boolean&nbsp;hasResourceId(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="getResourceNamespace-Resource-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getResourceNamespace</h4>
-<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceNamespace(Resource&nbsp;resource)</pre>
-</li>
-</ul>
-<a name="getPersistenceId-Resource-">
+<a name="getPersistenceId-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getPersistenceId</h4>
-<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPersistenceId(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPersistenceId(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="getSourceRoot-Resource-">
+<a name="getSourceRoot-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getSourceRoot</h4>
-<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getSourceRoot(Resource&nbsp;resource)</pre>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getSourceRoot(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="isOwnedByThisFramework-Resource-FrameworkInfo-">
+<a name="isOwnedByThisFramework-Protos.Resource-Protos.FrameworkInfo-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>isOwnedByThisFramework</h4>
-<pre>public static&nbsp;boolean&nbsp;isOwnedByThisFramework(Resource&nbsp;resource,
-                                             FrameworkInfo&nbsp;frameworkInfo)</pre>
+<pre>public static&nbsp;boolean&nbsp;isOwnedByThisFramework(Protos.Resource&nbsp;resource,
+                                             Protos.FrameworkInfo&nbsp;frameworkInfo)</pre>
 </li>
 </ul>
 </li>

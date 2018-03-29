@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":9};
+var methods = {"i0":9,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -131,7 +131,7 @@ extends java.lang.Object</pre>
 <tr class="altColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec.Builder</a></span></code>
-<div class="block">Handles rendering of <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a>s based on the Scheduler's environment variables.</div>
+<div class="block">Handles mustache rendering of <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a>s based on the Scheduler's environment variables.</div>
 </td>
 </tr>
 </table>
@@ -150,26 +150,32 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#fromBytes-byte:A-">fromBytes</a></span>(byte[]&nbsp;yamlContent)</code>
+<div class="block">Generates a <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> object representation from the provided plain YAML content.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getName--">getName</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap</a>&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawPlan.html" title="class in com.mesosphere.sdk.specification.yaml">RawPlan</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getPlans--">getPlans</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.LinkedHashMap&lt;java.lang.String,<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getPods--">getPods</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml">RawScheduler</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getScheduler--">getScheduler</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#getWebUrl--">getWebUrl</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#newBuilder-java.io.File-">newBuilder</a></span>(java.io.File&nbsp;pathToYamlTemplate)</code>&nbsp;</td>
 </tr>
@@ -195,6 +201,26 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="fromBytes-byte:A-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>fromBytes</h4>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;fromBytes(byte[]&nbsp;yamlContent)
+                                throws JsonParseException,
+                                       JsonMappingException,
+                                       java.io.IOException</pre>
+<div class="block">Generates a <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> object representation from the provided plain YAML content.
+ Mustache handling is not done here. For that you need <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#newBuilder-java.io.File-"><code>newBuilder(File)</code></a>.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>JsonParseException</code></dd>
+<dd><code>JsonMappingException</code></dd>
+<dd><code>java.io.IOException</code></dd>
+</dl>
+</li>
+</ul>
 <a name="newBuilder-java.io.File-">
 <!--   -->
 </a>

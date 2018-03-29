@@ -194,54 +194,60 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#GPUS_RESOURCE_TYPE">GPUS_RESOURCE_TYPE</a></span></code>
+<div class="block">The name used for GPU resources.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>static int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#LONG_DECLINE_SECONDS">LONG_DECLINE_SECONDS</a></span></code>
 <div class="block">The duration in seconds to decline offers the scheduler does not need for the foreseeable future.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#MEMORY_RESOURCE_TYPE">MEMORY_RESOURCE_TYPE</a></span></code>
 <div class="block">The name used for memory resources.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static DiscoveryInfo.Visibility</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#OMITTED_PORT_VISIBILITY">OMITTED_PORT_VISIBILITY</a></span></code>
 <div class="block">The visibility setting to use by default in Mesos Ports, for non-VIP ports.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#PORTS_RESOURCE_TYPE">PORTS_RESOURCE_TYPE</a></span></code>
 <div class="block">The name used for reserved network port resources.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#RECOVERY_PLAN_NAME">RECOVERY_PLAN_NAME</a></span></code>
 <div class="block">The name used for the recovery plan.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#SHORT_DECLINE_SECONDS">SHORT_DECLINE_SECONDS</a></span></code>
 <div class="block">The duration in seconds to decline offers the scheduler does not need for a short time.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#TOMBSTONE_MARKER">TOMBSTONE_MARKER</a></span></code>
 <div class="block">The string prepended to reserved resources to indicate that they are uninstalled.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#UPDATE_PLAN_NAME">UPDATE_PLAN_NAME</a></span></code>
 <div class="block">The name used in specifications for the update plan.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#VIP_HOST_TLD">VIP_HOST_TLD</a></span></code>
 <div class="block">TLD to be used for VIP-based hostnames.</div>
@@ -406,6 +412,20 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="GPUS_RESOURCE_TYPE">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>GPUS_RESOURCE_TYPE</h4>
+<pre>public static final&nbsp;java.lang.String GPUS_RESOURCE_TYPE</pre>
+<div class="block">The name used for GPU resources.</div>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.GPUS_RESOURCE_TYPE">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
 <a name="DEFAULT_EXECUTOR_CPUS">
 <!--   -->
 </a>
@@ -522,7 +542,7 @@ extends java.lang.Object</pre>
  This may be overridden by manually constructing the <a href="../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification"><code>NamedVIPSpec</code></a> or
  <a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><code>PortSpec</code></a>.
 
- As of this writing, this setting is only used by <code>com.mesosphere.sdk.http.EndpointsResource</code> for
+ As of this writing, this setting is only used by <a href="../../../../com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>EndpointsResource</code></a> for
  determining what ports to advertise, where <code>EXTERNAL</code> means advertise and non-<code>EXTERNAL</code> means don't
  advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).</div>
 </li>

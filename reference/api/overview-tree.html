@@ -78,6 +78,7 @@
 <li><a href="com/mesosphere/sdk/dcos/auth/package-tree.html">com.mesosphere.sdk.dcos.auth</a>, </li>
 <li><a href="com/mesosphere/sdk/dcos/clients/package-tree.html">com.mesosphere.sdk.dcos.clients</a>, </li>
 <li><a href="com/mesosphere/sdk/executor/package-tree.html">com.mesosphere.sdk.executor</a>, </li>
+<li><a href="com/mesosphere/sdk/framework/package-tree.html">com.mesosphere.sdk.framework</a>, </li>
 <li><a href="com/mesosphere/sdk/http/package-tree.html">com.mesosphere.sdk.http</a>, </li>
 <li><a href="com/mesosphere/sdk/http/endpoints/package-tree.html">com.mesosphere.sdk.http.endpoints</a>, </li>
 <li><a href="com/mesosphere/sdk/http/queries/package-tree.html">com.mesosphere.sdk.http.queries</a>, </li>
@@ -280,6 +281,7 @@
 <li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http"><span class="typeNameLink">EndpointUtils.VipInfo</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">EnvConstants</span></a></li>
+<li type="circle">com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">EnvStore</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvUtils.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">EnvUtils</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">EvaluationOutcome</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">EvaluationOutcome.Builder</span></a></li>
@@ -289,6 +291,8 @@
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">ExecutorTaskLabelReader</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/ExecutorTaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata"><span class="typeNameLink">ExecutorTaskLabelWriter</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">FailureUtils</span></a></li>
+<li type="circle">com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">FrameworkConfig</span></a></li>
+<li type="circle">com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkRunner.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">FrameworkRunner</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">FrameworkStore</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">GoalStateOverride.Status</span></a></li>
 <li type="circle">com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">GroupedTasks</span></a></li>
@@ -510,7 +514,7 @@
 <li type="circle">java.lang.RuntimeException
 <ul>
 <li type="circle">com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckHandler.CheckRuntimeException.html" title="class in com.mesosphere.sdk.executor"><span class="typeNameLink">CheckHandler.CheckRuntimeException</span></a></li>
-<li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.ConfigException.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerConfig.ConfigException</span></a></li>
+<li type="circle">com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.ConfigException.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">EnvStore.ConfigException</span></a></li>
 <li type="circle">com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">StateStoreException</span></a></li>
 </ul>
 </li>
@@ -669,9 +673,9 @@
 <ul>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><span class="typeNameLink">GoalState</span></a></li>
 <li type="circle">com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TaskEnvCannotChange.Rule.html" title="enum in com.mesosphere.sdk.config.validate"><span class="typeNameLink">TaskEnvCannotChange.Rule</span></a></li>
+<li type="circle">com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.ConfigException.Type.html" title="enum in com.mesosphere.sdk.framework"><span class="typeNameLink">EnvStore.ConfigException.Type</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">PlacementField</span></a></li>
 <li type="circle">com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">TLSArtifact</span></a></li>
-<li type="circle">com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.ConfigException.Type.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerConfig.ConfigException.Type</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Status</span></a></li>
 <li type="circle">com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery"><span class="typeNameLink">RecoveryType</span></a></li>
 <li type="circle">com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html" title="enum in com.mesosphere.sdk.specification"><span class="typeNameLink">TransportEncryptionSpec.Type</span></a></li>

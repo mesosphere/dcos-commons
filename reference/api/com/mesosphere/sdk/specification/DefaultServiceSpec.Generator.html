@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -152,6 +152,12 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setMultiServiceFrameworkConfig-com.mesosphere.sdk.framework.FrameworkConfig-">setMultiServiceFrameworkConfig</a></span>(<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;multiServiceFrameworkConfig)</code>
+<div class="block">Assigns a custom framework config.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-">setPodEnv</a></span>(java.lang.String&nbsp;podType,
          java.lang.String&nbsp;key,
          java.lang.String&nbsp;value)</code>
@@ -205,6 +211,17 @@ extends java.lang.Object</pre>
 <div class="block">Assigns an environment variable to be included in tasks for the specified pod type. For example, all tasks
  running inside of "index" pods. Note that this may be overridden via <code>TASKCFG_*</code> scheduler environment
  variables at runtime.</div>
+</li>
+</ul>
+<a name="setMultiServiceFrameworkConfig-com.mesosphere.sdk.framework.FrameworkConfig-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setMultiServiceFrameworkConfig</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;setMultiServiceFrameworkConfig(<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;multiServiceFrameworkConfig)</pre>
+<div class="block">Assigns a custom framework config. In the default single-service case, this is derived from the
+ <a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> provided in the constructor.</div>
 </li>
 </ul>
 <a name="setConfigTemplateReader-com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers.ConfigTemplateReader-">
