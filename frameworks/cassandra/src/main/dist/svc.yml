@@ -130,6 +130,18 @@ pods:
                     (cd container-path/snapshot/"$keyspace" && ln -s ../../../"$f" "$table") ;
                 done
         resource-set: sidecar-resources
+      check-settings-s3:
+        goal: ONCE
+        cmd: |
+              export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH
+              export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH
+              echo "Checking access to s3://${S3_BUCKET_NAME}"
+              aws s3 ls s3://${S3_BUCKET_NAME} > /dev/null 2>&1
+              if [ $? -ne 0 ]; then
+                echo "Checking s3 connection failed. Please check your settings and try again"
+                exit 1
+              fi
+        resource-set: sidecar-resources
       upload-s3:
         goal: ONCE
         cmd: >
@@ -297,6 +309,11 @@ plans:
   backup-s3:
     strategy: serial
     phases:
+      check-settings-s3:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[check-settings-s3]]
       backup-schema:
         strategy: serial
         pod: node
@@ -320,6 +337,11 @@ plans:
   restore-s3:
     strategy: serial
     phases:
+      check-settings-s3:
+        strategy: {{BACKUP_RESTORE_STRATEGY}}
+        pod: node
+        steps:
+          - default: [[check-settings-s3]]
       fetch-s3:
         strategy: {{BACKUP_RESTORE_STRATEGY}}
         pod: node
