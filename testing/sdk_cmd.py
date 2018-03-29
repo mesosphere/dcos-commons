@@ -214,7 +214,7 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
     expected_lines = len("\n".join(lines).split("\n"))
     if written_lines != expected_lines:
         log.warning("Number of written lines do not match. stdout=%s expected=%s written=%s",
-                  stdout, expected_lines, written_lines)
+                    stdout, expected_lines, written_lines)
         return False
 
     return True
@@ -254,7 +254,8 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
             # If other agents are listed, but not OUR agent, assume that OUR agent is now inactive.
             # (Shouldn't happen, but just in case...)
             return agent_statuses.get(agent_ip, False)
-        except:
+        except Exception as e:
+            log.info(e)
             log.info(traceback.format_exc())
             # Try again. Wait for the ip to be definitively inactive.
             return True
@@ -334,12 +335,12 @@ def _task_exec(task_id_prefix: str, cmd: str, return_stderr_in_stdout: bool = Fa
     return rc, stdout, stderr
 
 
-def resolve_hosts(marathon_task_name: str, hosts: list) -> bool:
+def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bootstrap') -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
     bootstrap_cmd = [
-        './bootstrap',
+        bootstrap_cmd,
         '-print-env=false',
         '-template=false',
         '-install-certs=false',

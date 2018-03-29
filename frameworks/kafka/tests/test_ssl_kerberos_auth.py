@@ -1,11 +1,9 @@
 import logging
-import uuid
 import pytest
 
 import sdk_auth
 import sdk_cmd
 import sdk_install
-import sdk_marathon
 import sdk_utils
 
 
@@ -13,8 +11,8 @@ from security import transport_encryption
 
 
 from tests import auth
+from tests import client
 from tests import config
-from tests import test_utils
 
 
 log = logging.getLogger(__name__)
@@ -74,7 +72,7 @@ def kafka_server(kerberos, service_account):
                         "hostname": kerberos.get_host(),
                         "port": int(kerberos.get_port())
                     },
-                    "realm": sdk_auth.REALM,
+                    "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
                 "transport_encryption": {
@@ -99,103 +97,44 @@ def kafka_server(kerberos, service_account):
 
 
 @pytest.fixture(scope='module', autouse=True)
-def kafka_client(kerberos, kafka_server):
-
-    brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint broker-tls", json=True)["dns"]
-
+def kafka_client(kerberos):
     try:
-        client_id = "kafka-client"
-        client = {
-            "id": client_id,
-            "mem": 512,
-            "user": "nobody",
-            "container": {
-                "type": "MESOS",
-                "docker": {
-                    "image": "elezar/kafka-client:latest",
-                    "forcePullImage": True
-                },
-                "volumes": [
-                    {
-                        "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
-                        "secret": "kafka_keytab"
-                    }
-                ]
-            },
-            "secrets": {
-                "kafka_keytab": {
-                    "source": kerberos.get_keytab_path(),
+        kafka_client = client.KafkaClient("kafka-client")
+        kafka_client.install(kerberos)
 
-                }
-            },
-            "networks": [
-                {
-                    "mode": "host"
-                }
-            ],
-            "env": {
-                "JVM_MaxHeapSize": "512",
-                "KAFKA_CLIENT_MODE": "test",
-                "KAFKA_TOPIC": "securetest",
-                "KAFKA_BROKER_LIST": ",".join(brokers)
-            }
-        }
-
-        sdk_marathon.install_app(client)
+        # TODO: This flag should be set correctly.
+        kafka_client._is_tls = True
 
         transport_encryption.create_tls_artifacts(
             cn="client",
-            marathon_task=client_id)
+            marathon_task=kafka_client.get_id())
 
-        broker_hosts = list(map(lambda x: x.split(':')[0], brokers))
-        yield {**client, **{"brokers": broker_hosts}}
-
+        yield kafka_client
     finally:
-        sdk_marathon.destroy_app(client_id)
+        kafka_client.uninstall()
 
 
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
-    client_id = kafka_client["id"]
+def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
 
-    sdk_cmd.resolve_hosts(kafka_client["id"], kafka_client["brokers"])
-
-    topic_name = "authn.test"
+    topic_name = "tls.topic"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
                     "topic create {}".format(topic_name),
                     json=True)
 
-    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
+    kafka_client.connect(kafka_server)
 
-    message = str(uuid.uuid4())
+    user = "client"
+    write_success, read_successes, _ = kafka_client.can_write_and_read(user,
+                                                                       kafka_server,
+                                                                       topic_name,
+                                                                       kerberos)
 
-    assert write_to_topic("client", client_id, topic_name, message, kerberos)
-
-    assert message in read_from_topic("client", client_id, topic_name, 1, kerberos)
-
-
-def get_client_properties(cn: str) -> str:
-    client_properties_lines = []
-    client_properties_lines.extend(auth.get_kerberos_client_properties(ssl_enabled=True))
-    client_properties_lines.extend(auth.get_ssl_client_properties(cn, True))
-
-    return client_properties_lines
-
-
-def write_to_topic(cn: str, marathon_task: str, topic: str, message: str, krb5: object) -> bool:
-
-    return auth.write_to_topic(cn, marathon_task, topic, message,
-                               get_client_properties(cn),
-                               environment=auth.setup_krb5_env(cn, marathon_task, krb5))
-
-
-def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int, krb5: object) -> str:
-
-    return auth.read_from_topic(cn, marathon_task, topic, messages,
-                                get_client_properties(cn),
-                                environment=auth.setup_krb5_env(cn, marathon_task, krb5))
+    assert write_success, "Write failed (user={})".format(user)
+    assert read_successes, "Read failed (user={}): " \
+                           "MESSAGES={} " \
+                           "read_successes={}".format(user,
+                                                      kafka_client.MESSAGES,
+                                                      read_successes)
