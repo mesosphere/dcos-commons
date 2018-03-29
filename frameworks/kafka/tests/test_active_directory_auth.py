@@ -1,4 +1,3 @@
-import os
 import logging
 import pytest
 import uuid
@@ -85,7 +84,7 @@ def kafka_client(kerberos, kafka_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "elezar/kafka-client:latest",
+                    "image": "elezar/kafka-client:4b9c060",
                     "forcePullImage": True
                 },
                 "volumes": [

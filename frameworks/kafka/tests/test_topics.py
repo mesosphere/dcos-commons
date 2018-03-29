@@ -61,7 +61,6 @@ def test_topic_partition_count(kafka_server: dict):
     assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
 
 
-
 @pytest.mark.sanity
 def test_topic_offsets_increase_with_writes(kafka_server: dict):
     package_name = kafka_server["package_name"]
