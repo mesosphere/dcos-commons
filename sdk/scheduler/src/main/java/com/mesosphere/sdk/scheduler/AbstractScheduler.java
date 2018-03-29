@@ -136,6 +136,30 @@ public abstract class AbstractScheduler {
     }
 
     /**
+     * Skips the creation of the API server and marks it as "started". In order for this to have any effect, it must
+     * be called before {@link #start()}.
+     *
+     * @return this
+     */
+    @VisibleForTesting
+    public AbstractScheduler disableApiServer() {
+        markApiServerStarted();
+        return this;
+    }
+
+    /**
+     * Forces the Scheduler to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
+     * called before calling {@link #start()}.
+     *
+     * @return this
+     */
+    @VisibleForTesting
+    public AbstractScheduler disableThreading() {
+        frameworkScheduler.disableThreading();
+        return this;
+    }
+
+    /**
      * Returns the plans defined for this scheduler. Useful for scheduler tests.
      */
     @VisibleForTesting

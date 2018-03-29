@@ -117,7 +117,7 @@ public class SchedulerBuilderTest {
         Assert.assertTrue(rule.isPresent());
         Assert.assertTrue(rule.get() instanceof RegionRule);
 
-        verify(mockSchedulerConfig, times(2)).isRegionAwarenessEnabled(); // TODO(nickbp): Remove times(2) when scheduler init is updated
+        verify(mockSchedulerConfig).isRegionAwarenessEnabled();
     }
 
     @Test
@@ -174,8 +174,8 @@ public class SchedulerBuilderTest {
         Assert.assertFalse(updatedServiceSpec.getPods().get(0).getPlacementRule().isPresent());
 
         // Not hit since unsupported by cluster:
-        verify(mockCapabilities, times(2)).supportsDomains(); // TODO(nickbp): Remove times(2) when scheduler init is updated
-        verify(mockSchedulerConfig).isRegionAwarenessEnabled(); // TODO(nickbp): Change to never() when FrameworkRunner is broken out
+        verify(mockCapabilities, atLeastOnce()).supportsDomains();
+        verify(mockSchedulerConfig, never()).isRegionAwarenessEnabled();
         verify(mockSchedulerConfig, never()).getSchedulerRegion();
     }
 

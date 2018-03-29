@@ -16,9 +16,11 @@ import org.mockito.MockitoAnnotations;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.scheduler.MesosEventClient;
-import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.reconciliation.Reconciler;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.state.FrameworkStore;
+import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
@@ -39,9 +41,10 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
             TestConstants.MASTER_INFO.toBuilder().setDomain(TestConstants.LOCAL_DOMAIN_INFO).build();
 
     @Mock private FrameworkStore mockFrameworkStore;
-    @Mock private MesosEventClient mockMesosEventClient;
+    @Mock private StateStore mockStateStore;
+    @Mock private AbstractScheduler mockAbstractScheduler;
     @Mock private OfferProcessor mockOfferProcessor;
-    @Mock private ImplicitReconciler mockImplicitReconciler;
+    @Mock private Reconciler mockReconciler;
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private SchedulerDriver mockSchedulerDriver2;
 
@@ -50,12 +53,13 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
+        when(mockOfferProcessor.getReconciler()).thenReturn(mockReconciler);
         scheduler = new FrameworkScheduler(
                 Collections.singleton(TestConstants.ROLE),
                 mockFrameworkStore,
-                mockMesosEventClient,
-                mockOfferProcessor,
-                mockImplicitReconciler)
+                mockStateStore,
+                mockAbstractScheduler,
+                mockOfferProcessor)
                 .disableThreading();
     }
 
@@ -65,14 +69,14 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
         verify(mockFrameworkStore).storeFrameworkId(TestConstants.FRAMEWORK_ID);
         Assert.assertEquals(mockSchedulerDriver, Driver.getDriver().get());
         verifyDomainIsSet(MASTER_INFO.getDomain());
-        verify(mockMesosEventClient).registered(false);
+        verify(mockAbstractScheduler).registeredWithMesos();
         verify(mockOfferProcessor).start();
 
         // Call should be treated as a re-registration:
         scheduler.registered(mockSchedulerDriver2, TestConstants.FRAMEWORK_ID, MASTER_INFO2);
         Assert.assertEquals(mockSchedulerDriver2, Driver.getDriver().get());
         verifyDomainIsSet(MASTER_INFO2.getDomain());
-        verify(mockMesosEventClient).registered(true);
+        verify(mockAbstractScheduler).registeredWithMesos();
 
         // Not called a second time:
         verify(mockOfferProcessor, times(1)).start();
@@ -123,31 +127,9 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testStatusUnknownTask() {
         Driver.setDriver(mockSchedulerDriver);
-        when(mockMesosEventClient.status(TestConstants.TASK_STATUS)).thenReturn(StatusResponse.unknownTask());
+        scheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, MASTER_INFO);
         scheduler.statusUpdate(mockSchedulerDriver, TestConstants.TASK_STATUS);
         verify(mockSchedulerDriver).killTask(TestConstants.TASK_STATUS.getTaskId());
-    }
-
-    @Test
-    public void testStatusUnknownTaskBreakLoop() {
-        Driver.setDriver(mockSchedulerDriver);
-        Protos.TaskStatus taskStatus = getStatus(Protos.TaskState.TASK_RUNNING);
-        when(mockMesosEventClient.status(any())).thenReturn(StatusResponse.unknownTask());
-
-        // Task is unknown by us and gets killed:
-        scheduler.statusUpdate(mockSchedulerDriver, taskStatus);
-        verify(mockSchedulerDriver, times(1)).killTask(taskStatus.getTaskId());
-
-        // Task is also unknown to Mesos, so it now gives us a TASK_LOST status.
-        // This time, we do NOT kill again because it was scheduled to be killed already. This avoids a kill loop:
-        taskStatus = getStatus(Protos.TaskState.TASK_LOST);
-        scheduler.statusUpdate(mockSchedulerDriver, taskStatus);
-        verify(mockSchedulerDriver, times(1)).killTask(taskStatus.getTaskId());
-
-        // Later on we get another status for this task, but since it wasn't scheduled to be killed, we try killing it:
-        taskStatus = getStatus(Protos.TaskState.TASK_LOST);
-        scheduler.statusUpdate(mockSchedulerDriver, taskStatus);
-        verify(mockSchedulerDriver, times(2)).killTask(taskStatus.getTaskId());
     }
 
     private static void verifyDomainIsSet(Protos.DomainInfo expectedDomain) {
@@ -167,12 +149,6 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
                 .setFrameworkId(TestConstants.FRAMEWORK_ID)
                 .setSlaveId(TestConstants.AGENT_ID)
                 .setHostname(TestConstants.HOSTNAME)
-                .build();
-    }
-
-    private static Protos.TaskStatus getStatus(Protos.TaskState state) {
-        return TestConstants.TASK_STATUS.toBuilder()
-                .setState(state)
                 .build();
     }
 }

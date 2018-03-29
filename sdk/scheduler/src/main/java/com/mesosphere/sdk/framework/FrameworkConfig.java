@@ -94,8 +94,6 @@ public class FrameworkConfig {
     }
 
     /**
-<<<<<<< HEAD
-=======
      * Creates a {@link FrameworkConfig} instance based off the provided process environment. This is used when no
      * single {@link ServiceSpec} is applicable (multi-service mode).
      */
@@ -113,7 +111,6 @@ public class FrameworkConfig {
     }
 
     /**
->>>>>>> master
      * Returns the framework name to use with Mesos. When running a single service, this is equal to the service name.
      */
     public String getFrameworkName() {

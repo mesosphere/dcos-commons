@@ -52,11 +52,6 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     private final List<ResourceCleaner> populatedCleaners = new ArrayList<>();
     private final List<ResourceCleaner> allCleaners = new ArrayList<>();
     private final StateStore stateStore;
-    private final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
-            .setName(TestConstants.SERVICE_NAME)
-            .setUser(TestConstants.SERVICE_USER)
-            .addRoles(TestConstants.ROLE)
-            .build();
 
     public ResourceCleanerTest() {
         // Validate ResourceCleaner statelessness by only initializing them once
@@ -67,12 +62,12 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
         when(stateStore.fetchTasks()).thenReturn(new ArrayList<>());
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_1.getName())).thenReturn(GoalStateOverride.Status.INACTIVE);
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_2.getName())).thenReturn(GoalStateOverride.Status.INACTIVE);
-        emptyCleaners.add(new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)));
+        emptyCleaners.add(new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore)));
 
         // cleaners with expected resources
         when(stateStore.fetchTasks())
                 .thenReturn(Arrays.asList(TASK_INFO_1, TASK_INFO_2));
-        populatedCleaners.add(new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)));
+        populatedCleaners.add(new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore)));
 
         allCleaners.addAll(emptyCleaners);
         allCleaners.addAll(populatedCleaners);
@@ -278,7 +273,7 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedPermanentlyFailedResource() {
         TaskInfo failedTask = TaskTestUtils.withFailedFlag(TASK_INFO_1);
         when(stateStore.fetchTasks()).thenReturn(Arrays.asList(failedTask, TASK_INFO_2));
-        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
+        ResourceCleaner cleaner = new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore));
 
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_1);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
@@ -290,7 +285,7 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedPermanentlyFailedVolume() {
         TaskInfo failedTask = TaskTestUtils.withFailedFlag(TASK_INFO_2);
         when(stateStore.fetchTasks()).thenReturn(Arrays.asList(TASK_INFO_1, failedTask));
-        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
+        ResourceCleaner cleaner = new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore));
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
@@ -307,7 +302,7 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedDecommissioningResource() {
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_1.getName()))
                 .thenReturn(DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
+        ResourceCleaner cleaner = new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore));
 
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_1);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
@@ -319,7 +314,7 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
     public void testExpectedDecommissioningVolume() {
         when(stateStore.fetchGoalOverrideStatus(TASK_INFO_2.getName()))
                 .thenReturn(DecommissionPlanFactory.DECOMMISSIONING_STATUS);
-        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
+        ResourceCleaner cleaner = new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore));
         List<Offer> offers = OfferTestUtils.getOffers(EXPECTED_RESOURCE_2);
         List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
 
@@ -330,43 +325,5 @@ public class ResourceCleanerTest extends DefaultCapabilitiesTestSuite {
 
         rec = recommendations.get(1);
         assertEquals(Operation.Type.UNRESERVE, rec.getOperation().getType());
-    }
-
-    @Test
-    public void testIgnoreVolumesWithoutLabels() {
-        Assert.assertTrue(ResourceUtils.hasResourceId(UNEXPECTED_RESOURCE_1));
-        Resource.ReservationInfo alienReservation = UNEXPECTED_RESOURCE_1.toBuilder()
-                .getReservations(0).toBuilder()
-                .clearLabels().build();
-        Resource alienResource = UNEXPECTED_RESOURCE_1.toBuilder()
-                .setReservations(0, alienReservation).build();
-        Assert.assertFalse(ResourceUtils.hasResourceId(alienResource));
-
-        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
-        List<Offer> offers = OfferTestUtils.getOffers(alienResource);
-        List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-        assertEquals(0, recommendations.size());
-    }
-
-    @Test
-    public void testIgnoreVolumesWithUnknownLabels() {
-        Assert.assertTrue(ResourceUtils.hasResourceId(UNEXPECTED_RESOURCE_1));
-        Protos.Labels alienLabels = Protos.Labels.newBuilder()
-                .addLabels(
-                        Protos.Label.newBuilder()
-                                .setKey("alien")
-                                .setValue("label"))
-                .build();
-        Resource.ReservationInfo alienReservation = UNEXPECTED_RESOURCE_1.toBuilder()
-                .getReservations(0).toBuilder()
-                .setLabels(alienLabels).build();
-        Resource alienResource = UNEXPECTED_RESOURCE_1.toBuilder()
-                .setReservations(0, alienReservation).build();
-        Assert.assertFalse(ResourceUtils.hasResourceId(alienResource));
-
-        ResourceCleaner cleaner = new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore));
-        List<Offer> offers = OfferTestUtils.getOffers(alienResource);
-        List<OfferRecommendation> recommendations = cleaner.evaluate(offers);
-        assertEquals(0, recommendations.size());
     }
 }

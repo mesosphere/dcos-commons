@@ -295,14 +295,6 @@ class OfferProcessor {
     }
 
     /**
-     * Declines the provided offers for a long time. This is used for offers which were not useful to the scheduler.
-     */
-    private static void declineLong(Collection<Protos.Offer> unusedOffers) {
-        declineOffers(unusedOffers, Constants.LONG_DECLINE_SECONDS);
-        Metrics.incrementDeclinesLong(unusedOffers.size());
-    }
-
-    /**
      * Decline unused {@link org.apache.mesos.Protos.Offer}s.
      *
      * @param unusedOffers The collection of Offers to decline
