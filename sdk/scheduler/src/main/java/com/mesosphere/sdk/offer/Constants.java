@@ -29,7 +29,8 @@ public class Constants {
     public static final String CPUS_RESOURCE_TYPE = "cpus";
     /** The name used for memory resources. */
     public static final String MEMORY_RESOURCE_TYPE = "mem";
-
+    /** The name used for GPU resources. */
+    public static final String GPUS_RESOURCE_TYPE = "gpus";
 
     /**
      * The amount of additional CPU to require for the default executor.
@@ -71,7 +72,7 @@ public class Constants {
      * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
      * {@link com.mesosphere.sdk.specification.PortSpec}.
      *
-     * As of this writing, this setting is only used by {@link com.mesosphere.sdk.http.EndpointsResource} for
+     * As of this writing, this setting is only used by {@link com.mesosphere.sdk.http.endpoints.EndpointsResource} for
      * determining what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't
      * advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
      */

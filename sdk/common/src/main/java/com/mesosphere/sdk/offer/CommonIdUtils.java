@@ -180,7 +180,7 @@ public class CommonIdUtils {
     }
 
     /**
-     * Extracts either the service name or task name from the provided {@code id} string
+     * Extracts either the service name or task name from the provided {@code id} string.
      *
      * @param id the string to extract from
      * @param serviceName whether to return a service name ({@code true}) or task name ({@code false})

@@ -9,6 +9,7 @@ import com.mesosphere.sdk.offer.Constants;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,24 +22,24 @@ public class OfferTestUtils {
         // do not instantiate
     }
 
-    public static List<Protos.Offer> getCompleteOffers(List<Protos.Resource> resources) {
-        return Arrays.asList(getCompleteOffer(resources));
+    public static List<Protos.Offer> getCompleteOffers(Collection<Protos.Resource> resources) {
+        return Collections.singletonList(getCompleteOffer(resources));
     }
 
     public static Protos.Offer getCompleteOffer(Protos.Resource resource) {
-        return getCompleteOffer(Arrays.asList(resource));
+        return getCompleteOffer(Collections.singletonList(resource));
     }
 
     public static List<Protos.Offer> getOffers(Protos.Resource resource) {
-        return getOffers(Arrays.asList(resource));
+        return getOffers(Collections.singletonList(resource));
     }
 
-    public static List<Protos.Offer> getOffers(List<Protos.Resource> resources) {
-        return Arrays.asList(getOffer(resources));
+    public static List<Protos.Offer> getOffers(Collection<Protos.Resource> resources) {
+        return Collections.singletonList(getOffer(resources));
     }
 
     public static Protos.Offer getOffer(Protos.Resource resource) {
-        return getOffer(Arrays.asList(resource));
+        return getOffer(Collections.singletonList(resource));
     }
 
     public static Protos.Offer getOffer(Collection<Protos.Resource> resources) {
@@ -50,11 +51,11 @@ public class OfferTestUtils {
      * @param resources The desired task resources to offer
      * @return An offer with both executor resources and the supplied resources available
      */
-    public static Protos.Offer getCompleteOffer(List<Protos.Resource> resources) {
+    public static Protos.Offer getCompleteOffer(Collection<Protos.Resource> resources) {
         return getCompleteOffer(resources, Constants.ANY_ROLE);
     }
 
-    public static Protos.Offer getCompleteOffer(List<Protos.Resource> resources, String preReservedRole) {
+    public static Protos.Offer getCompleteOffer(Collection<Protos.Resource> resources, String preReservedRole) {
         return getEmptyOfferBuilder()
                 .addAllResources(getExecutorResources(preReservedRole))
                 .addAllResources(resources)
@@ -69,7 +70,7 @@ public class OfferTestUtils {
     }
 
     public static List<Protos.Offer> getCompleteOffers(Protos.Resource resource) {
-        return getCompleteOffers(Arrays.asList(resource));
+        return getCompleteOffers(Collections.singletonList(resource));
     }
 
     public static Protos.Offer getCompleteOffer(Protos.ExecutorID executorId, List<Protos.Resource> resources) {

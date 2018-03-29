@@ -32,6 +32,7 @@ import static org.mockito.Mockito.*;
 
 public class TLSEvaluationStageTest {
 
+    @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private TLSArtifactsUpdater mockTLSArtifactsUpdater;
 
     private TLSArtifactPaths tlsArtifactPaths;
@@ -40,6 +41,8 @@ public class TLSEvaluationStageTest {
     @Before
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
+
+        when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
 
         // echo -n "pod-type-0-test-task-name.service-name.autoip.dcos.thisdcos.directory" | sha1sum
         String sanHash = "8ffc618c478beb31a043d978652d7bc571fedfe2";
@@ -52,7 +55,7 @@ public class TLSEvaluationStageTest {
                 TestConstants.TASK_NAME,
                 "test-namespace",
                 mockTLSArtifactsUpdater,
-                SchedulerConfig.fromEnv());
+                mockSchedulerConfig);
     }
 
     private static PodInstanceRequirement getRequirementWithTransportEncryption(

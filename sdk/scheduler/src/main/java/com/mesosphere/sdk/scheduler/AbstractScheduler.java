@@ -28,6 +28,7 @@ public abstract class AbstractScheduler {
     private static final Logger LOGGER = LoggingUtils.getLogger(AbstractScheduler.class);
 
     protected final FrameworkStore frameworkStore;
+    protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
     protected final ConfigStore<ServiceSpec> configStore;
     protected final SchedulerConfig schedulerConfig;
@@ -44,12 +45,14 @@ public abstract class AbstractScheduler {
      * Creates a new AbstractScheduler given a {@link StateStore}.
      */
     protected AbstractScheduler(
+            ServiceSpec serviceSpec,
             FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
+        this.serviceSpec = serviceSpec;
         this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
         this.configStore = configStore;
@@ -57,6 +60,13 @@ public abstract class AbstractScheduler {
         this.planCustomizer = planCustomizer;
         this.frameworkScheduler = new FrameworkScheduler(
                 frameworkConfig.getAllResourceRoles(), schedulerConfig, frameworkStore, stateStore, this);
+    }
+
+    /**
+     * Returns the service spec for this service.
+     */
+    public ServiceSpec getServiceSpec() {
+        return serviceSpec;
     }
 
     /**

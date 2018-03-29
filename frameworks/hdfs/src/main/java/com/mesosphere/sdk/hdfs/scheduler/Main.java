@@ -54,12 +54,8 @@ public class Main {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         File configDir = yamlSpecFile.getParentFile();
 
-        Map<String, String> env = new HashMap<>(System.getenv());
-        env.put("ALLOW_REGION_AWARENESS", "true");
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
-
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
-
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .setAllPodsEnv(DECODED_AUTH_TO_LOCAL,

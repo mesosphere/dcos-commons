@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.framework;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -93,6 +94,26 @@ public class FrameworkConfig {
     }
 
     /**
+<<<<<<< HEAD
+=======
+     * Creates a {@link FrameworkConfig} instance based off the provided process environment. This is used when no
+     * single {@link ServiceSpec} is applicable (multi-service mode).
+     */
+    public static FrameworkConfig fromEnvStore(EnvStore envStore) {
+        // The only required value is FRAMEWORK_NAME.
+        String frameworkName = envStore.getRequired("FRAMEWORK_NAME");
+        return new FrameworkConfig(
+                frameworkName,
+                getServiceRole(frameworkName),
+                envStore.getOptional("FRAMEWORK_PRINCIPAL", frameworkName + DEFAULT_PRINCIPAL_SUFFIX),
+                envStore.getOptional("FRAMEWORK_USER", DcosConstants.DEFAULT_SERVICE_USER),
+                envStore.getOptional("FRAMEWORK_ZOOKEEPER", DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                envStore.getOptionalStringList("FRAMEWORK_PRERESERVED_ROLES", Collections.emptyList()),
+                envStore.getOptional("FRAMEWORK_WEB_URL", ""));
+    }
+
+    /**
+>>>>>>> master
      * Returns the framework name to use with Mesos. When running a single service, this is equal to the service name.
      */
     public String getFrameworkName() {

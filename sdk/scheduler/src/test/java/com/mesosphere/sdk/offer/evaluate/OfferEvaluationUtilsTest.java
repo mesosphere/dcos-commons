@@ -102,9 +102,9 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
             Assert.assertEquals(desired.getScalar(), resource.getScalar());
             if (namespace.isPresent()) {
-                Assert.assertEquals(namespace.get(), ResourceUtils.getResourceNamespace(resource).get());
+                Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
             } else {
-                Assert.assertFalse(ResourceUtils.getResourceNamespace(resource).isPresent());
+                Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
             }
         }
     }
@@ -137,9 +137,9 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
         Assert.assertEquals(toAdd.getScalar(), resource.getScalar());
         if (namespace.isPresent()) {
-            Assert.assertEquals(namespace.get(), ResourceUtils.getResourceNamespace(resource).get());
+            Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
         } else {
-            Assert.assertFalse(ResourceUtils.getResourceNamespace(resource).isPresent());
+            Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
         }
     }
 
@@ -197,9 +197,9 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource resource = recommendation.getOperation().getUnreserve().getResources(0);
         Assert.assertEquals(toSubtract.getScalar(), resource.getScalar());
         if (namespace.isPresent()) {
-            Assert.assertEquals(namespace.get(), ResourceUtils.getResourceNamespace(resource).get());
+            Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
         } else {
-            Assert.assertFalse(ResourceUtils.getResourceNamespace(resource).isPresent());
+            Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
         }
     }
 

@@ -62,6 +62,7 @@ public class TemplateUtils {
      * Renders a given Mustache template using the provided value map, returning any template parameters which weren't
      * present in the map.
      *
+     * @param templateName descriptive name of template to show in logs
      * @param templateContent String representation of template
      * @param values Map of values to be inserted into the template
      * @param missingValues List where missing value entries will be added for any template params in
