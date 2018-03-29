@@ -6,9 +6,9 @@ import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -44,8 +44,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.time.Duration;
@@ -58,7 +56,6 @@ import java.util.stream.Collectors;
 public class SchedulerBuilder {
 
     private final Logger logger;
-    private static final int TWO_WEEK_SEC = 2 * 7 * 24 * 60 * 60;
 
     private ServiceSpec serviceSpec;
     private final SchedulerConfig schedulerConfig;
@@ -258,17 +255,15 @@ public class SchedulerBuilder {
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespaceStr);
         Capabilities.getInstance().setSchedulerConfig(schedulerConfig);
 
-        Protos.FrameworkInfo frameworkInfo = getFrameworkInfo(serviceSpec, frameworkStore);
-
         if (schedulerConfig.isUninstallEnabled()) {
             // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
             // uninstall mode. UninstallScheduler will internally flag the stateStore with an uninstall bit if needed.
             return new UninstallScheduler(
-                    frameworkInfo,
                     serviceSpec,
                     frameworkStore,
                     stateStore,
                     configStore,
+                    FrameworkConfig.fromServiceSpec(serviceSpec),
                     schedulerConfig,
                     Optional.ofNullable(planCustomizer));
         }
@@ -279,11 +274,11 @@ public class SchedulerBuilder {
                 // This namespaced service is partway through being removed from the parent multi-service scheduler.
                 // Launch the service in uninstall mode so that it can continue with whatever may be left.
                 return new UninstallScheduler(
-                        frameworkInfo,
                         serviceSpec,
                         frameworkStore,
                         stateStore,
                         configStore,
+                        FrameworkConfig.fromServiceSpec(serviceSpec),
                         schedulerConfig,
                         Optional.ofNullable(planCustomizer));
             } else {
@@ -298,7 +293,7 @@ public class SchedulerBuilder {
         }
 
         try {
-            return getDefaultScheduler(frameworkInfo, frameworkStore, stateStore, configStore);
+            return getDefaultScheduler(frameworkStore, stateStore, configStore);
         } catch (ConfigStoreException e) {
             logger.error("Failed to construct scheduler.", e);
             SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -313,7 +308,6 @@ public class SchedulerBuilder {
      * @throws IllegalArgumentException if config validation failed when updating the target config.
      */
     private DefaultScheduler getDefaultScheduler(
-            Protos.FrameworkInfo frameworkInfo,
             FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
@@ -394,8 +388,8 @@ public class SchedulerBuilder {
                 plans);
 
         return new DefaultScheduler(
-                frameworkInfo,
                 serviceSpec,
+                FrameworkConfig.fromServiceSpec(serviceSpec),
                 schedulerConfig,
                 namespace,
                 customResources,
@@ -639,60 +633,4 @@ public class SchedulerBuilder {
             throw new IllegalStateException(e);
         }
     }
-
-    private static Protos.FrameworkInfo getFrameworkInfo(ServiceSpec serviceSpec, FrameworkStore frameworkStore) {
-        Protos.FrameworkInfo.Builder fwkInfoBuilder = Protos.FrameworkInfo.newBuilder()
-                .setName(serviceSpec.getName())
-                .setPrincipal(serviceSpec.getPrincipal())
-                .setFailoverTimeout(TWO_WEEK_SEC)
-                .setUser(serviceSpec.getUser())
-                .setCheckpoint(true);
-
-        setRoles(fwkInfoBuilder, serviceSpec);
-
-        // The framework ID is not available when we're being started for the first time.
-        Optional<Protos.FrameworkID> optionalFrameworkId = frameworkStore.fetchFrameworkId();
-        optionalFrameworkId.ifPresent(fwkInfoBuilder::setId);
-
-        if (!StringUtils.isEmpty(serviceSpec.getWebUrl())) {
-            fwkInfoBuilder.setWebuiUrl(serviceSpec.getWebUrl());
-        }
-
-        if (Capabilities.getInstance().supportsGpuResource()
-                && PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec)) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES));
-        }
-
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.RESERVATION_REFINEMENT));
-        }
-
-        if (Capabilities.getInstance().supportsRegionAwareness()) {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.REGION_AWARE));
-        }
-
-        return fwkInfoBuilder.build();
-    }
-
-    @SuppressWarnings("deprecation") // mute warning for FrameworkInfo.setRole()
-    private static void setRoles(Protos.FrameworkInfo.Builder fwkInfoBuilder, ServiceSpec serviceSpec) {
-        List<String> preReservedRoles =
-                serviceSpec.getPods().stream()
-                        .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
-                        .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
-                        .collect(Collectors.toList());
-        if (preReservedRoles.isEmpty()) {
-            fwkInfoBuilder.setRole(serviceSpec.getRole());
-        } else {
-            fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
-                    .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
-            fwkInfoBuilder.addRoles(serviceSpec.getRole());
-            fwkInfoBuilder.addAllRoles(preReservedRoles);
-        }
-    }
-
-
 }

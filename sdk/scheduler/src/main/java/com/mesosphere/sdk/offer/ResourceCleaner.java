@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
@@ -24,17 +23,14 @@ public class ResourceCleaner {
     private static final Logger LOGGER = LoggingUtils.getLogger(ResourceCleaner.class);
 
     private final Collection<Resource> expectedResources;
-    private final Protos.FrameworkInfo frameworkInfo;
 
     /**
-     * Creates a new {@link ResourceCleaner} which retrieves expected resource
-     * information from the provided {@link StateStore}.
+     * Creates a new {@link ResourceCleaner} which cleans resources not listed in {@code expectedResources}.
      *
      * @throws StateStoreException
      *             if there's a failure when retrieving resource information
      */
-    public ResourceCleaner(Protos.FrameworkInfo frameworkInfo, Collection<Resource> expectedResources) {
-        this.frameworkInfo = frameworkInfo;
+    public ResourceCleaner(Collection<Resource> expectedResources) {
         this.expectedResources = expectedResources;
     }
 
@@ -118,13 +114,8 @@ public class ResourceCleaner {
             if (expectedIds.contains(entry.getKey())) {
                 continue; // leave resource as-is
             }
-            if (ResourceUtils.isOwnedByThisFramework(entry.getValue(), frameworkInfo)) {
-                LOGGER.info("Unexpected reserved resource: {}", TextFormat.shortDebugString(entry.getValue()));
-                unexpectedResources.add(entry.getValue());
-            } else {
-                LOGGER.warn("Unexpected resource which is not owned by this framework, leaving as-is: {}",
-                        TextFormat.shortDebugString(entry.getValue()));
-            }
+            LOGGER.info("Unexpected reserved resource: {}", TextFormat.shortDebugString(entry.getValue()));
+            unexpectedResources.add(entry.getValue());
         }
         return unexpectedResources;
     }

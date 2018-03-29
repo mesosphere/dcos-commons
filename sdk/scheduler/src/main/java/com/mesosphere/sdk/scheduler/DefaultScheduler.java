@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -71,8 +72,8 @@ public class DefaultScheduler extends AbstractScheduler {
      * Creates a new DefaultScheduler. See information about parameters in {@link SchedulerBuilder}.
      */
     protected DefaultScheduler(
-            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
+            FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             Optional<String> resourceNamespace,
             Collection<Object> customResources,
@@ -83,7 +84,7 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(frameworkInfo, frameworkStore, stateStore, configStore, schedulerConfig, planCustomizer);
+        super(frameworkStore, stateStore, configStore, frameworkConfig, schedulerConfig, planCustomizer);
         this.planCoordinator = planCoordinator;
         this.offerAccepter = getOfferAccepter(stateStore, serviceSpec, planCoordinator);
 
@@ -166,12 +167,12 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() {
+    public PlanCoordinator getPlanCoordinator() {
         return planCoordinator;
     }
 
     @Override
-    protected void registeredWithMesos() {
+    public void registeredWithMesos() {
         Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
 
         Optional<DecommissionPlanManager> decomissionManager = getDecomissionManager(getPlanCoordinator());
@@ -221,7 +222,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+    public void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         // See which offers are useful to the plans.
         List<Protos.OfferID> planOffers = new ArrayList<>();
         planOffers.addAll(planScheduler.resourceOffers(offers, steps));
@@ -237,8 +238,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // offer cycle.
         // Note: We reconstruct the instance every cycle to trigger internal reevaluation of expected resources.
         ResourceCleanerScheduler cleanerScheduler = new ResourceCleanerScheduler(
-                new ResourceCleaner(frameworkInfo, ResourceCleaner.getExpectedResources(stateStore)),
-                offerAccepter);
+                new ResourceCleaner(ResourceCleaner.getExpectedResources(stateStore)), offerAccepter);
         List<Protos.OfferID> cleanerOffers = cleanerScheduler.resourceOffers(unusedOffers);
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanerOffers);
 
@@ -266,7 +266,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processStatusUpdate(Protos.TaskStatus status) {
+    public void processStatusUpdate(Protos.TaskStatus status) {
         // Store status, then pass status to PlanManager => Plan => Steps
         String taskName = StateStoreUtils.getTaskName(stateStore, status);
 
