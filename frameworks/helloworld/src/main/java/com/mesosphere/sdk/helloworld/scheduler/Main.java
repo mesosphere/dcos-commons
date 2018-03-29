@@ -77,7 +77,7 @@ public class Main {
                 runner = SchedulerRunner.fromSchedulerBuilder(builder);
                 break;
             default:
-                throw new IllegalStateException(String.format("Unexpected scnenario '%s'", scenario.name()));
+                throw new IllegalStateException(String.format("Unexpected scenario '%s'", scenario.name()));
         }
 
         runner.run();
