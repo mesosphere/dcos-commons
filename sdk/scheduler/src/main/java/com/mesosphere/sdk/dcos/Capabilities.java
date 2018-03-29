@@ -18,6 +18,7 @@ public class Capabilities {
     private static Capabilities capabilities;
 
     private final DcosVersion dcosVersion;
+    private SchedulerConfig schedulerConfig;
 
     public static Capabilities getInstance() {
         synchronized (lock) {
@@ -44,6 +45,11 @@ public class Capabilities {
     @VisibleForTesting
     public Capabilities(DcosVersion dcosVersion) {
         this.dcosVersion = dcosVersion;
+        this.schedulerConfig = SchedulerConfig.fromEnv();
+    }
+
+    public void setSchedulerConfig(SchedulerConfig schedulerConfig) {
+        this.schedulerConfig = schedulerConfig;
     }
 
     public DcosVersion getDcosVersion() {
@@ -103,7 +109,7 @@ public class Capabilities {
 
     public boolean supportsRegionAwareness() {
         // This feature is in BETA for 1.11, so requires explicit opt-in by end-users.
-        return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
+        return schedulerConfig.isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
     }
 
     public boolean supportsDomains() {
