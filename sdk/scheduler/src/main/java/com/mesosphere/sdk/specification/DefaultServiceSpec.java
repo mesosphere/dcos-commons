@@ -52,6 +52,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     private String name;
     private String role;
     private String principal;
+    private String principalSecret;
     private String user;
 
     private String webUrl;
@@ -73,6 +74,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
+            @JsonProperty("principal-secret") String principalSecret,
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
             @JsonProperty("pod-specs") List<PodSpec> pods,
@@ -82,6 +84,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.name = name;
         this.role = role;
         this.principal = principal;
+        this.principalSecret = principalSecret;
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
@@ -118,6 +121,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.name,
                 builder.role,
                 builder.principal,
+                builder.principalSecret,
                 builder.webUrl,
                 builder.zookeeperConnection,
                 builder.pods,
@@ -174,6 +178,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.name = copy.getName();
         builder.role = copy.getRole();
         builder.principal = copy.getPrincipal();
+        builder.principalSecret = copy.getPrincipalSecret().orElse(null);
         builder.zookeeperConnection = copy.getZookeeperConnection();
         builder.webUrl = copy.getWebUrl();
         builder.pods = copy.getPods();
@@ -196,6 +201,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public String getPrincipal() {
         return principal;
+    }
+
+    @Override
+    public Optional<String> getPrincipalSecret() {
+        return Optional.ofNullable(principalSecret);
     }
 
     @Override
@@ -539,6 +549,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String name;
         private String role;
         private String principal;
+        private String principalSecret;
         private String webUrl;
         private String zookeeperConnection;
         private List<PodSpec> pods = new ArrayList<>();
@@ -580,6 +591,18 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder principal(String principal) {
             this.principal = principal;
+            return this;
+        }
+
+        /**
+         * Sets the {@code principalSecret} and returns a reference to this Builder so that the methods can be chained
+         * together.
+         *
+         * @param principalSecret the {@code principalSecret} to set
+         * @return a reference to this Builder
+         */
+        public Builder principalSecret(String principalSecret) {
+            this.principalSecret = principalSecret;
             return this;
         }
 

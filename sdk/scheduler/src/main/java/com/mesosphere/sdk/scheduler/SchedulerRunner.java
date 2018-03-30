@@ -198,7 +198,8 @@ public class SchedulerRunner implements Runnable {
         LOGGER.info("Registering framework: {}", TextFormat.shortDebugString(frameworkInfo));
         String zkUri = String.format("zk://%s/mesos", serviceSpec.getZookeeperConnection());
         Protos.Status status = new SchedulerDriverFactory()
-                .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig)
+                .create(mesosScheduler, frameworkInfo, zkUri, schedulerConfig,
+                        serviceSpec.getPrincipalSecret().map(String::getBytes).orElse(null))
                 .run();
         LOGGER.error("Scheduler driver exited with status: {}", status);
         // DRIVER_STOPPED will occur when we call stop(boolean) during uninstall.

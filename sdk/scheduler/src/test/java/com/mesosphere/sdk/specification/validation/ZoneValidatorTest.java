@@ -146,6 +146,7 @@ public class ZoneValidatorTest {
                 TestConstants.SERVICE_NAME,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
+                null,
                 "http://web-url",
                 "http://zookeeper",
                 Arrays.asList(podSpec),

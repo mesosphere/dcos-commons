@@ -31,6 +31,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     The Mesos Principal to register as. Default is `<name>-principal`.
 
+  * `principal-secret`
+
+    The Mesos Principal Secret credentials to register with. You generally don't
+    need this when you use DC/OS built-in security features.
+
   * `zookeeper`
 
     Custom zookeeper URL for storing scheduler state. Defaults to `master.mesos:2181`.

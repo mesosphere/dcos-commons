@@ -64,12 +64,14 @@ public class YAMLToInternalMappers {
 
         String role = SchedulerUtils.getServiceRole(rawServiceSpec);
         String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
+        String principalSecret = rawServiceSpec.getScheduler().getPrincipalSecret();
         String user = SchedulerUtils.getUser(rawServiceSpec);
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
                 .name(SchedulerUtils.getServiceName(rawServiceSpec))
                 .role(role)
                 .principal(principal)
+                .principalSecret(principalSecret)
                 .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerConfig))
                 .webUrl(rawServiceSpec.getWebUrl())
                 .user(user);
