@@ -8,9 +8,8 @@ import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
@@ -161,6 +160,6 @@ public class CuratorLocker {
      */
     @VisibleForTesting
     protected void exit() {
-        SchedulerUtils.hardExit(SchedulerErrorCode.LOCK_UNAVAILABLE);
+        ProcessExit.exit(ProcessExit.LOCK_UNAVAILABLE);
     }
 }

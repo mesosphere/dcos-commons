@@ -4,6 +4,7 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.AfterClass;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -112,6 +113,31 @@ public class TaskKillerTest {
         verify(driver, times(3)).killTask(TestConstants.TASK_ID);
 
         completeKilling(3);
+    }
+
+    @Test
+    public void breakKillLoop() {
+        verify(driver, never()).killTask(TestConstants.TASK_ID);
+
+        // Enqueue a task to kill
+        TaskKiller.killTask(TestConstants.TASK_ID);
+        verify(driver, times(1)).killTask(TestConstants.TASK_ID);
+
+        // Get back a TASK_LOST+REASON_RECONCILIATION status for that task, because Mesos doesn't recognize it.
+        // update() should return false because the task was already queued for killing
+        Assert.assertFalse(TaskKiller.update(
+                TestConstants.TASK_STATUS.toBuilder()
+                        .setState(Protos.TaskState.TASK_LOST)
+                        .setReason(Protos.TaskStatus.Reason.REASON_RECONCILIATION)
+                        .build()));
+
+        // On the next update, the task is eligible to be killed again because it wasn't scheduled anymore.
+        Assert.assertTrue(TaskKiller.update(
+                TestConstants.TASK_STATUS.toBuilder()
+                        .setState(Protos.TaskState.TASK_LOST)
+                        .setReason(Protos.TaskStatus.Reason.REASON_RECONCILIATION)
+                        .build()));
+
     }
 
     private void completeKilling(int count) {

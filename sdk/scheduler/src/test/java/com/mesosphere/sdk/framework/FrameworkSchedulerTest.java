@@ -16,7 +16,6 @@ import org.mockito.MockitoAnnotations;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -43,7 +42,7 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Mock private StateStore mockStateStore;
     @Mock private AbstractScheduler mockAbstractScheduler;
     @Mock private OfferProcessor mockOfferProcessor;
-    @Mock private Reconciler mockReconciler;
+    @Mock private ImplicitReconciler mockImplicitReconciler;
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private SchedulerDriver mockSchedulerDriver2;
 
@@ -52,12 +51,12 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
-        when(mockOfferProcessor.getReconciler()).thenReturn(mockReconciler);
         scheduler = new FrameworkScheduler(
                 Collections.singleton(TestConstants.ROLE),
                 mockFrameworkStore,
                 mockAbstractScheduler,
                 mockOfferProcessor,
+                mockImplicitReconciler,
                 mockStateStore)
                 .disableThreading();
     }
@@ -68,14 +67,14 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
         verify(mockFrameworkStore).storeFrameworkId(TestConstants.FRAMEWORK_ID);
         Assert.assertEquals(mockSchedulerDriver, Driver.getDriver().get());
         verifyDomainIsSet(MASTER_INFO.getDomain());
-        verify(mockAbstractScheduler).registeredWithMesos();
+        verify(mockAbstractScheduler).registered(false);
         verify(mockOfferProcessor).start();
 
         // Call should be treated as a re-registration:
         scheduler.registered(mockSchedulerDriver2, TestConstants.FRAMEWORK_ID, MASTER_INFO2);
         Assert.assertEquals(mockSchedulerDriver2, Driver.getDriver().get());
         verifyDomainIsSet(MASTER_INFO2.getDomain());
-        verify(mockAbstractScheduler).registeredWithMesos();
+        verify(mockAbstractScheduler).registered(true);
 
         // Not called a second time:
         verify(mockOfferProcessor, times(1)).start();

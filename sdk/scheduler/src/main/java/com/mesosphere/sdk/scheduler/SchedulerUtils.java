@@ -40,16 +40,4 @@ public class SchedulerUtils {
         name = name.replace(PersisterUtils.PATH_DELIM_STR, SLASH_REPLACEMENT);
         return name;
     }
-
-    /**
-     * Immediately exits the process with the ordinal value of the provided {@code errorCode}.
-     */
-    @SuppressWarnings("DM_EXIT")
-    public static void hardExit(SchedulerErrorCode errorCode) {
-        String message =
-                String.format("Scheduler exiting immediately with code: %s[%d]", errorCode, errorCode.getValue());
-        System.err.println(message);
-        System.out.println(message);
-        System.exit(errorCode.getValue());
-    }
 }

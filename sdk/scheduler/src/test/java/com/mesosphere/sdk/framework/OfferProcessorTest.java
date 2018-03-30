@@ -24,7 +24,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import static org.mockito.Mockito.*;
@@ -37,7 +36,6 @@ public class OfferProcessorTest {
 
     @Mock private AbstractScheduler mockAbstractScheduler;
     @Mock private PlanCoordinator mockPlanCoordinator;
-    @Mock private StateStore mockStateStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
 
     private OfferProcessor processor;
@@ -48,7 +46,7 @@ public class OfferProcessorTest {
         Driver.setDriver(mockSchedulerDriver);
         when(mockAbstractScheduler.getPlanCoordinator()).thenReturn(mockPlanCoordinator);
 
-        processor = new OfferProcessor(mockAbstractScheduler, mockStateStore);
+        processor = new OfferProcessor(mockAbstractScheduler);
     }
 
     @Test
@@ -66,8 +64,8 @@ public class OfferProcessorTest {
 
         // At least some offers should have been dropped/declined before reaching the client:
         Set<String> sentOfferIds = sendOffers(THREAD_COUNT, OFFERS_PER_THREAD);
-        verify(mockAbstractScheduler, atLeastOnce()).processOffers(any(), any());
-        verify(mockAbstractScheduler, atMost(sentOfferIds.size() - 1)).processOffers(any(), any());
+        verify(mockAbstractScheduler, atLeastOnce()).offers(any());
+        verify(mockAbstractScheduler, atMost(sentOfferIds.size() - 1)).offers(any());
         verify(mockSchedulerDriver, atLeastOnce()).declineOffer(any(), any());
     }
 
@@ -83,7 +81,7 @@ public class OfferProcessorTest {
                 receivedCount.addAndGet(offers.size());
                 return null;
             }
-        }).when(mockAbstractScheduler).processOffers(any(), any());
+        }).when(mockAbstractScheduler).offers(any());
 
         processor.setOfferQueueSize(0).start(); // unlimited queue size
 

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.framework;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -19,15 +20,40 @@ import java.util.stream.Collectors;
  * This class determines whether offers should be revived based on changes to the work being processed by the scheduler.
  */
 public class ReviveManager {
-    private final Logger logger = LoggingUtils.getLogger(getClass());
+
+    /**
+     * We use a singleton {@link TokenBucket} because we want rate limits on revive calls to be enforced across all
+     * running services in the scheduler.
+     */
+    private static final TokenBucket TOKEN_BUCKET_INSTANCE = TokenBucket.newBuilder().build();
+
+    private final Logger logger;
     private final TokenBucket tokenBucket;
+
     private Set<WorkItem> candidates = new HashSet<>();
 
-    public ReviveManager() {
-        this(TokenBucket.newBuilder().build());
+    /**
+     * Resets revive limits in the global token bucket, for tests.
+     */
+    @VisibleForTesting
+    public static void resetTimers() {
+        TOKEN_BUCKET_INSTANCE.reset();
     }
 
-    public ReviveManager(TokenBucket tokenBucket) {
+    /**
+     * Creates an instance using the singleton {@link TokenBucket} instance. The {@link TokenBucket} is a singleton
+     * because we want rate limits to be enforced across all running services in the scheduler.
+     */
+    public ReviveManager() {
+        this(TOKEN_BUCKET_INSTANCE);
+    }
+
+    /**
+     * Creates an instance with a custom {@link TokenBucket} instead of the singleton instance. Only for use in tests.
+     */
+    @VisibleForTesting
+    ReviveManager(TokenBucket tokenBucket) {
+        this.logger = LoggingUtils.getLogger(getClass());
         this.tokenBucket = tokenBucket;
     }
 

@@ -76,7 +76,7 @@ public class DefaultScheduler extends AbstractScheduler {
             ServiceSpec serviceSpec,
             FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
-            Optional<String> resourceNamespace,
+            Optional<String> namespace,
             Collection<Object> customResources,
             PlanCoordinator planCoordinator,
             Optional<PlanCustomizer> planCustomizer,
@@ -119,7 +119,7 @@ public class DefaultScheduler extends AbstractScheduler {
                         configStore.getTargetConfig(),
                         templateUrlFactory,
                         schedulerConfig,
-                        resourceNamespace,
+                        namespace,
                         Capabilities.getInstance().supportsDefaultExecutor()),
                 stateStore);
     }
@@ -132,7 +132,7 @@ public class DefaultScheduler extends AbstractScheduler {
         List<OperationRecorder> recorders = new ArrayList<>();
         recorders.add(new PersistentLaunchRecorder(stateStore, serviceSpec));
 
-        Optional<DecommissionPlanManager> decommissionManager = getDecomissionManager(planCoordinator);
+        Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(planCoordinator);
         if (decommissionManager.isPresent()) {
             Collection<Step> steps = decommissionManager.get().getPlan().getChildren().stream()
                     .flatMap(phase -> phase.getChildren().stream())
@@ -141,6 +141,11 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         return new OfferAccepter(recorders);
+    }
+
+    @Override
+    public PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
     }
 
     private static PlanManager getDeploymentManager(PlanCoordinator planCoordinator) {
@@ -155,49 +160,44 @@ public class DefaultScheduler extends AbstractScheduler {
                 .findFirst().get();
     }
 
-    private static Optional<DecommissionPlanManager> getDecomissionManager(PlanCoordinator planCoordinator) {
-        return planCoordinator.getPlanManagers().stream()
-                .filter(planManager -> planManager.getPlan().isDecommissionPlan())
-                .map(planManager -> (DecommissionPlanManager) planManager)
-                .findFirst();
-    }
-
     @Override
     public Collection<Object> getResources() {
         return resources;
     }
 
     @Override
-    public PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
-    }
-
-    @Override
     public void registeredWithMesos() {
         Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
 
-        Optional<DecommissionPlanManager> decomissionManager = getDecomissionManager(getPlanCoordinator());
-        if (decomissionManager.isPresent()) {
-            Collection<String> decomissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
+        Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(getPlanCoordinator());
+        if (decommissionManager.isPresent()) {
+            Collection<String> decommissionedTasks = decommissionManager.get().getTasksToDecommission().stream()
                     .map(taskInfo -> taskInfo.getName())
                     .collect(Collectors.toList());
-            activeTasks.addAll(decomissionedTasks);
+            activeTasks.addAll(decommissionedTasks);
         }
 
         killUnneededTasks(stateStore, activeTasks);
     }
 
+    private static Optional<DecommissionPlanManager> getDecommissionManager(PlanCoordinator planCoordinator) {
+        return planCoordinator.getPlanManagers().stream()
+                .filter(planManager -> planManager.getPlan().isDecommissionPlan())
+                .map(planManager -> (DecommissionPlanManager) planManager)
+                .findFirst();
+    }
+
     private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
-        Set<Protos.TaskInfo> taskInfos = stateStore.fetchTasks().stream()
+        Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
                 .collect(Collectors.toSet());
 
-        Set<Protos.TaskID> taskIds = taskInfos.stream()
+        Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
 
         // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
-        Set<Protos.TaskInfo> cleanedTaskInfos = taskInfos.stream()
+        Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.toBuilder())
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
                 .collect(Collectors.toSet());
@@ -209,7 +209,7 @@ public class DefaultScheduler extends AbstractScheduler {
             stateStore.storeTasks(Arrays.asList(taskInfo));
         }
 
-        taskIds.forEach(taskID -> TaskKiller.killTask(taskID));
+        taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
 
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
@@ -223,7 +223,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    public void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+    public void processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
         // See which offers are useful to the plans.
         List<Protos.OfferID> planOffers = new ArrayList<>();
         planOffers.addAll(planScheduler.resourceOffers(offers, steps));

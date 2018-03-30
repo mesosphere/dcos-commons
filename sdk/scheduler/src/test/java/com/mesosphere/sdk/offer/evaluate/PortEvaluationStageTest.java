@@ -371,8 +371,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPortSpec(podInstance), TestConstants.TASK_NAME, Optional.empty(), Optional.empty());
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();

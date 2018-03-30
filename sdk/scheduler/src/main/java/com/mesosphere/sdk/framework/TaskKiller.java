@@ -2,7 +2,6 @@ package com.mesosphere.sdk.framework;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.TaskCleaner;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
@@ -69,8 +68,9 @@ public final class TaskKiller {
      * immediately made.  Continued periodic attempts will be made to kill the task until Mesos indicates that it has
      * killed the Task or doesn't recongize the task.
      *
-     * This is still not a guarantee that a task has been killed.  Mesos may not know about a particular TaskID at any
-     * given time.  See the {@link TaskCleaner} for the rest of the task killing system.
+     * <p>This is still not a guarantee that a task has been killed.  Mesos may not know about a particular TaskID at
+     * any given time.
+     *
      * @param taskId the TaskID of the Task to be killed.
      */
     public static void killTask(TaskID taskId) {

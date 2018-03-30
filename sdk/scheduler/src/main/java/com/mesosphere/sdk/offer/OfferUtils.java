@@ -26,7 +26,7 @@ public class OfferUtils {
      * @return A List of offers are that not ACCEPTED yet; can be empty if there are no UNACCEPTED offers left.
      */
     public static List<Protos.Offer> filterOutAcceptedOffers(
-            List<Protos.Offer> offers,
+            Collection<Protos.Offer> offers,
             Collection<Protos.OfferID> acceptedOfferIds) {
         return offers.stream()
                 .filter(offer -> !isOfferAccepted(offer, acceptedOfferIds))
@@ -40,16 +40,11 @@ public class OfferUtils {
      * @param acceptedOfferIds A {@link Collection} of accepted {@link org.apache.mesos.Protos.OfferID}.
      * @return {@code true} if {@link org.apache.mesos.Protos.Offer} is accepted; {@code false} otherwise.
      */
-    public static boolean isOfferAccepted(
+    private static boolean isOfferAccepted(
             Protos.Offer offer,
             Collection<Protos.OfferID> acceptedOfferIds) {
         return acceptedOfferIds.stream()
                 .anyMatch(acceptedOfferId -> acceptedOfferId.equals(offer.getId()));
-    }
-
-    public static void declineShort(Collection<Protos.Offer> unusedOffers) {
-        OfferUtils.declineOffers(unusedOffers, Constants.SHORT_DECLINE_SECONDS);
-        Metrics.incrementDeclinesShort(unusedOffers.size());
     }
 
     public static void declineLong(Collection<Protos.Offer> unusedOffers) {

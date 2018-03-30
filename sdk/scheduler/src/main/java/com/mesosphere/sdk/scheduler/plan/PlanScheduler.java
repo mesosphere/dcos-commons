@@ -4,7 +4,6 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.OfferID;
 
 import java.util.Collection;
-import java.util.List;
 
 /**
  * Interface for Plan schedulers. Attempts to start {@link Step}s, while fulfilling any
@@ -20,6 +19,6 @@ public interface PlanScheduler {
      *         requirements returned by the {@link Step}
      */
     Collection<OfferID> resourceOffers(
-            final List<Offer> offers,
+            final Collection<Offer> offers,
             final Collection<? extends Step> steps);
 }
