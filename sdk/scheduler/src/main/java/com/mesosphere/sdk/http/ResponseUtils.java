@@ -100,6 +100,13 @@ public class ResponseUtils {
     }
 
     /**
+     * Returns a "404 Run [serviceName] not found" response.
+     */
+    public static Response serviceNotFoundResponse(String serviceName) {
+        return notFoundResponse("Service " + serviceName);
+    }
+
+    /**
      * Returns a "208 Already reported" response.
      */
     public static Response alreadyReportedResponse() {
