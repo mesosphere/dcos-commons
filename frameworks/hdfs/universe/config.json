@@ -190,6 +190,11 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "hadoop_journalnode_opts": {
+          "type": "string",
+          "description": "JVM options to specify when running the journal node. This overrides HADOOP_HEAPSIZE Xmx value for the journal nodes.",
+          "default": ""
         }
       },
       "required": [
@@ -225,7 +230,7 @@
         },
         "hadoop_namenode_opts": {
           "type": "string",
-          "description": "Options to specify when running the name node.",
+          "description": "JVM options to specify when running the name node. This overrides HADOOP_HEAPSIZE Xmx value for the name nodes.",
           "default": ""
         },
         "logging_level": {
@@ -736,6 +741,11 @@
           "description": "Boolean which enables backend datanode-side support for the experimental DistributedFileSystem#getFileVBlockStorageLocations API.",
           "default": false
         },
+        "fsdataset_volume_choosing_policy": {
+          "type": "string",
+          "description": "The class name of the policy for choosing volumes in the list of directories. If you would like to take into account available disk space, set the value to 'org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy'.",
+          "default": "org.apache.hadoop.hdfs.server.datanode.fsdataset.RoundRobinVolumeChoosingPolicy"
+        },
         "available-space-volume-choosing-policy_balanced-space-threshold": {
           "type": "string",
           "description": "Only used when the dfs.datanode.fsdataset.volume.choosing.policy is set to org.apache.hadoop.hdfs.server.datanode.fsdataset.AvailableSpaceVolumeChoosingPolicy. This setting controls how much DN volumes are allowed to differ in terms of bytes of free disk space before they are considered imbalanced. If the free space of all the volumes are within this range of each other, the volumes will be considered balanced and block assignments will be done on a pure round robin basis.",
@@ -783,6 +793,11 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "hadoop_datanode_opts": {
+          "type": "string",
+          "description": "JVM options to specify when running the data node. This overrides HADOOP_HEAPSIZE Xmx value for the data nodes.",
+          "default": ""
         }
       },
       "required": [
@@ -880,8 +895,13 @@
         },
         "hadoop_opts": {
           "type": "string",
-          "description": "Extra Java runtime options.",
+          "description": "Extra Java runtime options for all Hadoop nodes.",
           "default": ""
+        },
+        "hadoop_heapsize": {
+          "type": "integer",
+          "description": "The maximum amount of heap to use, in MB.",
+          "default": 1000
         },
         "permissions_enabled": {
           "type": "boolean",
