@@ -113,6 +113,14 @@ public class ServiceTest {
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
     }
 
+    @Test
+    public void testRegionAwareness() throws Exception {
+        ServiceTestResult result = getDefaultRunner()
+                .setOptions("service.region", "Europe")
+                .run();
+        Assert.assertEquals(result.getSchedulerEnvironment().get("SERVICE_REGION"), "Europe");
+    }
+
     private void renderEndpointTemplate(File templateFile) throws IOException {
         String fileStr = new String(Files.readAllBytes(templateFile.toPath()), StandardCharsets.UTF_8);
 

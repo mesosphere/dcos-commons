@@ -53,13 +53,19 @@ public class Main {
     private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         File configDir = yamlSpecFile.getParentFile();
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+
+        Map<String, String> env = new HashMap<>(System.getenv());
+        env.put("ALLOW_REGION_AWARENESS", "true");
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
+
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
+
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
                 .setAllPodsEnv(DECODED_AUTH_TO_LOCAL,
                                 getHDFSUserAuthMappings(System.getenv(), TASKCFG_ALL_AUTH_TO_LOCAL))
                 .build();
+
 
         return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
@@ -68,7 +74,8 @@ public class Main {
                         renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName(), schedulerConfig)))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
                         renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName(), schedulerConfig)))
-                .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()));
+                .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()))
+                .withSingleRegionConstraint();
     }
 
     private static String renderTemplate(File configFile,
