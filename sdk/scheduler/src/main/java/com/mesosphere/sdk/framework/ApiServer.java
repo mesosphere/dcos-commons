@@ -1,7 +1,11 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.framework;
 
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -22,16 +26,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * The SchedulerApiServer runs the Jetty {@link Server} that exposes the Scheduler's API.
+ * Runs the Jetty {@link Server} that exposes the Scheduler's API.
  */
-public class SchedulerApiServer {
-    private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerApiServer.class);
+public class ApiServer {
+    private static final Logger LOGGER = LoggingUtils.getLogger(ApiServer.class);
 
     private final int port;
     private final Server server;
     private final Duration startTimeout;
 
-    public SchedulerApiServer(SchedulerConfig schedulerConfig, Collection<Object> resources) {
+    public ApiServer(SchedulerConfig schedulerConfig, Collection<Object> resources) {
         this.port = schedulerConfig.getApiServerPort();
         this.server = JettyHttpContainerFactory.createServer(
                 UriBuilder.fromUri("http://0.0.0.0/").port(this.port).build(),

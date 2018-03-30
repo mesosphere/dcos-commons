@@ -6,11 +6,9 @@ import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
-import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.framework.FrameworkConfig;
-import com.mesosphere.sdk.framework.FrameworkRunner;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -46,7 +44,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 
-import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.time.Duration;
@@ -282,21 +279,15 @@ public class SchedulerBuilder {
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespaceStr);
 
-        Protos.FrameworkInfo frameworkInfo = new FrameworkRunner(
-                FrameworkConfig.fromServiceSpec(serviceSpec),
-                PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec),
-                isRegionAwarenessEnabled())
-                .getFrameworkInfo(frameworkStore.fetchFrameworkId());
-
         if (schedulerConfig.isUninstallEnabled()) {
             // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
             // uninstall mode. UninstallScheduler will internally flag the stateStore with an uninstall bit if needed.
             return new UninstallScheduler(
-                    frameworkInfo,
                     serviceSpec,
                     frameworkStore,
                     stateStore,
                     configStore,
+                    FrameworkConfig.fromServiceSpec(serviceSpec),
                     schedulerConfig,
                     Optional.ofNullable(planCustomizer));
         }
@@ -307,11 +298,11 @@ public class SchedulerBuilder {
                 // This namespaced service is partway through being removed from the parent multi-service scheduler.
                 // Launch the service in uninstall mode so that it can continue with whatever may be left.
                 return new UninstallScheduler(
-                        frameworkInfo,
                         serviceSpec,
                         frameworkStore,
                         stateStore,
                         configStore,
+                        FrameworkConfig.fromServiceSpec(serviceSpec),
                         schedulerConfig,
                         Optional.ofNullable(planCustomizer));
             } else {
@@ -326,7 +317,7 @@ public class SchedulerBuilder {
         }
 
         try {
-            return getDefaultScheduler(serviceSpec, frameworkInfo, frameworkStore, stateStore, configStore);
+            return getDefaultScheduler(serviceSpec, frameworkStore, stateStore, configStore);
         } catch (ConfigStoreException e) {
             logger.error("Failed to construct scheduler.", e);
             SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
@@ -342,7 +333,6 @@ public class SchedulerBuilder {
      */
     private DefaultScheduler getDefaultScheduler(
             ServiceSpec serviceSpec,
-            Protos.FrameworkInfo frameworkInfo,
             FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
@@ -419,8 +409,8 @@ public class SchedulerBuilder {
                 plans);
 
         return new DefaultScheduler(
-                frameworkInfo,
                 serviceSpec,
+                FrameworkConfig.fromServiceSpec(serviceSpec),
                 schedulerConfig,
                 namespace,
                 customResources,

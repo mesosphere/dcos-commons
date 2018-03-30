@@ -1,7 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
+import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.framework.FrameworkRunner;
+import com.mesosphere.sdk.framework.ApiServer;
+import com.mesosphere.sdk.framework.SchedulerDriverFactory;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
@@ -14,6 +19,7 @@ import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -108,7 +114,7 @@ public class SchedulerRunner implements Runnable {
         scheduler.start();
         Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
         if (mesosScheduler.isPresent()) {
-            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
+            ApiServer apiServer = new ApiServer(schedulerConfig, scheduler.getResources());
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
@@ -116,7 +122,15 @@ public class SchedulerRunner implements Runnable {
                 }
             });
 
-            runScheduler(scheduler.frameworkInfo, mesosScheduler.get(), serviceSpec, schedulerConfig);
+            runScheduler(
+                    new FrameworkRunner(
+                            FrameworkConfig.fromServiceSpec(serviceSpec),
+                            PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec),
+                            schedulerBuilder.isRegionAwarenessEnabled())
+                            .getFrameworkInfo(new FrameworkStore(schedulerBuilder.getPersister()).fetchFrameworkId()),
+                    mesosScheduler.get(),
+                    schedulerBuilder.getServiceSpec(),
+                    schedulerBuilder.getSchedulerConfig());
         } else {
             /**
              * If no MesosScheduler is provided this scheduler has been deregistered and should report itself healthy
@@ -158,7 +172,7 @@ public class SchedulerRunner implements Runnable {
                 LOGGER.error("Failed to clear all data", e);
             }
 
-            SchedulerApiServer apiServer = new SchedulerApiServer(
+            ApiServer apiServer = new ApiServer(
                     schedulerConfig,
                     Arrays.asList(
                             new PlansResource(Collections.singletonList(

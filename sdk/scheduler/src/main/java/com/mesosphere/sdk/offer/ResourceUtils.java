@@ -129,50 +129,49 @@ public class ResourceUtils {
         return Optional.of(resource.getDisk().getSource().getMount().getRoot());
     }
 
-    public static boolean isOwnedByThisFramework(Protos.Resource resource, Protos.FrameworkInfo frameworkInfo) {
-        final Set<String> frameworkRoles = getRoles(frameworkInfo);
-        final Set<String> resourceRoles = getRoles(resource);
-
-        final boolean hasResourceId = ResourceUtils.hasResourceId(resource);
-        final boolean matchingRoles = frameworkRoles.containsAll(resourceRoles);
-
-        return hasResourceId && matchingRoles;
-    }
-
-    @SuppressWarnings("deprecation")
-    private static Set<String> getRoles(Protos.FrameworkInfo frameworkInfo) {
-        Set<String> roles = frameworkInfo.getRolesList().stream().collect(Collectors.toSet());
-        if (frameworkInfo.hasRole()) {
-            roles.add(frameworkInfo.getRole());
+    /**
+     * Filter resources which are dynamically reserved against a role which isn't ours.
+     *
+     * @param resource the resource to be examined
+     * @param ourRoles the expected roles used by this framework, see also
+     *                 {@link #getReservationRoles(org.apache.mesos.Protos.FrameworkInfo)}
+     * @return whether this resource should be processed by our framework. if false then this resource should be ignored
+     */
+    public static boolean isProcessable(Protos.Resource resource, Collection<String> ourRoles) {
+        // If there are no dynamic reservations, then it's fine.
+        if (getDynamicReservations(resource).isEmpty()) {
+            return true;
         }
 
-        return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
+        // The resource is dynamically reserved, but does the reservation appear to be one of ours?
+        return hasResourceId(resource) && ourRoles.containsAll(getReservationRoles(resource));
     }
 
+    /**
+     * Returns the roles used to reserve this resource.
+     */
     @SuppressWarnings("deprecation")
-    private static Set<String> getRoles(Protos.Resource resource) {
-        Set<Protos.Resource.ReservationInfo> reservations =
-                new HashSet<>(resource.getReservationsList().stream().collect(Collectors.toSet()));
-        if (resource.hasReservation()) {
-            reservations.add(resource.getReservation());
-        }
-
-        Set<String> roles =
-                new HashSet<>(
-                        reservations.stream()
-                                .filter(
-                                        reservationInfo ->
-                                                reservationInfo.getType()
-                                                        .equals(Protos.Resource.ReservationInfo.Type.DYNAMIC))
-                                .map(Protos.Resource.ReservationInfo::getRole)
-                                .collect(Collectors.toSet()));
-
+    private static Set<String> getReservationRoles(Protos.Resource resource) {
+        Set<String> roles = new HashSet<>(getDynamicReservations(resource).stream()
+                .map(Protos.Resource.ReservationInfo::getRole)
+                .collect(Collectors.toList()));
         if (resource.hasRole()) {
             roles.add(resource.getRole());
         }
+        roles.remove(Constants.ANY_ROLE); // Omit the "*" role if present
+        return roles;
+    }
 
-
-        return roles.stream().filter(role -> !role.equals(Constants.ANY_ROLE)).collect(Collectors.toSet());
+    private static Collection<Protos.Resource.ReservationInfo> getDynamicReservations(Protos.Resource resource) {
+        // Reservations can be stored in two places...
+        List<Protos.Resource.ReservationInfo> reservations = new ArrayList<>();
+        reservations.addAll(resource.getReservationsList());
+        if (resource.hasReservation()) {
+            reservations.add(resource.getReservation());
+        }
+        return reservations.stream()
+                .filter(r -> r.hasType() && r.getType().equals(Protos.Resource.ReservationInfo.Type.DYNAMIC))
+                .collect(Collectors.toList());
     }
 
     private static boolean isMountVolume(Protos.Resource resource) {

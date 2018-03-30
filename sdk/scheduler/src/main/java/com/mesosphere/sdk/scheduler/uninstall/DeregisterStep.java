@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.state.FrameworkStore;

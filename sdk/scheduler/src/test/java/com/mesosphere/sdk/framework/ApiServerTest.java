@@ -1,9 +1,11 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.framework;
 
 import org.eclipse.jetty.util.component.AbstractLifeCycle;
 import org.eclipse.jetty.util.component.LifeCycle;
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 import java.time.Duration;
 import java.util.Collections;
@@ -12,13 +14,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SchedulerApiServerTest {
+public class ApiServerTest {
     private static final int SHORT_TIMEOUT_MILLIS = 100;
     private static final int LONG_TIMEOUT_MILLIS = 30000;
 
     @Test
     public void testApiServerReady() throws Exception {
-        SchedulerApiServer schedulerApiServer = new SchedulerApiServer(
+        ApiServer schedulerApiServer = new ApiServer(
                 getSchedulerConfig(0, Duration.ofMillis(LONG_TIMEOUT_MILLIS)), Collections.emptyList());
         Listener listener = new Listener();
         schedulerApiServer.start(listener);

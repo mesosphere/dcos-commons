@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.types.PlanInfo;
@@ -41,34 +42,34 @@ public class UninstallScheduler extends AbstractScheduler {
      * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
      */
     public UninstallScheduler(
-            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
+            FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer) {
         this(
-                frameworkInfo,
                 serviceSpec,
                 frameworkStore,
                 stateStore,
                 configStore,
+                frameworkConfig,
                 schedulerConfig,
                 planCustomizer,
                 Optional.empty());
     }
 
     protected UninstallScheduler(
-            Protos.FrameworkInfo frameworkInfo,
             ServiceSpec serviceSpec,
             FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
+            FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(frameworkInfo, frameworkStore, serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer);
+        super(serviceSpec, frameworkStore, stateStore, configStore, frameworkConfig, schedulerConfig, planCustomizer);
         this.secretsClient = customSecretsClientForTests;
 
         Plan plan = new UninstallPlanBuilder(
@@ -116,7 +117,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() {
+    public PlanCoordinator getPlanCoordinator() {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -132,12 +133,12 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void registeredWithMesos() {
+    public void registeredWithMesos() {
         logger.info("Uninstall scheduler registered with Mesos.");
     }
 
     @Override
-    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+    public void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
@@ -149,9 +150,8 @@ public class UninstallScheduler extends AbstractScheduler {
         // Destroy/Unreserve any reserved resource or volume that is offered
         final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
 
-        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(
-                new ResourceCleaner(frameworkInfo, Collections.emptyList()),
-                offerAccepter);
+        ResourceCleanerScheduler rcs =
+                new ResourceCleanerScheduler(new ResourceCleaner(Collections.emptyList()), offerAccepter);
 
         offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
 
@@ -166,7 +166,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    protected void processStatusUpdate(Protos.TaskStatus status) {
+    public void processStatusUpdate(Protos.TaskStatus status) {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
     }
 

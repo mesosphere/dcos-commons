@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.queue;
+package com.mesosphere.sdk.framework;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;

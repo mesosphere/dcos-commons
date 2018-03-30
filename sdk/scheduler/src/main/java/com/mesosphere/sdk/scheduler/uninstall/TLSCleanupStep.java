@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifact;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
@@ -10,7 +9,6 @@ import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
@@ -23,15 +21,13 @@ public class TLSCleanupStep extends AbstractStep {
     private final SecretsClient secretsClient;
     private final String namespace;
 
-    private final Logger logger = LoggingUtils.getLogger(getClass());
-
     /**
      * Creates a new instance with initial {@code status}.
      */
-    TLSCleanupStep(SecretsClient secretsClient, String namespace) {
+    TLSCleanupStep(SecretsClient secretsClient, String secretsNamespace) {
         super("tls-cleanup", Status.PENDING);
         this.secretsClient = secretsClient;
-        this.namespace = namespace;
+        this.namespace = secretsNamespace;
     }
 
     @Override

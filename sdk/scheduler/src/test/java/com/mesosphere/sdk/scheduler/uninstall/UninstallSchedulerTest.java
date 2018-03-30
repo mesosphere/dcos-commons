@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
@@ -61,11 +63,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     private FrameworkStore frameworkStore;
     private StateStore stateStore;
-    private final Protos.FrameworkInfo frameworkInfo = Protos.FrameworkInfo.newBuilder()
-            .setName(TestConstants.SERVICE_NAME)
-            .setUser(TestConstants.SERVICE_USER)
-            .addRoles(TestConstants.ROLE)
-            .build();
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
@@ -206,13 +203,14 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         // New empty state store: No framework ID is set yet, and there are no tasks, and no SchedulerDriver
         Persister persister = new MemPersister();
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
-                frameworkInfo,
                 getServiceSpec(),
                 new FrameworkStore(persister),
                 new StateStore(persister),
                 mockConfigStore,
+                FrameworkConfig.fromServiceSpec(getServiceSpec()),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Optional.empty(), Optional.of(mockSecretsClient));
+                Optional.empty(),
+                Optional.of(mockSecretsClient));
         // Returns a simple placeholder plan with status COMPLETE
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
@@ -231,6 +229,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 new DefaultTransportEncryptionSpec("foo", TransportEncryptionSpec.Type.KEYSTORE)));
         PodSpec mockPod = mock(PodSpec.class);
         when(mockPod.getTasks()).thenReturn(Arrays.asList(mockTask));
+        when(mockPod.getPreReservedRole()).thenReturn(Constants.ANY_ROLE);
         when(serviceSpecWithTLSTasks.getPods()).thenReturn(Arrays.asList(mockPod));
 
         UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks);
@@ -275,11 +274,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testUninstallPlanCustomizer() throws Exception {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
-                frameworkInfo,
                 getServiceSpec(),
                 frameworkStore,
                 stateStore,
                 mockConfigStore,
+                FrameworkConfig.fromServiceSpec(getServiceSpec()),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(getReversingPlanCustomizer()),
                 Optional.of(mockSecretsClient));
@@ -313,15 +312,16 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
     private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec) {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
-                frameworkInfo,
                 serviceSpec,
                 frameworkStore,
                 stateStore,
                 mockConfigStore,
+                FrameworkConfig.fromServiceSpec(serviceSpec),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockPlanCustomizer),
                 Optional.of(mockSecretsClient));
         uninstallScheduler
+                .disableThreading()
                 .disableApiServer()
                 .start()
                 .getMesosScheduler().get()
@@ -332,6 +332,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     private static ServiceSpec getServiceSpec() {
         ServiceSpec mockServiceSpec = mock(ServiceSpec.class);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getRole()).thenReturn(TestConstants.ROLE);
+        when(mockServiceSpec.getPods()).thenReturn(Collections.emptyList());
         return mockServiceSpec;
     }
 

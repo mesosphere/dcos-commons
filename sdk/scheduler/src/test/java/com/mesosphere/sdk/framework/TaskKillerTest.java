@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.framework;
 
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;

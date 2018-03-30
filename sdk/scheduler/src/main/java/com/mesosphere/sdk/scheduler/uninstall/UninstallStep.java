@@ -18,8 +18,8 @@ import java.util.Optional;
  */
 public abstract class UninstallStep extends AbstractStep {
 
-    public UninstallStep(String name, Status status) {
-        super(name, status);
+    public UninstallStep(String stepName, Status status) {
+        super(stepName, status);
     }
 
     @Override

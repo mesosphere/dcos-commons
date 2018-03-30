@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.http.queries;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.RequestUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.GroupedTasks;
@@ -9,7 +10,6 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;

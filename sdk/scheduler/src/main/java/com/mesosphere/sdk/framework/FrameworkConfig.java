@@ -43,7 +43,7 @@ public class FrameworkConfig {
      * @param role base mesos role
      * @param webUrl optional URL to advertise in framework info, or empty string
      */
-    public FrameworkConfig(
+    private FrameworkConfig(
             String frameworkName,
             String role,
             String principal,

@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.scheduler.Metrics;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
