@@ -47,11 +47,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/TaskKiller.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/framework/TaskKiller.html" target="_top">Frames</a></li>
 <li><a href="TaskKiller.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.scheduler</div>
+<div class="subTitle">com.mesosphere.sdk.framework</div>
 <h2 title="Class TaskKiller" class="title">Class TaskKiller</h2>
 </div>
 <div class="contentContainer">
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.mesosphere.sdk.scheduler.TaskKiller</li>
+<li>com.mesosphere.sdk.framework.TaskKiller</li>
 </ul>
 </li>
 </ul>
@@ -109,9 +109,8 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public final class <span class="typeNameLabel">TaskKiller</span>
 extends java.lang.Object</pre>
-<div class="block">This class implements reliable task killing in conjunction with the <a href="../../../../com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskCleaner</code></a>.  Mesos does not provide
- reliable task killing.  This class repeatedly attempts to kill a task until Mesos declares it has been killed or that
- Mesos doesn't know anything about this task.</div>
+<div class="block">This class implements reliable task killing.  Mesos does not provide reliable task killing.  This class repeatedly
+ attempts to kill a task until Mesos declares it has been killed or until Mesos doesn't know anything about this task.</div>
 </li>
 </ul>
 </div>
@@ -132,23 +131,25 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>(package private) static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killAllTasks--">killAllTasks</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html#killAllTasks--">killAllTasks</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#killTask-TaskID-">killTask</a></span>(TaskID&nbsp;taskId)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html#killTask-TaskID-">killTask</a></span>(TaskID&nbsp;taskId)</code>
 <div class="block">Calling this method will cause the referenced TaskID to be reliably killed.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#reset-boolean-">reset</a></span>(boolean&nbsp;executorEnabled)</code>
-<div class="block">Resets the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a>'s internal state for tests.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html#reset-boolean-">reset</a></span>(boolean&nbsp;executorEnabled)</code>
+<div class="block">Resets the <a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><code>TaskKiller</code></a>'s internal state for tests.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>&nbsp;</td>
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html#update-Protos.TaskStatus-">update</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
+<div class="block">Updates the list of tasks scheduled to be killed to reflect an incoming task status.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -180,7 +181,7 @@ extends java.lang.Object</pre>
 <h4>reset</h4>
 <pre>public static&nbsp;void&nbsp;reset(boolean&nbsp;executorEnabled)
                   throws java.lang.InterruptedException</pre>
-<div class="block">Resets the <a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><code>TaskKiller</code></a>'s internal state for tests.</div>
+<div class="block">Resets the <a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><code>TaskKiller</code></a>'s internal state for tests.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>executorEnabled</code> - whether the background kill executor should be enabled, should only be disabled in tests</dd>
@@ -214,7 +215,30 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>update</h4>
-<pre>public static&nbsp;void&nbsp;update(Protos.TaskStatus&nbsp;taskStatus)</pre>
+<pre>public static&nbsp;boolean&nbsp;update(Protos.TaskStatus&nbsp;taskStatus)</pre>
+<div class="block">Updates the list of tasks scheduled to be killed to reflect an incoming task status.
+
+ Returns whether the task should be eligible for another kill operation. This is intended to break a
+ Kill->Status->Kill->Status->... loop where Mesos returns TASK_LOST+REASON_RECONCILIATION when we attempt to kill
+ an unknown task. Example loop:
+
+ <code>TaskKiller:killTask: Enqueued kill of task: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ TaskKiller:killTaskInternal: Killing task: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ FrameworkScheduler:statusUpdate: Received status update for
+     taskId=foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+     state=TASK_LOST
+     message=Reconciliation: Task is unknown
+ TaskKiller:update: Completed killing: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ FrameworkScheduler:statusUpdate: Got unknown task in response to status update, marking task to be killed:
+     foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ TaskKiller:killTask: Enqueued kill of task: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ </code></div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>taskStatus</code> - the received task status</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>whether the task for this status is eligible for another kill request</dd>
+</dl>
 </li>
 </ul>
 <a name="killAllTasks--">
@@ -253,11 +277,11 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/TaskKiller.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/framework/TaskKiller.html" target="_top">Frames</a></li>
 <li><a href="TaskKiller.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">

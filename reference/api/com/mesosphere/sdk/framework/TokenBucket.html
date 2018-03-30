@@ -47,11 +47,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/TokenBucket.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/framework/TokenBucket.html" target="_top">Frames</a></li>
 <li><a href="TokenBucket.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.scheduler</div>
+<div class="subTitle">com.mesosphere.sdk.framework</div>
 <h2 title="Class TokenBucket" class="title">Class TokenBucket</h2>
 </div>
 <div class="contentContainer">
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.mesosphere.sdk.scheduler.TokenBucket</li>
+<li>com.mesosphere.sdk.framework.TokenBucket</li>
 </ul>
 </li>
 </ul>
@@ -110,7 +110,7 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">TokenBucket</span>
 extends java.lang.Object</pre>
 <div class="block">This class implements a token bucket to limit the rate at which actions may be taken.  The assumption is that clients
- will not take actions unless they receive a token via the <a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#tryAcquire--"><code>tryAcquire()</code></a> method.</div>
+ will not take actions unless they receive a token via the <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#tryAcquire--"><code>tryAcquire()</code></a> method.</div>
 </li>
 </ul>
 </div>
@@ -131,40 +131,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></span></code>
-<div class="block">This class is a builder for <a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html" title="class in com.mesosphere.sdk.scheduler"><code>TokenBucket</code></a>s.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a></span></code>
+<div class="block">This class is a builder for <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a>s.</div>
 </td>
-</tr>
-</table>
-</li>
-</ul>
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>static java.time.Duration</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_ACQUIRE_INTEVAL">DEFAULT_ACQUIRE_INTEVAL</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_CAPACITY">DEFAULT_CAPACITY</a></span></code>&nbsp;</td>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>static java.time.Duration</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_INCREMENT_INTERVAL">DEFAULT_INCREMENT_INTERVAL</a></span></code>&nbsp;</td>
-</tr>
-<tr class="rowColor">
-<td class="colFirst"><code>static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#DEFAULT_INITIAL_COUNT">DEFAULT_INITIAL_COUNT</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -183,7 +152,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#TokenBucket-int-int-java.time.Duration-java.time.Duration-">TokenBucket</a></span>(int&nbsp;initial,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#TokenBucket-int-int-java.time.Duration-java.time.Duration-">TokenBucket</a></span>(int&nbsp;initial,
            int&nbsp;capacity,
            java.time.Duration&nbsp;incrementInterval,
            java.time.Duration&nbsp;acquireInterval)</code>
@@ -206,20 +175,20 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected long</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#now--">now</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#now--">now</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#toBuilder--">toBuilder</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#toBuilder--">toBuilder</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#tryAcquire--">tryAcquire</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#tryAcquire--">tryAcquire</a></span>()</code>
 <div class="block">This method returns true if a rate-limited action should be executed, and false if the action should not occur.</div>
 </td>
 </tr>
@@ -239,58 +208,6 @@ extends java.lang.Object</pre>
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="DEFAULT_CAPACITY">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>DEFAULT_CAPACITY</h4>
-<pre>public static final&nbsp;int DEFAULT_CAPACITY</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.TokenBucket.DEFAULT_CAPACITY">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="DEFAULT_INITIAL_COUNT">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>DEFAULT_INITIAL_COUNT</h4>
-<pre>public static final&nbsp;int DEFAULT_INITIAL_COUNT</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.TokenBucket.DEFAULT_INITIAL_COUNT">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="DEFAULT_ACQUIRE_INTEVAL">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>DEFAULT_ACQUIRE_INTEVAL</h4>
-<pre>public static final&nbsp;java.time.Duration DEFAULT_ACQUIRE_INTEVAL</pre>
-</li>
-</ul>
-<a name="DEFAULT_INCREMENT_INTERVAL">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>DEFAULT_INCREMENT_INTERVAL</h4>
-<pre>public static final&nbsp;java.time.Duration DEFAULT_INCREMENT_INTERVAL</pre>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
@@ -308,7 +225,7 @@ extends java.lang.Object</pre>
                       java.time.Duration&nbsp;incrementInterval,
                       java.time.Duration&nbsp;acquireInterval)</pre>
 <div class="block">A TokenBucket acts as a rate limiting helper.  Clients should not perform rate limited work without acquiring a
- token from the <a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.html#tryAcquire--"><code>tryAcquire()</code></a> method.</div>
+ token from the <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#tryAcquire--"><code>tryAcquire()</code></a> method.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>initial</code> - The initial number of tokens available</dd>
@@ -332,7 +249,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>newBuilder</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a>&nbsp;newBuilder()</pre>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a>&nbsp;newBuilder()</pre>
 </li>
 </ul>
 <a name="toBuilder--">
@@ -341,7 +258,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>toBuilder</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler">TokenBucket.Builder</a>&nbsp;toBuilder()</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a>&nbsp;toBuilder()</pre>
 </li>
 </ul>
 <a name="tryAcquire--">
@@ -390,11 +307,11 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TaskKiller.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/TokenBucket.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/framework/TokenBucket.html" target="_top">Frames</a></li>
 <li><a href="TokenBucket.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">
@@ -416,13 +333,13 @@ extends java.lang.Object</pre>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

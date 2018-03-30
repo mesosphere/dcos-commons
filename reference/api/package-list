@@ -16,7 +16,6 @@ com.mesosphere.sdk.offer.evaluate.placement
 com.mesosphere.sdk.offer.evaluate.security
 com.mesosphere.sdk.offer.history
 com.mesosphere.sdk.offer.taskdata
-com.mesosphere.sdk.queue
 com.mesosphere.sdk.reconciliation
 com.mesosphere.sdk.scheduler
 com.mesosphere.sdk.scheduler.decommission

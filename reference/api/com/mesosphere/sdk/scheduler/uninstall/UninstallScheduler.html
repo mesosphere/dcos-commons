@@ -132,7 +132,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <!--   -->
 </a>
 <h3>Fields inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#configStore">configStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkInfo">frameworkInfo</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkStore">frameworkStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#schedulerConfig">schedulerConfig</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#serviceSpec">serviceSpec</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#statusExecutor">statusExecutor</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#configStore">configStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#frameworkStore">frameworkStore</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#schedulerConfig">schedulerConfig</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#serviceSpec">serviceSpec</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a></code></li>
 </ul>
 </li>
 </ul>
@@ -150,11 +150,11 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>&nbsp;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">UninstallScheduler</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
-                  <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.framework.FrameworkConfig-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">UninstallScheduler</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                   <a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                   <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                   <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                  <a href="../../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                   java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer)</code>
 <div class="block">Creates a new <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>UninstallScheduler</code></a> based on the provided API port and initialization timeout, and a
@@ -163,11 +163,11 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-">UninstallScheduler</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
-                  <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.framework.FrameworkConfig-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-">UninstallScheduler</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                   <a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                   <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                   <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                  <a href="../../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                   <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                   java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
                   java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a>&gt;&nbsp;customSecretsClientForTests)</code>&nbsp;</td>
@@ -195,7 +195,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>protected <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></td>
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getPlanCoordinator--">getPlanCoordinator</a></span>()</code>
 <div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a>.</div>
 </td>
@@ -207,20 +207,20 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 </td>
 </tr>
 <tr id="i3" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processOffers-java.util.List-java.util.Collection-">processOffers</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
              java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</code>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>protected void</code></td>
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#processStatusUpdate-Protos.TaskStatus-">processStatusUpdate</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Handles a task status update which was received from Mesos.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code>protected void</code></td>
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#registeredWithMesos--">registeredWithMesos</a></span>()</code>
 <div class="block">Provides a callback to indicate that the scheduler has registered with Mesos.</div>
 </td>
@@ -231,7 +231,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableApiServer--">disableApiServer</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableThreading--">disableThreading</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlans--">getPlans</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getServiceSpec--">getServiceSpec</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#markApiServerStarted--">markApiServerStarted</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#setOfferQueueSize-int-">setOfferQueueSize</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#start--">start</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableApiServer--">disableApiServer</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableThreading--">disableThreading</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlans--">getPlans</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getServiceSpec--">getServiceSpec</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#markApiServerStarted--">markApiServerStarted</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#start--">start</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -254,17 +254,17 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="UninstallScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">
+<a name="UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.framework.FrameworkConfig-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>UninstallScheduler</h4>
-<pre>public&nbsp;UninstallScheduler(Protos.FrameworkInfo&nbsp;frameworkInfo,
-                          <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<pre>public&nbsp;UninstallScheduler(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                           <a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                           <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                           <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                          <a href="../../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                           <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                           java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer)</pre>
 <div class="block">Creates a new <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>UninstallScheduler</code></a> based on the provided API port and initialization timeout, and a
@@ -272,17 +272,17 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
  service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.</div>
 </li>
 </ul>
-<a name="UninstallScheduler-Protos.FrameworkInfo-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-">
+<a name="UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.framework.FrameworkConfig-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>UninstallScheduler</h4>
-<pre>protected&nbsp;UninstallScheduler(Protos.FrameworkInfo&nbsp;frameworkInfo,
-                             <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<pre>protected&nbsp;UninstallScheduler(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                              <a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                              <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                              <a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                             <a href="../../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                              <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                              java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
                              java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a>&gt;&nbsp;customSecretsClientForTests)</pre>
@@ -333,7 +333,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="blockList">
 <li class="blockList">
 <h4>getPlanCoordinator</h4>
-<pre>protected&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()</pre>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;getPlanCoordinator()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlanCoordinator--">AbstractScheduler</a></code></span></div>
 <div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a>.</div>
 <dl>
@@ -348,7 +348,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="blockList">
 <li class="blockList">
 <h4>registeredWithMesos</h4>
-<pre>protected&nbsp;void&nbsp;registeredWithMesos()</pre>
+<pre>public&nbsp;void&nbsp;registeredWithMesos()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registeredWithMesos--">AbstractScheduler</a></code></span></div>
 <div class="block">Provides a callback to indicate that the scheduler has registered with Mesos.</div>
 <dl>
@@ -363,8 +363,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="blockList">
 <li class="blockList">
 <h4>processOffers</h4>
-<pre>protected&nbsp;void&nbsp;processOffers(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
-                             java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
+<pre>public&nbsp;void&nbsp;processOffers(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+                          java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.List-java.util.Collection-">AbstractScheduler</a></code></span></div>
 <div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
 <dl>
@@ -379,7 +379,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="blockListLast">
 <li class="blockList">
 <h4>processStatusUpdate</h4>
-<pre>protected&nbsp;void&nbsp;processStatusUpdate(Protos.TaskStatus&nbsp;status)</pre>
+<pre>public&nbsp;void&nbsp;processStatusUpdate(Protos.TaskStatus&nbsp;status)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processStatusUpdate-Protos.TaskStatus-">AbstractScheduler</a></code></span></div>
 <div class="block">Handles a task status update which was received from Mesos. This call is executed on a separate thread which is
  run by the Mesos Scheduler Driver.</div>

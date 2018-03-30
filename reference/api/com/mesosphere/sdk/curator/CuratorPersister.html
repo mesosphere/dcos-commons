@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":10,"i6":10,"i7":10,"i8":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":9,"i6":10,"i7":10,"i8":10,"i9":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -205,19 +205,26 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#newBuilder-java.lang.String-java.lang.String-">newBuilder</a></span>(java.lang.String&nbsp;serviceName,
+          java.lang.String&nbsp;zookeeperHostPort)</code>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></span>(java.lang.String&nbsp;unprefixedPath)</code>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#recursiveDeleteMany-java.util.Collection-">recursiveDeleteMany</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;unprefixedPaths)</code>
 <div class="block">Atomically deletes many values from storage at once, with each path entry being treated as a call to
  <a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a> for those paths.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;unprefixedPath,
    byte[]&nbsp;bytes)</code>
@@ -225,7 +232,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;unprefixedPathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
@@ -281,7 +288,23 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>serviceSpec</code> - the service for which data will be stored</dd>
+<dd><code>serviceSpec</code> - a service specification containing the name and zookeeper connection info</dd>
+</dl>
+</li>
+</ul>
+<a name="newBuilder-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>newBuilder</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;newBuilder(java.lang.String&nbsp;serviceName,
+                                                  java.lang.String&nbsp;zookeeperHostPort)</pre>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister.Builder</code></a> instance which has been initialized with reasonable default values.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceName</code> - the name of the service, e.g. <code>/path/to/service</code></dd>
+<dd><code>zookeeperHostPort</code> - the <code>host:port</code> where zookeeper is located</dd>
 </dl>
 </li>
 </ul>

@@ -81,6 +81,18 @@
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/ApiServer.html" title="class in com.mesosphere.sdk.framework">ApiServer</a></td>
+<td class="colLast">
+<div class="block">Runs the Jetty <code>Server</code> that exposes the Scheduler's API.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/Driver.html" title="class in com.mesosphere.sdk.framework">Driver</a></td>
+<td class="colLast">
+<div class="block">This class provides global access to a SchedulerDriver.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></td>
 <td class="colLast">
 <div class="block">Utility class for grabbing values from a mapping of flag values (typically the process env).</div>
@@ -97,6 +109,55 @@
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html" title="class in com.mesosphere.sdk.framework">FrameworkRunner</a></td>
 <td class="colLast">
 <div class="block">Class which sets up and executes the correct <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>AbstractScheduler</code></a> instance.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a></td>
+<td class="colLast">
+<div class="block">Implementation of Mesos' <code>Scheduler</code> interface.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a></td>
+<td class="colLast">
+<div class="block">Handles offer processing for the framework, passing offers to an underlying <code>MesosEventClient</code>, which itself
+ represents one or more underlying services.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/OfferQueue.html" title="class in com.mesosphere.sdk.framework">OfferQueue</a></td>
+<td class="colLast">
+<div class="block">This class acts as a buffer of Offers from Mesos.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework">ReviveManager</a></td>
+<td class="colLast">
+<div class="block">This class determines whether offers should be revived based on changes to the work being processed by the scheduler.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/SchedulerDriverFactory.html" title="class in com.mesosphere.sdk.framework">SchedulerDriverFactory</a></td>
+<td class="colLast">
+<div class="block">Factory class for creating <code>MesosSchedulerDriver</code>s.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework">TaskKiller</a></td>
+<td class="colLast">
+<div class="block">This class implements reliable task killing.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a></td>
+<td class="colLast">
+<div class="block">This class implements a token bucket to limit the rate at which actions may be taken.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a></td>
+<td class="colLast">
+<div class="block">This class is a builder for <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a>s.</div>
 </td>
 </tr>
 </tbody>

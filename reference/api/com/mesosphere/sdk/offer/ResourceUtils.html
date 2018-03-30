@@ -197,8 +197,10 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isOwnedByThisFramework-Protos.Resource-Protos.FrameworkInfo-">isOwnedByThisFramework</a></span>(Protos.Resource&nbsp;resource,
-                      Protos.FrameworkInfo&nbsp;frameworkInfo)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isProcessable-Protos.Resource-java.util.Collection-">isProcessable</a></span>(Protos.Resource&nbsp;resource,
+             java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</code>
+<div class="block">Filter resources which are dynamically reserved against a role which isn't ours.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -354,14 +356,23 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getSourceRoot(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="isOwnedByThisFramework-Protos.Resource-Protos.FrameworkInfo-">
+<a name="isProcessable-Protos.Resource-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>isOwnedByThisFramework</h4>
-<pre>public static&nbsp;boolean&nbsp;isOwnedByThisFramework(Protos.Resource&nbsp;resource,
-                                             Protos.FrameworkInfo&nbsp;frameworkInfo)</pre>
+<h4>isProcessable</h4>
+<pre>public static&nbsp;boolean&nbsp;isProcessable(Protos.Resource&nbsp;resource,
+                                    java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</pre>
+<div class="block">Filter resources which are dynamically reserved against a role which isn't ours.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>resource</code> - the resource to be examined</dd>
+<dd><code>ourRoles</code> - the expected roles used by this framework, see also
+                 <code>#getReservationRoles(org.apache.mesos.Protos.FrameworkInfo)</code></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>whether this resource should be processed by our framework. if false then this resource should be ignored</dd>
+</dl>
 </li>
 </ul>
 </li>

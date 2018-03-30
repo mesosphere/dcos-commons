@@ -129,10 +129,8 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html#ResourceCleaner-Protos.FrameworkInfo-java.util.Collection-">ResourceCleaner</a></span>(Protos.FrameworkInfo&nbsp;frameworkInfo,
-               java.util.Collection&lt;Resource&gt;&nbsp;expectedResources)</code>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><code>ResourceCleaner</code></a> which retrieves expected resource
- information from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html#ResourceCleaner-java.util.Collection-">ResourceCleaner</a></span>(java.util.Collection&lt;Resource&gt;&nbsp;expectedResources)</code>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><code>ResourceCleaner</code></a> which cleans resources not listed in <code>expectedResources</code>.</div>
 </td>
 </tr>
 </table>
@@ -186,16 +184,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ResourceCleaner-Protos.FrameworkInfo-java.util.Collection-">
+<a name="ResourceCleaner-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ResourceCleaner</h4>
-<pre>public&nbsp;ResourceCleaner(Protos.FrameworkInfo&nbsp;frameworkInfo,
-                       java.util.Collection&lt;Resource&gt;&nbsp;expectedResources)</pre>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><code>ResourceCleaner</code></a> which retrieves expected resource
- information from the provided <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
+<pre>public&nbsp;ResourceCleaner(java.util.Collection&lt;Resource&gt;&nbsp;expectedResources)</pre>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/offer/ResourceCleaner.html" title="class in com.mesosphere.sdk.offer"><code>ResourceCleaner</code></a> which cleans resources not listed in <code>expectedResources</code>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - if there's a failure when retrieving resource information</dd>
