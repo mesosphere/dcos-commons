@@ -50,11 +50,11 @@ public class CertificateNamesGenerator {
         this.taskInstanceName = TaskSpec.getInstanceName(podInstance, taskSpec);
         // Task can specify its own service discovery name
         if (taskSpec.getDiscovery().isPresent() && taskSpec.getDiscovery().get().getPrefix().isPresent()) {
-            this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName,
+            this.autoIpHostname = EndpointUtils.getInstance().toAutoIpHostname(serviceName,
                     String.format("%s-%d", taskSpec.getDiscovery().get().getPrefix().get(), podInstance.getIndex()),
                     schedulerConfig);
         } else {
-            this.autoIpHostname = EndpointUtils.toAutoIpHostname(serviceName, this.taskInstanceName, schedulerConfig);
+            this.autoIpHostname = EndpointUtils.getInstance().toAutoIpHostname(serviceName, this.taskInstanceName, schedulerConfig);
         }
         this.vipSpecs = taskSpec.getResourceSet().getResources().stream()
                 .filter(resourceSpec -> resourceSpec instanceof NamedVIPSpec)
@@ -66,10 +66,11 @@ public class CertificateNamesGenerator {
      * Returns a Subject for service certificate.
      */
     public X500Name getSubject() {
+        EndpointUtils endpointUtils = EndpointUtils.getInstance();
         // Create subject CN as pod-name-0-task-name.service-name
         String cn = String.format("%s.%s",
-                EndpointUtils.removeSlashes(EndpointUtils.replaceDotsWithDashes(taskInstanceName)),
-                EndpointUtils.removeSlashes(EndpointUtils.replaceDotsWithDashes(serviceName)));
+                endpointUtils.removeSlashes(endpointUtils.replaceDotsWithDashes(taskInstanceName)),
+                endpointUtils.removeSlashes(endpointUtils.replaceDotsWithDashes(serviceName)));
 
         if (cn.length() > CN_MAX_LENGTH) {
             cn = cn.substring(cn.length() - CN_MAX_LENGTH);
@@ -95,7 +96,7 @@ public class CertificateNamesGenerator {
         vipSpecs.stream()
                 .map(vipSpec -> new GeneralName(
                         GeneralName.dNSName,
-                        EndpointUtils.toVipHostname(
+                        EndpointUtils.getInstance().toVipHostname(
                                 serviceName,
                                 new EndpointUtils.VipInfo(vipSpec.getVipName(), (int) vipSpec.getPort()))))
                 .forEach(vipGeneralName -> generalNames.add(vipGeneralName));

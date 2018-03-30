@@ -90,12 +90,14 @@ public class Main {
             return error;
         }
 
+        EndpointUtils endpointUtils = EndpointUtils.getInstance();
+
         // Simulate the envvars that would be passed to a task. We want to render the config as though it was being done
         // in a task. Manually copy over a couple envvars which is included in tasks by default.
         Map<String, String> env = new HashMap<>(new TaskEnvRouter().getConfig("ALL"));
-        env.put(EnvConstants.FRAMEWORK_HOST_TASKENV, EndpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
+        env.put(EnvConstants.FRAMEWORK_HOST_TASKENV, endpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
         env.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
-        env.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV, EndpointUtils.toSchedulerApiVipHostname(serviceName));
+        env.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV, endpointUtils.toSchedulerApiVipHostname(serviceName));
         env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
         env.put(DECODED_AUTH_TO_LOCAL, getHDFSUserAuthMappings(env, AUTH_TO_LOCAL));

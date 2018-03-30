@@ -385,6 +385,8 @@ public class PodInfoBuilder {
             environmentMap.putAll(taskSpec.getCommand().get().getEnvironment());
         }
 
+        EndpointUtils endpointUtils = EndpointUtils.getInstance();
+
         // Default envvars for use by executors/developers:
         // Unline the envvars added in getExecutorEnvironment(), these are specific to individual tasks and currently
         // aren't visible to sidecar tasks (as they would need to be added at the executor...):
@@ -395,12 +397,12 @@ public class PodInfoBuilder {
         environmentMap.put(EnvConstants.FRAMEWORK_NAME_TASKENV, serviceName);
         // Inject Framework pod host domain (with hostname-safe framework name)
         environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV,
-                EndpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
+                endpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
         // Inject Framework VIP domain (with hostname-safe framework name)
-        environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, EndpointUtils.toVipDomain(serviceName));
+        environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, endpointUtils.toVipDomain(serviceName));
         // Inject Scheduler API hostname (with hostname-safe scheduler name)
         environmentMap.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV,
-                EndpointUtils.toSchedulerApiVipHostname(serviceName));
+                endpointUtils.toSchedulerApiVipHostname(serviceName));
 
         // Inject TASK_NAME as KEY:VALUE
         environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));

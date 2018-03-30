@@ -26,7 +26,7 @@ public class CassandraSeedUtils {
     public static List<String> getLocalSeeds(String serviceName, SchedulerConfig schedulerConfig) {
         List<String> localSeeds = new ArrayList<>();
         for (int i = 0; i < getSeedsCount(); ++i) {
-            localSeeds.add(EndpointUtils.toAutoIpHostname(serviceName,
+            localSeeds.add(EndpointUtils.getInstance().toAutoIpHostname(serviceName,
                     String.format("node-%d-server", i),
                     schedulerConfig));
         }
