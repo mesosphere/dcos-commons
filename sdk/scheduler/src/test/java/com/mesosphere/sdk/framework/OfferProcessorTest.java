@@ -2,8 +2,6 @@ package com.mesosphere.sdk.framework;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,12 +11,9 @@ import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.Protos.Offer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
@@ -27,60 +22,23 @@ import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
-import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
 import static org.mockito.Mockito.*;
 
 public class OfferProcessorTest {
 
-    /*
-    private static final Answer<OfferResponse> CONSUME_FIRST_OFFER = new Answer<OfferResponse>() {
-        @Override
-        public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
-            List<Offer> offers = getOffersArgument(invocation);
-            if (offers.isEmpty()) {
-                return OfferResponse.processed(Collections.emptyList());
-            }
-            return OfferResponse.processed(Collections.singletonList(
-                    new ReserveOfferRecommendation(offers.get(0), getUnreservedCpus(3))));
-        }
-    };
-
-    private static final Answer<UnexpectedResourcesResponse> UNEXPECTED_FIRST_OFFER =
-            new Answer<UnexpectedResourcesResponse>() {
-        @Override
-        public UnexpectedResourcesResponse answer(InvocationOnMock invocation) throws Throwable {
-            List<Offer> offers = getOffersArgument(invocation);
-            if (offers.isEmpty()) {
-                return UnexpectedResourcesResponse.processed(Collections.emptyList());
-            }
-            return UnexpectedResourcesResponse.processed(Collections.singletonList(
-                    new OfferResources(offers.get(0)).addAll(offers.get(0).getResourcesList())));
-        }
-    };
-
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferProcessorTest.class);
     private static final int THREAD_COUNT = 50;
     private static final int OFFERS_PER_THREAD = 3;
 
-    private static final Protos.Filters LONG_INTERVAL = Protos.Filters.newBuilder()
-            .setRefuseSeconds(Constants.LONG_DECLINE_SECONDS)
-            .build();
-    private static final Protos.Filters SHORT_INTERVAL = Protos.Filters.newBuilder()
-            .setRefuseSeconds(Constants.SHORT_DECLINE_SECONDS)
-            .build();
-
     @Mock private AbstractScheduler mockAbstractScheduler;
+    @Mock private PlanCoordinator mockPlanCoordinator;
     @Mock private StateStore mockStateStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
-    @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdCaptor;
-    @Captor private ArgumentCaptor<List<Protos.Offer.Operation>> operationCaptor;
 
     private OfferProcessor processor;
 
@@ -88,6 +46,7 @@ public class OfferProcessorTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
+        when(mockAbstractScheduler.getPlanCoordinator()).thenReturn(mockPlanCoordinator);
 
         processor = new OfferProcessor(mockAbstractScheduler, mockStateStore);
     }
@@ -102,95 +61,13 @@ public class OfferProcessorTest {
     }
 
     @Test
-    public void testOffersUnused() throws InterruptedException {
-        when(mockAbstractScheduler.offers(any())).thenReturn(OfferResponse.processed(Collections.emptyList()));
-        when(mockAbstractScheduler.getUnexpectedResources(any()))
-                .thenReturn(UnexpectedResourcesResponse.processed(Collections.emptyList()));
-
-        processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        // All offers should have been declined with a long interval (don't need these, come back much later):
-        Set<String> sentOfferIds = sendOffers(1, OFFERS_PER_THREAD);
-        verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(LONG_INTERVAL));
-    }
-
-    @Test
-    public void testAcceptedAndUnexpectedResources() throws InterruptedException {
-        when(mockAbstractScheduler.offers(any())).thenAnswer(CONSUME_FIRST_OFFER);
-        when(mockAbstractScheduler.getUnexpectedResources(any())).thenAnswer(UNEXPECTED_FIRST_OFFER);
-
-        processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        // All offers should have been declined with a long interval (don't need these, come back much later):
-        Set<String> sentOfferIds = sendOffers(1, OFFERS_PER_THREAD);
-
-        // One declined offer, one reserved offer, one unreserved offer:
-        verify(mockSchedulerDriver, times(1)).declineOffer(any(), eq(LONG_INTERVAL));
-        verify(mockSchedulerDriver, times(1)).acceptOffers(offerIdCaptor.capture(), operationCaptor.capture(), any());
-
-        Assert.assertEquals(2, offerIdCaptor.getValue().size());
-        Assert.assertTrue(sentOfferIds.containsAll(offerIdCaptor.getValue().stream()
-                .map(id -> id.getValue())
-                .collect(Collectors.toList())));
-
-        Assert.assertEquals(2, operationCaptor.getValue().size());
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operationCaptor.getValue().get(0).getType());
-        Assert.assertEquals(Protos.Offer.Operation.Type.UNRESERVE, operationCaptor.getValue().get(1).getType());
-    }
-
-    @Test
-    public void testOffersNotReady() throws InterruptedException {
-        when(mockAbstractScheduler.offers(any())).thenReturn(OfferResponse.notReady(Collections.emptyList()));
-        when(mockAbstractScheduler.getUnexpectedResources(any()))
-                .thenReturn(UnexpectedResourcesResponse.processed(Collections.emptyList()));
-
-        processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        // All offers should have been declined with a short interval (not ready, come back soon):
-        Set<String> sentOfferIds = sendOffers(1, OFFERS_PER_THREAD);
-        verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(SHORT_INTERVAL));
-    }
-
-    @Test
-    public void testOffersFinished() throws InterruptedException {
-        when(mockAbstractScheduler.offers(any())).thenReturn(OfferResponse.finished());
-
-        processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        Set<String> sentOfferIds = sendOffers(1, OFFERS_PER_THREAD);
-        // All offers should have been declined with a short interval (not ready, come back soon):
-        verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(SHORT_INTERVAL));
-        // Should have aborted before getting to unexpected resources:
-        verify(mockAbstractScheduler, never()).getUnexpectedResources(any());
-    }
-
-    @Test
-    public void testOffersUninstalled() throws Exception {
-        when(mockAbstractScheduler.offers(any())).thenReturn(OfferResponse.uninstalled());
-
-        processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        sendOffers(1, OFFERS_PER_THREAD);
-        // Not all offers were processed because the deregistered bit was set in the process of teardown.
-        // All offers should have been declined with a short interval (not ready, come back soon):
-        verify(mockSchedulerDriver, atLeast(1)).declineOffer(any(), eq(SHORT_INTERVAL));
-        verify(mockSchedulerDriver, atLeast(1)).stop(false);
-        verify(mockAbstractScheduler, atLeast(1)).unregistered();
-        verify(mockStateStore, atLeast(1)).recursiveDelete("/");
-        verify(mockAbstractScheduler, never()).getUnexpectedResources(any());
-    }
-
-    @Test
     public void testAsyncOffersLimitedQueueSize() throws InterruptedException {
-        when(mockAbstractScheduler.offers(any())).thenReturn(OfferResponse.processed(Collections.emptyList()));
-        when(mockAbstractScheduler.getUnexpectedResources(any()))
-                .thenReturn(UnexpectedResourcesResponse.processed(Collections.emptyList()));
         processor.setOfferQueueSize(10).start();
 
         // At least some offers should have been dropped/declined before reaching the client:
         Set<String> sentOfferIds = sendOffers(THREAD_COUNT, OFFERS_PER_THREAD);
-        verify(mockAbstractScheduler, atLeastOnce()).offers(any());
-        verify(mockAbstractScheduler, atMost(sentOfferIds.size() - 1)).offers(any());
+        verify(mockAbstractScheduler, atLeastOnce()).processOffers(any(), any());
+        verify(mockAbstractScheduler, atMost(sentOfferIds.size() - 1)).processOffers(any(), any());
         verify(mockSchedulerDriver, atLeastOnce()).declineOffer(any(), any());
     }
 
@@ -199,19 +76,14 @@ public class OfferProcessorTest {
         // The queueing results in accumulating all the offer lists into a flat list.
         // So we need to explicitly collect an offer count.
         AtomicInteger receivedCount = new AtomicInteger(0);
-        when(mockAbstractScheduler.offers(any())).thenAnswer(new Answer<OfferResponse>() {
+        doAnswer(new Answer<Void>() {
             @Override
-            public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
+            public Void answer(InvocationOnMock invocation) throws Throwable {
                 List<Protos.Offer> offers = getOffersArgument(invocation);
                 receivedCount.addAndGet(offers.size());
-                // Consume all the offers:
-                return OfferResponse.processed(offers.stream()
-                        .map(offer -> new ReserveOfferRecommendation(offer, ResourceTestUtils.getUnreservedCpus(3)))
-                        .collect(Collectors.toList()));
+                return null;
             }
-        });
-        when(mockAbstractScheduler.getUnexpectedResources(any()))
-                .thenReturn(UnexpectedResourcesResponse.processed(Collections.emptyList()));
+        }).when(mockAbstractScheduler).processOffers(any(), any());
 
         processor.setOfferQueueSize(0).start(); // unlimited queue size
 
@@ -288,5 +160,4 @@ public class OfferProcessorTest {
         resBuilder.getScalarBuilder().setValue(cpus);
         return resBuilder.build();
     }
-    */
 }

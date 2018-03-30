@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.state.StateStore;
 import org.apache.mesos.Protos;
 

@@ -1,4 +1,4 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.framework;
 
 import org.slf4j.Logger;
 
@@ -14,10 +14,10 @@ import java.util.concurrent.TimeUnit;
  * will not take actions unless they receive a token via the {@link #tryAcquire()} method.
  */
 public class TokenBucket {
-    public static final int DEFAULT_CAPACITY = 256;
-    public static final int DEFAULT_INITIAL_COUNT = DEFAULT_CAPACITY;
-    public static final Duration DEFAULT_ACQUIRE_INTEVAL = Duration.ofSeconds(5);
-    public static final Duration DEFAULT_INCREMENT_INTERVAL = Duration.ofSeconds(DEFAULT_CAPACITY);
+    private static final int DEFAULT_CAPACITY = 256;
+    private static final int DEFAULT_INITIAL_COUNT = DEFAULT_CAPACITY;
+    private static final Duration DEFAULT_ACQUIRE_INTEVAL = Duration.ofSeconds(5);
+    private static final Duration DEFAULT_INCREMENT_INTERVAL = Duration.ofSeconds(DEFAULT_CAPACITY);
 
     private final Logger logger = LoggingUtils.getLogger(getClass());
     private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();

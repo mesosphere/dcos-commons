@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -45,7 +45,9 @@ public class DefaultPlanScheduler implements PlanScheduler {
 
         for (Step step : steps) {
             acceptedOfferIds.addAll(resourceOffers(availableOffers, step));
-            availableOffers = PlanUtils.filterAcceptedOffers(availableOffers, acceptedOfferIds);
+            availableOffers = availableOffers.stream()
+                    .filter(offer -> !acceptedOfferIds.contains(offer.getId()))
+                    .collect(Collectors.toList());
         }
 
         return acceptedOfferIds;

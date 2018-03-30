@@ -18,7 +18,6 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
-import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -57,9 +56,9 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
         scheduler = new FrameworkScheduler(
                 Collections.singleton(TestConstants.ROLE),
                 mockFrameworkStore,
-                mockStateStore,
                 mockAbstractScheduler,
-                mockOfferProcessor)
+                mockOfferProcessor,
+                mockStateStore)
                 .disableThreading();
     }
 

@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.framework.Driver;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos.Filters;
 import org.apache.mesos.Protos.Offer.Operation;

@@ -3,9 +3,10 @@ package com.mesosphere.sdk.reconciliation;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
-import com.mesosphere.sdk.scheduler.Driver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
+
+import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.state.StateStore;
 import org.junit.Before;
 import org.junit.Test;

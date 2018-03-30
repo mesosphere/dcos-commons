@@ -5,6 +5,8 @@ import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
+import com.mesosphere.sdk.framework.ApiServer;
+import com.mesosphere.sdk.framework.SchedulerDriverFactory;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
@@ -112,7 +114,7 @@ public class SchedulerRunner implements Runnable {
         scheduler.start();
         Optional<Scheduler> mesosScheduler = scheduler.getMesosScheduler();
         if (mesosScheduler.isPresent()) {
-            SchedulerApiServer apiServer = new SchedulerApiServer(schedulerConfig, scheduler.getResources());
+            ApiServer apiServer = new ApiServer(schedulerConfig, scheduler.getResources());
             apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
                 @Override
                 public void lifeCycleStarted(LifeCycle event) {
@@ -170,7 +172,7 @@ public class SchedulerRunner implements Runnable {
                 LOGGER.error("Failed to clear all data", e);
             }
 
-            SchedulerApiServer apiServer = new SchedulerApiServer(
+            ApiServer apiServer = new ApiServer(
                     schedulerConfig,
                     Arrays.asList(
                             new PlansResource(Collections.singletonList(

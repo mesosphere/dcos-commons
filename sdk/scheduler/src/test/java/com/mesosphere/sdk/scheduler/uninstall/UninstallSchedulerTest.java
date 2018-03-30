@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
@@ -228,6 +229,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 new DefaultTransportEncryptionSpec("foo", TransportEncryptionSpec.Type.KEYSTORE)));
         PodSpec mockPod = mock(PodSpec.class);
         when(mockPod.getTasks()).thenReturn(Arrays.asList(mockTask));
+        when(mockPod.getPreReservedRole()).thenReturn(Constants.ANY_ROLE);
         when(serviceSpecWithTLSTasks.getPods()).thenReturn(Arrays.asList(mockPod));
 
         UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks);
@@ -319,6 +321,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.of(mockPlanCustomizer),
                 Optional.of(mockSecretsClient));
         uninstallScheduler
+                .disableThreading()
+                .disableApiServer()
                 .start()
                 .getMesosScheduler().get()
                         .registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, TestConstants.MASTER_INFO);
@@ -328,6 +332,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     private static ServiceSpec getServiceSpec() {
         ServiceSpec mockServiceSpec = mock(ServiceSpec.class);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getRole()).thenReturn(TestConstants.ROLE);
+        when(mockServiceSpec.getPods()).thenReturn(Collections.emptyList());
         return mockServiceSpec;
     }
 

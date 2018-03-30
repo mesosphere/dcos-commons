@@ -19,13 +19,11 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
-import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.TaskCleaner;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -51,39 +49,39 @@ public class FrameworkScheduler implements Scheduler {
 
     private final Set<String> frameworkRolesWhitelist;
     private final FrameworkStore frameworkStore;
-    private final StateStore stateStore;
     private final AbstractScheduler abstractScheduler;
     private final OfferProcessor offerProcessor;
 
+    private final StateStore stateStore;
     private TaskCleaner taskCleaner;
     private boolean multithreaded = true;
 
     public FrameworkScheduler(
             Set<String> frameworkRolesWhitelist,
             SchedulerConfig schedulerConfig,
-            FrameworkStore frameworkStore,
             StateStore stateStore,
+            FrameworkStore frameworkStore,
             AbstractScheduler abstractScheduler) {
         this(
                 frameworkRolesWhitelist,
                 frameworkStore,
-                stateStore,
                 abstractScheduler,
-                new OfferProcessor(abstractScheduler, stateStore));
+                new OfferProcessor(abstractScheduler, stateStore),
+                stateStore);
     }
 
     @VisibleForTesting
     FrameworkScheduler(
             Set<String> frameworkRolesWhitelist,
             FrameworkStore frameworkStore,
-            StateStore stateStore,
             AbstractScheduler abstractScheduler,
-            OfferProcessor offerProcessor) {
+            OfferProcessor offerProcessor,
+            StateStore stateStore) {
         this.frameworkRolesWhitelist = frameworkRolesWhitelist;
         this.frameworkStore = frameworkStore;
-        this.stateStore = stateStore;
         this.abstractScheduler = abstractScheduler;
         this.offerProcessor = offerProcessor;
+        this.stateStore = stateStore;
     }
 
     /**
@@ -228,7 +226,7 @@ public class FrameworkScheduler implements Scheduler {
         }
 
         offerProcessor.getReconciler().update(status);
-        TaskKiller.update(status);
+        TaskKiller.update(status); // TODO(nickbp) when TaskKiller.killTask() is being performed here, check return val
         Metrics.record(status);
         taskCleaner.statusUpdate(status);
     }

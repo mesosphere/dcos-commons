@@ -59,7 +59,7 @@ public abstract class AbstractScheduler {
         this.schedulerConfig = schedulerConfig;
         this.planCustomizer = planCustomizer;
         this.frameworkScheduler = new FrameworkScheduler(
-                frameworkConfig.getAllResourceRoles(), schedulerConfig, frameworkStore, stateStore, this);
+                frameworkConfig.getAllResourceRoles(), schedulerConfig, stateStore, frameworkStore, this);
     }
 
     /**

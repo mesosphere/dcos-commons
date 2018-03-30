@@ -109,8 +109,8 @@ public class EnvStore {
     }
 
     /**
-     * If the value cannot be parsed as an int, this points to the source envKey, and ensures that
-     * {@link SchedulerConfig} calls only throw {@link ConfigException}.
+     * If the value cannot be parsed as an int, this points to the source envKey, and ensures that calls only throw
+     * {@link ConfigException}.
      */
     private static int toInt(String envKey, String envVal) {
         try {
@@ -122,8 +122,8 @@ public class EnvStore {
     }
 
     /**
-     * If the value cannot be parsed as a long, this points to the source envKey, and ensures that
-     * {@link SchedulerConfig} calls only throw {@link ConfigException}.
+     * If the value cannot be parsed as a long, this points to the source envKey, and ensures that calls only throw
+     * {@link ConfigException}.
      */
     private static long toLong(String envKey, String envVal) {
         try {
