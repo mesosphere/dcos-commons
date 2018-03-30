@@ -83,6 +83,11 @@
           ],
           "default": "serial"
         },
+        "region": {
+          "description": "The Cassandra cluster should run in this region.  When no region is specified the cluster is constrained to the local region.",
+          "type": "string",
+          "default": ""
+        },
         "security": {
           "description": "Cassandra security settings",
           "type": "object",

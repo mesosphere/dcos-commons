@@ -29,7 +29,9 @@ public class Main {
     }
 
     private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
-        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+        Map<String, String> env = new HashMap<>(System.getenv());
+        env.put("ALLOW_REGION_AWARENESS", "true");
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromMap(env);
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         List<String> localSeeds = CassandraSeedUtils.getLocalSeeds(rawServiceSpec.getName(), schedulerConfig);
 
@@ -47,7 +49,8 @@ public class Main {
                                 TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)
                 .setCustomResources(getResources(localSeeds))
-                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
+                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory())
+                .withSingleRegionConstraint();
     }
 
     private static Collection<Object> getResources(List<String> localSeeds) {

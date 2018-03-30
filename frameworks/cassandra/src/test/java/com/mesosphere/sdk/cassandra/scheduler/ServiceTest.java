@@ -58,6 +58,15 @@ public class ServiceTest {
         ConfigValidatorUtils.allowRackChanges(validator, getZoneRunner(), "PLACEMENT_CONSTRAINT");
     }
 
+    @Test
+    public void testRegionAwareness() throws Exception {
+        ServiceTestResult result = new ServiceTestRunner()
+                .setOptions("service.region", "Europe")
+                .setPodEnv("node", getDefaultNodeEnv())
+                .run();
+        Assert.assertEquals(result.getSchedulerEnvironment().get("SERVICE_REGION"), "Europe");
+    }
+
     private static Map<String, String> getDefaultNodeEnv() {
         Map<String, String> map = new HashMap<>();
         map.put("LOCAL_SEEDS", "foo,bar"); // would be provided by our Main.java
