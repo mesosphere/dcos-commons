@@ -265,12 +265,7 @@ class OfferProcessor {
         }
 
         // Match offers with work (call into implementation)
-        final Timer.Context context = Metrics.getProcessOffersDurationTimer();
-        try {
-            abstractScheduler.processOffers(offers, steps);
-        } finally {
-            context.stop();
-        }
+        abstractScheduler.processOffers(offers, steps);
     }
 
     private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {

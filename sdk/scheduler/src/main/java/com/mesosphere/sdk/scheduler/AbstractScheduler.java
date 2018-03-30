@@ -106,7 +106,7 @@ public abstract class AbstractScheduler {
     }
 
     protected void markApiServerStarted() {
-        frameworkScheduler.setReadyToAcceptOffers();
+        frameworkScheduler.setApiServerStarted();
     }
 
     /**

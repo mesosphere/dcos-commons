@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-
 import org.slf4j.Logger;
 
 import java.util.*;

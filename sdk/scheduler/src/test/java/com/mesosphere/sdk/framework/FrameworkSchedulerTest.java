@@ -92,7 +92,7 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
         verify(mockSchedulerDriver, times(3)).declineOffer(any(), eq(SHORT_INTERVAL));
         verify(mockOfferProcessor, never()).enqueue(any());
 
-        scheduler.setReadyToAcceptOffers();
+        scheduler.setApiServerStarted();
 
         // Offers passed to the processor:
         scheduler.resourceOffers(mockSchedulerDriver, offers);
@@ -109,7 +109,7 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     @SuppressWarnings("deprecation")
     @Test
     public void testFilteredResources() {
-        scheduler.setReadyToAcceptOffers();
+        scheduler.setApiServerStarted();
 
         String resourceId = "unexpected-volume-id-1";
         Protos.Resource resourceMatchingRole = ResourceTestUtils.getReservedRootVolume(1000.0, resourceId, resourceId);
