@@ -88,6 +88,7 @@ public class SchedulerBuilder {
         this.serviceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
         this.persister = persister;
+        Capabilities.getInstance().setSchedulerConfig(schedulerConfig);
     }
 
     /**
