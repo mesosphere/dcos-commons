@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/scheduler/ExplicitReconciler.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/DefaultScheduler.html" target="_top">Frames</a></li>
@@ -155,7 +155,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#DefaultScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.framework.FrameworkConfig-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Collection-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-java.util.Map-">DefaultScheduler</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                 <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                 <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
-                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
+                java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace,
                 java.util.Collection&lt;java.lang.Object&gt;&nbsp;customResources,
                 <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
                 java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
@@ -215,21 +215,21 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#processOffers-java.util.List-java.util.Collection-">processOffers</a></span>(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#processOffers-java.util.Collection-java.util.Collection-">processOffers</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
              java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</code>
-<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
+<div class="block">Invoked when Mesos has provided offers to be evaluated.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#processStatusUpdate-Protos.TaskStatus-">processStatusUpdate</a></span>(Protos.TaskStatus&nbsp;status)</code>
-<div class="block">Handles a task status update which was received from Mesos.</div>
+<div class="block">Invoked when Mesos has provided a task status to be processed.</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#registeredWithMesos--">registeredWithMesos</a></span>()</code>
-<div class="block">Provides a callback to indicate that the scheduler has registered with Mesos.</div>
+<div class="block">Invoked when the framework has registered (or re-registered) with Mesos.</div>
 </td>
 </tr>
 </table>
@@ -238,7 +238,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#awaitOffersProcessed--">awaitOffersProcessed</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableApiServer--">disableApiServer</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#disableThreading--">disableThreading</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getMesosScheduler--">getMesosScheduler</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlans--">getPlans</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getServiceSpec--">getServiceSpec</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#markApiServerStarted--">markApiServerStarted</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#start--">start</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getPlans--">getPlans</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getServiceSpec--">getServiceSpec</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#offers-java.util.Collection-">offers</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registered-boolean-">registered</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#start--">start</a>, <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#status-Protos.TaskStatus-">status</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -270,7 +270,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <pre>protected&nbsp;DefaultScheduler(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                            <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
-                           java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
+                           java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace,
                            java.util.Collection&lt;java.lang.Object&gt;&nbsp;customResources,
                            <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
                            java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
@@ -332,21 +332,6 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </dl>
 </li>
 </ul>
-<a name="getResources--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getResources</h4>
-<pre>public&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">AbstractScheduler</a></code></span></div>
-<div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">getResources</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
-</dl>
-</li>
-</ul>
 <a name="getPlanCoordinator--">
 <!--   -->
 </a>
@@ -362,6 +347,21 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </dl>
 </li>
 </ul>
+<a name="getResources--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getResources</h4>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">AbstractScheduler</a></code></span></div>
+<div class="block">Returns a list of API resources to be served by the scheduler to the local cluster.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#getResources--">getResources</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+</dl>
+</li>
+</ul>
 <a name="registeredWithMesos--">
 <!--   -->
 </a>
@@ -370,26 +370,29 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <h4>registeredWithMesos</h4>
 <pre>public&nbsp;void&nbsp;registeredWithMesos()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registeredWithMesos--">AbstractScheduler</a></code></span></div>
-<div class="block">Provides a callback to indicate that the scheduler has registered with Mesos.</div>
+<div class="block">Invoked when the framework has registered (or re-registered) with Mesos.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#registeredWithMesos--">registeredWithMesos</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
 </dl>
 </li>
 </ul>
-<a name="processOffers-java.util.List-java.util.Collection-">
+<a name="processOffers-java.util.Collection-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>processOffers</h4>
-<pre>public&nbsp;void&nbsp;processOffers(java.util.List&lt;Protos.Offer&gt;&nbsp;offers,
+<pre>public&nbsp;void&nbsp;processOffers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
                           java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.List-java.util.Collection-">AbstractScheduler</a></code></span></div>
-<div class="block">The abstract scheduler will periodically call this method with a list of available offers, which may be empty.</div>
+<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.Collection-java.util.Collection-">AbstractScheduler</a></code></span></div>
+<div class="block">Invoked when Mesos has provided offers to be evaluated.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.List-java.util.Collection-">processOffers</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processOffers-java.util.Collection-java.util.Collection-">processOffers</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>offers</code> - zero or more offers (zero may periodically be passed to 'turn the crank' on other processing)</dd>
+<dd><code>steps</code> - candidate steps which had been returned by the <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanCoordinator</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -401,11 +404,12 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <h4>processStatusUpdate</h4>
 <pre>public&nbsp;void&nbsp;processStatusUpdate(Protos.TaskStatus&nbsp;status)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processStatusUpdate-Protos.TaskStatus-">AbstractScheduler</a></code></span></div>
-<div class="block">Handles a task status update which was received from Mesos. This call is executed on a separate thread which is
- run by the Mesos Scheduler Driver.</div>
+<div class="block">Invoked when Mesos has provided a task status to be processed.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processStatusUpdate-Protos.TaskStatus-">processStatusUpdate</a></code>&nbsp;in class&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>status</code> - the task status, which may be for a task which no longer exists</dd>
 </dl>
 </li>
 </ul>
@@ -437,7 +441,7 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/scheduler/ExplicitReconciler.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/DefaultScheduler.html" target="_top">Frames</a></li>

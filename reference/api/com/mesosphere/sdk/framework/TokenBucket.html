@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":9,"i1":10,"i2":10,"i3":10,"i4":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -152,10 +152,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#TokenBucket-int-int-java.time.Duration-java.time.Duration-">TokenBucket</a></span>(int&nbsp;initial,
-           int&nbsp;capacity,
-           java.time.Duration&nbsp;incrementInterval,
-           java.time.Duration&nbsp;acquireInterval)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#TokenBucket-com.mesosphere.sdk.framework.TokenBucket.Builder-">TokenBucket</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a>&nbsp;builder)</code>
 <div class="block">A TokenBucket acts as a rate limiting helper.</div>
 </td>
 </tr>
@@ -180,13 +177,21 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected long</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#now--">now</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#now--">now</a></span>()</code>
+<div class="block">Returns the current time in epoch milliseconds.</div>
+</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#reset--">reset</a></span>()</code>
+<div class="block">Resets internal counters for tests.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#toBuilder--">toBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#tryAcquire--">tryAcquire</a></span>()</code>
 <div class="block">This method returns true if a rate-limited action should be executed, and false if the action should not occur.</div>
@@ -214,24 +219,18 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="TokenBucket-int-int-java.time.Duration-java.time.Duration-">
+<a name="TokenBucket-com.mesosphere.sdk.framework.TokenBucket.Builder-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>TokenBucket</h4>
-<pre>protected&nbsp;TokenBucket(int&nbsp;initial,
-                      int&nbsp;capacity,
-                      java.time.Duration&nbsp;incrementInterval,
-                      java.time.Duration&nbsp;acquireInterval)</pre>
+<pre>protected&nbsp;TokenBucket(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a>&nbsp;builder)</pre>
 <div class="block">A TokenBucket acts as a rate limiting helper.  Clients should not perform rate limited work without acquiring a
  token from the <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html#tryAcquire--"><code>tryAcquire()</code></a> method.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>initial</code> - The initial number of tokens available</dd>
-<dd><code>capacity</code> - The maximum number of tokens the bucket may hold</dd>
-<dd><code>incrementInterval</code> - The interval between adding new tokens to the bucket</dd>
-<dd><code>acquireInterval</code> - The minimum interval between allowing tokens to be acquired</dd>
+<dd><code>builder</code> - the configured builder</dd>
 </dl>
 </li>
 </ul>
@@ -274,10 +273,21 @@ extends java.lang.Object</pre>
 <a name="now--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>now</h4>
 <pre>protected&nbsp;long&nbsp;now()</pre>
+<div class="block">Returns the current time in epoch milliseconds. Broken out into a separate function to allow overriding in tests.</div>
+</li>
+</ul>
+<a name="reset--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>reset</h4>
+<pre>public&nbsp;void&nbsp;reset()</pre>
+<div class="block">Resets internal counters for tests.</div>
 </li>
 </ul>
 </li>

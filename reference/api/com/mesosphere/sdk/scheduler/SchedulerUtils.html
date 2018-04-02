@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -146,12 +146,6 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerUtils.html#hardExit-com.mesosphere.sdk.scheduler.SchedulerErrorCode-">hardExit</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a>&nbsp;errorCode)</code>
-<div class="block">Immediately exits the process with the ordinal value of the provided <code>errorCode</code>.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerUtils.html#withEscapedSlashes-java.lang.String-">withEscapedSlashes</a></span>(java.lang.String&nbsp;name)</code>
 <div class="block">Removes any slashes from the provided name and replaces them with double underscores.</div>
@@ -199,7 +193,7 @@ extends java.lang.Object</pre>
 <a name="withEscapedSlashes-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>withEscapedSlashes</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;withEscapedSlashes(java.lang.String&nbsp;name)</pre>
@@ -216,16 +210,6 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if the provided name already contains double underscores</dd>
 </dl>
-</li>
-</ul>
-<a name="hardExit-com.mesosphere.sdk.scheduler.SchedulerErrorCode-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>hardExit</h4>
-<pre>public static&nbsp;void&nbsp;hardExit(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerErrorCode.html" title="class in com.mesosphere.sdk.scheduler">SchedulerErrorCode</a>&nbsp;errorCode)</pre>
-<div class="block">Immediately exits the process with the ordinal value of the provided <code>errorCode</code>.</div>
 </li>
 </ul>
 </li>

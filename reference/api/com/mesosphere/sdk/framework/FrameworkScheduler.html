@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/framework/FrameworkScheduler.html" target="_top">Frames</a></li>
@@ -129,16 +129,17 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#FrameworkScheduler-java.util.Set-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-com.mesosphere.sdk.framework.OfferProcessor-com.mesosphere.sdk.state.StateStore-">FrameworkScheduler</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;frameworkRolesWhitelist,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#FrameworkScheduler-java.util.Set-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-com.mesosphere.sdk.framework.OfferProcessor-com.mesosphere.sdk.framework.ImplicitReconciler-com.mesosphere.sdk.state.StateStore-">FrameworkScheduler</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;frameworkRolesWhitelist,
                   <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                   <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler,
                   <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a>&nbsp;offerProcessor,
+                  <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html" title="class in com.mesosphere.sdk.framework">ImplicitReconciler</a>&nbsp;implicitReconciler,
                   <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#FrameworkScheduler-java.util.Set-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-">FrameworkScheduler</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;frameworkRolesWhitelist,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#FrameworkScheduler-java.util.Set-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-">FrameworkScheduler</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;frameworkRolesWhitelist,
                   <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
-                  <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                  <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                   <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                   <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</code>&nbsp;</td>
 </tr>
@@ -245,7 +246,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="FrameworkScheduler-java.util.Set-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-">
+<a name="FrameworkScheduler-java.util.Set-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -253,12 +254,12 @@ extends java.lang.Object</pre>
 <h4>FrameworkScheduler</h4>
 <pre>public&nbsp;FrameworkScheduler(java.util.Set&lt;java.lang.String&gt;&nbsp;frameworkRolesWhitelist,
                           <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
-                          <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                          <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                           <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                           <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</pre>
 </li>
 </ul>
-<a name="FrameworkScheduler-java.util.Set-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-com.mesosphere.sdk.framework.OfferProcessor-com.mesosphere.sdk.state.StateStore-">
+<a name="FrameworkScheduler-java.util.Set-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.scheduler.AbstractScheduler-com.mesosphere.sdk.framework.OfferProcessor-com.mesosphere.sdk.framework.ImplicitReconciler-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -268,6 +269,7 @@ extends java.lang.Object</pre>
                    <a href="../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
                    <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler,
                    <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a>&nbsp;offerProcessor,
+                   <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html" title="class in com.mesosphere.sdk.framework">ImplicitReconciler</a>&nbsp;implicitReconciler,
                    <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 </li>
 </ul>
@@ -440,7 +442,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/framework/FrameworkScheduler.html" target="_top">Frames</a></li>

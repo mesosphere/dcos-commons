@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -109,9 +109,7 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">FrameworkRunner</span>
 extends java.lang.Object</pre>
-<div class="block">Class which sets up and executes the correct <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>AbstractScheduler</code></a> instance.
-
- TODO(nickbp): Once *Scheduler is broken up, this will run the Mesos framework thread.</div>
+<div class="block">Class which sets up and executes the correct <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>AbstractScheduler</code></a> instance.</div>
 </li>
 </ul>
 </div>
@@ -151,7 +149,8 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html#FrameworkRunner-com.mesosphere.sdk.framework.FrameworkConfig-boolean-boolean-">FrameworkRunner</a></span>(<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html#FrameworkRunner-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.framework.FrameworkConfig-boolean-boolean-">FrameworkRunner</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
+               <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                boolean&nbsp;usingGpus,
                boolean&nbsp;usingRegions)</code>
 <div class="block">Creates a new instance and does some internal initialization.</div>
@@ -173,8 +172,15 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>Protos.FrameworkInfo</code></td>
+<td class="colFirst"><code>(package private) Protos.FrameworkInfo</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html#getFrameworkInfo-java.util.Optional-">getFrameworkInfo</a></span>(java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;frameworkId)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html#registerAndRunFramework-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.AbstractScheduler-">registerAndRunFramework</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+                       <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</code>
+<div class="block">Registers the framework with Mesos and starts running the framework.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -216,18 +222,20 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="FrameworkRunner-com.mesosphere.sdk.framework.FrameworkConfig-boolean-boolean-">
+<a name="FrameworkRunner-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.framework.FrameworkConfig-boolean-boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>FrameworkRunner</h4>
-<pre>public&nbsp;FrameworkRunner(<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
+<pre>public&nbsp;FrameworkRunner(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
+                       <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                        boolean&nbsp;usingGpus,
                        boolean&nbsp;usingRegions)</pre>
 <div class="block">Creates a new instance and does some internal initialization.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>schedulerConfig</code> - scheduler config object to use for the process</dd>
 <dd><code>frameworkConfig</code> - settings to use for registering the framework</dd>
 </dl>
 </li>
@@ -240,13 +248,24 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="registerAndRunFramework-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.AbstractScheduler-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>registerAndRunFramework</h4>
+<pre>public&nbsp;void&nbsp;registerAndRunFramework(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+                                    <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</pre>
+<div class="block">Registers the framework with Mesos and starts running the framework. This function should never return.</div>
+</li>
+</ul>
 <a name="getFrameworkInfo-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getFrameworkInfo</h4>
-<pre>public&nbsp;Protos.FrameworkInfo&nbsp;getFrameworkInfo(java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;frameworkId)</pre>
+<pre>Protos.FrameworkInfo&nbsp;getFrameworkInfo(java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;frameworkId)</pre>
 </li>
 </ul>
 </li>
