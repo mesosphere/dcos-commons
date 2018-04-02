@@ -17,24 +17,16 @@ import org.slf4j.Logger;
 
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.offer.OfferUtils;
-import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.Metrics;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.state.StateStore;
 
 /**
  * Handles offer processing for the framework, passing offers to an underlying {@link MesosEventClient}, which itself
  * represents one or more underlying services.
  */
-class OfferProcessor {
+public class OfferProcessor {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferProcessor.class);
 
@@ -51,17 +43,14 @@ class OfferProcessor {
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
     private final AbstractScheduler abstractScheduler;
-    private final Reconciler reconciler;
 
     // May be overridden in tests:
     private OfferQueue offerQueue;
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded;
-    private ReviveManager reviveManager;
 
-    public OfferProcessor(AbstractScheduler abstractScheduler, StateStore stateStore) {
+    public OfferProcessor(AbstractScheduler abstractScheduler) {
         this.abstractScheduler = abstractScheduler;
-        this.reconciler = new Reconciler(stateStore);
         this.offerQueue = new OfferQueue();
         this.multithreaded = true;
     }
@@ -89,10 +78,6 @@ class OfferProcessor {
         return this;
     }
 
-    Reconciler getReconciler() {
-        return reconciler;
-    }
-
     public void start() {
         if (multithreaded) {
             // Start consumption of the offer queue. This will idle until offers start arriving.
@@ -102,13 +87,12 @@ class OfferProcessor {
                         processQueuedOffers();
                     } catch (Exception e) {
                         LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
-                        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
+                        ProcessExit.exit(ProcessExit.ERROR, e);
                     }
                 }
             });
         }
 
-        this.reviveManager = new ReviveManager();
         isInitialized.set(true);
     }
 
@@ -224,64 +208,14 @@ class OfferProcessor {
             return;
         }
 
-        if (offers.isEmpty() && !isInitialized.get()) {
-            // The scheduler hasn't finished registration yet, so many members haven't been initialized either.
-            // Avoid hitting NPE for planCoordinator, driver, etc.
-            LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
-            return;
-        }
-
-        // Task Reconciliation:
-        // Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
-        // Mesos have agreed upon the state of all Tasks of interest to the scheduler.
-        // http://mesos.apache.org/documentation/latest/reconciliation/
-        reconciler.reconcile();
-        if (!reconciler.isReconciled()) {
-            LOGGER.info("Declining {} offer{}: Waiting for task reconciliation to complete.",
-                    offers.size(), offers.size() == 1 ? "" : "s");
-            OfferUtils.declineShort(offers);
-            return;
-        }
-
-        // Get the current work
-        Collection<Step> steps = abstractScheduler.getPlanCoordinator().getCandidates();
-
-        // Revive previously suspended offers, if necessary
-        Collection<Step> activeWorkSet = new HashSet<>(steps);
-        Collection<Step> inProgressSteps = getInProgressSteps(abstractScheduler.getPlanCoordinator());
-        LOGGER.info(
-                "InProgress Steps: {}",
-                inProgressSteps.stream()
-                        .map(step -> step.getMessage())
-                        .collect(Collectors.toList()));
-        activeWorkSet.addAll(inProgressSteps);
-        reviveManager.revive(activeWorkSet);
-
-        LOGGER.info("Processing {} offer{} against {} step{}:",
-                offers.size(), offers.size() == 1 ? "" : "s",
-                steps.size(), steps.size() == 1 ? "" : "s");
-        for (int i = 0; i < offers.size(); ++i) {
-            LOGGER.info("  {}: {}", i + 1, TextFormat.shortDebugString(offers.get(i)));
-        }
-
-        // Match offers with work (call into implementation)
-        abstractScheduler.processOffers(offers, steps);
-    }
-
-    private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
-        return planCoordinator.getPlanManagers().stream()
-                .map(planManager -> planManager.getPlan())
-                .flatMap(plan -> plan.getChildren().stream())
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.isRunning())
-                .collect(Collectors.toSet());
+        abstractScheduler.offers(offers);
     }
 
     /**
      * Declines the provided offers for a short time. This is used for special cases when the scheduler hasn't fully
      * initialized and otherwise wasn't able to actually look at the offers in question. At least not yet.
      */
-    static void declineShort(Collection<Protos.Offer> unusedOffers) {
+    public static void declineShort(Collection<Protos.Offer> unusedOffers) {
         declineOffers(unusedOffers, Constants.SHORT_DECLINE_SECONDS);
         Metrics.incrementDeclinesShort(unusedOffers.size());
     }

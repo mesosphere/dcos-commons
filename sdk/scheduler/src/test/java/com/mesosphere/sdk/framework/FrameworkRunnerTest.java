@@ -15,10 +15,15 @@ import org.mockito.MockitoAnnotations;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.StorageError.Reason;
 import com.mesosphere.sdk.testutils.TestConstants;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import static org.mockito.Mockito.*;
 
@@ -26,6 +31,7 @@ public class FrameworkRunnerTest {
 
     @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private Capabilities mockCapabilities;
+    @Mock private AbstractScheduler mockAbstractScheduler;
     @Mock private Persister mockPersister;
 
     @Before
@@ -42,12 +48,33 @@ public class FrameworkRunnerTest {
         Assert.assertTrue(FrameworkRunner.EMPTY_DEPLOY_PLAN.getChildren().isEmpty());
     }
 
+    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
+    @Test
+    public void testFinishedUninstall() throws Exception {
+        FrameworkRunner runner = new FrameworkRunner(mockSchedulerConfig, null, false, false);
+        when(mockSchedulerConfig.isUninstallEnabled()).thenReturn(true);
+        when(mockPersister.get("FrameworkID")).thenThrow(new PersisterException(Reason.NOT_FOUND, "hi"));
+        Exception abort = new IllegalStateException("Aborting HTTP server run");
+        // Don't actually run the HTTP server -- it won't exit:
+        when(mockSchedulerConfig.getApiServerPort()).thenThrow(abort);
+        try {
+            runner.registerAndRunFramework(mockPersister, mockAbstractScheduler);
+            Assert.fail("Expected abort exception to be thrown");
+        } catch (IllegalStateException ex) {
+            Assert.assertSame(abort, ex);
+        }
+        // Shouldn't have used the regular endpoints. Instead should have used stub endpoints:
+        verify(mockAbstractScheduler, never()).getResources();
+        verify(mockPersister).recursiveDelete("/");
+    }
+
     @Test
     public void testMinimalFrameworkInfoInitial() {
         EnvStore envStore = EnvStore.fromMap(getMinimalMap());
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
 
-        FrameworkRunner runner = new FrameworkRunner(frameworkConfig, false, false);
+        FrameworkRunner runner = new FrameworkRunner(schedulerConfig, frameworkConfig, false, false);
 
         Protos.FrameworkInfo info = runner.getFrameworkInfo(Optional.empty());
         Assert.assertEquals("/path/to/test-service", info.getName());
@@ -65,9 +92,10 @@ public class FrameworkRunnerTest {
     @Test
     public void testMinimalFrameworkInfoRelaunch() {
         EnvStore envStore = EnvStore.fromMap(getMinimalMap());
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
 
-        FrameworkRunner runner = new FrameworkRunner(frameworkConfig, false, false);
+        FrameworkRunner runner = new FrameworkRunner(schedulerConfig, frameworkConfig, false, false);
 
         Protos.FrameworkInfo info = runner.getFrameworkInfo(Optional.of(TestConstants.FRAMEWORK_ID));
         Assert.assertEquals("/path/to/test-service", info.getName());
@@ -90,6 +118,7 @@ public class FrameworkRunnerTest {
         env.put("FRAMEWORK_PRERESERVED_ROLES", "role1,role2,role3");
         env.put("FRAMEWORK_WEB_URL", "custom-url");
         EnvStore envStore = EnvStore.fromMap(env);
+        SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
 
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -97,7 +126,7 @@ public class FrameworkRunnerTest {
         when(mockCapabilities.supportsDomains()).thenReturn(true);
         when(mockCapabilities.supportsGpuResource()).thenReturn(true);
 
-        FrameworkRunner runner = new FrameworkRunner( frameworkConfig, true, true);
+        FrameworkRunner runner = new FrameworkRunner(schedulerConfig, frameworkConfig, true, true);
         Protos.FrameworkInfo info = runner.getFrameworkInfo(Optional.of(TestConstants.FRAMEWORK_ID));
         Assert.assertEquals("/path/to/test-service", info.getName());
         Assert.assertEquals("custom-user", info.getUser());

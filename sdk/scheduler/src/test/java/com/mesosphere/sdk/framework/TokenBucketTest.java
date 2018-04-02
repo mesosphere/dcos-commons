@@ -122,7 +122,7 @@ public class TokenBucketTest {
         private long now = System.currentTimeMillis();
 
         private TestTokenBucket(Builder builder) {
-            super(builder.initial, builder.capacity, builder.incrementInterval, builder.acquireInterval);
+            super(builder);
         }
 
         public void increment(long milliseconds) {

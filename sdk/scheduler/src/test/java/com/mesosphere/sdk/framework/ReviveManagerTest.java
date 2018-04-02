@@ -67,9 +67,20 @@ public class ReviveManagerTest {
 
     @Test
     public void dontReviveWhenThrottled() {
-        ReviveManager manager = new ReviveManager();
+        ReviveManager manager = getReviveManager(Duration.ofDays(1));
         manager.revive(getSteps(0));
         manager.revive(getSteps(1));
+        verify(driver, times(1)).reviveOffers();
+    }
+
+    @Test
+    public void dontReviveSharedTokenBucket() {
+        // Default constructor should use a global token bucket.
+        ReviveManager.resetTimers();
+        ReviveManager a = new ReviveManager();
+        ReviveManager b = new ReviveManager();
+        a.revive(getSteps(0)); // pass
+        b.revive(getSteps(1)); // throttled
         verify(driver, times(1)).reviveOffers();
     }
 
@@ -81,7 +92,11 @@ public class ReviveManagerTest {
     }
 
     private ReviveManager getReviveManager() {
-        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
+        return getReviveManager(Duration.ZERO);
+    }
+
+    private ReviveManager getReviveManager(Duration duration) {
+        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(duration).build());
     }
 
     private List<Step> getSteps(Integer index) {

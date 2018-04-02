@@ -1,15 +1,26 @@
 package com.mesosphere.sdk.framework;
 
-import org.eclipse.jetty.util.component.AbstractLifeCycle;
-import org.eclipse.jetty.util.component.LifeCycle;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.fluent.ContentResponseHandler;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.message.BasicHttpRequest;
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
+import java.net.URI;
 import java.time.Duration;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Response;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -19,36 +30,122 @@ public class ApiServerTest {
     private static final int LONG_TIMEOUT_MILLIS = 30000;
 
     @Test
-    public void testApiServerReady() throws Exception {
-        ApiServer schedulerApiServer = new ApiServer(
-                getSchedulerConfig(0, Duration.ofMillis(LONG_TIMEOUT_MILLIS)), Collections.emptyList());
-        Listener listener = new Listener();
-        schedulerApiServer.start(listener);
-        waitForTrue(listener.apiServerStarted);
-    }
-
-    private SchedulerConfig getSchedulerConfig(int port, Duration timeout) {
+    public void testApiServerEndpointHandling() throws Exception {
         SchedulerConfig mockSchedulerConfig = mock(SchedulerConfig.class);
-        when(mockSchedulerConfig.getApiServerInitTimeout()).thenReturn(timeout);
-        when(mockSchedulerConfig.getApiServerPort()).thenReturn(port);
-        return mockSchedulerConfig;
+        when(mockSchedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofMillis(LONG_TIMEOUT_MILLIS));
+        when(mockSchedulerConfig.getApiServerPort()).thenReturn(0);
+
+        Listener listener = new Listener();
+        ApiServer server = ApiServer.start(
+                mockSchedulerConfig,
+                Arrays.asList(
+                        new TestResourcePlans(),
+                        new TestResourcePod(),
+                        new TestResourceJobPlans(),
+                        new TestResourceJobPod()),
+                listener);
+        listener.waitForStarted();
+
+        Map<String, String> expectedEndpoints = new HashMap<>();
+        expectedEndpoints.put("/v1/metrics", "");
+        expectedEndpoints.put("/v1/metrics/prometheus", "");
+        expectedEndpoints.put("/v1/plans/foo", "Service Plan: foo");
+        expectedEndpoints.put("/v1/plans/bar", "Service Plan: bar");
+        expectedEndpoints.put("/v1/pod/foo/info", "Service Pod: foo");
+        expectedEndpoints.put("/v1/pod/bar/info", "Service Pod: bar");
+        expectedEndpoints.put("/v1/jobs/fast/plans/foo", "fast Plan: foo");
+        expectedEndpoints.put("/v1/jobs/slow/plans/bar", "slow Plan: bar");
+        expectedEndpoints.put("/v1/jobs/fast/pod/foo/info", "fast Pod: foo");
+        expectedEndpoints.put("/v1/jobs/slow/pod/foo/info", "slow Pod: foo");
+
+        checkEndpoints(server.getURI(), expectedEndpoints);
+
+        server.stop();
     }
 
-    private static void waitForTrue(AtomicBoolean bool) throws InterruptedException {
-        int maxSleepCount = LONG_TIMEOUT_MILLIS / SHORT_TIMEOUT_MILLIS;
-        for (int i = 0; i < maxSleepCount && !bool.get(); ++i) {
-            Thread.sleep(SHORT_TIMEOUT_MILLIS);
+    private static void checkEndpoints(URI server, Map<String, String> endpoints) throws Exception {
+        HttpHost host = new HttpHost(server.getHost(), server.getPort());
+        for (Map.Entry<String, String> entry : endpoints.entrySet()) {
+            HttpResponse response = HttpClientBuilder.create().build()
+                    .execute(host, new BasicHttpRequest("GET", entry.getKey()));
+            if (entry.getValue() == null) {
+                // Verify return value 404 only
+                Assert.assertEquals(entry.getKey() + ": " + endpoints.toString(),
+                        404, response.getStatusLine().getStatusCode());
+            } else if (entry.getValue().isEmpty()) {
+                // Verify return value 200 only
+                Assert.assertEquals(entry.getKey() + ": " + endpoints.toString(),
+                        200, response.getStatusLine().getStatusCode());
+            } else {
+                // Verify content and return value
+                Assert.assertEquals(entry.getKey() + ": " + endpoints.toString(), entry.getValue(), new ContentResponseHandler()
+                        .handleEntity(response.getEntity())
+                        .asString());
+                Assert.assertEquals(entry.getKey() + ": " + endpoints.toString(),
+                        200, response.getStatusLine().getStatusCode());
+            }
         }
-        Assert.assertTrue(bool.get());
     }
 
-    private static class Listener extends AbstractLifeCycle.AbstractLifeCycleListener {
-
+    private static class Listener implements Runnable {
         private final AtomicBoolean apiServerStarted = new AtomicBoolean(false);
 
         @Override
-        public void lifeCycleStarted(LifeCycle event) {
+        public void run() {
             apiServerStarted.set(true);
+        }
+
+        private void waitForStarted() {
+            int maxSleepCount = LONG_TIMEOUT_MILLIS / SHORT_TIMEOUT_MILLIS;
+            for (int i = 0; i < maxSleepCount && !apiServerStarted.get(); ++i) {
+                try {
+                    Thread.sleep(SHORT_TIMEOUT_MILLIS);
+                } catch (Exception e) {
+                    // ignore and continue
+                }
+            }
+            Assert.assertTrue(apiServerStarted.get());
+
+        }
+    }
+
+    @Path("/v1/plans")
+    public static class TestResourcePlans {
+
+        @Path("{planName}")
+        @GET
+        public Response getPlan(@PathParam("planName") String planName) {
+            return Response.ok().entity("Service Plan: " + planName).build();
+        }
+    }
+
+    @Path("/v1/pod")
+    public static class TestResourcePod {
+
+        @Path("/{name}/info")
+        @GET
+        public Response getPlan(@PathParam("name") String podName) {
+            return Response.ok().entity("Service Pod: " + podName).build();
+        }
+    }
+
+    @Path("/v1/jobs")
+    public static class TestResourceJobPlans {
+
+        @Path("{jobName}/plans/{planName}")
+        @GET
+        public Response getPlan(@PathParam("jobName") String jobName, @PathParam("planName") String planName) {
+            return Response.ok().entity(jobName + " Plan: " + planName).build();
+        }
+    }
+
+    @Path("/v1/jobs")
+    public static class TestResourceJobPod {
+
+        @Path("/{jobName}/pod/{name}/info")
+        @GET
+        public Response getPlan(@PathParam("jobName") String jobName, @PathParam("name") String podName) {
+            return Response.ok().entity(jobName + " Pod: " + podName).build();
         }
     }
 }

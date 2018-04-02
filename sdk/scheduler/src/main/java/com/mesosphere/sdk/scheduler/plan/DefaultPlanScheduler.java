@@ -34,7 +34,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
     }
 
     @Override
-    public Collection<OfferID> resourceOffers(final List<Offer> offers, final Collection<? extends Step> steps) {
+    public Collection<OfferID> resourceOffers(final Collection<Offer> offers, final Collection<? extends Step> steps) {
         if (offers == null || steps == null) {
             LOGGER.error("Unexpected null argument(s) encountered: offers='{}', steps='{}'", offers, steps);
             return Collections.emptyList();

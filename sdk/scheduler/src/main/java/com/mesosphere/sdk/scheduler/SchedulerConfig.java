@@ -128,6 +128,14 @@ public class SchedulerConfig {
     private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
 
     /**
+     * Environment variables for configuring implicit reconciliation:
+     * <ul><li>Delay before first implicit reconciliation is triggered (in milliseconds).</li>
+     * <li>Duration between implicit reconciliations (in milliseconds).</li></ul>
+     */
+    private static final String IMPLICIT_RECONCILIATION_DELAY_MS_ENV = "IMPLICIT_RECONCILIATION_DELAY_MS";
+    private static final String IMPLICIT_RECONCILIATION_PERIOD_MS_ENV = "IMPLICIT_RECONCILIATION_PERIOD_MS";
+
+    /**
      * Environment variable for allowing region awareness.
      */
     private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
@@ -344,6 +352,21 @@ public class SchedulerConfig {
      */
     public String getServiceTLD() {
         return envStore.getOptional(USER_SPECIFIED_TLD_ENVVAR, Constants.DNS_TLD);
+    }
+
+    /**
+     * Returns the duration to wait after framework registration before performing the first implicit reconcilation, in
+     * milliseconds.
+     */
+    public long getImplicitReconcileDelayMs() {
+        return envStore.getOptionalLong(IMPLICIT_RECONCILIATION_DELAY_MS_ENV, 0 /* no delay */);
+    }
+
+    /**
+     * Returns the duration to wait between implicit reconcilations, in milliseconds.
+     */
+    public long getImplicitReconcilePeriodMs() {
+        return envStore.getOptionalLong(IMPLICIT_RECONCILIATION_PERIOD_MS_ENV, 60 * 60 * 1000 /* 1 hour */);
     }
 
     /**

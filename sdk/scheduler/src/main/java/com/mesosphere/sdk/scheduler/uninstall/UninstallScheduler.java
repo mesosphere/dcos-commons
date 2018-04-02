@@ -16,7 +16,6 @@ import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -102,16 +101,6 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public Optional<Scheduler> getMesosScheduler() {
-        if (allButStateStoreUninstalled(frameworkStore, stateStore, schedulerConfig)) {
-            logger.info("Not registering framework because there are no resources left to unreserve.");
-            return Optional.empty();
-        }
-
-        return super.getMesosScheduler();
-    }
-
-    @Override
     public Collection<Object> getResources() {
         return resources;
     }
@@ -138,7 +127,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
+    public void processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
         List<Protos.Offer> localOffers = new ArrayList<>(offers);
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
@@ -168,22 +157,5 @@ public class UninstallScheduler extends AbstractScheduler {
     @Override
     public void processStatusUpdate(Protos.TaskStatus status) {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
-    }
-
-    private static boolean allButStateStoreUninstalled(
-            FrameworkStore frameworkStore, StateStore stateStore, SchedulerConfig schedulerConfig) {
-        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
-        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
-        // have register() called after the StateStore already has the uninstall bit wiped.
-        //
-        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
-        // mode if schedulerConfig.isUninstallEnabled() == true. Therefore we can use it as an OR along with
-        // StateStoreUtils.isUninstalling().
-
-        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return !frameworkStore.fetchFrameworkId().isPresent() &&
-                ResourceUtils.getResourceIds(
-                        ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
-                        .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
     }
 }

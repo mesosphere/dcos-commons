@@ -9,6 +9,7 @@ import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -312,7 +313,7 @@ public class SchedulerBuilder {
                 // because the service is likely now in an inconsistent state resulting from the incomplete uninstall.
                 logger.error("Service has been previously told to uninstall, this cannot be reversed. " +
                         "Reenable the uninstall flag to complete the process.");
-                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+                ProcessExit.exit(ProcessExit.SCHEDULER_ALREADY_UNINSTALLING);
             }
         }
 
@@ -320,7 +321,7 @@ public class SchedulerBuilder {
             return getDefaultScheduler(serviceSpec, frameworkStore, stateStore, configStore);
         } catch (ConfigStoreException e) {
             logger.error("Failed to construct scheduler.", e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
+            ProcessExit.exit(ProcessExit.INITIALIZATION_FAILURE, e);
             return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
         }
     }

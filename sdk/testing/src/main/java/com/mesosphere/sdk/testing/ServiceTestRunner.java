@@ -2,6 +2,9 @@ package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.framework.FrameworkScheduler;
+import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -15,6 +18,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import org.apache.mesos.SchedulerDriver;
@@ -315,6 +319,8 @@ public class ServiceTestRunner {
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
         TaskKiller.reset(false);
+        // Reset revive manager token bucket, to ensure semi-consistent timer state and avoid unnecessary waiting.
+        ReviveManager.resetTimers();
 
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
@@ -337,10 +343,16 @@ public class ServiceTestRunner {
         if (namespace.isPresent()) {
             schedulerBuilder.setNamespace(namespace.get());
         }
-        AbstractScheduler abstractScheduler = schedulerBuilder
-                .build()
-                .disableThreading()
-                .disableApiServer();
+        AbstractScheduler abstractScheduler = schedulerBuilder.build();
+        FrameworkScheduler frameworkScheduler =
+                new FrameworkScheduler(
+                        FrameworkConfig.fromRawServiceSpec(rawServiceSpec).getAllResourceRoles(),
+                        mockSchedulerConfig,
+                        persister,
+                        new FrameworkStore(persister),
+                        abstractScheduler)
+                .setApiServerStarted()
+                .disableThreading();
 
         // Test 4: Can we render the per-task config templates without any missing values?
         Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec, mockSchedulerConfig);
@@ -365,7 +377,7 @@ public class ServiceTestRunner {
                 }
             } else if (tick instanceof Send) {
                 LOGGER.info("SEND:   {}", tick.getDescription());
-                ((Send) tick).send(clusterState, mockDriver, abstractScheduler.getMesosScheduler().get());
+                ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
             }

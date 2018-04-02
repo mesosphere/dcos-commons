@@ -17,15 +17,13 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.reconciliation.Reconciler;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.SchedulerErrorCode;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.TaskCleaner;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.storage.Persister;
 
 /**
  * Implementation of Mesos' {@link Scheduler} interface. There should only be one of these per Scheduler process.
@@ -51,7 +49,9 @@ public class FrameworkScheduler implements Scheduler {
     private final FrameworkStore frameworkStore;
     private final AbstractScheduler abstractScheduler;
     private final OfferProcessor offerProcessor;
+    private final ImplicitReconciler implicitReconciler;
 
+    // TODO(nickbp): Remove these with introduction of new cleanup flow
     private final StateStore stateStore;
     private TaskCleaner taskCleaner;
     private boolean multithreaded = true;
@@ -59,15 +59,16 @@ public class FrameworkScheduler implements Scheduler {
     public FrameworkScheduler(
             Set<String> frameworkRolesWhitelist,
             SchedulerConfig schedulerConfig,
-            StateStore stateStore,
+            Persister persister,
             FrameworkStore frameworkStore,
             AbstractScheduler abstractScheduler) {
         this(
                 frameworkRolesWhitelist,
                 frameworkStore,
                 abstractScheduler,
-                new OfferProcessor(abstractScheduler, stateStore),
-                stateStore);
+                new OfferProcessor(abstractScheduler),
+                new ImplicitReconciler(schedulerConfig),
+                new StateStore(persister));
     }
 
     @VisibleForTesting
@@ -76,11 +77,13 @@ public class FrameworkScheduler implements Scheduler {
             FrameworkStore frameworkStore,
             AbstractScheduler abstractScheduler,
             OfferProcessor offerProcessor,
+            ImplicitReconciler implicitReconciler,
             StateStore stateStore) {
         this.frameworkRolesWhitelist = frameworkRolesWhitelist;
         this.frameworkStore = frameworkStore;
         this.abstractScheduler = abstractScheduler;
         this.offerProcessor = offerProcessor;
+        this.implicitReconciler = implicitReconciler;
         this.stateStore = stateStore;
     }
 
@@ -103,6 +106,7 @@ public class FrameworkScheduler implements Scheduler {
     @VisibleForTesting
     public FrameworkScheduler disableThreading() {
         offerProcessor.disableThreading();
+        implicitReconciler.disableThreading();
         this.multithreaded = false;
         return this;
     }
@@ -116,9 +120,6 @@ public class FrameworkScheduler implements Scheduler {
             return;
         }
 
-        Driver.setDriver(driver);
-        abstractScheduler.registeredWithMesos();
-
         LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
         this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
 
@@ -127,29 +128,22 @@ public class FrameworkScheduler implements Scheduler {
         } catch (Exception e) {
             LOGGER.error(String.format(
                     "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
-            SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
+            ProcessExit.exit(ProcessExit.REGISTRATION_FAILURE, e);
         }
 
-        postRegister(driver, masterInfo);
+        updateDriverAndDomain(driver, masterInfo);
+        abstractScheduler.registered(false);
 
+        // Start background threads:
         offerProcessor.start();
+        implicitReconciler.start();
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-        Driver.setDriver(driver);
-        postRegister(driver, masterInfo);
-    }
-
-    private void postRegister(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        // Task reconciliation should be (re)started on all (re-)registrations.
-        Reconciler reconciler = offerProcessor.getReconciler();
-        reconciler.start();
-        reconciler.reconcile();
-        if (masterInfo.hasDomain()) {
-            IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
-        }
+        updateDriverAndDomain(driver, masterInfo);
+        abstractScheduler.registered(true);
     }
 
     @Override
@@ -218,16 +212,10 @@ public class FrameworkScheduler implements Scheduler {
                 status.getState().toString(),
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
-        try {
-            abstractScheduler.processStatusUpdate(status);
-        } catch (Exception e) {
-            LOGGER.warn("Failed to update TaskStatus received from Mesos. "
-                    + "This may be expected if Mesos sent stale status information: " + status, e);
-        }
-
-        offerProcessor.getReconciler().update(status);
-        TaskKiller.update(status); // TODO(nickbp) when TaskKiller.killTask() is being performed here, check return val
         Metrics.record(status);
+
+        abstractScheduler.status(status);
+        TaskKiller.update(status); // TODO(nickbp) when TaskKiller.killTask() is being performed here, check return val
         taskCleaner.statusUpdate(status);
     }
 
@@ -247,7 +235,7 @@ public class FrameworkScheduler implements Scheduler {
     @Override
     public void disconnected(SchedulerDriver driver) {
         LOGGER.error("Disconnected from Master, shutting down.");
-        SchedulerUtils.hardExit(SchedulerErrorCode.DISCONNECTED);
+        ProcessExit.exit(ProcessExit.DISCONNECTED);
     }
 
     @Override
@@ -264,6 +252,13 @@ public class FrameworkScheduler implements Scheduler {
     @Override
     public void error(SchedulerDriver driver, String message) {
         LOGGER.error("SchedulerDriver returned an error, shutting down: {}", message);
-        SchedulerUtils.hardExit(SchedulerErrorCode.ERROR);
+        ProcessExit.exit(ProcessExit.ERROR);
+    }
+
+    private static void updateDriverAndDomain(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
+        Driver.setDriver(driver);
+        if (masterInfo.hasDomain()) {
+            IsLocalRegionRule.setLocalDomain(masterInfo.getDomain());
+        }
     }
 }

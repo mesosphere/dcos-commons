@@ -2,6 +2,7 @@ package com.mesosphere.sdk.framework;
 
 import org.slf4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.time.Duration;
@@ -16,7 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class TokenBucket {
     private static final int DEFAULT_CAPACITY = 256;
     private static final int DEFAULT_INITIAL_COUNT = DEFAULT_CAPACITY;
-    private static final Duration DEFAULT_ACQUIRE_INTEVAL = Duration.ofSeconds(5);
+    private static final Duration DEFAULT_ACQUIRE_INTERVAL = Duration.ofSeconds(5);
     private static final Duration DEFAULT_INCREMENT_INTERVAL = Duration.ofSeconds(DEFAULT_CAPACITY);
 
     private final Logger logger = LoggingUtils.getLogger(getClass());
@@ -26,22 +27,20 @@ public class TokenBucket {
     private final Duration incrementInterval;
     private final Duration acquireInterval;
     private int count;
-    private long lastRevive = 0;
+    private long lastAcquireMs = 0;
 
     /**
      * A TokenBucket acts as a rate limiting helper.  Clients should not perform rate limited work without acquiring a
      * token from the {@link #tryAcquire()} method.
-     * @param initial The initial number of tokens available
-     * @param capacity The maximum number of tokens the bucket may hold
-     * @param incrementInterval The interval between adding new tokens to the bucket
-     * @param acquireInterval  The minimum interval between allowing tokens to be acquired
+     *
+     * @param builder the configured builder
      */
-    protected TokenBucket(int initial, int capacity, Duration incrementInterval, Duration acquireInterval) {
-        this.initial = initial;
-        this.count = initial;
-        this.capacity = capacity;
-        this.incrementInterval = incrementInterval;
-        this.acquireInterval = acquireInterval;
+    protected TokenBucket(Builder builder) {
+        this.initial = builder.initial;
+        this.count = builder.initial;
+        this.capacity = builder.capacity;
+        this.incrementInterval = builder.incrementInterval;
+        this.acquireInterval = builder.acquireInterval;
 
         String msg = String.format(
                 "Configured with count: %d, capacity: %d, incrementInterval: %ds, acquireInterval: %ds",
@@ -82,22 +81,34 @@ public class TokenBucket {
                 .acquireInterval(acquireInterval);
     }
 
-
     /**
      * This method returns true if a rate-limited action should be executed, and false if the action should not occur.
      */
     public synchronized boolean tryAcquire() {
         if (count > 0 && durationHasPassed(acquireInterval)) {
             count--;
-            lastRevive = now();
+            lastAcquireMs = now();
             return true;
         }
 
         return false;
     }
 
+    /**
+     * Returns the current time in epoch milliseconds. Broken out into a separate function to allow overriding in tests.
+     */
+    @VisibleForTesting
     protected long now() {
         return System.currentTimeMillis();
+    }
+
+    /**
+     * Resets internal counters for tests.
+     */
+    @VisibleForTesting
+    public synchronized void reset() {
+        count = initial;
+        lastAcquireMs = 0;
     }
 
     /**
@@ -110,11 +121,11 @@ public class TokenBucket {
     }
 
     /**
-     * This method is used to enforce a minimum incrementInterval between granting tokens.  It returns true when that
-     * minimum duration has passed and false otherwise.
+     * This method is used to enforce a minimum duration between granting tokens.  It returns true when that minimum
+     * duration has passed and false otherwise.
      */
     private boolean durationHasPassed(Duration duration) {
-        return now() - lastRevive >= duration.toMillis();
+        return now() - lastAcquireMs >= duration.toMillis();
     }
 
     /**
@@ -124,7 +135,7 @@ public class TokenBucket {
         protected int initial = DEFAULT_INITIAL_COUNT;
         protected int capacity = DEFAULT_CAPACITY;
         protected Duration incrementInterval = DEFAULT_INCREMENT_INTERVAL;
-        protected Duration acquireInterval = DEFAULT_ACQUIRE_INTEVAL;
+        protected Duration acquireInterval = DEFAULT_ACQUIRE_INTERVAL;
 
         /**
          * Set the initial number of tokens.
@@ -159,7 +170,7 @@ public class TokenBucket {
         }
 
         public TokenBucket build() {
-            return new TokenBucket(initial, capacity, incrementInterval, acquireInterval);
+            return new TokenBucket(this);
         }
     }
 }

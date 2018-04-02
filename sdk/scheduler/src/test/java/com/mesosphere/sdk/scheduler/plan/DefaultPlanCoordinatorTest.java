@@ -27,7 +27,6 @@ import static org.mockito.Mockito.mock;
  */
 public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
-    private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
     public static final int SUFFICIENT_MEM = 2000;
     public static final int SUFFICIENT_DISK = 10000;
@@ -86,7 +85,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         MockitoAnnotations.initMocks(this);
 
         serviceSpecification = DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME)
+                .name(TestConstants.SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
@@ -113,7 +112,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         true),
                 stateStore);
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME + "-B")
+                .name(TestConstants.SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
