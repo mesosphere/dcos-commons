@@ -8,7 +8,6 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
-import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -275,7 +274,6 @@ public class SchedulerBuilder {
         // When multi-service is enabled, state/configs are stored within a namespace matching the service name.
         // Otherwise use an empty namespace, which indicates single-service mode.
         String namespaceStr = namespace.orElse("");
-        FrameworkStore frameworkStore = new FrameworkStore(persister);
         StateStore stateStore = new StateStore(persister, namespaceStr);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespaceStr);
@@ -285,12 +283,11 @@ public class SchedulerBuilder {
             // uninstall mode. UninstallScheduler will internally flag the stateStore with an uninstall bit if needed.
             return new UninstallScheduler(
                     serviceSpec,
-                    frameworkStore,
                     stateStore,
                     configStore,
-                    FrameworkConfig.fromServiceSpec(serviceSpec),
                     schedulerConfig,
-                    Optional.ofNullable(planCustomizer));
+                    Optional.ofNullable(planCustomizer),
+                    namespace);
         }
 
         if (StateStoreUtils.isUninstalling(stateStore)) {
@@ -300,12 +297,11 @@ public class SchedulerBuilder {
                 // Launch the service in uninstall mode so that it can continue with whatever may be left.
                 return new UninstallScheduler(
                         serviceSpec,
-                        frameworkStore,
                         stateStore,
                         configStore,
-                        FrameworkConfig.fromServiceSpec(serviceSpec),
                         schedulerConfig,
-                        Optional.ofNullable(planCustomizer));
+                        Optional.ofNullable(planCustomizer),
+                        namespace);
             } else {
                 // This is an illegal state for a single-service scheduler. SchedulerConfig's uninstall bit should have
                 // also been enabled. If we got here, it means that the user likely tampered with the scheduler env
@@ -318,7 +314,7 @@ public class SchedulerBuilder {
         }
 
         try {
-            return getDefaultScheduler(serviceSpec, frameworkStore, stateStore, configStore);
+            return getDefaultScheduler(serviceSpec, new FrameworkStore(persister), stateStore, configStore);
         } catch (ConfigStoreException e) {
             logger.error("Failed to construct scheduler.", e);
             ProcessExit.exit(ProcessExit.INITIALIZATION_FAILURE, e);
@@ -411,7 +407,6 @@ public class SchedulerBuilder {
 
         return new DefaultScheduler(
                 serviceSpec,
-                FrameworkConfig.fromServiceSpec(serviceSpec),
                 schedulerConfig,
                 namespace,
                 customResources,
@@ -466,6 +461,7 @@ public class SchedulerBuilder {
             return Optional.of(
                     new DecommissionPlanManager(
                             decommissionPlan.get(),
+                            decommissionPlanFactory.getResourceSteps(),
                             decommissionPlanFactory.getTasksToDecommission()));
         }
 

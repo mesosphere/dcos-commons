@@ -58,8 +58,11 @@ public class ClusterState {
         return scheduler.getPlans();
     }
 
-    public Collection<Object> getResources() {
-        return scheduler.getResources();
+    /**
+     * Returns the scheduler's HTTP endpoint objects.
+     */
+    public Collection<Object> getHTTPEndpoints() {
+        return scheduler.getHTTPEndpoints();
     }
 
     /**

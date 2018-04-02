@@ -264,9 +264,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 configStore,
                 failedTasks,
                 allLaunchedTasks);
-        if (!failedPods.isEmpty()) {
-            logger.info("All failed tasks: {}", getPodNames(failedPods));
-        }
+        logger.info("All failed tasks: {}", getPodNames(failedPods));
 
         failedPods = failedPods.stream()
                 .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))

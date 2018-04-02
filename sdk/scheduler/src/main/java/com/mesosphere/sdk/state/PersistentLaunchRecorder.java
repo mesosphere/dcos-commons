@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * Records the result of launched tasks to persistent storage.
  */
-public class PersistentLaunchRecorder implements OperationRecorder {
+public class PersistentLaunchRecorder {
     private final Logger logger = LoggingUtils.getLogger(getClass());
     private final StateStore stateStore;
     private final ServiceSpec serviceSpec;
@@ -24,44 +24,45 @@ public class PersistentLaunchRecorder implements OperationRecorder {
         this.serviceSpec = serviceSpec;
     }
 
-    @Override
-    public void record(OfferRecommendation offerRecommendation) throws Exception {
-        if (!(offerRecommendation instanceof LaunchOfferRecommendation)) {
-            return;
-        }
-
-        LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
-        Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
-
-        Optional<PodInstance> podInstance = getPodInstance(taskInfo);
-
-        Optional<Protos.TaskStatus> taskStatus = Optional.empty();
-        String taskStatusDescription = "";
-        if (!taskInfo.getTaskId().getValue().equals("")) {
-            // Initialize the task status as TASK_STAGING. In practice we should never actually receive a TASK_STAGING
-            // status from Mesos so this is effectively an internal stub for the scheduler's own use.
-            taskStatusDescription = " with STAGING status";
-
-            Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
-                    .setTaskId(taskInfo.getTaskId())
-                    .setState(Protos.TaskState.TASK_STAGING);
-            if (taskInfo.hasExecutor()) {
-                taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
+    public void record(Collection<OfferRecommendation> offerRecommendations) throws Exception {
+        for (OfferRecommendation offerRecommendation : offerRecommendations) {
+            if (!(offerRecommendation instanceof LaunchOfferRecommendation)) {
+                continue;
             }
 
-            taskStatus = Optional.of(taskStatusBuilder.build());
-        }
+            LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
+            Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
 
-        logger.info("Persisting launch operation{} for {}",
-                taskStatusDescription,
-                taskInfo.getName());
+            Optional<PodInstance> podInstance = getPodInstance(taskInfo);
 
-        if (podInstance.isPresent()) {
-            updateTaskResourcesWithinResourceSet(podInstance.get(), taskInfo);
-        }
-        stateStore.storeTasks(Collections.singletonList(taskInfo));
-        if (taskStatus.isPresent()) {
-            stateStore.storeStatus(taskInfo.getName(), taskStatus.get());
+            Optional<Protos.TaskStatus> taskStatus = Optional.empty();
+            String taskStatusDescription = "";
+            if (!taskInfo.getTaskId().getValue().equals("")) {
+                // Initialize the task status as TASK_STAGING. In practice we should never actually receive a STAGING
+                // status from Mesos so this is effectively an internal stub for the scheduler's own use.
+                taskStatusDescription = " with STAGING status";
+
+                Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
+                        .setTaskId(taskInfo.getTaskId())
+                        .setState(Protos.TaskState.TASK_STAGING);
+                if (taskInfo.hasExecutor()) {
+                    taskStatusBuilder.setExecutorId(taskInfo.getExecutor().getExecutorId());
+                }
+
+                taskStatus = Optional.of(taskStatusBuilder.build());
+            }
+
+            logger.info("Persisting launch operation{} for {}",
+                    taskStatusDescription,
+                    taskInfo.getName());
+
+            if (podInstance.isPresent()) {
+                updateTaskResourcesWithinResourceSet(podInstance.get(), taskInfo);
+            }
+            stateStore.storeTasks(Collections.singletonList(taskInfo));
+            if (taskStatus.isPresent()) {
+                stateStore.storeStatus(taskInfo.getName(), taskStatus.get());
+            }
         }
     }
 

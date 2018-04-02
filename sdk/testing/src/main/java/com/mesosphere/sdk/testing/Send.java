@@ -50,7 +50,7 @@ public interface Send extends SimulationTick {
         return new Send() {
             @Override
             public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
-                PodResource r = (PodResource) state.getResources().stream()
+                PodResource r = (PodResource) state.getHTTPEndpoints().stream()
                         .filter(resource -> resource instanceof PodResource)
                         .findAny().get();
                 r.replace(podName);

@@ -873,10 +873,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
-        OperationRecorder recorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
-        for (OfferRecommendation recommendation : recommendations) {
-            recorder.record(recommendation);
-        }
+        new PersistentLaunchRecorder(stateStore, serviceSpec).record(recommendations);
     }
 
     private ServiceSpec getServiceSpec(String specFileName) throws Exception {

@@ -2,14 +2,13 @@ package com.mesosphere.sdk.scheduler;
 
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.OperationRecorder;
 import com.readytalk.metrics.StatsDReporter;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 
+import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.mesos.Protos;
@@ -98,35 +97,11 @@ public class Metrics {
         metrics.counter(DECLINE_LONG).inc(amount);
     }
 
-    /**
-     * This class records counter metrics for all Mesos Operations performed by the scheduler.
-     */
-    public static class OperationsCounter implements OperationRecorder {
-        private static final OperationsCounter metricsRecorder = new OperationsCounter();
-        private static final String PREFIX = "operation";
-
-        private OperationsCounter() {
-            // Do not instantiate this singleton class.
-        }
-
-        public static OperationsCounter getInstance() {
-            return metricsRecorder;
-        }
-
-        @Override
-        public void record(OfferRecommendation offerRecommendation) throws Exception {
-            // Drop launch recommendations which are for bookkeeping purposes only
-            if (offerRecommendation instanceof LaunchOfferRecommendation &&
-                    !((LaunchOfferRecommendation) offerRecommendation).shouldLaunch()) {
-                return;
-            }
-
+    public static void incrementRecommendations(Collection<OfferRecommendation> recommendations) {
+        for (OfferRecommendation recommendation : recommendations) {
             // Metric name will be of the form "operation.launch"
-            final String metricName = String.format(
-                    "%s.%s",
-                    PREFIX,
-                    offerRecommendation.getOperation().getType().name().toLowerCase());
-
+            final String metricName =
+                    String.format("operation.%s", recommendation.getOperation().getType().name().toLowerCase());
             metrics.counter(metricName).inc();
         }
     }
@@ -135,14 +110,8 @@ public class Metrics {
      * Records the provided {@code taskStatus} received from Mesos.
      */
     public static void record(Protos.TaskStatus taskStatus) {
-        final String prefix = "task_status";
-
         // Metric name will be of the form "task_status.running"
-        final String metricName = String.format(
-                "%s.%s",
-                prefix,
-                taskStatus.getState().name().toLowerCase());
-
+        final String metricName = String.format("task_status.%s", taskStatus.getState().name().toLowerCase());
         metrics.counter(metricName).inc();
     }
 }

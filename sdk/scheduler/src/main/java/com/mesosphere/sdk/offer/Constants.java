@@ -52,9 +52,6 @@ public class Constants {
     /** The "any role" wildcard resource role. */
     public static final String ANY_ROLE = "*";
 
-    /** The string prepended to reserved resources to indicate that they are uninstalled. */
-    public static final String TOMBSTONE_MARKER = "uninstalled_";
-
     /** TLD to be used for VIP-based hostnames. */
     public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
 

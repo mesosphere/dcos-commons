@@ -2,14 +2,13 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.framework.Driver;
-import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.offer.CommonIdUtils;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
@@ -62,7 +61,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     private static final Protos.TaskStatus TASK_B_STATUS_ERROR =
             TaskTestUtils.generateStatus(TASK_B.getTaskId(), Protos.TaskState.TASK_ERROR);
 
-    private FrameworkStore frameworkStore;
     private StateStore stateStore;
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
@@ -74,9 +72,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
+
         Persister persister = new MemPersister();
-        frameworkStore = new FrameworkStore(persister);
-        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
         stateStore = new StateStore(persister);
         stateStore.storeTasks(Collections.singletonList(TASK_A));
 
@@ -87,7 +84,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testEmptyOffers() throws Exception {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
-        uninstallScheduler.offers(Collections.emptyList());
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, uninstallScheduler.offers(Collections.emptyList()).result);
         verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
     }
@@ -157,12 +154,28 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         uninstallScheduler.offers(Collections.singletonList(offer));
+
+        // Verify that scheduler doesn't expect _1 and _2. It then expects that they have been cleaned:
+        UnexpectedResourcesResponse response =
+                uninstallScheduler.getUnexpectedResources(Collections.singletonList(offer));
+        Assert.assertEquals(UnexpectedResourcesResponse.Result.PROCESSED, response.result);
+        Assert.assertEquals(1, response.offerResources.size());
+        Assert.assertEquals(offer.getResourcesList(), response.offerResources.iterator().next().getResources());
+
+        // Check that _1 and _2 are now marked as complete:
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
         offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.offers(Collections.singletonList(offer));
+
+        // Verify that scheduler doesn't expect _3. It then expects that it has been cleaned:
+        response = uninstallScheduler.getUnexpectedResources(Collections.singletonList(offer));
+        Assert.assertEquals(UnexpectedResourcesResponse.Result.PROCESSED, response.result);
+        Assert.assertEquals(1, response.offerResources.size());
+        Assert.assertEquals(offer.getResourcesList(), response.offerResources.iterator().next().getResources());
+
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(expected, getStepStatuses(plan));
     }
@@ -174,13 +187,25 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         uninstallScheduler.offers(Collections.singletonList(offer));
+
+        // Verify that scheduler doesn't expect _1/_2/_3. It then expects that they have been cleaned:
+        UnexpectedResourcesResponse response =
+                uninstallScheduler.getUnexpectedResources(Collections.singletonList(offer));
+        Assert.assertEquals(UnexpectedResourcesResponse.Result.PROCESSED, response.result);
+        Assert.assertEquals(1, response.offerResources.size());
+        Assert.assertEquals(offer.getResourcesList(), response.offerResources.iterator().next().getResources());
+
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
         List<Status> expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
-        // Turn the crank once to finish the last Step
+        // Turn the crank once to prepare the deregistration Step
         uninstallScheduler.offers(Arrays.asList(getOffer()));
-        plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
+        expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PREPARED);
+        Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
+
+        // Deregistration completes only after we've told the scheduler that it's unregistered
+        uninstallScheduler.unregistered();
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         Assert.assertTrue(plan.isComplete());
@@ -192,18 +217,24 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Persister persister = new MemPersister();
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
                 getServiceSpec(),
-                new FrameworkStore(persister),
                 new StateStore(persister),
                 mockConfigStore,
-                FrameworkConfig.fromServiceSpec(getServiceSpec()),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.of(mockSecretsClient));
-        // Returns a simple placeholder plan with status COMPLETE
+        // Starts with a near-empty plan with only the deregistered call incomplete
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
+
+        List<Status> expected = Arrays.asList(Status.PENDING);
+        Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
+        Assert.assertFalse(plan.toString(), plan.isComplete());
+
+        uninstallScheduler.unregistered();
+        expected = Arrays.asList(Status.COMPLETE);
+        Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         Assert.assertTrue(plan.toString(), plan.isComplete());
-        Assert.assertTrue(plan.getChildren().isEmpty());
     }
 
     @Test
@@ -215,7 +246,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 new DefaultTransportEncryptionSpec("foo", TransportEncryptionSpec.Type.KEYSTORE)));
         PodSpec mockPod = mock(PodSpec.class);
         when(mockPod.getTasks()).thenReturn(Arrays.asList(mockTask));
-        when(mockPod.getPreReservedRole()).thenReturn(Constants.ANY_ROLE);
         when(serviceSpecWithTLSTasks.getPods()).thenReturn(Arrays.asList(mockPod));
 
         UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks);
@@ -225,24 +255,36 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
 
         // Run through the task cleanup phase
-        uninstallScheduler.registered(false);
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(
                 RESERVED_RESOURCE_1, RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         uninstallScheduler.offers(Collections.singletonList(offer));
+
+        // Verify that scheduler doesn't expect _1/_2/_3. It then expects that they have been cleaned:
+        UnexpectedResourcesResponse response =
+                uninstallScheduler.getUnexpectedResources(Collections.singletonList(offer));
+        Assert.assertEquals(UnexpectedResourcesResponse.Result.PROCESSED, response.result);
+        Assert.assertEquals(1, response.offerResources.size());
+        Assert.assertEquals(offer.getResourcesList(), response.offerResources.iterator().next().getResources());
+
         List<Status> expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
         // Then the TLS cleanup phase
-        uninstallScheduler.offers(Arrays.asList(getOffer()));
+        uninstallScheduler.offers(Collections.singletonList(getOffer()));
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
         verify(mockSecretsClient, times(1)).list(TestConstants.SERVICE_NAME);
 
-        // Then the final Deregister phase
-        uninstallScheduler.offers(Arrays.asList(getOffer()));
+        // Then the final Deregister phase: goes PREPARED when offer arrives, then COMPLETE when told that we're unregistered
+        uninstallScheduler.offers(Collections.singletonList(getOffer()));
+        expected = Arrays.asList(
+                Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PREPARED);
+        Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
+
+        uninstallScheduler.unregistered();
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
@@ -254,12 +296,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testUninstallPlanCustomizer() throws Exception {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
                 getServiceSpec(),
-                frameworkStore,
                 stateStore,
                 mockConfigStore,
-                FrameworkConfig.fromServiceSpec(getServiceSpec()),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(getReversingPlanCustomizer()),
+                Optional.empty(),
                 Optional.of(mockSecretsClient));
         uninstallScheduler.start();
 
@@ -292,12 +333,11 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec) {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
                 serviceSpec,
-                frameworkStore,
                 stateStore,
                 mockConfigStore,
-                FrameworkConfig.fromServiceSpec(serviceSpec),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockPlanCustomizer),
+                Optional.empty(),
                 Optional.of(mockSecretsClient));
         uninstallScheduler
                 .start()
@@ -308,8 +348,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     private static ServiceSpec getServiceSpec() {
         ServiceSpec mockServiceSpec = mock(ServiceSpec.class);
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
-        when(mockServiceSpec.getRole()).thenReturn(TestConstants.ROLE);
-        when(mockServiceSpec.getPods()).thenReturn(Collections.emptyList());
         return mockServiceSpec;
     }
 

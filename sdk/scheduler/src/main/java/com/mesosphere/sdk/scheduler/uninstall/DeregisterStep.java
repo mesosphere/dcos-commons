@@ -1,63 +1,36 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
-import com.mesosphere.sdk.state.FrameworkStore;
-import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.PersisterUtils;
-
-import org.apache.mesos.SchedulerDriver;
 
 import java.util.Optional;
 
 /**
- * Step which implements the deregistering of a framework.
+ * Step which advertises that the service has been deregistered and has completed uninstall. This is the last step in an
+ * uninstall plan, and it acts as a gate on advertising a completed uninstall to Cosmos. After this step is complete,
+ * the scheduler process should soon be destroyed.
  */
 public class DeregisterStep extends UninstallStep {
 
-    private final FrameworkStore frameworkStore;
-    private final StateStore stateStore;
-
-    /**
-     * Creates a new instance with initial {@code status}. The {@link SchedulerDriver} must be
-     * set separately.
-     */
-    DeregisterStep(FrameworkStore frameworkStore, StateStore stateStore) {
+    public DeregisterStep() {
         super("deregister", Status.PENDING);
-        this.frameworkStore = frameworkStore;
-        this.stateStore = stateStore;
     }
 
     @Override
     public Optional<PodInstanceRequirement> start() {
-        logger.info("Stopping SchedulerDriver...");
-        // Remove the framework ID before unregistering
-        frameworkStore.clearFrameworkId();
-        // Unregisters the framework in addition to stopping the SchedulerDriver thread:
-        // Calling with failover == false causes Mesos to teardown the framework.
-        // This call will cause DefaultService's schedulerDriver.run() call to return DRIVER_STOPPED.
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (driver.isPresent()) {
-            driver.get().stop(false);
-            logger.info("Deleting service root path for framework...");
-            try {
-                PersisterUtils.clearAllData(stateStore.getPersister());
-            } catch (PersisterException e) {
-                // Best effort.
-                logger.error("Failed to clear all data", e);
-            }
-            logger.info("### UNINSTALL IS COMPLETE! ###");
-            logger.info("Scheduler should be cleaned up shortly...");
-            setStatus(Status.COMPLETE);
-        } else {
-            logger.error("No driver is present for deregistering the framework.");
-
-            // The state should already be PENDING, but we do this out of an abundance of caution.
-            setStatus(Status.PENDING);
+        if (isPending()) {
+            setStatus(Status.PREPARED);
         }
 
-        return Optional.empty();
+        return getPodInstanceRequirement();
+    }
+
+    /**
+     * Marks this step complete after the framework has been deregistered.
+     * At this point, the overall {@code deploy} plan for uninstall should be complete, and the Scheduler process should
+     * be destroyed by DC/OS soon after.
+     */
+    public void setComplete() {
+        setStatus(Status.COMPLETE);
     }
 }
