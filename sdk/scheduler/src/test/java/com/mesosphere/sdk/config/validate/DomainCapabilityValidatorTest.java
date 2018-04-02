@@ -117,7 +117,8 @@ public class DomainCapabilityValidatorTest {
     private void setNewCluster() throws IOException {
         setVersion("1.11");
     }
+
     private void setVersion(String version) throws IOException {
-        Capabilities.overrideCapabilities(new Capabilities(new DcosVersion(version)));
+        Capabilities.overrideCapabilities(new Capabilities(new DcosVersion(version, DcosVersion.DcosVariant.UNKNOWN)));
     }
 }

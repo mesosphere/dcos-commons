@@ -195,6 +195,6 @@ public class CapabilitiesTest {
     }
 
     private static Capabilities testCapabilities(String version) throws IOException {
-        return new Capabilities(new DcosVersion(version));
+        return new Capabilities(new DcosVersion(version, DcosVersion.DcosVariant.UNKNOWN));
     }
 }

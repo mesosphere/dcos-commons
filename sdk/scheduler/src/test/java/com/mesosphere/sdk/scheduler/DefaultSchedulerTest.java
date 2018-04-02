@@ -156,7 +156,7 @@ public class DefaultSchedulerTest {
     }
 
     private Capabilities getCapabilities() throws Exception {
-        return new Capabilities(new DcosVersion("1.10-dev")) {
+        return new Capabilities(new DcosVersion("1.10-dev", DcosVersion.DcosVariant.UNKNOWN)) {
             @Override
             public boolean supportsGpuResource() {
                 return DEFAULT_GPU_POLICY;
