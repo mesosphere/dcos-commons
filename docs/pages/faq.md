@@ -6,11 +6,11 @@ redirect_from: /faq.html
 
 #### __What is the DC/OS SDK?__
 
-  The DC/OS SDK is a collection of tools, libraries, and documentation for integrating stateful services with DC/OS.
+  The DC/OS SDK is a collection of tools, libraries, and documentation for integrating services with DC/OS.
 
 #### __When should I use the DC/OS SDK?__
 
-  Independent software vendors (ISVs) interested in offering production-grade stateful services for DC/OS should use the SDK.
+  Independent software vendors (ISVs) interested in offering production-grade services for DC/OS should use the SDK.
 
 #### __How can I get commercial support for the DC/OS SDK?__
 
@@ -18,7 +18,7 @@ redirect_from: /faq.html
 
 #### __What is a DC/OS service?__
 
-  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is a service (typically a stateful, distributed service) in a DC/OS cluster. These services often have multiple instances that run on discrete DC/OS agents and provide redundancy and high availability. DC/OS services built using the DC/OS SDK implement schedulers, which allow for orchestrated installation, update and backup/recovery.
+  A [DC/OS service](https://dcos.io/docs/latest/overview/concepts/#dcos-service) is a service (typically a distributed service) in a DC/OS cluster. These services often have multiple instances that run on discrete DC/OS agents and provide redundancy and high availability. DC/OS services built using the DC/OS SDK implement schedulers, which allow for orchestrated installation, update and backup/recovery.
 
 #### __What is a DC/OS package?__
 
@@ -30,7 +30,7 @@ redirect_from: /faq.html
 
 #### __What are the advantages of using the DC/OS SDK vs. building a framework from scratch?__
 
-  The SDK dramatically simplifies integrating stateful services with DC/OS and Mesosphere Enterprise DC/OS so that you can focus on your goals. In the past, integrating existing services with DC/OS meant developing a scheduler to evaluate and accept resource offers, launch and monitor tasks, and handle task reconciliation. Stateful services introduce additional concerns like reserving and accounting for resources, such as persistent volumes, and more complicated failure recovery semantics. Prior to the SDK, integrating stateful services with DC/OS required tens of thousands of lines of code and months of development and maintenance. With the SDK, even the most complex stateful services require only a few hundred lines of code to integrate with DC/OS.
+  The SDK dramatically simplifies integrating services with DC/OS and Mesosphere Enterprise DC/OS so that you can focus on your goals. In the past, integrating existing services with DC/OS meant developing a scheduler to evaluate and accept resource offers, launch and monitor tasks, and handle task reconciliation. Stateful services introduce additional concerns like reserving and accounting for resources, such as persistent volumes, and more complicated failure recovery semantics. Prior to the SDK, integrating services with DC/OS required tens of thousands of lines of code and months of development and maintenance. With the SDK, even the most complex services require only a few hundred lines of code to integrate with DC/OS.
 
 #### __Do I need to be a Java developer to use the DC/OS SDK?__
 
@@ -38,7 +38,7 @@ redirect_from: /faq.html
 
 #### __How long will it take to build my DC/OS service?__
 
-  A developer with basic Java experience will find it easy to use the SDK to integrate existing stateful services with DC/OS. A basic integration generally takes 1-3 days to develop, test, and release. Advanced integrations that include custom maintenance plans and automated recovery strategies usually take around 2-3 weeks to develop, test, and release.
+  A developer with basic Java experience will find it easy to use the SDK to integrate existing services with DC/OS. A basic integration generally takes 1-3 days to develop, test, and release. Advanced integrations that include custom maintenance plans and automated recovery strategies usually take around 2-3 weeks to develop, test, and release.
 
 #### __How can I distribute my DC/OS package?__
 

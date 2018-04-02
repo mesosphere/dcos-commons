@@ -10,54 +10,7 @@
 [__Slack__](http://chat.dcos.io)
 
 ---
-__DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration and automation of stateful services, such as databases, message brokers, and caching services.
-
-![Status](https://img.shields.io/badge/Status-Beta-BF97F0.svg?style=flat-square)
-
-DC/OS SDK is progressing toward a 1.0 release, but is still under heavy development.
-
-### Benefits
-
-* __Simple and Flexible__: The SDK provides the simplicity of a declarative YAML API as well as the flexibility to use the full Java programming language.
-
-* __Automate Maintenance__: Stateful services need to be maintained. With the SDK, you can automate maintenance routines, such as backup and restore, to simplify operations.
-
-* __Production-Proven__: Building reliable services is hard. Uber and Bing platform teams use the SDK for mission-critical databases and message brokers.
-
----
-### Quick Start
-
-From a workstation with 8GB Memory, [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), [VirtualBox 5.1.x](https://www.virtualbox.org/), and [Vagrant 1.9.x](https://www.vagrantup.com/downloads.html):
-
-1. Download the DC/OS SDK.
-  ```
-  git clone https://github.com/mesosphere/dcos-commons.git
-  ```
-
-2. Create your local development environment.
-  ```
-  cd dcos-commons/ && ./get-dcos-docker.sh
-  ```
-  * Visit the DC/OS cluster [dashboard](http://172.17.0.2/) to verify your development environment is running.
-
-3. Enter your development environment.
-  ```
-  cd tools/vagrant/ && vagrant ssh
-  ```
-
-4. Build your hello-world example project.
-  ```
-  cd /dcos-commons/frameworks/helloworld/ && ./build.sh local
-  ```
-
-5. Start your hello-world DC/OS service.
-  ```
-  dcos package install hello-world
-  ```
-
-6. Explore your hello-world service.
-  * Visit the [dashboard](http://172.17.0.2/#/services/%2Fhello-world/) to see your hello-world service running.
-  * Click through to one of your tasks (e.g. `world-server-1-<uuid>`), select the __Files__ tab, select __world-container-path__, and finally select the __output__ file.
+__DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration of technologies such as Kafka, Cassandra, HDFS, Spark, and TensorFlow with DC/OS.
 
 ---
 ### Understanding the Hello World Service Specification
