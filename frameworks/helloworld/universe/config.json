@@ -52,7 +52,10 @@
         "region": {
           "description": "The region that the service's tasks should run in.",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-region+string"
+          }
         },
         "sleep": {
           "description": "The sleep duration in seconds before tasks exit.",
