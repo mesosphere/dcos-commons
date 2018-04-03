@@ -229,8 +229,10 @@ class OfferProcessor {
         // operations to perform and offers which were not used. On our end, we then perform the requested operations
         // and clean or decline the remaining unused offers.
         OfferResponse offerResponse = mesosEventClient.offers(offers);
-        LOGGER.info("Offer result: {} with {} recommendations for {} offers",
-                offerResponse.result, offerResponse.recommendations.size(), offers.size());
+        LOGGER.info("Offer result for {} offer{}: {} with {} recommendation{}",
+                offers.size(), offers.size() == 1 ? "" : "s",
+                offerResponse.result,
+                offerResponse.recommendations.size(), offerResponse.recommendations.size() == 1 ? "" : "s");
         switch (offerResponse.result) {
         case FINISHED:
             // We do not directly support the FINISHED result. It should be internally handled by individual clients
@@ -272,10 +274,10 @@ class OfferProcessor {
                 mesosEventClient.getUnexpectedResources(unusedOffers);
         Collection<OfferRecommendation> cleanupRecommendations =
                 toCleanupRecommendations(unexpectedResourcesResponse.offerResources);
-        LOGGER.info("Cleanup result: {} with {} recommendations for {} offers",
+        LOGGER.info("Cleanup result for {} offer{}: {} with {} recommendation{}",
+                unusedOffers.size(), unusedOffers.size() == 1 ? "" : "s",
                 unexpectedResourcesResponse.result,
-                cleanupRecommendations.size(),
-                unusedOffers.size());
+                cleanupRecommendations.size(), cleanupRecommendations.size() == 1 ? "" : "s");
 
         // Decline the offers that haven't been used for either offer evaluation or resource cleanup.
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanupRecommendations);

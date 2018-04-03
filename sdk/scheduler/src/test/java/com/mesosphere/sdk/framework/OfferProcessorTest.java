@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,7 +14,6 @@ import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
-import org.apache.mesos.Protos.Offer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
@@ -39,31 +40,6 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import static org.mockito.Mockito.*;
 
 public class OfferProcessorTest {
-
-    private static final Answer<OfferResponse> CONSUME_FIRST_OFFER = new Answer<OfferResponse>() {
-        @Override
-        public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
-            List<Offer> offers = getOffersArgument(invocation);
-            if (offers.isEmpty()) {
-                return OfferResponse.processed(Collections.emptyList());
-            }
-            return OfferResponse.processed(Collections.singletonList(
-                    new ReserveOfferRecommendation(offers.get(0), getUnreservedCpus(3))));
-        }
-    };
-
-    private static final Answer<UnexpectedResourcesResponse> UNEXPECTED_FIRST_OFFER =
-            new Answer<UnexpectedResourcesResponse>() {
-        @Override
-        public UnexpectedResourcesResponse answer(InvocationOnMock invocation) throws Throwable {
-            List<Offer> offers = getOffersArgument(invocation);
-            if (offers.isEmpty()) {
-                return UnexpectedResourcesResponse.processed(Collections.emptyList());
-            }
-            return UnexpectedResourcesResponse.processed(Collections.singletonList(
-                    new OfferResources(offers.get(0)).addAll(offers.get(0).getResourcesList())));
-        }
-    };
 
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferProcessorTest.class);
     private static final int THREAD_COUNT = 50;
@@ -116,26 +92,29 @@ public class OfferProcessorTest {
 
     @Test
     public void testAcceptedAndUnexpectedResources() throws InterruptedException {
-        when(mockMesosEventClient.offers(any())).thenAnswer(CONSUME_FIRST_OFFER);
-        when(mockMesosEventClient.getUnexpectedResources(any())).thenAnswer(UNEXPECTED_FIRST_OFFER);
+        List<Protos.Offer> sentOffers = Arrays.asList(getOffer(), getOffer(), getOffer());
+        List<Protos.OfferID> sentOfferIds = sentOffers.stream().map(o -> o.getId()).collect(Collectors.toList());
+
+        Protos.OfferID offerToConsume = sentOfferIds.get(0);
+        Protos.OfferID offerToUnreserve = sentOfferIds.get(2);
+
+        when(mockMesosEventClient.offers(any())).thenAnswer(consumeOffer(offerToConsume));
+        when(mockMesosEventClient.getUnexpectedResources(any())).thenAnswer(unexpectedOffer(offerToUnreserve));
 
         processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        // All offers should have been declined with a long interval (don't need these, come back much later):
-        Set<String> sentOfferIds = sendOffers(1, OFFERS_PER_THREAD);
+        processor.enqueue(sentOffers);
+        processor.awaitOffersProcessed();
 
         // One declined offer, one reserved offer, one unreserved offer:
-        verify(mockSchedulerDriver, times(1)).declineOffer(any(), eq(LONG_INTERVAL));
+        verify(mockSchedulerDriver, times(1)).declineOffer(sentOfferIds.get(1), LONG_INTERVAL);
         verify(mockSchedulerDriver, times(1)).acceptOffers(offerIdCaptor.capture(), operationCaptor.capture(), any());
 
-        Assert.assertEquals(2, offerIdCaptor.getValue().size());
-        Assert.assertTrue(sentOfferIds.containsAll(offerIdCaptor.getValue().stream()
-                .map(id -> id.getValue())
-                .collect(Collectors.toList())));
+        Assert.assertEquals(new HashSet<>(Arrays.asList(offerToConsume, offerToUnreserve)), offerIdCaptor.getValue());
 
-        Assert.assertEquals(2, operationCaptor.getValue().size());
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operationCaptor.getValue().get(0).getType());
-        Assert.assertEquals(Protos.Offer.Operation.Type.UNRESERVE, operationCaptor.getValue().get(1).getType());
+        List<Protos.Offer.Operation> operations = operationCaptor.getValue();
+        Assert.assertEquals(2, operations.size());
+        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operations.get(0).getType());
+        Assert.assertEquals(Protos.Offer.Operation.Type.UNRESERVE, operations.get(1).getType());
     }
 
     @Test
@@ -238,7 +217,10 @@ public class OfferProcessorTest {
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    LOGGER.info("Thread {} sending {} offers...", threadName, offers.size());
+                    LOGGER.info("Thread {} sending {} offers: {}",
+                            threadName,
+                            offers.size(),
+                            offers.stream().map(o -> o.getId().getValue()).collect(Collectors.toList()));
                     processor.enqueue(offers);
                 }
             }, threadName);
@@ -272,6 +254,36 @@ public class OfferProcessorTest {
                 .setHostname(TestConstants.HOSTNAME)
                 .addResources(getUnreservedCpus(3))
                 .build();
+    }
+
+    private static Answer<OfferResponse> consumeOffer(Protos.OfferID offerToConsume) {
+        return new Answer<OfferResponse>() {
+            @Override
+            public OfferResponse answer(InvocationOnMock invocation) throws Throwable {
+                Optional<Protos.Offer> match = getOffersArgument(invocation).stream()
+                        .filter(o -> o.getId().equals(offerToConsume))
+                        .findAny();
+                Collection<OfferRecommendation> recs = match.isPresent()
+                        ? Collections.singletonList(new ReserveOfferRecommendation(match.get(), getUnreservedCpus(3)))
+                        : Collections.emptyList();
+                return OfferResponse.processed(recs);
+            }
+        };
+    }
+
+    private static Answer<UnexpectedResourcesResponse> unexpectedOffer(Protos.OfferID unexpectedOffer) {
+        return new Answer<UnexpectedResourcesResponse>() {
+            @Override
+            public UnexpectedResourcesResponse answer(InvocationOnMock invocation) throws Throwable {
+                Optional<Protos.Offer> match = getOffersArgument(invocation).stream()
+                        .filter(o -> o.getId().equals(unexpectedOffer))
+                        .findAny();
+                Collection<OfferResources> recs = match.isPresent()
+                        ? Collections.singletonList(new OfferResources(match.get()).addAll(match.get().getResourcesList()))
+                        : Collections.emptyList();
+                return UnexpectedResourcesResponse.processed(recs);
+            }
+        };
     }
 
     @SuppressWarnings("unchecked")
