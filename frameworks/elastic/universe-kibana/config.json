@@ -27,6 +27,11 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "plugins": {
+          "description": "An optional comma-separated list of URLs to ZIP files containing Kibana plugins.",
+          "type": "string",
+          "default": ""
+        },
         "elasticsearch_url": {
           "description": "The URL of the Elasticsearch cluster to use for all your queries.",
           "type": "string",
