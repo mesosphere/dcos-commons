@@ -53,10 +53,10 @@ public class ApiServerTest {
         expectedEndpoints.put("/v1/plans/bar", "Service Plan: bar");
         expectedEndpoints.put("/v1/pod/foo/info", "Service Pod: foo");
         expectedEndpoints.put("/v1/pod/bar/info", "Service Pod: bar");
-        expectedEndpoints.put("/v1/jobs/fast/plans/foo", "fast Plan: foo");
-        expectedEndpoints.put("/v1/jobs/slow/plans/bar", "slow Plan: bar");
-        expectedEndpoints.put("/v1/jobs/fast/pod/foo/info", "fast Pod: foo");
-        expectedEndpoints.put("/v1/jobs/slow/pod/foo/info", "slow Pod: foo");
+        expectedEndpoints.put("/v1/service/fast/plans/foo", "fast Plan: foo");
+        expectedEndpoints.put("/v1/service/slow/plans/bar", "slow Plan: bar");
+        expectedEndpoints.put("/v1/service/fast/pod/foo/info", "fast Pod: foo");
+        expectedEndpoints.put("/v1/service/slow/pod/foo/info", "slow Pod: foo");
 
         checkEndpoints(server.getURI(), expectedEndpoints);
 
@@ -129,23 +129,23 @@ public class ApiServerTest {
         }
     }
 
-    @Path("/v1/jobs")
+    @Path("/v1/service")
     public static class TestResourceJobPlans {
 
-        @Path("{jobName}/plans/{planName}")
+        @Path("{serviceName}/plans/{planName}")
         @GET
-        public Response getPlan(@PathParam("jobName") String jobName, @PathParam("planName") String planName) {
-            return Response.ok().entity(jobName + " Plan: " + planName).build();
+        public Response getPlan(@PathParam("serviceName") String serviceName, @PathParam("planName") String planName) {
+            return Response.ok().entity(serviceName + " Plan: " + planName).build();
         }
     }
 
-    @Path("/v1/jobs")
+    @Path("/v1/service")
     public static class TestResourceJobPod {
 
-        @Path("/{jobName}/pod/{name}/info")
+        @Path("/{serviceName}/pod/{name}/info")
         @GET
-        public Response getPlan(@PathParam("jobName") String jobName, @PathParam("name") String podName) {
-            return Response.ok().entity(jobName + " Pod: " + podName).build();
+        public Response getPlan(@PathParam("serviceName") String serviceName, @PathParam("name") String podName) {
+            return Response.ok().entity(serviceName + " Pod: " + podName).build();
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.framework;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,15 +19,26 @@ import org.slf4j.Logger;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.DestroyOfferRecommendation;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.offer.OfferAccepter;
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.OfferUtils;
+import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
+import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.scheduler.OfferResources;
+import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * Handles offer processing for the framework, passing offers to an underlying {@link MesosEventClient}, which itself
  * represents one or more underlying services.
  */
-public class OfferProcessor {
+class OfferProcessor {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferProcessor.class);
 
@@ -42,15 +54,19 @@ public class OfferProcessor {
     private final Object inProgressLock = new Object();
     private final Set<Protos.OfferID> offersInProgress = new HashSet<>();
 
-    private final AbstractScheduler abstractScheduler;
+    private final MesosEventClient mesosEventClient;
+    private final Persister persister;
+    private final OfferAccepter offerAccepter;
 
     // May be overridden in tests:
     private OfferQueue offerQueue;
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded;
 
-    public OfferProcessor(AbstractScheduler abstractScheduler) {
-        this.abstractScheduler = abstractScheduler;
+    public OfferProcessor(MesosEventClient mesosEventClient, Persister persister) {
+        this.mesosEventClient = mesosEventClient;
+        this.persister = persister;
+        this.offerAccepter = new OfferAccepter();
         this.offerQueue = new OfferQueue();
         this.multithreaded = true;
     }
@@ -208,16 +224,162 @@ public class OfferProcessor {
             return;
         }
 
-        abstractScheduler.offers(offers);
+        // Offer evaluation:
+        // The client (which is composed of one or more services) looks at the provided offers and returns a list of
+        // operations to perform and offers which were not used. On our end, we then perform the requested operations
+        // and clean or decline the remaining unused offers.
+        OfferResponse offerResponse = mesosEventClient.offers(offers);
+        LOGGER.info("Offer result for {} offer{}: {} with {} recommendation{}",
+                offers.size(), offers.size() == 1 ? "" : "s",
+                offerResponse.result,
+                offerResponse.recommendations.size(), offerResponse.recommendations.size() == 1 ? "" : "s");
+        switch (offerResponse.result) {
+        case FINISHED:
+            // We do not directly support the FINISHED result. It should be internally handled by individual clients
+            // in a multi-client setup. Supporting FINISHED here would involve the following changes:
+            // - API Resources passed to the HTTP server by FrameworkRunner would need to be updated
+            // - Parent FrameworkScheduler would need to be updated (for sending TaskStatuses and registered calls)
+            declineShort(offers);
+            LOGGER.error("Got unsupported {} from service", offerResponse.result);
+            return;
+        case UNINSTALLED:
+            // The service has finished uninstalling. Unregister and delete the framework.
+            declineShort(offers);
+            destroyFramework();
+            isDeregistered.set(true);
+            return;
+        case NOT_READY:
+        case PROCESSED:
+            // Both handled below.
+            break;
+        }
+
+        Collection<Protos.Offer> unusedOffers =
+                OfferUtils.filterOutAcceptedOffers(offers, offerResponse.recommendations);
+
+        // Resource Cleaning is needed to clean up offered resources in several scenarios:
+        // - A service may be uninstalling, in which case all of their resources will appear to be 'unexpected'.
+        // - A service may want to decommission a subset of its tasks, in which case they will appear as 'unexpected',
+        //   even though the overall service is not being uninstalled.
+        // - Mesos Agents may become inoperable for long enough that Tasks resident there were relocated and the old
+        //   resources were effectively forgotten by the service. However, this Agent may return at a later point and
+        //   begin offering those forgotten reserved Resources again.
+        // In all of these cases, we unreserve these unexpected resources so that they may be returned to the cluster.
+        // To do this we perform all necessary UNRESERVE and/or DESTROY Operations against those resources.
+        // Note: To keep things simple, we only perform this cleanup against offers which were not used in earlier
+        // steps, to e.g. launch other tasks. Unused reserved resources within these offers will be cleaned when they
+        // are offered again in a following offer cycle, assuming we don't use them again for something else.
+
+        UnexpectedResourcesResponse unexpectedResourcesResponse =
+                mesosEventClient.getUnexpectedResources(unusedOffers);
+        Collection<OfferRecommendation> cleanupRecommendations =
+                toCleanupRecommendations(unexpectedResourcesResponse.offerResources);
+        LOGGER.info("Cleanup result for {} offer{}: {} with {} recommendation{}",
+                unusedOffers.size(), unusedOffers.size() == 1 ? "" : "s",
+                unexpectedResourcesResponse.result,
+                cleanupRecommendations.size(), cleanupRecommendations.size() == 1 ? "" : "s");
+
+        // Decline the offers that haven't been used for either offer evaluation or resource cleanup.
+        unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanupRecommendations);
+        if (!unusedOffers.isEmpty()) {
+            if (offerResponse.result == OfferResponse.Result.PROCESSED
+                    && unexpectedResourcesResponse.result == UnexpectedResourcesResponse.Result.PROCESSED) {
+                // The client successfully processed offers and unexpected resources.
+                // Decline the unused offers for a long interval.
+                declineLong(unusedOffers);
+            } else {
+                // The client wasn't ready to process offers and/or failed to process unexpected resources.
+                // Decline the unused offers for a brief interval.
+                declineShort(unusedOffers);
+            }
+        }
+
+        // Accept the offers which have operations to be performed against them:
+        List<OfferRecommendation> allRecommendations = new ArrayList<>();
+        allRecommendations.addAll(offerResponse.recommendations);
+        allRecommendations.addAll(cleanupRecommendations);
+        Metrics.incrementRecommendations(allRecommendations);
+        offerAccepter.accept(allRecommendations);
+    }
+
+    /**
+     * Destroys the framework.
+     */
+    private void destroyFramework() {
+        // Wipe all data from ZK. This includes the framework ID, which is used to detect across restarts that the
+        // framework has been destroyed.
+        LOGGER.info("Deleting all persisted data...");
+        try {
+            PersisterUtils.clearAllData(persister);
+        } catch (PersisterException e) {
+            throw new IllegalStateException("Failed to delete all persister data", e);
+        }
+
+        LOGGER.info("Tearing down framework...");
+        Optional<SchedulerDriver> driver = Driver.getDriver();
+        if (driver.isPresent()) {
+            // Stop the SchedulerDriver thread:
+            // - failover==false: Tells Mesos to teardown the framework.
+            // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
+            driver.get().stop(false);
+        } else {
+            LOGGER.error("No driver is present for deregistering the framework.");
+        }
+
+        LOGGER.info("### UNINSTALL IS COMPLETE! ###");
+        LOGGER.info("Scheduler should be cleaned up shortly...");
+
+        // Notify the client that deregistration has completed, following them giving us an UNINSTALLED response.
+        // They can then set their "deploy" plan to Complete, which will in turn let Cosmos know that this scheduler
+        // process can be pruned from Marathon.
+        mesosEventClient.unregistered();
+    }
+
+    /**
+     * Converts the provided {@code OfferResources} instances into an ordered list of destroy and/or unreserve
+     * operations.
+     */
+    private static Collection<OfferRecommendation> toCleanupRecommendations(
+            Collection<OfferResources> offerResourcesList) {
+        // ORDERING IS IMPORTANT:
+        //    The resource lifecycle is RESERVE -> CREATE -> DESTROY -> UNRESERVE
+        //    Therefore we *must* put any DESTROY calls before any UNRESERVE calls
+        List<OfferRecommendation> destroyRecommendations = new ArrayList<>();
+        List<OfferRecommendation> unreserveRecommendations = new ArrayList<>();
+
+        for (OfferResources offerResources : offerResourcesList) {
+            for (Protos.Resource resource : offerResources.getResources()) {
+                if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
+                    // Permanent volume to be DESTROYed (and also UNRESERVEd)
+                    destroyRecommendations.add(new DestroyOfferRecommendation(offerResources.getOffer(), resource));
+                }
+                // Reserved resource OR permanent volume to be UNRESERVEd
+                unreserveRecommendations.add(new UnreserveOfferRecommendation(offerResources.getOffer(), resource));
+            }
+        }
+
+        // Order the recommendations as DESTROYs followed by UNRESERVEs, as mentioned above:
+        List<OfferRecommendation> allRecommendations = new ArrayList<>();
+        allRecommendations.addAll(destroyRecommendations);
+        allRecommendations.addAll(unreserveRecommendations);
+        return allRecommendations;
     }
 
     /**
      * Declines the provided offers for a short time. This is used for special cases when the scheduler hasn't fully
      * initialized and otherwise wasn't able to actually look at the offers in question. At least not yet.
      */
-    public static void declineShort(Collection<Protos.Offer> unusedOffers) {
+    static void declineShort(Collection<Protos.Offer> unusedOffers) {
         declineOffers(unusedOffers, Constants.SHORT_DECLINE_SECONDS);
         Metrics.incrementDeclinesShort(unusedOffers.size());
+    }
+
+    /**
+     * Declines the provided offers for a long time. This is used for offers which were not useful to the scheduler.
+     */
+    private static void declineLong(Collection<Protos.Offer> unusedOffers) {
+        declineOffers(unusedOffers, Constants.LONG_DECLINE_SECONDS);
+        Metrics.incrementDeclinesLong(unusedOffers.size());
     }
 
     /**

@@ -29,17 +29,13 @@ import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.PersisterUtils;
 
 /**
  * Handles creation of the uninstall plan, returning information about the plan contents back to the caller.
  */
-public class UninstallPlanBuilder {
-    private static final Logger LOGGER = LoggingUtils.getLogger(UninstallPlanBuilder.class);
+public class UninstallPlanFactory {
+    private static final Logger LOGGER = LoggingUtils.getLogger(UninstallPlanFactory.class);
 
     private static final String TASK_KILL_PHASE = "kill-tasks";
     private static final String RESOURCE_PHASE = "unreserve-resources";
@@ -47,28 +43,14 @@ public class UninstallPlanBuilder {
     private static final String DEREGISTER_PHASE = "deregister-service";
 
     private final Plan plan;
+    private final Collection<ResourceCleanupStep> resourceCleanupSteps;
+    private final DeregisterStep deregisterStep;
 
-    UninstallPlanBuilder(
+    UninstallPlanFactory(
             ServiceSpec serviceSpec,
-            FrameworkStore frameworkStore,
             StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<SecretsClient> customSecretsClientForTests) {
-
-        // If there is no framework ID, wipe ZK and produce an empty COMPLETE plan
-        if (!frameworkStore.fetchFrameworkId().isPresent()) {
-            LOGGER.info("Framework ID is unset. Clearing state data and using an empty completed plan.");
-            try {
-                PersisterUtils.clearAllData(stateStore.getPersister());
-            } catch (PersisterException e) {
-                // Best effort.
-                LOGGER.error("Failed to clear all data", e);
-            }
-            plan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
-            return;
-        }
-
         List<Phase> phases = new ArrayList<>();
 
         // First, we kill all the tasks, so that we may release their reserved resources.
@@ -99,17 +81,19 @@ public class UninstallPlanBuilder {
                         && taskIdsInErrorState.contains(taskInfo.getTaskId())))
                 .collect(Collectors.toList());
 
-        List<Step> resourceSteps =
+        this.resourceCleanupSteps =
                 ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasksNotFailedAndErrored)).stream()
-                        .map(resourceId -> new ResourceCleanupStep(
-                                resourceId,
-                                resourceId.startsWith(Constants.TOMBSTONE_MARKER) ? Status.COMPLETE : Status.PENDING))
+                        .map(resourceId -> new ResourceCleanupStep(resourceId, Status.PENDING))
                         .collect(Collectors.toList());
         LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
                 tasksNotFailedAndErrored.size(), allTasks.size(),
-                resourceSteps.stream().filter(step -> step.isComplete()).count(),
-                resourceSteps.size());
-        phases.add(new DefaultPhase(RESOURCE_PHASE, resourceSteps, new ParallelStrategy<>(), Collections.emptyList()));
+                resourceCleanupSteps.stream().filter(step -> step.isComplete()).count(),
+                resourceCleanupSteps.size());
+        phases.add(new DefaultPhase(
+                RESOURCE_PHASE,
+                resourceCleanupSteps.stream().collect(Collectors.toList()), // hack to get around collection typing
+                new ParallelStrategy<>(),
+                Collections.emptyList()));
 
         // If applicable, we also clean up any TLS secrets that we'd created before.
         // Note: This won't catch certificates where the user installed the service with TLS enabled, then disabled TLS
@@ -128,7 +112,8 @@ public class UninstallPlanBuilder {
                 phases.add(new DefaultPhase(
                         TLS_CLEANUP_PHASE,
                         Collections.singletonList(new TLSCleanupStep(
-                                secretsClient, schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
+                                secretsClient,
+                                schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
                         new SerialStrategy<>(),
                         Collections.emptyList()));
             } catch (Exception e) {
@@ -137,11 +122,12 @@ public class UninstallPlanBuilder {
             }
         }
 
-        // Finally, we unregister the framework from Mesos.
-        // We don't have access to the SchedulerDriver yet. That will be set via setSchedulerDriver() below.
+        // Finally, we wipe remaining ZK data and unregister the framework from Mesos.
+        // This is done upstream in FrameworkRunner, then the step is notified when it completes.
+        this.deregisterStep = new DeregisterStep();
         phases.add(new DefaultPhase(
                 DEREGISTER_PHASE,
-                Collections.singletonList(new DeregisterStep(frameworkStore, stateStore)),
+                Collections.singletonList(deregisterStep),
                 new SerialStrategy<>(),
                 Collections.emptyList()));
 
@@ -151,7 +137,21 @@ public class UninstallPlanBuilder {
     /**
      * Returns the plan to be used for uninstalling the service.
      */
-    Plan build() {
+    Plan getPlan() {
         return plan;
+    }
+
+    /**
+     * Returns the resource cleanup steps.
+     */
+    Collection<ResourceCleanupStep> getResourceCleanupSteps() {
+        return resourceCleanupSteps;
+    }
+
+    /**
+     * Returns the deregister step.
+     */
+    DeregisterStep getDeregisterStep() {
+        return deregisterStep;
     }
 }

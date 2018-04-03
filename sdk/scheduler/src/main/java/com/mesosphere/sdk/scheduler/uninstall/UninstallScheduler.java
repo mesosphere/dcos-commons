@@ -1,18 +1,20 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
+import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
@@ -23,86 +25,74 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This scheduler uninstalls the framework and releases all of its resources.
+ * This scheduler uninstalls a service and releases all of its resources.
  */
 public class UninstallScheduler extends AbstractScheduler {
 
     private final Logger logger = LoggingUtils.getLogger(getClass());
 
-    private final Optional<SecretsClient> secretsClient;
-
-    private PlanManager uninstallPlanManager;
-    private Collection<Object> resources = Collections.emptyList();
-    private OfferAccepter offerAccepter;
+    private final ConfigStore<ServiceSpec> configStore;
+    private final UninstallRecorder recorder;
+    // This step is used in the deploy plan to represent the unregister operation that's handled in FrameworkRunner.
+    // We want to ensure that the deploy plan is only marked complete after deregistration has been completed.
+    private final DeregisterStep deregisterStubStep;
+    private final PlanManager uninstallPlanManager;
 
     /**
-     * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
-     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
-     * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
+     * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
+     * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
+     * other artifacts from running the service.
      */
     public UninstallScheduler(
             ServiceSpec serviceSpec,
-            FrameworkStore frameworkStore,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            FrameworkConfig frameworkConfig,
-            SchedulerConfig schedulerConfig,
-            Optional<PlanCustomizer> planCustomizer) {
-        this(
-                serviceSpec,
-                frameworkStore,
-                stateStore,
-                configStore,
-                frameworkConfig,
-                schedulerConfig,
-                planCustomizer,
-                Optional.empty());
-    }
-
-    protected UninstallScheduler(
-            ServiceSpec serviceSpec,
-            FrameworkStore frameworkStore,
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
+            Optional<String> namespace) {
+        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, namespace, Optional.empty());
+    }
+
+    @VisibleForTesting
+    protected UninstallScheduler(
+            ServiceSpec serviceSpec,
+            StateStore stateStore,
+            ConfigStore<ServiceSpec> configStore,
+            SchedulerConfig schedulerConfig,
+            Optional<PlanCustomizer> planCustomizer,
+            Optional<String> namespace,
             Optional<SecretsClient> customSecretsClientForTests) {
-        super(serviceSpec, frameworkStore, stateStore, configStore, frameworkConfig, schedulerConfig, planCustomizer);
-        this.secretsClient = customSecretsClientForTests;
+        super(serviceSpec, stateStore, planCustomizer, namespace);
+        this.configStore = configStore;
 
-        Plan plan = new UninstallPlanBuilder(
-                serviceSpec,
-                frameworkStore,
-                stateStore,
-                configStore,
-                schedulerConfig,
-                secretsClient)
-                .build();
+        if (!StateStoreUtils.isUninstalling(stateStore)) {
+            logger.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                    "Uninstall cannot be canceled once triggered.");
+            StateStoreUtils.setUninstalling(stateStore);
+        }
 
-        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
-        this.resources = Arrays.asList(
-                new PlansResource(Collections.singletonList(uninstallPlanManager)),
-                new HealthResource(Collections.singletonList(uninstallPlanManager)));
+        // Construct a plan for uninstalling any remaining resources
+        UninstallPlanFactory planFactory =
+                new UninstallPlanFactory(serviceSpec, stateStore, schedulerConfig, customSecretsClientForTests);
+        this.recorder = new UninstallRecorder(stateStore, planFactory.getResourceCleanupSteps());
+        this.deregisterStubStep = planFactory.getDeregisterStep();
 
-        List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step instanceof ResourceCleanupStep)
-                .map(step -> (ResourceCleanupStep) step)
-                .collect(Collectors.toList());
-        this.offerAccepter = new OfferAccepter(Collections.singletonList(
-                new UninstallRecorder(stateStore, resourceCleanupSteps)));
-
+        this.uninstallPlanManager = DefaultPlanManager.createProceeding(planFactory.getPlan());
         try {
-            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
+            logger.info("Uninstall plan set to: {}",
+                    SerializationUtils.toJsonString(PlanInfo.forPlan(planFactory.getPlan())));
         } catch (IOException e) {
             logger.error("Failed to deserialize uninstall plan.");
         }
     }
 
     @Override
-    public Collection<Object> getResources() {
-        return resources;
+    public Collection<Object> getHTTPEndpoints() {
+        PlansResource plansResource = new PlansResource(Collections.singletonList(uninstallPlanManager));
+        return Arrays.asList(
+                plansResource,
+                new DeprecatedPlanResource(plansResource),
+                new HealthResource(Collections.singletonList(uninstallPlanManager)));
     }
 
     @Override
@@ -122,13 +112,29 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public void registeredWithMesos() {
+    public Map<String, EndpointProducer> getCustomEndpoints() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public ConfigStore<ServiceSpec> getConfigStore() {
+        return configStore;
+    }
+
+    @Override
+    protected void registeredWithMesos() {
         logger.info("Uninstall scheduler registered with Mesos.");
     }
 
     @Override
-    public void processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
-        List<Protos.Offer> localOffers = new ArrayList<>(offers);
+    public void unregistered() {
+        // Mark the the last step of the uninstall plan as complete.
+        // Cosmos will then see that the plan is complete and remove us from Marathon.
+        deregisterStubStep.setComplete();
+    }
+
+    @Override
+    protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
             logger.info("Attempting to process {} candidates from uninstall plan: {}",
@@ -136,26 +142,54 @@ public class UninstallScheduler extends AbstractScheduler {
             steps.forEach(Step::start);
         }
 
-        // Destroy/Unreserve any reserved resource or volume that is offered
-        final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
+        if (deregisterStubStep.isRunning()) {
+            // The service resources have been deleted and all that's left is the final deregister operation. After we
+            // return uninstalled(), upstream will finish the uninstall by doing one of the following:
+            // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
+            // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
 
-        ResourceCleanerScheduler rcs =
-                new ResourceCleanerScheduler(new ResourceCleaner(Collections.emptyList()), offerAccepter);
+            // In a multi-service case, we still need to delete our own namespaced data. Meanwhile in the single-service
+            // case the per-service data is wiped with the rest of the framework.
+            stateStore.deleteAllDataIfNamespaced();
 
-        offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
-
-        // Decline remaining offers.
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        if (unusedOffers.isEmpty()) {
-            logger.info("No offers to be declined.");
+            return OfferResponse.uninstalled();
         } else {
-            logger.info("Declining {} unused offers", unusedOffers.size());
-            OfferUtils.declineLong(unusedOffers);
+            // No recommendations. Upstream should invoke the cleaner against any unexpected resources in unclaimed
+            // offers (including the ones that apply to our service), and then notify us via clean() so that we can
+            // record the ones that apply to us.
+            return OfferResponse.processed(Collections.emptyList());
+        }
+    }
+
+    /**
+     * Returns the resources which are not expected by this service. When uninstalling, all resources are unexpected.
+     * The {@link UninstallScheduler} just keeps track of them on its 'checklist' as they are removed.
+     */
+    @Override
+    public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
+        Collection<OfferResources> unexpected = unusedOffers.stream()
+                .map(offer -> new OfferResources(offer).addAll(offer.getResourcesList().stream()
+                        // Omit unreserved resources:
+                        .filter(resource -> ResourceUtils.getReservation(resource).isPresent())
+                        .collect(Collectors.toList())))
+                .collect(Collectors.toList());
+        try {
+            recorder.recordResources(unexpected);
+            return UnexpectedResourcesResponse.processed(unexpected);
+        } catch (Exception e) {
+            // Failed to record the upcoming dereservation. Don't return the resources as unexpected until we can record
+            // the dereservation.
+            logger.error("Failed to record unexpected resources", e);
+            return UnexpectedResourcesResponse.failed(Collections.emptyList());
         }
     }
 
     @Override
-    public void processStatusUpdate(Protos.TaskStatus status) {
+    protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
+    }
+
+    public DeregisterStep getDeregisterStep() {
+        return deregisterStubStep;
     }
 }

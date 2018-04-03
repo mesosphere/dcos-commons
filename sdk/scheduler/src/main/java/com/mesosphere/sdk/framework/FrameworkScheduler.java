@@ -17,12 +17,11 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.TaskCleaner;
+import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
 
 /**
@@ -47,44 +46,36 @@ public class FrameworkScheduler implements Scheduler {
 
     private final Set<String> frameworkRolesWhitelist;
     private final FrameworkStore frameworkStore;
-    private final AbstractScheduler abstractScheduler;
+    private final MesosEventClient mesosEventClient;
     private final OfferProcessor offerProcessor;
     private final ImplicitReconciler implicitReconciler;
-
-    // TODO(nickbp): Remove these with introduction of new cleanup flow
-    private final StateStore stateStore;
-    private TaskCleaner taskCleaner;
-    private boolean multithreaded = true;
 
     public FrameworkScheduler(
             Set<String> frameworkRolesWhitelist,
             SchedulerConfig schedulerConfig,
             Persister persister,
             FrameworkStore frameworkStore,
-            AbstractScheduler abstractScheduler) {
+            MesosEventClient mesosEventClient) {
         this(
                 frameworkRolesWhitelist,
                 frameworkStore,
-                abstractScheduler,
-                new OfferProcessor(abstractScheduler),
-                new ImplicitReconciler(schedulerConfig),
-                new StateStore(persister));
+                mesosEventClient,
+                new OfferProcessor(mesosEventClient, persister),
+                new ImplicitReconciler(schedulerConfig));
     }
 
     @VisibleForTesting
     FrameworkScheduler(
             Set<String> frameworkRolesWhitelist,
             FrameworkStore frameworkStore,
-            AbstractScheduler abstractScheduler,
+            MesosEventClient mesosEventClient,
             OfferProcessor offerProcessor,
-            ImplicitReconciler implicitReconciler,
-            StateStore stateStore) {
+            ImplicitReconciler implicitReconciler) {
         this.frameworkRolesWhitelist = frameworkRolesWhitelist;
         this.frameworkStore = frameworkStore;
-        this.abstractScheduler = abstractScheduler;
+        this.mesosEventClient = mesosEventClient;
         this.offerProcessor = offerProcessor;
         this.implicitReconciler = implicitReconciler;
-        this.stateStore = stateStore;
     }
 
     /**
@@ -107,7 +98,6 @@ public class FrameworkScheduler implements Scheduler {
     public FrameworkScheduler disableThreading() {
         offerProcessor.disableThreading();
         implicitReconciler.disableThreading();
-        this.multithreaded = false;
         return this;
     }
 
@@ -121,8 +111,6 @@ public class FrameworkScheduler implements Scheduler {
         }
 
         LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
-        this.taskCleaner = new TaskCleaner(stateStore, multithreaded);
-
         try {
             frameworkStore.storeFrameworkId(frameworkId);
         } catch (Exception e) {
@@ -132,7 +120,7 @@ public class FrameworkScheduler implements Scheduler {
         }
 
         updateDriverAndDomain(driver, masterInfo);
-        abstractScheduler.registered(false);
+        mesosEventClient.registered(false);
 
         // Start background threads:
         offerProcessor.start();
@@ -143,7 +131,7 @@ public class FrameworkScheduler implements Scheduler {
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
         LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
         updateDriverAndDomain(driver, masterInfo);
-        abstractScheduler.registered(true);
+        mesosEventClient.registered(true);
     }
 
     @Override
@@ -164,16 +152,20 @@ public class FrameworkScheduler implements Scheduler {
     }
 
     /**
-     * Before we forward the offers to the processor queue, lets filter out resources that don't belong to us.
-     * Resources can look like one of the following:
-     * 1. Dynamic against our-role or pre-reserved-role/our-role (belongs to us)
-     * 2. Static against pre-reserved-role (we can reserve against it)
-     * 3. Dynamic against pre-reserved-role (DOESN'T belong to us at all! Likely created by Marathon)
-     * We specifically want to ensure that any resources from case 3 are not visible to our service. They are
+     * Before we forward offers to be processed, we filter out resource reservations within those offers that don't
+     * belong to us.
+     *
+     * <p>Resources can look like one of the following:
+     * <ol><li>Dynamic against "our-role" or "pre-reserved-role/our-role" (belongs to us)</li>
+     * <li>Static against "pre-reserved-role" (we can reserve against it)</li>
+     * <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ol>
+     *
+     * <p>We specifically want to ensure that any resources from case 3 are not visible to our service. They are
      * effectively a quirk of how Mesos behaves with roles, and ideally we wouldn't see these resources at all.
-     * So what we do here is filter out all the resources which are dynamic AND which lack one of our expected
-     * resource roles. To be extra safe, we also check that any dynamic resources have a resource_id label, which
-     * hints that the resources were indeed created by us.
+     *
+     * <p>So what we do here is filter out all the resources which are dynamic AND which lack one of our expected
+     * resource roles. To be extra safe, we also check that any dynamic resources have a resource_id label, which hints
+     * that the resources were indeed created by us.
      *
      * @param offer the original offer received by mesos
      * @return a copy of that offer with any resources which don't belong to us filtered out, or the original offer if
@@ -190,7 +182,7 @@ public class FrameworkScheduler implements Scheduler {
             }
         }
         if (badResources.isEmpty()) {
-            // All resources are good. Just return the original offer.
+            // Common shortcut: All resources are good. Just return the original offer.
             return offer;
         }
 
@@ -213,10 +205,26 @@ public class FrameworkScheduler implements Scheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
         Metrics.record(status);
-
-        abstractScheduler.status(status);
-        TaskKiller.update(status); // TODO(nickbp) when TaskKiller.killTask() is being performed here, check return val
-        taskCleaner.statusUpdate(status);
+        StatusResponse response = mesosEventClient.status(status);
+        boolean eligibleToKill = TaskKiller.update(status);
+        switch (response.result) {
+        case UNKNOWN_TASK:
+            if (eligibleToKill) {
+                LOGGER.info("Got unknown task in response to status update, marking task to be killed: {}",
+                        status.getTaskId().getValue());
+                TaskKiller.killTask(status.getTaskId());
+            } else {
+                // Special case: Mesos can send TASK_LOST+REASON_RECONCILIATION as a response to a prior kill request
+                // against a task that is unknown to Mesos. When this happens, we don't want to repeat the kill, because
+                // that would create a Kill -> Status -> Kill -> ... loop
+                LOGGER.warn("Received status update for unknown task, but task should not be killed again: {}",
+                        status.getTaskId().getValue());
+            }
+            break;
+        case PROCESSED:
+            // No-op
+            break;
+        }
     }
 
     @Override

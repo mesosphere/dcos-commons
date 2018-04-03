@@ -7,9 +7,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.OfferID;
-import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -17,54 +14,50 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Default deployment scheduler. See docs in {@link PlanScheduler} interface.
+ * Attempts to start {@link Step}s, while fulfilling any {@link PodInstanceRequirement}s they provide.
+ *
+ * TODO(nickbp): Rename to PlanScheduler
  */
-public class DefaultPlanScheduler implements PlanScheduler {
+public class DefaultPlanScheduler {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(DefaultPlanScheduler.class);
 
-    private final OfferAccepter offerAccepter;
     private final OfferEvaluator offerEvaluator;
     private final StateStore stateStore;
 
-    public DefaultPlanScheduler(OfferAccepter offerAccepter, OfferEvaluator offerEvaluator, StateStore stateStore) {
-        this.offerAccepter = offerAccepter;
+    public DefaultPlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore) {
         this.offerEvaluator = offerEvaluator;
         this.stateStore = stateStore;
     }
 
-    @Override
-    public Collection<OfferID> resourceOffers(final Collection<Offer> offers, final Collection<? extends Step> steps) {
-        if (offers == null || steps == null) {
-            LOGGER.error("Unexpected null argument(s) encountered: offers='{}', steps='{}'", offers, steps);
-            return Collections.emptyList();
-        }
-
-        List<OfferID> acceptedOfferIds = new ArrayList<>();
-        List<Offer> availableOffers = new ArrayList<>(offers);
+    /**
+     * Processes the provided {@code Offer}s against the provided pending {@link Step}s.
+     *
+     * @return a list of zero or more of the provided offers which were accepted to fulfill offer
+     *         requirements returned by the {@link Step}
+     */
+    public List<OfferRecommendation> resourceOffers(
+            final Collection<Protos.Offer> offers, final Collection<? extends Step> steps) {
+        List<OfferRecommendation> allRecommendations = new ArrayList<>();
+        List<Protos.Offer> availableOffers = new ArrayList<>(offers);
 
         for (Step step : steps) {
-            acceptedOfferIds.addAll(resourceOffers(availableOffers, step));
+            List<OfferRecommendation> stepRecommendations = resourceOffers(availableOffers, step);
+            allRecommendations.addAll(stepRecommendations);
+
+            // Remove the consumed offers from the list of available offers
+            Set<Protos.OfferID> usedOfferIds = stepRecommendations.stream()
+                    .map(rec -> rec.getOffer().getId())
+                    .collect(Collectors.toSet());
             availableOffers = availableOffers.stream()
-                    .filter(offer -> !acceptedOfferIds.contains(offer.getId()))
+                    .filter(offer -> !usedOfferIds.contains(offer.getId()))
                     .collect(Collectors.toList());
         }
 
-        return acceptedOfferIds;
+        return allRecommendations;
     }
 
-    private Collection<OfferID> resourceOffers(List<Offer> offers, Step step) {
-
-        if (offers == null) {
-            LOGGER.error("Unexpected null argument: 'offers'");
-            return Collections.emptyList();
-        }
-
-        if (step == null) {
-            LOGGER.info("Ignoring resource offers for null step.");
-            return Collections.emptyList();
-        }
-
+    private List<OfferRecommendation> resourceOffers(List<Protos.Offer> offers, Step step) {
         if (!(step.isPending() || step.isPrepared())) {
             LOGGER.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return Collections.emptyList();
@@ -86,7 +79,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
 
         // Step has returned an OfferRequirement to process. Find offers which match the
         // requirement and accept them, if any are found:
-        List<OfferRecommendation> recommendations = null;
+        final List<OfferRecommendation> recommendations;
         try {
             recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
         } catch (InvalidRequirementException | IOException e) {
@@ -103,22 +96,16 @@ public class DefaultPlanScheduler implements PlanScheduler {
             return Collections.emptyList();
         }
 
-        List<OfferID> acceptedOffers = offerAccepter.accept(recommendations);
-
         // Notify step of offer outcome:
-        if (acceptedOffers.isEmpty()) {
-            // If no Operations occurred it may be of interest to the Step.  For example it may want to set its state
-            // to Pending to ensure it will be reattempted on the next Offer cycle.
-            step.updateOfferStatus(Collections.emptyList());
-        } else {
-            step.updateOfferStatus(getNonTransientRecommendations(recommendations));
-        }
+        // If no Operations occurred it may still be of interest to the Step.  For example it may want to set its state
+        // to Pending to ensure it will be reattempted on the next Offer cycle.
+        step.updateOfferStatus(getNonTransientRecommendations(recommendations));
 
-        return acceptedOffers;
+        return recommendations;
     }
 
     private void killTasks(PodInstanceRequirement podInstanceRequirement) {
-        Map<String, TaskInfo> taskInfoMap = new HashMap<>();
+        Map<String, Protos.TaskInfo> taskInfoMap = new HashMap<>();
         stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
         LOGGER.info("Killing tasks for pod instance requirement: {}:{}",
                 podInstanceRequirement.getPodInstance().getName(),
@@ -145,7 +132,7 @@ public class DefaultPlanScheduler implements PlanScheduler {
         LOGGER.info("Tasks to kill: {}", tasksToKill);
 
         for (String taskName : tasksToKill) {
-            TaskInfo taskInfo = taskInfoMap.get(taskName);
+            Protos.TaskInfo taskInfo = taskInfoMap.get(taskName);
             if (taskInfo != null) {
                 Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
 

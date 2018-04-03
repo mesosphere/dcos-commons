@@ -2,6 +2,8 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.mesos.Protos;
 
+import com.mesosphere.sdk.scheduler.uninstall.ResourceCleanupStep;
+
 import java.util.Collection;
 
 /**
@@ -9,10 +11,17 @@ import java.util.Collection;
  */
 public class DecommissionPlanManager extends DefaultPlanManager {
     private final Collection<Protos.TaskInfo> tasksToDecommission;
+    private final Collection<ResourceCleanupStep> resourceSteps;
 
-    public DecommissionPlanManager(Plan plan, Collection<Protos.TaskInfo> tasksToDecommission) {
+    public DecommissionPlanManager(
+            Plan plan, Collection<ResourceCleanupStep> resourceSteps, Collection<Protos.TaskInfo> tasksToDecommission) {
         super(plan);
+        this.resourceSteps = resourceSteps;
         this.tasksToDecommission = tasksToDecommission;
+    }
+
+    public Collection<ResourceCleanupStep> getResourceSteps() {
+        return resourceSteps;
     }
 
     public Collection<Protos.TaskInfo> getTasksToDecommission() {

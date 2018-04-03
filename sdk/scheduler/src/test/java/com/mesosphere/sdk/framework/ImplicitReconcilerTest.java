@@ -2,7 +2,6 @@ package com.mesosphere.sdk.framework;
 
 import java.util.Collections;
 import org.apache.mesos.SchedulerDriver;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -26,25 +25,25 @@ public class ImplicitReconcilerTest {
         reconciler = new ImplicitReconciler(mockSchedulerConfig);
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testDoubleStartFails() {
+        reconciler.disableThreading().start();
+        reconciler.start();
+    }
+
     @Test
     public void testSingleThread() {
         reconciler.disableThreading().start();
         verify(mockSchedulerDriver).reconcileTasks(Collections.emptyList());
-        try {
-            reconciler.start();
-            Assert.fail("Expected exception from double start");
-        } catch (IllegalStateException e) {
-            // expected
-        }
     }
 
     @Test
     public void testScheduledThread() throws InterruptedException {
         when(mockSchedulerConfig.getImplicitReconcileDelayMs()).thenReturn(0L);
         when(mockSchedulerConfig.getImplicitReconcilePeriodMs()).thenReturn(1L);
+
         reconciler.start();
-        Thread.sleep(1000);
+        verify(mockSchedulerDriver, timeout(5000).atLeast(2)).reconcileTasks(Collections.emptyList());
         reconciler.stop();
-        verify(mockSchedulerDriver, atLeast(2)).reconcileTasks(Collections.emptyList());
     }
 }

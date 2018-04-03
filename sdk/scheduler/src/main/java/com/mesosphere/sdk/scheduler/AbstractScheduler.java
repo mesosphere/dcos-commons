@@ -2,15 +2,13 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.framework.FrameworkConfig;
-import com.mesosphere.sdk.framework.OfferProcessor;
 import com.mesosphere.sdk.framework.ReviveManager;
+import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -23,42 +21,29 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
- * Abstract main scheduler class that ties together the main pieces of a SDK Scheduler process.
- * Handles interaction with Mesos via an embedded {@link AbstractScheduler.MesosScheduler} object.
+ * Abstract main scheduler class that ties together the main pieces of a Service.
  */
-public abstract class AbstractScheduler {
+public abstract class AbstractScheduler implements MesosEventClient {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(AbstractScheduler.class);
 
-    protected final FrameworkStore frameworkStore;
     protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
-    protected final ConfigStore<ServiceSpec> configStore;
-    protected final SchedulerConfig schedulerConfig;
+    protected final Optional<PlanCustomizer> planCustomizer;
 
     private final AtomicBoolean started = new AtomicBoolean(false);
-    private final Optional<PlanCustomizer> planCustomizer;
 
     // These are all (re)assigned when the scheduler has (re)registered:
     private ReviveManager reviveManager;
     private ExplicitReconciler reconciler;
 
-    /**
-     * Creates a new AbstractScheduler given a {@link StateStore}.
-     */
     protected AbstractScheduler(
             ServiceSpec serviceSpec,
-            FrameworkStore frameworkStore,
             StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            FrameworkConfig frameworkConfig,
-            SchedulerConfig schedulerConfig,
-            Optional<PlanCustomizer> planCustomizer) {
+            Optional<PlanCustomizer> planCustomizer,
+            Optional<String> namespace) {
         this.serviceSpec = serviceSpec;
-        this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
-        this.configStore = configStore;
-        this.schedulerConfig = schedulerConfig;
         this.planCustomizer = planCustomizer;
     }
 
@@ -107,6 +92,7 @@ public abstract class AbstractScheduler {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public void registered(boolean reRegistered) {
         if (!reRegistered) {
             this.reviveManager = new ReviveManager();
@@ -118,15 +104,15 @@ public abstract class AbstractScheduler {
         reconciler.reconcile();
     }
 
-    public void offers(Collection<Protos.Offer> offers) {
+    @Override
+    public OfferResponse offers(Collection<Protos.Offer> offers) {
         /* Task Reconciliation must complete before any Tasks may be launched.  It ensures that a Scheduler and
          * Mesos have agreed upon the state of all Tasks of interest to the scheduler.
          * See also: http://mesos.apache.org/documentation/latest/reconciliation/ */
         reconciler.reconcile();
         if (!reconciler.isReconciled()) {
             LOGGER.info("Not ready for offers: Waiting for task reconciliation to complete.");
-            OfferProcessor.declineShort(offers);
-            return;
+            return OfferResponse.notReady(Collections.emptyList());
         }
 
         // Get the current work
@@ -151,7 +137,7 @@ public abstract class AbstractScheduler {
             LOGGER.info("  {}: {}", ++i, TextFormat.shortDebugString(offer));
         }
 
-        processOffers(offers, steps);
+        return processOffers(offers, steps);
     }
 
     private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
@@ -163,7 +149,8 @@ public abstract class AbstractScheduler {
                 .collect(Collectors.toSet());
     }
 
-    public void status(Protos.TaskStatus status) {
+    @Override
+    public StatusResponse status(Protos.TaskStatus status) {
         try {
             processStatusUpdate(status);
             reconciler.update(status);
@@ -171,10 +158,18 @@ public abstract class AbstractScheduler {
             if (e instanceof StateStoreException && ((StateStoreException) e).getReason() == Reason.NOT_FOUND) {
                 LOGGER.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
                         + TextFormat.shortDebugString(status), e);
-                return;
+                return StatusResponse.unknownTask();
             }
             LOGGER.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
         }
+        return StatusResponse.processed();
+    }
+
+    /**
+     * Returns the {@link StateStore}.
+     */
+    public StateStore getStateStore() {
+        return stateStore;
     }
 
     /**
@@ -183,9 +178,14 @@ public abstract class AbstractScheduler {
     public abstract PlanCoordinator getPlanCoordinator();
 
     /**
-     * Returns a list of API resources to be served by the scheduler to the local cluster.
+     * Returns the custom endpoints, or an empty map if there are none.
      */
-    public abstract Collection<Object> getResources();
+    public abstract Map<String, EndpointProducer> getCustomEndpoints();
+
+    /**
+     * Returns the {@link ConfigStore}.
+     */
+    public abstract ConfigStore<ServiceSpec> getConfigStore();
 
     /**
      * Invoked when the framework has registered (or re-registered) with Mesos.
@@ -198,12 +198,13 @@ public abstract class AbstractScheduler {
      * @param offers zero or more offers (zero may periodically be passed to 'turn the crank' on other processing)
      * @param steps candidate steps which had been returned by the {@link PlanCoordinator}
      */
-    protected abstract void processOffers(Collection<Protos.Offer> offers, Collection<Step> steps);
+    protected abstract OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps);
 
     /**
      * Invoked when Mesos has provided a task status to be processed.
      *
-     * @param status the task status, which may be for a task which no longer exists
+     * @param status the task status, which may be for a task which no longer exists or is otherwise unrelated to the
+     *               service
      */
     protected abstract void processStatusUpdate(Protos.TaskStatus status) throws Exception;
 }

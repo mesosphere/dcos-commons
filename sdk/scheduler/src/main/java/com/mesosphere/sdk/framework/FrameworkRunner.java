@@ -7,6 +7,7 @@ import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
@@ -61,7 +62,7 @@ public class FrameworkRunner {
     /**
      * Registers the framework with Mesos and starts running the framework. This function should never return.
      */
-    public void registerAndRunFramework(Persister persister, AbstractScheduler abstractScheduler) {
+    public void registerAndRunFramework(Persister persister, MesosEventClient mesosEventClient) {
         // During uninstall, the Framework ID is the last thing to be removed (along with the rest of zk). If it's gone
         // and the framework is still in uninstall mode, and that indicates we previously finished an uninstall and
         // then got restarted before getting pruned from Marathon.
@@ -91,8 +92,8 @@ public class FrameworkRunner {
                 schedulerConfig,
                 persister,
                 frameworkStore,
-                abstractScheduler);
-        ApiServer httpServer = ApiServer.start(schedulerConfig, abstractScheduler.getResources(), new Runnable() {
+                mesosEventClient);
+        ApiServer httpServer = ApiServer.start(schedulerConfig, mesosEventClient.getHTTPEndpoints(), new Runnable() {
             @Override
             public void run() {
                 // Notify the framework that it can start accepting offers. This is to avoid the following scenario:

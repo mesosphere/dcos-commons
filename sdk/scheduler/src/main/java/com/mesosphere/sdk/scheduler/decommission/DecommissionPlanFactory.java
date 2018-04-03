@@ -75,7 +75,7 @@ public class DecommissionPlanFactory {
      * Returns all {@link ResourceCleanupStep}s associated with the decommission plan, or an empty list if no steps are
      * applicable.
      */
-    public Collection<Step> getResourceSteps() {
+    public Collection<ResourceCleanupStep> getResourceSteps() {
         return planInfo.resourceSteps;
     }
 
@@ -87,9 +87,9 @@ public class DecommissionPlanFactory {
 
     private static class PlanInfo {
         private final Optional<Plan> plan;
-        private final Collection<Step> resourceSteps;
+        private final Collection<ResourceCleanupStep> resourceSteps;
 
-        private PlanInfo(Optional<Plan> plan, Collection<Step> resourceSteps) {
+        private PlanInfo(Optional<Plan> plan, Collection<ResourceCleanupStep> resourceSteps) {
             this.plan = plan;
             this.resourceSteps = resourceSteps;
         }
@@ -134,7 +134,7 @@ public class DecommissionPlanFactory {
             return new PlanInfo(Optional.empty(), Collections.emptyList());
         }
 
-        Collection<Step> resourceSteps = new ArrayList<>();
+        Collection<ResourceCleanupStep> resourceSteps = new ArrayList<>();
         List<Phase> phases = new ArrayList<>();
         // Each pod to be decommissioned gets its own phase in the decommission plan:
         for (Map.Entry<PodKey, Collection<Protos.TaskInfo>> entry : podsToDecommission.entrySet()) {
