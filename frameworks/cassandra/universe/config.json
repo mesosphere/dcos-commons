@@ -86,7 +86,10 @@
         "region": {
           "description": "The Cassandra cluster will run in this region.  When no region is specified the cluster is constrained to the local region.",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-region+string"
+          }
         },
         "security": {
           "description": "Cassandra security settings",
