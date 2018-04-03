@@ -220,13 +220,25 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
-        // See which offers are useful to the plans, then omit the ones that shouldn't be launched.
-        List<OfferRecommendation> offerRecommendations = getOfferRecommendations(planScheduler, offers, steps);
+        return processOffers(planScheduler, launchRecorder, decommissionRecorder, offers, steps);
+    }
 
-        LOGGER.info("{} Offer{} processed by {}: {} recommendations from offers: {}",
+    /**
+     * Broken out into a separate function to facilitate direct testing.
+     */
+    @VisibleForTesting
+    static OfferResponse processOffers(
+            DefaultPlanScheduler planScheduler,
+            PersistentLaunchRecorder launchRecorder,
+            Optional<UninstallRecorder> decommissionRecorder,
+            Collection<Protos.Offer> offers,
+            Collection<Step> steps) {
+        // See which offers are useful to the plans, then omit the ones that shouldn't be launched.
+        List<OfferRecommendation> offerRecommendations = planScheduler.resourceOffers(offers, steps);
+
+        LOGGER.info("{} Offer{} processed: {} recommendations from offers: {}",
                 offers.size(),
                 offers.size() == 1 ? "" : "s",
-                serviceSpec.getName(),
                 offerRecommendations.size(),
                 offerRecommendations.stream()
                         .map(rec -> rec.getOffer().getId().getValue())
@@ -245,19 +257,10 @@ public class DefaultScheduler extends AbstractScheduler {
             offerRecommendations = Collections.emptyList();
         }
 
-        return OfferResponse.processed(offerRecommendations);
-    }
-
-    /**
-     * Returns the operations to be performed against the provided steps, according to the provided
-     * {@link DefaultPlanScheduler}. Any {@link LaunchOfferRecommendation}s with {@code !shouldLaunch()} will be omitted
-     * from the returned list.
-     */
-    @VisibleForTesting
-    static List<OfferRecommendation> getOfferRecommendations(
-            DefaultPlanScheduler planScheduler, Collection<Protos.Offer> offers, Collection<Step> steps) {
+        // After recording the operations, filter out any launches that shouldn't actually be launched.
+        // In other words, record the reservations for these tasks but do not actually launch them.
         List<OfferRecommendation> filteredOfferRecommendations = new ArrayList<>();
-        for (OfferRecommendation offerRecommendation : planScheduler.resourceOffers(offers, steps)) {
+        for (OfferRecommendation offerRecommendation : offerRecommendations) {
             if (offerRecommendation instanceof LaunchOfferRecommendation &&
                     !((LaunchOfferRecommendation) offerRecommendation).shouldLaunch()) {
                 LOGGER.info("Skipping launch of transient Operation: {}",
@@ -266,7 +269,8 @@ public class DefaultScheduler extends AbstractScheduler {
                 filteredOfferRecommendations.add(offerRecommendation);
             }
         }
-        return filteredOfferRecommendations;
+
+        return OfferResponse.processed(filteredOfferRecommendations);
     }
 
     /**

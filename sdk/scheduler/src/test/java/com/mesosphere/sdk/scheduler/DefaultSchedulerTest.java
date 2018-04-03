@@ -13,8 +13,10 @@ import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.uninstall.UninstallRecorder;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.FrameworkStore;
+import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
@@ -645,7 +647,7 @@ public class DefaultSchedulerTest {
     }
 
     @Test
-    public void testLaunchTransient() {
+    public void testLaunchTransient() throws Exception {
         Protos.Resource resource = ResourceTestUtils.getUnreservedCpus(3);
         Offer offer = OfferTestUtils.getCompleteOffer(resource);
         Protos.TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
@@ -657,9 +659,7 @@ public class DefaultSchedulerTest {
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
                         true,
                         true);
-
-        DefaultPlanScheduler mockPlanScheduler = mock(DefaultPlanScheduler.class);
-        when(mockPlanScheduler.resourceOffers(any(), any())).thenReturn(Arrays.asList(
+        List<OfferRecommendation> allRecommendations = Arrays.asList(
                 new LaunchOfferRecommendation(
                         offer,
                         taskInfoBuilder.build(),
@@ -672,13 +672,27 @@ public class DefaultSchedulerTest {
                         taskInfoBuilder.build(),
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
                         false,
-                        false)));
+                        false));
 
-        List<OfferRecommendation> recommendations = DefaultScheduler.getOfferRecommendations(
-                mockPlanScheduler, Collections.emptyList(), Collections.emptyList());
+        DefaultPlanScheduler mockPlanScheduler = mock(DefaultPlanScheduler.class);
+        when(mockPlanScheduler.resourceOffers(any(), any())).thenReturn(allRecommendations);
+
+        PersistentLaunchRecorder mockLaunchRecorder = mock(PersistentLaunchRecorder.class);
+        UninstallRecorder mockDecommissionRecorder = mock(UninstallRecorder.class);
+
+        Collection<OfferRecommendation> recommendations = DefaultScheduler.processOffers(
+                mockPlanScheduler,
+                mockLaunchRecorder,
+                Optional.of(mockDecommissionRecorder),
+                Collections.emptyList(),
+                Collections.emptyList()).recommendations;
         // Only recommendationToLaunch should have been returned. The others should be filtered due to !shouldLaunch():
         Assert.assertEquals(1, recommendations.size());
-        Assert.assertEquals(recommendationToLaunch, recommendations.get(0));
+        Assert.assertEquals(recommendationToLaunch, recommendations.iterator().next());
+
+        // Meanwhile, ALL of the recommendations (including the two with launch=false) should have been passed to the recorders:
+        verify(mockLaunchRecorder).record(allRecommendations);
+        verify(mockDecommissionRecorder).recordRecommendations(allRecommendations);
     }
 
     private static int countOperationType(
