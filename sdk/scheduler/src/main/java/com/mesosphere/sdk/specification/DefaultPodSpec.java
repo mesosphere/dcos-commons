@@ -70,7 +70,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
             @JsonProperty("allow-decommission") Boolean allowDecommission) {
         this(
-                new Builder(Optional.empty()) // Assume that Executor URI is already present
+                new Builder(Optional.empty(), type, count, tasks) // Assume that Executor URI is already present
                         .type(type)
                         .user(user)
                         .count(count)
@@ -105,13 +105,16 @@ public class DefaultPodSpec implements PodSpec {
         ValidationUtils.validate(this);
     }
 
-    public static Builder newBuilder(String executorUri) {
-        return new Builder(Optional.of(executorUri));
+    public static Builder newBuilder(String executorUri, String type, int count, List<TaskSpec> tasks) {
+        return new Builder(Optional.of(executorUri), type, count, tasks);
     }
 
     public static Builder newBuilder(PodSpec copy) {
-        Builder builder = new Builder(Optional.empty()); // Assume that Executor URI is already present
-        builder.count = copy.getCount();
+        Builder builder = new Builder(
+                Optional.empty(), // Assume that Executor URI is already present
+                copy.getType(),
+                copy.getCount(),
+                copy.getTasks());
         builder.allowDecommission = copy.getAllowDecommission();
         builder.image = copy.getImage().isPresent() ? copy.getImage().get() : null;
         builder.networks = copy.getNetworks();
@@ -119,8 +122,6 @@ public class DefaultPodSpec implements PodSpec {
         builder.preReservedRole = copy.getPreReservedRole();
         builder.rlimits = copy.getRLimits();
         builder.secrets = copy.getSecrets();
-        builder.tasks = copy.getTasks();
-        builder.type = copy.getType();
         builder.uris = copy.getUris();
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
@@ -234,8 +235,11 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
 
-        private Builder(Optional<String> executorUri) {
+        private Builder(Optional<String> executorUri, String type, int count, List<TaskSpec> tasks) {
             this.executorUri = executorUri;
+            this.type = type;
+            this.count = count;
+            this.tasks = new ArrayList<>(tasks);
         }
 
         /**

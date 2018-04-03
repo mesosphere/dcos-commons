@@ -23,10 +23,11 @@ public class PlanUtilsTest {
     private static final String TASK_NAME_0 = TestConstants.TASK_NAME + 0;
     private static final String TASK_NAME_1 = TestConstants.TASK_NAME + 1;
 
-    private static final PodSpec POD_SPEC = DefaultPodSpec.newBuilder("")
-            .type(TestConstants.POD_TYPE)
-            .count(1)
-            .tasks(Arrays.asList(
+    private static final PodSpec POD_SPEC = DefaultPodSpec.newBuilder(
+            "",
+            TestConstants.POD_TYPE,
+            1,
+            Arrays.asList(
                     TestPodFactory.getTaskSpec(
                             TASK_NAME_0, TestConstants.RESOURCE_SET_ID + 0, TestConstants.TASK_DNS_PREFIX),
                     TestPodFactory.getTaskSpec(

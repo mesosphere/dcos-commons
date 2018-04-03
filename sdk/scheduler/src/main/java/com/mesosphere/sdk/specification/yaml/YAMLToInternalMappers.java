@@ -210,9 +210,12 @@ public class YAMLToInternalMappers {
             String principal,
             String executorUri,
             String user) throws Exception {
-        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
-                .count(rawPod.getCount())
-                .type(podName)
+
+        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(
+                executorUri,
+                podName,
+                rawPod.getCount(),
+                Collections.emptyList()) // Tasks are added below
                 .user(user)
                 .preReservedRole(rawPod.getPreReservedRole())
                 .sharePidNamespace(rawPod.getSharePidNamespace())
