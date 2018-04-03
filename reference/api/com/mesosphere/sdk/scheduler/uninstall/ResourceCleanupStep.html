@@ -185,9 +185,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
-<div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> has been successfully accepted/fulfilled.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html#updateResourceStatus-java.util.Set-">updateResourceStatus</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;uninstalledResourceIds)</code>
+<div class="block">Notifies this step that some resource ids are about to be unreserved.</div>
 </td>
 </tr>
 </table>
@@ -196,7 +195,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.uninstall.<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#update-Protos.TaskStatus-">update</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#update-Protos.TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.AbstractStep">
@@ -278,25 +277,15 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 </dl>
 </li>
 </ul>
-<a name="updateOfferStatus-java.util.Collection-">
+<a name="updateResourceStatus-java.util.Set-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>updateOfferStatus</h4>
-<pre>public&nbsp;void&nbsp;updateOfferStatus(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#updateOfferStatus-java.util.Collection-">Step</a></code></span></div>
-<div class="block">Notifies the Step whether the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> has been successfully accepted/fulfilled. The <code>recommendations</code> param is
- empty when no offers matching the requirement previously returned by <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a>
- could be found. This is only called if <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> returned a non-empty
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></code></dd>
-</dl>
+<h4>updateResourceStatus</h4>
+<pre>public&nbsp;void&nbsp;updateResourceStatus(java.util.Set&lt;java.lang.String&gt;&nbsp;uninstalledResourceIds)</pre>
+<div class="block">Notifies this step that some resource ids are about to be unreserved. If one of the resource ids is relevant to
+ this step, the step's status will be set to <code>COMPLETE</code>.</div>
 </li>
 </ul>
 </li>

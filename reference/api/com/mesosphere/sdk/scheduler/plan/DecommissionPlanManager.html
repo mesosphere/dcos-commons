@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -137,7 +137,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanMan
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DecommissionPlanManager.html#DecommissionPlanManager-com.mesosphere.sdk.scheduler.plan.Plan-java.util.Collection-">DecommissionPlanManager</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DecommissionPlanManager.html#DecommissionPlanManager-com.mesosphere.sdk.scheduler.plan.Plan-java.util.Collection-java.util.Collection-">DecommissionPlanManager</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan,
+                       java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>&gt;&nbsp;resourceSteps,
                        java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasksToDecommission)</code>&nbsp;</td>
 </tr>
 </table>
@@ -156,6 +157,10 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanMan
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DecommissionPlanManager.html#getResourceSteps--">getResourceSteps</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DecommissionPlanManager.html#getTasksToDecommission--">getTasksToDecommission</a></span>()</code>&nbsp;</td>
 </tr>
@@ -188,13 +193,14 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanMan
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DecommissionPlanManager-com.mesosphere.sdk.scheduler.plan.Plan-java.util.Collection-">
+<a name="DecommissionPlanManager-com.mesosphere.sdk.scheduler.plan.Plan-java.util.Collection-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DecommissionPlanManager</h4>
 <pre>public&nbsp;DecommissionPlanManager(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;plan,
+                               java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>&gt;&nbsp;resourceSteps,
                                java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasksToDecommission)</pre>
 </li>
 </ul>
@@ -206,6 +212,15 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanMan
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getResourceSteps--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getResourceSteps</h4>
+<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>&gt;&nbsp;getResourceSteps()</pre>
+</li>
+</ul>
 <a name="getTasksToDecommission--">
 <!--   -->
 </a>

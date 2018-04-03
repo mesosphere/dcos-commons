@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -105,15 +105,10 @@ var activeTableTab = "activeTableTab";
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl>
-<dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a></dd>
-</dl>
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">UninstallRecorder</span>
-extends java.lang.Object
-implements <a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a></pre>
+extends java.lang.Object</pre>
 <div class="block">Records to persistent storage the result of uninstalling/destroying resources in the process of installing the
  service by marking them with a tombstone id, then notifying the uninstall plan of the changes.</div>
 </li>
@@ -154,7 +149,15 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.ht
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#record-com.mesosphere.sdk.offer.OfferRecommendation-">record</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&nbsp;offerRecommendation)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordRecommendations-java.util.Collection-">recordRecommendations</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations)</code>
+<div class="block">Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordResources-java.util.Collection-">recordResources</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a>&gt;&nbsp;offerResources)</code>
+<div class="block">Used by both decommissioning and uninstalling to record resources that are about to be unreserved.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -184,8 +187,8 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.ht
 <ul class="blockListLast">
 <li class="blockList">
 <h4>UninstallRecorder</h4>
-<pre>UninstallRecorder(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                  java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>&gt;&nbsp;resourceSteps)</pre>
+<pre>public&nbsp;UninstallRecorder(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                         java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a>&gt;&nbsp;resourceSteps)</pre>
 </li>
 </ul>
 </li>
@@ -196,17 +199,31 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.ht
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="record-com.mesosphere.sdk.offer.OfferRecommendation-">
+<a name="recordRecommendations-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recordRecommendations</h4>
+<pre>public&nbsp;void&nbsp;recordRecommendations(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations)
+                           throws java.lang.Exception</pre>
+<div class="block">Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.Exception</code></dd>
+</dl>
+</li>
+</ul>
+<a name="recordResources-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>record</h4>
-<pre>public&nbsp;void&nbsp;record(<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&nbsp;offerRecommendation)
-            throws java.lang.Exception</pre>
+<h4>recordResources</h4>
+<pre>public&nbsp;void&nbsp;recordResources(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a>&gt;&nbsp;offerResources)
+                     throws java.lang.Exception</pre>
+<div class="block">Used by both decommissioning and uninstalling to record resources that are about to be unreserved.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.html#record-com.mesosphere.sdk.offer.OfferRecommendation-">record</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code></dd>
 </dl>
@@ -239,7 +256,7 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/OperationRecorder.ht
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanBuilder.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

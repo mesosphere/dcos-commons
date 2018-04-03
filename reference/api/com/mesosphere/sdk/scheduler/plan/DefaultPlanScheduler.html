@@ -105,16 +105,13 @@ var activeTableTab = "activeTableTab";
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl>
-<dt>All Implemented Interfaces:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a></dd>
-</dl>
 <hr>
 <br>
 <pre>public class <span class="typeNameLabel">DefaultPlanScheduler</span>
-extends java.lang.Object
-implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a></pre>
-<div class="block">Default deployment scheduler. See docs in <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanScheduler</code></a> interface.</div>
+extends java.lang.Object</pre>
+<div class="block">Attempts to start <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s, while fulfilling any <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>s they provide.
+
+ TODO(nickbp): Rename to PlanScheduler</div>
 </li>
 </ul>
 </div>
@@ -133,8 +130,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanSchedul
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html#DefaultPlanScheduler-com.mesosphere.sdk.offer.OfferAccepter-com.mesosphere.sdk.offer.evaluate.OfferEvaluator-com.mesosphere.sdk.state.StateStore-">DefaultPlanScheduler</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/OfferAccepter.html" title="class in com.mesosphere.sdk.offer">OfferAccepter</a>&nbsp;offerAccepter,
-                    <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a>&nbsp;offerEvaluator,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html#DefaultPlanScheduler-com.mesosphere.sdk.offer.evaluate.OfferEvaluator-com.mesosphere.sdk.state.StateStore-">DefaultPlanScheduler</a></span>(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a>&nbsp;offerEvaluator,
                     <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
 </tr>
 </table>
@@ -153,11 +149,10 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanSchedul
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;OfferID&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html#resourceOffers-java.util.Collection-java.util.Collection-">resourceOffers</a></span>(java.util.Collection&lt;Offer&gt;&nbsp;offers,
+<td class="colFirst"><code>java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultPlanScheduler.html#resourceOffers-java.util.Collection-java.util.Collection-">resourceOffers</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
               java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</code>
-<div class="block">Processes the provided <code>Offer</code>s using the provided <code>SchedulerDriver</code> against the provided
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>.</div>
+<div class="block">Processes the provided <code>Offer</code>s against the provided pending <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s.</div>
 </td>
 </tr>
 </table>
@@ -182,14 +177,13 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanSchedul
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultPlanScheduler-com.mesosphere.sdk.offer.OfferAccepter-com.mesosphere.sdk.offer.evaluate.OfferEvaluator-com.mesosphere.sdk.state.StateStore-">
+<a name="DefaultPlanScheduler-com.mesosphere.sdk.offer.evaluate.OfferEvaluator-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultPlanScheduler</h4>
-<pre>public&nbsp;DefaultPlanScheduler(<a href="../../../../../com/mesosphere/sdk/offer/OfferAccepter.html" title="class in com.mesosphere.sdk.offer">OfferAccepter</a>&nbsp;offerAccepter,
-                            <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a>&nbsp;offerEvaluator,
+<pre>public&nbsp;DefaultPlanScheduler(<a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a>&nbsp;offerEvaluator,
                             <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 </li>
 </ul>
@@ -207,15 +201,10 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanSchedul
 <ul class="blockListLast">
 <li class="blockList">
 <h4>resourceOffers</h4>
-<pre>public&nbsp;java.util.Collection&lt;OfferID&gt;&nbsp;resourceOffers(java.util.Collection&lt;Offer&gt;&nbsp;offers,
-                                                    java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html#resourceOffers-java.util.Collection-java.util.Collection-">PlanScheduler</a></code></span></div>
-<div class="block">Processes the provided <code>Offer</code>s using the provided <code>SchedulerDriver</code> against the provided
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>. <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> should be whatever <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> is currently the next pending <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> in
- the current <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>, but may also be <code>null</code>.</div>
+<pre>public&nbsp;java.util.List&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;resourceOffers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
+                                                          java.util.Collection&lt;? extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;steps)</pre>
+<div class="block">Processes the provided <code>Offer</code>s against the provided pending <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s.</div>
 <dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html#resourceOffers-java.util.Collection-java.util.Collection-">resourceOffers</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a></code></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a list of zero or more of the provided offers which were accepted to fulfill offer
          requirements returned by the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a></dd>

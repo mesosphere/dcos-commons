@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/offer/ResourceCleanerScheduler.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -364,7 +364,14 @@ extends java.lang.Object</pre>
 <h4>isProcessable</h4>
 <pre>public static&nbsp;boolean&nbsp;isProcessable(Protos.Resource&nbsp;resource,
                                     java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</pre>
-<div class="block">Filter resources which are dynamically reserved against a role which isn't ours.</div>
+<div class="block">Filter resources which are dynamically reserved against a role which isn't ours.
+
+ <p>We may receive resources with the following reservation semantics:
+ <ul><li>Dynamic against "our-role" or "pre-reserved-role/our-role" (belongs to us)</li>
+ <li>Static against "pre-reserved-role" (we can reserve against it)</li>
+ <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ul>
+
+ <p>This function should return <code>false</code> for all reservations of the last type.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>resource</code> - the resource to be examined</dd>
@@ -402,7 +409,7 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/offer/ResourceCleanerScheduler.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

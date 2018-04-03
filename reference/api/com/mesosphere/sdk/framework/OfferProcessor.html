@@ -107,9 +107,9 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">OfferProcessor</span>
+<pre>class <span class="typeNameLabel">OfferProcessor</span>
 extends java.lang.Object</pre>
-<div class="block">Handles offer processing for the framework, passing offers to an underlying <code>MesosEventClient</code>, which itself
+<div class="block">Handles offer processing for the framework, passing offers to an underlying <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a>, which itself
  represents one or more underlying services.</div>
 </li>
 </ul>
@@ -129,7 +129,8 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#OfferProcessor-com.mesosphere.sdk.scheduler.AbstractScheduler-">OfferProcessor</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#OfferProcessor-com.mesosphere.sdk.scheduler.MesosEventClient-com.mesosphere.sdk.storage.Persister-">OfferProcessor</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient,
+              <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -153,7 +154,7 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>static void</code></td>
+<td class="colFirst"><code>(package private) static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#declineShort-java.util.Collection-">declineShort</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</code>
 <div class="block">Declines the provided offers for a short time.</div>
 </td>
@@ -204,13 +205,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="OfferProcessor-com.mesosphere.sdk.scheduler.AbstractScheduler-">
+<a name="OfferProcessor-com.mesosphere.sdk.scheduler.MesosEventClient-com.mesosphere.sdk.storage.Persister-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>OfferProcessor</h4>
-<pre>public&nbsp;OfferProcessor(<a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</pre>
+<pre>public&nbsp;OfferProcessor(<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient,
+                      <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
 </li>
 </ul>
 </li>
@@ -302,7 +304,7 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>declineShort</h4>
-<pre>public static&nbsp;void&nbsp;declineShort(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
+<pre>static&nbsp;void&nbsp;declineShort(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
 <div class="block">Declines the provided offers for a short time. This is used for special cases when the scheduler hasn't fully
  initialized and otherwise wasn't able to actually look at the offers in question. At least not yet.</div>
 </li>

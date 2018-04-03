@@ -73,6 +73,23 @@
 <div class="contentContainer">
 <ul class="blockList">
 <li class="blockList">
+<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Interface Summary table, listing interfaces, and an explanation">
+<caption><span>Interface Summary</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Interface</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></td>
+<td class="colLast">
+<div class="block">Accepts events received from Mesos.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li class="blockList">
 <table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Class Summary table, listing classes, and an explanation">
 <caption><span>Class Summary</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
@@ -83,7 +100,7 @@
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></td>
 <td class="colLast">
-<div class="block">Abstract main scheduler class that ties together the main pieces of a SDK Scheduler process.</div>
+<div class="block">Abstract main scheduler class that ties together the main pieces of a Service.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -100,45 +117,86 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></td>
+<td class="colLast">
+<div class="block">Response object to be returned by a call to <code>MesosEventClient#offers(List)</code>.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a></td>
+<td class="colLast">
+<div class="block">Response object to be returned by a call to <code>MesosEventClient#status(org.apache.mesos.Protos.TaskStatus)</code>.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></td>
+<td class="colLast">
+<div class="block">Response object to be returned by a call to <code>MesosEventClient##getUnexpectedResources(List)</code>.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></td>
 <td class="colLast">
 <div class="block">This class encapsulates the components necessary for tracking Scheduler metrics.</div>
 </td>
 </tr>
-<tr class="altColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.OperationsCounter.html" title="class in com.mesosphere.sdk.scheduler">Metrics.OperationsCounter</a></td>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a></td>
 <td class="colLast">
-<div class="block">This class records counter metrics for all Mesos Operations performed by the scheduler.</div>
+<div class="block">Pairs an offer with a collection of resources within that offer that should be destroyed and/or unreserved.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></td>
 <td class="colLast">
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler</code></a>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></td>
 <td class="colLast">
 <div class="block">This class encapsulates global Scheduler settings retrieved from the environment.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler">SchedulerRunner</a></td>
 <td class="colLast">
 <div class="block">Sets up and executes the <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>AbstractScheduler</code></a> instance.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></td>
 <td class="colLast">
 <div class="block">This class provides utilities common to the construction and operation of Mesos Schedulers.</div>
 </td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/TaskCleaner.html" title="class in com.mesosphere.sdk.scheduler">TaskCleaner</a></td>
+</tbody>
+</table>
+</li>
+<li class="blockList">
+<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Enum Summary table, listing enums, and an explanation">
+<caption><span>Enum Summary</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Enum</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse.Result</a></td>
 <td class="colLast">
-<div class="block">This class kills unexpected Tasks which are not in a terminal state.</div>
+<div class="block">The outcome value to be included in a response object.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse.Result</a></td>
+<td class="colLast">
+<div class="block">The outcome value to be included in a response object.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse.Result</a></td>
+<td class="colLast">
+<div class="block">The outcome value to be included in a response object.</div>
 </td>
 </tr>
 </tbody>

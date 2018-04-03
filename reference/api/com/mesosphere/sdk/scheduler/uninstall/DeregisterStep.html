@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -123,7 +123,9 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">DeregisterStep</span>
 extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></pre>
-<div class="block">Step which implements the deregistering of a framework.</div>
+<div class="block">Step which advertises that the service has been deregistered and has completed uninstall. This is the last step in an
+ uninstall plan, and it acts as a gate on advertising a completed uninstall to Cosmos. After this step is complete,
+ the scheduler process should soon be destroyed.</div>
 </li>
 </ul>
 </div>
@@ -157,10 +159,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#DeregisterStep-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-">DeregisterStep</a></span>(<a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
-              <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
-<div class="block">Creates a new instance with initial <code>status</code>.</div>
-</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#DeregisterStep--">DeregisterStep</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -178,6 +177,12 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#setComplete--">setComplete</a></span>()</code>
+<div class="block">Marks this step complete after the framework has been deregistered.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
@@ -233,16 +238,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DeregisterStep-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-">
+<a name="DeregisterStep--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DeregisterStep</h4>
-<pre>DeregisterStep(<a href="../../../../../com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a>&nbsp;frameworkStore,
-               <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
-<div class="block">Creates a new instance with initial <code>status</code>. The <code>SchedulerDriver</code> must be
- set separately.</div>
+<pre>public&nbsp;DeregisterStep()</pre>
 </li>
 </ul>
 </li>
@@ -256,7 +258,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <a name="start--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>start</h4>
 <pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;start()</pre>
@@ -270,6 +272,18 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <dd><code>#updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
       the {@link PodInstanceRequirement}</code></dd>
 </dl>
+</li>
+</ul>
+<a name="setComplete--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>setComplete</h4>
+<pre>public&nbsp;void&nbsp;setComplete()</pre>
+<div class="block">Marks this step complete after the framework has been deregistered.
+ At this point, the overall <code>deploy</code> plan for uninstall should be complete, and the Scheduler process should
+ be destroyed by DC/OS soon after.</div>
 </li>
 </ul>
 </li>

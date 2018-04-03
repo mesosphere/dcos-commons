@@ -177,8 +177,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html#registerAndRunFramework-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.AbstractScheduler-">registerAndRunFramework</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-                       <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkRunner.html#registerAndRunFramework-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.MesosEventClient-">registerAndRunFramework</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+                       <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient)</code>
 <div class="block">Registers the framework with Mesos and starts running the framework.</div>
 </td>
 </tr>
@@ -248,14 +248,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="registerAndRunFramework-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.AbstractScheduler-">
+<a name="registerAndRunFramework-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.MesosEventClient-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>registerAndRunFramework</h4>
 <pre>public&nbsp;void&nbsp;registerAndRunFramework(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-                                    <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;abstractScheduler)</pre>
+                                    <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient)</pre>
 <div class="block">Registers the framework with Mesos and starts running the framework. This function should never return.</div>
 </li>
 </ul>

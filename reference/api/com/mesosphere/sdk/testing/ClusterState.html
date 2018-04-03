@@ -146,38 +146,40 @@ extends java.lang.Object</pre>
       <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;scheduler)</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;java.lang.Object&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getHTTPEndpoints--">getHTTPEndpoints</a></span>()</code>
+<div class="block">Returns the scheduler's HTTP endpoint objects.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod--">getLastLaunchedPod</a></span>()</code>
 <div class="block">Returns the last pod to be launched, regardless of the pod's name.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod-java.lang.String-">getLastLaunchedPod</a></span>(java.lang.String&nbsp;podName)</code>
 <div class="block">Returns the last pod to be launched with the specified name.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedTask.html" title="class in com.mesosphere.sdk.testing">LaunchedTask</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedTask-java.lang.String-">getLastLaunchedTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns the last task launched with the specified name.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>Protos.Offer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastOffer--">getLastOffer</a></span>()</code>
 <div class="block">Returns the last offer to have been sent.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getPlans--">getPlans</a></span>()</code>
 <div class="block">Returns the scheduler's current plans.</div>
 </td>
-</tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;java.lang.Object&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getResources--">getResources</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
@@ -260,13 +262,14 @@ extends java.lang.Object</pre>
 <div class="block">Returns the scheduler's current plans.</div>
 </li>
 </ul>
-<a name="getResources--">
+<a name="getHTTPEndpoints--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getResources</h4>
-<pre>public&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getResources()</pre>
+<h4>getHTTPEndpoints</h4>
+<pre>public&nbsp;java.util.Collection&lt;java.lang.Object&gt;&nbsp;getHTTPEndpoints()</pre>
+<div class="block">Returns the scheduler's HTTP endpoint objects.</div>
 </li>
 </ul>
 <a name="addSentOffer-Protos.Offer-">

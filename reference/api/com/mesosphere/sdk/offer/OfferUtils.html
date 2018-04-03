@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/offer/OfferUtils.html" target="_top">Frames</a></li>
@@ -146,13 +146,9 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#declineLong-java.util.Collection-">declineLong</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</code>&nbsp;</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;Protos.Offer&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#filterOutAcceptedOffers-java.util.Collection-java.util.Collection-">filterOutAcceptedOffers</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
-                       java.util.Collection&lt;Protos.OfferID&gt;&nbsp;acceptedOfferIds)</code>
+                       java.util.Collection&lt;? extends <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
 <div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
 </td>
 </tr>
@@ -198,29 +194,20 @@ extends java.lang.Object</pre>
 <a name="filterOutAcceptedOffers-java.util.Collection-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>filterOutAcceptedOffers</h4>
 <pre>public static&nbsp;java.util.List&lt;Protos.Offer&gt;&nbsp;filterOutAcceptedOffers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
-                                                                   java.util.Collection&lt;Protos.OfferID&gt;&nbsp;acceptedOfferIds)</pre>
+                                                                   java.util.Collection&lt;? extends <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
 <div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>offers</code> - An <code>org.apache.mesos.Protos.Offer</code> collection containing both ACCEPTED and
-                         UNACCEPTED offers.</dd>
-<dd><code>acceptedOfferIds</code> - A collection of OfferIDs that are already ACCEPTED.</dd>
+                        UNACCEPTED offers</dd>
+<dd><code>recommendations</code> - A collection of offer recommendations, which hold accepted offers</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>A List of offers are that not ACCEPTED yet; can be empty if there are no UNACCEPTED offers left.</dd>
+<dd>Offers are that not ACCEPTED yet, or an empty list if there are no UNACCEPTED offers left</dd>
 </dl>
-</li>
-</ul>
-<a name="declineLong-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>declineLong</h4>
-<pre>public static&nbsp;void&nbsp;declineLong(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
 </li>
 </ul>
 </li>
@@ -251,7 +238,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/offer/OfferUtils.html" target="_top">Frames</a></li>

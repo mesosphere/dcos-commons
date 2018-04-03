@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":9};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -129,7 +129,7 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferAccepter.html#OfferAccepter-java.util.List-">OfferAccepter</a></span>(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a>&gt;&nbsp;recorders)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferAccepter.html#OfferAccepter--">OfferAccepter</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -141,14 +141,20 @@ extends java.lang.Object</pre>
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.List&lt;OfferID&gt;</code></td>
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferAccepter.html#accept-java.util.List-">accept</a></span>(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected static java.util.Map&lt;java.lang.String,java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferAccepter.html#groupByAgent-java.util.List-">groupByAgent</a></span>(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
+<div class="block">Groups recommendations by agent, while preserving their existing order.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -172,13 +178,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="OfferAccepter-java.util.List-">
+<a name="OfferAccepter--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>OfferAccepter</h4>
-<pre>public&nbsp;OfferAccepter(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OperationRecorder.html" title="interface in com.mesosphere.sdk.offer">OperationRecorder</a>&gt;&nbsp;recorders)</pre>
+<pre>public&nbsp;OfferAccepter()</pre>
 </li>
 </ul>
 </li>
@@ -192,10 +198,20 @@ extends java.lang.Object</pre>
 <a name="accept-java.util.List-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>accept</h4>
-<pre>public&nbsp;java.util.List&lt;OfferID&gt;&nbsp;accept(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
+<pre>public&nbsp;void&nbsp;accept(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
+</li>
+</ul>
+<a name="groupByAgent-java.util.List-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>groupByAgent</h4>
+<pre>protected static&nbsp;java.util.Map&lt;java.lang.String,java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&gt;&nbsp;groupByAgent(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
+<div class="block">Groups recommendations by agent, while preserving their existing order.</div>
 </li>
 </ul>
 </li>
