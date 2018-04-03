@@ -13,6 +13,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -60,7 +61,8 @@ public class ConfigStoreTest {
 
     @Test
     public void testNamespacedPathMapping() throws Exception {
-        store = new ConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister, NAMESPACE);
+        store = new ConfigStore<StringConfiguration>(
+                new StringConfiguration.Factory(), persister, Optional.of(NAMESPACE));
         UUID id = store.store(testConfig);
         store.setTargetConfig(id);
 

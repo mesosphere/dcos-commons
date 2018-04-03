@@ -46,7 +46,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      * @param persister The persister which holds the config data
      */
     public ConfigStore(ConfigurationFactory<T> factory, Persister persister) {
-        this(factory, persister, "");
+        this(factory, persister, Optional.empty());
     }
 
     /**
@@ -55,12 +55,12 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      *
      * @param factory The factory used to convert raw bytes to config objects of type {@code T}
      * @param persister The persister which holds the config data
-     * @param namespace The namespace for data to be stored within, or an empty string for no namespacing
+     * @param namespace The namespace for data to be stored within, or an empty Optional for no namespacing
      */
-    public ConfigStore(ConfigurationFactory<T> factory, Persister persister, String namespace) {
+    public ConfigStore(ConfigurationFactory<T> factory, Persister persister, Optional<String> namespace) {
         this.factory = factory;
         this.persister = persister;
-        this.namespace = namespace;
+        this.namespace = namespace.orElse("");
     }
 
     /**

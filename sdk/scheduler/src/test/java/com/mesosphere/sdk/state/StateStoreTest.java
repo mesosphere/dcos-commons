@@ -76,7 +76,7 @@ public class StateStoreTest {
 
     @Test
     public void testNamespacedPathMapping() throws Exception {
-        store = new StateStore(persister, NAMESPACE);
+        store = new StateStore(persister, Optional.of(NAMESPACE));
         Collection<Protos.TaskInfo> tasks = createTasks(TestConstants.TASK_NAME);
         store.storeTasks(tasks);
         store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
@@ -551,10 +551,10 @@ public class StateStoreTest {
 
     @Test
     public void testDeleteDataIfNamespaced_isNamespaced() {
-        StateStore store2 = new StateStore(persister, NAMESPACE + "-two");
+        StateStore store2 = new StateStore(persister, Optional.of(NAMESPACE + "-two"));
         store2.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
 
-        store = new StateStore(persister, NAMESPACE);
+        store = new StateStore(persister, Optional.of(NAMESPACE));
         store.storeStatus(TestConstants.TASK_NAME, TestConstants.TASK_STATUS);
         store.deleteAllDataIfNamespaced();
 
