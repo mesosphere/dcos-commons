@@ -15,17 +15,15 @@ import java.util.stream.Collectors;
 
 /**
  * Attempts to start {@link Step}s, while fulfilling any {@link PodInstanceRequirement}s they provide.
- *
- * TODO(nickbp): Rename to PlanScheduler
  */
-public class DefaultPlanScheduler {
+public class PlanScheduler {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultPlanScheduler.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PlanScheduler.class);
 
     private final OfferEvaluator offerEvaluator;
     private final StateStore stateStore;
 
-    public DefaultPlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore) {
+    public PlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore) {
         this.offerEvaluator = offerEvaluator;
         this.stateStore = stateStore;
     }

@@ -16,6 +16,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallRecorder;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
@@ -41,12 +42,13 @@ public class DefaultScheduler extends AbstractScheduler {
     private final FrameworkStore frameworkStore;
     private final ConfigStore<ServiceSpec> configStore;
     private final PlanCoordinator planCoordinator;
+    private final Collection<PlanManager> plansToCheckFinished;
     private final Collection<Object> customResources;
     private final Map<String, EndpointProducer> customEndpointProducers;
     private final PersistentLaunchRecorder launchRecorder;
     private final Optional<UninstallRecorder> decommissionRecorder;
-    private final OfferOutcomeTracker offerOutcomeTracker;
-    private final DefaultPlanScheduler planScheduler;
+    private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
+    private final PlanScheduler planScheduler;
 
     /**
      * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
@@ -92,6 +94,14 @@ public class DefaultScheduler extends AbstractScheduler {
         this.frameworkStore = frameworkStore;
         this.configStore = configStore;
         this.planCoordinator = planCoordinator;
+        if (serviceSpec.getGoal() == GoalState.FINISH) {
+            // Get the recovery and deploy plans. If they are COMPLETED, then the service can be uninstalled. We store
+            // the PlanManagers, not the underlying Plans, because PlanManagers can change their plans at any time.
+            this.plansToCheckFinished = HealthResource.getDeploymentAndRecoveryManagers(planCoordinator);
+        } else {
+            // Disable this check
+            this.plansToCheckFinished = Collections.emptyList();
+        }
         this.customResources = customResources;
         this.customEndpointProducers = customEndpointProducers;
 
@@ -104,8 +114,11 @@ public class DefaultScheduler extends AbstractScheduler {
             this.decommissionRecorder = Optional.empty();
         }
 
-        this.offerOutcomeTracker = new OfferOutcomeTracker();
-        this.planScheduler = new DefaultPlanScheduler(
+        // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
+        // reduce memory consumption.
+        this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
+
+        this.planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
@@ -136,7 +149,9 @@ public class DefaultScheduler extends AbstractScheduler {
         resources.add(new HealthResource(planCoordinator));
         resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
         resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
-        resources.add(new OfferOutcomeResource(offerOutcomeTracker));
+        if (offerOutcomeTracker.isPresent()) {
+            resources.add(new OfferOutcomeResource(offerOutcomeTracker.get()));
+        }
         return resources;
     }
 
@@ -220,6 +235,12 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
+        if (serviceSpec.getGoal() == GoalState.FINISH
+                && plansToCheckFinished.stream().allMatch(pm -> pm.getPlan().isComplete())) {
+            // We have finished our work. Tell upstream to uninstall us.
+            return OfferResponse.finished();
+        }
+
         return processOffers(planScheduler, launchRecorder, decommissionRecorder, offers, steps);
     }
 
@@ -228,7 +249,7 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     @VisibleForTesting
     static OfferResponse processOffers(
-            DefaultPlanScheduler planScheduler,
+            PlanScheduler planScheduler,
             PersistentLaunchRecorder launchRecorder,
             Optional<UninstallRecorder> decommissionRecorder,
             Collection<Protos.Offer> offers,

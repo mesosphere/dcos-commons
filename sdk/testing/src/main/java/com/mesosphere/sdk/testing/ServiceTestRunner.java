@@ -59,8 +59,8 @@ public class ServiceTestRunner {
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
-    private boolean supportsDefaultExecutor = true;
-    private Optional<String> namespace = Optional.empty();
+    private boolean customExecutorEnabled = false;
+    private Optional<String> multiServiceFrameworkName = Optional.empty();
     private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
     /**
@@ -260,8 +260,8 @@ public class ServiceTestRunner {
      *
      * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
      */
-    public ServiceTestRunner setUseCustomExecutor() {
-        this.supportsDefaultExecutor = false;
+    public ServiceTestRunner enableCustomExecutor() {
+        this.customExecutorEnabled = true;
         return this;
     }
 
@@ -270,8 +270,8 @@ public class ServiceTestRunner {
      *
      * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
      */
-    public ServiceTestRunner setNamespace(String namespace) {
-        this.namespace = Optional.of(namespace);
+    public ServiceTestRunner enableMultiService(String frameworkName) {
+        this.multiServiceFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -314,7 +314,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
-        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(supportsDefaultExecutor);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(!customExecutorEnabled);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
@@ -340,8 +340,8 @@ public class ServiceTestRunner {
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
                 .setCustomConfigValidators(validators);
-        if (namespace.isPresent()) {
-            schedulerBuilder.setNamespace(namespace.get());
+        if (multiServiceFrameworkName.isPresent()) {
+            schedulerBuilder.enableMultiService(multiServiceFrameworkName.get());
         }
         AbstractScheduler abstractScheduler = schedulerBuilder.build();
         FrameworkScheduler frameworkScheduler =

@@ -67,7 +67,7 @@ public class StateStore {
      * @param persister The persister which holds the state data
      */
     public StateStore(Persister persister) {
-        this(persister, "");
+        this(persister, Optional.empty());
     }
 
     /**
@@ -81,12 +81,12 @@ public class StateStore {
      * Creates a new {@link StateStore} where data is placed within a namespace under the provided name.
      *
      * @param persister The persister which holds the state data
-     * @param namespace The namespace for data to be stored within, or an empty string for no namespacing
+     * @param namespace The namespace for data to be stored within, or an empty Optional for no namespacing
      */
-    public StateStore(Persister persister, String namespace) {
+    public StateStore(Persister persister, Optional<String> namespace) {
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.persister = persister;
-        this.namespace = namespace;
+        this.namespace = namespace.orElse("");
 
         StateStoreUtils.repairTaskIDs(this);
     }

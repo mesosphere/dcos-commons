@@ -554,6 +554,50 @@ public class DefaultSchedulerTest {
     }
 
     @Test
+    public void testFinishedService() throws Exception {
+        MockitoAnnotations.initMocks(this);
+        Driver.setDriver(mockSchedulerDriver);
+
+        when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
+        ServiceSpec serviceSpec = DefaultServiceSpec.newBuilder(getServiceSpec(podA, podB))
+                .goalState(GoalState.FINISH)
+                .build();
+        defaultScheduler = getScheduler(serviceSpec);
+
+        Assert.assertFalse(getDeploymentPlan().isComplete());
+        Assert.assertTrue(getRecoveryPlan().isComplete());
+
+        // Deployment hasn't finished, so service isn't FINISHED:
+        OfferResponse offerResponse = defaultScheduler.offers(Collections.emptyList());
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
+        Assert.assertTrue(offerResponse.recommendations.isEmpty());
+
+        // Finish the deployment. First step is now PREPARED due to the offer we provided above:
+        Protos.TaskID taskId = installStep(0, 0, getSufficientOfferForTaskA(), Status.PREPARED);
+        installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING);
+        installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
+
+        Assert.assertTrue(getDeploymentPlan().isComplete());
+        Assert.assertTrue(getRecoveryPlan().isComplete());
+
+        // Now that Deployment has finished, service is FINISHED:
+        offerResponse = defaultScheduler.offers(Collections.emptyList());
+        Assert.assertEquals(OfferResponse.Result.FINISHED, offerResponse.result);
+        Assert.assertTrue(offerResponse.recommendations.isEmpty());
+
+        // Force recovery action:
+        statusUpdate(taskId, Protos.TaskState.TASK_FAILED);
+
+        // With active recovery, service is no longer FINISHED:
+        offerResponse = defaultScheduler.offers(Collections.emptyList());
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
+        Assert.assertTrue(offerResponse.recommendations.isEmpty());
+
+        Assert.assertTrue(getDeploymentPlan().isComplete());
+        Assert.assertFalse(getRecoveryPlan().isComplete());
+    }
+
+    @Test
     public void testDecommissionPlanCustomization() throws Exception {
         AtomicBoolean decommissionPlanCustomized = new AtomicBoolean(false);
         PlanCustomizer planCustomizer = new PlanCustomizer() {
@@ -674,7 +718,7 @@ public class DefaultSchedulerTest {
                         false,
                         false));
 
-        DefaultPlanScheduler mockPlanScheduler = mock(DefaultPlanScheduler.class);
+        PlanScheduler mockPlanScheduler = mock(PlanScheduler.class);
         when(mockPlanScheduler.resourceOffers(any(), any())).thenReturn(allRecommendations);
 
         PersistentLaunchRecorder mockLaunchRecorder = mock(PersistentLaunchRecorder.class);

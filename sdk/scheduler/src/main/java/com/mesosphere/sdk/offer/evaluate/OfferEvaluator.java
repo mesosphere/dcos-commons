@@ -33,7 +33,7 @@ public class OfferEvaluator {
     private final Logger logger;
     private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
-    private final OfferOutcomeTracker offerOutcomeTracker;
+    private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
     private final String serviceName;
     private final UUID targetConfigId;
     private final ArtifactQueries.TemplateUrlFactory templateUrlFactory;
@@ -44,7 +44,7 @@ public class OfferEvaluator {
     public OfferEvaluator(
             FrameworkStore frameworkStore,
             StateStore stateStore,
-            OfferOutcomeTracker offerOutcomeTracker,
+            Optional<OfferOutcomeTracker> offerOutcomeTracker,
             String serviceName,
             UUID targetConfigId,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
@@ -132,11 +132,13 @@ public class OfferEvaluator {
                         evaluationStages.size(),
                         outcomeDetails.toString());
 
-                offerOutcomeTracker.track(new OfferOutcome(
-                        podInstanceRequirement.getName(),
-                        false,
-                        offer,
-                        outcomeDetails.toString()));
+                if (offerOutcomeTracker.isPresent()) {
+                    offerOutcomeTracker.get().track(new OfferOutcome(
+                            podInstanceRequirement.getName(),
+                            false,
+                            offer,
+                            outcomeDetails.toString()));
+                }
             } else {
                 List<OfferRecommendation> recommendations = outcomes.stream()
                         .map(outcome -> outcome.getOfferRecommendations())
@@ -145,11 +147,13 @@ public class OfferEvaluator {
                 logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
                         i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
 
-                offerOutcomeTracker.track(new OfferOutcome(
+                if (offerOutcomeTracker.isPresent()) {
+                    offerOutcomeTracker.get().track(new OfferOutcome(
                         podInstanceRequirement.getName(),
                         true,
                         offer,
                         outcomeDetails.toString()));
+                }
 
                 return recommendations;
             }

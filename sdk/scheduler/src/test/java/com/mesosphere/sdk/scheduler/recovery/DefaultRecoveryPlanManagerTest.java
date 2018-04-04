@@ -4,7 +4,6 @@ import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -65,7 +64,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private TestingFailureMonitor failureMonitor;
     private TestingLaunchConstrainer launchConstrainer;
     private PlanCoordinator planCoordinator;
-    private DefaultPlanScheduler planScheduler;
+    private PlanScheduler planScheduler;
     private PlanManager mockDeployManager;
     private ServiceSpec serviceSpec;
 
@@ -115,11 +114,11 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        planScheduler = new DefaultPlanScheduler(
+        planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
-                        new OfferOutcomeTracker(),
+                        Optional.empty(),
                         serviceSpec.getName(),
                         configTarget,
                         ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),

@@ -22,6 +22,9 @@ public interface ServiceSpec extends Configuration {
     @JsonProperty("user")
     String getUser();
 
+    @JsonProperty("goal")
+    GoalState getGoal();
+
     @JsonProperty("region")
     Optional<String> getRegion();
 

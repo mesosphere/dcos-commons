@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -75,7 +74,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private DefaultServiceSpec serviceSpecification;
     private DefaultServiceSpec serviceSpecificationB;
-    private DefaultPlanScheduler planScheduler;
+    private PlanScheduler planScheduler;
     private PhaseFactory phaseFactory;
 
     @Before
@@ -98,11 +97,11 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         StepFactory stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
 
-        planScheduler = new DefaultPlanScheduler(
+        planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
-                        new OfferOutcomeTracker(),
+                        Optional.empty(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),

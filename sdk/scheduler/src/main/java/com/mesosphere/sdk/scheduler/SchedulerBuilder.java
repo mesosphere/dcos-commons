@@ -10,7 +10,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
-import com.mesosphere.sdk.http.queries.ArtifactQueries;
+import com.mesosphere.sdk.http.endpoints.MultiArtifactResource;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -68,9 +68,8 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
-    private Optional<String> namespace = Optional.empty();
+    private Optional<String> multiServiceFrameworkName = Optional.empty();
     private boolean regionAwarenessEnabled = false;
-    private Optional<ArtifactQueries.TemplateUrlFactory> templateUrlFactory = Optional.empty();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -192,21 +191,13 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Assigns a custom namespace for this service. This is only relevant when a single framework is running multiple
-     * services, where different services need to be differentiated from each other. The namespace is used for both
-     * storage in ZK ({@link StateStore}/{@link ConfigStore}), as well as in resource labels.
+     * Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
+     * multiple underlying services.
+     *
+     * @param frameworkName the name of the Mesos Framework which will be running the service
      */
-    public SchedulerBuilder setNamespace(String namespace) {
-        this.namespace = Optional.of(namespace);
-        return this;
-    }
-
-    /**
-     * Assigns a custom factory for generating config template URLs. Otherwise a default suitable for use with
-     * {@link ArtifactResource} is used.
-     */
-    public SchedulerBuilder setTemplateUrlFactory(ArtifactQueries.TemplateUrlFactory templateUrlFactory) {
-        this.templateUrlFactory = Optional.of(templateUrlFactory);
+    public SchedulerBuilder enableMultiService(String frameworkName) {
+        this.multiServiceFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -273,10 +264,12 @@ public class SchedulerBuilder {
 
         // When multi-service is enabled, state/configs are stored within a namespace matching the service name.
         // Otherwise use an empty namespace, which indicates single-service mode.
-        String namespaceStr = namespace.orElse("");
-        StateStore stateStore = new StateStore(persister, namespaceStr);
+        Optional<String> namespace = multiServiceFrameworkName.isPresent()
+                ? Optional.of(serviceSpec.getName())
+                : Optional.empty();
+        StateStore stateStore = new StateStore(persister, namespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespaceStr);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
@@ -292,7 +285,7 @@ public class SchedulerBuilder {
 
         if (StateStoreUtils.isUninstalling(stateStore)) {
             // SERVICE UNINSTALL: The service has an uninstall bit set in its (potentially namespaced) state store.
-            if (namespace.isPresent()) {
+            if (multiServiceFrameworkName.isPresent()) {
                 // This namespaced service is partway through being removed from the parent multi-service scheduler.
                 // Launch the service in uninstall mode so that it can continue with whatever may be left.
                 return new UninstallScheduler(
@@ -408,14 +401,16 @@ public class SchedulerBuilder {
         return new DefaultScheduler(
                 serviceSpec,
                 schedulerConfig,
-                namespace,
+                multiServiceFrameworkName.isPresent() ? Optional.of(serviceSpec.getName()) : Optional.empty(),
                 customResources,
                 planCoordinator,
                 Optional.ofNullable(planCustomizer),
                 frameworkStore,
                 stateStore,
                 configStore,
-                templateUrlFactory.orElse(ArtifactResource.getUrlFactory(serviceSpec.getName())),
+                multiServiceFrameworkName.isPresent()
+                    ? MultiArtifactResource.getUrlFactory(multiServiceFrameworkName.get(), serviceSpec.getName())
+                    : ArtifactResource.getUrlFactory(serviceSpec.getName()),
                 endpointProducers);
     }
 

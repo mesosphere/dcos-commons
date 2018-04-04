@@ -17,7 +17,7 @@ public class OfferUtils {
      * @param offers          An {@link org.apache.mesos.Protos.Offer} collection containing both ACCEPTED and
      *                        UNACCEPTED offers
      * @param recommendations A collection of offer recommendations, which hold accepted offers
-     * @return Offers are that not ACCEPTED yet, or an empty list if there are no UNACCEPTED offers left
+     * @return Offers that are not ACCEPTED yet, or an empty list if there are no UNACCEPTED offers left
      */
     public static List<Protos.Offer> filterOutAcceptedOffers(
             Collection<Protos.Offer> offers, Collection<? extends OfferRecommendation> recommendations) {

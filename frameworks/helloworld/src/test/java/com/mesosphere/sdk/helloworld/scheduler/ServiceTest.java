@@ -50,18 +50,20 @@ public class ServiceTest {
     public void testDefaultDeploymentWithNamespace() throws Exception {
         // Exercise slashes in name:
         ServiceTestResult result = new ServiceTestRunner()
-                .setNamespace("/path/to/namespace")
+                .enableMultiService("frameworkName")
+                .setOptions("service.name", "/path/to/namespace")
                 .run(getDefaultDeploymentTicks());
         // Validate that nothing was stored under the default root persister paths:
         checkNotFound(result.getPersister(), "/Tasks");
         checkNotFound(result.getPersister(), "/Configurations");
         byte[] frameworkId = result.getPersister().get("/FrameworkID");
-        checkNamespace(result, "/path/to/namespace", "/Services/path__to__namespace");
+        checkNamespace(result, "path.to.namespace", "/path/to/namespace", "/Services/path__to__namespace");
 
-        // A different namespace should ignore the state of the first namespace:
+        // A different service name (and namespace) should ignore the state of the first namespace:
         result = new ServiceTestRunner()
                 .setState(result)
-                .setNamespace("test-namespace")
+                .enableMultiService("frameworkName")
+                .setOptions("service.name", "test-namespace")
                 .run(getDefaultDeploymentTicks());
         // Again, nothing stored under the default root persister paths, but prior namespace IS present:
         checkNotFound(result.getPersister(), "/Tasks");
@@ -69,11 +71,12 @@ public class ServiceTest {
         Assert.assertEquals(3, result.getPersister().getChildren("/Services/path__to__namespace/Tasks").size());
         Assert.assertEquals(1, result.getPersister().getChildren("/Services/path__to__namespace/Configurations").size());
         Assert.assertArrayEquals(frameworkId, result.getPersister().get("/FrameworkID"));
-        checkNamespace(result, "test-namespace", "/Services/test-namespace");
+        checkNamespace(result, "test-namespace", "test-namespace", "/Services/test-namespace");
 
         // No-namespace should ignore both of the above:
         result = new ServiceTestRunner()
                 .setState(result)
+                // default service name: hello-world
                 .run(getDefaultDeploymentTicks());
         // Finally, all three sets should be present. In practice this can't happen because of a schema version check in
         // ServiceRunner, but this test suite doesn't exercise that code.
@@ -82,7 +85,7 @@ public class ServiceTest {
         Assert.assertEquals(3, result.getPersister().getChildren("/Services/test-namespace/Tasks").size());
         Assert.assertEquals(1, result.getPersister().getChildren("/Services/test-namespace/Configurations").size());
         Assert.assertArrayEquals(frameworkId, result.getPersister().get("/FrameworkID"));
-        checkNamespace(result, null, "");
+        checkNamespace(result, "hello-world", null, "");
     }
 
     private static void checkNotFound(Persister persister, String path) {
@@ -95,7 +98,7 @@ public class ServiceTest {
     }
 
     private static void checkNamespace(
-            ServiceTestResult result, String resourceNamespace, String persisterPrefix) throws Exception {
+            ServiceTestResult result, String sanitizedServiceName, String resourceNamespace, String persisterPrefix) throws Exception {
         Collection<String> taskNames = Arrays.asList("hello-0-server", "world-0-server", "world-1-server");
         // Persister: everything under a specified prefix (or no prefix).
         Assert.assertEquals(new TreeSet<>(taskNames),
@@ -106,8 +109,8 @@ public class ServiceTest {
             LaunchedTask launchedTask = result.getClusterState().getLastLaunchedTask(taskName);
 
             // Each task should have a taskId and executorId containing the service name, regardless of namespacing:
-            Assert.assertEquals("hello-world", CommonIdUtils.toSanitizedServiceName(launchedTask.getExecutor().getExecutorId()).get());
-            Assert.assertEquals("hello-world", CommonIdUtils.toSanitizedServiceName(launchedTask.getTask().getTaskId()).get());
+            Assert.assertEquals(sanitizedServiceName, CommonIdUtils.toSanitizedServiceName(launchedTask.getExecutor().getExecutorId()).get());
+            Assert.assertEquals(sanitizedServiceName, CommonIdUtils.toSanitizedServiceName(launchedTask.getTask().getTaskId()).get());
 
             if (resourceNamespace != null) {
                 // All task+executor resources should have a 'namespace' label
@@ -341,7 +344,7 @@ public class ServiceTest {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
         ServiceTestRunner runner = new ServiceTestRunner();
         if (!useDefaultExecutor) {
-            runner.setUseCustomExecutor();
+            runner.enableCustomExecutor();
         }
         ServiceTestResult result = runner.run(getDefaultDeploymentTicks());
         Assert.assertEquals(
@@ -422,7 +425,7 @@ public class ServiceTest {
                 .setOptions("world.count", "0")
                 .setState(result);
         if (!useDefaultExecutor) {
-            runner.setUseCustomExecutor();
+            runner.enableCustomExecutor();
         }
         runner.run(ticks);
     }

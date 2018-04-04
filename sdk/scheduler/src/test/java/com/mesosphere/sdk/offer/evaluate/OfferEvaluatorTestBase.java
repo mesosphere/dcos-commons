@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -47,7 +46,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         evaluator = new OfferEvaluator(
                 frameworkStore,
                 stateStore,
-                new OfferOutcomeTracker(),
+                Optional.empty(),
                 TestConstants.SERVICE_NAME,
                 targetConfig,
                 ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
@@ -60,7 +59,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         evaluator = new OfferEvaluator(
                 frameworkStore,
                 stateStore,
-                new OfferOutcomeTracker(),
+                Optional.empty(),
                 TestConstants.SERVICE_NAME,
                 targetConfig,
                 ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
