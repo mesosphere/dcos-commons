@@ -17,6 +17,9 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
+/**
+ * Tests for {@link MultiServiceRunner}
+ */
 public class MultiServiceRunnerTest {
 
     @Mock SchedulerConfig mockSchedulerConfig;

@@ -34,7 +34,8 @@ import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
 
 /**
- * Mesos client which wraps multiple running services, routing Mesos events to each appropriately.
+ * An implementation of {@link MesosEventClient} which wraps multiple running services, routing Mesos events to each
+ * client appropriately. The underlying running services are stored within a provided {@link MultiServiceManager}.
  */
 public class MultiServiceEventClient implements MesosEventClient {
 
@@ -54,7 +55,7 @@ public class MultiServiceEventClient implements MesosEventClient {
 
     private final String frameworkName;
     private final SchedulerConfig schedulerConfig;
-    private final DefaultMultiServiceManager multiServiceManager;
+    private final MultiServiceManager multiServiceManager;
     private final Collection<Object> customEndpoints;
     private final UninstallCallback uninstallCallback;
     private final DeregisterStep deregisterStep;
@@ -63,7 +64,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
-            DefaultMultiServiceManager multiServiceManager,
+            MultiServiceManager multiServiceManager,
             Collection<Object> customEndpoints,
             UninstallCallback uninstallCallback) {
         this.frameworkName = frameworkName;

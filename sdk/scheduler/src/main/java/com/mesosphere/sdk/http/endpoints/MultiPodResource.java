@@ -2,9 +2,9 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.PodQueries;
-import com.mesosphere.sdk.http.types.MultiServiceManager;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -35,12 +35,12 @@ public class MultiPodResource extends PrettyJsonResource {
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod")
+    @Path("{sanitizedServiceName}/pod")
     @GET
-    public Response list(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response list(@PathParam("sanitizedServiceName") String sanitizedServiceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.list(stateStore.get());
     }
@@ -48,25 +48,26 @@ public class MultiPodResource extends PrettyJsonResource {
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/status")
+    @Path("{sanitizedServiceName}/pod/status")
     @GET
-    public Response getStatuses(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getStatuses(@PathParam("sanitizedServiceName") String sanitizedServiceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
-        return PodQueries.getStatuses(stateStore.get(), serviceName);
+        return PodQueries.getStatuses(stateStore.get(), sanitizedServiceName);
     }
 
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/{name}/status")
+    @Path("{sanitizedServiceName}/pod/{name}/status")
     @GET
-    public Response getStatus(@PathParam("serviceName") String serviceName, @PathParam("name") String podInstanceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getStatus(
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String podInstanceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.getStatus(stateStore.get(), podInstanceName);
     }
@@ -74,12 +75,13 @@ public class MultiPodResource extends PrettyJsonResource {
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/{name}/info")
+    @Path("{sanitizedServiceName}/pod/{name}/info")
     @GET
-    public Response getInfo(@PathParam("serviceName") String serviceName, @PathParam("name") String podInstanceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getInfo(
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String podInstanceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.getInfo(stateStore.get(), podInstanceName);
     }
@@ -87,15 +89,15 @@ public class MultiPodResource extends PrettyJsonResource {
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/{name}/pause")
+    @Path("{sanitizedServiceName}/pod/{name}/pause")
     @POST
     public Response pause(
-            @PathParam("serviceName") String serviceName,
+            @PathParam("sanitizedServiceName") String sanitizedServiceName,
             @PathParam("name") String podInstanceName,
             String bodyPayload) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.pause(stateStore.get(), podInstanceName, bodyPayload);
     }
@@ -103,15 +105,15 @@ public class MultiPodResource extends PrettyJsonResource {
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/{name}/resume")
+    @Path("{sanitizedServiceName}/pod/{name}/resume")
     @POST
     public Response resume(
-            @PathParam("serviceName") String serviceName,
+            @PathParam("sanitizedServiceName") String sanitizedServiceName,
             @PathParam("name") String podInstanceName,
             String bodyPayload) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.resume(stateStore.get(), podInstanceName, bodyPayload);
     }
@@ -119,32 +121,34 @@ public class MultiPodResource extends PrettyJsonResource {
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/{name}/restart")
+    @Path("{sanitizedServiceName}/pod/{name}/restart")
     @POST
-    public Response restart(@PathParam("serviceName") String serviceName, @PathParam("name") String podInstanceName) {
-        return restart(serviceName, podInstanceName, RecoveryType.TRANSIENT);
+    public Response restart(
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String podInstanceName) {
+        return restart(sanitizedServiceName, podInstanceName, RecoveryType.TRANSIENT);
     }
 
     /**
      * @see PodQueries
      */
-    @Path("{serviceName}/pod/{name}/replace")
+    @Path("{sanitizedServiceName}/pod/{name}/replace")
     @POST
-    public Response replace(@PathParam("serviceName") String serviceName, @PathParam("name") String podInstanceName) {
-        return restart(serviceName, podInstanceName, RecoveryType.PERMANENT);
+    public Response replace(
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String podInstanceName) {
+        return restart(sanitizedServiceName, podInstanceName, RecoveryType.PERMANENT);
     }
 
-    private Response restart(String serviceName, String podInstanceName, RecoveryType recoveryType) {
-        Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+    private Response restart(String sanitizedServiceName, String podInstanceName, RecoveryType recoveryType) {
+        Optional<AbstractScheduler> service = multiServiceManager.getService(sanitizedServiceName);
         if (!service.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.restart(
                 service.get().getStateStore(), service.get().getConfigStore(), podInstanceName, recoveryType);
     }
 
-    private Optional<StateStore> getStateStore(String serviceName) {
-        Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+    private Optional<StateStore> getStateStore(String sanitizedServiceName) {
+        Optional<AbstractScheduler> service = multiServiceManager.getService(sanitizedServiceName);
         return service.isPresent() ? Optional.of(service.get().getStateStore()) : Optional.empty();
     }
 }

@@ -4,7 +4,6 @@ import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -119,7 +118,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
-                        new OfferOutcomeTracker(),
+                        Optional.empty(),
                         serviceSpec.getName(),
                         configTarget,
                         ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),

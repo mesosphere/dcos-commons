@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -102,7 +101,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
-                        new OfferOutcomeTracker(),
+                        Optional.empty(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),

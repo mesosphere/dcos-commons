@@ -41,22 +41,28 @@ public class ApiServerTest {
                 Arrays.asList(
                         new TestResourcePlans(),
                         new TestResourcePod(),
-                        new TestResourceJobPlans(),
-                        new TestResourceJobPod()),
+                        new TestResourceMultiPlans(),
+                        new TestResourceMultiPod()),
                 listener);
         listener.waitForStarted();
 
         Map<String, String> expectedEndpoints = new HashMap<>();
         expectedEndpoints.put("/v1/metrics", "");
         expectedEndpoints.put("/v1/metrics/prometheus", "");
+
         expectedEndpoints.put("/v1/plans/foo", "Service Plan: foo");
         expectedEndpoints.put("/v1/plans/bar", "Service Plan: bar");
+
         expectedEndpoints.put("/v1/pod/foo/info", "Service Pod: foo");
         expectedEndpoints.put("/v1/pod/bar/info", "Service Pod: bar");
+
         expectedEndpoints.put("/v1/service/fast/plans/foo", "fast Plan: foo");
         expectedEndpoints.put("/v1/service/slow/plans/bar", "slow Plan: bar");
+        expectedEndpoints.put("/v1/service/path/to/svc/plans/foo", null); // slashes in service name not supported
+
         expectedEndpoints.put("/v1/service/fast/pod/foo/info", "fast Pod: foo");
         expectedEndpoints.put("/v1/service/slow/pod/foo/info", "slow Pod: foo");
+        expectedEndpoints.put("/v1/service/path/to/svc/pod/foo/info", null); // slashes in service name not supported
 
         checkEndpoints(server.getURI(), expectedEndpoints);
 
@@ -130,7 +136,7 @@ public class ApiServerTest {
     }
 
     @Path("/v1/service")
-    public static class TestResourceJobPlans {
+    public static class TestResourceMultiPlans {
 
         @Path("{serviceName}/plans/{planName}")
         @GET
@@ -140,7 +146,7 @@ public class ApiServerTest {
     }
 
     @Path("/v1/service")
-    public static class TestResourceJobPod {
+    public static class TestResourceMultiPod {
 
         @Path("/{serviceName}/pod/{name}/info")
         @GET

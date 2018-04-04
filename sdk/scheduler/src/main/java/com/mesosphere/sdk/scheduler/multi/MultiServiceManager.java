@@ -14,7 +14,6 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.http.types.MultiServiceManager;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
@@ -23,14 +22,12 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 
 /**
- * Higher-level frontend to {@link MultiServiceManager} which handles adding/removing active services.
- *
- * This implements both the {@link MultiServiceManager} interface for access by HTTP endpoints, plus any additional
- * access required by {@link MultiServiceEventClient}.
+ * Handles adding/removing active services in a multi-service scheduler, and functions as the central source of truth
+ * for running services, including services which are in the process of uninstalling.
  */
-public class DefaultMultiServiceManager implements MultiServiceManager {
+public class MultiServiceManager {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultMultiServiceManager.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(MultiServiceManager.class);
 
     private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
     private final Lock rlock = internalLock.readLock();
@@ -43,14 +40,13 @@ public class DefaultMultiServiceManager implements MultiServiceManager {
     // When a client is added, if we're already registered then invoke 'registered()' manually against that client
     private boolean isRegistered;
 
-    public DefaultMultiServiceManager() {
+    public MultiServiceManager() {
         this.isRegistered = false;
     }
 
     /**
-     * Returns currently available service names.
+     * Returns the original names of currently available services.
      */
-    @Override
     public Collection<String> getServiceNames() {
         Collection<String> serviceNames = new TreeSet<>(); // Alphabetical order
         rlock.lock();
@@ -63,70 +59,8 @@ public class DefaultMultiServiceManager implements MultiServiceManager {
     }
 
     /**
-     * Adds a service which is mapped for the specified name. Note: If the service was marked for uninstall via
-     * {@link #uninstallService(String)}, it should continue to be added across scheduler restarts in order for
-     * uninstall to complete. It should only be omitted after the uninstall callback has been invoked for it.
-     *
-     * @param service the client to add
-     * @return {@code this}
-     * @throws IllegalArgumentException if the service name is already present
+     * Returns the specified service by its original name, or an empty {@code Optional} if it's not found.
      */
-    @Override
-    public DefaultMultiServiceManager putService(AbstractScheduler service) {
-        String originalName = service.getServiceSpec().getName();
-        String sanitizedName = CommonIdUtils.toSanitizedServiceName(originalName);
-        rwlock.lock();
-        try {
-            LOGGER.info("Adding service: {} (now {} services)", originalName, services.size() + 1);
-
-            // NOTE: If the service is uninstalling, it should already be passed to us as an UninstallScheduler.
-            // See SchedulerBuilder.
-
-            // Sanity check: Disallow overlapping sanitized names (e.g. /path/to/service vs /path/to.service)
-            String previousName =
-                    sanitizedServiceNames.put(sanitizedName, originalName);
-            if (previousName != null) {
-                // Undo changes to 'sanitizedServiceNames' before throwing...
-                sanitizedServiceNames.put(sanitizedName, previousName);
-                if (originalName.equals(previousName)) {
-                    // The new's name is an exact match with an existing service
-                    throw new IllegalArgumentException(String.format(
-                            "Service named '%s' already exists", originalName));
-                } else {
-                    // The new service's name reduces to a matching sanitized name with an existing service, but is not
-                    // an exact match (e.g. "/foo/bar" vs "/foo.bar")
-                    throw new IllegalArgumentException(String.format(
-                            "Service named '%s' conflicts with existing service '%s': matching sanitized name '%s'",
-                            originalName, previousName, sanitizedName));
-                }
-            }
-
-            // Just in case, check against the exact name as well. Shouldn't happen in practice.
-            AbstractScheduler previousService = services.put(originalName, service);
-            if (previousService != null) {
-                // Undo changes to 'services' and 'sanitizedServiceNames' before throwing...
-                sanitizedServiceNames.remove(sanitizedName);
-                services.put(originalName, previousService);
-                throw new IllegalArgumentException(String.format(
-                        "Internal error: Found existing service '%s' in services:%s, "
-                                + "but '%s' was missing in sanitized services:%s",
-                        originalName, services.keySet(), sanitizedName, sanitizedServiceNames.keySet()));
-            }
-
-            if (isRegistered) {
-                // We are already registered. Manually call registered() against this client so that it can initialize.
-                service.registered(false);
-            }
-            return this;
-        } finally {
-            rwlock.unlock();
-        }
-    }
-
-    /**
-     * Returns the specified service, or an empty {@code Optional} if it's not found.
-     */
-    @Override
     public Optional<AbstractScheduler> getService(String serviceName) {
         rlock.lock();
         try {
@@ -137,8 +71,11 @@ public class DefaultMultiServiceManager implements MultiServiceManager {
     }
 
     /**
-     * Returns the specified service by its sanitized name (slashes removed), or an empty {@code Optional} if it's not
-     * found.
+     * Returns the specified service by its sanitized name, or an empty {@code Optional} if it's not found.
+     *
+     * A sanitized service name has had its slashes removed. For example,
+     * "{@code /path/to/service}" => "{@code path.to.service}". Sanitized names may be used in e.g. URLs that contain
+     * the service name.
      */
     public Optional<AbstractScheduler> getServiceSanitized(String sanitizedServiceName) {
         rlock.lock();
@@ -155,20 +92,62 @@ public class DefaultMultiServiceManager implements MultiServiceManager {
     }
 
     /**
+     * Adds or replaces a running service according to the name in its ServiceSpec. Note: If the service was marked for
+     * uninstall via {@link #uninstallService(String)}, it should continue to be added across scheduler restarts in
+     * order for uninstall to complete. It should only be omitted after the uninstall callback has been invoked for it.
+     *
+     * @param service the client to add, or to replace an existing client with if their service names match
+     * @return {@code this}
+     * @throws IllegalArgumentException if the service name collides with an existing service after reducing slashes to
+     *                                  periods
+     */
+    public MultiServiceManager putService(AbstractScheduler service) {
+        String originalName = service.getServiceSpec().getName();
+        String sanitizedName = CommonIdUtils.toSanitizedServiceName(originalName);
+        rwlock.lock();
+        try {
+            // NOTE: If the service is uninstalling, it should already be passed to us as an UninstallScheduler.
+            // See SchedulerBuilder.
+
+            // Update the sanitized=>original mapping, and check for a colliding sanitized name,
+            // e.g. "/path/to/service" vs "/path/to.service".
+            // This differs from an exact match, which we treat as a reconfiguration/replacement of the prior service.
+            String previousOriginalName = sanitizedServiceNames.put(sanitizedName, originalName);
+            if (previousOriginalName != null && !originalName.equals(previousOriginalName)) {
+                // Undo changes to 'sanitizedServiceNames' before throwing...
+                sanitizedServiceNames.put(sanitizedName, previousOriginalName);
+
+                throw new IllegalArgumentException(String.format(
+                        "Service named '%s' conflicts with existing service '%s': matching sanitized name '%s'",
+                        originalName, previousOriginalName, sanitizedName));
+            }
+
+            if (services.put(originalName, service) == null) {
+                LOGGER.info("Added new service: {} (now {} services)", originalName, services.size());
+            } else {
+                LOGGER.info("Replaced existing service: {} (now {} services)", originalName, services.size());
+            }
+
+            if (isRegistered) {
+                // We are already registered. Manually call registered() against this client so that it can initialize.
+                service.registered(false);
+            }
+            return this;
+        } finally {
+            rwlock.unlock();
+        }
+    }
+
+    /**
      * Triggers an uninstall for a service, removing it from the list of services when it has finished. Does nothing if
      * the service is already uninstalling or doesn't exist. If the scheduler process is restarted, the service must be
      * added again via {@link #putService(AbstractScheduler)}, at which point it will automatically resume uninstalling.
      *
      * @param serviceName the name of the service to be uninstalled
      */
-    @Override
     public void uninstallService(String serviceName) {
         uninstallServices(Collections.singleton(serviceName));
     }
-
-    /****
-     * The following calls are used by QueueEventClient only.
-     ****/
 
     /**
      * Returns a service matching the provided {@code TaskStatus}, or an empty {@link Optional} if no match was found.

@@ -5,7 +5,7 @@ import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
-import com.mesosphere.sdk.scheduler.multi.DefaultMultiServiceManager;
+import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -20,11 +20,11 @@ import java.util.UUID;
 @Path("/v1/service")
 public class MultiArtifactResource {
 
-    private static final String RUN_ARTIFACT_URI_FORMAT = "http://%s/v1/runs/%s/artifacts/template/%s/%s/%s/%s";
+    private static final String RUN_ARTIFACT_URI_FORMAT = "http://%s/v1/service/%s/artifacts/template/%s/%s/%s/%s";
 
-    private final DefaultMultiServiceManager multiServiceManager;
+    private final MultiServiceManager multiServiceManager;
 
-    public MultiArtifactResource(DefaultMultiServiceManager multiServiceManager) {
+    public MultiArtifactResource(MultiServiceManager multiServiceManager) {
         this.multiServiceManager = multiServiceManager;
     }
 
@@ -32,7 +32,7 @@ public class MultiArtifactResource {
      * Returns a factory for schedulers which use {@link MultiArtifactResource}.
      *
      * @param frameworkName the name of the scheduler framework
-     * @param serviceName the name of a run/service being managed by the scheduler
+     * @param serviceName the name of a service being managed by the scheduler
      */
     public static ArtifactQueries.TemplateUrlFactory getUrlFactory(String frameworkName, String serviceName) {
         String hostname = EndpointUtils.toSchedulerApiVipHostname(frameworkName);

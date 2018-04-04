@@ -2,9 +2,9 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.StateQueries;
-import com.mesosphere.sdk.http.types.MultiServiceManager;
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import com.mesosphere.sdk.state.StateStore;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -37,13 +37,13 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/files")
+    @Path("{sanitizedServiceName}/state/files")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
-    public Response getFiles(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getFiles(@PathParam("sanitizedServiceName") String sanitizedServiceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getFiles(stateStore.get());
     }
@@ -51,13 +51,14 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/files/{file}")
+    @Path("{sanitizedServiceName}/state/files/{file}")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
-    public Response getFile(@PathParam("serviceName") String serviceName, @PathParam("file") String fileName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getFile(
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("file") String fileName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getFile(stateStore.get(), fileName);
     }
@@ -65,16 +66,16 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/files/{file}")
+    @Path("{sanitizedServiceName}/state/files/{file}")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putFile(
-            @PathParam("serviceName") String serviceName,
+            @PathParam("sanitizedServiceName") String sanitizedServiceName,
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetails) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.putFile(stateStore.get(), uploadedInputStream, fileDetails);
     }
@@ -82,12 +83,12 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/zone/tasks")
+    @Path("{sanitizedServiceName}/state/zone/tasks")
     @GET
-    public Response getTaskNamesToZones(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getTaskNamesToZones(@PathParam("sanitizedServiceName") String sanitizedServiceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getTaskNamesToZones(stateStore.get());
     }
@@ -95,13 +96,13 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/zone/tasks/{taskName}")
+    @Path("{sanitizedServiceName}/state/zone/tasks/{taskName}")
     @GET
     public Response getTaskNameToZone(
-            @PathParam("serviceName") String serviceName, @PathParam("taskName") String taskName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("taskName") String taskName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getTaskNameToZone(stateStore.get(), taskName);
     }
@@ -109,15 +110,15 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/zone/{podType}/{ip}")
+    @Path("{sanitizedServiceName}/state/zone/{podType}/{ip}")
     @GET
     public Response getTaskIPsToZones(
-            @PathParam("serviceName") String serviceName,
+            @PathParam("sanitizedServiceName") String sanitizedServiceName,
             @PathParam("podType") String podType,
             @PathParam("ip") String ip) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getTaskIPsToZones(stateStore.get(), podType, ip);
     }
@@ -125,12 +126,12 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/properties")
+    @Path("{sanitizedServiceName}/state/properties")
     @GET
-    public Response getPropertyKeys(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getPropertyKeys(@PathParam("sanitizedServiceName") String sanitizedServiceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getPropertyKeys(stateStore.get());
     }
@@ -138,12 +139,13 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/properties/{key}")
+    @Path("{sanitizedServiceName}/state/properties/{key}")
     @GET
-    public Response getProperty(@PathParam("serviceName") String serviceName, @PathParam("key") String key) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response getProperty(
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("key") String key) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.getProperty(stateStore.get(), propertyDeserializer, key);
     }
@@ -151,18 +153,18 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{serviceName}/state/refresh")
+    @Path("{sanitizedServiceName}/state/refresh")
     @PUT
-    public Response refreshCache(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = getStateStore(serviceName);
+    public Response refreshCache(@PathParam("sanitizedServiceName") String sanitizedServiceName) {
+        Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return StateQueries.refreshCache(stateStore.get());
     }
 
-    private Optional<StateStore> getStateStore(String serviceName) {
-        Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+    private Optional<StateStore> getStateStore(String sanitizedServiceName) {
+        Optional<AbstractScheduler> service = multiServiceManager.getServiceSanitized(sanitizedServiceName);
         return service.isPresent() ? Optional.of(service.get().getStateStore()) : Optional.empty();
     }
 }

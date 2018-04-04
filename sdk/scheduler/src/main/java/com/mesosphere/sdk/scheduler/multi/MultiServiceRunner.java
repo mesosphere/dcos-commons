@@ -12,8 +12,6 @@ import com.mesosphere.sdk.storage.Persister;
 
 /**
  * Sets up and executes a {@link FrameworkRunner} to which potentially multiple {@link AbstractScheduler}s may be added.
- *
- * <p>WARNING: This is not a stable API, and can go away at any time.
  */
 public class MultiServiceRunner implements Runnable {
 

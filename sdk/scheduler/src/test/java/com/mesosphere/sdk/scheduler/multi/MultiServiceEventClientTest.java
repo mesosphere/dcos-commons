@@ -32,6 +32,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Tests for {@link MultiServiceEventClient}
+ */
 public class MultiServiceEventClientTest {
 
     private static final Answer<OfferResponse> CONSUME_FIRST_OFFER = new Answer<OfferResponse>() {
@@ -91,7 +94,7 @@ public class MultiServiceEventClientTest {
     @Mock private ServiceSpec mockServiceSpec8;
     @Mock private ServiceSpec mockServiceSpec9;
     @Mock private SchedulerConfig mockSchedulerConfig;
-    @Mock private DefaultMultiServiceManager mockMultiServiceManager;
+    @Mock private MultiServiceManager mockMultiServiceManager;
     @Mock private MultiServiceEventClient.UninstallCallback mockUninstallCallback;
 
     private MultiServiceEventClient client;

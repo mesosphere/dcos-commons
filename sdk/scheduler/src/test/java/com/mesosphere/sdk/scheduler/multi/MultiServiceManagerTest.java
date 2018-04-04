@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.multi;
 
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,7 +21,10 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 
-public class DefaultMultiServiceManagerTest {
+/**
+ * Tests for {@link MultiServiceManager}
+ */
+public class MultiServiceManagerTest {
 
     @Mock private ServiceSpec mockServiceSpec1;
     @Mock private ServiceSpec mockServiceSpec2;
@@ -29,7 +33,7 @@ public class DefaultMultiServiceManagerTest {
     @Mock private ServiceSpec mockUninstallServiceSpec;
     @Mock private UninstallScheduler mockUninstallClient;
 
-    private DefaultMultiServiceManager multiServiceManager;
+    private MultiServiceManager multiServiceManager;
 
     @Before
     public void beforeEach() {
@@ -38,22 +42,25 @@ public class DefaultMultiServiceManagerTest {
         when(mockClient2.getServiceSpec()).thenReturn(mockServiceSpec2);
         when(mockServiceSpec1.getName()).thenReturn("1");
         when(mockServiceSpec2.getName()).thenReturn("2");
-        multiServiceManager = new DefaultMultiServiceManager();
+        multiServiceManager = new MultiServiceManager();
     }
 
     @Test
     public void putClientsDuplicate() {
         multiServiceManager.putService(mockClient1);
+        Assert.assertEquals(new HashSet<>(Arrays.asList("1")), multiServiceManager.getServiceNames());
         multiServiceManager.putService(mockClient2);
         Assert.assertEquals(new HashSet<>(Arrays.asList("1", "2")), multiServiceManager.getServiceNames());
-        try {
-            multiServiceManager.putService(mockClient2);
-            Assert.fail("Expected exception: duplicate key");
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
-        multiServiceManager.removeServices(Collections.singletonList("2"));
+
+        // Reconfiguration:
         multiServiceManager.putService(mockClient2);
+        Assert.assertEquals(new HashSet<>(Arrays.asList("1", "2")), multiServiceManager.getServiceNames());
+
+        multiServiceManager.removeServices(Collections.singletonList("2"));
+        Assert.assertEquals(new HashSet<>(Arrays.asList("1")), multiServiceManager.getServiceNames());
+
+        multiServiceManager.putService(mockClient2);
+        Assert.assertEquals(new HashSet<>(Arrays.asList("1", "2")), multiServiceManager.getServiceNames());
     }
 
     @Test
@@ -66,7 +73,9 @@ public class DefaultMultiServiceManagerTest {
             multiServiceManager.putService(mockClient2);
             Assert.fail("Expected exception: duplicate key");
         } catch (IllegalArgumentException e) {
-            // expected
+            Assert.assertEquals(
+                    "Service named '/path.to/1' conflicts with existing service '/path/to/1': matching sanitized name 'path.to.1'",
+                    e.getMessage());
         }
         multiServiceManager.removeServices(Collections.singletonList("/path/to/1"));
         multiServiceManager.putService(mockClient2);
@@ -101,12 +110,9 @@ public class DefaultMultiServiceManagerTest {
         multiServiceManager.putService(mockClient2);
         // Should have been called automatically due to already being registered:
         verify(mockClient2).registered(false);
-        try {
-            multiServiceManager.putService(mockClient2);
-            Assert.fail("Expected exception: duplicate key");
-        } catch (IllegalArgumentException e) {
-            // expected
-        }
+        // Reconfiguration should re-invoke registered:
+        multiServiceManager.putService(mockClient2);
+        verify(mockClient2, times(2)).registered(false);
     }
 
     @Test

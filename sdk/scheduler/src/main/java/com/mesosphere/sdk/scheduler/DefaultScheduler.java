@@ -47,7 +47,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private final Map<String, EndpointProducer> customEndpointProducers;
     private final PersistentLaunchRecorder launchRecorder;
     private final Optional<UninstallRecorder> decommissionRecorder;
-    private final OfferOutcomeTracker offerOutcomeTracker;
+    private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
     private final PlanScheduler planScheduler;
 
     /**
@@ -114,7 +114,10 @@ public class DefaultScheduler extends AbstractScheduler {
             this.decommissionRecorder = Optional.empty();
         }
 
-        this.offerOutcomeTracker = new OfferOutcomeTracker();
+        // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
+        // reduce memory consumption.
+        this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
+
         this.planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
@@ -146,7 +149,9 @@ public class DefaultScheduler extends AbstractScheduler {
         resources.add(new HealthResource(planCoordinator));
         resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
         resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
-        resources.add(new OfferOutcomeResource(offerOutcomeTracker));
+        if (offerOutcomeTracker.isPresent()) {
+            resources.add(new OfferOutcomeResource(offerOutcomeTracker.get()));
+        }
         return resources;
     }
 
