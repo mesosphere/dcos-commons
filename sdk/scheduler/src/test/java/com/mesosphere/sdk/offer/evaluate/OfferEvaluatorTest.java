@@ -368,12 +368,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .resourceSet(resourceSetB)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .addTask(taskSpecA)
-                .addTask(taskSpecB)
-                .count(1)
-                .type(TestConstants.POD_TYPE)
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(
+                        "executor-uri",
+                        TestConstants.POD_TYPE,
+                        1,
+                        Arrays.asList(taskSpecA, taskSpecB))
+                        .build();
 
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =

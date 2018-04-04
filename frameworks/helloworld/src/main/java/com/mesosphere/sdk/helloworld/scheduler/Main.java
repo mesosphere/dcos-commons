@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * Main entry point for the Scheduler.
@@ -124,10 +125,12 @@ public class Main {
                 .name("hello-world")
                 .principal("hello-world-principal")
                 .zookeeperConnection("master.mesos:2181")
-                .addPod(DefaultPodSpec.newBuilder(schedulerConfig.getExecutorURI())
-                        .count(COUNT)
-                        .type(POD_TYPE)
-                        .addTask(DefaultTaskSpec.newBuilder()
+                .addPod(DefaultPodSpec.newBuilder(
+                        schedulerConfig.getExecutorURI(),
+                        POD_TYPE,
+                        COUNT,
+                        Arrays.asList(
+                        DefaultTaskSpec.newBuilder()
                                 .name(TASK_NAME)
                                 .goalState(GoalState.RUNNING)
                                 .commandSpec(DefaultCommandSpec.newBuilder(new TaskEnvRouter().getConfig(POD_TYPE))
@@ -140,7 +143,7 @@ public class Main {
                                         .memory(256.0)
                                         .addVolume("ROOT", 5000.0, "hello-container-path")
                                         .build())
-                                .build())
+                                .build()))
                         .build())
                 .build();
     }

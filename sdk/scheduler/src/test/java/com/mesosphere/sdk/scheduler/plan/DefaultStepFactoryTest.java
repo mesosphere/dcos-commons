@@ -318,11 +318,13 @@ public class DefaultStepFactoryTest {
     private PodInstance getPodInstanceWithASingleTask() throws Exception {
         TaskSpec taskSpec0 =
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
-        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0))
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(
+                        SCHEDULER_CONFIG.getExecutorURI(),
+                        TestConstants.POD_TYPE,
+                        1,
+                        Arrays.asList(taskSpec0))
+                        .build();
 
         ServiceSpec serviceSpec =
                 DefaultServiceSpec.newBuilder()
@@ -351,11 +353,13 @@ public class DefaultStepFactoryTest {
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID);
-        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(
+                        SCHEDULER_CONFIG.getExecutorURI(),
+                        TestConstants.POD_TYPE,
+                        1,
+                        Arrays.asList(taskSpec0, taskSpec1))
+                        .build();
 
         ServiceSpec serviceSpec =
                 DefaultServiceSpec.newBuilder()
@@ -381,11 +385,13 @@ public class DefaultStepFactoryTest {
     private PodInstance getPodInstanceWithGoalState(GoalState goalState) throws Exception {
         TaskSpec taskSpec = TestPodFactory.getTaskSpecWithGoalState(
                 TestConstants.TASK_NAME, TestConstants.RESOURCE_SET_ID, goalState);
-        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec))
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(
+                        SCHEDULER_CONFIG.getExecutorURI(),
+                        TestConstants.POD_TYPE,
+                        1,
+                        Arrays.asList(taskSpec))
+                        .build();
 
         ServiceSpec serviceSpec =
                 DefaultServiceSpec.newBuilder()
@@ -415,11 +421,13 @@ public class DefaultStepFactoryTest {
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
                         TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder(SCHEDULER_CONFIG.getExecutorURI())
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(
+                        SCHEDULER_CONFIG.getExecutorURI(),
+                        TestConstants.POD_TYPE,
+                        1,
+                        Arrays.asList(taskSpec0, taskSpec1))
+                        .build();
 
         ServiceSpec serviceSpec =
                 DefaultServiceSpec.newBuilder()

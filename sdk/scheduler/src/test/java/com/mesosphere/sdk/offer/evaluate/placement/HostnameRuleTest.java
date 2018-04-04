@@ -21,11 +21,8 @@ import static org.junit.Assert.*;
  */
 public class HostnameRuleTest {
 
-    private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-            .type("type")
-            .count(1)
-            .tasks(Arrays.asList(TestPodFactory.getTaskSpec()))
-            .build();
+    private static final PodSpec podSpec =
+            DefaultPodSpec.newBuilder("executor-uri", "type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
     private static final String HOST_1 = "host-1-uuid";
     private static final String HOST_2 = "host-2-uuid";

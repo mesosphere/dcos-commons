@@ -189,11 +189,8 @@ public class DeploymentStepTest {
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
                         TASK_NAME_1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder("")
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder("", TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         DeploymentStep step = new DeploymentStep(
@@ -232,11 +229,8 @@ public class DeploymentStepTest {
         TaskSpec taskSpec1 =
                 TestPodFactory.getTaskSpec(
                         taskName1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
-        PodSpec podSpec = DefaultPodSpec.newBuilder("")
-                .type(TestConstants.POD_TYPE)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec0, taskSpec1))
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder("", TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName0));

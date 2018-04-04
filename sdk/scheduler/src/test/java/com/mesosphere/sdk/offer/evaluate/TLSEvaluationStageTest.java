@@ -72,10 +72,7 @@ public class TLSEvaluationStageTest {
                 .setTransportEncryption(transportEncryptionSpecs)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .type(type)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec))
+        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri", type, 1, Arrays.asList(taskSpec))
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 

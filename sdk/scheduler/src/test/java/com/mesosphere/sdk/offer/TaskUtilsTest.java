@@ -405,9 +405,14 @@ public class TaskUtilsTest {
     }
 
     private static ConfigStore<ServiceSpec> buildPodLayout(int essentialTasks, int nonessentialTasks) {
-        DefaultPodSpec.Builder podBuilder = DefaultPodSpec.newBuilder("executor-uri")
-                .type("server")
-                .count(3);
+        DefaultPodSpec.Builder podBuilder =
+                DefaultPodSpec.newBuilder(
+                        "executor-uri",
+                        "server",
+                        3,
+                        Collections.emptyList()) // Tasks added below
+                        .type("server")
+                        .count(3);
         for (int i = 0; i < essentialTasks; ++i) {
             podBuilder.addTask(buildTaskTemplate(String.format("essential%d", i))
                     .goalState(GoalState.RUNNING)
