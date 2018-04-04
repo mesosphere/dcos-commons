@@ -48,30 +48,6 @@ public class OfferAccepterTest {
                         offer,
                         taskInfoBuilder.build(),
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false,
-                        true)));
-        Assert.assertEquals(1, recorder.getLaunches().size());
-        verify(driver, times(0)).acceptOffers(
-                anyCollectionOf(OfferID.class),
-                anyCollectionOf(Operation.class),
-                anyObject());
-    }
-
-    @Test
-    public void testLaunchTransientCustomExecutor() {
-        Resource resource = ResourceTestUtils.getUnreservedCpus(1.0);
-        Offer offer = OfferTestUtils.getOffer(resource);
-        TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
-
-        TestOperationRecorder recorder = new TestOperationRecorder();
-        OfferAccepter accepter = new OfferAccepter(Arrays.asList(recorder));
-        Driver.setDriver(driver);
-        accepter.accept(
-                Arrays.asList(new LaunchOfferRecommendation(
-                        offer,
-                        taskInfoBuilder.build(),
-                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false,
                         false)));
         Assert.assertEquals(1, recorder.getLaunches().size());
         verify(driver, times(0)).acceptOffers(

@@ -20,14 +20,12 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
     private final String serviceName;
     private final String taskName;
     private final boolean shouldLaunch;
-    private final boolean useDefaultExecutor;
 
     public LaunchEvaluationStage(
-            String serviceName, String taskName, boolean shouldLaunch, boolean useDefaultExecutor) {
+            String serviceName, String taskName, boolean shouldLaunch) {
         this.serviceName = serviceName;
         this.taskName = taskName;
         this.shouldLaunch = shouldLaunch;
-        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     @Override
@@ -52,14 +50,11 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         taskBuilder.setLabels(writer.toProto());
         updateFaultDomainEnv(taskBuilder, offer);
 
-        if (!useDefaultExecutor) {
-            taskBuilder.setExecutor(executorBuilder);
-        }
 
         return pass(
                 this,
                 Arrays.asList(new LaunchOfferRecommendation(
-                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch, useDefaultExecutor)),
+                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch)),
                 "Added launch information to offer requirement")
                 .build();
     }

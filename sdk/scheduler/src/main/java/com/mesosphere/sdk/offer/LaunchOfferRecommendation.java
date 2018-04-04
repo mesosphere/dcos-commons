@@ -18,17 +18,14 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
     private final TaskInfo taskInfo;
     private final ExecutorInfo executorInfo;
     private final boolean shouldLaunch;
-    private final boolean useDefaultExecutor;
 
     public LaunchOfferRecommendation(
             Offer offer,
             TaskInfo originalTaskInfo,
             Protos.ExecutorInfo executorInfo,
-            boolean shouldLaunch,
-            boolean useDefaultExecutor) {
+            boolean shouldLaunch) {
         this.offer = offer;
         this.shouldLaunch = shouldLaunch;
-        this.useDefaultExecutor = useDefaultExecutor;
 
         TaskInfo.Builder taskBuilder = originalTaskInfo.toBuilder();
         if (!shouldLaunch) {
@@ -60,13 +57,9 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
      * Returns the {@link TaskInfo} to be passed to a StateStore upon launch.
      */
     public TaskInfo getStoreableTaskInfo() {
-        if (useDefaultExecutor) {
-            return taskInfo.toBuilder()
-                    .setExecutor(executorInfo)
-                    .build();
-        }
-
-        return taskInfo;
+        return taskInfo.toBuilder()
+                .setExecutor(executorInfo)
+                .build();
     }
 
     @Override
@@ -76,16 +69,11 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
 
     private Protos.Offer.Operation getLaunchOperation() {
         Protos.Offer.Operation.Builder builder = Protos.Offer.Operation.newBuilder();
-        if (useDefaultExecutor) {
-            builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
-                    .getLaunchGroupBuilder()
-                            .setExecutor(executorInfo)
-                            .getTaskGroupBuilder()
-                                    .addTasks(taskInfo);
-        } else {
-            builder.setType(Protos.Offer.Operation.Type.LAUNCH)
-                    .getLaunchBuilder().addTaskInfos(TaskPackingUtils.pack(taskInfo));
-        }
+        builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
+                .getLaunchGroupBuilder()
+                        .setExecutor(executorInfo)
+                        .getTaskGroupBuilder()
+                                .addTasks(taskInfo);
         return builder.build();
     }
 }

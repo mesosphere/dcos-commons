@@ -123,7 +123,6 @@ public class MetricsTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                shouldLaunch,
-                true);
+                shouldLaunch);
     }
 }

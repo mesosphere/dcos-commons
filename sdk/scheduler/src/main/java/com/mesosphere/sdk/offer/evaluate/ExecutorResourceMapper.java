@@ -26,20 +26,17 @@ public class ExecutorResourceMapper {
     private final Optional<String> resourceNamespace;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final List<OfferEvaluationStage> evaluationStages;
-    private final boolean useDefaultExecutor;
 
     public ExecutorResourceMapper(
             PodSpec podSpec,
             Collection<ResourceSpec> resourceSpecs,
             Collection<Protos.Resource> executorResources,
-            Optional<String> resourceNamespace,
-            boolean useDefaultExecutor) {
+            Optional<String> resourceNamespace) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
         this.executorResources = executorResources;
         this.resourceNamespace = resourceNamespace;
-        this.useDefaultExecutor = useDefaultExecutor;
         this.evaluationStages = getEvaluationStagesInternal();
     }
 
@@ -53,10 +50,10 @@ public class ExecutorResourceMapper {
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
+
         remainingResourceSpecs.addAll(volumeSpecs);
-        if (useDefaultExecutor) {
-            remainingResourceSpecs.addAll(resourceSpecs);
-        }
+        remainingResourceSpecs.addAll(resourceSpecs);
+
 
         List<ResourceLabels> matchingResources = new ArrayList<>();
         for (Protos.Resource resource : executorResources) {
@@ -164,8 +161,7 @@ public class ExecutorResourceMapper {
                     resourceId,
                     resourceNamespace,
                     resourceLabels.getPersistenceId(),
-                    resourceLabels.getSourceRoot(),
-                    useDefaultExecutor);
+                    resourceLabels.getSourceRoot());
         } else {
             return new ResourceEvaluationStage(resourceSpec, Optional.empty(), resourceId, resourceNamespace);
         }
@@ -174,7 +170,7 @@ public class ExecutorResourceMapper {
     private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getNew(
-                    (VolumeSpec) resourceSpec, Optional.empty(), resourceNamespace, useDefaultExecutor);
+                    (VolumeSpec) resourceSpec, Optional.empty(), resourceNamespace);
         } else {
             return new ResourceEvaluationStage(resourceSpec, Optional.empty(), Optional.empty(), resourceNamespace);
         }

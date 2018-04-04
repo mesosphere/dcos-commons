@@ -57,7 +57,6 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 frameworkStore.fetchFrameworkId().get(),
-                                true,
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
     }
@@ -99,7 +98,6 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 frameworkStore.fetchFrameworkId().get(),
-                                false,
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
     }
@@ -141,7 +139,6 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         frameworkStore.fetchFrameworkId().get(),
-                        true,
                         Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);
@@ -189,7 +186,6 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         frameworkStore.fetchFrameworkId().get(),
-                        false,
                         Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);

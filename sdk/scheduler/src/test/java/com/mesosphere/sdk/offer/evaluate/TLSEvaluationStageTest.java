@@ -102,7 +102,6 @@ public class TLSEvaluationStageTest {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
     }
 

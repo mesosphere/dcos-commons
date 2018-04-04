@@ -78,11 +78,8 @@ public class SchedulerRestartServiceTest {
 
         ServiceTestRunner runner;
 
-        if (useDefaultExecutor) {
-            runner = new ServiceTestRunner();
-        } else {
-            runner = new ServiceTestRunner().setUseCustomExecutor();
-        }
+        runner = new ServiceTestRunner();
+
         ServiceTestResult result = runner.run(ticks);
 
         // Start a new scheduler:

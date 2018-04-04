@@ -256,7 +256,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
 
         LaunchOfferRecommendation launchRec1 = new LaunchOfferRecommendation(
@@ -268,7 +267,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
 
         step.updateOfferStatus(Arrays.asList(launchRec0, launchRec1));
@@ -318,7 +316,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
         step.updateOfferStatus(Arrays.asList(launchRec));
         return step;

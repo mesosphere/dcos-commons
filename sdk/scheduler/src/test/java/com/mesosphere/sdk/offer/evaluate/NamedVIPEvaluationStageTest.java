@@ -241,7 +241,6 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
     }
 

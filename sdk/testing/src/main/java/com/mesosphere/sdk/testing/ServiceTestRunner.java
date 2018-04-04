@@ -261,7 +261,7 @@ public class ServiceTestRunner {
      * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
      */
     public ServiceTestRunner setUseCustomExecutor() {
-        this.supportsDefaultExecutor = false;
+        this.supportsDefaultExecutor = true;
         return this;
     }
 

@@ -1,3 +1,4 @@
+
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.google.protobuf.TextFormat;
@@ -793,3 +794,15 @@ public class ServiceTest {
         return map;
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
