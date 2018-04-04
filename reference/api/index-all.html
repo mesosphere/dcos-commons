@@ -978,10 +978,14 @@
 <dd>
 <div class="block">This class encapsulates the response from a DC/OS cluster's dcos-metadata/dcos-version.json endpoint.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.html#DcosVersion-java.lang.String-">DcosVersion(String)</a></span> - Constructor for class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.html#DcosVersion-java.lang.String-com.mesosphere.sdk.dcos.DcosVersion.DcosVariant-">DcosVersion(String, DcosVersion.DcosVariant)</a></span> - Constructor for class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.html#DcosVersion-JSONObject-">DcosVersion(JSONObject)</a></span> - Constructor for class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos"><span class="typeNameLink">DcosVersion.DcosVariant</span></a> - Enum in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
+<dd>
+<div class="block">We parse dcos-variant if DC/OS provides it.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">DcosVersion.Elements</span></a> - Class in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
 <dd>
 <div class="block">A broken-down representation of a version string's elements.</div>
@@ -2425,6 +2429,8 @@
  environment doesn't provide the needed information (e.g.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getDcosSpace--">getDcosSpace()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.html#getDcosVariant--">getDcosVariant()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.html" title="class in com.mesosphere.sdk.dcos">DcosVersion</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#getDcosVersion--">getDcosVersion()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>&nbsp;</dd>
@@ -8008,6 +8014,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/SecretsClient.Payload.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient.Payload</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html#toString--">toString()</a></span> - Method in enum com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos">DcosVersion.Elements</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/executor/CheckStats.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.executor.<a href="com/mesosphere/sdk/executor/CheckStats.html" title="class in com.mesosphere.sdk.executor">CheckStats</a></dt>
@@ -8521,6 +8529,10 @@
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this type with the specified name.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.ConfigException.Type.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.ConfigException.Type.html" title="enum in com.mesosphere.sdk.framework">EnvStore.ConfigException.Type</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
@@ -8582,6 +8594,11 @@
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TaskEnvCannotChange.Rule.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TaskEnvCannotChange.Rule.html" title="enum in com.mesosphere.sdk.config.validate">TaskEnvCannotChange.Rule</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum type, in
+the order they are declared.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>

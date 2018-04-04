@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpExecutor.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/dcos/DcosVersion.html" target="_top">Frames</a></li>
@@ -124,7 +124,8 @@ extends java.lang.Object</pre>
      {
          "bootstrap-id": "27f0ee12ec563574dd9a6fa93faba1a1be38bde5",
          "dcos-image-commit": "3fe4305af8ab9b4c2c3606569f3c0cb5c5437aa3",
-         "version": "1.7.3"
+         "version": "1.7.3",
+         "dcos-variant": "open"
      }</div>
 </li>
 </ul>
@@ -145,6 +146,12 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Class and Description</th>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a></span></code>
+<div class="block">We parse dcos-variant if DC/OS provides it.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos">DcosVersion.Elements</a></span></code>
 <div class="block">A broken-down representation of a version string's elements.</div>
@@ -168,7 +175,8 @@ extends java.lang.Object</pre>
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html#DcosVersion-JSONObject-">DcosVersion</a></span>(JSONObject&nbsp;jsonObject)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html#DcosVersion-java.lang.String-">DcosVersion</a></span>(java.lang.String&nbsp;version)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html#DcosVersion-java.lang.String-com.mesosphere.sdk.dcos.DcosVersion.DcosVariant-">DcosVersion</a></span>(java.lang.String&nbsp;version,
+           <a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a>&nbsp;variant)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -186,10 +194,14 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html#getDcosVariant--">getDcosVariant</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos">DcosVersion.Elements</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html#getElements--">getElements</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.html#getVersion--">getVersion</a></span>()</code>&nbsp;</td>
 </tr>
@@ -215,13 +227,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DcosVersion-java.lang.String-">
+<a name="DcosVersion-java.lang.String-com.mesosphere.sdk.dcos.DcosVersion.DcosVariant-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>DcosVersion</h4>
-<pre>public&nbsp;DcosVersion(java.lang.String&nbsp;version)</pre>
+<pre>public&nbsp;DcosVersion(java.lang.String&nbsp;version,
+                   <a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a>&nbsp;variant)</pre>
 </li>
 </ul>
 <a name="DcosVersion-JSONObject-">
@@ -253,10 +266,19 @@ extends java.lang.Object</pre>
 <a name="getElements--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getElements</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos">DcosVersion.Elements</a>&nbsp;getElements()</pre>
+</li>
+</ul>
+<a name="getDcosVariant--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getDcosVariant</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos">DcosVersion.DcosVariant</a>&nbsp;getDcosVariant()</pre>
 </li>
 </ul>
 </li>
@@ -287,7 +309,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/dcos/DcosHttpExecutor.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.Elements.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/dcos/DcosVersion.DcosVariant.html" title="enum in com.mesosphere.sdk.dcos"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/dcos/DcosVersion.html" target="_top">Frames</a></li>
