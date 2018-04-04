@@ -2,9 +2,11 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.PlansQueries;
-import com.mesosphere.sdk.http.types.MultiServiceInfoProvider;
+import com.mesosphere.sdk.http.types.MultiServiceManager;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -23,13 +25,13 @@ import java.util.Optional;
 @Path("/v1/service")
 public class MultiPlansResource extends PrettyJsonResource {
 
-    private final MultiServiceInfoProvider multiServiceInfoProvider;
+    private final MultiServiceManager multiServiceManager;
 
     /**
      * Creates a new instance which allows access to plans for runs in the provider.
      */
-    public MultiPlansResource(MultiServiceInfoProvider multiServiceInfoProvider) {
-        this.multiServiceInfoProvider = multiServiceInfoProvider;
+    public MultiPlansResource(MultiServiceManager multiServiceManager) {
+        this.multiServiceManager = multiServiceManager;
     }
 
     /**
@@ -38,7 +40,7 @@ public class MultiPlansResource extends PrettyJsonResource {
     @Path("{serviceName}/plans")
     @GET
     public Response list(@PathParam("serviceName") String serviceName) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -51,7 +53,7 @@ public class MultiPlansResource extends PrettyJsonResource {
     @GET
     @Path("{serviceName}/plans/{planName}")
     public Response get(@PathParam("serviceName") String serviceName, @PathParam("planName") String planName) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -68,7 +70,7 @@ public class MultiPlansResource extends PrettyJsonResource {
             @PathParam("serviceName") String serviceName,
             @PathParam("planName") String planName,
             Map<String, String> parameters) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -81,7 +83,7 @@ public class MultiPlansResource extends PrettyJsonResource {
     @POST
     @Path("{serviceName}/plans/{planName}/stop")
     public Response stop(@PathParam("serviceName") String serviceName, @PathParam("planName") String planName) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -97,7 +99,7 @@ public class MultiPlansResource extends PrettyJsonResource {
             @PathParam("serviceName") String serviceName,
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -113,7 +115,7 @@ public class MultiPlansResource extends PrettyJsonResource {
             @PathParam("serviceName") String serviceName,
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -130,7 +132,7 @@ public class MultiPlansResource extends PrettyJsonResource {
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase,
             @QueryParam("step") String step) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -147,10 +149,15 @@ public class MultiPlansResource extends PrettyJsonResource {
             @PathParam("planName") String planName,
             @QueryParam("phase") String phase,
             @QueryParam("step") String step) {
-        Optional<PlanCoordinator> planCoordinator = multiServiceInfoProvider.getPlanCoordinator(serviceName);
+        Optional<PlanCoordinator> planCoordinator = getPlanCoordinator(serviceName);
         if (!planCoordinator.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
         return PlansQueries.restart(planCoordinator.get().getPlanManagers(), planName, phase, step);
+    }
+
+    private Optional<PlanCoordinator> getPlanCoordinator(String serviceName) {
+        Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+        return service.isPresent() ? Optional.of(service.get().getPlanCoordinator()) : Optional.empty();
     }
 }

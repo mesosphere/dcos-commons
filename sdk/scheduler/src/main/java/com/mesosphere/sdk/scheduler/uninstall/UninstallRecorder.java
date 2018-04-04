@@ -86,8 +86,7 @@ public class UninstallRecorder {
     }
 
     /**
-     * Returns an updated copy of any {@code taskInfos} which have omit any resources matching the provided
-     * {@code resourceIds}.
+     * Returns an updated copy of any {@code taskInfos} which omit resources matching the provided {@code resourceIds}.
      */
     private static Collection<Protos.TaskInfo> withRemovedResources(
             Collection<Protos.TaskInfo> taskInfos, Set<String> resourceIdsToRemove) {

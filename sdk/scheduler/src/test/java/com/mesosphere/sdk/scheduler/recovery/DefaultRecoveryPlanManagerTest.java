@@ -65,7 +65,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private TestingFailureMonitor failureMonitor;
     private TestingLaunchConstrainer launchConstrainer;
     private PlanCoordinator planCoordinator;
-    private DefaultPlanScheduler planScheduler;
+    private PlanScheduler planScheduler;
     private PlanManager mockDeployManager;
     private ServiceSpec serviceSpec;
 
@@ -115,7 +115,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
-        planScheduler = new DefaultPlanScheduler(
+        planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,

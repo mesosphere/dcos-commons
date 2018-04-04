@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.endpoints.*;
-import com.mesosphere.sdk.http.types.MultiServiceInfoProvider;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -360,17 +359,16 @@ public class MultiServiceEventClient implements MesosEventClient {
         Collection<PlanManager> planManagers = uninstallPlan.isPresent()
                 ? Collections.singletonList(DefaultPlanManager.createProceeding(uninstallPlan.get()))
                 : Collections.emptyList(); // ... any plans to show when running normally?
-        MultiServiceInfoProvider multiServiceInfoProvider = new MultiServiceInfoProvider(multiServiceManager);
         List<Object> endpoints = new ArrayList<>();
         endpoints.addAll(Arrays.asList(
                 new HealthResource(planManagers),
                 new PlansResource(planManagers),
-                new MultiArtifactResource(multiServiceInfoProvider),
-                new MultiConfigResource(multiServiceInfoProvider),
-                new MultiEndpointsResource(frameworkName, multiServiceInfoProvider, schedulerConfig),
-                new MultiPlansResource(multiServiceInfoProvider),
-                new MultiPodResource(multiServiceInfoProvider),
-                new MultiStateResource(multiServiceInfoProvider, new StringPropertyDeserializer())));
+                new MultiArtifactResource(multiServiceManager),
+                new MultiConfigResource(multiServiceManager),
+                new MultiEndpointsResource(frameworkName, multiServiceManager, schedulerConfig),
+                new MultiPlansResource(multiServiceManager),
+                new MultiPodResource(multiServiceManager),
+                new MultiStateResource(multiServiceManager, new StringPropertyDeserializer())));
         endpoints.addAll(customEndpoints);
         return endpoints;
     }

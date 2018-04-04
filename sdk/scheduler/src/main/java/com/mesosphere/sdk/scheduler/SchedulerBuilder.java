@@ -10,6 +10,7 @@ import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
+import com.mesosphere.sdk.http.endpoints.MultiArtifactResource;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -67,7 +68,7 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
-    private boolean multiServiceEnabled = false;
+    private Optional<String> multiServiceFrameworkName = Optional.empty();
     private boolean regionAwarenessEnabled = false;
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
@@ -192,9 +193,11 @@ public class SchedulerBuilder {
     /**
      * Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
      * multiple underlying services.
+     *
+     * @param frameworkName the name of the Mesos Framework which will be running the service
      */
-    public SchedulerBuilder enableMultiService() {
-        this.multiServiceEnabled = true;
+    public SchedulerBuilder enableMultiService(String frameworkName) {
+        this.multiServiceFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -261,7 +264,9 @@ public class SchedulerBuilder {
 
         // When multi-service is enabled, state/configs are stored within a namespace matching the service name.
         // Otherwise use an empty namespace, which indicates single-service mode.
-        Optional<String> namespace = multiServiceEnabled ? Optional.of(serviceSpec.getName()) : Optional.empty();
+        Optional<String> namespace = multiServiceFrameworkName.isPresent()
+                ? Optional.of(serviceSpec.getName())
+                : Optional.empty();
         StateStore stateStore = new StateStore(persister, namespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
                 DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
@@ -280,7 +285,7 @@ public class SchedulerBuilder {
 
         if (StateStoreUtils.isUninstalling(stateStore)) {
             // SERVICE UNINSTALL: The service has an uninstall bit set in its (potentially namespaced) state store.
-            if (multiServiceEnabled) {
+            if (multiServiceFrameworkName.isPresent()) {
                 // This namespaced service is partway through being removed from the parent multi-service scheduler.
                 // Launch the service in uninstall mode so that it can continue with whatever may be left.
                 return new UninstallScheduler(
@@ -396,15 +401,16 @@ public class SchedulerBuilder {
         return new DefaultScheduler(
                 serviceSpec,
                 schedulerConfig,
-                multiServiceEnabled ? Optional.of(serviceSpec.getName()) : Optional.empty(),
+                multiServiceFrameworkName.isPresent() ? Optional.of(serviceSpec.getName()) : Optional.empty(),
                 customResources,
                 planCoordinator,
                 Optional.ofNullable(planCustomizer),
                 frameworkStore,
                 stateStore,
                 configStore,
-                // TODO(nickbp): (Pending upstreaming) when multiServiceEnabled, use MultiArtifactResource.getUrlFactory
-                ArtifactResource.getUrlFactory(serviceSpec.getName()),
+                multiServiceFrameworkName.isPresent()
+                    ? MultiArtifactResource.getUrlFactory(multiServiceFrameworkName.get(), serviceSpec.getName())
+                    : ArtifactResource.getUrlFactory(serviceSpec.getName()),
                 endpointProducers);
     }
 

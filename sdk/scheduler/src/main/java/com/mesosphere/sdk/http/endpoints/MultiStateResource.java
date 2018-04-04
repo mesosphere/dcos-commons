@@ -2,8 +2,9 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.StateQueries;
-import com.mesosphere.sdk.http.types.MultiServiceInfoProvider;
+import com.mesosphere.sdk.http.types.MultiServiceManager;
 import com.mesosphere.sdk.http.types.PropertyDeserializer;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.state.StateStore;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -20,16 +21,16 @@ import java.util.Optional;
 @Path("/v1/service")
 public class MultiStateResource {
 
-    private final MultiServiceInfoProvider multiServiceInfoProvider;
+    private final MultiServiceManager multiServiceManager;
     private final PropertyDeserializer propertyDeserializer;
 
     /**
      * Creates a new StateResource which returns content for runs in the provider.
      */
     public MultiStateResource(
-            MultiServiceInfoProvider multiServiceInfoProvider,
+            MultiServiceManager multiServiceManager,
             PropertyDeserializer propertyDeserializer) {
-        this.multiServiceInfoProvider = multiServiceInfoProvider;
+        this.multiServiceManager = multiServiceManager;
         this.propertyDeserializer = propertyDeserializer;
     }
 
@@ -40,7 +41,7 @@ public class MultiStateResource {
     @Produces(MediaType.TEXT_PLAIN)
     @GET
     public Response getFiles(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -54,7 +55,7 @@ public class MultiStateResource {
     @Produces(MediaType.TEXT_PLAIN)
     @GET
     public Response getFile(@PathParam("serviceName") String serviceName, @PathParam("file") String fileName) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -71,7 +72,7 @@ public class MultiStateResource {
             @PathParam("serviceName") String serviceName,
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetails) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -84,7 +85,7 @@ public class MultiStateResource {
     @Path("{serviceName}/state/zone/tasks")
     @GET
     public Response getTaskNamesToZones(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -98,7 +99,7 @@ public class MultiStateResource {
     @GET
     public Response getTaskNameToZone(
             @PathParam("serviceName") String serviceName, @PathParam("taskName") String taskName) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -114,7 +115,7 @@ public class MultiStateResource {
             @PathParam("serviceName") String serviceName,
             @PathParam("podType") String podType,
             @PathParam("ip") String ip) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -127,7 +128,7 @@ public class MultiStateResource {
     @Path("{serviceName}/state/properties")
     @GET
     public Response getPropertyKeys(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -140,7 +141,7 @@ public class MultiStateResource {
     @Path("{serviceName}/state/properties/{key}")
     @GET
     public Response getProperty(@PathParam("serviceName") String serviceName, @PathParam("key") String key) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -153,10 +154,15 @@ public class MultiStateResource {
     @Path("{serviceName}/state/refresh")
     @PUT
     public Response refreshCache(@PathParam("serviceName") String serviceName) {
-        Optional<StateStore> stateStore = multiServiceInfoProvider.getStateStore(serviceName);
+        Optional<StateStore> stateStore = getStateStore(serviceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
         return StateQueries.refreshCache(stateStore.get());
+    }
+
+    private Optional<StateStore> getStateStore(String serviceName) {
+        Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+        return service.isPresent() ? Optional.of(service.get().getStateStore()) : Optional.empty();
     }
 }

@@ -75,7 +75,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private DefaultServiceSpec serviceSpecification;
     private DefaultServiceSpec serviceSpecificationB;
-    private DefaultPlanScheduler planScheduler;
+    private PlanScheduler planScheduler;
     private PhaseFactory phaseFactory;
 
     @Before
@@ -98,7 +98,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         StepFactory stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
         phaseFactory = new DefaultPhaseFactory(stepFactory);
 
-        planScheduler = new DefaultPlanScheduler(
+        planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,

@@ -48,7 +48,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private final PersistentLaunchRecorder launchRecorder;
     private final Optional<UninstallRecorder> decommissionRecorder;
     private final OfferOutcomeTracker offerOutcomeTracker;
-    private final DefaultPlanScheduler planScheduler;
+    private final PlanScheduler planScheduler;
 
     /**
      * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
@@ -115,7 +115,7 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         this.offerOutcomeTracker = new OfferOutcomeTracker();
-        this.planScheduler = new DefaultPlanScheduler(
+        this.planScheduler = new PlanScheduler(
                 new OfferEvaluator(
                         frameworkStore,
                         stateStore,
@@ -244,7 +244,7 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     @VisibleForTesting
     static OfferResponse processOffers(
-            DefaultPlanScheduler planScheduler,
+            PlanScheduler planScheduler,
             PersistentLaunchRecorder launchRecorder,
             Optional<UninstallRecorder> decommissionRecorder,
             Collection<Protos.Offer> offers,

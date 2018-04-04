@@ -718,7 +718,7 @@ public class DefaultSchedulerTest {
                         false,
                         false));
 
-        DefaultPlanScheduler mockPlanScheduler = mock(DefaultPlanScheduler.class);
+        PlanScheduler mockPlanScheduler = mock(PlanScheduler.class);
         when(mockPlanScheduler.resourceOffers(any(), any())).thenReturn(allRecommendations);
 
         PersistentLaunchRecorder mockLaunchRecorder = mock(PersistentLaunchRecorder.class);

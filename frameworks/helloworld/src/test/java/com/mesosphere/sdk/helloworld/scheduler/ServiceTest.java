@@ -50,7 +50,7 @@ public class ServiceTest {
     public void testDefaultDeploymentWithNamespace() throws Exception {
         // Exercise slashes in name:
         ServiceTestResult result = new ServiceTestRunner()
-                .enableMultiService()
+                .enableMultiService("frameworkName")
                 .setOptions("service.name", "/path/to/namespace")
                 .run(getDefaultDeploymentTicks());
         // Validate that nothing was stored under the default root persister paths:
@@ -62,7 +62,7 @@ public class ServiceTest {
         // A different service name (and namespace) should ignore the state of the first namespace:
         result = new ServiceTestRunner()
                 .setState(result)
-                .enableMultiService()
+                .enableMultiService("frameworkName")
                 .setOptions("service.name", "test-namespace")
                 .run(getDefaultDeploymentTicks());
         // Again, nothing stored under the default root persister paths, but prior namespace IS present:

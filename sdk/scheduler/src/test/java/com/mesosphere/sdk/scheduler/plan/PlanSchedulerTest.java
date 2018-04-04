@@ -25,9 +25,9 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Tests for {@link DefaultPlanScheduler}.
+ * Tests for {@link PlanScheduler}.
  */
-public class DefaultPlanSchedulerTest {
+public class PlanSchedulerTest {
 
     private static final List<Offer> OFFERS = Arrays.asList(Offer.newBuilder()
             .setId(OfferID.newBuilder().setValue("offerid").build())
@@ -42,7 +42,7 @@ public class DefaultPlanSchedulerTest {
     @Mock private StateStore mockStateStore;
 
     private PodInstanceRequirement podInstanceRequirement;
-    private DefaultPlanScheduler scheduler;
+    private PlanScheduler scheduler;
 
     @Before
     public void beforeEach() throws Exception {
@@ -53,7 +53,7 @@ public class DefaultPlanSchedulerTest {
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
-        scheduler = new DefaultPlanScheduler(mockOfferEvaluator, mockStateStore);
+        scheduler = new PlanScheduler(mockOfferEvaluator, mockStateStore);
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

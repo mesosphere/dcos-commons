@@ -137,6 +137,24 @@ public class DefaultMultiServiceManager implements MultiServiceManager {
     }
 
     /**
+     * Returns the specified service by its sanitized name (slashes removed), or an empty {@code Optional} if it's not
+     * found.
+     */
+    public Optional<AbstractScheduler> getServiceSanitized(String sanitizedServiceName) {
+        rlock.lock();
+        try {
+            String originalName = sanitizedServiceNames.get(sanitizedServiceName);
+            if (originalName == null) {
+                // Unknown sanitized name
+                return Optional.empty();
+            }
+            return Optional.ofNullable(services.get(originalName));
+        } finally {
+            rlock.unlock();
+        }
+    }
+
+    /**
      * Triggers an uninstall for a service, removing it from the list of services when it has finished. Does nothing if
      * the service is already uninstalling or doesn't exist. If the scheduler process is restarted, the service must be
      * added again via {@link #putService(AbstractScheduler)}, at which point it will automatically resume uninstalling.
@@ -169,17 +187,7 @@ public class DefaultMultiServiceManager implements MultiServiceManager {
             return Optional.empty();
         }
 
-        rlock.lock();
-        try {
-            String originalName = sanitizedServiceNames.get(sanitizedServiceName.get());
-            if (originalName == null) {
-                LOGGER.warn("Unknown service: {}", sanitizedServiceName.get());
-                return Optional.empty();
-            }
-            return Optional.ofNullable(services.get(originalName));
-        } finally {
-            rlock.unlock();
-        }
+        return getServiceSanitized(sanitizedServiceName.get());
     }
 
     /**

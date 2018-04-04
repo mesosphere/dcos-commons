@@ -9,8 +9,9 @@ import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.ConfigQueries;
-import com.mesosphere.sdk.http.types.MultiServiceInfoProvider;
+import com.mesosphere.sdk.http.types.MultiServiceManager;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 
@@ -20,10 +21,10 @@ import com.mesosphere.sdk.state.ConfigStore;
 @Path("/v1/service")
 public class MultiConfigResource extends PrettyJsonResource {
 
-    private final MultiServiceInfoProvider multiServiceInfoProvider;
+    private final MultiServiceManager multiServiceManager;
 
-    public MultiConfigResource(MultiServiceInfoProvider multiServiceInfoProvider) {
-        this.multiServiceInfoProvider = multiServiceInfoProvider;
+    public MultiConfigResource(MultiServiceManager multiServiceManager) {
+        this.multiServiceManager = multiServiceManager;
     }
 
     /**
@@ -32,7 +33,7 @@ public class MultiConfigResource extends PrettyJsonResource {
     @Path("{serviceName}/configurations")
     @GET
     public Response getConfigurationIds(@PathParam("serviceName") String serviceName) {
-        Optional<ConfigStore<ServiceSpec>> configStore = multiServiceInfoProvider.getConfigStore(serviceName);
+        Optional<ConfigStore<ServiceSpec>> configStore = getConfigStore(serviceName);
         if (!configStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -46,7 +47,7 @@ public class MultiConfigResource extends PrettyJsonResource {
     @GET
     public Response getConfiguration(
             @PathParam("serviceName") String serviceName, @PathParam("configurationId") String configurationId) {
-        Optional<ConfigStore<ServiceSpec>> configStore = multiServiceInfoProvider.getConfigStore(serviceName);
+        Optional<ConfigStore<ServiceSpec>> configStore = getConfigStore(serviceName);
         if (!configStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -59,7 +60,7 @@ public class MultiConfigResource extends PrettyJsonResource {
     @Path("{serviceName}/configurations/targetId")
     @GET
     public Response getTargetId(@PathParam("serviceName") String serviceName) {
-        Optional<ConfigStore<ServiceSpec>> configStore = multiServiceInfoProvider.getConfigStore(serviceName);
+        Optional<ConfigStore<ServiceSpec>> configStore = getConfigStore(serviceName);
         if (!configStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
@@ -72,10 +73,15 @@ public class MultiConfigResource extends PrettyJsonResource {
     @Path("{serviceName}/configurations/target")
     @GET
     public Response getTarget(@PathParam("serviceName") String serviceName) {
-        Optional<ConfigStore<ServiceSpec>> configStore = multiServiceInfoProvider.getConfigStore(serviceName);
+        Optional<ConfigStore<ServiceSpec>> configStore = getConfigStore(serviceName);
         if (!configStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(serviceName);
         }
         return ConfigQueries.getTarget(configStore.get());
+    }
+
+    private Optional<ConfigStore<ServiceSpec>> getConfigStore(String serviceName) {
+        Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+        return service.isPresent() ? Optional.of(service.get().getConfigStore()) : Optional.empty();
     }
 }

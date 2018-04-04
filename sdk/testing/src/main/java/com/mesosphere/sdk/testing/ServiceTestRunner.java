@@ -60,7 +60,7 @@ public class ServiceTestRunner {
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
     private boolean customExecutorEnabled = false;
-    private boolean multiServiceEnabled = false;
+    private Optional<String> multiServiceFrameworkName = Optional.empty();
     private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
     /**
@@ -270,8 +270,8 @@ public class ServiceTestRunner {
      *
      * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
      */
-    public ServiceTestRunner enableMultiService() {
-        this.multiServiceEnabled = true;
+    public ServiceTestRunner enableMultiService(String frameworkName) {
+        this.multiServiceFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -340,8 +340,8 @@ public class ServiceTestRunner {
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
                 .setCustomConfigValidators(validators);
-        if (multiServiceEnabled) {
-            schedulerBuilder.enableMultiService();
+        if (multiServiceFrameworkName.isPresent()) {
+            schedulerBuilder.enableMultiService(multiServiceFrameworkName.get());
         }
         AbstractScheduler abstractScheduler = schedulerBuilder.build();
         FrameworkScheduler frameworkScheduler =

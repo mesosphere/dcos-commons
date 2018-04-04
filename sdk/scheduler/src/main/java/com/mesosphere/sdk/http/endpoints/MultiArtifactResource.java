@@ -3,9 +3,9 @@ package com.mesosphere.sdk.http.endpoints;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
-import com.mesosphere.sdk.http.types.MultiServiceInfoProvider;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.multi.DefaultMultiServiceManager;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -22,10 +22,10 @@ public class MultiArtifactResource {
 
     private static final String RUN_ARTIFACT_URI_FORMAT = "http://%s/v1/runs/%s/artifacts/template/%s/%s/%s/%s";
 
-    private final MultiServiceInfoProvider multiServiceInfoProvider;
+    private final DefaultMultiServiceManager multiServiceManager;
 
-    public MultiArtifactResource(MultiServiceInfoProvider multiServiceInfoProvider) {
-        this.multiServiceInfoProvider = multiServiceInfoProvider;
+    public MultiArtifactResource(DefaultMultiServiceManager multiServiceManager) {
+        this.multiServiceManager = multiServiceManager;
     }
 
     /**
@@ -36,11 +36,13 @@ public class MultiArtifactResource {
      */
     public static ArtifactQueries.TemplateUrlFactory getUrlFactory(String frameworkName, String serviceName) {
         String hostname = EndpointUtils.toSchedulerApiVipHostname(frameworkName);
+        // Replace slashes with periods:
+        String sanitizedServiceName = CommonIdUtils.toSanitizedServiceName(serviceName);
         return new ArtifactQueries.TemplateUrlFactory() {
             @Override
             public String get(UUID configId, String podType, String taskName, String configName) {
-                return String.format(
-                        RUN_ARTIFACT_URI_FORMAT, hostname, serviceName, configId, podType, taskName, configName);
+                return String.format(RUN_ARTIFACT_URI_FORMAT,
+                        hostname, sanitizedServiceName, configId, podType, taskName, configName);
             }
         };
     }
@@ -48,18 +50,20 @@ public class MultiArtifactResource {
     /**
      * @see ArtifactQueries
      */
-    @Path("{serviceName}/artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}")
+    @Path("{sanitizedServiceName}/artifacts/template/{configurationId}/{podType}/{taskName}/{configurationName}")
     @GET
     public Response getTemplate(
-            @PathParam("serviceName") String serviceName,
+            @PathParam("sanitizedServiceName") String sanitizedServiceName,
             @PathParam("configurationId") String configurationId,
             @PathParam("podType") String podType,
             @PathParam("taskName") String taskName,
             @PathParam("configurationName") String configurationName) {
-        Optional<ConfigStore<ServiceSpec>> configStore = multiServiceInfoProvider.getConfigStore(serviceName);
-        if (!configStore.isPresent()) {
-            return ResponseUtils.serviceNotFoundResponse(serviceName);
+        // Use custom fetch function, as any slashes should have been replaced with periods (see getUrlFactory()):
+        Optional<AbstractScheduler> service = multiServiceManager.getServiceSanitized(sanitizedServiceName);
+        if (!service.isPresent()) {
+            return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
-        return ArtifactQueries.getTemplate(configStore.get(), configurationId, podType, taskName, configurationName);
+        return ArtifactQueries.getTemplate(
+                service.get().getConfigStore(), configurationId, podType, taskName, configurationName);
     }
 }
