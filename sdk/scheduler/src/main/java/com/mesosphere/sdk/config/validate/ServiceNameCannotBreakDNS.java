@@ -9,10 +9,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
+/**
+ * This validator enforces that the specified service name (e.g. /foo/bar/service) does not exceed 63 characters with
+ * slashes removed. This is to ensure the DNS subdomain of the service does not exceed the character limit specified
+ * in https://www.ietf.org/rfc/rfc1035.txt.
+ *
+ * The validator is only enforced on _new_ deployments and not on service upgrades.
+ */
 public class ServiceNameCannotBreakDNS implements ConfigValidator<ServiceSpec> {
 
-    public static final Logger LOGGER = LoggingUtils.getLogger(ServiceNameCannotBreakDNS.class);
-
+    private static final Logger LOGGER = LoggingUtils.getLogger(ServiceNameCannotBreakDNS.class);
 
     private static final int MAX_SERVICE_NAME_LENGTH = 63;
 
