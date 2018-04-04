@@ -536,7 +536,8 @@ public class PodInfoBuilder {
 
         boolean shouldAddImage =
                 podSpec.getImage().isPresent() &&
-                addExtraParameters;
+                addExtraParameters && isTaskContainer;
+
         if (shouldAddImage) {
             containerInfo.getMesosBuilder().getImageBuilder()
                     .setType(Protos.Image.Type.DOCKER)

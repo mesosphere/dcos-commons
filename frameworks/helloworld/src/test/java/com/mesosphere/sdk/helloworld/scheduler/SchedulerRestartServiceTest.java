@@ -76,9 +76,7 @@ public class SchedulerRestartServiceTest {
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.declinedLastOffer());
 
-        ServiceTestRunner runner;
-
-        runner = new ServiceTestRunner();
+        ServiceTestRunner runner = new ServiceTestRunner();
 
         ServiceTestResult result = runner.run(ticks);
 

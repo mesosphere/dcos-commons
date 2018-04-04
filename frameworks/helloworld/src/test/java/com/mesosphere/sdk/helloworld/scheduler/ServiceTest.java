@@ -327,23 +327,16 @@ public class ServiceTest {
 
     @Test
     public void testWorldDecommissionDefaultExecutor() throws Exception {
-        testWorldDecommission(true);
+        testWorldDecommission();
     }
 
-    @Test
-    public void testWorldDecommissionCustomExecutor() throws Exception {
-        testWorldDecommission(false);
-    }
-
-    /**
+   /**
      * Tests scheduler behavior when the number of {@code world} pods is reduced.
      */
-    private void testWorldDecommission(boolean useDefaultExecutor) throws Exception {
+    private void testWorldDecommission() throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
         ServiceTestRunner runner = new ServiceTestRunner();
-        if (!useDefaultExecutor) {
-            runner.setUseCustomExecutor();
-        }
+
         ServiceTestResult result = runner.run(getDefaultDeploymentTicks());
         Assert.assertEquals(
                 new TreeSet<>(Arrays.asList("hello-0-server", "world-0-server", "world-1-server")),
@@ -365,7 +358,7 @@ public class ServiceTest {
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
         // When default executor is being used, three additional resources need to be unreserved.
-        int stepCount = useDefaultExecutor ? 9 : 6;
+        int stepCount = 9;
 
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
@@ -422,9 +415,7 @@ public class ServiceTest {
         runner = new ServiceTestRunner()
                 .setOptions("world.count", "0")
                 .setState(result);
-        if (!useDefaultExecutor) {
-            runner.setUseCustomExecutor();
-        }
+
         runner.run(ticks);
     }
 
@@ -794,15 +785,3 @@ public class ServiceTest {
         return map;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
