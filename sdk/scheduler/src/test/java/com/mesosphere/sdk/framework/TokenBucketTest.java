@@ -65,7 +65,7 @@ public class TokenBucketTest {
 
         Assert.assertTrue(bucket.tryAcquire());
         Assert.assertFalse(bucket.tryAcquire());
-        Thread.sleep(incrementInterval.toMillis() + 50); // Give 50ms of breathing room to the token incrementing thread
+        bucket.increment();
         Assert.assertTrue(bucket.tryAcquire());
     }
 
@@ -132,6 +132,11 @@ public class TokenBucketTest {
         @Override
         protected long now() {
             return now;
+        }
+
+        @Override
+        protected void startIncrementThread() {
+            // do nothing: avoid background thread in tests
         }
     }
 }

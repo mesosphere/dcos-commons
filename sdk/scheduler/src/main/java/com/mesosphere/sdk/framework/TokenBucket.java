@@ -57,16 +57,7 @@ public class TokenBucket {
                     String.format("TokenBucket construction failed with invalid configuration: %s", msg));
         }
 
-        executor.scheduleAtFixedRate(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        increment();
-                    }
-                },
-                incrementInterval.toMillis(),
-                incrementInterval.toMillis(),
-                TimeUnit.MILLISECONDS);
+        startIncrementThread();
     }
 
     public static Builder newBuilder() {
@@ -103,6 +94,24 @@ public class TokenBucket {
     }
 
     /**
+     * Schedules a background thread for incrementing the token count. Broken out into a separate function to allow
+     * overriding in tests.
+     */
+    @VisibleForTesting
+    protected void startIncrementThread() {
+        executor.scheduleAtFixedRate(
+                new Runnable() {
+                    @Override
+                    public void run() {
+                        increment();
+                    }
+                },
+                incrementInterval.toMillis(),
+                incrementInterval.toMillis(),
+                TimeUnit.MILLISECONDS);
+    }
+
+    /**
      * Resets internal counters for tests.
      */
     @VisibleForTesting
@@ -112,9 +121,10 @@ public class TokenBucket {
     }
 
     /**
-     * This method adds a token to the bucket up to the capacity of the bucket.
+     * This method adds a token to the bucket up to the capacity of the bucket. Visible to tests for manual execution.
      */
-    private synchronized void increment() {
+    @VisibleForTesting
+    protected synchronized void increment() {
         if (count < capacity) {
             count++;
         }
