@@ -141,6 +141,7 @@ public class ZoneValidatorTest {
                 TestConstants.PRINCIPAL,
                 TestConstants.SERVICE_USER,
                 null,
+                null,
                 "http://web-url",
                 "http://zookeeper",
                 null,

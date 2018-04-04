@@ -16,6 +16,7 @@ import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallRecorder;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
+import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
@@ -41,6 +42,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private final FrameworkStore frameworkStore;
     private final ConfigStore<ServiceSpec> configStore;
     private final PlanCoordinator planCoordinator;
+    private final Collection<PlanManager> plansToCheckFinished;
     private final Collection<Object> customResources;
     private final Map<String, EndpointProducer> customEndpointProducers;
     private final PersistentLaunchRecorder launchRecorder;
@@ -92,6 +94,14 @@ public class DefaultScheduler extends AbstractScheduler {
         this.frameworkStore = frameworkStore;
         this.configStore = configStore;
         this.planCoordinator = planCoordinator;
+        if (serviceSpec.getGoal() == GoalState.FINISH) {
+            // Get the recovery and deploy plans. If they are COMPLETED, then the service can be uninstalled. We store
+            // the PlanManagers, not the underlying Plans, because PlanManagers can change their plans at any time.
+            this.plansToCheckFinished = HealthResource.getDeploymentAndRecoveryManagers(planCoordinator);
+        } else {
+            // Disable this check
+            this.plansToCheckFinished = Collections.emptyList();
+        }
         this.customResources = customResources;
         this.customEndpointProducers = customEndpointProducers;
 
@@ -220,6 +230,12 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
+        if (serviceSpec.getGoal() == GoalState.FINISH
+                && plansToCheckFinished.stream().allMatch(pm -> pm.getPlan().isComplete())) {
+            // We have finished our work. Tell upstream to uninstall us.
+            return OfferResponse.finished();
+        }
+
         return processOffers(planScheduler, launchRecorder, decommissionRecorder, offers, steps);
     }
 

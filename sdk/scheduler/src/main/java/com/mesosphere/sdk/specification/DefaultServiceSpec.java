@@ -54,7 +54,8 @@ public class DefaultServiceSpec implements ServiceSpec {
     private final String role;
     private final String principal;
     private final String user;
-
+    private final GoalState goalState;
+    private final String region;
     private final String webUrl;
     private final String zookeeperConnection;
 
@@ -67,14 +68,13 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Valid
     private final ReplacementFailurePolicy replacementFailurePolicy;
 
-    private final String region;
-
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
             @JsonProperty("user") String user,
+            @JsonProperty("goal") GoalState goalState,
             @JsonProperty("region") String region,
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
@@ -84,6 +84,10 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.role = role;
         this.principal = principal;
         this.user = getUser(user, pods);
+        this.goalState = goalState == null ? GoalState.RUNNING : goalState;
+        if (goalState == GoalState.FINISHED) {
+            throw new IllegalArgumentException("Service goal state is deprecated FINISHED. Did you mean FINISH?");
+        }
         this.region = region;
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
@@ -120,6 +124,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.role,
                 builder.principal,
                 builder.user,
+                builder.goalState,
                 builder.region,
                 builder.webUrl,
                 builder.zookeeperConnection,
@@ -176,6 +181,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.role = copy.getRole();
         builder.principal = copy.getPrincipal();
         builder.user = copy.getUser();
+        builder.goalState = copy.getGoal();
         builder.region = copy.getRegion().orElse(null);
         builder.webUrl = copy.getWebUrl();
         builder.zookeeperConnection = copy.getZookeeperConnection();
@@ -202,6 +208,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public String getUser() {
         return user;
+    }
+
+    @Override
+    public GoalState getGoal() {
+        return goalState;
     }
 
     @Override
@@ -556,6 +567,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String role;
         private String principal;
         private String user;
+        private GoalState goalState;
         private String region;
         private String webUrl;
         private String zookeeperConnection;
@@ -602,11 +614,23 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
          *
-         * @param user the {@code principal} to set
+         * @param user the {@code user} to set
          * @return a reference to this Builder
          */
         public Builder user(String user) {
             this.user = user;
+            return this;
+        }
+
+        /**
+         * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be chained
+         * together. Default value is {@code RUNNING}.
+         *
+         * @param goalState the {@code goalState} to set
+         * @return a reference to this Builder
+         */
+        public Builder goalState(GoalState goalState) {
+            this.goalState = goalState;
             return this;
         }
 
