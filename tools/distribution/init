@@ -47,12 +47,20 @@ def copy_dist_file(filename: str, output_path: str):
     subprocess.check_output(["cp", source_file, output_path])
 
 
-def copy_dist_folder(folder: str, output_path: str):
+def copy_dist_folder(folder: str, output_path: str, exclude: list=[]):
     """Copy a distribution folder to the specified ouput path"""
     source_folder = os.path.join(DCOS_COMMONS_DIST_ROOT, folder.rstrip("/"))
 
     LOGGER.info("Copying %s to %s", source_folder, output_path)
-    subprocess.check_output(["rsync", "-avz", "--delete", source_folder, output_path])
+    cmd = ["rsync", "-avz", "--delete", ]
+
+    if exclude:
+        for e in exclude:
+            cmd.extend(["--exclude={}".format(e)])
+
+    cmd.extend([source_folder, output_path])
+
+    subprocess.check_output(cmd)
 
 
 def distribute_test_utils(output_path: str):
@@ -60,14 +68,17 @@ def distribute_test_utils(output_path: str):
 
     output_path = output_path.rstrip("/") + "/"
 
-    files = ["test.sh", "TESTING.md", "conftest.py", ]
+    files = ["conftest.py",
+             "test.sh",
+             "TESTING.md",
+             "UPDATING.md", ]
 
     for f in files:
         copy_dist_file(f, output_path)
 
-    folders = ["tools", "testing", ]
+    folders = [("tools", ["tools/ci", "tools/distribution"]), ("testing", []), ]
     for f in folders:
-        copy_dist_folder(f, output_path)
+        copy_dist_folder(f[0], output_path, f[1])
 
 
 def update_sdk(output_path: str, target_version: str):
@@ -100,12 +111,14 @@ def update_sdk(output_path: str, target_version: str):
                                       package_builder_contents)
     write_file(package_builder_path, package_builder_contents)
 
+    LOGGER.info("Updated to SDK version %s", target_version)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Init DC/OS test environment")
     parser.add_argument('output_path', type=str,
                         help='The absolute path where the testing tools should be created')
-    parser.add_argument("--update-sdk", nargs="?", type=str, const=get_sdk_version(),
+    parser.add_argument("--update-sdk", type=str,
                         help="Update the SDK in the target framework.")
     return parser.parse_args()
 
