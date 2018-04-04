@@ -152,9 +152,9 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-java.lang.String-">ConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-java.util.Optional-">ConfigStore</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
            <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-           java.lang.String&nbsp;namespace)</code>
+           java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data within
  the provided <code>namespace</code>.</div>
 </td>
@@ -273,7 +273,7 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </dl>
 </li>
 </ul>
-<a name="ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-java.lang.String-">
+<a name="ConfigStore-com.mesosphere.sdk.config.ConfigurationFactory-com.mesosphere.sdk.storage.Persister-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -281,14 +281,14 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <h4>ConfigStore</h4>
 <pre>public&nbsp;ConfigStore(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory,
                    <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-                   java.lang.String&nbsp;namespace)</pre>
+                   java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access configuration data within
  the provided <code>namespace</code>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>factory</code> - The factory used to convert raw bytes to config objects of type <code>T</code></dd>
 <dd><code>persister</code> - The persister which holds the config data</dd>
-<dd><code>namespace</code> - The namespace for data to be stored within, or an empty string for no namespacing</dd>
+<dd><code>namespace</code> - The namespace for data to be stored within, or an empty Optional for no namespacing</dd>
 </dl>
 </li>
 </ul>

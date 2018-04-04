@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -221,6 +221,12 @@ extends java.lang.Object</pre>
  provided status <code>Response.Status</code>.</div>
 </td>
 </tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>static Response</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/ResponseUtils.html#serviceNotFoundResponse-java.lang.String-">serviceNotFoundResponse</a></span>(java.lang.String&nbsp;serviceName)</code>
+<div class="block">Returns a "404 Run [serviceName] not found" response.</div>
+</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -361,6 +367,16 @@ extends java.lang.Object</pre>
 <h4>notFoundResponse</h4>
 <pre>public static&nbsp;Response&nbsp;notFoundResponse(java.lang.String&nbsp;itemType)</pre>
 <div class="block">Returns a "404 [itemType] not found" response.</div>
+</li>
+</ul>
+<a name="serviceNotFoundResponse-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>serviceNotFoundResponse</h4>
+<pre>public static&nbsp;Response&nbsp;serviceNotFoundResponse(java.lang.String&nbsp;serviceName)</pre>
+<div class="block">Returns a "404 Run [serviceName] not found" response.</div>
 </li>
 </ul>
 <a name="alreadyReportedResponse--">

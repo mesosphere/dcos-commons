@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -159,32 +159,39 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#enableMultiService-java.lang.String-">enableMultiService</a></span>(java.lang.String&nbsp;frameworkName)</code>
+<div class="block">Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
+ multiple underlying services.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getPersister--">getPersister</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object which was provided via the constructor, or which was created by default
  internally.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getSchedulerConfig--">getSchedulerConfig</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> object which was provided via the constructor.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#getServiceSpec--">getServiceSpec</a></span>()</code>
 <div class="block">Returns the <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> which was provided via the constructor.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#isRegionAwarenessEnabled--">isRegionAwarenessEnabled</a></span>()</code>
 <div class="block">Returns whether the developer has enabled region awareness for this service, either via
  <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--"><code>withSingleRegionConstraint()</code></a> or via the scheduler process environment.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>(package private) java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#selectDeployPlan-java.util.Collection-boolean-">selectDeployPlan</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans,
                 boolean&nbsp;hasCompletedDeployment)</code>
@@ -192,7 +199,7 @@ extends java.lang.Object</pre>
  a custom update plan has been specified.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setCustomConfigValidators-java.util.Collection-">setCustomConfigValidators</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;customConfigValidators)</code>
 <div class="block">Specifies a custom list of configuration validators to be run when updating to a new target configuration,
@@ -200,24 +207,18 @@ extends java.lang.Object</pre>
  <a href="../../../../com/mesosphere/sdk/config/validate/DefaultConfigValidators.html#getValidators-com.mesosphere.sdk.scheduler.SchedulerConfig-"><code>DefaultConfigValidators.getValidators(SchedulerConfig)</code></a>.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setCustomResources-java.util.Collection-">setCustomResources</a></span>(java.util.Collection&lt;java.lang.Object&gt;&nbsp;customResources)</code>
 <div class="block">Specifies custom endpoint resources which should be exposed through the scheduler's API server, in addition
  to the defaults.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setEndpointProducer-java.lang.String-com.mesosphere.sdk.http.types.EndpointProducer-">setEndpointProducer</a></span>(java.lang.String&nbsp;name,
                    <a href="../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&nbsp;endpointProducer)</code>
 <div class="block">Specifies a custom <a href="../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types"><code>EndpointProducer</code></a> to be added to the /endpoints API.</div>
-</td>
-</tr>
-<tr id="i9" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setNamespace-java.lang.String-">setNamespace</a></span>(java.lang.String&nbsp;namespace)</code>
-<div class="block">Assigns a custom namespace for this service.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
@@ -240,12 +241,6 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i13" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#setTemplateUrlFactory-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-">setTemplateUrlFactory</a></span>(<a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory)</code>
-<div class="block">Assigns a custom factory for generating config template URLs.</div>
-</td>
-</tr>
-<tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#withSingleRegionConstraint--">withSingleRegionConstraint</a></span>()</code>
 <div class="block">Configures the resulting scheduler instance with a region constraint.</div>
@@ -443,27 +438,19 @@ extends java.lang.Object</pre>
 <div class="block">Configures the resulting scheduler instance with a region constraint.</div>
 </li>
 </ul>
-<a name="setNamespace-java.lang.String-">
+<a name="enableMultiService-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>setNamespace</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setNamespace(java.lang.String&nbsp;namespace)</pre>
-<div class="block">Assigns a custom namespace for this service. This is only relevant when a single framework is running multiple
- services, where different services need to be differentiated from each other. The namespace is used for both
- storage in ZK (<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>/<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a>), as well as in resource labels.</div>
-</li>
-</ul>
-<a name="setTemplateUrlFactory-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setTemplateUrlFactory</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setTemplateUrlFactory(<a href="../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory)</pre>
-<div class="block">Assigns a custom factory for generating config template URLs. Otherwise a default suitable for use with
- <a href="../../../../com/mesosphere/sdk/http/endpoints/ArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>ArtifactResource</code></a> is used.</div>
+<h4>enableMultiService</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;enableMultiService(java.lang.String&nbsp;frameworkName)</pre>
+<div class="block">Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
+ multiple underlying services.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>frameworkName</code> - the name of the Mesos Framework which will be running the service</dd>
+</dl>
 </li>
 </ul>
 <a name="build--">
