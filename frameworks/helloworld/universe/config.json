@@ -68,48 +68,13 @@
           "default": true
         },
         "scenario": {
-          "description": "A value to test various SDK customization scenarios",
+          "description": "Comma-separated list of SDK customization scenarios to perform on the service(s)",
           "type": "string",
-          "enum": [
-            "YAML",
-            "JAVA",
-            "CUSTOM_PLAN",
-            "CUSTOM_DECOMMISSION",
-            "MULTI_REGION"
-          ],
           "default": "YAML"
         },
         "yaml": {
-          "description": "An example YAML file to deploy",
+          "description": "Comma-separated list of zero or more example YAML files to deploy",
           "type": "string",
-          "enum": [
-            "canary",
-            "custom_tld",
-            "discovery",
-            "enable-disable",
-            "executor_volume",
-            "finish_state",
-            "gpu_resource",
-            "graceful-shutdown",
-            "marathon_constraint",
-            "multistep_plan",
-            "nonessential_tasks",
-            "overlay",
-            "pause",
-            "plan",
-            "pod-mount-volume",
-            "pre-reserved",
-            "pre-reserved-sidecar",
-            "secrets",
-            "share_pid_namespace",
-            "sidecar",
-            "simple",
-            "taskcfg",
-            "svc",
-            "tls",
-            "uri",
-            "web-url"
-          ],
           "default": "svc"
         },
         "allow_region_awareness": {
