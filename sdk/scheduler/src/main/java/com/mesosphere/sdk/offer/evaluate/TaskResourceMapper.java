@@ -26,7 +26,6 @@ class TaskResourceMapper {
     private final Collection<ResourceSpec> resourceSpecs;
     private final TaskPortLookup taskPortFinder;
     private final Collection<Protos.Resource> resources;
-    private final boolean useDefaultExecutor;
 
     private final List<OfferEvaluationStage> evaluationStages;
 
@@ -43,7 +42,6 @@ class TaskResourceMapper {
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
         this.taskPortFinder = new TaskPortLookup(taskInfo);
         this.resources = taskInfo.getResourcesList();
-        this.useDefaultExecutor = useDefaultExecutor;
 
         // ONLY call this AFTER initializing all members above:
         this.evaluationStages = getEvaluationStagesInternal();
@@ -237,7 +235,7 @@ class TaskResourceMapper {
                     resourceNamespace,
                     persistenceId,
                     sourceRoot,
-                    useDefaultExecutor);
+                    true);
         } else {
             return new ResourceEvaluationStage(resourceSpec, Optional.of(taskSpecName), resourceId, resourceNamespace);
         }

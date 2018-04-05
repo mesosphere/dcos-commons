@@ -63,48 +63,6 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testRejectOfferWithoutExpectedExecutorIdCustomExecutor() throws Exception {
-        useCustomExecutor();
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-
-        // Record launch and RUNNING status
-        String resourceId = getFirstResourceId(
-                recordLaunchWithOfferedResources(
-                        podInstanceRequirement,
-                        ResourceTestUtils.getUnreservedCpus(1.0)));
-        String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
-        Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
-        stateStore.storeStatus(
-                taskInfo.getName(),
-                Protos.TaskStatus.newBuilder()
-                        .setState(Protos.TaskState.TASK_RUNNING)
-                        .setTaskId(taskInfo.getTaskId())
-                        .build());
-
-        Protos.Resource expectedTaskCpu = ResourceTestUtils.getReservedCpus(1.0, resourceId);
-
-        MesosResourcePool resources = new MesosResourcePool(
-                OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)), Optional.of(Constants.ANY_ROLE));
-
-        ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(TestConstants.SERVICE_NAME, Optional.of(taskInfo.getExecutor().getExecutorId()));
-        EvaluationOutcome outcome =
-                executorEvaluationStage.evaluate(
-                        resources,
-                        new PodInfoBuilder(
-                                podInstanceRequirement,
-                                TestConstants.SERVICE_NAME,
-                                UUID.randomUUID(),
-                                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
-                                SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                                stateStore.fetchTasks(),
-                                frameworkStore.fetchFrameworkId().get(),
-                                false,
-                                Collections.emptyMap()));
-        Assert.assertFalse(outcome.isPassing());
-    }
-
-    @Test
     public void testAcceptOfferWithExpectedExecutorId() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
 
@@ -142,54 +100,6 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         stateStore.fetchTasks(),
                         frameworkStore.fetchFrameworkId().get(),
                         true,
-                        Collections.emptyMap());
-        EvaluationOutcome outcome =
-                executorEvaluationStage.evaluate(resources, podInfoBuilder);
-        Assert.assertTrue(outcome.isPassing());
-
-        Protos.ExecutorID launchExecutorId = podInfoBuilder.getExecutorBuilder().get().getExecutorId();
-        Assert.assertEquals(
-                taskInfo.getExecutor().getExecutorId(),
-                launchExecutorId);
-    }
-
-    @Test
-    public void testAcceptOfferWithExpectedExecutorIdCustomExecutor() throws Exception {
-        useCustomExecutor();
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-
-        // Record launch and RUNNING status
-        String resourceId = getFirstResourceId(
-                recordLaunchWithOfferedResources(
-                        podInstanceRequirement,
-                        ResourceTestUtils.getUnreservedCpus(1.0)));
-        String taskName = stateStore.fetchTaskNames().stream().findFirst().get();
-        Protos.TaskInfo taskInfo = stateStore.fetchTask(taskName).get();
-        stateStore.storeStatus(
-                taskInfo.getName(),
-                Protos.TaskStatus.newBuilder()
-                        .setState(Protos.TaskState.TASK_RUNNING)
-                        .setTaskId(taskInfo.getTaskId())
-                        .build());
-
-        Protos.Resource expectedTaskCpu = ResourceTestUtils.getReservedCpus(1.0, resourceId);
-        Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(expectedTaskCpu)).toBuilder()
-                .addExecutorIds(taskInfo.getExecutor().getExecutorId())
-                .build();
-        MesosResourcePool resources = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
-
-        ExecutorEvaluationStage executorEvaluationStage =
-                new ExecutorEvaluationStage(TestConstants.SERVICE_NAME, Optional.of(taskInfo.getExecutor().getExecutorId()));
-        PodInfoBuilder podInfoBuilder =
-                new PodInfoBuilder(
-                        podInstanceRequirement,
-                        TestConstants.SERVICE_NAME,
-                        UUID.randomUUID(),
-                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
-                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                        stateStore.fetchTasks(),
-                        frameworkStore.fetchFrameworkId().get(),
-                        false,
                         Collections.emptyMap());
         EvaluationOutcome outcome =
                 executorEvaluationStage.evaluate(resources, podInfoBuilder);

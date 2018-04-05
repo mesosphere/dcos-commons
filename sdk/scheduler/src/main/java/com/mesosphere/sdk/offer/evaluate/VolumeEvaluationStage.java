@@ -25,7 +25,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     private final Optional<String> taskName;
     private final Optional<String> resourceId;
     private final Optional<String> resourceNamespace;
-    private final boolean useDefaultExecutor;
     private final Optional<String> sourceRoot;
 
     public static VolumeEvaluationStage getNew(
@@ -76,7 +75,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
         this.sourceRoot = sourceRoot;
-        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     private boolean createsVolume() {
@@ -104,7 +102,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     resourceNamespace,
                     persistenceId,
                     sourceRoot,
-                    useDefaultExecutor);
+                    true);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
             return pass(
@@ -179,7 +177,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 volumeSpec.getName(), TextFormat.shortDebugString(resource));
         OfferEvaluationUtils.setProtos(podInfoBuilder, resource, taskName);
 
-        if (!taskName.isPresent() && useDefaultExecutor) {
+        if (!taskName.isPresent()) {
             podInfoBuilder.setExecutorVolume(volumeSpec);
         }
 
