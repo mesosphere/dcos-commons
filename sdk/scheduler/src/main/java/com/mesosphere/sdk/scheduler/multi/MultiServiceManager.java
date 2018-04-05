@@ -92,7 +92,7 @@ public class MultiServiceManager {
     }
 
     /**
-     * Adds or replaces a running service according to the name in its ServiceSpec. Note: If the service was marked for
+     * Adds or updates a running service according to the name in its ServiceSpec. Note: If the service was marked for
      * uninstall via {@link #uninstallService(String)}, it should continue to be added across scheduler restarts in
      * order for uninstall to complete. It should only be omitted after the uninstall callback has been invoked for it.
      *
@@ -111,7 +111,7 @@ public class MultiServiceManager {
 
             // Update the sanitized=>original mapping, and check for a colliding sanitized name,
             // e.g. "/path/to/service" vs "/path/to.service".
-            // This differs from an exact match, which we treat as a reconfiguration/replacement of the prior service.
+            // This differs from an exact match, which we treat as a reconfiguration/update of the prior service.
             String previousOriginalName = sanitizedServiceNames.put(sanitizedName, originalName);
             if (previousOriginalName != null && !originalName.equals(previousOriginalName)) {
                 // Undo changes to 'sanitizedServiceNames' before throwing...
@@ -225,7 +225,7 @@ public class MultiServiceManager {
      *
      * @return the number of services which are still present after this removal
      */
-    public int removeServices(Collection<String> uninstalledServiceNames) {
+    public void removeServices(Collection<String> uninstalledServiceNames) {
         rwlock.lock();
         try {
             LOGGER.info("Removing {} uninstalled service{}: {} (from {} total services)",
@@ -238,8 +238,6 @@ public class MultiServiceManager {
                 services.remove(serviceName);
                 sanitizedServiceNames.remove(CommonIdUtils.toSanitizedServiceName(serviceName));
             }
-
-            return services.size();
         } finally {
             rwlock.unlock();
         }
@@ -247,17 +245,17 @@ public class MultiServiceManager {
 
     /**
      * Gets a shared/read lock on the underlying data store, and returns all available services.
-     * Upstream MUST call {@link #unlockServices()} after finishing.
+     * Upstream MUST call {@link #sharedUnlock()} after finishing.
      */
-    public Collection<AbstractScheduler> lockAndGetServices() {
+    public Collection<AbstractScheduler> sharedLockAndGetServices() {
         rlock.lock();
         return services.values();
     }
 
     /**
-     * Unlocks a previous lock which was obtained via {@link #lockAndGetServices()}.
+     * Unlocks a previous lock which was obtained via {@link #sharedLockAndGetServices()}.
      */
-    public void unlockServices() {
+    public void sharedUnlock() {
         rlock.unlock();
     }
 

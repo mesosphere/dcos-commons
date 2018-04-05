@@ -127,7 +127,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         Collection<String> finishedServices = new ArrayList<>();
         Collection<String> uninstalledServices = new ArrayList<>();
 
-        Collection<AbstractScheduler> services = multiServiceManager.lockAndGetServices();
+        Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         LOGGER.info("Sending {} offer{} to {} service{}:",
                 offers.size(), offers.size() == 1 ? "" : "s",
                 services.size(), services.size() == 1 ? "" : "s");
@@ -176,7 +176,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // This is done in case any of the clients depends on us to turn the crank periodically.
             }
         } finally {
-            multiServiceManager.unlockServices();
+            multiServiceManager.sharedUnlock();
         }
 
         if (!finishedServices.isEmpty()) {
@@ -189,8 +189,8 @@ public class MultiServiceEventClient implements MesosEventClient {
         if (!uninstalledServices.isEmpty()) {
             // Note: It's possible that we can have a race where we attempt to remove the same service twice. This is ok
             //       (Picture two near-simultaneous calls to offers(): Both send offers, both get FINISHED back, ...)
-            int remainingServiceCount = multiServiceManager.removeServices(uninstalledServices);
-            noClients = remainingServiceCount <= 0;
+            multiServiceManager.removeServices(uninstalledServices);
+            noClients = multiServiceManager.getServiceNames().isEmpty();
 
             // Just in case, avoid invoking the uninstall callback until we are in an unlocked state. This avoids
             // deadlock if the callback itself calls back into us for any reason. This also ensures that we aren't
@@ -232,9 +232,8 @@ public class MultiServiceEventClient implements MesosEventClient {
     @Override
     public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
         // Resources can be unexpected for any of the following reasons:
-        // - (CASE 1) Resources which lack a service name (shouldn't happen in practice)
-        // - (CASE 2) Resources with an unrecognized service name (old resources?)
-        // - (CASE 3) Resources whose matching service returned them as unexpected (old/decommissioned resources?)
+        // CASE 1: Resources with an unrecognized service name (old resources?)
+        // CASE 2: Resources whose matching service returned them as unexpected (old/decommissioned resources?)
 
         // For each offer, the resources which should be unreserved.
         Map<Protos.OfferID, OfferResources> unexpectedResources = new HashMap<>();
@@ -251,9 +250,10 @@ public class MultiServiceEventClient implements MesosEventClient {
                     // Found service name: Store resource against serviceName+offerId to be evaluated below.
                     getEntry(offersByService, serviceName.get(), offer).add(resource);
                 } else if (ResourceUtils.getReservation(resource).isPresent()) {
-                    // (CASE 1) Malformed: Reserved resource which is missing a service name.
-                    // Send directly to the unexpected list.
-                    getEntry(unexpectedResources, offer).add(resource);
+                    // This reserved resource is malformed. Reservations created by this scheduler should always have a
+                    // service name label. Make some noise but leave it alone. Out of caution, we DO NOT destroy it.
+                    LOGGER.error("Ignoring malformed resource in offer {} (missing namespace label): {}",
+                            offer.getId().getValue(), TextFormat.shortDebugString(resource));
                 } else {
                     // Not a reserved resource. Ignore for cleanup purposes.
                 }
@@ -278,7 +278,7 @@ public class MultiServiceEventClient implements MesosEventClient {
 
             Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
             if (!service.isPresent()) {
-                // (CASE 2) Old or invalid service name. Consider all resources for this service as unexpected.
+                // (CASE 1) Old or invalid service name. Consider all resources for this service as unexpected.
                 LOGGER.info("  {} cleanup result: unknown service, all resources unexpected", serviceName);
                 for (OfferResources serviceOffer : serviceOffers) {
                     getEntry(unexpectedResources, serviceOffer.getOffer()).addAll(serviceOffer.getResources());
@@ -293,7 +293,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                             .addAllResources(serviceOfferResources.getResources())
                             .build());
                 }
-                // (CASE 3) The service has returned the subset of these resources which are unexpected.
+                // (CASE 2) The service has returned the subset of these resources which are unexpected.
                 // Add those to unexpectedResources.
                 // Note: We're careful to only invoke this once per service, as the call is likely to be expensive.
                 UnexpectedResourcesResponse response = service.get().getUnexpectedResources(offersToSend);
@@ -308,7 +308,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 case FAILED:
                     // We should be able to safely skip this service and proceed to the next one. For this round,
                     // the service just won't have anything added to unexpectedResources. We play it safe by telling
-                    // upstream to do a short decline for the unprocessed resources.
+                    // upstream to do a short decline.
                     anyFailedClients = true;
                     for (OfferResources unexpectedInOffer : response.offerResources) {
                         getEntry(unexpectedResources, unexpectedInOffer.getOffer())
@@ -352,7 +352,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Returns a set of queues-specific endpoints to be served by the scheduler. This effectively overrides the
+     * Returns a set of multi-service-specific endpoints to be served by the scheduler. This effectively overrides the
      * underlying per-service endpoints with multiservice-aware versions.
      */
     @Override
@@ -375,7 +375,8 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Finds the requested entry in the provided map, initializing the entry if needed.
+     * Finds the requested {@link OfferResources} value in the provided map[serviceName][offerId], initializing the
+     * entry if needed.
      */
     private static OfferResources getEntry(
             Map<String, Map<Protos.OfferID, OfferResources>> map, String serviceName, Protos.Offer offer) {
@@ -388,7 +389,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Finds the requested entry in the provided map, initializing the entry if needed.
+     * Finds the requested {@link OfferResources} value in the provided map[offerId], initializing the entry if needed.
      */
     private static OfferResources getEntry(Map<Protos.OfferID, OfferResources> map, Protos.Offer offer) {
         OfferResources currentValue = map.get(offer.getId());

@@ -49,6 +49,7 @@ public class CuratorPersister implements Persister {
         private RetryPolicy retryPolicy;
         private String username;
         private String password;
+        private boolean lockEnabled;
 
         /**
          * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
@@ -60,6 +61,7 @@ public class CuratorPersister implements Persister {
             this.retryPolicy = CuratorUtils.getDefaultRetry();
             this.username = "";
             this.password = "";
+            this.lockEnabled = true;
         }
 
         /**
@@ -85,6 +87,17 @@ public class CuratorPersister implements Persister {
         }
 
         /**
+         * Disables getting a curator lock before returning a {@link CuratorPersister}.
+         *
+         * This should only be invoked in tests.
+         */
+        @VisibleForTesting
+        public Builder disableLock() {
+            this.lockEnabled = false;
+            return this;
+        }
+
+        /**
          * Returns a new {@link CuratorPersister} instance using the provided settings, using reasonable defaults where
          * custom values were not specified.
          */
@@ -92,11 +105,7 @@ public class CuratorPersister implements Persister {
             CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
                     .connectString(zookeeperHostPort)
                     .retryPolicy(retryPolicy);
-            final CuratorFramework client;
-
-            if (username.isEmpty() && password.isEmpty()) {
-                client = builder.build();
-            } else if (!username.isEmpty() && !password.isEmpty()) {
+            if (!username.isEmpty() && !password.isEmpty()) {
                 List<ACL> acls = new ArrayList<ACL>();
                 acls.addAll(ZooDefs.Ids.CREATOR_ALL_ACL);
                 acls.addAll(ZooDefs.Ids.READ_ACL_UNSAFE);
@@ -114,13 +123,17 @@ public class CuratorPersister implements Persister {
                                 return acls;
                             }
                         });
-                client = builder.build();
-            } else {
+            } else if (!username.isEmpty() || !password.isEmpty()) {
                 throw new IllegalArgumentException(
                         "username and password must both be provided, or both must be empty.");
             }
 
-            CuratorPersister persister = new CuratorPersister(serviceName, client);
+            if (lockEnabled) {
+                // Lock curator (using a separate client created from this builder) BEFORE returning access to persister
+                CuratorLocker.lock(serviceName, builder);
+            }
+
+            CuratorPersister persister = new CuratorPersister(serviceName, builder.build());
             CuratorUtils.initServiceName(persister, serviceName);
             return persister;
         }

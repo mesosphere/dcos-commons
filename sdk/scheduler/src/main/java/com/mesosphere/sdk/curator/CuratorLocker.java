@@ -33,7 +33,7 @@ public class CuratorLocker {
     });
 
     private final String serviceName;
-    private final String zookeeperHostPort;
+    private final CuratorFrameworkFactory.Builder clientBuilder;
 
     private CuratorFramework curatorClient;
     private InterProcessSemaphoreMutex curatorMutex;
@@ -44,7 +44,7 @@ public class CuratorLocker {
      * @param serviceName the name of the service to be locked
      * @param zookeeperHostPort the connection string for the ZK instance, e.g. {@code master.mesos:2181}
      */
-    public static void lock(String serviceName, String zookeeperHostPort) {
+    public static void lock(String serviceName, CuratorFrameworkFactory.Builder clientBuilder) {
         synchronized (INSTANCE_LOCK) {
             if (!enabled) {
                 return;
@@ -52,7 +52,7 @@ public class CuratorLocker {
             if (instance != null) {
                 throw new IllegalStateException("Already locked");
             }
-            instance = new CuratorLocker(serviceName, zookeeperHostPort);
+            instance = new CuratorLocker(serviceName, clientBuilder);
             instance.lockInternal();
 
             Runtime.getRuntime().addShutdownHook(SHUTDOWN_HOOK);
@@ -85,9 +85,9 @@ public class CuratorLocker {
      * @param zookeeperHostPort the connection string for the ZK instance, e.g. {@code master.mesos:2181}
      */
     @VisibleForTesting
-    CuratorLocker(String serviceName, String zookeeperHostPort) {
+    CuratorLocker(String serviceName, CuratorFrameworkFactory.Builder clientBuilder) {
         this.serviceName = serviceName;
-        this.zookeeperHostPort = zookeeperHostPort;
+        this.clientBuilder = clientBuilder;
     }
 
     /**
@@ -99,7 +99,7 @@ public class CuratorLocker {
         if (curatorClient != null) {
             throw new IllegalStateException("Already locked");
         }
-        curatorClient = CuratorFrameworkFactory.newClient(zookeeperHostPort, CuratorUtils.getDefaultRetry());
+        curatorClient = clientBuilder.build();
         curatorClient.start();
 
         final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
