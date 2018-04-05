@@ -31,7 +31,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .build();
     }
 
-    private PodInfoBuilder getPodInfoBuilder(PodInstanceRequirement podInstanceRequirement, boolean useDefaultExecutor)
+    private PodInfoBuilder getPodInfoBuilder(PodInstanceRequirement podInstanceRequirement)
             throws InvalidRequirementException {
         return new PodInfoBuilder(
                 podInstanceRequirement,
@@ -41,7 +41,6 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                useDefaultExecutor,
                 Collections.emptyMap());
     }
 
@@ -128,7 +127,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.PORT_VISIBILITY,
                 getOverlayNetworkNames());
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 portSpec, TestConstants.TASK_NAME, Optional.empty(), Optional.empty());
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
@@ -168,7 +167,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.PORT_VISIBILITY,
                 getOverlayNetworkNames());
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
                 portSpec, TestConstants.TASK_NAME, Optional.empty(), Optional.empty());
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
@@ -219,7 +218,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 TestConstants.PORT_VISIBILITY,
                 getOverlayNetworkNames());
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec, dynamPortSpec);
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         Assert.assertTrue(String.format("podInfoBuilder has incorrect number of pre-assigned overlay ports " +
                         "should be 1, got %s", podInfoBuilder.getAssignedOverlayPorts().size()),
                 podInfoBuilder.getAssignedOverlayPorts().size() == 1);
@@ -265,7 +264,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
                         .build();
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredPorts);
 
@@ -308,7 +307,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
                         .build();
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
@@ -333,7 +332,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
                         .build();
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredPorts);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
@@ -361,7 +360,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
                         .build();
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, true);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
@@ -400,39 +399,6 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     }
 
     @Test
-    public void testPortEnvvarOnReadinessCheckCustomExecutor() throws Exception {
-        DefaultPodInstance podInstance = getPodInstance("valid-port-readinesscheck.yml");
-        PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance))
-                        .build();
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement, false);
-        Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10000);
-        Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
-        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                getPortSpec(podInstance), TestConstants.TASK_NAME, Optional.empty(), Optional.empty());
-
-        EvaluationOutcome outcome = portEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
-        Assert.assertTrue(outcome.isPassing());
-        Assert.assertEquals(1, outcome.getOfferRecommendations().size());
-        OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
-        Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
-        Assert.assertEquals(
-                10000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
-        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
-        boolean portInTaskEnv = false;
-        for (int i = 0; i < taskBuilder.getCommand().getEnvironment().getVariablesCount(); i++) {
-            Protos.Environment.Variable variable = taskBuilder.getCommand().getEnvironment().getVariables(i);
-            if (Objects.equals(variable.getName(), "PORT_TEST_PORT")) {
-                Assert.assertEquals(variable.getValue(), "10000");
-                portInTaskEnv = true;
-            }
-        }
-        Assert.assertTrue(portInTaskEnv);
-    }
-
-    @Test
     public void testDynamicPortNotStickyAfterReplacement() throws Exception {
         // The initial dynamic port should be the min of the available range.
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10050);
@@ -457,7 +423,6 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
 
         PortEvaluationStage portEvaluationStage =
@@ -482,7 +447,6 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
 
         // Omit 10,000 the expected port.
@@ -503,7 +467,6 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.singleton(currentTaskBuilder.build()),
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
 
         mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));

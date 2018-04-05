@@ -701,21 +701,18 @@ public class DefaultSchedulerTest {
                         offer,
                         taskInfoBuilder.build(),
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        true,
                         true);
         List<OfferRecommendation> allRecommendations = Arrays.asList(
                 new LaunchOfferRecommendation(
                         offer,
                         taskInfoBuilder.build(),
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false,
-                        true),
+                        false),
                 recommendationToLaunch,
                 new LaunchOfferRecommendation(
                         offer,
                         taskInfoBuilder.build(),
                         Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false,
                         false));
 
         PlanScheduler mockPlanScheduler = mock(PlanScheduler.class);

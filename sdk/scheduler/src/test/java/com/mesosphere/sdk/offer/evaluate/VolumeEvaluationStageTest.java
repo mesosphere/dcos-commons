@@ -43,7 +43,6 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true,
                                 Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -98,7 +97,6 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true,
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());

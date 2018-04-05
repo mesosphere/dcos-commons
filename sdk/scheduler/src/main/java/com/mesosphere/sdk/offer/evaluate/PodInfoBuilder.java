@@ -52,7 +52,6 @@ public class PodInfoBuilder {
             SchedulerConfig schedulerConfig,
             Collection<Protos.TaskInfo> currentPodTasks,
             Protos.FrameworkID frameworkID,
-            boolean useDefaultExecutor,
             Map<TaskSpec, GoalStateOverride> overrideMap) throws InvalidRequirementException {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
 
@@ -168,8 +167,7 @@ public class PodInfoBuilder {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot,
-            boolean useDefaultExecutor) {
+            Optional<String> sourceRoot) {
 
         Protos.Resource.Builder builder = ResourceBuilder
                 .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, sourceRoot)

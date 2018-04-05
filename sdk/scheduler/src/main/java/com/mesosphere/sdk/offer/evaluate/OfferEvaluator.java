@@ -100,7 +100,6 @@ public class OfferEvaluator {
                     schedulerConfig,
                     thisPodTasks.values(),
                     frameworkStore.fetchFrameworkId().get(),
-                    true,
                     overrideMap);
             List<EvaluationOutcome> outcomes = new ArrayList<>();
             int failedOutcomeCount = 0;

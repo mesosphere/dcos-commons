@@ -101,8 +101,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    sourceRoot,
-                    true);
+                    sourceRoot);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
             return pass(

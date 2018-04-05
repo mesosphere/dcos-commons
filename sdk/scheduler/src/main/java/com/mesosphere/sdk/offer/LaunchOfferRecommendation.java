@@ -22,8 +22,7 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
             Offer offer,
             TaskInfo originalTaskInfo,
             Protos.ExecutorInfo executorInfo,
-            boolean shouldLaunch,
-            boolean useDefaultExecutor) {
+            boolean shouldLaunch) {
         this.offer = offer;
         this.shouldLaunch = shouldLaunch;
 
