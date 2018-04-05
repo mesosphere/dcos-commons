@@ -20,29 +20,17 @@ public class SchedulerRestartServiceTest {
     @Test
     public void startedTaskIsPendingAfterRestart_DefaultExecutor() throws Exception {
         // A task that fails its readiness check (exit_code=1), should remain in the PENDING state on restart
-        testTaskWithReadinessCheckHasStatus(1, Status.PENDING, true);
+        testTaskWithReadinessCheckHasStatus(1, Status.PENDING);
     }
 
     @Test
     public void completeTaskIsCompleteAfterRestart_DefaultExecutor() throws Exception {
         // A task that succeeds its readiness check (exit_code=0), should remain in the COMPLETE state on restart
-        testTaskWithReadinessCheckHasStatus(0, Status.COMPLETE, true);
-    }
-
-    @Test
-    public void startedTaskIsPendingAfterRestart_CustomExecutor() throws Exception {
-        // A task that fails its readiness check (exit_code=1), should remain in the PENDING state on restart
-        testTaskWithReadinessCheckHasStatus(1, Status.PENDING, false);
-    }
-
-    @Test
-    public void completeTaskIsCompleteAfterRestart_CustomExecutor() throws Exception {
-        // A task that succeeds its readiness check (exit_code=0), should remain in the COMPLETE state on restart
-        testTaskWithReadinessCheckHasStatus(0, Status.COMPLETE, false);
+        testTaskWithReadinessCheckHasStatus(0, Status.COMPLETE);
     }
 
     private static void testTaskWithReadinessCheckHasStatus(
-            int readinessCheckStatusCode, Status expectedStatus, boolean useDefaultExecutor) throws Exception {
+            int readinessCheckStatusCode, Status expectedStatus) throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
@@ -76,13 +64,8 @@ public class SchedulerRestartServiceTest {
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.declinedLastOffer());
 
-        ServiceTestRunner runner;
+        ServiceTestRunner runner = new ServiceTestRunner();
 
-        if (useDefaultExecutor) {
-            runner = new ServiceTestRunner();
-        } else {
-            runner = new ServiceTestRunner().enableCustomExecutor();
-        }
         ServiceTestResult result = runner.run(ticks);
 
         // Start a new scheduler:
