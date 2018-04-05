@@ -39,9 +39,9 @@ import com.mesosphere.sdk.storage.PersisterException;
  * This implementation allows users to add/remove example scenario yaml files, referenced by their filename.
  */
 @Path("/v1/multi")
-public class HelloWorldServiceResource {
+public class ExampleMultiServiceResource {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(HelloWorldServiceResource.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ExampleMultiServiceResource.class);
 
     private static final String YAML_DIR = "hello-world-scheduler/";
     private static final String YAML_EXT = ".yml";
@@ -51,15 +51,15 @@ public class HelloWorldServiceResource {
     private final Persister persister;
     private final Collection<Scenario.Type> scenarios;
     private final MultiServiceManager multiServiceManager;
-    private final HelloWorldServiceStore serviceStore;
+    private final ExampleServiceStore serviceStore;
 
-    HelloWorldServiceResource(
+    ExampleMultiServiceResource(
             SchedulerConfig schedulerConfig,
             String frameworkName,
             Persister persister,
             Collection<Scenario.Type> scenarios,
             MultiServiceManager multiServiceManager,
-            HelloWorldServiceStore serviceStore) {
+            ExampleServiceStore serviceStore) {
         this.schedulerConfig = schedulerConfig;
         this.frameworkName = frameworkName;
         this.persister = persister;
@@ -112,7 +112,7 @@ public class HelloWorldServiceResource {
             try {
                 Optional<String> yamlFilename = serviceStore.get(serviceId);
                 if (yamlFilename.isPresent()) {
-                    service.put("filename", yamlFilename.get());
+                    service.put("yaml", yamlFilename.get());
                 }
             } catch (PersisterException e) {
                 LOGGER.error(String.format("Failed to get yaml filename for service %s", serviceId), e);
@@ -159,6 +159,7 @@ public class HelloWorldServiceResource {
             multiServiceManager.putService(service);
             JSONObject obj = new JSONObject();
             obj.put("name", service.getServiceSpec().getName());
+            obj.put("yaml", yamlName);
             return ResponseUtils.jsonOkResponse(obj);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to add service %s", serviceId), e);

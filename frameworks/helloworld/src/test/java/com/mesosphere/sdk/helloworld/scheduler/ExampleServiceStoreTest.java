@@ -10,12 +10,12 @@ import org.junit.Test;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
-public class HelloWorldServiceStoreTest {
+public class ExampleServiceStoreTest {
 
     @Test
     public void testBasicFunctionality() throws Exception {
         Persister persister = new MemPersister();
-        HelloWorldServiceStore store = new HelloWorldServiceStore(persister);
+        ExampleServiceStore store = new ExampleServiceStore(persister);
 
         Assert.assertFalse(store.get("foo").isPresent());
         Assert.assertTrue(store.list().isEmpty());
@@ -51,7 +51,7 @@ public class HelloWorldServiceStoreTest {
     @Test
     public void testSlashedName() throws Exception {
         Persister persister = new MemPersister();
-        HelloWorldServiceStore store = new HelloWorldServiceStore(persister);
+        ExampleServiceStore store = new ExampleServiceStore(persister);
 
         Assert.assertFalse(store.get("/path/to/foo").isPresent());
         Assert.assertTrue(store.list().isEmpty());

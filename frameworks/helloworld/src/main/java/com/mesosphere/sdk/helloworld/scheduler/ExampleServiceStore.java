@@ -20,7 +20,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
  * Example implementation of persistent storage which keeps track of which services have been added to a dynamic
  * multi-scheduler. Ultimately, this is a basic key/value store which is backed by a provided {@link Persister}.
  */
-public class HelloWorldServiceStore {
+public class ExampleServiceStore {
 
     /**
      * An entry in the ServiceStore. Pairs the original service id (with any slashes left as-is) with the yaml name.
@@ -65,7 +65,7 @@ public class HelloWorldServiceStore {
 
     private final Persister persister;
 
-    HelloWorldServiceStore(Persister persister) {
+    ExampleServiceStore(Persister persister) {
         this.persister = persister;
     }
 

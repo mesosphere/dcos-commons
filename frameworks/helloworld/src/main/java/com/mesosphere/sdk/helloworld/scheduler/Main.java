@@ -107,8 +107,8 @@ public class Main {
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
         MultiServiceManager multiServiceManager = new MultiServiceManager();
 
-        HelloWorldServiceStore serviceStore = new HelloWorldServiceStore(persister);
-        HelloWorldServiceResource httpResource = new HelloWorldServiceResource(
+        ExampleServiceStore serviceStore = new ExampleServiceStore(persister);
+        ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
                 schedulerConfig,
                 frameworkConfig.getFrameworkName(),
                 persister,
@@ -221,7 +221,7 @@ public class Main {
         }
         LOGGER.info("Using YAML examples: {}", yamlPaths);
         return yamlPaths.stream()
-                .map(name -> HelloWorldServiceResource.getYamlFile(name))
+                .map(name -> ExampleMultiServiceResource.getYamlFile(name))
                 .collect(Collectors.toList());
     }
 
