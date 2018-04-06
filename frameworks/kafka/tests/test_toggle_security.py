@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
+    pytest.mark.skip(reason="INFINITY-3367: Disable Toggle Kerberos Test on 0.40"),
     pytest.mark.skipif(sdk_utils.is_open_dcos(),
                        reason="Security tests require DC/OS EE"),
     pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
