@@ -15,15 +15,7 @@ pods:
         env-key: DCOS_SECRETS_PASSWORD
     {{/SECRETS_ENABLED}}
     resource-sets:
-      px-install-resources:
-        cpus: 0.3
-        memory: 512
-        # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
-        volume:
-          path: temp
-          size: 1
-          type: ROOT
-      px-start-resources:
+      px-resources:
         cpus: 0.3
         memory: 512
         # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
@@ -34,29 +26,29 @@ pods:
     placement: {{NODE_PLACEMENT}}
     tasks:
       install:
-        goal: FINISH
-        resource-set: px-install-resources
+        goal: RUNNING
+        resource-set: px-resources
         cmd: |
                 docker pull {{{PORTWORX_IMAGE_NAME}}}
 
-                systemctl stop portworx
-
-                set -e
-
-                docker run --entrypoint /runc-entry-point.sh \
-                   --rm -i --privileged=true \
-                   -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                   {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
-
-                if systemctl start portworx; then
-                   echo "Portworx image upgraded successfully"
-                else
-                   echo "Portworx image installed successfully"
+                newPxVersion="$(docker run --entrypoint /opt/pwx/bin/pxctl {{{PORTWORX_IMAGE_NAME}}} --version) (OCI)"
+                if [ $? != 0 ]; then
+                    echo 'Error finding portworx version from the given image {{{PORTWORX_IMAGE_NAME}}}'
+                    exit 1
                 fi
-      start:
-        goal: RUNNING
-        resource-set: px-start-resources
-        cmd: |
+
+                curPxVersion=$(/opt/pwx/bin/pxctl --version)
+                if [[ $curPxVersion != $newPxVersion ]]; then
+                    systemctl stop portworx
+
+                    set -e
+                    docker run --entrypoint /runc-entry-point.sh \
+                        --rm -i --privileged=true \
+                        -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
+                        {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
+                    set +e
+                fi
+
                 {{#LIGHTHOUSE_ENABLED}}
                 if ! [ -x "$(command -v curl)" ]; then
                     echo 'Error: curl is not installed.' >&2
@@ -129,12 +121,21 @@ pods:
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
-                    WantedBy=multi-user.target" > /etc/systemd/system/portworx.service &&
+                    WantedBy=multi-user.target" > /etc/systemd/system/portworx.service.new
+
+                diff -Z /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service
+                difference=$?
+
+                mv /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service &&
                 ln -sf /etc/systemd/system/portworx.service /etc/systemd/system/dcos.target.wants/portworx.service &&
-                systemctl daemon-reload &&
-                systemctl enable portworx &&
-                systemctl start portworx &&
-                journalctl -lfu portworx
+
+                if [[ "$difference" -ne 0 || $curPxVersion != $newPxVersion ]]; then
+                    systemctl daemon-reload &&
+                    systemctl enable portworx &&
+                    systemctl restart portworx
+                fi &&
+
+                journalctl -afu portworx
         readiness-check:
           cmd: /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
           interval: 5
@@ -142,7 +143,7 @@ pods:
           timeout: 60
       upgrade:
         goal: FINISH
-        resource-set: px-install-resources
+        resource-set: px-resources
         cmd: >
              docker pull {{{PORTWORX_IMAGE_NAME}}} &&
              systemctl stop portworx &&
@@ -286,7 +287,7 @@ plans:
         strategy: serial
         pod: portworx
         steps:
-          - default : [[install], [start]]
+          - default : [[install]]
   upgrade-portworx:
     strategy: serial
     phases:

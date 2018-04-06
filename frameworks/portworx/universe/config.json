@@ -94,7 +94,7 @@
         ]
       },
       "secrets": {
-        "description": "Use DC/OS Secrets for features like volume encryption, cloudsnap authentication, etc. This should be enabled only for DC/OS Enterprise edition. \nNote: DC/OS Secrets will only be supported from Portworx version 1.3.2",
+        "description": "Use DC/OS Secrets for features like volume encryption, cloudsnap authentication, etc. This should be enabled only for DC/OS Enterprise edition. \nNote: DC/OS Secrets will only be supported from Portworx version 1.4",
         "type": "object",
         "properties": {
           "enabled": {
