@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -141,12 +141,18 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html#disableLock--">disableLock</a></span>()</code>
+<div class="block">Disables getting a curator lock before returning a <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a>.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setCredentials-java.lang.String-java.lang.String-">setCredentials</a></span>(java.lang.String&nbsp;username,
               java.lang.String&nbsp;password)</code>
 <div class="block">Assigns credentials to be used when contacting ZK.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setRetryPolicy-RetryPolicy-">setRetryPolicy</a></span>(RetryPolicy&nbsp;retryPolicy)</code>
 <div class="block">Assigns a custom retry policy for the ZK server.</div>
@@ -202,6 +208,18 @@ extends java.lang.Object</pre>
 <dd><code>username</code> - The ZK username</dd>
 <dd><code>password</code> - The ZK password</dd>
 </dl>
+</li>
+</ul>
+<a name="disableLock--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>disableLock</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;disableLock()</pre>
+<div class="block">Disables getting a curator lock before returning a <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a>.
+
+ This should only be invoked in tests.</div>
 </li>
 </ul>
 <a name="build--">

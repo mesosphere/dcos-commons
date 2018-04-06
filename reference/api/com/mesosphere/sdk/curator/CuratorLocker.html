@@ -148,8 +148,8 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#CuratorLocker-java.lang.String-java.lang.String-">CuratorLocker</a></span>(java.lang.String&nbsp;serviceName,
-             java.lang.String&nbsp;zookeeperHostPort)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#CuratorLocker-java.lang.String-CuratorFrameworkFactory.Builder-">CuratorLocker</a></span>(java.lang.String&nbsp;serviceName,
+             CuratorFrameworkFactory.Builder&nbsp;clientBuilder)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -180,8 +180,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#lock-java.lang.String-java.lang.String-">lock</a></span>(java.lang.String&nbsp;serviceName,
-    java.lang.String&nbsp;zookeeperHostPort)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#lock-java.lang.String-CuratorFrameworkFactory.Builder-">lock</a></span>(java.lang.String&nbsp;serviceName,
+    CuratorFrameworkFactory.Builder&nbsp;clientBuilder)</code>
 <div class="block">Locks curator.</div>
 </td>
 </tr>
@@ -251,14 +251,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="CuratorLocker-java.lang.String-java.lang.String-">
+<a name="CuratorLocker-java.lang.String-CuratorFrameworkFactory.Builder-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>CuratorLocker</h4>
 <pre>CuratorLocker(java.lang.String&nbsp;serviceName,
-              java.lang.String&nbsp;zookeeperHostPort)</pre>
+              CuratorFrameworkFactory.Builder&nbsp;clientBuilder)</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>serviceName</code> - the name of the service to be locked</dd>
@@ -274,14 +274,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="lock-java.lang.String-java.lang.String-">
+<a name="lock-java.lang.String-CuratorFrameworkFactory.Builder-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>lock</h4>
 <pre>public static&nbsp;void&nbsp;lock(java.lang.String&nbsp;serviceName,
-                        java.lang.String&nbsp;zookeeperHostPort)</pre>
+                        CuratorFrameworkFactory.Builder&nbsp;clientBuilder)</pre>
 <div class="block">Locks curator. This should only be called once per process. Throws if called a second time.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

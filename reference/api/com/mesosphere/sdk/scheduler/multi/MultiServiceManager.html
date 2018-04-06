@@ -171,46 +171,46 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#lockAndGetServices--">lockAndGetServices</a></span>()</code>
-<div class="block">Gets a shared/read lock on the underlying data store, and returns all available services.</div>
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#putService-com.mesosphere.sdk.scheduler.AbstractScheduler-">putService</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;service)</code>
+<div class="block">Adds or updates a running service according to the name in its ServiceSpec.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#putService-com.mesosphere.sdk.scheduler.AbstractScheduler-">putService</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;service)</code>
-<div class="block">Adds or replaces a running service according to the name in its ServiceSpec.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#registered-boolean-">registered</a></span>(boolean&nbsp;reRegistered)</code>
 <div class="block">Notifies underlying services that a registration or re-registration has occurred.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code>int</code></td>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#removeServices-java.util.Collection-">removeServices</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;uninstalledServiceNames)</code>
 <div class="block">Removes the specified services after they have completed uninstall.</div>
 </td>
 </tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedLockAndGetServices--">sharedLockAndGetServices</a></span>()</code>
+<div class="block">Gets a shared/read lock on the underlying data store, and returns all available services.</div>
+</td>
+</tr>
 <tr id="i8" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedUnlock--">sharedUnlock</a></span>()</code>
+<div class="block">Unlocks a previous lock which was obtained via <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedLockAndGetServices--"><code>sharedLockAndGetServices()</code></a>.</div>
+</td>
+</tr>
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#uninstallService-java.lang.String-">uninstallService</a></span>(java.lang.String&nbsp;serviceName)</code>
 <div class="block">Triggers an uninstall for a service, removing it from the list of services when it has finished.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#uninstallServices-java.util.Collection-">uninstallServices</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;finishedServiceNames)</code>
 <div class="block">UNINSTALL FLOW:
  1.</div>
-</td>
-</tr>
-<tr id="i10" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#unlockServices--">unlockServices</a></span>()</code>
-<div class="block">Unlocks a previous lock which was obtained via <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#lockAndGetServices--"><code>lockAndGetServices()</code></a>.</div>
 </td>
 </tr>
 </table>
@@ -293,7 +293,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>putService</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a>&nbsp;putService(<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;service)</pre>
-<div class="block">Adds or replaces a running service according to the name in its ServiceSpec. Note: If the service was marked for
+<div class="block">Adds or updates a running service according to the name in its ServiceSpec. Note: If the service was marked for
  uninstall via <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#uninstallService-java.lang.String-"><code>uninstallService(String)</code></a>, it should continue to be added across scheduler restarts in
  order for uninstall to complete. It should only be omitted after the uninstall callback has been invoked for it.</div>
 <dl>
@@ -361,33 +361,29 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>removeServices</h4>
-<pre>public&nbsp;int&nbsp;removeServices(java.util.Collection&lt;java.lang.String&gt;&nbsp;uninstalledServiceNames)</pre>
+<pre>public&nbsp;void&nbsp;removeServices(java.util.Collection&lt;java.lang.String&gt;&nbsp;uninstalledServiceNames)</pre>
 <div class="block">Removes the specified services after they have completed uninstall. Any unknown service names are ignored.</div>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>the number of services which are still present after this removal</dd>
-</dl>
 </li>
 </ul>
-<a name="lockAndGetServices--">
+<a name="sharedLockAndGetServices--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>lockAndGetServices</h4>
-<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&gt;&nbsp;lockAndGetServices()</pre>
+<h4>sharedLockAndGetServices</h4>
+<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&gt;&nbsp;sharedLockAndGetServices()</pre>
 <div class="block">Gets a shared/read lock on the underlying data store, and returns all available services.
- Upstream MUST call <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#unlockServices--"><code>unlockServices()</code></a> after finishing.</div>
+ Upstream MUST call <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedUnlock--"><code>sharedUnlock()</code></a> after finishing.</div>
 </li>
 </ul>
-<a name="unlockServices--">
+<a name="sharedUnlock--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>unlockServices</h4>
-<pre>public&nbsp;void&nbsp;unlockServices()</pre>
-<div class="block">Unlocks a previous lock which was obtained via <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#lockAndGetServices--"><code>lockAndGetServices()</code></a>.</div>
+<h4>sharedUnlock</h4>
+<pre>public&nbsp;void&nbsp;sharedUnlock()</pre>
+<div class="block">Unlocks a previous lock which was obtained via <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedLockAndGetServices--"><code>sharedLockAndGetServices()</code></a>.</div>
 </li>
 </ul>
 <a name="registered-boolean-">

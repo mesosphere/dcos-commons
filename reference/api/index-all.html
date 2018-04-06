@@ -922,7 +922,7 @@
 <div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
  same service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#CuratorLocker-java.lang.String-java.lang.String-">CuratorLocker(String, String)</a></span> - Constructor for class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#CuratorLocker-java.lang.String-CuratorFrameworkFactory.Builder-">CuratorLocker(String, CuratorFrameworkFactory.Builder)</a></span> - Constructor for class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><span class="typeNameLink">CuratorPersister</span></a> - Class in <a href="com/mesosphere/sdk/curator/package-summary.html">com.mesosphere.sdk.curator</a></dt>
 <dd>
@@ -1415,6 +1415,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#DestroyOfferRecommendation-Offer-Resource-">DestroyOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html#disableLock--">disableLock()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></dt>
+<dd>
+<div class="block">Disables getting a curator lock before returning a <a href="com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/FrameworkScheduler.html#disableThreading--">disableThreading()</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a></dt>
 <dd>
 <div class="block">Disables multithreading for tests.</div>
@@ -2769,7 +2773,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#getHTTPEndpoints--">getHTTPEndpoints()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
 <dd>
-<div class="block">Returns a set of queues-specific endpoints to be served by the scheduler.</div>
+<div class="block">Returns a set of multi-service-specific endpoints to be served by the scheduler.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getHTTPEndpoints--">getHTTPEndpoints()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
@@ -5063,7 +5067,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testutils/TestConstants.html#LOCAL_REGION">LOCAL_REGION</a></span> - Static variable in class com.mesosphere.sdk.testutils.<a href="com/mesosphere/sdk/testutils/TestConstants.html" title="class in com.mesosphere.sdk.testutils">TestConstants</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#lock-java.lang.String-java.lang.String-">lock(String, String)</a></span> - Static method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#lock-java.lang.String-CuratorFrameworkFactory.Builder-">lock(String, CuratorFrameworkFactory.Builder)</a></span> - Static method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>
 <div class="block">Locks curator.</div>
 </dd>
@@ -5071,10 +5075,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ProcessExit.html#LOCK_UNAVAILABLE">LOCK_UNAVAILABLE</a></span> - Static variable in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ProcessExit.html" title="class in com.mesosphere.sdk.framework">ProcessExit</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#lockAndGetServices--">lockAndGetServices()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></dt>
-<dd>
-<div class="block">Gets a shared/read lock on the underlying data store, and returns all available services.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#lockInternal--">lockInternal()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>
 <div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
@@ -6244,7 +6244,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#putService-com.mesosphere.sdk.scheduler.AbstractScheduler-">putService(AbstractScheduler)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></dt>
 <dd>
-<div class="block">Adds or replaces a running service according to the name in its ServiceSpec.</div>
+<div class="block">Adds or updates a running service according to the name in its ServiceSpec.</div>
 </dd>
 </dl>
 <a name="I:R">
@@ -7465,6 +7465,14 @@
 <dd>
 <div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.ZoneInfo</code>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedLockAndGetServices--">sharedLockAndGetServices()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></dt>
+<dd>
+<div class="block">Gets a shared/read lock on the underlying data store, and returns all available services.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedUnlock--">sharedUnlock()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></dt>
+<dd>
+<div class="block">Unlocks a previous lock which was obtained via <a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#sharedLockAndGetServices--"><code>MultiServiceManager.sharedLockAndGetServices()</code></a>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#sharePidNamespace-java.lang.Boolean-">sharePidNamespace(Boolean)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets whether tasks in this pod share a pid namespace and returns a reference to this Builder so that the
@@ -8540,10 +8548,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#unlockInternal--">unlockInternal()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>
 <div class="block">Releases the lock previously obtained via <code>#lock()</code>.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#unlockServices--">unlockServices()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></dt>
-<dd>
-<div class="block">Unlocks a previous lock which was obtained via <a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#lockAndGetServices--"><code>MultiServiceManager.lockAndGetServices()</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskPackingUtils.html#unpack-TaskInfo-">unpack(TaskInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskPackingUtils.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskPackingUtils</a></dt>
 <dd>
