@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
-import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -79,8 +78,6 @@ public class SchedulerRunner implements Runnable {
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
         Persister persister = schedulerBuilder.getPersister();
 
-        // Get a curator lock, then check the schema version:
-        CuratorLocker.lock(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
         // Check and/or initialize schema version before doing any other storage access:
         new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);
 

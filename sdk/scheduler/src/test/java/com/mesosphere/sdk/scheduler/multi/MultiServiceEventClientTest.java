@@ -156,7 +156,7 @@ public class MultiServiceEventClientTest {
 
     @Test
     public void clientRemoval() {
-        when(mockMultiServiceManager.lockAndGetServices()).thenReturn(Collections.singleton(mockClient1));
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Collections.singleton(mockClient1));
 
         // client is done, expect uninstall trigger:
         when(mockClient1.offers(any())).thenReturn(OfferResponse.finished());
@@ -167,7 +167,7 @@ public class MultiServiceEventClientTest {
         // client is uninstalled, expect removal:
         when(mockClient1.offers(any())).thenReturn(OfferResponse.uninstalled());
         // tell queue that this was the last client:
-        when(mockMultiServiceManager.removeServices(any())).thenReturn(0);
+        when(mockMultiServiceManager.getServiceNames()).thenReturn(Collections.emptyList());
 
         // schedulerConfig is not uninstalling, so we're just PROCESSED (decline long):
         OfferResponse response = client.offers(Collections.emptyList());
@@ -184,7 +184,7 @@ public class MultiServiceEventClientTest {
         // Rebuild client because uninstall bit is checked in constructor:
         client = buildClient();
 
-        when(mockMultiServiceManager.lockAndGetServices()).thenReturn(Collections.singleton(mockClient1));
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Collections.singleton(mockClient1));
 
         // client is done, expect uninstall trigger:
         when(mockClient1.offers(any())).thenReturn(OfferResponse.finished());
@@ -195,7 +195,7 @@ public class MultiServiceEventClientTest {
         // client is uninstalled, expect removal:
         when(mockClient1.offers(any())).thenReturn(OfferResponse.uninstalled());
         // tell queue that this was the last client:
-        when(mockMultiServiceManager.removeServices(any())).thenReturn(0);
+        when(mockMultiServiceManager.getServiceNames()).thenReturn(Collections.emptyList());
 
         // schedulerConfig is uninstalling, so we're UNINSTALLED:
         OfferResponse response = client.offers(Collections.emptyList());
@@ -214,7 +214,7 @@ public class MultiServiceEventClientTest {
         when(mockClient2.offers(any())).thenReturn(OfferResponse.finished());
         when(mockClient3.offers(any())).thenReturn(OfferResponse.uninstalled());
         when(mockClient4.offers(any())).thenReturn(OfferResponse.finished());
-        when(mockMultiServiceManager.lockAndGetServices()).thenReturn(Arrays.asList(
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Arrays.asList(
                 mockClient1, mockClient2, mockClient3, mockClient4));
 
         client.offers(Collections.emptyList());
@@ -242,7 +242,7 @@ public class MultiServiceEventClientTest {
         when(mockClient7.offers(any())).then(CONSUME_FIRST_OFFER);
         when(mockClient8.offers(any())).then(CONSUME_LAST_OFFER);
         when(mockClient9.offers(any())).then(NO_CHANGES);
-        when(mockMultiServiceManager.lockAndGetServices()).thenReturn(Arrays.asList(
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Arrays.asList(
                 mockClient1, mockClient2, mockClient3,
                 mockClient4, mockClient5, mockClient6,
                 mockClient7, mockClient8, mockClient9));
@@ -302,7 +302,7 @@ public class MultiServiceEventClientTest {
         when(mockClient1.offers(any())).then(NO_CHANGES);
         when(mockClient2.offers(any())).then(OFFER_NOT_READY);
         when(mockClient3.offers(any())).then(NO_CHANGES);
-        when(mockMultiServiceManager.lockAndGetServices()).thenReturn(Arrays.asList(
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Arrays.asList(
                 mockClient1, mockClient2, mockClient3));
 
         // Empty offers: All clients should have been pinged regardless

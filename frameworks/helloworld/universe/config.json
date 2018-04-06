@@ -68,19 +68,12 @@
           "default": true
         },
         "scenario": {
-          "description": "A value to test various SDK customization scenarios",
+          "description": "A comma-separated list of SDK customization scenarios to perform on the service(s)",
           "type": "string",
-          "enum": [
-            "YAML",
-            "JAVA",
-            "CUSTOM_PLAN",
-            "CUSTOM_DECOMMISSION",
-            "MULTI_REGION"
-          ],
           "default": "YAML"
         },
         "yaml": {
-          "description": "An example YAML file to deploy",
+          "description": "A single example YAML file to deploy, or an empty string to launch an empty multi-scheduler",
           "type": "string",
           "enum": [
             "canary",
@@ -108,9 +101,15 @@
             "svc",
             "tls",
             "uri",
-            "web-url"
+            "web-url",
+            ""
           ],
           "default": "svc"
+        },
+        "yamls": {
+          "description": "A comma-separated list of example YAML files to deploy in a multi-scheduler, in addition to any listed in 'yaml'",
+          "type": "string",
+          "default": ""
         },
         "allow_region_awareness": {
           "description": "Allow region awareness",

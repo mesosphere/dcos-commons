@@ -9,6 +9,7 @@ import static org.junit.Assert.*;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.test.TestingServer;
 
 /**
@@ -30,8 +31,9 @@ public class CuratorLockerTest {
         MockitoAnnotations.initMocks(this);
         CuratorTestUtils.clear(testZk);
 
-        locker1 = new TestCuratorLocker(TestConstants.SERVICE_NAME, testZk.getConnectString());
-        locker2 = new TestCuratorLocker(TestConstants.SERVICE_NAME, testZk.getConnectString());
+        CuratorFrameworkFactory.Builder builder = getClientBuilder(testZk.getConnectString());
+        locker1 = new TestCuratorLocker(TestConstants.SERVICE_NAME, builder);
+        locker2 = new TestCuratorLocker(TestConstants.SERVICE_NAME, builder);
     }
 
     @Test
@@ -47,7 +49,9 @@ public class CuratorLockerTest {
         locker1.lockInternal();
         assertTrue(locker1.checkExited());
         locker2.unlockInternal();
+        System.out.println("HELLO FOO");
         locker1.lockInternal();
+        System.out.println("CHECKING....");
         assertFalse(locker1.checkExited());
         locker1.unlockInternal();
     }
@@ -74,11 +78,13 @@ public class CuratorLockerTest {
 
     @Test
     public void testStaticDoubleLockFails() throws Exception {
-        CuratorLocker.lock(TestConstants.SERVICE_NAME, testZk.getConnectString());
+        CuratorFrameworkFactory.Builder builder = getClientBuilder(testZk.getConnectString());
+
+        CuratorLocker.lock(TestConstants.SERVICE_NAME, builder);
         // custom exception test handling so that we clean up with an unlock() afterwards:
         boolean hadError = false;
         try {
-            CuratorLocker.lock(TestConstants.SERVICE_NAME, testZk.getConnectString());
+            CuratorLocker.lock(TestConstants.SERVICE_NAME, builder);
         } catch (IllegalStateException e) {
             hadError = true;
         }
@@ -91,11 +97,17 @@ public class CuratorLockerTest {
         CuratorLocker.unlock();
     }
 
+    private static CuratorFrameworkFactory.Builder getClientBuilder(String connectString) {
+        return CuratorFrameworkFactory.builder()
+                .connectString(testZk.getConnectString())
+                .retryPolicy(CuratorUtils.getDefaultRetry());
+    }
+
     private static class TestCuratorLocker extends CuratorLocker {
         private boolean exited;
 
-        TestCuratorLocker(String serviceName, String zookeeperConnection) {
-            super(serviceName, zookeeperConnection);
+        TestCuratorLocker(String serviceName, CuratorFrameworkFactory.Builder clientBuilder) {
+            super(serviceName, clientBuilder);
             this.exited = false;
         }
 
