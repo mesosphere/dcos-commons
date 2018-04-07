@@ -54,7 +54,7 @@
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default": "portworx/px-enterprise:1.2.22"
+            "default": "portworx/px-enterprise:1.3.0.1"
           },
           "portworx_options": {
             "title": "Portworx Options",

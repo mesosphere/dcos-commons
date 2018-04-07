@@ -9,7 +9,7 @@
     },
     "container": {
       "docker": {
-        "portworx": "portworx/px-enterprise:1.2.22",
+        "portworx": "portworx/px-enterprise:1.3.0.1",
         "lighthouse": "portworx/px-lighthouse:1.1.8",
         "influxdb": "influxdb:latest",
         "etcd": "mesosphere/etcd-mesos:latest"
