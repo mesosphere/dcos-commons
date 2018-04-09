@@ -48,8 +48,7 @@ public class OfferEvaluator {
             UUID targetConfigId,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             SchedulerConfig schedulerConfig,
-            Optional<String> resourceNamespace,
-            boolean useDefaultExecutor) {
+            Optional<String> resourceNamespace) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.frameworkStore = frameworkStore;
         this.stateStore = stateStore;
@@ -336,7 +335,7 @@ public class OfferEvaluator {
 
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
             evaluationStages.add(VolumeEvaluationStage.getNew(
-                    volumeSpec, Optional.empty(), resourceNamespace, true));
+                    volumeSpec, Optional.empty(), resourceNamespace));
         }
 
         String preReservedRole = null;
@@ -368,8 +367,9 @@ public class OfferEvaluator {
 
             for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
                 evaluationStages.add(VolumeEvaluationStage.getNew(
-                        volumeSpec, Optional.of(taskName), resourceNamespace, true));
+                        volumeSpec, Optional.of(taskName), resourceNamespace));
             }
+
 
             if (shouldAddExecutorResources) {
                 // The default executor needs a constant amount of resources, account for them here.
@@ -379,6 +379,8 @@ public class OfferEvaluator {
                 }
                 shouldAddExecutorResources = false;
             }
+
+
 
             // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
             // ExecutorInfo equality when launching new tasks
@@ -390,7 +392,7 @@ public class OfferEvaluator {
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
             evaluationStages.add(
-                    new LaunchEvaluationStage(serviceName, taskName, shouldBeLaunched, true));
+                    new LaunchEvaluationStage(serviceName, taskName, shouldBeLaunched));
         }
 
         return evaluationStages;
@@ -487,14 +489,14 @@ public class OfferEvaluator {
             }
 
             TaskResourceMapper taskResourceMapper =
-                    new TaskResourceMapper(taskSpec, taskInfo, resourceNamespace, true);
+                    new TaskResourceMapper(taskSpec, taskInfo, resourceNamespace);
             taskResourceMapper.getOrphanedResources()
                     .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
             evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
 
             boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
             evaluationStages.add(
-                    new LaunchEvaluationStage(serviceName, taskSpec.getName(), shouldLaunch, true));
+                    new LaunchEvaluationStage(serviceName, taskSpec.getName(), shouldLaunch));
         }
 
         return evaluationStages;

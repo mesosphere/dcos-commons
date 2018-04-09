@@ -30,16 +30,14 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     public static VolumeEvaluationStage getNew(
             VolumeSpec volumeSpec,
             Optional<String> taskName,
-            Optional<String> resourceNamespace,
-            boolean useDefaultExecutor) {
+            Optional<String> resourceNamespace) {
         return new VolumeEvaluationStage(
                 volumeSpec,
                 taskName,
                 Optional.empty(),
                 resourceNamespace,
                 Optional.empty(),
-                Optional.empty(),
-                useDefaultExecutor);
+                Optional.empty());
     }
 
     public static VolumeEvaluationStage getExisting(
@@ -48,16 +46,14 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot,
-            boolean useDefaultExecutor) {
+            Optional<String> sourceRoot) {
         return new VolumeEvaluationStage(
                 volumeSpec,
                 taskName,
                 resourceId,
                 resourceNamespace,
                 persistenceId,
-                sourceRoot,
-                useDefaultExecutor);
+                sourceRoot);
     }
 
     private VolumeEvaluationStage(
@@ -66,8 +62,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot,
-            boolean useDefaultExecutor) {
+            Optional<String> sourceRoot) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;

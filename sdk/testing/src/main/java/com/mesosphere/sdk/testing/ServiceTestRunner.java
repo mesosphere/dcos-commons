@@ -59,7 +59,6 @@ public class ServiceTestRunner {
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
-    private boolean customExecutorEnabled = false;
     private Optional<String> multiServiceFrameworkName = Optional.empty();
     private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
@@ -254,17 +253,6 @@ public class ServiceTestRunner {
         this.validators.add(validator);
         return this;
     }
-
-    /**
-     * Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
-     *
-     * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
-     */
-    public ServiceTestRunner enableCustomExecutor() {
-        this.customExecutorEnabled = true;
-        return this;
-    }
-
     /**
      * Simulates running the service within a configured namespace.
      *
@@ -314,7 +302,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
-        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(!customExecutorEnabled);
+        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations

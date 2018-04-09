@@ -467,7 +467,7 @@ public class PodInfoBuilder {
 
         ReadinessCheckSpec readinessCheckSpec = readinessCheckSpecOptional.get();
 
-        // Default executors supports the newer TaskInfo.check field:
+        // Default executor supports the newer TaskInfo.check field:
         Protos.CheckInfo.Builder builder = taskInfoBuilder.getCheckBuilder()
                 .setType(Protos.CheckInfo.Type.COMMAND)
                 .setDelaySeconds(readinessCheckSpec.getDelay())

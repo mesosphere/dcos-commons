@@ -32,8 +32,7 @@ class TaskResourceMapper {
     public TaskResourceMapper(
             TaskSpec taskSpec,
             Protos.TaskInfo taskInfo,
-            Optional<String> resourceNamespace,
-            boolean useDefaultExecutor) {
+            Optional<String> resourceNamespace) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.resourceNamespace = resourceNamespace;
         this.taskSpecName = taskSpec.getName();
@@ -234,8 +233,7 @@ class TaskResourceMapper {
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    sourceRoot,
-                    true);
+                    sourceRoot);
         } else {
             return new ResourceEvaluationStage(resourceSpec, Optional.of(taskSpecName), resourceId, resourceNamespace);
         }
