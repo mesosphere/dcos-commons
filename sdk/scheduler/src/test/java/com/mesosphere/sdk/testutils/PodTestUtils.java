@@ -43,7 +43,7 @@ public class PodTestUtils {
     }
 
     public static PodSpec getPodSpec() {
-        return DefaultPodSpec.newBuilder("http://executor.uri", TestConstants.POD_TYPE, 1, Arrays.asList(getTaskSpec()))
+        return DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(getTaskSpec()))
                 .preReservedRole(TestConstants.PRE_RESERVED_ROLE)
                 .build();
     }

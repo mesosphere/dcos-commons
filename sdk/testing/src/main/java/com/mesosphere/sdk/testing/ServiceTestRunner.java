@@ -283,7 +283,6 @@ public class ServiceTestRunner {
      */
     public ServiceTestResult run(Collection<SimulationTick> ticks) throws Exception {
         SchedulerConfig mockSchedulerConfig = Mockito.mock(SchedulerConfig.class);
-        Mockito.when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
         Mockito.when(mockSchedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
         Mockito.when(mockSchedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");

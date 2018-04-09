@@ -24,7 +24,6 @@ public class PlanUtilsTest {
     private static final String TASK_NAME_1 = TestConstants.TASK_NAME + 1;
 
     private static final PodSpec POD_SPEC = DefaultPodSpec.newBuilder(
-            "",
             TestConstants.POD_TYPE,
             1,
             Arrays.asList(

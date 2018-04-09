@@ -252,7 +252,6 @@ public class DefaultStepFactoryTest {
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 0, TestConstants.RESOURCE_SET_ID);
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(
-                        SCHEDULER_CONFIG.getExecutorURI(),
                         TestConstants.POD_TYPE,
                         1,
                         Arrays.asList(taskSpec0))
@@ -287,7 +286,6 @@ public class DefaultStepFactoryTest {
                 TestPodFactory.getTaskSpec(TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID);
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(
-                        SCHEDULER_CONFIG.getExecutorURI(),
                         TestConstants.POD_TYPE,
                         1,
                         Arrays.asList(taskSpec0, taskSpec1))
@@ -319,7 +317,6 @@ public class DefaultStepFactoryTest {
                 TestConstants.TASK_NAME, TestConstants.RESOURCE_SET_ID, goalState);
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(
-                        SCHEDULER_CONFIG.getExecutorURI(),
                         TestConstants.POD_TYPE,
                         1,
                         Arrays.asList(taskSpec))
@@ -355,7 +352,6 @@ public class DefaultStepFactoryTest {
                         TestConstants.TASK_NAME + 1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(
-                        SCHEDULER_CONFIG.getExecutorURI(),
                         TestConstants.POD_TYPE,
                         1,
                         Arrays.asList(taskSpec0, taskSpec1))

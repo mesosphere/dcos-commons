@@ -327,15 +327,12 @@ public class ServiceTest {
                 .run(ticks);
     }
 
-    @Test
-    public void testWorldDecommissionDefaultExecutor() throws Exception {
-        testWorldDecommission();
-    }
 
     /**
      * Tests scheduler behavior when the number of {@code world} pods is reduced.
      */
-    private void testWorldDecommission() throws Exception {
+    @Test
+    public void testWorldDecommissionDefaultExecutor() throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
         ServiceTestRunner runner = new ServiceTestRunner();
 

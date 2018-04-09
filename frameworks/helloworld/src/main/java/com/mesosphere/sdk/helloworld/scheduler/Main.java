@@ -126,7 +126,6 @@ public class Main {
                 .principal("hello-world-principal")
                 .zookeeperConnection("master.mesos:2181")
                 .addPod(DefaultPodSpec.newBuilder(
-                        schedulerConfig.getExecutorURI(),
                         POD_TYPE,
                         COUNT,
                         Arrays.asList(

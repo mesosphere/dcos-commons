@@ -5,7 +5,6 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/template-scheduler.zip",
-      "executor-zip": "{{artifact-dir}}/executor.zip"
     }
   },
   "images": {

@@ -17,7 +17,6 @@ public class SchedulerConfigTestUtils {
     public static SchedulerConfig getTestSchedulerConfig() {
         SchedulerConfig schedulerConfig = mock(SchedulerConfig.class);
         when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
-        when(schedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
         when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         when(schedulerConfig.getBootstrapURI()).thenReturn("test-bootstrap-uri");
         when(schedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
