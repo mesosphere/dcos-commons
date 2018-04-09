@@ -1383,6 +1383,7 @@ The SDK allows region-aware scheduling as a beta feature.  Enable it by setting 
 
 Any placement rules that do *not* reference the `@region` key require placement in the local region.
 
+Alternatively, a stronger constraint on the region that scheduler tasks run in can be specified by setting the `ALLOW_REGION_AWARENESS` environment variable to true as before, and then calling the `withSingleRegionConstraint()` method on `SchedulerBuilder` when creating a scheduler object. This will cause the scheduler to look for the `SERVICE_REGION` variable in its environment, running all tasks in that region if specified and in the local region otherwise. To allow service users to specify an alternative region, a configuration field can be added in `config.json` and used to set the `SERVICE_REGION` environment variable in `marathon.json.mustache`. A service deployed in this fashion may not have its configuration updated to change the region that its tasks run in. Doing so will cause a configuration validation failure and the tasks will remain in their current state.
 
 # TLS
 
