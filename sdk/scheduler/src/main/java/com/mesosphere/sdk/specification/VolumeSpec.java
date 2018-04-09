@@ -15,7 +15,8 @@ public interface VolumeSpec extends ResourceSpec {
     enum Type {
         ROOT,
         PATH,
-        MOUNT
+        MOUNT,
+        SANDBOX_PATH
     }
 
     @JsonProperty("type")

@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
 import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -52,6 +53,8 @@ public class DefaultPodSpec implements PodSpec {
     private String preReservedRole;
     @NotNull
     private Boolean sharePidNamespace;
+    @NotNull
+    private final Boolean isolateTmp;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -68,7 +71,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-            @JsonProperty("allow-decommission") Boolean allowDecommission) {
+            @JsonProperty("allow-decommission") Boolean allowDecommission,
+            @JsonProperty("isolate-tmp") Boolean isolateTmp) {
         this(
                 new Builder(Optional.empty(), type, count, tasks) // Assume that Executor URI is already present
                         .type(type)
@@ -84,7 +88,8 @@ public class DefaultPodSpec implements PodSpec {
                         .preReservedRole(preReservedRole)
                         .secrets(secrets)
                         .sharePidNamespace(sharePidNamespace)
-                        .allowDecommission(allowDecommission));
+                        .allowDecommission(allowDecommission)
+                        .isolateTmp(isolateTmp));
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -102,6 +107,7 @@ public class DefaultPodSpec implements PodSpec {
         this.user = builder.user;
         this.volumes = builder.volumes;
         this.sharePidNamespace = builder.sharePidNamespace;
+        this.isolateTmp = builder.isolateTmp;
         ValidationUtils.validate(this);
     }
 
@@ -126,6 +132,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         builder.sharePidNamespace = copy.getSharePidNamespace();
+        builder.isolateTmp = copy.getIsolateTmp();
         return builder;
     }
 
@@ -200,6 +207,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Boolean getIsolateTmp() {
+        return isolateTmp;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -234,6 +246,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
+        private Boolean isolateTmp = false;
 
         private Builder(Optional<String> executorUri, String type, int count, List<TaskSpec> tasks) {
             this.executorUri = executorUri;
@@ -457,6 +470,17 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder sharePidNamespace(Boolean sharePidNamespace) {
+            this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
+            return this;
+        }
+
+        /**
+         * Sets whether tasks in this pod will have tmp directories isolated from the host.
+         *
+         * @param isolateTmp Whether the pod should isolate the tmp directories of tasks.
+         * @return a reference to this Builder
+         */
+        public Builder isolateTmp(Boolean isolateTmp) {
             this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
             return this;
         }
