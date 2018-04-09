@@ -51,6 +51,7 @@ def wait_for_brokers(client: str, brokers: list):
                      '-print-env=false',
                      '-template=false',
                      '-install-certs=false',
+                     '--self-resolve=false',
                      '-resolve-hosts', ','.join(brokers)]
     bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
