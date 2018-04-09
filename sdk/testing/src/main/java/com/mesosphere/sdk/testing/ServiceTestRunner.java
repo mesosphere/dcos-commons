@@ -302,7 +302,6 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
-        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
