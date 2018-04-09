@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -107,24 +106,15 @@ public class Main {
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
         MultiServiceManager multiServiceManager = new MultiServiceManager();
 
-        ExampleServiceStore serviceStore = new ExampleServiceStore(persister);
         ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
                 schedulerConfig,
                 frameworkConfig.getFrameworkName(),
                 persister,
                 scenarios,
-                multiServiceManager,
-                serviceStore);
+                multiServiceManager);
 
-        // Check serviceStore for any previously added services, and re-add them.
-        for (Map.Entry<String, String> entry : serviceStore.list().entrySet()) {
-            try {
-                multiServiceManager.putService(httpResource.buildService(entry.getKey(), entry.getValue()));
-            } catch (Exception e) {
-                LOGGER.error(String.format(
-                        "Failed to recover service: %s (file: %s)", entry.getKey(), entry.getValue()), e);
-            }
-        }
+        // Recover any previously added services.
+        httpResource.recover();
 
         // Set up the client and run the framework:
         MultiServiceEventClient client = new MultiServiceEventClient(
@@ -132,19 +122,7 @@ public class Main {
                 schedulerConfig,
                 multiServiceManager,
                 Collections.singleton(httpResource),
-                new MultiServiceEventClient.UninstallCallback() {
-            @Override
-            public void uninstalled(String name) {
-                // Should only happen when the entire framework is being uninstalled, as we do not expose a way to
-                // remove added services here.
-                LOGGER.info("Service has completed uninstall: {}", name);
-                try {
-                    serviceStore.remove(name);
-                } catch (PersisterException e) {
-                    LOGGER.error(String.format("Failed to clean up uninstalled service %s", name), e);
-                }
-            }
-        });
+                httpResource.getUninstallCallback());
 
         MultiServiceRunner.Builder runnerBuilder =
                 MultiServiceRunner.newBuilder(schedulerConfig, frameworkConfig, persister, client);
