@@ -61,7 +61,7 @@ public class MemPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         CuratorTestUtils.clear(testZk);
-        testGetMissingForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetMissingForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build());
         testGetMissingForPersister(persister);
     }
 
@@ -94,7 +94,7 @@ public class MemPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         CuratorTestUtils.clear(testZk);
-        testGetChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build());
         testGetChildrenForPersister(persister);
     }
 
@@ -138,7 +138,7 @@ public class MemPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         CuratorTestUtils.clear(testZk);
-        testDeleteChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testDeleteChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build());
         testDeleteChildrenForPersister(persister);
     }
 
@@ -176,9 +176,9 @@ public class MemPersisterTest {
         testDeleteRootForPersister(persister, "");
         testDeleteRootForPersister(persister, "/");
         CuratorTestUtils.clear(testZk);
-        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "");
+        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build(), "");
         CuratorTestUtils.clear(testZk);
-        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "/");
+        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build(), "/");
     }
 
     private static void testDeleteRootForPersister(Persister persister, String rootPathToDelete) throws Exception {

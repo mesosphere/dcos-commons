@@ -443,8 +443,13 @@ public class CuratorPersisterTest {
     public void testAclBehavior() throws Exception {
         CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        Persister nonAclPersister = CuratorPersister.newBuilder(mockServiceSpec).build();
-        Persister aclPersister = CuratorPersister.newBuilder(mockServiceSpec).setCredentials("testuser", "testpw").build();
+        Persister nonAclPersister = CuratorPersister.newBuilder(mockServiceSpec)
+                .disableLock()
+                .build();
+        Persister aclPersister = CuratorPersister.newBuilder(mockServiceSpec)
+                .disableLock()
+                .setCredentials("testuser", "testpw")
+                .build();
 
         // Store value with ACL.
         aclPersister.set(PATH_1, DATA_1);
@@ -467,7 +472,9 @@ public class CuratorPersisterTest {
         // Not overwriteable with incorrect Auth
         try {
             Persister wrongAclPersister = CuratorPersister.newBuilder(mockServiceSpec)
-                    .setCredentials("testuser", "otherpw").build();
+                    .disableLock()
+                    .setCredentials("testuser", "otherpw")
+                    .build();
             wrongAclPersister.set(PATH_1, DATA_SUB_1);
             fail("Should have failed with auth exception");
         } catch ( PersisterException e ) {
@@ -484,7 +491,7 @@ public class CuratorPersisterTest {
     public void testDeleteRoot() throws Exception {
         CuratorTestUtils.clear(testZk);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).build();
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
 
         persister.set("lock", DATA_1);
         persister.set("a", DATA_2);
@@ -511,7 +518,7 @@ public class CuratorPersisterTest {
         String folderedName = "/path/to/myservice";
         when(mockServiceSpec.getName()).thenReturn(folderedName);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
-        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).build();
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
         assertEquals(Collections.singleton("servicename"), persister.getChildren(""));
         assertArrayEquals(folderedName.getBytes(StandardCharsets.UTF_8), persister.get("servicename"));
     }
@@ -523,7 +530,7 @@ public class CuratorPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(folderedName);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         try {
-            CuratorPersister.newBuilder(mockServiceSpec).build();
+            CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
             fail("expected exception");
         } catch (IllegalArgumentException e) {
             assertTrue(e.getMessage().contains("double underscore"));

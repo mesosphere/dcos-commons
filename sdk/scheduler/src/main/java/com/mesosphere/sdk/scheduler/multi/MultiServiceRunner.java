@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.multi;
 
-import com.mesosphere.sdk.curator.CuratorLocker;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
@@ -50,8 +49,6 @@ public class MultiServiceRunner implements Runnable {
          * Returns a new {@link MultiServiceRunner} instance which may be launched with {@code run()}.
          */
         public MultiServiceRunner build() {
-            // Lock curator before returning access to persister.
-            CuratorLocker.lock(frameworkConfig.getFrameworkName(), frameworkConfig.getZookeeperHostPort());
             // Check and/or initialize schema version before doing any other storage access:
             new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
 
