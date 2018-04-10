@@ -470,8 +470,7 @@ public class OfferEvaluator {
                 podInstanceRequirement.getPodInstance().getPod(),
                 getExecutorResources(preReservedRole, role, principal),
                 executorInfo.getResourcesList(),
-                resourceNamespace,
-                true);
+                resourceNamespace);
         executorResourceMapper.getOrphanedResources()
                 .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
         executorResourceMapper.getOrphanedResources()

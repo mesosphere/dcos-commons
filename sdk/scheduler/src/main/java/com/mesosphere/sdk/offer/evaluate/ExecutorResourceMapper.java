@@ -31,8 +31,7 @@ public class ExecutorResourceMapper {
             PodSpec podSpec,
             Collection<ResourceSpec> resourceSpecs,
             Collection<Protos.Resource> executorResources,
-            Optional<String> resourceNamespace,
-            boolean useDefaultExecutor) {
+            Optional<String> resourceNamespace) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
