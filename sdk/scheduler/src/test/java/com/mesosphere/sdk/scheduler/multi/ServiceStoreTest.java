@@ -93,7 +93,7 @@ public class ServiceStoreTest {
         Assert.assertEquals(mockSchedulerFoo, store.put(FOO_CONTEXT));
         verify(mockServiceFactory).buildService(FOO_CONTEXT);
         Assert.assertEquals(FOO_CONTEXT, store.get("/path/to/foo").get());
-        Assert.assertEquals(FOO_CONTEXT, persister.get("/ServiceList/path__to__foo/Context"));
+        Assert.assertArrayEquals(FOO_CONTEXT, persister.get("/ServiceList/path__to__foo/Context"));
 
         store.getUninstallCallback().uninstalled("/path/to/foo");
         Assert.assertFalse(store.get("/path/to/foo").isPresent());
