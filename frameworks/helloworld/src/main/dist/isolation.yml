@@ -5,7 +5,7 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    isolate-tmp: true
+    isolate-tmp: {{HELLO_ISOLATION}}
     tasks:
       server:
         goal: RUNNING

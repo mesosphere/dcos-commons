@@ -15,7 +15,6 @@ public interface VolumeSpec extends ResourceSpec {
     enum Type {
         ROOT,
         PATH,
-        MOUNT,
         SANDBOX_PATH
     }
 

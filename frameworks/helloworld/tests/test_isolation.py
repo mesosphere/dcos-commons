@@ -33,17 +33,21 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_once_task_does_not_restart_on_config_update():
+def test_():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
+    assert !os.path.isdir('./tmp')
+
+    #check that directory is created on update.
+
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
+    marathon_config['env']['HELLO_ISOLATION'] = 'true'
+    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
     assert os.path.isdir('./tmp')
-
-
-
-
-
-
 
 

@@ -636,7 +636,7 @@ public class PodInfoBuilder {
             }
         }
 
-        if (isTaskContainer /*&& podSpec.getIsolateTmp()*/) {
+        if (isTaskContainer && podSpec.getIsolateTmp()) {
             // Isolate the tmp directory of tasks
             containerInfo.addVolumes(Protos.Volume.newBuilder()
                 .setContainerPath("/tmp")
