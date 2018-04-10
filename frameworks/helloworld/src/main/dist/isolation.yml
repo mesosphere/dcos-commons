@@ -8,8 +8,8 @@ pods:
     isolate-tmp: {{HELLO_ISOLATION}}
     tasks:
       server:
-        goal: RUNNING
-        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        goal: FINISHED
+        cmd: echo foo > tmp/foo && echo bar > /tmp/bar &&  cat /tmp/bar |  grep bar
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
