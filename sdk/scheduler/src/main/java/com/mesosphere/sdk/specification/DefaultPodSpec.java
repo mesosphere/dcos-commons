@@ -70,7 +70,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
             @JsonProperty("allow-decommission") Boolean allowDecommission) {
         this(
-                new Builder(type, count, tasks) 
+                new Builder(type, count, tasks)
                         .type(type)
                         .user(user)
                         .count(count)
