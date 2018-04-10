@@ -51,17 +51,44 @@ public class ExampleMultiServiceResource {
     private static final String YAML_EXT = ".yml";
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
+    /**
+     * Data type for storing the service name and yaml name which serializes to JSON.
+     */
+    private static class ContextData {
+        private final String serviceName;
+        private final String yamlName;
+
+        private ContextData(String serviceName, String yamlName) {
+            this.serviceName = serviceName;
+            this.yamlName = yamlName;
+        }
+
+        private static ContextData deserialize(byte[] context) {
+            JSONObject obj = new JSONObject(new String(context, CHARSET));
+            return new ContextData(obj.getString("name"), obj.getString("yaml"));
+        }
+
+        private byte[] serialize() {
+            JSONObject obj = new JSONObject();
+            obj.put("name", serviceName);
+            obj.put("yaml", yamlName);
+            return obj.toString().getBytes(CHARSET);
+        }
+    }
+
     private final ServiceFactory factory = new ServiceFactory() {
         @Override
-        public AbstractScheduler buildService(String serviceId, byte[] context) throws Exception {
+        public AbstractScheduler buildService(byte[] context) throws Exception {
             // Generate a ServiceSpec from the provided yaml file name, which is in the context
-            File yamlFile = getYamlFile(fromContext(context));
+            ContextData contextData = ContextData.deserialize(context);
+
+            File yamlFile = getYamlFile(contextData.yamlName);
             RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
             ServiceSpec serviceSpec =
                     DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile()).build();
 
-            // Override the service name in the yaml file with the serviceId provided by the user.
-            serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).name(serviceId).build();
+            // Override the service name in the yaml file with the name provided by the user.
+            serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).name(contextData.serviceName).build();
 
             SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                     .setPlansFrom(rawServiceSpec)
@@ -124,11 +151,11 @@ public class ExampleMultiServiceResource {
     @GET
     public Response listServices() {
         JSONArray services = new JSONArray();
-        for (String serviceId : multiServiceManager.getServiceNames()) {
+        for (String serviceName : multiServiceManager.getServiceNames()) {
             JSONObject service = new JSONObject();
-            service.put("service", serviceId);
+            service.put("service", serviceName);
 
-            Optional<AbstractScheduler> scheduler = multiServiceManager.getService(serviceId);
+            Optional<AbstractScheduler> scheduler = multiServiceManager.getService(serviceName);
             // Technically, the scheduler could disappear if it's uninstalled while we iterate over service names
             if (!scheduler.isPresent()) {
                 continue;
@@ -136,12 +163,12 @@ public class ExampleMultiServiceResource {
 
             // YAML file path
             try {
-                Optional<byte[]> context = serviceStore.get(serviceId);
+                Optional<byte[]> context = serviceStore.get(serviceName);
                 if (context.isPresent()) {
-                    service.put("yaml", fromContext(context.get()));
+                    service.put("yaml", ContextData.deserialize(context.get()).yamlName);
                 }
             } catch (PersisterException e) {
-                LOGGER.error(String.format("Failed to get yaml filename for service %s", serviceId), e);
+                LOGGER.error(String.format("Failed to get yaml filename for service %s", serviceName), e);
             }
 
             // Detect uninstall-in-progress by class type
@@ -156,11 +183,11 @@ public class ExampleMultiServiceResource {
      * Triggers uninstall of a specified service. Once it has finished uninstalling, it will automatically be removed
      * from the set of active services.
      */
-    @Path("{serviceId}")
+    @Path("{serviceName}")
     @DELETE
-    public Response uninstall(@PathParam("serviceId") String serviceId) {
-        multiServiceManager.uninstallService(serviceId);
-        return ResponseUtils.plainOkResponse("Triggered removal of service: " + serviceId);
+    public Response uninstall(@PathParam("serviceName") String serviceName) {
+        multiServiceManager.uninstallService(serviceName);
+        return ResponseUtils.plainOkResponse("Triggered removal of service: " + serviceName);
     }
 
     /**
@@ -168,13 +195,13 @@ public class ExampleMultiServiceResource {
      *
      * <p>See {@link #listYamls()} for a list of available yaml files.
      */
-    @Path("{serviceId}")
+    @Path("{serviceName}")
     @POST
-    public Response add(@PathParam("serviceId") String serviceId, @QueryParam("yaml") String yamlName) {
+    public Response add(@PathParam("serviceName") String serviceName, @QueryParam("yaml") String yamlName) {
         // Create an AbstractScheduler using the specified file, bailing if it doesn't work.
         AbstractScheduler service;
         try {
-            service = serviceStore.put(serviceId, toContext(yamlName));
+            service = serviceStore.put(new ContextData(serviceName, yamlName).serialize());
         } catch (Exception e) {
             LOGGER.error("Failed to generate or persist service", e);
             return ResponseUtils.plainResponse(
@@ -219,19 +246,5 @@ public class ExampleMultiServiceResource {
      */
     public static File getYamlFile(String yamlName) {
         return new File(YAML_DIR, yamlName + YAML_EXT);
-    }
-
-    /**
-     * Deserializes the yaml file name from the provided serialized "context" from the ServiceStore.
-     */
-    private static String fromContext(byte[] context) {
-        return new String(context, CHARSET);
-    }
-
-    /**
-     * Serializes the yaml file name to a serialized "context" to be stored in the ServiceStore.
-     */
-    private byte[] toContext(String yamlName) {
-        return yamlName.getBytes(CHARSET);
     }
 }

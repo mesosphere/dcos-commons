@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
@@ -19,12 +20,14 @@ import static org.mockito.Mockito.*;
 public class ServiceStoreTest {
 
     private static final Charset CHARSET = StandardCharsets.UTF_8;
-    private static final byte[] FOO_CONTEXT = "foo".getBytes(CHARSET);
-    private static final byte[] BAR_CONTEXT = "bar".getBytes(CHARSET);
+    private static final byte[] FOO_CONTEXT = "foo-data".getBytes(CHARSET);
+    private static final byte[] BAR_CONTEXT = "bar-data".getBytes(CHARSET);
 
     @Mock private ServiceFactory mockServiceFactory;
     @Mock private AbstractScheduler mockSchedulerFoo;
     @Mock private AbstractScheduler mockSchedulerBar;
+    @Mock private ServiceSpec mockSpecFoo;
+    @Mock private ServiceSpec mockSpecBar;
 
     private Persister persister;
     private ServiceStore store;
@@ -32,8 +35,12 @@ public class ServiceStoreTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        when(mockServiceFactory.buildService("foo", FOO_CONTEXT)).thenReturn(mockSchedulerFoo);
-        when(mockServiceFactory.buildService("bar", BAR_CONTEXT)).thenReturn(mockSchedulerBar);
+        when(mockServiceFactory.buildService(FOO_CONTEXT)).thenReturn(mockSchedulerFoo);
+        when(mockServiceFactory.buildService(BAR_CONTEXT)).thenReturn(mockSchedulerBar);
+        when(mockSchedulerFoo.getServiceSpec()).thenReturn(mockSpecFoo);
+        when(mockSchedulerBar.getServiceSpec()).thenReturn(mockSpecBar);
+        when(mockSpecFoo.getName()).thenReturn("foo");
+        when(mockSpecBar.getName()).thenReturn("bar");
 
         persister = new MemPersister();
         store = new ServiceStore(persister, mockServiceFactory);
@@ -42,14 +49,14 @@ public class ServiceStoreTest {
     @Test
     public void testPutGetUninstall() throws Exception {
         Assert.assertFalse(store.get("foo").isPresent());
-        Assert.assertEquals(mockSchedulerFoo, store.put("foo", FOO_CONTEXT));
-        verify(mockServiceFactory).buildService("foo", FOO_CONTEXT);
+        Assert.assertEquals(mockSchedulerFoo, store.put(FOO_CONTEXT));
+        verify(mockServiceFactory).buildService(FOO_CONTEXT);
         Assert.assertEquals(FOO_CONTEXT, store.get("foo").get());
         Assert.assertEquals(1, store.recover().size());
 
         Assert.assertFalse(store.get("bar").isPresent());
-        Assert.assertEquals(mockSchedulerBar, store.put("bar", BAR_CONTEXT));
-        verify(mockServiceFactory).buildService("bar", BAR_CONTEXT);
+        Assert.assertEquals(mockSchedulerBar, store.put(BAR_CONTEXT));
+        verify(mockServiceFactory).buildService(BAR_CONTEXT);
 
         Assert.assertEquals(FOO_CONTEXT, store.get("foo").get());
         Assert.assertEquals(BAR_CONTEXT, store.get("bar").get());
@@ -68,9 +75,9 @@ public class ServiceStoreTest {
 
     @Test
     public void testPutFactoryFails() throws Exception {
-        when(mockServiceFactory.buildService("bar", BAR_CONTEXT)).thenThrow(new Exception("BANG"));
+        when(mockServiceFactory.buildService(BAR_CONTEXT)).thenThrow(new Exception("BANG"));
         try {
-            store.put("bar", BAR_CONTEXT);
+            store.put(BAR_CONTEXT);
         } catch (Exception e) {
             Assert.assertEquals("BANG", e.getMessage());
         }
@@ -81,10 +88,12 @@ public class ServiceStoreTest {
     @Test
     public void testSlashedName() throws Exception {
         Assert.assertFalse(store.get("/path/to/foo").isPresent());
-        when(mockServiceFactory.buildService("/path/to/foo", FOO_CONTEXT)).thenReturn(mockSchedulerFoo);
-        Assert.assertEquals(mockSchedulerFoo, store.put("/path/to/foo", FOO_CONTEXT));
-        verify(mockServiceFactory).buildService("/path/to/foo", FOO_CONTEXT);
+        when(mockServiceFactory.buildService(FOO_CONTEXT)).thenReturn(mockSchedulerFoo);
+        when(mockSpecFoo.getName()).thenReturn("/path/to/foo");
+        Assert.assertEquals(mockSchedulerFoo, store.put(FOO_CONTEXT));
+        verify(mockServiceFactory).buildService(FOO_CONTEXT);
         Assert.assertEquals(FOO_CONTEXT, store.get("/path/to/foo").get());
+        Assert.assertEquals(FOO_CONTEXT, persister.get("/ServiceList/path__to__foo/Context"));
 
         store.getUninstallCallback().uninstalled("/path/to/foo");
         Assert.assertFalse(store.get("/path/to/foo").isPresent());
@@ -93,10 +102,10 @@ public class ServiceStoreTest {
     @Test
     public void testRecover() throws Exception {
         // Store data against one instance:
-        Assert.assertEquals(mockSchedulerFoo, store.put("foo", FOO_CONTEXT));
-        Assert.assertEquals(mockSchedulerBar, store.put("bar", BAR_CONTEXT));
-        verify(mockServiceFactory).buildService("foo", FOO_CONTEXT);
-        verify(mockServiceFactory).buildService("bar", BAR_CONTEXT);
+        Assert.assertEquals(mockSchedulerFoo, store.put(FOO_CONTEXT));
+        Assert.assertEquals(mockSchedulerBar, store.put(BAR_CONTEXT));
+        verify(mockServiceFactory).buildService(FOO_CONTEXT);
+        verify(mockServiceFactory).buildService(BAR_CONTEXT);
         Assert.assertEquals(FOO_CONTEXT, store.get("foo").get());
         Assert.assertEquals(BAR_CONTEXT, store.get("bar").get());
 
@@ -111,15 +120,15 @@ public class ServiceStoreTest {
         Assert.assertTrue(recovered.contains(mockSchedulerBar));
 
         // Factory should have been invoked twice: Once for the initial put(), and then again for the recover():
-        verify(mockServiceFactory, times(2)).buildService("foo", FOO_CONTEXT);
-        verify(mockServiceFactory, times(2)).buildService("bar", BAR_CONTEXT);
+        verify(mockServiceFactory, times(2)).buildService(FOO_CONTEXT);
+        verify(mockServiceFactory, times(2)).buildService(BAR_CONTEXT);
     }
 
     @Test
     public void testRecoverFactoryFails() throws Exception {
         // Store data against one instance:
-        Assert.assertEquals(mockSchedulerFoo, store.put("foo", FOO_CONTEXT));
-        Assert.assertEquals(mockSchedulerBar, store.put("bar", BAR_CONTEXT));
+        Assert.assertEquals(mockSchedulerFoo, store.put(FOO_CONTEXT));
+        Assert.assertEquals(mockSchedulerBar, store.put(BAR_CONTEXT));
         Assert.assertEquals(FOO_CONTEXT, store.get("foo").get());
         Assert.assertEquals(BAR_CONTEXT, store.get("bar").get());
 
@@ -129,7 +138,7 @@ public class ServiceStoreTest {
         Assert.assertEquals(BAR_CONTEXT, store.get("bar").get());
 
         // If 'foo' fails to recover, it should just be skipped in the output:
-        when(mockServiceFactory.buildService("foo", FOO_CONTEXT)).thenThrow(new Exception("BANG"));
+        when(mockServiceFactory.buildService(FOO_CONTEXT)).thenThrow(new Exception("BANG"));
         Collection<AbstractScheduler> recovered = store.recover();
         Assert.assertEquals(1, recovered.size());
         Assert.assertFalse(recovered.contains(mockSchedulerFoo));

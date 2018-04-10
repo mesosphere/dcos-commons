@@ -17,10 +17,8 @@ public interface ServiceFactory {
      * {@link AbstractScheduler} using a {@code SchedulerBuilder}. An implementation of this interface must be provided
      * by the developer.
      *
-     * @param serviceId the id of the recovered service as passed to {@link ServiceStore#put(String, byte[])}
-     * @param context the context data for the service as passed to {@link ServiceStore#put(String, byte[])}, or
-     *                {@code null} if none had been provided before
+     * @param context nullable context data for the service, as originally passed to {@link ServiceStore#put(byte[])}
      * @throws Exception if (re)constructing the service failed, for example if the {@code context} could not be parsed
      */
-    public AbstractScheduler buildService(String serviceId, byte[] context) throws Exception;
+    public AbstractScheduler buildService(byte[] context) throws Exception;
 }
