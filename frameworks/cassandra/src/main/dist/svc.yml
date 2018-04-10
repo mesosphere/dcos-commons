@@ -5,6 +5,7 @@ scheduler:
 pods:
   node:
     count: {{NODES}}
+    isolate-tmp: true
     placement: '{{{PLACEMENT_CONSTRAINT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:

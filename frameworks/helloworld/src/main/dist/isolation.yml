@@ -1,0 +1,16 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    isolate-tmp: true
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

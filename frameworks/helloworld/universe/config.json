@@ -102,6 +102,7 @@
             "tls",
             "uri",
             "web-url",
+            "isolation",
             ""
           ],
           "default": "svc"

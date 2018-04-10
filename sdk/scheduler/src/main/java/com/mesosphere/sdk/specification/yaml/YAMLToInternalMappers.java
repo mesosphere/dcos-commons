@@ -219,7 +219,8 @@ public class YAMLToInternalMappers {
                 .user(user)
                 .preReservedRole(rawPod.getPreReservedRole())
                 .sharePidNamespace(rawPod.getSharePidNamespace())
-                .allowDecommission(rawPod.getAllowDecommission());
+                .allowDecommission(rawPod.getAllowDecommission())
+                .isolateTmp(rawPod.getIsolateTmp());
 
         List<String> networkNames = new ArrayList<>();
         List<RLimitSpec> rlimits = new ArrayList<>();
