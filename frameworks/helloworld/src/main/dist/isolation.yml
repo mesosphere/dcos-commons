@@ -14,3 +14,13 @@ pods:
         memory: {{HELLO_MEM}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      hello-deploy:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[server]]
+

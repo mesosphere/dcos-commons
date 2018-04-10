@@ -33,14 +33,15 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_():
+def test_tmp_directory_created():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
-    assert !os.path.isdir('./tmp')
 
-    #check that directory is created on update.
+    code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo foo > /tmp/foo")
+
+    assert code > 0
 
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['HELLO_ISOLATION'] = 'true'
@@ -48,6 +49,16 @@ def test_():
 
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    assert os.path.isdir('./tmp')
+
+    code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar")
+
+    assert code > 0
+
+    code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "cat /tmp/bar |  grep bar")
+
+    assert code > 0
+
+
+
 
 
