@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
 import java.io.File;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -25,12 +27,14 @@ import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
+import com.mesosphere.sdk.scheduler.multi.ServiceFactory;
+import com.mesosphere.sdk.scheduler.multi.ServiceStore;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 
@@ -45,29 +49,78 @@ public class ExampleMultiServiceResource {
 
     private static final String YAML_DIR = "hello-world-scheduler/";
     private static final String YAML_EXT = ".yml";
+    private static final Charset CHARSET = StandardCharsets.UTF_8;
+
+    /**
+     * Data type for storing the service name and yaml name which serializes to JSON.
+     */
+    private static class ContextData {
+        private final String serviceName;
+        private final String yamlName;
+
+        private ContextData(String serviceName, String yamlName) {
+            this.serviceName = serviceName;
+            this.yamlName = yamlName;
+        }
+
+        private static ContextData deserialize(byte[] context) {
+            JSONObject obj = new JSONObject(new String(context, CHARSET));
+            return new ContextData(obj.getString("name"), obj.getString("yaml"));
+        }
+
+        private byte[] serialize() {
+            JSONObject obj = new JSONObject();
+            obj.put("name", serviceName);
+            obj.put("yaml", yamlName);
+            return obj.toString().getBytes(CHARSET);
+        }
+    }
+
+    private final ServiceFactory factory = new ServiceFactory() {
+        @Override
+        public AbstractScheduler buildService(byte[] context) throws Exception {
+            // Generate a ServiceSpec from the provided yaml file name, which is in the context
+            ContextData contextData = ContextData.deserialize(context);
+
+            File yamlFile = getYamlFile(contextData.yamlName);
+            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
+            ServiceSpec serviceSpec =
+                    DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile()).build();
+
+            // Override the service name in the yaml file with the name provided by the user.
+            serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).name(contextData.serviceName).build();
+
+            SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
+                    .setPlansFrom(rawServiceSpec)
+                    .enableMultiService(frameworkName);
+            return Scenario.customize(builder, scenarios).build();
+        }
+    };
 
     private final SchedulerConfig schedulerConfig;
     private final String frameworkName;
     private final Persister persister;
     private final Collection<Scenario.Type> scenarios;
     private final MultiServiceManager multiServiceManager;
-    private final ExampleServiceStore serviceStore;
+    private final ServiceStore serviceStore;
 
     ExampleMultiServiceResource(
             SchedulerConfig schedulerConfig,
             String frameworkName,
             Persister persister,
             Collection<Scenario.Type> scenarios,
-            MultiServiceManager multiServiceManager,
-            ExampleServiceStore serviceStore) {
+            MultiServiceManager multiServiceManager) {
         this.schedulerConfig = schedulerConfig;
         this.frameworkName = frameworkName;
         this.persister = persister;
         this.scenarios = scenarios;
         this.multiServiceManager = multiServiceManager;
-        this.serviceStore = serviceStore;
+        this.serviceStore = new ServiceStore(persister, factory);
     }
 
+    /**
+     * Returns a list of all available YAML examples, suitable for launching an example service against.
+     */
     @Path("yaml")
     @GET
     public Response listYamls() {
@@ -93,16 +146,16 @@ public class ExampleMultiServiceResource {
     }
 
     /**
-     * Returns a list of active services.
+     * Returns a list of added active services.
      */
     @GET
     public Response listServices() {
         JSONArray services = new JSONArray();
-        for (String serviceId : multiServiceManager.getServiceNames()) {
+        for (String serviceName : multiServiceManager.getServiceNames()) {
             JSONObject service = new JSONObject();
-            service.put("service", serviceId);
+            service.put("service", serviceName);
 
-            Optional<AbstractScheduler> scheduler = multiServiceManager.getService(serviceId);
+            Optional<AbstractScheduler> scheduler = multiServiceManager.getService(serviceName);
             // Technically, the scheduler could disappear if it's uninstalled while we iterate over service names
             if (!scheduler.isPresent()) {
                 continue;
@@ -110,12 +163,12 @@ public class ExampleMultiServiceResource {
 
             // YAML file path
             try {
-                Optional<String> yamlFilename = serviceStore.get(serviceId);
-                if (yamlFilename.isPresent()) {
-                    service.put("yaml", yamlFilename.get());
+                Optional<byte[]> context = serviceStore.get(serviceName);
+                if (context.isPresent()) {
+                    service.put("yaml", ContextData.deserialize(context.get()).yamlName);
                 }
             } catch (PersisterException e) {
-                LOGGER.error(String.format("Failed to get yaml filename for service %s", serviceId), e);
+                LOGGER.error(String.format("Failed to get yaml filename for service %s", serviceName), e);
             }
 
             // Detect uninstall-in-progress by class type
@@ -127,70 +180,71 @@ public class ExampleMultiServiceResource {
     }
 
     /**
-     * Triggers uninstall of a specified service.
+     * Triggers uninstall of a specified service. Once it has finished uninstalling, it will automatically be removed
+     * from the set of active services.
      */
-    @Path("{serviceId}")
+    @Path("{serviceName}")
     @DELETE
-    public Response uninstall(@PathParam("serviceId") String serviceId) {
-        multiServiceManager.uninstallService(serviceId);
-        return ResponseUtils.plainOkResponse("Triggered removal of service: " + serviceId);
+    public Response uninstall(@PathParam("serviceName") String serviceName) {
+        multiServiceManager.uninstallService(serviceName);
+        return ResponseUtils.plainOkResponse("Triggered removal of service: " + serviceName);
     }
 
     /**
-     * Accepts a new service to be launched immediately using the provided yaml filename.
+     * Accepts a new service to be launched immediately, using the provided example yaml name.
+     *
+     * <p>See {@link #listYamls()} for a list of available yaml files.
      */
-    @Path("{serviceId}")
+    @Path("{serviceName}")
     @POST
-    public Response add(@PathParam("serviceId") String serviceId, @QueryParam("yaml") String yamlName) {
+    public Response add(@PathParam("serviceName") String serviceName, @QueryParam("yaml") String yamlName) {
         // Create an AbstractScheduler using the specified file, bailing if it doesn't work.
         AbstractScheduler service;
         try {
-            service = buildService(serviceId, yamlName);
-            // Service was generated successfully. Log it in our ServiceStore before passing it to the MultiServiceMgr
-            serviceStore.put(serviceId, yamlName);
+            service = serviceStore.put(new ContextData(serviceName, yamlName).serialize());
         } catch (Exception e) {
             LOGGER.error("Failed to generate or persist service", e);
             return ResponseUtils.plainResponse(
-                    String.format("Failed to generate service: %s", e.getMessage()),
+                    String.format("Failed to generate or persist service: %s", e.getMessage()),
                     Response.Status.BAD_REQUEST);
         }
+        multiServiceManager.putService(service);
 
         try {
-            multiServiceManager.putService(service);
             JSONObject obj = new JSONObject();
             obj.put("name", service.getServiceSpec().getName());
             obj.put("yaml", yamlName);
             return ResponseUtils.jsonOkResponse(obj);
         } catch (Exception e) {
-            LOGGER.error(String.format("Failed to add service %s", serviceId), e);
-            try {
-                // Wipe the data that we just added against this service
-                service.getStateStore().deleteAllDataIfNamespaced();
-            } catch (StateStoreException e2) {
-                LOGGER.error(String.format("Failed to clear service data for failed service %s", serviceId), e2);
-            }
-            return ResponseUtils.plainResponse(
-                    String.format("Failed to add service: %s", e.getMessage()), Response.Status.BAD_REQUEST);
+            // This should never happen.
+            LOGGER.error("JSON error when encoding response for adding or updating service", e);
+            return Response.serverError().build();
         }
     }
 
-    public static File getYamlFile(String yamlName) {
-        return new File(YAML_DIR, yamlName + YAML_EXT);
+    /**
+     * Recovers any previously added service instances and re-adds them to the internal MultiServiceManager.
+     *
+     * <p>Recovery should always be invoked once during startup to rebuild any previously-added services. If no services
+     * were active or if this is the initial launch of the scheduler, then this is effectively a no-op.
+     */
+    public void recover() throws PersisterException {
+        for (AbstractScheduler service : serviceStore.recover()) {
+            multiServiceManager.putService(service);
+        }
     }
 
-    public AbstractScheduler buildService(String serviceId, String yamlName) throws Exception {
-        // Generate a ServiceSpec from the provided yaml file
-        File yamlFile = getYamlFile(yamlName);
-        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
-        ServiceSpec serviceSpec =
-                DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile()).build();
+    /**
+     * Returns an uninstall callback suitable for passing to the MultiServiceEventClient.
+     */
+    public MultiServiceEventClient.UninstallCallback getUninstallCallback() {
+        return serviceStore.getUninstallCallback();
+    }
 
-        // Override the service name in the yaml file with the serviceId provided by the user.
-        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).name(serviceId).build();
-
-        SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
-                .setPlansFrom(rawServiceSpec)
-                .enableMultiService(frameworkName);
-        return Scenario.customize(builder, scenarios).build();
+    /**
+     * Returns the specified example YAML file from the scheduler filesystem.
+     */
+    public static File getYamlFile(String yamlName) {
+        return new File(YAML_DIR, yamlName + YAML_EXT);
     }
 }

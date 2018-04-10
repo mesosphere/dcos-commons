@@ -123,9 +123,11 @@ public class MultiServiceManager {
             }
 
             if (services.put(originalName, service) == null) {
-                LOGGER.info("Added new service: {} (now {} services)", originalName, services.size());
+                LOGGER.info("Added new service: {} (now {} service{})",
+                        originalName, services.size(), services.size() == 1 ? "" : "s");
             } else {
-                LOGGER.info("Replaced existing service: {} (now {} services)", originalName, services.size());
+                LOGGER.info("Replaced existing service: {} (now {} service{})",
+                        originalName, services.size(), services.size() == 1 ? "" : "s");
             }
 
             if (isRegistered) {
@@ -187,8 +189,8 @@ public class MultiServiceManager {
     public void uninstallServices(Collection<String> finishedServiceNames) {
         rwlock.lock();
         try {
-            LOGGER.info("Marking services as uninstalling: {} (out of {} services)",
-                    finishedServiceNames, services.size());
+            LOGGER.info("Marking services as uninstalling: {} (out of {} service{})",
+                    finishedServiceNames, services.size(), services.size() == 1 ? "" : "s");
 
             for (String name : finishedServiceNames) {
                 AbstractScheduler currentService = services.get(name);
@@ -221,18 +223,17 @@ public class MultiServiceManager {
     }
 
     /**
-     * Removes the specified services after they have completed uninstall. Any unknown service names are ignored.
-     *
-     * @return the number of services which are still present after this removal
+     * Removes the specified services, following a completed uninstall. Any unknown service names are ignored.
      */
     public void removeServices(Collection<String> uninstalledServiceNames) {
         rwlock.lock();
         try {
-            LOGGER.info("Removing {} uninstalled service{}: {} (from {} total services)",
+            LOGGER.info("Removing {} uninstalled service{}: {} (from {} total service{})",
                     uninstalledServiceNames.size(),
                     uninstalledServiceNames.size() == 1 ? "" : "s",
                     uninstalledServiceNames,
-                    services.size());
+                    services.size(),
+                    services.size() == 1 ? "" : "s");
 
             for (String serviceName : uninstalledServiceNames) {
                 services.remove(serviceName);
@@ -270,8 +271,10 @@ public class MultiServiceManager {
         rlock.lock();
         try {
             isRegistered = true;
-            LOGGER.info("Notifying {} services of {}",
-                    services.size(), reRegistered ? "re-registration" : "initial registration");
+            LOGGER.info("Notifying {} service{} of {}",
+                    services.size(),
+                    services.size() == 1 ? "" : "s",
+                    reRegistered ? "re-registration" : "initial registration");
             services.values().stream().forEach(c -> c.registered(reRegistered));
         } finally {
             rlock.unlock();

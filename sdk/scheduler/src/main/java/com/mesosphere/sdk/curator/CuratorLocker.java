@@ -42,7 +42,7 @@ public class CuratorLocker {
      * Locks curator. This should only be called once per process. Throws if called a second time.
      *
      * @param serviceName the name of the service to be locked
-     * @param zookeeperHostPort the connection string for the ZK instance, e.g. {@code master.mesos:2181}
+     * @param clientBuilder a configured client builder from which a ZK client will be constructed
      */
     public static void lock(String serviceName, CuratorFrameworkFactory.Builder clientBuilder) {
         synchronized (INSTANCE_LOCK) {
