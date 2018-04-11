@@ -131,14 +131,13 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">PodInfoBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-java.util.Map-">PodInfoBuilder</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
               java.lang.String&nbsp;serviceName,
               java.util.UUID&nbsp;targetConfigId,
               <a href="../../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;templateUrlFactory,
               <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;currentPodTasks,
               Protos.FrameworkID&nbsp;frameworkID,
-              boolean&nbsp;useDefaultExecutor,
               java.util.Map&lt;<a href="../../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>,<a href="../../../../../com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a>&gt;&nbsp;overrideMap)</code>&nbsp;</td>
 </tr>
 </table>
@@ -174,12 +173,11 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static Protos.Resource</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-boolean-">getExistingExecutorVolume</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExistingExecutorVolume</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
                          java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
                          java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
                          java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
-                         java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot,
-                         boolean&nbsp;useDefaultExecutor)</code>&nbsp;</td>
+                         java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>int</code></td>
@@ -257,7 +255,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-boolean-java.util.Map-">
+<a name="PodInfoBuilder-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Collection-Protos.FrameworkID-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -270,7 +268,6 @@ extends java.lang.Object</pre>
                       <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                       java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;currentPodTasks,
                       Protos.FrameworkID&nbsp;frameworkID,
-                      boolean&nbsp;useDefaultExecutor,
                       java.util.Map&lt;<a href="../../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>,<a href="../../../../../com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state">GoalStateOverride</a>&gt;&nbsp;overrideMap)
                throws <a href="../../../../../com/mesosphere/sdk/offer/InvalidRequirementException.html" title="class in com.mesosphere.sdk.offer">InvalidRequirementException</a></pre>
 <dl>
@@ -380,7 +377,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;setExecutorVolume(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec)</pre>
 </li>
 </ul>
-<a name="getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-boolean-">
+<a name="getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -390,8 +387,7 @@ extends java.lang.Object</pre>
                                                         java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
                                                         java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
                                                         java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
-                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot,
-                                                        boolean&nbsp;useDefaultExecutor)</pre>
+                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot)</pre>
 </li>
 </ul>
 <a name="getTaskEnvironment-java.lang.String-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">
