@@ -44,12 +44,3 @@ def test_tmp_directory_created():
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
 
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-
-
-
-
-
-
-
-
