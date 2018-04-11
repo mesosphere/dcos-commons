@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
@@ -62,12 +63,12 @@ public class ExampleMultiServiceResource {
     private static class ContextData {
         private final String serviceName;
         private final String yamlName;
-        private final Map<String, String> yamlParameters;
+        private final Map<String, String> envOverride;
 
-        private ContextData(String serviceName, String yamlName, Map<String, String> yamlParameters) {
+        private ContextData(String serviceName, String yamlName, Map<String, String> envOverride) {
             this.serviceName = serviceName;
             this.yamlName = yamlName;
-            this.yamlParameters = new TreeMap<>(yamlParameters);
+            this.envOverride = new TreeMap<>(envOverride);
         }
 
         private static ContextData deserialize(byte[] context) {
@@ -86,7 +87,7 @@ public class ExampleMultiServiceResource {
             obj.put("name", serviceName);
             obj.put("yaml", yamlName);
             JSONArray params = new JSONArray();
-            for (Map.Entry<String, String> entry : yamlParameters.entrySet()) {
+            for (Map.Entry<String, String> entry : envOverride.entrySet()) {
                 JSONObject jsonEntry = new JSONObject();
                 jsonEntry.put("key", entry.getKey());
                 jsonEntry.put("value", entry.getValue());
@@ -114,18 +115,18 @@ public class ExampleMultiServiceResource {
                 ContextData contextData = ContextData.deserialize(context);
 
                 File yamlFile = getYamlFile(contextData.yamlName);
-                // Render service specs using the provided parameters instead of the scheduler env:
+
+                // Render service specs, with any provided parameters overriding the scheduler env:
+                Map<String, String> serviceParameters = new HashMap<>();
+                serviceParameters.putAll(System.getenv());
+                serviceParameters.putAll(contextData.envOverride);
+
                 RawServiceSpec rawServiceSpec =
-                        RawServiceSpec.newBuilder(yamlFile).setEnv(contextData.yamlParameters).build();
+                        RawServiceSpec.newBuilder(yamlFile).setEnv(serviceParameters).build();
                 ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
-                        rawServiceSpec, schedulerConfig, contextData.yamlParameters, yamlFile.getParentFile())
+                        rawServiceSpec, schedulerConfig, serviceParameters, yamlFile.getParentFile())
                         // Override any framework-level params in the servicespec (role, principal, ...) with ours:
                         .setMultiServiceFrameworkConfig(frameworkConfig)
-                        .build();
-
-                // Override the service name in the yaml file with the name provided by the user.
-                serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)
-                        .name(contextData.serviceName)
                         .build();
 
                 SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
@@ -220,11 +221,11 @@ public class ExampleMultiServiceResource {
     public Response add(
             @PathParam("serviceName") String serviceName,
             @QueryParam("yaml") String yamlName,
-            Map<String, String> yamlParameters) {
+            Map<String, String> envOverride) {
         // Create an AbstractScheduler using the specified file, bailing if it doesn't work.
         AbstractScheduler service;
         try {
-            service = serviceStore.put(new ContextData(serviceName, yamlName, yamlParameters).serialize());
+            service = serviceStore.put(new ContextData(serviceName, yamlName, envOverride).serialize());
         } catch (Exception e) {
             LOGGER.error("Failed to generate or persist service", e);
             return ResponseUtils.plainResponse(

@@ -145,22 +145,7 @@ def wait_for_service_count(count):
 
 
 def service_params(service_name):
+    # we just override the service name in the YAML, otherwise we use the scheduler env:
     return {
-        'FRAMEWORK_NAME': service_name,
-        'FRAMEWORK_PRINCIPAL': '',
-        'FRAMEWORK_USER': 'nobody',
-        'SLEEP_DURATION': 1000, # seconds
-
-        'HELLO_COUNT': '1',
-        'HELLO_CPUS': '0.1',
-        'HELLO_MEM': '252',
-        'HELLO_DISK': '25',
-        'HELLO_PLACEMENT': '[["hostname", "UNIQUE"]]',
-
-        'WORLD_COUNT': '2',
-        'WORLD_CPUS': '0.1',
-        'WORLD_MEM': '252',
-        'WORLD_DISK': '25',
-        'WORLD_PLACEMENT': '[["hostname", "UNIQUE"]]',
-        'WORLD_KILL_GRACE_PERIOD': '0',
+        'FRAMEWORK_NAME': service_name
     }
