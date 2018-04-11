@@ -141,7 +141,7 @@ public class StateStore {
         }
 
         String path = getTaskStatusPath(namespace, taskName);
-        logger.info("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
+        logger.debug("Storing status '{}' for '{}' in '{}'", status.getState(), taskName, path);
 
         try {
             persister.set(path, status.toByteArray());
@@ -296,7 +296,7 @@ public class StateStore {
             }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
-                logger.warn("No TaskStatus found for the requested name: {} at: {}", taskName, path);
+                logger.info("No TaskStatus found for task: {}", taskName);
                 return Optional.empty();
             } else {
                 throw new StateStoreException(e);

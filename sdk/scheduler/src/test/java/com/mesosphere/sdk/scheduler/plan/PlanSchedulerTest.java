@@ -53,7 +53,7 @@ public class PlanSchedulerTest {
         File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
 
-        scheduler = new PlanScheduler(mockOfferEvaluator, mockStateStore);
+        scheduler = new PlanScheduler(mockOfferEvaluator, mockStateStore, Optional.empty());
 
         PodSpec podSpec = serviceSpec.getPods().get(0);
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);

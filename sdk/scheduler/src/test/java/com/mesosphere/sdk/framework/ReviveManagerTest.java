@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -77,8 +78,8 @@ public class ReviveManagerTest {
     public void dontReviveSharedTokenBucket() {
         // Default constructor should use a global token bucket.
         ReviveManager.resetTimers();
-        ReviveManager a = new ReviveManager();
-        ReviveManager b = new ReviveManager();
+        ReviveManager a = new ReviveManager(Optional.empty());
+        ReviveManager b = new ReviveManager(Optional.empty());
         a.revive(getSteps(0)); // pass
         b.revive(getSteps(1)); // throttled
         verify(driver, times(1)).reviveOffers();
@@ -96,7 +97,7 @@ public class ReviveManagerTest {
     }
 
     private ReviveManager getReviveManager(Duration duration) {
-        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(duration).build());
+        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(duration).build(), Optional.empty());
     }
 
     private List<Step> getSteps(Integer index) {

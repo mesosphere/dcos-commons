@@ -28,12 +28,15 @@ public class DefaultStepFactory implements StepFactory {
 
     private final ConfigTargetStore configTargetStore;
     private final StateStore stateStore;
+    private final Optional<String> namespace;
 
     public DefaultStepFactory(
             ConfigTargetStore configTargetStore,
-            StateStore stateStore) {
+            StateStore stateStore,
+            Optional<String> namespace) {
         this.configTargetStore = configTargetStore;
         this.stateStore = stateStore;
+        this.namespace = namespace;
     }
 
     @Override
@@ -51,14 +54,16 @@ public class DefaultStepFactory implements StepFactory {
             return new DeploymentStep(
                     TaskUtils.getStepName(podInstance, tasksToLaunch),
                     PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build(),
-                    stateStore)
+                    stateStore,
+                    namespace)
                     .updateInitialStatus(taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos));
         } catch (Exception e) {
             LOGGER.error("Failed to generate Step with exception: ", e);
             return new DeploymentStep(
                     podInstance.getName(),
                     PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
-                    stateStore)
+                    stateStore,
+                    namespace)
                     .addError(ExceptionUtils.getStackTrace(e));
         }
     }
@@ -119,16 +124,15 @@ public class DefaultStepFactory implements StepFactory {
 
     private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo, UUID targetConfigId)
             throws TaskException {
+        GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
+        boolean hasReachedGoal = hasReachedGoalState(taskInfo, goalState);
 
-        boolean isOnTarget = isOnTarget(taskInfo, targetConfigId);
-        boolean hasReachedGoal = hasReachedGoalState(podInstance, taskInfo);
-
-        if (hasReachedGoal) {
-            GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
-            if (goalState.equals(GoalState.FINISHED) || goalState.equals(GoalState.ONCE)) {
-                LOGGER.info("Automatically on target configuration due to having reached {} goal.", goalState);
-                isOnTarget = true;
-            }
+        boolean isOnTarget;
+        if (hasReachedGoal && (goalState.equals(GoalState.FINISHED) || goalState.equals(GoalState.ONCE))) {
+            LOGGER.info("Automatically on target configuration due to having reached {} goal.", goalState);
+            isOnTarget = true;
+        } else {
+            isOnTarget = isOnTarget(taskInfo, targetConfigId);
         }
 
         boolean hasPermanentlyFailed = FailureUtils.isPermanentlyFailed(taskInfo);
@@ -151,8 +155,7 @@ public class DefaultStepFactory implements StepFactory {
     }
 
     @VisibleForTesting
-    protected boolean hasReachedGoalState(PodInstance podInstance, Protos.TaskInfo taskInfo) throws TaskException {
-        GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
+    protected boolean hasReachedGoalState(Protos.TaskInfo taskInfo, GoalState goalState) throws TaskException {
         Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInfo.getName());
         if (!status.isPresent()) {
             return false;

@@ -25,7 +25,6 @@ public class OfferAccepter {
 
     public void accept(List<OfferRecommendation> recommendations) {
         if (CollectionUtils.isEmpty(recommendations)) {
-            LOGGER.info("No recommendations, nothing to do");
             return;
         }
 

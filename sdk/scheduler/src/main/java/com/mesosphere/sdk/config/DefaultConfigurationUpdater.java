@@ -32,8 +32,7 @@ import java.util.*;
  */
 public class DefaultConfigurationUpdater implements ConfigurationUpdater<ServiceSpec> {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultConfigurationUpdater.class);
-
+    private final Logger logger;
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
     private final ConfigurationComparator<ServiceSpec> configComparator;
@@ -43,7 +42,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ConfigurationComparator<ServiceSpec> configComparator,
-            Collection<ConfigValidator<ServiceSpec>> validators) {
+            Collection<ConfigValidator<ServiceSpec>> validators,
+            Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.configComparator = configComparator;
@@ -57,13 +58,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         try {
             targetConfigId = configStore.getTargetConfig();
         } catch (ConfigStoreException e) {
-            LOGGER.debug("No target configuration ID was set. First launch?");
+            logger.debug("No target configuration ID was set. First launch?");
             targetConfigId = null;
         }
 
         Optional<ServiceSpec> targetConfig;
         if (targetConfigId != null) {
-            LOGGER.info("Loading current target configuration: {}", targetConfigId);
+            logger.info("Loading current target configuration: {}", targetConfigId);
             targetConfig = Optional.of(configStore.fetch(targetConfigId));
         } else {
             targetConfig = Optional.empty();
@@ -75,9 +76,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         String candidateConfigJson = null;
         try {
             candidateConfigJson = candidateConfig.toJsonString();
-            LOGGER.info("New prospective config:\n{}", candidateConfigJson);
+            logger.info("New prospective config:\n{}", candidateConfigJson);
         } catch (Exception e) {
-            LOGGER.error(String.format(
+            logger.error(String.format(
                     "Unable to get JSON representation of new prospective config object: %s",
                     candidateConfig), e);
             errors.add(ConfigValidationError.valueError("NewConfigAsJson", "jsonString",
@@ -85,11 +86,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
 
         if (!targetConfig.isPresent()) {
-            LOGGER.info("Skipping config diff: There is no old config target to diff against");
+            logger.info("Skipping config diff: There is no old config target to diff against");
         } else if (candidateConfigJson == null) {
-            LOGGER.error("Skipping config diff: New target couldn't be represented as JSON");
+            logger.error("Skipping config diff: New target couldn't be represented as JSON");
         } else {
-            LOGGER.info("Prior target config:\n{}", targetConfig.get().toJsonString());
+            logger.info("Prior target config:\n{}", targetConfig.get().toJsonString());
             printConfigDiff(targetConfig.get(), targetConfigId, candidateConfigJson);
         }
 
@@ -111,7 +112,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             for (ConfigValidationError error : errors) {
                 sj.add(String.format("%d: %s", i++, error.toString()));
             }
-            LOGGER.warn("New configuration failed validation against current target " +
+            logger.warn("New configuration failed validation against current target " +
                             "configuration {}, with {} errors across {} validators:\n{}",
                     targetConfigId, errors.size(), validators.size(), sj.toString());
             if (!targetConfig.isPresent()) {
@@ -123,13 +124,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         } else if (!targetConfig.isPresent() || !configComparator.equals(targetConfig.get(), candidateConfig)) {
             UUID oldTargetId = targetConfigId;
             targetConfigId = configStore.store(candidateConfig);
-            LOGGER.info("Updating target configuration: "
+            logger.info("Updating target configuration: "
                     + "Prior target configuration '{}' is different from new configuration '{}'. ",
                     oldTargetId, targetConfigId);
             targetConfig = Optional.of(candidateConfig);
             configStore.setTargetConfig(targetConfigId);
         } else {
-            LOGGER.info("No changes detected between current target configuration '{}' and new configuration. " +
+            logger.info("No changes detected between current target configuration '{}' and new configuration. " +
                             "Leaving current configuration as the target.",
                     targetConfigId);
         }
@@ -188,13 +189,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             try {
                 taskConfigId = new TaskLabelReader(taskInfo).getTargetConfiguration();
             } catch (TaskException e) {
-                LOGGER.warn(String.format("Unable to extract configuration ID from task %s: %s",
+                logger.warn(String.format("Unable to extract configuration ID from task %s: %s",
                         taskInfo.getName(), TextFormat.shortDebugString(taskInfo)), e);
                 continue;
             }
 
             if (taskConfigId.equals(targetConfigId)) {
-                LOGGER.info("Task {} configuration ID matches target: {}",
+                logger.info("Task {} configuration ID matches target: {}",
                         taskInfo.getName(), taskConfigId);
             } else {
                 try {
@@ -212,7 +213,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                         neededConfigs.add(taskConfigId);
                     }
                 } catch (Exception e) {
-                    LOGGER.error(String.format("Failed to fetch configuration %s for task %s",
+                    logger.error(String.format("Failed to fetch configuration %s for task %s",
                             taskConfigId, taskInfo.getName()), e);
                     // Cannot read this task's config. Do not delete the config.
                     neededConfigs.add(taskConfigId);
@@ -221,19 +222,19 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
 
         if (!taskInfosToUpdate.isEmpty()) {
-            LOGGER.info("Updating {} tasks in StateStore with target configuration ID {}",
+            logger.info("Updating {} tasks in StateStore with target configuration ID {}",
                     taskInfosToUpdate.size(), targetConfigId);
             stateStore.storeTasks(taskInfosToUpdate);
         }
 
         Collection<UUID> configIds = configStore.list();
-        LOGGER.info("Testing deserialization of {} listed configurations before cleanup:", configIds.size());
+        logger.info("Testing deserialization of {} listed configurations before cleanup:", configIds.size());
         for (UUID configId : configIds) {
             try {
                 configStore.fetch(configId);
-                LOGGER.info("- {}: OK", configId);
+                logger.info("- {}: OK", configId);
             } catch (Exception e) {
-                LOGGER.info("- {}: FAILED, leaving as-is: {}", configId, e.getMessage());
+                logger.info("- {}: FAILED, leaving as-is: {}", configId, e.getMessage());
                 neededConfigs.add(configId);
             }
         }
@@ -241,7 +242,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         clearConfigsNotListed(neededConfigs);
     }
 
-    private static void printConfigDiff(ServiceSpec oldConfig, UUID oldConfigId, String newConfigJson) {
+    private void printConfigDiff(ServiceSpec oldConfig, UUID oldConfigId, String newConfigJson) {
         // Print a diff of this new config vs the prior config:
         try {
             final List<String> oldLines =
@@ -249,11 +250,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             final List<String> newLines = Lists.newArrayList(Splitter.on('\n').split(newConfigJson));
             List<String> diffResult = DiffUtils.generateUnifiedDiff(
                     "ServiceSpec.old", "ServiceSpec.new", oldLines, DiffUtils.diff(oldLines, newLines), 2);
-            LOGGER.info("Difference between configs:\n{}", Joiner.on('\n').join(diffResult));
+            logger.info("Difference between configs:\n{}", Joiner.on('\n').join(diffResult));
             // Don't log the old target, as that would be redundant.
             // Instead just log the new target then the diff vs the old target (below)
         } catch (Exception e) {
-            LOGGER.error(String.format(
+            logger.error(String.format(
                     "Unable to get JSON representation of old target config object %s, " +
                             "skipping diff vs new target: %s",
                     oldConfigId, oldConfig), e);
@@ -262,10 +263,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         }
     }
 
-    private static boolean needsConfigUpdate(
-            Protos.TaskInfo taskInfo, ServiceSpec targetConfig, ServiceSpec taskConfig) {
+    private boolean needsConfigUpdate(Protos.TaskInfo taskInfo, ServiceSpec targetConfig, ServiceSpec taskConfig) {
         if (targetConfig.equals(taskConfig)) {
-            LOGGER.info("Task '{}' is up to date: Task's target ServiceSpec matches the current ServiceSpec",
+            logger.info("Task '{}' is up to date: Task's target ServiceSpec matches the current ServiceSpec",
                     taskInfo.getName());
             return false;
         }
@@ -277,7 +277,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             podType = reader.getType();
             isPermanentlyFailed = reader.isPermanentlyFailed();
         } catch (TaskException e) {
-            LOGGER.error(String.format(
+            logger.error(String.format(
                     "Unable to extract pod type from task '%s'. Will assume the task needs a configuration update",
                     taskInfo.getName()), e);
             return true;
@@ -292,7 +292,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         Optional<PodSpec> targetSpecOptional = getPodSpec(targetConfig, podType);
         Optional<PodSpec> taskSpecOptional = getPodSpec(taskConfig, podType);
         if (!targetSpecOptional.isPresent() || !taskSpecOptional.isPresent()) {
-            LOGGER.info("Task '{}' needs a configuration update: " +
+            logger.info("Task '{}' needs a configuration update: " +
                     "PodSpec '{}' was {} in task's config, but is {} in current target config",
                     taskInfo.getName(),
                     podType,
@@ -303,10 +303,10 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
         boolean updateNeeded = !areMatching(targetSpecOptional.get(), taskSpecOptional.get());
         if (updateNeeded) {
-            LOGGER.info("Task '{}' needs a configuration update: PodSpec '{}' has changed",
+            logger.info("Task '{}' needs a configuration update: PodSpec '{}' has changed",
                     taskInfo.getName(), podType);
         } else {
-            LOGGER.info("Task '{}' is up to date: PodSpec '{}' is the same", taskInfo.getName(), podType);
+            logger.info("Task '{}' is up to date: PodSpec '{}' is the same", taskInfo.getName(), podType);
         }
         return updateNeeded;
     }
@@ -360,7 +360,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
                 configsToClear.add(configId);
             }
         }
-        LOGGER.info("Cleaning up {} unused configs: {}", configsToClear.size(), configsToClear);
+        logger.info("Cleaning up {} unused configs: {}", configsToClear.size(), configsToClear);
         for (UUID configToClear : configsToClear) {
             configStore.clear(configToClear);
         }

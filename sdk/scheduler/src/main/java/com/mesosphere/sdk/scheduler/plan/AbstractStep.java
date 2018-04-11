@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -17,7 +18,7 @@ public abstract class AbstractStep implements Step {
     /**
      * Non-static to ensure that we inherit the names of subclasses.
      */
-    protected final Logger logger = LoggingUtils.getLogger(getClass());
+    protected final Logger logger;
 
     protected UUID id = UUID.randomUUID();
     private final String name;
@@ -26,9 +27,10 @@ public abstract class AbstractStep implements Step {
     private Status status;
     private boolean interrupted;
 
-    protected AbstractStep(String name, Status status) {
+    protected AbstractStep(String name, Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.name = name;
-        this.status = status;
+        this.status = Status.PENDING;
         this.interrupted = false;
     }
 

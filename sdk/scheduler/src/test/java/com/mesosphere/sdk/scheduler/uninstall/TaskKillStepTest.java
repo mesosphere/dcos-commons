@@ -34,7 +34,7 @@ public class TaskKillStepTest {
     }
 
     private TaskKillStep createStep() {
-        TaskKillStep step = new TaskKillStep(taskID);
+        TaskKillStep step = new TaskKillStep(taskID, Optional.empty());
         return step;
     }
 }

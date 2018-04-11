@@ -15,11 +15,12 @@ import java.util.stream.Collectors;
  * Records the result of launched tasks to persistent storage.
  */
 public class PersistentLaunchRecorder {
-    private final Logger logger = LoggingUtils.getLogger(getClass());
+    private final Logger logger;
     private final StateStore stateStore;
     private final ServiceSpec serviceSpec;
 
-    public PersistentLaunchRecorder(StateStore stateStore, ServiceSpec serviceSpec) {
+    public PersistentLaunchRecorder(StateStore stateStore, ServiceSpec serviceSpec, Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.stateStore = stateStore;
         this.serviceSpec = serviceSpec;
     }
@@ -117,11 +118,13 @@ public class PersistentLaunchRecorder {
                 .map(taskInfoOptional -> taskInfoOptional.get())
                 .collect(Collectors.toList());
 
-        List<String> taskIds = taskInfosToUpdate.stream()
-                .map(taskInfoToUpdate -> taskInfoToUpdate.getTaskId().getValue())
-                .collect(Collectors.toList());
-        logger.info("Updating resources for other tasks sharing resource set '{}': names={} => ids={}",
-                sourceTaskSpec.getResourceSet().getId(), taskNamesToUpdate, taskIds);
+        if (!taskInfosToUpdate.isEmpty()) {
+            List<String> taskIds = taskInfosToUpdate.stream()
+                    .map(taskInfoToUpdate -> taskInfoToUpdate.getTaskId().getValue())
+                    .collect(Collectors.toList());
+            logger.info("Updating resources for other tasks sharing resource set '{}': names={} => ids={}",
+                    sourceTaskSpec.getResourceSet().getId(), taskNamesToUpdate, taskIds);
+        }
 
         return taskInfosToUpdate;
     }

@@ -606,7 +606,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("task-name")).build();
-        DeploymentStep deploymentStep = new DeploymentStep("test-step", podInstanceRequirement, stateStore);
+        DeploymentStep deploymentStep =
+                new DeploymentStep("test-step", podInstanceRequirement, stateStore, Optional.empty());
 
         Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
@@ -874,7 +875,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
-        new PersistentLaunchRecorder(stateStore, serviceSpec).record(recommendations);
+        new PersistentLaunchRecorder(stateStore, serviceSpec, Optional.empty()).record(recommendations);
     }
 
     private ServiceSpec getServiceSpec(String specFileName) throws Exception {

@@ -45,7 +45,6 @@ import java.util.stream.Collectors;
  * one pod at a time, and only unreserve pods that are marked as DECOMMISSIONED+IN_PROGRESS.</li></ul>
  */
 public class DecommissionPlanFactory {
-    private static final Logger LOGGER = LoggingUtils.getLogger(DecommissionPlanFactory.class);
 
     /**
      * The status for a task whose resources should be unreserved because its resources are currently being
@@ -57,10 +56,11 @@ public class DecommissionPlanFactory {
     private final PlanInfo planInfo;
     private final SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission;
 
-    public DecommissionPlanFactory(ServiceSpec serviceSpec, StateStore stateStore) {
+    public DecommissionPlanFactory(ServiceSpec serviceSpec, StateStore stateStore, Optional<String> namespace) {
+        Logger logger = LoggingUtils.getLogger(getClass(), namespace);
         Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
-        this.podsToDecommission = getPodsToDecommission(serviceSpec, allTasks);
-        this.planInfo = buildPlanInfo(serviceSpec, stateStore, allTasks, podsToDecommission);
+        this.podsToDecommission = getPodsToDecommission(logger, serviceSpec, allTasks);
+        this.planInfo = buildPlanInfo(logger, serviceSpec, stateStore, allTasks, podsToDecommission, namespace);
     }
 
     /**
@@ -99,10 +99,12 @@ public class DecommissionPlanFactory {
      * Returns a {@link Plan} for decommissioning tasks, or an empty {@link Optional} if no decommission is necessary.
      */
     private static PlanInfo buildPlanInfo(
+            Logger logger,
             ServiceSpec serviceSpec,
             StateStore stateStore,
             Collection<Protos.TaskInfo> allTasks,
-            SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission) {
+            SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission,
+            Optional<String> namespace) {
         // Determine which tasks should be decommissioned (and which shouldn't)
         Set<String> tasksToDecommission = new HashSet<>();
         for (Collection<Protos.TaskInfo> podTasks : podsToDecommission.values()) {
@@ -116,7 +118,7 @@ public class DecommissionPlanFactory {
             if (tasksToDecommission.contains(task.getName())) {
                 if (taskOverride.target != GoalStateOverride.DECOMMISSIONED) {
                     // Set decommission bit: Task to be decommissioned hasn't been marked as such yet
-                    LOGGER.info("Marking '{}' as pending decommission", task.getName());
+                    logger.info("Marking '{}' as pending decommission", task.getName());
                     stateStore.storeGoalOverrideStatus(task.getName(),
                             GoalStateOverride.DECOMMISSIONED.newStatus(GoalStateOverride.Progress.PENDING));
                 }
@@ -124,7 +126,7 @@ public class DecommissionPlanFactory {
                 if (taskOverride.target == GoalStateOverride.DECOMMISSIONED) {
                     // Clear decommission bit: Task isn't targeted for decommissioning anymore
                     // This can happen if a prior decommission operation was aborted
-                    LOGGER.info("Clearing prior '{}' decommission state", task.getName());
+                    logger.info("Clearing prior '{}' decommission state", task.getName());
                     stateStore.storeGoalOverrideStatus(task.getName(), GoalStateOverride.Status.INACTIVE);
                 }
             }
@@ -142,7 +144,7 @@ public class DecommissionPlanFactory {
 
             // 1. Kill pod's tasks
             steps.addAll(entry.getValue().stream()
-                    .map(task -> new TriggerDecommissionStep(stateStore, task))
+                    .map(task -> new TriggerDecommissionStep(stateStore, task, namespace))
                     .collect(Collectors.toList()));
 
             // 2. Unreserve pod's resources
@@ -150,7 +152,7 @@ public class DecommissionPlanFactory {
             // parallel, as all the tasks had been flagged for decommissioning via TriggerDecommissionStep.
             Collection<ResourceCleanupStep> resourceStepsForPod =
                     ResourceUtils.getResourceIds(ResourceUtils.getAllResources(entry.getValue())).stream()
-                            .map(resourceId -> new ResourceCleanupStep(resourceId, Status.PENDING))
+                            .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
                             .collect(Collectors.toList());
             resourceSteps.addAll(resourceStepsForPod);
             steps.addAll(resourceStepsForPod);
@@ -158,7 +160,7 @@ public class DecommissionPlanFactory {
             // 3. Delete pod's tasks from ZK
             // Note: As a side effect, this will also clear the override status.
             steps.addAll(entry.getValue().stream()
-                    .map(task -> new EraseTaskStateStep(stateStore, task.getName()))
+                    .map(task -> new EraseTaskStateStep(stateStore, task.getName(), namespace))
                     .collect(Collectors.toList()));
 
             phases.add(new DefaultPhase(
@@ -240,7 +242,7 @@ public class DecommissionPlanFactory {
      */
     @VisibleForTesting
     static SortedMap<PodKey, Collection<Protos.TaskInfo>> getPodsToDecommission(
-            ServiceSpec serviceSpec, Collection<Protos.TaskInfo> tasks) {
+            Logger logger, ServiceSpec serviceSpec, Collection<Protos.TaskInfo> tasks) {
         // If multiple pod types are being decommissioned, they should be decommissioned in the reverse of the order
         // that they're declared in the ServiceSpec (opposite direction of default deployment)
         List<String> orderedPodTypes =
@@ -249,7 +251,7 @@ public class DecommissionPlanFactory {
 
         Map<String, Integer> expectedPodCounts =
                 serviceSpec.getPods().stream().collect(Collectors.toMap(PodSpec::getType, PodSpec::getCount));
-        LOGGER.info("Expected pod counts: {}", expectedPodCounts);
+        logger.info("Expected pod counts: {}", expectedPodCounts);
         SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission = new TreeMap<>();
         for (Protos.TaskInfo task : tasks) {
             final PodKey podKey;
@@ -257,17 +259,17 @@ public class DecommissionPlanFactory {
                 TaskLabelReader labelReader = new TaskLabelReader(task);
                 podKey = new PodKey(labelReader.getType(), labelReader.getIndex(), orderedPodTypes);
             } catch (TaskException e) {
-                LOGGER.error(String.format(
+                logger.error(String.format(
                         "Failed to retrieve task metadata. Omitting task from decommission: %s", task.getName()), e);
                 continue;
             }
 
             Integer expectedPodCount = expectedPodCounts.get(podKey.podType);
             if (expectedPodCount == null) {
-                LOGGER.info("Scheduling '{}' for decommission: '{}' is not present in service spec: {}",
+                logger.info("Scheduling '{}' for decommission: '{}' is not present in service spec: {}",
                         task.getName(), podKey.podType, expectedPodCounts.keySet());
             } else if (podKey.podIndex >= expectedPodCount) {
-                LOGGER.info("Scheduling '{}' for decommission: '{}' exceeds desired pod count {}",
+                logger.info("Scheduling '{}' for decommission: '{}' exceeds desired pod count {}",
                         task.getName(), podKey.getPodName(), expectedPodCount);
             } else {
                 // Do nothing
@@ -280,7 +282,7 @@ public class DecommissionPlanFactory {
             }
             podTasks.add(task);
         }
-        LOGGER.info("Pods scheduled for decommission: {}", podsToDecommission.keySet());
+        logger.info("Pods scheduled for decommission: {}", podsToDecommission.keySet());
         return podsToDecommission;
     }
 }

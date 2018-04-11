@@ -24,6 +24,7 @@ import java.util.stream.IntStream;
  * environments.
  */
 public class PortEvaluationStage implements OfferEvaluationStage {
+
     private final Logger logger;
     private final PortSpec portSpec;
     private final String taskName;
@@ -87,7 +88,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         if (useHostPorts) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
-                            this, updatedPortSpec, resourceId, resourceNamespace, mesosResourcePool);
+                            logger, this, updatedPortSpec, resourceId, resourceNamespace, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;

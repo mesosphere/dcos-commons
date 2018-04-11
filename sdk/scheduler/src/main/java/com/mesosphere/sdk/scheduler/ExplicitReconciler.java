@@ -42,8 +42,8 @@ public class ExplicitReconciler {
     private long lastRequestTimeMs;
     private long backOffMs;
 
-    public ExplicitReconciler(StateStore stateStore) {
-        this.logger = LoggingUtils.getLogger(getClass());
+    public ExplicitReconciler(StateStore stateStore, Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.stateStore = stateStore;
         resetTimerValues();
     }
@@ -122,7 +122,7 @@ public class ExplicitReconciler {
                 } else {
                     // Timer has not expired yet, do nothing for this call
                     logger.info("Too soon since last explicit reconciliation trigger. Waiting at "
-                            + "least {}ms before next explicit reconciliation ({} remaining task{})",
+                            + "least {}ms before sending explicit reconciliation request for {} remaining task{}",
                             lastRequestTimeMs + backOffMs - nowMs,
                             unreconciled.size(),
                             unreconciled.size() == 1 ? "" : "s");
