@@ -201,7 +201,7 @@
         "disk": {
           "description": "World pod persistent disk requirements (in MB)",
           "type": "integer",
-          "default": 50
+          "default": 25
         },
         "count": {
           "description": "Number of World pods to run",

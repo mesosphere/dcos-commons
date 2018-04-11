@@ -147,10 +147,9 @@ def wait_for_service_count(count):
 def service_params(service_name):
     return {
         'FRAMEWORK_NAME': service_name,
+        'FRAMEWORK_PRINCIPAL': '',
+        'FRAMEWORK_USER': 'nobody',
         'SLEEP_DURATION': 1000, # seconds
-
-        'SERVICE_PRINCIPAL': '',
-        'SERVICE_USER': 'nobody',
 
         'HELLO_COUNT': '1',
         'HELLO_CPUS': '0.1',
