@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite {
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
     private static final PodSpec podSpec =
-            DefaultPodSpec.newBuilder("executor-uri", "type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
+            DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
 
     private static final String ATTRIB_NAME = "rack_id";

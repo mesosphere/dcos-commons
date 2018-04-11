@@ -48,11 +48,6 @@ public class Capabilities {
         return dcosVersion;
     }
 
-    public boolean supportsDefaultExecutor() {
-        // Use of the default executor is supported by DC/OS 1.10 upwards.
-        return hasOrExceedsVersion(1, 10);
-    }
-
     public boolean supportsNamedVips() {
         // Named Vips are supported by DC/OS 1.8 upwards.
         return hasOrExceedsVersion(1, 8);

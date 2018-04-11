@@ -70,7 +70,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
             @JsonProperty("allow-decommission") Boolean allowDecommission) {
         this(
-                new Builder(Optional.empty(), type, count, tasks) // Assume that Executor URI is already present
+                new Builder(type, count, tasks)
                         .type(type)
                         .user(user)
                         .count(count)
@@ -105,13 +105,12 @@ public class DefaultPodSpec implements PodSpec {
         ValidationUtils.validate(this);
     }
 
-    public static Builder newBuilder(String executorUri, String type, int count, List<TaskSpec> tasks) {
-        return new Builder(Optional.of(executorUri), type, count, tasks);
+    public static Builder newBuilder(String type, int count, List<TaskSpec> tasks) {
+        return new Builder(type, count, tasks);
     }
 
     public static Builder newBuilder(PodSpec copy) {
         Builder builder = new Builder(
-                Optional.empty(), // Assume that Executor URI is already present
                 copy.getType(),
                 copy.getCount(),
                 copy.getTasks());
@@ -218,8 +217,6 @@ public class DefaultPodSpec implements PodSpec {
      * {@code DefaultPodSpec} builder static inner class.
      */
     public static final class Builder {
-        private final Optional<String> executorUri;
-
         private String type;
         private String user;
         private Integer count;
@@ -235,8 +232,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
 
-        private Builder(Optional<String> executorUri, String type, int count, List<TaskSpec> tasks) {
-            this.executorUri = executorUri;
+        private Builder(String type, int count, List<TaskSpec> tasks) {
             this.type = type;
             this.count = count;
             this.tasks = new ArrayList<>(tasks);
@@ -467,16 +463,6 @@ public class DefaultPodSpec implements PodSpec {
          * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
          */
         public DefaultPodSpec build() {
-            if (executorUri.isPresent()) {
-                // Inject the executor URI as one of the pods URIs. This ensures
-                // that the scheduler properly tracks changes to executors
-                // (reflected in changes to the executor URI)
-                URI actualURI = URI.create(executorUri.get());
-                if (this.uris == null || !this.uris.contains(actualURI)) {
-                    this.addUri(actualURI);
-                }
-            }
-
             DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);
             return defaultPodSpec;
         }

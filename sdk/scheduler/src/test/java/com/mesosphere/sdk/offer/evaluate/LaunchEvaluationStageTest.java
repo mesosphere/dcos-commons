@@ -29,7 +29,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     public void beforeEach() throws InvalidRequirementException {
         Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
 
-        stage = new LaunchEvaluationStage(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME, true, true);
+        stage = new LaunchEvaluationStage(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME, true);
         offer = OfferTestUtils.getOffer(offeredResource);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
         podInfoBuilder = new PodInfoBuilder(
@@ -40,7 +40,6 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
     }
 

@@ -370,7 +370,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(
-                        "executor-uri",
                         TestConstants.POD_TYPE,
                         1,
                         Arrays.asList(taskSpecA, taskSpecB))

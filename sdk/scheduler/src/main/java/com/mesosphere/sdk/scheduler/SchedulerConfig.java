@@ -55,8 +55,6 @@ public class SchedulerConfig {
     /** The default number of seconds before auth token expiration that will trigger auth token refresh. */
     private static final int DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S = 30;
 
-    /** Specifies the URI of the executor artifact to be used when launching tasks. */
-    private static final String EXECUTOR_URI_ENV = "EXECUTOR_URI";
     /** Specifies the URI of the bootstrap artifact to be used when launching stopped tasks. */
     private static final String BOOTSTRAP_URI_ENV = "BOOTSTRAP_URI";
     /** Specifies the URI of the libmesos package used by the scheduler itself. */
@@ -196,10 +194,6 @@ public class SchedulerConfig {
      */
     public int getApiServerPort() {
         return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
-    }
-
-    public String getExecutorURI() {
-        return envStore.getRequired(EXECUTOR_URI_ENV);
     }
 
     public String getBootstrapURI() {

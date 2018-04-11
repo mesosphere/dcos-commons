@@ -10,7 +10,6 @@ pods:
       - {{KAFKA_URI}}
       - {{KAFKA_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
-      - {{EXECUTOR_URI}}
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
