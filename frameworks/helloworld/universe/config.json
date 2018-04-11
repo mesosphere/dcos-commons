@@ -177,7 +177,7 @@
           "default": 0
         },
         "isolation": {
-          "description": "",
+          "description": "boolean flag to control isolation",
           "type": "boolean",
           "default": false
         }

@@ -8,7 +8,6 @@ SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
 import collections
 import logging
 import time
-import os
 
 import dcos.cosmos
 import dcos.errors
