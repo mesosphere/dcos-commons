@@ -22,7 +22,7 @@ See [marathon.json.mustache](universe/marathon.json.mustache) for more informati
     "MARATHON_SINGLE_INSTANCE_APP":"true",
     "DCOS_SERVICE_NAME": "{{service.name}}",
     "DCOS_SERVICE_PORT_INDEX": "0",
-    "DCOS_SERVICE_SCHEME": "http”
+    "DCOS_SERVICE_SCHEME": "http"
 [...]
   "portDefinitions": [
     {

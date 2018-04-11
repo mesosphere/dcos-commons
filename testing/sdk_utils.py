@@ -7,6 +7,9 @@ SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 import functools
 import logging
 import operator
+import random
+import string
+from distutils.version import LooseVersion
 
 import dcos
 import shakedown
@@ -72,6 +75,11 @@ def get_zk_path(service_name):
 
 
 @functools.lru_cache()
+def dcos_version():
+    return shakedown.dcos_version()
+
+
+@functools.lru_cache()
 def dcos_version_less_than(version):
     return shakedown.dcos_version_less_than(version)
 
@@ -107,6 +115,20 @@ def is_open_dcos():
 def is_strict_mode():
     '''Determine if the tests are being run on a strict mode cluster.'''
     return os.environ.get('SECURITY', '') == 'strict'
+
+
+def random_string(length=8):
+    return ''.join(
+        random.choice(
+            string.ascii_lowercase +
+            string.digits
+        ) for _ in range(length)
+    )
+
+
+def is_repo_supported(dcos_ver: str, min_dcos_version: str) -> bool:
+    return LooseVersion(dcos_ver.rstrip("-dev")) > \
+           LooseVersion(min_dcos_version.rstrip("-dev"))
 
 
 dcos_ee_only = pytest.mark.skipif(

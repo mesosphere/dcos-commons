@@ -11,6 +11,7 @@ import retrying
 import shakedown
 import dcos.errors
 import sdk_cmd
+import sdk_package_registry
 import sdk_plan
 
 
@@ -140,7 +141,9 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
 
     server_tasks = [
         task for task in get_summary()
-        if task_name_pattern.match(task.name)]
+        if task_name_pattern.match(task.name) and
+        task.name != sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME
+    ]
 
     avoid_tasks = [task for task in server_tasks if task.host != scheduler_ip]
     log.info('Found tasks avoiding scheduler at {}: {}'.format(scheduler_ip, avoid_tasks))
