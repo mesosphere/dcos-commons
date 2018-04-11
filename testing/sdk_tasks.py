@@ -145,7 +145,15 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
         task.name != sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME
     ]
 
-    avoid_tasks = [task for task in server_tasks if task.host != scheduler_ip]
+    # Always avoid package registry (if present)
+    registry_ips = shakedown.get_service_ips(
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME
+    )
+
+    avoid_tasks = [
+        task for task in server_tasks
+        if (task.host != scheduler_ip and task.host not in registry_ips)
+    ]
     log.info('Found tasks avoiding scheduler at {}: {}'.format(scheduler_ip, avoid_tasks))
     return avoid_tasks
 
