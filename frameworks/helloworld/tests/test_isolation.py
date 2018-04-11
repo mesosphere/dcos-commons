@@ -19,29 +19,25 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            foldered_name,
-            config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name, "yaml": "isolation"}})
-
-        yield  # let the test session execute
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        yield
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 def test_tmp_directory_created():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    config.check_running(foldered_name)
 
-    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        0,
+        additional_options={"service": {"name": config.SERVICE_NAME, "yaml": "isolation"}},
+        wait_for_deployment=False)
 
-    code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo foo > /tmp/foo")
+    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
 
-    assert code > 0
+    assert pl['status'] != 'COMPLETE'
 
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config['env']['HELLO_ISOLATION'] = 'true'
@@ -50,13 +46,8 @@ def test_tmp_directory_created():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
-    code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar")
 
-    assert code > 0
 
-    code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "cat /tmp/bar |  grep bar")
-
-    assert code > 0
 
 
 

@@ -254,7 +254,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
             // Instead just log the new target then the diff vs the old target (below)
         } catch (Exception e) {
             LOGGER.error(String.format(
-                    "Unable to get JSON representation of old target config object %s, " +
+                    "Unable to get JSON representation of old target config xobject %s, " +
                             "skipping diff vs new target: %s",
                     oldConfigId, oldConfig), e);
             // Don't add a validation error: That'd prevent the new config from replacing this one,

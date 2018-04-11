@@ -481,7 +481,7 @@ public class DefaultPodSpec implements PodSpec {
          * @return a reference to this Builder
          */
         public Builder isolateTmp(Boolean isolateTmp) {
-            this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
+            this.isolateTmp = isolateTmp != null && isolateTmp;
             return this;
         }
 
