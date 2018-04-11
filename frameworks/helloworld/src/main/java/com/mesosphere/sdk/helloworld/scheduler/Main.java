@@ -108,12 +108,13 @@ public class Main {
 
         ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
                 schedulerConfig,
-                frameworkConfig.getFrameworkName(),
+                frameworkConfig,
                 persister,
                 scenarios,
                 multiServiceManager);
 
-        // Recover any previously added services.
+        // Recover any previously added services. This MUST be performed to recover the set of active services following
+        // a scheduler restart. It also MUST be performed BEFORE we start running the framework thread below.
         httpResource.recover();
 
         // Set up the client and run the framework:

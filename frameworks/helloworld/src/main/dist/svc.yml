@@ -57,11 +57,11 @@ pods:
           vol1:
             path: world-container-path1
             type: ROOT
-            size: {{HELLO_DISK}}
+            size: {{WORLD_DISK}}
           vol2:
             path: world-container-path2
             type: ROOT
-            size: {{HELLO_DISK}}
+            size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:

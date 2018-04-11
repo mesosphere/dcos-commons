@@ -6,15 +6,10 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 
-import json
 import logging
-import os.path
-import traceback
-
 import retrying
 
 import sdk_cmd
-import sdk_utils
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
@@ -29,23 +24,31 @@ def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
 def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return get_plan(service_name, 'recovery', timeout_seconds)
 
+
 def get_decommission_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return get_plan(service_name, 'decommission', timeout_seconds)
 
-def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return sdk_cmd.service_request('GET', service_name, '/v1/plans', timeout_seconds=timeout_seconds).json()
+
+def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+    if multiservice_name is None:
+        path = '/v1/plans'
+    else:
+        path = '/v1/service/{}/plans'.format(multiservice_name)
+    return sdk_cmd.service_request('GET', service_name, path, timeout_seconds=timeout_seconds).json()
 
 
-def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS):
+def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+    if multiservice_name is None:
+        path = '/v1/plans/{}'.format(plan)
+    else:
+        path = '/v1/service/{}/plans/{}'.format(multiservice_name, plan)
+
     # We need to DIY error handling/retry because the query will return 417 if the plan has errors.
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds*1000)
     def wait_for_plan():
-        response = sdk_cmd.service_request(
-            'GET', service_name, '/v1/plans/{}'.format(plan),
-            retry=False,
-            raise_on_error=False)
+        response = sdk_cmd.service_request('GET', service_name, path, retry=False, raise_on_error=False)
         if response.status_code == 417:
             return response # avoid throwing, return plan with errors
         response.raise_for_status()
@@ -104,7 +107,7 @@ def wait_for_starting_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECO
     return wait_for_plan_status(service_name, plan_name, 'STARTING', timeout_seconds)
 
 
-def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS):
+def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
     '''Wait for a plan to have one of the specified statuses'''
     if isinstance(status, str):
         statuses = [status, ]
@@ -116,7 +119,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: not res)
     def fn():
-        plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
+        plan = get_plan(service_name, plan_name, timeout_seconds=SHORT_TIMEOUT_SECONDS, multiservice_name=multiservice_name)
         log.info('Waiting for {} plan to have {} status:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
         if plan and plan['status'] in statuses:
@@ -174,6 +177,13 @@ def get_phase(plan, name):
 
 def get_step(phase, name):
     return get_child(phase, 'steps', name)
+
+
+def get_all_step_names(plan):
+    steps = []
+    for phase in plan['phases']:
+        steps += [step['name'] for step in phase['steps']]
+    return steps
 
 
 def get_child(parent, children_field, name):

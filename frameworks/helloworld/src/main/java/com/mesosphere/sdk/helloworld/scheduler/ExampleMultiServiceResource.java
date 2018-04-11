@@ -4,15 +4,19 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.io.FileUtils;
@@ -21,6 +25,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -57,65 +62,79 @@ public class ExampleMultiServiceResource {
     private static class ContextData {
         private final String serviceName;
         private final String yamlName;
+        private final Map<String, String> yamlParameters;
 
-        private ContextData(String serviceName, String yamlName) {
+        private ContextData(String serviceName, String yamlName, Map<String, String> yamlParameters) {
             this.serviceName = serviceName;
             this.yamlName = yamlName;
+            this.yamlParameters = new TreeMap<>(yamlParameters);
         }
 
         private static ContextData deserialize(byte[] context) {
             JSONObject obj = new JSONObject(new String(context, CHARSET));
-            return new ContextData(obj.getString("name"), obj.getString("yaml"));
+            Map<String, String> params = new TreeMap<>();
+            JSONArray jsonParams = obj.getJSONArray("params");
+            for (int i = 0; i < jsonParams.length(); ++i) {
+                JSONObject jsonParam = jsonParams.getJSONObject(i);
+                params.put(jsonParam.getString("key"), jsonParam.getString("value"));
+            }
+            return new ContextData(obj.getString("name"), obj.getString("yaml"), params);
         }
 
         private byte[] serialize() {
             JSONObject obj = new JSONObject();
             obj.put("name", serviceName);
             obj.put("yaml", yamlName);
+            JSONArray params = new JSONArray();
+            for (Map.Entry<String, String> entry : yamlParameters.entrySet()) {
+                JSONObject jsonEntry = new JSONObject();
+                jsonEntry.put("key", entry.getKey());
+                jsonEntry.put("value", entry.getValue());
+                params.put(jsonEntry);
+            }
+            obj.put("params", params);
             return obj.toString().getBytes(CHARSET);
         }
     }
 
-    private final ServiceFactory factory = new ServiceFactory() {
-        @Override
-        public AbstractScheduler buildService(byte[] context) throws Exception {
-            // Generate a ServiceSpec from the provided yaml file name, which is in the context
-            ContextData contextData = ContextData.deserialize(context);
-
-            File yamlFile = getYamlFile(contextData.yamlName);
-            RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
-            ServiceSpec serviceSpec =
-                    DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile()).build();
-
-            // Override the service name in the yaml file with the name provided by the user.
-            serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).name(contextData.serviceName).build();
-
-            SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
-                    .setPlansFrom(rawServiceSpec)
-                    .enableMultiService(frameworkName);
-            return Scenario.customize(builder, scenarios).build();
-        }
-    };
-
-    private final SchedulerConfig schedulerConfig;
-    private final String frameworkName;
-    private final Persister persister;
-    private final Collection<Scenario.Type> scenarios;
     private final MultiServiceManager multiServiceManager;
     private final ServiceStore serviceStore;
 
     ExampleMultiServiceResource(
             SchedulerConfig schedulerConfig,
-            String frameworkName,
+            FrameworkConfig frameworkConfig,
             Persister persister,
             Collection<Scenario.Type> scenarios,
             MultiServiceManager multiServiceManager) {
-        this.schedulerConfig = schedulerConfig;
-        this.frameworkName = frameworkName;
-        this.persister = persister;
-        this.scenarios = scenarios;
         this.multiServiceManager = multiServiceManager;
-        this.serviceStore = new ServiceStore(persister, factory);
+        ServiceFactory serviceFactory = new ServiceFactory() {
+            @Override
+            public AbstractScheduler buildService(byte[] context) throws Exception {
+                // Generate a ServiceSpec from the provided yaml file name, which is in the context
+                ContextData contextData = ContextData.deserialize(context);
+
+                File yamlFile = getYamlFile(contextData.yamlName);
+                // Render service specs using the provided parameters instead of the scheduler env:
+                RawServiceSpec rawServiceSpec =
+                        RawServiceSpec.newBuilder(yamlFile).setEnv(contextData.yamlParameters).build();
+                ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
+                        rawServiceSpec, schedulerConfig, contextData.yamlParameters, yamlFile.getParentFile())
+                        // Override any framework-level params in the servicespec (role, principal, ...) with ours:
+                        .setMultiServiceFrameworkConfig(frameworkConfig)
+                        .build();
+
+                // Override the service name in the yaml file with the name provided by the user.
+                serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)
+                        .name(contextData.serviceName)
+                        .build();
+
+                SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
+                        .setPlansFrom(rawServiceSpec)
+                        .enableMultiService(frameworkConfig.getFrameworkName());
+                return Scenario.customize(builder, scenarios).build();
+            }
+        };
+        this.serviceStore = new ServiceStore(persister, serviceFactory);
     }
 
     /**
@@ -197,11 +216,15 @@ public class ExampleMultiServiceResource {
      */
     @Path("{serviceName}")
     @POST
-    public Response add(@PathParam("serviceName") String serviceName, @QueryParam("yaml") String yamlName) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response add(
+            @PathParam("serviceName") String serviceName,
+            @QueryParam("yaml") String yamlName,
+            Map<String, String> yamlParameters) {
         // Create an AbstractScheduler using the specified file, bailing if it doesn't work.
         AbstractScheduler service;
         try {
-            service = serviceStore.put(new ContextData(serviceName, yamlName).serialize());
+            service = serviceStore.put(new ContextData(serviceName, yamlName, yamlParameters).serialize());
         } catch (Exception e) {
             LOGGER.error("Failed to generate or persist service", e);
             return ResponseUtils.plainResponse(

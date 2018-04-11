@@ -16,7 +16,10 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
  * Default implementation of persistent storage which keeps track of the services that have been added to a dynamic
- * multi-scheduler. For each service entry, the developer is provided with
+ * multi-scheduler. The developer is expected to provide a {@link ServiceFactory} callback which constructs the service
+ * objects themselves. This callback is provided with a 100KB {@code context} buffer for each service to store
+ * sufficient information to reconstruct that service. The flow is intentionally structured so that
+ * {@link ServiceFactory} is exercised at least once before the {@code context} is persisted.
  */
 public class ServiceStore {
 

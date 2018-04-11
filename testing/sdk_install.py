@@ -186,7 +186,7 @@ def uninstall(
 
     try:
         retried_uninstall_package_and_wait(package_name, service_name=service_name)
-    except Exception as e:
+    except Exception:
         log.info('Got exception when uninstalling {}'.format(service_name))
         log.info(traceback.format_exc())
         raise
@@ -204,7 +204,7 @@ def uninstall(
             log.info('Waiting for Marathon app to be removed {}'.format(service_name))
             sdk_marathon.retried_wait_for_deployment_and_app_removal(
                 sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS)
-    except Exception as e:
+    except Exception:
         log.info('Got exception when cleaning up {}'.format(service_name))
         log.info(traceback.format_exc())
         raise
