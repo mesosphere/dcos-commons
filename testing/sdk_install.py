@@ -122,7 +122,6 @@ def install(
     # This should be skipped ONLY when it's known that the scheduler will be stuck in an incomplete
     # state, or if the thing being installed doesn't have a deployment plan (e.g. standalone app)
     if wait_for_deployment:
-        os.exit(1)
         # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
         # total task count via FINISHED tasks, without actually completing deployment
         log.info('Waiting for package={} service={} to finish deployment plan...'.format(

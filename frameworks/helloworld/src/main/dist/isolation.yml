@@ -9,18 +9,9 @@ pods:
     tasks:
       server:
         goal: FINISHED
-        cmd: echo foo > /tmp/foo && echo bar > /tmp/bar &&  cat /tmp/bar |  grep bar
+        cmd: echo foo > tmp/foo && echo bar > /tmp/bar && cat tmp/bar |  grep bar
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-plans:
-  deploy:
-    strategy: parallel
-    phases:
-      hello-deploy:
-        strategy: serial
-        pod: hello
-        steps:
-          - default: [[server]]
 
