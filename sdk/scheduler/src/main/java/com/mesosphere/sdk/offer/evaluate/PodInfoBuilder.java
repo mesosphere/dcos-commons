@@ -606,7 +606,8 @@ public class PodInfoBuilder {
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
-                && secretVolumes.isEmpty()) {
+                && secretVolumes.isEmpty()
+                && podSpec.getIsolateTmp() == false) {
             // Nothing left to do.
             return containerInfo.build();
         }
@@ -636,6 +637,21 @@ public class PodInfoBuilder {
             for (Protos.Volume secretVolume : secretVolumes) {
                 containerInfo.addVolumes(secretVolume);
             }
+        }
+
+        if (isTaskContainer && podSpec.getIsolateTmp()) {
+            // Isolate the tmp directory of tasks
+            containerInfo.addVolumes(Protos.Volume.newBuilder()
+                .setContainerPath("/tmp")
+                .setMode(Protos.Volume.Mode.RW)
+                .setSource(Protos.Volume.Source.newBuilder()
+                        .setType(Protos.Volume.Source.Type.SANDBOX_PATH)
+                        .setSandboxPath(Protos.Volume.Source.SandboxPath.newBuilder()
+                                .setPath("tmp")
+                                .setType(Protos.Volume.Source.SandboxPath.Type.SELF)
+                                .build())
+                        .build())
+            );
         }
 
         return containerInfo.build();
