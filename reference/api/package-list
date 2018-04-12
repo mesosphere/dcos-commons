@@ -4,7 +4,6 @@ com.mesosphere.sdk.curator
 com.mesosphere.sdk.dcos
 com.mesosphere.sdk.dcos.auth
 com.mesosphere.sdk.dcos.clients
-com.mesosphere.sdk.executor
 com.mesosphere.sdk.framework
 com.mesosphere.sdk.http
 com.mesosphere.sdk.http.endpoints
