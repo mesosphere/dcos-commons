@@ -6,9 +6,6 @@ project(":sdk/common").name = "common"
 include 'sdk/scheduler'
 project(":sdk/scheduler").name = "scheduler"
 
-include 'sdk/executor'
-project(":sdk/executor").name = "executor"
-
 include 'sdk/testing'
 project(":sdk/testing").name = "testing"
 
