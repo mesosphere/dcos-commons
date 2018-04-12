@@ -1,0 +1,16 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    isolate-tmp: {{HELLO_ISOLATION}}
+    tasks:
+      server:
+        goal: FINISHED
+        cmd: echo foo > tmp/foo && echo bar > /tmp/bar && cat tmp/bar |  grep bar
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+
+
