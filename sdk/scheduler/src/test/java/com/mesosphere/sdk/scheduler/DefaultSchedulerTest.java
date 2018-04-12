@@ -10,7 +10,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
-import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -225,9 +225,9 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testLaunchA() throws Exception {
-        Assert.assertEquals(StatusResponse.Result.RESERVING, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
         installStep(0, 0, getSufficientOfferForTaskA(), Status.PENDING);
-        Assert.assertEquals(StatusResponse.Result.RESERVING, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
                 getStepStatuses(getDeploymentPlan()));
     }
@@ -580,7 +580,7 @@ public class DefaultSchedulerTest {
         installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING);
 
         // Still RESERVING before the last step is completed:
-        Assert.assertEquals(StatusResponse.Result.RESERVING, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
 
         installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
 
@@ -588,21 +588,21 @@ public class DefaultSchedulerTest {
         Assert.assertTrue(getRecoveryPlan().isComplete());
 
         // Now that Deployment has finished, service is FINISHED:
-        Assert.assertEquals(StatusResponse.Result.FINISHED, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.FINISHED, defaultScheduler.getClientStatus().result);
 
         // Force recovery action, at which point scheduler should go back to RUNNING
         // (verify recovery is being monitored):
         statusUpdate(taskId, Protos.TaskState.TASK_FAILED);
 
         // Implementation detail: recovery plan doesn't wake up until offers come through
-        Assert.assertEquals(StatusResponse.Result.FINISHED, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.FINISHED, defaultScheduler.getClientStatus().result);
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertTrue(getRecoveryPlan().isComplete());
 
         Assert.assertEquals(OfferResponse.Result.PROCESSED, defaultScheduler.offers(Collections.emptyList()).result);
 
         // After giving offers a kick, we're running again:
-        Assert.assertEquals(StatusResponse.Result.RUNNING, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertFalse(getRecoveryPlan().isComplete());
     }
@@ -625,9 +625,9 @@ public class DefaultSchedulerTest {
         testLaunchB();
 
         // Launch the second instance of POD-B
-        Assert.assertEquals(StatusResponse.Result.RESERVING, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
         installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
-        Assert.assertEquals(StatusResponse.Result.RUNNING, defaultScheduler.status().result);
+        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 getStepStatuses(getDeploymentPlan()));

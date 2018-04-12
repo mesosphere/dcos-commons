@@ -134,7 +134,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     @Override
-    public StatusResponse status() {
+    public ClientStatusResponse getClientStatus() {
         // If the entire scheduler is uninstalling and there are no clients left to uninstall, then tell upstream that
         // we're uninstalled.
         boolean noClients = false;
@@ -153,7 +153,7 @@ public class MultiServiceEventClient implements MesosEventClient {
             }
             for (AbstractScheduler service : services) {
                 String serviceName = service.getServiceSpec().getName();
-                StatusResponse response = service.status();
+                ClientStatusResponse response = service.getClientStatus();
                 LOGGER.info("  {} status result: {}", serviceName, response.result);
 
                 switch (response.result) {
@@ -263,14 +263,14 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
                 // can finish with final framework cleanup. After they've finished, they will invoke unregistered(), at
                 // which point we can set our deploy plan to complete.
-                return StatusResponse.uninstalled();
+                return ClientStatusResponse.uninstalled();
             } else {
                 // No: We're just not actively running anything. Behave normally until we have work to do.
-                return StatusResponse.running();
+                return ClientStatusResponse.running();
             }
         } else {
             // Clients are still present, behave normally.
-            return StatusResponse.running();
+            return ClientStatusResponse.running();
         }
     }
 
@@ -427,7 +427,8 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // (CASE 2) The service has returned the subset of these resources which are unexpected.
                 // Add those to unexpectedResources.
                 // Note: We're careful to only invoke this once per service, as the call is likely to be expensive.
-                UnexpectedResourcesResponse response = service.get().getUnexpectedResources(offersToSend);
+                UnexpectedResourcesResponse response =
+                        service.get().getUnexpectedResources(offersToSend);
                 LOGGER.info("  {} cleanup result: {} with {} unexpected resources in {} offer{}",
                         serviceName,
                         response.result,
@@ -437,15 +438,10 @@ public class MultiServiceEventClient implements MesosEventClient {
                         response.offerResources.size() == 1 ? "" : "s");
                 switch (response.result) {
                 case FAILED:
-                    // We should be able to safely skip this service and proceed to the next one. For this round,
-                    // the service just won't have anything added to unexpectedResources. We play it safe by telling
-                    // upstream to do a short decline.
+                    // We should be able to safely proceed to the next service rather than aborting here.
+                    // Play it safe by telling upstream to do a short decline.
                     anyFailedClients = true;
-                    for (OfferResources unexpectedInOffer : response.offerResources) {
-                        getEntry(unexpectedResources, unexpectedInOffer.getOffer())
-                                .addAll(unexpectedInOffer.getResources());
-                    }
-                    break;
+                    // FALL THROUGH: If they still provided resources, add those here.
                 case PROCESSED:
                     for (OfferResources unexpectedInOffer : response.offerResources) {
                         getEntry(unexpectedResources, unexpectedInOffer.getOffer())

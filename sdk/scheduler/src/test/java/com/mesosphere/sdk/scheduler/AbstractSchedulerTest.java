@@ -128,8 +128,8 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        public StatusResponse status() {
-            return StatusResponse.running();
+        public ClientStatusResponse getClientStatus() {
+            return ClientStatusResponse.running();
         }
 
         @Override

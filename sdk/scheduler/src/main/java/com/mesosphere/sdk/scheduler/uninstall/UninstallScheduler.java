@@ -134,18 +134,18 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public StatusResponse status() {
+    public ClientStatusResponse getClientStatus() {
         if (deregisterStubStep.isRunning() || deregisterStubStep.isComplete()) {
             // The service resources have been deleted and all that's left is the final deregister operation. After we
             // return uninstalled(), upstream will finish the uninstall by doing one of the following:
             // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
             // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
-            return StatusResponse.uninstalled();
+            return ClientStatusResponse.uninstalled();
         } else {
             // Note: We return uninstalling() instead of reserving(), because the latter is mainly about preventing two
             // services from growing in the cluster at the same time. That could lead to a deadlock across them. In the
             // uninstall case the service is strictly shrinking, so there isn't any reason to get exclusive deployment.
-            return StatusResponse.uninstalling();
+            return ClientStatusResponse.uninstalling();
         }
     }
 

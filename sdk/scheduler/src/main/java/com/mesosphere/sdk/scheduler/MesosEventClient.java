@@ -28,7 +28,7 @@ public interface MesosEventClient {
      * Called periodically to check the client status. These responses are generally used to tell upstream something
      * about the state of the client, and/or telling upstream to do something.
      */
-    public StatusResponse status();
+    public ClientStatusResponse getClientStatus();
 
     /**
      * Called when the framework has received offers from Mesos. The provided list may be empty.
@@ -70,9 +70,9 @@ public interface MesosEventClient {
     //////
 
     /**
-     * Response object to be returned by a call to {@link #status()}.
+     * Response object to be returned by a call to {@link #getClientStatus()}.
      */
-    public static class StatusResponse {
+    public static class ClientStatusResponse {
 
         /**
          * The outcome value to be included in a response object.
@@ -127,24 +127,24 @@ public interface MesosEventClient {
          * <li>Allow a multi-service scheduler to only have one service deploying at a time, to prevent deadlocks if the
          * cluster doesn't have enough free room for multiple simultaneous services</li></ul>
          */
-        public static StatusResponse reserving() {
-            return new StatusResponse(Result.RESERVING);
+        public static ClientStatusResponse reserving() {
+            return new ClientStatusResponse(Result.RESERVING);
         }
 
         /**
          * Tells the caller that this client is running the service following a completed deployment. This is the
          * typical state for services.
          */
-        public static StatusResponse running() {
-            return new StatusResponse(Result.RUNNING);
+        public static ClientStatusResponse running() {
+            return new ClientStatusResponse(Result.RUNNING);
         }
 
         /**
          * Tells the caller that this client has finished running and can be switched to uninstall mode. The caller
          * should long-decline any unused offers.
          */
-        public static StatusResponse finished() {
-            return new StatusResponse(Result.FINISHED);
+        public static ClientStatusResponse finished() {
+            return new ClientStatusResponse(Result.FINISHED);
         }
 
         /**
@@ -152,8 +152,8 @@ public interface MesosEventClient {
          * {@link #reserving()} because it does not require exclusivity. Instead it's mainly used as a hint for upstream
          * to detect a stalled uninstall (e.g. waiting to unreserve resources that are no longer available).
          */
-        public static StatusResponse uninstalling() {
-            return new StatusResponse(Result.UNINSTALLING);
+        public static ClientStatusResponse uninstalling() {
+            return new ClientStatusResponse(Result.UNINSTALLING);
         }
 
         /**
@@ -161,11 +161,11 @@ public interface MesosEventClient {
          * caller may then notify the client of framework deregistration by calling {@link #unregistered()}, but this is
          * not required.
          */
-        public static StatusResponse uninstalled() {
-            return new StatusResponse(Result.UNINSTALLED);
+        public static ClientStatusResponse uninstalled() {
+            return new ClientStatusResponse(Result.UNINSTALLED);
         }
 
-        private StatusResponse(Result result) {
+        private ClientStatusResponse(Result result) {
             this.result = result;
         }
     }

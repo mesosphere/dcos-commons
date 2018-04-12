@@ -195,18 +195,18 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    public StatusResponse status() {
+    public ClientStatusResponse getClientStatus() {
         if (!plansToCheckFinished.isEmpty() &&
                 plansToCheckFinished.stream().allMatch(pm -> pm.getPlan().isComplete())) {
             // We have finished our work. Tell upstream to uninstall us.
-            return StatusResponse.finished();
+            return ClientStatusResponse.finished();
         } else if (!planToCheckDeployed.getPlan().isComplete()) {
             // The service is still deploying.
             // TODO(nickbp, INFINITY-3476): This should only be the case when we're getting a footprint.
             //     Once we're actually rolling out the tasks, this should instead be RUNNING.
-            return StatusResponse.reserving();
+            return ClientStatusResponse.reserving();
         } else {
-            return StatusResponse.running();
+            return ClientStatusResponse.running();
         }
     }
 

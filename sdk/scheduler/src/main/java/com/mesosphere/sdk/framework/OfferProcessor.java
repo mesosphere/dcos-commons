@@ -29,7 +29,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
-import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -227,10 +227,10 @@ class OfferProcessor {
     }
 
     private boolean checkStatuses() {
-        StatusResponse statusResponse = mesosEventClient.status();
-        LOGGER.info("Status result: {}", statusResponse.result);
+        ClientStatusResponse response = mesosEventClient.getClientStatus();
+        LOGGER.info("Status result: {}", response.result);
 
-        switch (statusResponse.result) {
+        switch (response.result) {
         case RESERVING:
             // TODO(nickbp, INFINITY-3476): Once the underlying service is just collecting footprint for this
             //     stage, there can be an alert if that footprint collection takes too long. In the meantime, we
@@ -244,10 +244,10 @@ class OfferProcessor {
             // We do not directly support the FINISHED result at this level. It should only be emitted by services which
             // have a FINISH GoalState. In practice that should only be the case in a multi-service configuration, where
             // the FINISHED result code would be handled internally by the MultiServiceEventClient.
-            LOGGER.error("Got unsupported {} from service", statusResponse.result);
+            LOGGER.error("Got unsupported {} from service", response.result);
             throw new IllegalStateException(String.format(
                     "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
-                    statusResponse.result));
+                    response.result));
         case UNINSTALLING:
             // Proceed as-is.
             return true;
@@ -257,7 +257,7 @@ class OfferProcessor {
             isDeregistered.set(true);
             return false;
         default:
-            throw new IllegalStateException("Unsupported StatusResponse type: " + statusResponse.result);
+            throw new IllegalStateException("Unsupported StatusResponse type: " + response.result);
         }
     }
 

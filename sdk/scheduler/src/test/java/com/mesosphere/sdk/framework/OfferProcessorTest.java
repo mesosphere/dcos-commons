@@ -31,7 +31,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
-import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.storage.Persister;
@@ -65,7 +65,7 @@ public class OfferProcessorTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
-        when(mockMesosEventClient.status()).thenReturn(StatusResponse.running());
+        when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.running());
 
         processor = new OfferProcessor(mockMesosEventClient, mockPersister);
     }
@@ -134,7 +134,7 @@ public class OfferProcessorTest {
 
     @Test
     public void testStatusUninstalled() throws Exception {
-        when(mockMesosEventClient.status()).thenReturn(StatusResponse.uninstalled());
+        when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.uninstalled());
 
         processor.setOfferQueueSize(0).start(); // unlimited queue size
 
