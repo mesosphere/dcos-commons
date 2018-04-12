@@ -120,5 +120,7 @@ public class RawPod {
         return allowDecommission;
     }
 
-    public Boolean getIsolateTmp() { return isolateTmp; }
+    public Boolean getIsolateTmp() {
+        return isolateTmp;
+    }
 }
