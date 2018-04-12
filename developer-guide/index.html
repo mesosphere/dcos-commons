@@ -1744,6 +1744,8 @@ ZONE: us-west-2a
 
 <p>Any placement rules that do <em>not</em> reference the <code class="highlighter-rouge">@region</code> key require placement in the local region.</p>
 
+<p>Alternatively, a stronger constraint on the region that scheduler tasks run in can be specified by setting the <code class="highlighter-rouge">ALLOW_REGION_AWARENESS</code> environment variable to true as before, and then calling the <code class="highlighter-rouge">withSingleRegionConstraint()</code> method on <code class="highlighter-rouge">SchedulerBuilder</code> when creating a scheduler object. This will cause the scheduler to look for the <code class="highlighter-rouge">SERVICE_REGION</code> variable in its environment, running all tasks in that region if specified and in the local region otherwise. To allow service users to specify an alternative region, a configuration field can be added in <code class="highlighter-rouge">config.json</code> and used to set the <code class="highlighter-rouge">SERVICE_REGION</code> environment variable in <code class="highlighter-rouge">marathon.json.mustache</code>. A service deployed in this fashion may not have its configuration updated to change the region that its tasks run in. Doing so will cause a configuration validation failure and the tasks will remain in their current state.</p>
+
 <h1 id="tls">
 <a id="tls" class="anchor" href="#tls" aria-hidden="true"><span class="octicon octicon-link"></span></a>TLS</h1>
 
