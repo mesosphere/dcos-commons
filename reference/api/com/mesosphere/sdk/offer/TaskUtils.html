@@ -154,9 +154,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-java.util.Collection-">getPodRequirements</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
-                  java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;failedTasks,
-                  java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allLaunchedTasks)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-">getPodRequirements</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                  <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                  java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;failedTasks)</code>
 <div class="block">Given a list of all tasks and failed tasks, returns a list of tasks (via returned
  <a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--"><code>PodInstanceRequirement.getTasksToLaunch()</code></a>) that should be relaunched.</div>
 </td>
@@ -513,21 +513,20 @@ extends java.lang.Object</pre>
                                                        java.lang.String&nbsp;taskName)</pre>
 </li>
 </ul>
-<a name="getPodRequirements-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-java.util.Collection-">
+<a name="getPodRequirements-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getPodRequirements</h4>
-<pre>public static&nbsp;java.util.List&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getPodRequirements(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
-                                                                        java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;failedTasks,
-                                                                        java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;allLaunchedTasks)</pre>
+<pre>public static&nbsp;java.util.List&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;getPodRequirements(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                                                        <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
+                                                                        java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;failedTasks)</pre>
 <div class="block">Given a list of all tasks and failed tasks, returns a list of tasks (via returned
  <a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--"><code>PodInstanceRequirement.getTasksToLaunch()</code></a>) that should be relaunched.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>failedTasks</code> - tasks marked as needing recovery</dd>
-<dd><code>allLaunchedTasks</code> - all launched tasks in the service</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>list of pods, each with contained named tasks to be relaunched</dd>
 </dl>

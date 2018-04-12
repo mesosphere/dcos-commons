@@ -190,8 +190,9 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#DecommissionPlanFactory-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-">DecommissionPlanFactory</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                       <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#DecommissionPlanFactory-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-java.util.Optional-">DecommissionPlanFactory</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                       <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                       java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -217,7 +218,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>(package private) static java.util.SortedMap&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a>,java.util.Collection&lt;Protos.TaskInfo&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#getPodsToDecommission-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">getPodsToDecommission</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.html#getPodsToDecommission-Logger-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">getPodsToDecommission</a></span>(Logger&nbsp;logger,
+                     <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                      java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</code>
 <div class="block">Returns a mapping of pods to be decommissioned with affected tasks within those pods.</div>
 </td>
@@ -274,14 +276,15 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DecommissionPlanFactory-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-">
+<a name="DecommissionPlanFactory-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DecommissionPlanFactory</h4>
 <pre>public&nbsp;DecommissionPlanFactory(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                               <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+                               <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                               java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 </li>
 </ul>
 </li>
@@ -323,13 +326,14 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;getTasksToDecommission()</pre>
 </li>
 </ul>
-<a name="getPodsToDecommission-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">
+<a name="getPodsToDecommission-Logger-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getPodsToDecommission</h4>
-<pre>static&nbsp;java.util.SortedMap&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a>,java.util.Collection&lt;Protos.TaskInfo&gt;&gt;&nbsp;getPodsToDecommission(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<pre>static&nbsp;java.util.SortedMap&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a>,java.util.Collection&lt;Protos.TaskInfo&gt;&gt;&nbsp;getPodsToDecommission(Logger&nbsp;logger,
+                                                                                                                       <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
                                                                                                                        java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</pre>
 <div class="block">Returns a mapping of pods to be decommissioned with affected tasks within those pods. The returned mapping will
  be in the order that the pods should be decommissioned.</div>

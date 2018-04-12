@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -172,18 +172,31 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/SerializationUtils.html#toShortJsonString-T-">toShortJsonString</a></span>(T&nbsp;value)</code>
+<div class="block">Returns a single-line JSON representation of the provided value.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/SerializationUtils.html#toShortString-T-ObjectMapper-">toShortString</a></span>(T&nbsp;value,
+             ObjectMapper&nbsp;mapper)</code>
+<div class="block">Returns a single-line representation of the provided value using the provided custom object mapper.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>static &lt;T&gt;&nbsp;java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/SerializationUtils.html#toString-T-ObjectMapper-">toString</a></span>(T&nbsp;value,
         ObjectMapper&nbsp;mapper)</code>
 <div class="block">Returns a representation of the provided value using the provided custom object mapper.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/SerializationUtils.html#toYamlString-T-">toYamlString</a></span>(T&nbsp;value)</code>
 <div class="block">Returns a YAML representation of the provided value.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static &lt;T&gt;&nbsp;java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/SerializationUtils.html#toYamlStringOrEmpty-T-">toYamlStringOrEmpty</a></span>(T&nbsp;value)</code>
 <div class="block">Returns a JSON representation of the provided value, or an empty string if conversion fails.</div>
@@ -309,6 +322,29 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="toShortJsonString-java.lang.Object-">
+<!--   -->
+</a><a name="toShortJsonString-T-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toShortJsonString</h4>
+<pre>public static&nbsp;&lt;T&gt;&nbsp;java.lang.String&nbsp;toShortJsonString(T&nbsp;value)
+                                              throws java.io.IOException</pre>
+<div class="block">Returns a single-line JSON representation of the provided value.</div>
+<dl>
+<dt><span class="paramLabel">Type Parameters:</span></dt>
+<dd><code>T</code> - The type of the <code>value</code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>value</code> - The value that will be converted to JSON</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>A JSON representation of the <code>value</code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code> - if conversion fails</dd>
+</dl>
+</li>
+</ul>
 <a name="toJsonStringOrEmpty-java.lang.Object-">
 <!--   -->
 </a><a name="toJsonStringOrEmpty-T-">
@@ -359,6 +395,24 @@ extends java.lang.Object</pre>
                                             ObjectMapper&nbsp;mapper)
                                      throws java.io.IOException</pre>
 <div class="block">Returns a representation of the provided value using the provided custom object mapper.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.io.IOException</code></dd>
+</dl>
+</li>
+</ul>
+<a name="toShortString-java.lang.Object-ObjectMapper-">
+<!--   -->
+</a><a name="toShortString-T-ObjectMapper-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toShortString</h4>
+<pre>public static&nbsp;&lt;T&gt;&nbsp;java.lang.String&nbsp;toShortString(T&nbsp;value,
+                                                 ObjectMapper&nbsp;mapper)
+                                          throws java.io.IOException</pre>
+<div class="block">Returns a single-line representation of the provided value using the provided custom object mapper.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code></dd>

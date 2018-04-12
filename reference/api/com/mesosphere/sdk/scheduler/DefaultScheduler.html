@@ -258,7 +258,8 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>(package private) static <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#processOffers-com.mesosphere.sdk.scheduler.plan.PlanScheduler-com.mesosphere.sdk.state.PersistentLaunchRecorder-java.util.Optional-java.util.Collection-java.util.Collection-">processOffers</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a>&nbsp;planScheduler,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html#processOffers-Logger-com.mesosphere.sdk.scheduler.plan.PlanScheduler-com.mesosphere.sdk.state.PersistentLaunchRecorder-java.util.Optional-java.util.Collection-java.util.Collection-">processOffers</a></span>(Logger&nbsp;logger,
+             <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a>&nbsp;planScheduler,
              <a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a>&nbsp;launchRecorder,
              java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a>&gt;&nbsp;decommissionRecorder,
              java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
@@ -497,13 +498,14 @@ extends <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html
 </dl>
 </li>
 </ul>
-<a name="processOffers-com.mesosphere.sdk.scheduler.plan.PlanScheduler-com.mesosphere.sdk.state.PersistentLaunchRecorder-java.util.Optional-java.util.Collection-java.util.Collection-">
+<a name="processOffers-Logger-com.mesosphere.sdk.scheduler.plan.PlanScheduler-com.mesosphere.sdk.state.PersistentLaunchRecorder-java.util.Optional-java.util.Collection-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>processOffers</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>&nbsp;processOffers(<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a>&nbsp;planScheduler,
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>&nbsp;processOffers(Logger&nbsp;logger,
+                                                    <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanScheduler.html" title="class in com.mesosphere.sdk.scheduler.plan">PlanScheduler</a>&nbsp;planScheduler,
                                                     <a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a>&nbsp;launchRecorder,
                                                     java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a>&gt;&nbsp;decommissionRecorder,
                                                     java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,

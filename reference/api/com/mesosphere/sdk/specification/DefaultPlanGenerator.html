@@ -133,8 +133,9 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PlanGenerator.h
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPlanGenerator.html#DefaultPlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">DefaultPlanGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
-                    <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPlanGenerator.html#DefaultPlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-">DefaultPlanGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
+                    <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                    java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPlanGenerator.html#DefaultPlanGenerator-com.mesosphere.sdk.scheduler.plan.StepFactory-">DefaultPlanGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/plan/StepFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan">StepFactory</a>&nbsp;stepFactory)</code>&nbsp;</td>
@@ -193,14 +194,15 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PlanGenerator.h
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultPlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">
+<a name="DefaultPlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>DefaultPlanGenerator</h4>
 <pre>public&nbsp;DefaultPlanGenerator(<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
-                            <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+                            <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                            java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 </li>
 </ul>
 <a name="DefaultPlanGenerator-com.mesosphere.sdk.scheduler.plan.StepFactory-">

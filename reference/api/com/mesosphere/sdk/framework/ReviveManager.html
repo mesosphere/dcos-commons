@@ -128,12 +128,13 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager--">ReviveManager</a></span>()</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-java.util.Optional-">ReviveManager</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
 <div class="block">Creates an instance using the singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instance.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-com.mesosphere.sdk.framework.TokenBucket-">ReviveManager</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-com.mesosphere.sdk.framework.TokenBucket-java.util.Optional-">ReviveManager</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket,
+             java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
 <div class="block">Creates an instance with a custom <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instead of the singleton instance.</div>
 </td>
 </tr>
@@ -187,24 +188,25 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ReviveManager--">
+<a name="ReviveManager-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>ReviveManager</h4>
-<pre>public&nbsp;ReviveManager()</pre>
+<pre>public&nbsp;ReviveManager(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 <div class="block">Creates an instance using the singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instance. The <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> is a singleton
  because we want rate limits to be enforced across all running services in the scheduler.</div>
 </li>
 </ul>
-<a name="ReviveManager-com.mesosphere.sdk.framework.TokenBucket-">
+<a name="ReviveManager-com.mesosphere.sdk.framework.TokenBucket-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ReviveManager</h4>
-<pre>ReviveManager(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket)</pre>
+<pre>ReviveManager(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket,
+              java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 <div class="block">Creates an instance with a custom <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instead of the singleton instance. Only for use in tests.</div>
 </li>
 </ul>

@@ -149,10 +149,11 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.h
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/DefaultConfigurationUpdater.html#DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-">DefaultConfigurationUpdater</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/DefaultConfigurationUpdater.html#DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-java.util.Optional-">DefaultConfigurationUpdater</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                            <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                            <a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config">ConfigurationComparator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configComparator,
-                           java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;validators)</code>&nbsp;</td>
+                           java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;validators,
+                           java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -198,7 +199,7 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.h
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-">
+<a name="DefaultConfigurationUpdater-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.config.ConfigurationComparator-java.util.Collection-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -207,7 +208,8 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationUpdater.h
 <pre>public&nbsp;DefaultConfigurationUpdater(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                    <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
                                    <a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config">ConfigurationComparator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configComparator,
-                                   java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;validators)</pre>
+                                   java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&gt;&nbsp;validators,
+                                   java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 </li>
 </ul>
 </li>

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -165,24 +165,20 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-Attribute-">toString</a></span>(Attribute&nbsp;attribute)</code>
-<div class="block">Converts the provided attribute's name + value into a string which follows the format defined
- by Mesos.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-java.util.List-">toString</a></span>(java.util.List&lt;Protos.Attribute&gt;&nbsp;attributes)</code>
+<div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-java.util.List-">toString</a></span>(java.util.List&lt;Attribute&gt;&nbsp;attributes)</code>
-<div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-Protos.Attribute-">toString</a></span>(Protos.Attribute&nbsp;attribute)</code>
+<div class="block">Converts the provided attribute's name + value into a string which follows the format defined
+ by Mesos.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toStringList-java.lang.String-">toStringList</a></span>(java.lang.String&nbsp;joinedAttributes)</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#valueString-Attribute-">valueString</a></span>(Attribute&nbsp;attribute)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-Protos.Value-">toString</a></span>(Protos.Value&nbsp;value)</code>
 <div class="block">Converts the provided attribute's value into a string which follows the format defined by
  Mesos:
  <code>
@@ -191,6 +187,16 @@ extends java.lang.Object</pre>
  text : [a-zA-Z0-9_/.-]
  scalar : floatValue
  floatValue : ( intValue ( "." intValue )? ) | ...</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toStringList-java.lang.String-">toStringList</a></span>(java.lang.String&nbsp;joinedAttributes)</code>&nbsp;</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static Protos.Value</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toValue-Protos.Attribute-">toValue</a></span>(Protos.Attribute&nbsp;attribute)</code>
+<div class="block">Copies the value data in the provided Attribute the form of a Value object.</div>
 </td>
 </tr>
 </table>
@@ -230,7 +236,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;toString(java.util.List&lt;Attribute&gt;&nbsp;attributes)
+<pre>public static&nbsp;java.lang.String&nbsp;toString(java.util.List&lt;Protos.Attribute&gt;&nbsp;attributes)
                                  throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
 <dl>
@@ -269,13 +275,13 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="toString-Attribute-">
+<a name="toString-Protos.Attribute-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;toString(Attribute&nbsp;attribute)
+<pre>public static&nbsp;java.lang.String&nbsp;toString(Protos.Attribute&nbsp;attribute)
                                  throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the provided attribute's name + value into a string which follows the format defined
  by Mesos.</div>
@@ -283,18 +289,28 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code></dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../../com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#valueString-Attribute-"><code>valueString(Attribute)</code></a></dd>
+<dd><code>#valueString(Attribute)</code></dd>
 </dl>
 </li>
 </ul>
-<a name="valueString-Attribute-">
+<a name="toValue-Protos.Attribute-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toValue</h4>
+<pre>public static&nbsp;Protos.Value&nbsp;toValue(Protos.Attribute&nbsp;attribute)</pre>
+<div class="block">Copies the value data in the provided Attribute the form of a Value object.</div>
+</li>
+</ul>
+<a name="toString-Protos.Value-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>valueString</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;valueString(Attribute&nbsp;attribute)
-                                    throws java.lang.IllegalArgumentException</pre>
+<h4>toString</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;toString(Protos.Value&nbsp;value)
+                                 throws java.lang.IllegalArgumentException</pre>
 <div class="block">Converts the provided attribute's value into a string which follows the format defined by
  Mesos:
  <code>

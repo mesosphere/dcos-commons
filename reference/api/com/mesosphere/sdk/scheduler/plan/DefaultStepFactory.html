@@ -133,8 +133,9 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/StepFactory
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html#DefaultStepFactory-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">DefaultStepFactory</a></span>(<a href="../../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
-                  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html#DefaultStepFactory-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-">DefaultStepFactory</a></span>(<a href="../../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
+                  <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                  java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -158,8 +159,8 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/StepFactory
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>protected boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html#hasReachedGoalState-com.mesosphere.sdk.specification.PodInstance-Protos.TaskInfo-">hasReachedGoalState</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                   Protos.TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DefaultStepFactory.html#hasReachedGoalState-Protos.TaskInfo-com.mesosphere.sdk.specification.GoalState-">hasReachedGoalState</a></span>(Protos.TaskInfo&nbsp;taskInfo,
+                   <a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -183,14 +184,15 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/StepFactory
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultStepFactory-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-">
+<a name="DefaultStepFactory-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultStepFactory</h4>
 <pre>public&nbsp;DefaultStepFactory(<a href="../../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
-                          <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
+                          <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                          java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 </li>
 </ul>
 </li>
@@ -215,14 +217,14 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/StepFactory
 </dl>
 </li>
 </ul>
-<a name="hasReachedGoalState-com.mesosphere.sdk.specification.PodInstance-Protos.TaskInfo-">
+<a name="hasReachedGoalState-Protos.TaskInfo-com.mesosphere.sdk.specification.GoalState-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>hasReachedGoalState</h4>
-<pre>protected&nbsp;boolean&nbsp;hasReachedGoalState(<a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                                      Protos.TaskInfo&nbsp;taskInfo)
+<pre>protected&nbsp;boolean&nbsp;hasReachedGoalState(Protos.TaskInfo&nbsp;taskInfo,
+                                      <a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState)
                                throws <a href="../../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
