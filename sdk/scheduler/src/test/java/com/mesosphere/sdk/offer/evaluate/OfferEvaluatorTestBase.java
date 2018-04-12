@@ -51,21 +51,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 targetConfig,
                 ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
                 SCHEDULER_CONFIG,
-                Optional.empty(),
-                true);
-    }
-
-    protected void useCustomExecutor() {
-        evaluator = new OfferEvaluator(
-                frameworkStore,
-                stateStore,
-                Optional.empty(),
-                TestConstants.SERVICE_NAME,
-                targetConfig,
-                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
-                SCHEDULER_CONFIG,
-                Optional.empty(),
-                false);
+                Optional.empty());
     }
 
     protected static String getFirstResourceId(List<Resource> resources) {

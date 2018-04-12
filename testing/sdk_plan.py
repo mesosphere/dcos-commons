@@ -93,7 +93,7 @@ def wait_for_completed_step(service_name, plan_name, phase_name, step_name, time
 
 
 def wait_for_kicked_off_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
-    return wait_for_plan_status(service_name, plan_name, ['STARTING', 'IN_PROGRESS'], timeout_seconds)
+    return wait_for_plan_status(service_name, plan_name, ['PENDING', 'STARTING', 'IN_PROGRESS'], timeout_seconds)
 
 
 def wait_for_in_progress_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):

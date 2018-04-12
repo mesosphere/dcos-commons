@@ -105,7 +105,6 @@ public class MetricsTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
         Assert.assertTrue(((LaunchOfferRecommendation)realRecommendation).shouldLaunch());
 

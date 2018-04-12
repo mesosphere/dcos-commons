@@ -30,8 +30,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 getTaskName(podInstanceRequirement.getPodInstance()),
-                Optional.empty(),
-                true);
+                Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
@@ -43,7 +42,6 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true,
                                 Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -85,8 +83,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 getTaskName(podInstanceRequirement.getPodInstance()),
-                Optional.empty(),
-                true);
+                Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
@@ -98,7 +95,6 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true,
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());

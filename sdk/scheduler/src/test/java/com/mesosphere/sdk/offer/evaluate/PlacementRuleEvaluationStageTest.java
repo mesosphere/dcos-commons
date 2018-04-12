@@ -53,7 +53,6 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true,
                         Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -91,7 +90,6 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true,
                         Collections.emptyMap()));
 
         Assert.assertFalse(outcome.isPassing());

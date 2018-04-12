@@ -72,7 +72,7 @@ public class TLSEvaluationStageTest {
                 .setTransportEncryption(transportEncryptionSpecs)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri", type, 1, Arrays.asList(taskSpec))
+        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
@@ -99,7 +99,6 @@ public class TLSEvaluationStageTest {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
     }
 

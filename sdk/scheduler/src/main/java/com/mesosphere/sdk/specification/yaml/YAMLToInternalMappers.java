@@ -108,7 +108,6 @@ public class YAMLToInternalMappers {
                     taskEnvRouter.getConfig(podName),
                     getPodRole(rawPod.getPreReservedRole(), frameworkConfig.getRole()),
                     frameworkConfig.getPrincipal(),
-                    schedulerConfig.getExecutorURI(),
                     frameworkConfig.getUser()));
 
         }
@@ -208,18 +207,17 @@ public class YAMLToInternalMappers {
             Map<String, String> additionalEnv,
             String role,
             String principal,
-            String executorUri,
             String user) throws Exception {
 
         DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(
-                executorUri,
                 podName,
                 rawPod.getCount(),
                 Collections.emptyList()) // Tasks are added below
                 .user(user)
                 .preReservedRole(rawPod.getPreReservedRole())
                 .sharePidNamespace(rawPod.getSharePidNamespace())
-                .allowDecommission(rawPod.getAllowDecommission());
+                .allowDecommission(rawPod.getAllowDecommission())
+                .isolateTmp(rawPod.getIsolateTmp());
 
         List<String> networkNames = new ArrayList<>();
         List<RLimitSpec> rlimits = new ArrayList<>();

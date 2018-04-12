@@ -425,7 +425,6 @@ public class TaskUtilsTest {
     private static ConfigStore<ServiceSpec> buildPodLayout(int essentialTasks, int nonessentialTasks) {
         DefaultPodSpec.Builder podBuilder =
                 DefaultPodSpec.newBuilder(
-                        "executor-uri",
                         "server",
                         3,
                         Collections.emptyList()) // Tasks added below

@@ -52,6 +52,8 @@ public class DefaultPodSpec implements PodSpec {
     private String preReservedRole;
     @NotNull
     private Boolean sharePidNamespace;
+    @NotNull
+    private final Boolean isolateTmp;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -68,9 +70,10 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-            @JsonProperty("allow-decommission") Boolean allowDecommission) {
+            @JsonProperty("allow-decommission") Boolean allowDecommission,
+            @JsonProperty("isolate-tmp") Boolean isolateTmp) {
         this(
-                new Builder(Optional.empty(), type, count, tasks) // Assume that Executor URI is already present
+                new Builder(type, count, tasks)
                         .type(type)
                         .user(user)
                         .count(count)
@@ -84,7 +87,8 @@ public class DefaultPodSpec implements PodSpec {
                         .preReservedRole(preReservedRole)
                         .secrets(secrets)
                         .sharePidNamespace(sharePidNamespace)
-                        .allowDecommission(allowDecommission));
+                        .allowDecommission(allowDecommission)
+                        .isolateTmp(isolateTmp));
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -102,16 +106,16 @@ public class DefaultPodSpec implements PodSpec {
         this.user = builder.user;
         this.volumes = builder.volumes;
         this.sharePidNamespace = builder.sharePidNamespace;
+        this.isolateTmp = builder.isolateTmp;
         ValidationUtils.validate(this);
     }
 
-    public static Builder newBuilder(String executorUri, String type, int count, List<TaskSpec> tasks) {
-        return new Builder(Optional.of(executorUri), type, count, tasks);
+    public static Builder newBuilder(String type, int count, List<TaskSpec> tasks) {
+        return new Builder(type, count, tasks);
     }
 
     public static Builder newBuilder(PodSpec copy) {
         Builder builder = new Builder(
-                Optional.empty(), // Assume that Executor URI is already present
                 copy.getType(),
                 copy.getCount(),
                 copy.getTasks());
@@ -126,6 +130,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         builder.sharePidNamespace = copy.getSharePidNamespace();
+        builder.isolateTmp = copy.getIsolateTmp();
         return builder;
     }
 
@@ -200,6 +205,11 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Boolean getIsolateTmp() {
+        return isolateTmp;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -218,8 +228,6 @@ public class DefaultPodSpec implements PodSpec {
      * {@code DefaultPodSpec} builder static inner class.
      */
     public static final class Builder {
-        private final Optional<String> executorUri;
-
         private String type;
         private String user;
         private Integer count;
@@ -234,9 +242,9 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
+        private Boolean isolateTmp = false;
 
-        private Builder(Optional<String> executorUri, String type, int count, List<TaskSpec> tasks) {
-            this.executorUri = executorUri;
+        private Builder(String type, int count, List<TaskSpec> tasks) {
             this.type = type;
             this.count = count;
             this.tasks = new ArrayList<>(tasks);
@@ -462,21 +470,22 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
+         * Sets whether tasks in this pod will have tmp directories isolated from the host.
+         *
+         * @param isolateTmp Whether the pod should isolate the tmp directories of tasks.
+         * @return a reference to this Builder
+         */
+        public Builder isolateTmp(Boolean isolateTmp) {
+            this.isolateTmp = isolateTmp != null && isolateTmp;
+            return this;
+        }
+
+        /**
          * Returns a {@code DefaultPodSpec} built from the parameters previously set.
          *
          * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
          */
         public DefaultPodSpec build() {
-            if (executorUri.isPresent()) {
-                // Inject the executor URI as one of the pods URIs. This ensures
-                // that the scheduler properly tracks changes to executors
-                // (reflected in changes to the executor URI)
-                URI actualURI = URI.create(executorUri.get());
-                if (this.uris == null || !this.uris.contains(actualURI)) {
-                    this.addUri(actualURI);
-                }
-            }
-
             DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);
             return defaultPodSpec;
         }

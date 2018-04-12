@@ -40,7 +40,6 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -609,15 +608,6 @@ public class DefaultServiceSpecTest {
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
-    }
-
-    @Test
-    public void executorUriInjection() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertTrue(defaultServiceSpec.getPods().get(0).getUris().contains(URI.create("test-executor-uri")));
     }
 
     @Test
