@@ -1193,7 +1193,7 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimitSpec&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule, Collection&lt;VolumeSpec&gt;, String, Collection&lt;SecretSpec&gt;, Boolean, Boolean)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-java.lang.Boolean-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimitSpec&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule, Collection&lt;VolumeSpec&gt;, String, Collection&lt;SecretSpec&gt;, Boolean, Boolean, Boolean)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultPodSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -2861,6 +2861,12 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html#getInterval--">getInterval()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html" title="class in com.mesosphere.sdk.specification.yaml">RawReadinessCheck</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getInvalidValue--">getInvalidValue()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getIsolateTmp--">getIsolateTmp()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PodSpec.html#getIsolateTmp--">getIsolateTmp()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getIsolateTmp--">getIsolateTmp()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getJavaHome--">getJavaHome()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>&nbsp;</dd>
@@ -4745,6 +4751,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/IsLocalRegionRule.html#IsLocalRegionRule--">IsLocalRegionRule()</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/IsLocalRegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">IsLocalRegionRule</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#isolateTmp-java.lang.Boolean-">isolateTmp(Boolean)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
+<dd>
+<div class="block">Sets whether tasks in this pod will have tmp directories isolated from the host.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#isPassing--">isPassing()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></dt>
 <dd>
 <div class="block">Returns whether this outcome was passing (<code>true</code>) or failing (<code>false</code>).</div>
