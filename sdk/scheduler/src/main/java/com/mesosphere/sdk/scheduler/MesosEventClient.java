@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import java.util.Collection;
-import java.util.Collections;
 import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -24,6 +23,12 @@ public interface MesosEventClient {
      * completion of the uninstall operation in its {@code deploy} plan.
      */
     public void unregistered();
+
+    /**
+     * Called periodically to check the client status. These responses are generally used to tell upstream something
+     * about the state of the client, and/or telling upstream to do something.
+     */
+    public StatusResponse status();
 
     /**
      * Called when the framework has received offers from Mesos. The provided list may be empty.
@@ -50,7 +55,7 @@ public interface MesosEventClient {
      * @param status The status message describing the new state of a task
      * @return The response which describes whether the status was successfully processed
      */
-    public StatusResponse status(Protos.TaskStatus status);
+    public TaskStatusResponse taskStatus(Protos.TaskStatus status);
 
     /**
      * Returns any HTTP resources to be served on behalf of this instance.
@@ -64,19 +69,114 @@ public interface MesosEventClient {
     // RESPONSE TYPES
     //////
 
+    /**
+     * Response object to be returned by a call to {@link #status()}.
+     */
+    public static class StatusResponse {
+
+        /**
+         * The outcome value to be included in a response object.
+         */
+        public enum Result {
+            /**
+             * The client is deploying (or reconfiguring) the reservations for the underlying service. This hint allows
+             * upstream to ensure that only one service is growing its footprint in the cluster at a time. This allows
+             * multi-service schedulers to avoid deadlocks between two services attempting to deploy into a cluster
+             * that's too small to fit both of them. It can also more generally be used by upstream to detect if a
+             * service lacks sufficient resources to be deployed
+             */
+            RESERVING,
+
+            /**
+             * The client has finished its deployment and is now in an active, running state.
+             */
+            RUNNING,
+
+            /**
+             * The client has finished running and should be switched to uninstall mode. This is mainly used for
+             * services which run once and then exit.
+             */
+            FINISHED,
+
+            /**
+             * The client is winding down as it proceeds through an uninstall procedure. This is similar to
+             * {@code DEPLOYING}, except that there's no exclusivity or deadlock prevention as the service is strictly
+             * shrinking its footprint. This response is mainly used as a hint to allow upstream to detect if a service
+             * has been stuck in an uninstall for a long time.
+             */
+            UNINSTALLING,
+
+            /**
+             * The client has finished an uninstall and can be shut down.
+             */
+            UNINSTALLED
+        };
+
+        /**
+         * The result of the call.
+         */
+        public final Result result;
+
+        /**
+         * Tells the caller that this client is deploying the service. This may either be an initial deployment or a
+         * redeployment following a configuration change, either of which may involve growing the service footprint.
+         * This does NOT include cases of relaunching failed tasks.
+         *
+         * This code has two purposes:
+         * <ul><li>Allow upstream to detect a stalled deployment (cluster too small, or other misconfiguration)</li>
+         * <li>Allow a multi-service scheduler to only have one service deploying at a time, to prevent deadlocks if the
+         * cluster doesn't have enough free room for multiple simultaneous services</li></ul>
+         */
+        public static StatusResponse reserving() {
+            return new StatusResponse(Result.RESERVING);
+        }
+
+        /**
+         * Tells the caller that this client is running the service following a completed deployment. This is the
+         * typical state for services.
+         */
+        public static StatusResponse running() {
+            return new StatusResponse(Result.RUNNING);
+        }
+
+        /**
+         * Tells the caller that this client has finished running and can be switched to uninstall mode. The caller
+         * should long-decline any unused offers.
+         */
+        public static StatusResponse finished() {
+            return new StatusResponse(Result.FINISHED);
+        }
+
+        /**
+         * Tells the caller that this client is in the process of uninstalling. This is separate from
+         * {@link #reserving()} because it does not require exclusivity. Instead it's mainly used as a hint for upstream
+         * to detect a stalled uninstall (e.g. waiting to unreserve resources that are no longer available).
+         */
+        public static StatusResponse uninstalling() {
+            return new StatusResponse(Result.UNINSTALLING);
+        }
+
+        /**
+         * Tells the caller that this client has finished uninstalling and can be shut down. After this is returned, the
+         * caller may then notify the client of framework deregistration by calling {@link #unregistered()}, but this is
+         * not required.
+         */
+        public static StatusResponse uninstalled() {
+            return new StatusResponse(Result.UNINSTALLED);
+        }
+
+        private StatusResponse(Result result) {
+            this.result = result;
+        }
+    }
 
     /**
-     * Response object to be returned by a call to {@link MesosEventClient#offers(List)}.
+     * Response object to be returned by a call to {@link #offers(List)}.
      */
     public static class OfferResponse {
 
         /**
          * The outcome value to be included in a response object.
-         *
-         * TODO(nickbp): Create a separate getStatus() call for retrieving special states like FINISHED/UNINSTALLED.
-         * Putting them in the offer cycle like this is a bit of a hack. It's likely that we'll need other states and
-         * putting them here would quickly get unsustainable. For example: Upfront footprint reservation in one phase,
-         * followed by deployment in a second phase, where we want to notify upstream that we've finished the footprint.
          */
         public enum Result {
             /**
@@ -88,22 +188,12 @@ public interface MesosEventClient {
             /**
              * The client processed the request successfully. Long-decline any unused offers.
              */
-            PROCESSED,
-
-            /**
-             * The client has finished running and should be switched to uninstall mode.
-             */
-            FINISHED,
-
-            /**
-             * The client has finished an uninstall and can be shut down.
-             */
-            UNINSTALLED
+            PROCESSED
         }
 
         /**
-         * The result of the call. Delineates between "not ready" (short-decline unused offers), "processed"
-         * (long-decline unused offers), and "finished" (uninstall complete, tear down service).
+         * The result of the call. Delineates between "not ready" (short-decline unused offers) and "processed"
+         * (long-decline unused offers).
          */
         public final Result result;
 
@@ -134,30 +224,14 @@ public interface MesosEventClient {
             return new OfferResponse(Result.PROCESSED, recommendations);
         }
 
-        /**
-         * Tells the caller that this client has finished running and can be switched to uninstall mode. The caller
-         * should long-decline any unused offers.
-         */
-        public static OfferResponse finished() {
-            return new OfferResponse(Result.FINISHED, Collections.emptyList());
-        }
-
-        /**
-         * Tells the caller that this client has finished uninstalling and can be shut down. The caller should
-         * long-decline any unused offers. After this is returned, the caller may then notify the client of framework
-         * deregistration by calling {@link MesosEventClient#unregistered()}, but this is not required.
-         */
-        public static OfferResponse uninstalled() {
-            return new OfferResponse(Result.UNINSTALLED, Collections.emptyList());
-        }
-
         private OfferResponse(Result result, Collection<OfferRecommendation> recommendations) {
             this.result = result;
             this.recommendations = recommendations;
         }
     }
+
     /**
-     * Response object to be returned by a call to {@link MesosEventClient##getUnexpectedResources(List)}.
+     * Response object to be returned by a call to {@link #getUnexpectedResources(List)}.
      */
     public static class UnexpectedResourcesResponse {
 
@@ -215,9 +289,9 @@ public interface MesosEventClient {
     }
 
     /**
-     * Response object to be returned by a call to {@link MesosEventClient#status(org.apache.mesos.Protos.TaskStatus)}.
+     * Response object to be returned by a call to {@link #taskStatus(org.apache.mesos.Protos.TaskStatus)}.
      */
-    public static class StatusResponse {
+    public static class TaskStatusResponse {
 
         /**
          * The outcome value to be included in a response object.
@@ -244,18 +318,18 @@ public interface MesosEventClient {
          * task so that its reserved resources will be offered by Mesos, at which point those resources will be
          * unreserved via the unexpected resources cleanup process.
          */
-        public static StatusResponse unknownTask() {
-            return new StatusResponse(Result.UNKNOWN_TASK);
+        public static TaskStatusResponse unknownTask() {
+            return new TaskStatusResponse(Result.UNKNOWN_TASK);
         }
 
         /**
          * Tells the caller that this client successfully processed the provided task status.
          */
-        public static StatusResponse processed() {
-            return new StatusResponse(Result.PROCESSED);
+        public static TaskStatusResponse processed() {
+            return new TaskStatusResponse(Result.PROCESSED);
         }
 
-        private StatusResponse(Result result) {
+        private TaskStatusResponse(Result result) {
             this.result = result;
         }
     }

@@ -42,6 +42,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private final ConfigStore<ServiceSpec> configStore;
     private final PlanCoordinator planCoordinator;
     private final Collection<PlanManager> plansToCheckFinished;
+    private final PlanManager planToCheckDeployed;
     private final Collection<Object> customResources;
     private final Map<String, EndpointProducer> customEndpointProducers;
     private final PersistentLaunchRecorder launchRecorder;
@@ -101,6 +102,10 @@ public class DefaultScheduler extends AbstractScheduler {
             // Disable this check
             this.plansToCheckFinished = Collections.emptyList();
         }
+        this.planToCheckDeployed = planCoordinator.getPlanManagers().stream()
+                .filter(pm -> pm.getPlan().isDeployPlan())
+                .findAny()
+                .get();
         this.customResources = customResources;
         this.customEndpointProducers = customEndpointProducers;
 
@@ -189,6 +194,22 @@ public class DefaultScheduler extends AbstractScheduler {
                 "Should not have received unregistered call. This is only applicable to UninstallSchedulers");
     }
 
+    @Override
+    public StatusResponse status() {
+        if (!plansToCheckFinished.isEmpty() &&
+                plansToCheckFinished.stream().allMatch(pm -> pm.getPlan().isComplete())) {
+            // We have finished our work. Tell upstream to uninstall us.
+            return StatusResponse.finished();
+        } else if (!planToCheckDeployed.getPlan().isComplete()) {
+            // The service is still deploying.
+            // TODO(nickbp, INFINITY-3476): This should only be the case when we're getting a footprint.
+            //     Once we're actually rolling out the tasks, this should instead be RUNNING.
+            return StatusResponse.reserving();
+        } else {
+            return StatusResponse.running();
+        }
+    }
+
     private static Optional<DecommissionPlanManager> getDecommissionManager(PlanCoordinator planCoordinator) {
         return planCoordinator.getPlanManagers().stream()
                 .filter(planManager -> planManager.getPlan().isDecommissionPlan())
@@ -233,12 +254,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
-        if (serviceSpec.getGoal() == GoalState.FINISH
-                && plansToCheckFinished.stream().allMatch(pm -> pm.getPlan().isComplete())) {
-            // We have finished our work. Tell upstream to uninstall us.
-            return OfferResponse.finished();
-        }
-
         return processOffers(planScheduler, launchRecorder, decommissionRecorder, offers, steps);
     }
 

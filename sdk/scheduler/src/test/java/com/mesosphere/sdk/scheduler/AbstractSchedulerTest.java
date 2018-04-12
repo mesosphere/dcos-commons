@@ -62,7 +62,7 @@ public class AbstractSchedulerTest {
                 scheduler.offers(Arrays.asList(getOffer(), getOffer(), getOffer())).result);
 
         // Get the task marked reconciled:
-        scheduler.status(TestConstants.TASK_STATUS);
+        scheduler.taskStatus(TestConstants.TASK_STATUS);
 
         // Ready to go:
         Assert.assertEquals(MesosEventClient.OfferResponse.Result.PROCESSED,
@@ -125,6 +125,11 @@ public class AbstractSchedulerTest {
         @Override
         public void unregistered() {
             // Intentionally empty.
+        }
+
+        @Override
+        public StatusResponse status() {
+            return StatusResponse.running();
         }
 
         @Override

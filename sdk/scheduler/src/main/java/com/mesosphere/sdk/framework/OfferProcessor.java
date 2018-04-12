@@ -29,6 +29,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -192,10 +193,18 @@ class OfferProcessor {
                 return;
             }
 
+            if (isDeregistered.get()) {
+                // Just in case there are unflushed offers in the queue when we're deregistered
+                LOGGER.info("Dropping {} queued offers: Framework is deregistered", offers.size());
+                return;
+            }
+
             // Match offers with work (call into implementation)
             final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
-                evaluateOffers(offers);
+                if (checkStatuses()) {
+                    evaluateOffers(offers);
+                }
             } finally {
                 context.stop();
             }
@@ -217,13 +226,42 @@ class OfferProcessor {
         }
     }
 
-    private void evaluateOffers(List<Protos.Offer> offers) {
-        if (isDeregistered.get()) {
-            // Just in case there are unflushed offers in the queue when we're deregistered
-            LOGGER.info("Dropping {} queued offers: Framework is deregistered", offers.size());
-            return;
-        }
+    private boolean checkStatuses() {
+        StatusResponse statusResponse = mesosEventClient.status();
+        LOGGER.info("Status result: {}", statusResponse.result);
 
+        switch (statusResponse.result) {
+        case RESERVING:
+            // TODO(nickbp, INFINITY-3476): Once the underlying service is just collecting footprint for this
+            //     stage, there can be an alert if that footprint collection takes too long. In the meantime, we
+            //     can't make any assumptions about what 'too long' is, due to potential readiness checks etc.
+            // ... but for now, proceed as-is.
+            return true;
+        case RUNNING:
+            // Proceed as-is.
+            return true;
+        case FINISHED:
+            // We do not directly support the FINISHED result at this level. It should only be emitted by services which
+            // have a FINISH GoalState. In practice that should only be the case in a multi-service configuration, where
+            // the FINISHED result code would be handled internally by the MultiServiceEventClient.
+            LOGGER.error("Got unsupported {} from service", statusResponse.result);
+            throw new IllegalStateException(String.format(
+                    "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
+                    statusResponse.result));
+        case UNINSTALLING:
+            // Proceed as-is.
+            return true;
+        case UNINSTALLED:
+            // The service has finished uninstalling. Unregister and delete the framework.
+            destroyFramework();
+            isDeregistered.set(true);
+            return false;
+        default:
+            throw new IllegalStateException("Unsupported StatusResponse type: " + statusResponse.result);
+        }
+    }
+
+    private void evaluateOffers(List<Protos.Offer> offers) {
         // Offer evaluation:
         // The client (which is composed of one or more services) looks at the provided offers and returns a list of
         // operations to perform and offers which were not used. On our end, we then perform the requested operations
@@ -233,26 +271,6 @@ class OfferProcessor {
                 offers.size(), offers.size() == 1 ? "" : "s",
                 offerResponse.result,
                 offerResponse.recommendations.size(), offerResponse.recommendations.size() == 1 ? "" : "s");
-        switch (offerResponse.result) {
-        case FINISHED:
-            // We do not directly support the FINISHED result. It should be internally handled by individual clients
-            // in a multi-client setup. Supporting FINISHED here would involve the following changes:
-            // - API Resources passed to the HTTP server by FrameworkRunner would need to be updated
-            // - Parent FrameworkScheduler would need to be updated (for sending TaskStatuses and registered calls)
-            declineShort(offers);
-            LOGGER.error("Got unsupported {} from service", offerResponse.result);
-            return;
-        case UNINSTALLED:
-            // The service has finished uninstalling. Unregister and delete the framework.
-            declineShort(offers);
-            destroyFramework();
-            isDeregistered.set(true);
-            return;
-        case NOT_READY:
-        case PROCESSED:
-            // Both handled below.
-            break;
-        }
 
         Collection<Protos.Offer> unusedOffers =
                 OfferUtils.filterOutAcceptedOffers(offers, offerResponse.recommendations);

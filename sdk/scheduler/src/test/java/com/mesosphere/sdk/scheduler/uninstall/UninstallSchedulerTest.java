@@ -5,6 +5,7 @@ import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
@@ -84,6 +85,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testEmptyOffers() throws Exception {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLING, uninstallScheduler.status().result);
         Assert.assertEquals(OfferResponse.Result.PROCESSED, uninstallScheduler.offers(Collections.emptyList()).result);
         verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
@@ -200,9 +202,12 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
         // Turn the crank once to prepare the deregistration Step
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLING, uninstallScheduler.status().result);
         uninstallScheduler.offers(Arrays.asList(getOffer()));
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PREPARED);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
+        // Advertise an UNINSTALLED state so that upstream will clean us up and call unregistered():
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLED, uninstallScheduler.status().result);
 
         // Deregistration completes only after we've told the scheduler that it's unregistered
         uninstallScheduler.unregistered();
@@ -223,15 +228,26 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of(mockSecretsClient));
+        uninstallScheduler.start().registered(false);
         // Starts with a near-empty plan with only the deregistered call incomplete
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
 
         List<Status> expected = Arrays.asList(Status.PENDING);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
-        Assert.assertFalse(plan.toString(), plan.isComplete());
+        Assert.assertTrue(plan.toString(), plan.isRunning());
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLING, uninstallScheduler.status().result);
 
+        // Turn the crank to get the deregistered step to continue
+        uninstallScheduler.offers(Arrays.asList(getOffer()));
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLED, uninstallScheduler.status().result);
+        expected = Arrays.asList(Status.PREPARED);
+        Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
+        Assert.assertTrue(plan.toString(), plan.isRunning());
+
+        // Seal the deal by telling the service it's unregistered
         uninstallScheduler.unregistered();
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLED, uninstallScheduler.status().result);
         expected = Arrays.asList(Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         Assert.assertTrue(plan.toString(), plan.isComplete());
@@ -255,6 +271,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
 
         // Run through the task cleanup phase
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLING, uninstallScheduler.status().result);
         Protos.Offer offer = OfferTestUtils.getOffer(Arrays.asList(
                 RESERVED_RESOURCE_1, RESERVED_RESOURCE_2, RESERVED_RESOURCE_3));
         uninstallScheduler.offers(Collections.singletonList(offer));
@@ -271,6 +288,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
         // Then the TLS cleanup phase
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLING, uninstallScheduler.status().result);
         uninstallScheduler.offers(Collections.singletonList(getOffer()));
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PENDING);
@@ -279,12 +297,16 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         verify(mockSecretsClient, times(1)).list(TestConstants.SERVICE_NAME);
 
         // Then the final Deregister phase: goes PREPARED when offer arrives, then COMPLETE when told that we're unregistered
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLING, uninstallScheduler.status().result);
         uninstallScheduler.offers(Collections.singletonList(getOffer()));
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PREPARED);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
+        // Advertise an UNINSTALLED state so that upstream will clean us up and call unregistered():
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLED, uninstallScheduler.status().result);
 
         uninstallScheduler.unregistered();
+        Assert.assertEquals(StatusResponse.Result.UNINSTALLED, uninstallScheduler.status().result);
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));

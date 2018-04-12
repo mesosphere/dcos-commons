@@ -31,6 +31,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.storage.Persister;
@@ -64,6 +65,7 @@ public class OfferProcessorTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
+        when(mockMesosEventClient.status()).thenReturn(StatusResponse.running());
 
         processor = new OfferProcessor(mockMesosEventClient, mockPersister);
     }
@@ -131,31 +133,18 @@ public class OfferProcessorTest {
     }
 
     @Test
-    public void testOffersFinished() throws InterruptedException {
-        when(mockMesosEventClient.offers(any())).thenReturn(OfferResponse.finished());
-
-        processor.setOfferQueueSize(0).start(); // unlimited queue size
-
-        Set<String> sentOfferIds = sendOffers(1, OFFERS_PER_THREAD);
-        // All offers should have been declined with a short interval (not ready, come back soon):
-        verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(SHORT_INTERVAL));
-        // Should have aborted before getting to unexpected resources:
-        verify(mockMesosEventClient, never()).getUnexpectedResources(any());
-    }
-
-    @Test
-    public void testOffersUninstalled() throws Exception {
-        when(mockMesosEventClient.offers(any())).thenReturn(OfferResponse.uninstalled());
+    public void testStatusUninstalled() throws Exception {
+        when(mockMesosEventClient.status()).thenReturn(StatusResponse.uninstalled());
 
         processor.setOfferQueueSize(0).start(); // unlimited queue size
 
         sendOffers(1, OFFERS_PER_THREAD);
         // Not all offers were processed because the deregistered bit was set in the process of teardown.
         // All offers should have been declined with a short interval (not ready, come back soon):
-        verify(mockSchedulerDriver, atLeast(1)).declineOffer(any(), eq(SHORT_INTERVAL));
         verify(mockSchedulerDriver, atLeast(1)).stop(false);
         verify(mockMesosEventClient, atLeast(1)).unregistered();
         verify(mockPersister, atLeast(1)).recursiveDelete("/");
+        verify(mockMesosEventClient, never()).offers(any());
         verify(mockMesosEventClient, never()).getUnexpectedResources(any());
     }
 
