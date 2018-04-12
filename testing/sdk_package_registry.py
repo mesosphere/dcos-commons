@@ -21,11 +21,16 @@ log = logging.getLogger(__name__)
 
 PACKAGE_REGISTRY_NAME = 'package-registry'
 PACKAGE_REGISTRY_SERVICE_NAME = 'registry'
+PACKAGE_REGISTRY_STUB_URL = 'PACKAGE_REGISTRY_STUB_URL'
 
 
 def add_package_registry_stub() -> Dict:
     # TODO Remove this method, install from bootstrap registry.
-    stub_url = os.environ['PACKAGE_REGISTRY_STUB_URL']
+    if PACKAGE_REGISTRY_STUB_URL not in os.environ:
+        raise Exception(
+            '{} is not found in env.'.format(PACKAGE_REGISTRY_STUB_URL)
+        )
+    stub_url = os.environ[PACKAGE_REGISTRY_STUB_URL]
     with urllib.request.urlopen(stub_url) as url:
         repo = json.loads(url.read().decode())
         min_supported = [
@@ -41,6 +46,8 @@ def add_package_registry_stub() -> Dict:
 
 def install_package_registry(service_secret_path: str) -> Dict:
     # Install Package Registry
+    # wait_for_deployment is `False` because the deployment checks do not apply
+    # to package registry as it is not an SDK app.
     sdk_install.install(
         PACKAGE_REGISTRY_NAME,
         PACKAGE_REGISTRY_SERVICE_NAME,
