@@ -112,7 +112,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
             OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                     OfferEvaluationUtils.evaluateSimpleResource(
-                            this, volumeSpec, resourceId, resourceNamespace, mesosResourcePool);
+                            logger, this, volumeSpec, resourceId, resourceNamespace, mesosResourcePool);
             EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
             if (!evaluationOutcome.isPassing()) {
                 return evaluationOutcome;

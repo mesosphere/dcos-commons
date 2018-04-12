@@ -3,6 +3,7 @@ package com.mesosphere.sdk.framework;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -183,7 +184,7 @@ class OfferProcessor {
      * appear.
      */
     private void processQueuedOffers() {
-        LOGGER.info("Waiting for queued offers...");
+        LOGGER.info("Idling for offers...");
         List<Protos.Offer> offers = offerQueue.takeAll();
         try {
             if (offers.isEmpty() && !isInitialized.get()) {
@@ -191,11 +192,12 @@ class OfferProcessor {
                 // Avoid hitting NPE for planCoordinator, driver, etc.
                 LOGGER.info("Retrying wait for offers: Registration hasn't completed yet.");
                 return;
-            }
-
-            if (isDeregistered.get()) {
-                // Just in case there are unflushed offers in the queue when we're deregistered
-                LOGGER.info("Dropping {} queued offers: Framework is deregistered", offers.size());
+            } else if (isDeregistered.get()) {
+                // The scheduler has deregistered following a completed uninstall, but there may yet be unflushed offers
+                // in the queue.
+                if (!offers.isEmpty()) {
+                    LOGGER.info("Dropping {} queued offers: Framework is deregistered", offers.size());
+                }
                 return;
             }
 
@@ -216,12 +218,14 @@ class OfferProcessor {
                         offers.stream()
                                 .map(offer -> offer.getId())
                                 .collect(Collectors.toList()));
-                LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",
-                        offers.size(),
-                        offers.size() == 1 ? "" : "s",
-                        offersInProgress.size(),
-                        offersInProgress.size() == 1 ? "offer remains" : "offers remain",
-                        offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+                if (!offers.isEmpty()) {
+                    LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",
+                            offers.size(),
+                            offers.size() == 1 ? "" : "s",
+                            offersInProgress.size(),
+                            offersInProgress.size() == 1 ? "offer remains" : "offers remain",
+                            offersInProgress.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+                }
             }
         }
     }
@@ -267,10 +271,12 @@ class OfferProcessor {
         // operations to perform and offers which were not used. On our end, we then perform the requested operations
         // and clean or decline the remaining unused offers.
         OfferResponse offerResponse = mesosEventClient.offers(offers);
-        LOGGER.info("Offer result for {} offer{}: {} with {} recommendation{}",
-                offers.size(), offers.size() == 1 ? "" : "s",
-                offerResponse.result,
-                offerResponse.recommendations.size(), offerResponse.recommendations.size() == 1 ? "" : "s");
+        if (!offers.isEmpty() || !offerResponse.recommendations.isEmpty()) {
+            LOGGER.info("Offer result for {} offer{}: {} with {} recommendation{}",
+                    offers.size(), offers.size() == 1 ? "" : "s",
+                    offerResponse.result,
+                    offerResponse.recommendations.size(), offerResponse.recommendations.size() == 1 ? "" : "s");
+        }
 
         Collection<Protos.Offer> unusedOffers =
                 OfferUtils.filterOutAcceptedOffers(offers, offerResponse.recommendations);
@@ -288,20 +294,24 @@ class OfferProcessor {
         // steps, to e.g. launch other tasks. Unused reserved resources within these offers will be cleaned when they
         // are offered again in a following offer cycle, assuming we don't use them again for something else.
 
-        UnexpectedResourcesResponse unexpectedResourcesResponse =
-                mesosEventClient.getUnexpectedResources(unusedOffers);
-        Collection<OfferRecommendation> cleanupRecommendations =
-                toCleanupRecommendations(unexpectedResourcesResponse.offerResources);
-        LOGGER.info("Cleanup result for {} offer{}: {} with {} recommendation{}",
-                unusedOffers.size(), unusedOffers.size() == 1 ? "" : "s",
-                unexpectedResourcesResponse.result,
-                cleanupRecommendations.size(), cleanupRecommendations.size() == 1 ? "" : "s");
+        UnexpectedResourcesResponse.Result cleanupResult = UnexpectedResourcesResponse.Result.PROCESSED;
+        Collection<OfferRecommendation> cleanupRecommendations = Collections.emptyList();
+        if (!unusedOffers.isEmpty()) {
+            UnexpectedResourcesResponse unexpectedResourcesResponse =
+                    mesosEventClient.getUnexpectedResources(unusedOffers);
+            cleanupResult = unexpectedResourcesResponse.result;
+            cleanupRecommendations = toCleanupRecommendations(unexpectedResourcesResponse.offerResources);
+            LOGGER.info("Cleanup result for {} offer{}: {} with {} recommendation{}",
+                    unusedOffers.size(), unusedOffers.size() == 1 ? "" : "s",
+                    unexpectedResourcesResponse.result,
+                    cleanupRecommendations.size(), cleanupRecommendations.size() == 1 ? "" : "s");
+        }
 
         // Decline the offers that haven't been used for either offer evaluation or resource cleanup.
         unusedOffers = OfferUtils.filterOutAcceptedOffers(unusedOffers, cleanupRecommendations);
         if (!unusedOffers.isEmpty()) {
             if (offerResponse.result == OfferResponse.Result.PROCESSED
-                    && unexpectedResourcesResponse.result == UnexpectedResourcesResponse.Result.PROCESSED) {
+                    && cleanupResult == UnexpectedResourcesResponse.Result.PROCESSED) {
                 // The client successfully processed offers and unexpected resources.
                 // Decline the unused offers for a long interval.
                 declineLong(unusedOffers);

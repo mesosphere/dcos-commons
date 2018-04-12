@@ -127,7 +127,8 @@ public class ConfigurationUpdaterTest {
                         mockStateStore,
                         mockConfigStore,
                         DefaultServiceSpec.getComparatorInstance(),
-                        Collections.emptyList());
+                        Collections.emptyList(),
+                        Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -143,7 +144,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -161,7 +163,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.store(UPDATED_SERVICE_SPECIFICATION)).thenReturn(NEW_ID);
@@ -177,7 +180,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         when(mockConfigStore.list()).thenReturn(Arrays.asList(TARGET_ID, NEW_ID, UNKNOWN_ID));
@@ -194,7 +198,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION);
@@ -208,7 +213,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
         ConfigurationUpdater.UpdateResult result = configurationUpdater.updateConfiguration(BAD_UPDATED_SERVICE_SPECIFICATION);
@@ -223,7 +229,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         // ORIGINAL_SERVICE_SPECIFICATION doesn't set service user
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION);
@@ -240,7 +247,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
                 .user(DcosConstants.DEFAULT_SERVICE_USER);
@@ -268,7 +276,8 @@ public class ConfigurationUpdaterTest {
                 mockStateStore,
                 mockConfigStore,
                 DefaultServiceSpec.getComparatorInstance(),
-                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()));
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
         when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
         DefaultServiceSpec.Builder serviceSpecWithUser = DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
                 .user(DcosConstants.DEFAULT_SERVICE_USER);

@@ -34,8 +34,7 @@ import java.util.stream.Collectors;
  */
 public class DefaultScheduler extends AbstractScheduler {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultScheduler.class);
-
+    private final Logger logger;
     private final Optional<String> namespace;
     private final SchedulerConfig schedulerConfig;
     private final FrameworkStore frameworkStore;
@@ -89,6 +88,7 @@ public class DefaultScheduler extends AbstractScheduler {
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
         super(serviceSpec, stateStore, planCustomizer, namespace);
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.namespace = namespace;
         this.schedulerConfig = schedulerConfig;
         this.frameworkStore = frameworkStore;
@@ -109,7 +109,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.customResources = customResources;
         this.customEndpointProducers = customEndpointProducers;
 
-        this.launchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
+        this.launchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec, namespace);
         Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(planCoordinator);
         if (decommissionManager.isPresent()) {
             this.decommissionRecorder =
@@ -132,7 +132,8 @@ public class DefaultScheduler extends AbstractScheduler {
                         templateUrlFactory,
                         schedulerConfig,
                         namespace),
-                stateStore);
+                stateStore,
+                namespace);
     }
 
     @Override
@@ -254,7 +255,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
-        return processOffers(planScheduler, launchRecorder, decommissionRecorder, offers, steps);
+        return processOffers(logger, planScheduler, launchRecorder, decommissionRecorder, offers, steps);
     }
 
     /**
@@ -262,6 +263,7 @@ public class DefaultScheduler extends AbstractScheduler {
      */
     @VisibleForTesting
     static OfferResponse processOffers(
+            Logger logger,
             PlanScheduler planScheduler,
             PersistentLaunchRecorder launchRecorder,
             Optional<UninstallRecorder> decommissionRecorder,
@@ -270,13 +272,16 @@ public class DefaultScheduler extends AbstractScheduler {
         // See which offers are useful to the plans, then omit the ones that shouldn't be launched.
         List<OfferRecommendation> offerRecommendations = planScheduler.resourceOffers(offers, steps);
 
-        LOGGER.info("{} Offer{} processed: {} recommendations from offers: {}",
-                offers.size(),
-                offers.size() == 1 ? "" : "s",
-                offerRecommendations.size(),
-                offerRecommendations.stream()
-                        .map(rec -> rec.getOffer().getId().getValue())
-                        .collect(Collectors.toSet()));
+        if (!offers.isEmpty()) {
+            logger.info("{} offer{} resulted in {} recommendation{}: {}",
+                    offers.size(),
+                    offers.size() == 1 ? "" : "s",
+                    offerRecommendations.size(),
+                    offerRecommendations.size() == 1 ? "" : "s",
+                    offerRecommendations.stream()
+                            .map(rec -> rec.getOffer().getId().getValue())
+                            .collect(Collectors.toSet()));
+        }
 
         try {
             launchRecorder.record(offerRecommendations);
@@ -287,7 +292,7 @@ public class DefaultScheduler extends AbstractScheduler {
             // Note: If a subset of operations were recorded, things could still be left in a bad state. However, in
             // practice any storage failure should have occurred in launchRecorder before any of the recommendations
             // were recorded. So in practice this record operation should be 'roughly atomic'.
-            LOGGER.error("Failed to record offer operations, returning empty operations list", ex);
+            logger.error("Failed to record offer operations, returning empty operations list", ex);
             offerRecommendations = Collections.emptyList();
         }
 
@@ -297,7 +302,7 @@ public class DefaultScheduler extends AbstractScheduler {
         for (OfferRecommendation offerRecommendation : offerRecommendations) {
             if (offerRecommendation instanceof LaunchOfferRecommendation &&
                     !((LaunchOfferRecommendation) offerRecommendation).shouldLaunch()) {
-                LOGGER.info("Skipping launch of transient Operation: {}",
+                logger.info("Skipping launch of transient Operation: {}",
                         TextFormat.shortDebugString(offerRecommendation.getOperation()));
             } else {
                 filteredOfferRecommendations.add(offerRecommendation);
@@ -334,7 +339,7 @@ public class DefaultScheduler extends AbstractScheduler {
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet());
         } catch (Exception e) {
-            LOGGER.error("Failed to fetch expected tasks to determine unexpected resources", e);
+            logger.error("Failed to fetch expected tasks to determine unexpected resources", e);
             return UnexpectedResourcesResponse.failed(Collections.emptyList());
         }
 
@@ -364,7 +369,7 @@ public class DefaultScheduler extends AbstractScheduler {
             } catch (Exception e) {
                 // Failed to record the decommission. Refrain from returning these resources as unexpected for now, try
                 // again later.
-                LOGGER.error("Failed to record unexpected resources in decommission recorder", e);
+                logger.error("Failed to record unexpected resources in decommission recorder", e);
                 return UnexpectedResourcesResponse.failed(Collections.emptyList());
             }
         }
@@ -395,7 +400,7 @@ public class DefaultScheduler extends AbstractScheduler {
             try {
                 StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);
             } catch (StateStoreException e) {
-                LOGGER.warn("Unable to store network info for status update: " + status, e);
+                logger.warn("Unable to store network info for status update: " + status, e);
             }
         }
     }

@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Tests for {@link ExplicitReconciler}.
@@ -217,7 +218,7 @@ public class ExplicitReconcilerTest {
         private long nowMs;
 
         private TestReconciler(StateStore store, long nowMs) {
-            super(store);
+            super(store, Optional.empty());
             setNowMs(nowMs);
         }
 

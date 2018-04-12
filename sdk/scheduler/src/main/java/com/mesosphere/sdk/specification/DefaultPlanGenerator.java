@@ -22,8 +22,9 @@ public class DefaultPlanGenerator implements PlanGenerator {
     private static final Logger LOGGER = LoggingUtils.getLogger(DefaultPlanGenerator.class);
     private final StepFactory stepFactory;
 
-    public DefaultPlanGenerator(ConfigTargetStore configTargetStore, StateStore stateStore) {
-        this(new DefaultStepFactory(configTargetStore, stateStore));
+    public DefaultPlanGenerator(
+            ConfigTargetStore configTargetStore, StateStore stateStore, Optional<String> namespace) {
+        this(new DefaultStepFactory(configTargetStore, stateStore, namespace));
     }
 
     public DefaultPlanGenerator(StepFactory stepFactory) {
