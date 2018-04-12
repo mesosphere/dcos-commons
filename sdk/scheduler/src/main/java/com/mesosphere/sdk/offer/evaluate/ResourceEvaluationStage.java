@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import org.apache.mesos.Protos.Resource;
+import org.slf4j.Logger;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -19,6 +21,7 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
 
+    private final Logger logger;
     private final ResourceSpec resourceSpec;
     private final Optional<String> taskName;
     private final Optional<String> requiredResourceId;
@@ -37,6 +40,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             Optional<String> taskName,
             Optional<String> requiredResourceId,
             Optional<String> resourceNamespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.resourceSpec = resourceSpec;
         this.taskName = taskName;
         this.requiredResourceId = requiredResourceId;
@@ -65,7 +69,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
         OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
                 OfferEvaluationUtils.evaluateSimpleResource(
-                        this, resourceSpec, requiredResourceId, resourceNamespace, mesosResourcePool);
+                        logger, this, resourceSpec, requiredResourceId, resourceNamespace, mesosResourcePool);
 
         EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
         if (!evaluationOutcome.isPassing()) {

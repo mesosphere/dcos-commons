@@ -16,9 +16,9 @@ public class ResourceCleanupStep extends UninstallStep {
     /**
      * Creates a new instance with the provided {@code resourceId} and initial {@code status}.
      */
-    public ResourceCleanupStep(String resourceId, Status status) {
+    public ResourceCleanupStep(String resourceId, Optional<String> namespace) {
         // Avoid having the step name be a pure UUID. Otherwise PlansResource will confuse this UUID with the step UUID:
-        super("unreserve-" + resourceId, status);
+        super("unreserve-" + resourceId, namespace);
         this.resourceId = resourceId;
     }
 

@@ -147,7 +147,7 @@ public final class TaskKiller {
                 // Task is dead AND was already marked. Refrain from killing again right away to avoid kill loop:
                 return false;
             } else {
-                LOGGER.warn("Task was not scheduled for killing: {}", taskStatus.getTaskId().getValue());
+                LOGGER.warn("Task wasn't expected to be killed: {}", taskStatus.getTaskId().getValue());
                 // Task is dead but wasn't scheduled for killing. Scheduling it for a kill shouldn't hurt anything.
                 return true;
             }

@@ -74,7 +74,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         this.uninstallCallback = uninstallCallback;
 
         if (schedulerConfig.isUninstallEnabled()) {
-            this.deregisterStep = new DeregisterStep();
+            this.deregisterStep = new DeregisterStep(Optional.empty());
             this.uninstallPlan = Optional.of(
                     new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.singletonList(
                             new DefaultPhase(
@@ -128,9 +128,11 @@ public class MultiServiceEventClient implements MesosEventClient {
         Collection<String> uninstalledServices = new ArrayList<>();
 
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
-        LOGGER.info("Sending {} offer{} to {} service{}:",
-                offers.size(), offers.size() == 1 ? "" : "s",
-                services.size(), services.size() == 1 ? "" : "s");
+        if (!services.isEmpty()) {
+            LOGGER.info("Sending {} offer{} to {} service{}:",
+                    offers.size(), offers.size() == 1 ? "" : "s",
+                    services.size(), services.size() == 1 ? "" : "s");
+        }
         try {
             if (services.isEmpty()) {
                 // If we don't have any clients, then WE aren't ready.
@@ -201,7 +203,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         }
 
         if (noClients) {
-            // We just removed the last client(s). Should the rest of the framework be torn down?
+            // There are no active services to process offers. Should the rest of the framework be torn down?
             if (uninstallPlan.isPresent()) {
                 // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
                 // can finish with final framework cleanup. After they've finished, they will invoke unregistered(), at
@@ -259,11 +261,13 @@ public class MultiServiceEventClient implements MesosEventClient {
                 }
             }
         }
-        LOGGER.info("Sorted reserved resources from {} offer{} into {} services: {}",
-                unusedOffers.size(),
-                unusedOffers.size() == 1 ? "" : "s",
-                offersByService.size(),
-                offersByService.keySet());
+        if (!offersByService.isEmpty()) {
+            LOGGER.info("Sorted reserved resources from {} offer{} into {} services: {}",
+                    unusedOffers.size(),
+                    unusedOffers.size() == 1 ? "" : "s",
+                    offersByService.size(),
+                    offersByService.keySet());
+        }
         if (!unexpectedResources.isEmpty()) {
             LOGGER.warn("Encountered {} malformed resources to clean up: {}",
                     unexpectedResources.size(), unexpectedResources.values());

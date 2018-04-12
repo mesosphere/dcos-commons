@@ -18,12 +18,12 @@ import java.util.stream.Collectors;
  */
 public class PlanScheduler {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(PlanScheduler.class);
-
+    private final Logger logger;
     private final OfferEvaluator offerEvaluator;
     private final StateStore stateStore;
 
-    public PlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore) {
+    public PlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore, Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.offerEvaluator = offerEvaluator;
         this.stateStore = stateStore;
     }
@@ -57,14 +57,14 @@ public class PlanScheduler {
 
     private List<OfferRecommendation> resourceOffers(List<Protos.Offer> offers, Step step) {
         if (!(step.isPending() || step.isPrepared())) {
-            LOGGER.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
+            logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
             return Collections.emptyList();
         }
 
-        LOGGER.info("Processing resource offers for step: {}", step.getName());
+        logger.info("Processing resource offers for step: {}", step.getName());
         Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.start();
         if (!podInstanceRequirementOptional.isPresent()) {
-            LOGGER.info("No PodInstanceRequirement for step: {}", step.getName());
+            logger.info("No PodInstanceRequirement for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
             return Collections.emptyList();
         }
@@ -81,13 +81,13 @@ public class PlanScheduler {
         try {
             recommendations = offerEvaluator.evaluate(podInstanceRequirement, offers);
         } catch (InvalidRequirementException | IOException e) {
-            LOGGER.error("Failed generate OfferRecommendations.", e);
+            logger.error("Failed generate OfferRecommendations.", e);
             return Collections.emptyList();
         }
 
         if (recommendations.isEmpty()) {
             // Log that we're not finding suitable offers, possibly due to insufficient resources.
-            LOGGER.warn(
+            logger.warn(
                     "Unable to find any offers which fulfill requirement provided by step {}: {}",
                     step.getName(), podInstanceRequirement);
             step.updateOfferStatus(Collections.emptyList());
@@ -105,29 +105,21 @@ public class PlanScheduler {
     private void killTasks(PodInstanceRequirement podInstanceRequirement) {
         Map<String, Protos.TaskInfo> taskInfoMap = new HashMap<>();
         stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
-        LOGGER.info("Killing tasks for pod instance requirement: {}:{}",
-                podInstanceRequirement.getPodInstance().getName(),
-                podInstanceRequirement.getTasksToLaunch());
 
-        List<TaskSpec> taskSpecsToLaunch = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+        Set<String> resourceSetsToConsume = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
-                .collect(Collectors.toList());
-        LOGGER.info("TaskSpecs to launch: {}",
-                taskSpecsToLaunch.stream().map(taskSpec -> taskSpec.getName()).collect(Collectors.toList()));
-
-        List<String> resourceSetsToConsume = taskSpecsToLaunch.stream()
                 .map(taskSpec -> taskSpec.getResourceSet())
                 .map(resourceSet -> resourceSet.getId())
-                .collect(Collectors.toList());
-        LOGGER.info("Resource sets to consume: {}",
-                podInstanceRequirement.getPodInstance().getName(),
-                resourceSetsToConsume);
-
+                .collect(Collectors.toSet());
         List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
                 .collect(Collectors.toList());
-        LOGGER.info("Tasks to kill: {}", tasksToKill);
+        logger.info("Killing tasks for pod instance requirement {}:{}, with resource sets to consume {}: {}",
+                podInstanceRequirement.getPodInstance().getName(),
+                podInstanceRequirement.getTasksToLaunch(),
+                resourceSetsToConsume,
+                tasksToKill);
 
         for (String taskName : tasksToKill) {
             Protos.TaskInfo taskInfo = taskInfoMap.get(taskName);

@@ -75,7 +75,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                        String namespace,
                        TLSArtifactsUpdater tlsArtifactsUpdater,
                        SchedulerConfig schedulerConfig) {
-        this.logger = LoggingUtils.getLogger(getClass(), serviceName);
+        this.logger = LoggingUtils.getLogger(getClass());
         this.serviceName = serviceName;
         this.taskName = taskName;
         this.namespace = namespace;

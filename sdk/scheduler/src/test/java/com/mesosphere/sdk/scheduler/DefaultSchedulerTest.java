@@ -6,6 +6,7 @@ import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
@@ -722,6 +723,7 @@ public class DefaultSchedulerTest {
         UninstallRecorder mockDecommissionRecorder = mock(UninstallRecorder.class);
 
         Collection<OfferRecommendation> recommendations = DefaultScheduler.processOffers(
+                LoggingUtils.getLogger(getClass()),
                 mockPlanScheduler,
                 mockLaunchRecorder,
                 Optional.of(mockDecommissionRecorder),

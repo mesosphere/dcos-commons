@@ -25,13 +25,13 @@ import java.util.stream.Collectors;
  */
 public abstract class AbstractScheduler implements MesosEventClient {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(AbstractScheduler.class);
+    private final Logger logger;
+    private final Optional<String> namespace;
+    private final AtomicBoolean started = new AtomicBoolean(false);
 
     protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
     protected final Optional<PlanCustomizer> planCustomizer;
-
-    private final AtomicBoolean started = new AtomicBoolean(false);
 
     // These are all (re)assigned when the scheduler has (re)registered:
     private ReviveManager reviveManager;
@@ -42,6 +42,8 @@ public abstract class AbstractScheduler implements MesosEventClient {
             StateStore stateStore,
             Optional<PlanCustomizer> planCustomizer,
             Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(AbstractScheduler.class, namespace);
+        this.namespace = namespace;
         this.serviceSpec = serviceSpec;
         this.stateStore = stateStore;
         this.planCustomizer = planCustomizer;
@@ -95,8 +97,8 @@ public abstract class AbstractScheduler implements MesosEventClient {
     @Override
     public void registered(boolean reRegistered) {
         if (!reRegistered) {
-            this.reviveManager = new ReviveManager();
-            this.reconciler = new ExplicitReconciler(stateStore);
+            this.reviveManager = new ReviveManager(namespace);
+            this.reconciler = new ExplicitReconciler(stateStore, namespace);
             registeredWithMesos();
         }
         // Explicit task reconciliation should be (re)started on all (re-)registrations.
@@ -111,7 +113,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
          * See also: http://mesos.apache.org/documentation/latest/reconciliation/ */
         reconciler.reconcile();
         if (!reconciler.isReconciled()) {
-            LOGGER.info("Not ready for offers: Waiting for task reconciliation to complete.");
+            logger.info("Not ready for offers: Waiting for task reconciliation to complete.");
             return OfferResponse.notReady(Collections.emptyList());
         }
 
@@ -122,19 +124,20 @@ public abstract class AbstractScheduler implements MesosEventClient {
         Collection<Step> activeWorkSet = new HashSet<>(steps);
         Collection<Step> inProgressSteps = getInProgressSteps(getPlanCoordinator());
         if (!inProgressSteps.isEmpty()) {
-            LOGGER.info("Steps in progress: {}",
+            logger.info("Steps in progress: {}",
                     inProgressSteps.stream().map(step -> step.getMessage()).collect(Collectors.toList()));
         }
         activeWorkSet.addAll(inProgressSteps);
         reviveManager.revive(activeWorkSet);
 
-        LOGGER.info("Processing {} offer{} against {} step{}{}",
-                offers.size(), offers.size() == 1 ? "" : "s",
-                steps.size(), steps.size() == 1 ? "" : "s",
-                offers.isEmpty() ? "" : ":");
-        int i = 0;
-        for (Protos.Offer offer : offers) {
-            LOGGER.info("  {}: {}", ++i, TextFormat.shortDebugString(offer));
+        if (!offers.isEmpty()) {
+            logger.info("Processing {} offer{} against {} step{}:",
+                    offers.size(), offers.size() == 1 ? "" : "s",
+                    steps.size(), steps.size() == 1 ? "" : "s");
+            int i = 0;
+            for (Protos.Offer offer : offers) {
+                logger.info("  {}: {}", ++i, TextFormat.shortDebugString(offer));
+            }
         }
 
         return processOffers(offers, steps);
@@ -156,11 +159,11 @@ public abstract class AbstractScheduler implements MesosEventClient {
             reconciler.update(status);
         } catch (Exception e) {
             if (e instanceof StateStoreException && ((StateStoreException) e).getReason() == Reason.NOT_FOUND) {
-                LOGGER.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
+                logger.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
                         + TextFormat.shortDebugString(status), e);
                 return StatusResponse.unknownTask();
             }
-            LOGGER.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
+            logger.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
         }
         return StatusResponse.processed();
     }

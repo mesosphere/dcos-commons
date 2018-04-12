@@ -61,7 +61,7 @@ public class RoundRobinByAttributeRule extends AbstractRoundRobinRule {
     protected String getKey(Offer offer) {
         for (Attribute attribute : offer.getAttributesList()) {
             if (attribute.getName().equalsIgnoreCase(attributeName)) {
-                return AttributeStringUtils.valueString(attribute);
+                return AttributeStringUtils.toString(AttributeStringUtils.toValue(attribute));
             }
         }
         return null;

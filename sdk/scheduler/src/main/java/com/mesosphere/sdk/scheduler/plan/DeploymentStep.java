@@ -22,6 +22,7 @@ public class DeploymentStep extends AbstractStep {
 
     protected final StateStore stateStore;
     protected final PodInstanceRequirement podInstanceRequirement;
+    private final Map<String, GoalState> goalStateByTaskName;
 
     private final List<String> errors = new ArrayList<>();
     private final Map<String, String> parameters = new HashMap<>();
@@ -33,10 +34,19 @@ public class DeploymentStep extends AbstractStep {
      * by the step, and any {@code errors} to be displayed to the user.
      */
     public DeploymentStep(
-            String name, PodInstanceRequirement podInstanceRequirement, StateStore stateStore) {
-        super(name, Status.PENDING);
-        this.podInstanceRequirement = podInstanceRequirement;
+            String name,
+            PodInstanceRequirement podInstanceRequirement,
+            StateStore stateStore,
+            Optional<String> namespace) {
+        super(name, namespace);
         this.stateStore = stateStore;
+        this.podInstanceRequirement = podInstanceRequirement;
+        this.goalStateByTaskName = new HashMap<>();
+        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+            String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
+            this.goalStateByTaskName.put(taskName, taskSpec.getGoal());
+        }
+        logger.info("Goal states: {}", goalStateByTaskName);
         updateStatus();
     }
 
@@ -100,19 +110,9 @@ public class DeploymentStep extends AbstractStep {
      */
     @Override
     public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
-        // log a bulleted list of operations, with each operation on one line:
-        logger.info("Updated step '{} [{}]' to reflect {} recommendation{}: {}",
-                getName(),
-                getId(),
-                recommendations.size(),
-                recommendations.size() == 1 ? "" : "s",
-                recommendations.stream().map(r -> r.getOperation().getType()));
-
         tasks.clear();
         getTaskInfos(recommendations)
                 .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED)));
-
-        logger.info("Step '{} [{}]' is now waiting for updates for task IDs: {}", getName(), getId(), tasks.keySet());
 
         if (recommendations.isEmpty()) {
             tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
@@ -161,19 +161,6 @@ public class DeploymentStep extends AbstractStep {
             return;
         }
 
-        GoalState goalState = null;
-        try {
-            goalState = TaskUtils.getGoalState(
-                    podInstanceRequirement.getPodInstance(),
-                    CommonIdUtils.toTaskName(status.getTaskId()));
-        } catch (TaskException e) {
-            logger.error(String.format("Failed to get goal state for step %s with status %s",
-                    getName(), getStatus()), e);
-            return;
-        }
-
-        logger.info("Goal state for: {} is: {}", status.getTaskId().getValue(), goalState.name());
-
         switch (status.getState()) {
             case TASK_ERROR:
             case TASK_FAILED:
@@ -186,8 +173,9 @@ public class DeploymentStep extends AbstractStep {
             case TASK_STARTING:
                 setTaskStatus(status.getTaskId(), Status.STARTING);
                 break;
-            case TASK_RUNNING:
+            case TASK_RUNNING: {
                 Protos.TaskInfo taskInfo = tasks.get(status.getTaskId()).getTaskInfo();
+                GoalState goalState = getGoalState(status.getTaskId());
                 if (goalState.equals(GoalState.RUNNING)
                         && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status)) {
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
@@ -195,7 +183,9 @@ public class DeploymentStep extends AbstractStep {
                     setTaskStatus(status.getTaskId(), Status.STARTED);
                 }
                 break;
-            case TASK_FINISHED:
+            }
+            case TASK_FINISHED: {
+                GoalState goalState = getGoalState(status.getTaskId());
                 if (
                         goalState.equals(GoalState.ONCE) ||
                         goalState.equals(GoalState.FINISH) ||
@@ -205,11 +195,28 @@ public class DeploymentStep extends AbstractStep {
                     setTaskStatus(status.getTaskId(), Status.PENDING);
                 }
                 break;
+            }
             default:
                 logger.error("Failed to process unexpected state: " + status.getState());
         }
 
         updateStatus();
+    }
+
+    private GoalState getGoalState(Protos.TaskID taskId) {
+        try {
+            String taskName = CommonIdUtils.toTaskName(taskId);
+            GoalState goalState = goalStateByTaskName.get(taskName);
+            if (goalState == null) {
+                throw new TaskException(String.format(
+                        "No GoalState found for task %s: %s", taskName, goalStateByTaskName));
+            }
+            return goalState;
+        } catch (TaskException e) {
+            logger.error(String.format("Failed to get goal state for step %s with status %s",
+                    getName(), getStatus()), e);
+            return GoalState.UNKNOWN;
+        }
     }
 
     /**
@@ -223,8 +230,8 @@ public class DeploymentStep extends AbstractStep {
     private void setOverrideStatus(Protos.TaskID taskID, Status status) {
         GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(getTaskName(taskID));
 
-        logger.info("Goal override status: {}", overrideStatus);
         if (!GoalStateOverride.Progress.COMPLETE.equals(overrideStatus.progress)) {
+            logger.info("Goal override status: {}", overrideStatus);
             GoalStateOverride.Progress progress = GoalStateOverride.Status.translateStatus(status);
             stateStore.storeGoalOverrideStatus(
                     getTaskName(taskID),
@@ -236,7 +243,6 @@ public class DeploymentStep extends AbstractStep {
         if (tasks.containsKey(taskID)) {
             // Update the TaskStatusPair with the new status:
             tasks.replace(taskID, new TaskStatusPair(tasks.get(taskID).getTaskInfo(), status));
-            logger.info("Status for: {} is: {}", taskID.getValue(), status);
         }
 
         setOverrideStatus(taskID, status);

@@ -12,8 +12,8 @@ import java.util.Optional;
  */
 public class DeregisterStep extends UninstallStep {
 
-    public DeregisterStep() {
-        super("deregister", Status.PENDING);
+    public DeregisterStep(Optional<String> namespace) {
+        super("deregister", namespace);
     }
 
     @Override
