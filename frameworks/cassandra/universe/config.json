@@ -136,15 +136,20 @@
           "description": "The amount of disk, in MB, allocated to the Cassandra process.",
           "default": 10240
         },
-        "portworx_volume_name":{
-          "description":"Portworx volume name",
-          "type":"string",
+        "portworx_volume_name": {
+          "description": "Portworx volume name",
+          "type": "string",
           "default": "Cassandra"
         },
-        "portworx_volume_options":{
-          "description":"Portworx volume options. Comma separated key=value pairs",
-          "type":"string",
+        "portworx_volume_options": {
+          "description": "Portworx volume options. Comma separated key=value pairs",
+          "type": "string",
           "default": ""
+        },
+        "init_system_keyspaces": {
+          "description": "Initialize Cassandra system keyspaces. If using existing Portworx volumes from previous Cassandra framework deployment, you should not initialize the system keyspaces again.",
+          "type": "boolean",
+          "default": true
         },
         "placement_constraint": {
           "type": "string",

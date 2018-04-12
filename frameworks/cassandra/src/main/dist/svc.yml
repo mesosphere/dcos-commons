@@ -271,7 +271,9 @@ plans:
         strategy: serial
         pod: node
         steps:
+          {{#CASSANDRA_INIT_SYSTEM_KEYSPACES}}
           - 0: [[server], [init_system_keyspaces]]
+          {{/CASSANDRA_INIT_SYSTEM_KEYSPACES}}
           - default: [[server]]
   replace:
     strategy: serial
