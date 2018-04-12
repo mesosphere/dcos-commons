@@ -347,13 +347,12 @@ public class TaskUtils {
      * {@link PodInstanceRequirement#getTasksToLaunch()}) that should be relaunched.
      *
      * @param failedTasks tasks marked as needing recovery
-     * @param allLaunchedTasks all launched tasks in the service
      * @return list of pods, each with contained named tasks to be relaunched
      */
     public static List<PodInstanceRequirement> getPodRequirements(
+            StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            Collection<Protos.TaskInfo> failedTasks,
-            Collection<Protos.TaskInfo> allLaunchedTasks) {
+            Collection<Protos.TaskInfo> failedTasks) {
 
         // Mapping of pods, to failed tasks within those pods.
         // Arbitrary consistent ordering: by pod instance name (e.g. "otherpodtype-0","podtype-0","podtype-1")
@@ -390,7 +389,8 @@ public class TaskUtils {
             LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
         }
 
-        Set<String> allLaunchedTaskNames = allLaunchedTasks.stream()
+        Set<String> allLaunchedTaskNames = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> stateStore.fetchStatus(taskInfo.getName()).isPresent())
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toSet());
 

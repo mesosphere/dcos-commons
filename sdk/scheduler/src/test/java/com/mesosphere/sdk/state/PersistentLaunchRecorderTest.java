@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This class tests the {@link PersistentLaunchRecorder}.
@@ -37,7 +38,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
     @Before
     public void beforeEach() throws Exception {
         super.beforeEach();
-        persistentLaunchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
+        persistentLaunchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec, Optional.empty());
     }
 
     @Test(expected=TaskException.class)

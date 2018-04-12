@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -8,7 +9,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Used to retrieve and validate the Schema Version against whatever version is supported by the scheduler.
@@ -23,7 +23,7 @@ public class SchemaVersionStore {
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
-    private static final Logger logger = LoggerFactory.getLogger(SchemaVersionStore.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(SchemaVersionStore.class);
 
     /**
      * This name/path must remain the same forever. It's the basis of all other migrations.
@@ -54,14 +54,14 @@ public class SchemaVersionStore {
      */
     public void check(int expectedVersion) throws StateStoreException {
         try {
-            logger.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
+            LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
             byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
             if (bytes.length == 0) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Invalid data when fetching schema version in '%s'", SCHEMA_VERSION_NAME));
             }
             String rawString = new String(bytes, CHARSET);
-            logger.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
+            LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
             int currentVersion;
             try {
                 currentVersion = Integer.parseInt(rawString);
@@ -78,7 +78,7 @@ public class SchemaVersionStore {
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // The schema version doesn't exist yet. Initialize to the current version.
-                logger.debug("Schema version not found at path: {}. New service install? " +
+                LOGGER.debug("Schema version not found at path: {}. New service install? " +
                         "Initializing path to schema version: {}.",
                         SCHEMA_VERSION_NAME, expectedVersion);
                 store(expectedVersion);
@@ -100,7 +100,7 @@ public class SchemaVersionStore {
     void store(int version) throws StateStoreException {
         try {
             String versionStr = String.valueOf(version);
-            logger.debug("Storing schema version: '{}' into path: {}",
+            LOGGER.debug("Storing schema version: '{}' into path: {}",
                     versionStr, SCHEMA_VERSION_NAME);
             persister.set(SCHEMA_VERSION_NAME, versionStr.getBytes(CHARSET));
         } catch (Exception e) {

@@ -219,7 +219,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .resourceSet(resourceSet)
                 .build();
         PodSpec podSpec =
-                DefaultPodSpec.newBuilder("executor-uri", TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec)).build();
+                DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME)).build();
@@ -238,7 +238,6 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
     }
 

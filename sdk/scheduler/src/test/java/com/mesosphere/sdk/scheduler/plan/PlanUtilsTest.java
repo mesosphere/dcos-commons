@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -24,7 +25,6 @@ public class PlanUtilsTest {
     private static final String TASK_NAME_1 = TestConstants.TASK_NAME + 1;
 
     private static final PodSpec POD_SPEC = DefaultPodSpec.newBuilder(
-            "",
             TestConstants.POD_TYPE,
             1,
             Arrays.asList(
@@ -45,7 +45,8 @@ public class PlanUtilsTest {
         step = new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore);
+                mockStateStore,
+                Optional.empty());
     }
 
     @Test

@@ -190,13 +190,14 @@ public class DeploymentStepTest {
                 TestPodFactory.getTaskSpec(
                         TASK_NAME_1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec =
-                DefaultPodSpec.newBuilder("", TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
+                DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore);
+                mockStateStore,
+                Optional.empty());
 
         Assert.assertTrue(step.isPending());
 
@@ -230,7 +231,7 @@ public class DeploymentStepTest {
                 TestPodFactory.getTaskSpec(
                         taskName1, TestConstants.RESOURCE_SET_ID + 1, TestConstants.TASK_DNS_PREFIX);
         PodSpec podSpec =
-                DefaultPodSpec.newBuilder("", TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
+                DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName0));
@@ -239,7 +240,8 @@ public class DeploymentStepTest {
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore);
+                mockStateStore,
+                Optional.empty());
 
         LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
@@ -250,7 +252,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
 
         LaunchOfferRecommendation launchRec1 = new LaunchOfferRecommendation(
@@ -262,7 +263,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
 
         step.updateOfferStatus(Arrays.asList(launchRec0, launchRec1));
@@ -298,7 +298,8 @@ public class DeploymentStepTest {
         return new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(mockPodInstance, TaskUtils.getTaskNames(mockPodInstance)).build(),
-                mockStateStore);
+                mockStateStore,
+                Optional.empty());
     }
 
     private DeploymentStep getStartingStep() {
@@ -312,7 +313,6 @@ public class DeploymentStepTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true,
                 true);
         step.updateOfferStatus(Arrays.asList(launchRec));
         return step;

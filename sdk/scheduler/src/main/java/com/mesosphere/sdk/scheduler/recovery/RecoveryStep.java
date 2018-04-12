@@ -25,7 +25,16 @@ public class RecoveryStep extends DeploymentStep {
             PodInstanceRequirement podInstanceRequirement,
             LaunchConstrainer launchConstrainer,
             StateStore stateStore) {
-        super(name, podInstanceRequirement, stateStore);
+        this(name, podInstanceRequirement, launchConstrainer, stateStore, Optional.empty());
+    }
+
+    public RecoveryStep(
+            String name,
+            PodInstanceRequirement podInstanceRequirement,
+            LaunchConstrainer launchConstrainer,
+            StateStore stateStore,
+            Optional<String> namespace) {
+        super(name, podInstanceRequirement, stateStore, namespace);
         this.launchConstrainer = launchConstrainer;
     }
 

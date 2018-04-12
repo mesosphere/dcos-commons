@@ -44,16 +44,16 @@ public class ReviveManager {
      * Creates an instance using the singleton {@link TokenBucket} instance. The {@link TokenBucket} is a singleton
      * because we want rate limits to be enforced across all running services in the scheduler.
      */
-    public ReviveManager() {
-        this(TOKEN_BUCKET_INSTANCE);
+    public ReviveManager(Optional<String> namespace) {
+        this(TOKEN_BUCKET_INSTANCE, namespace);
     }
 
     /**
      * Creates an instance with a custom {@link TokenBucket} instead of the singleton instance. Only for use in tests.
      */
     @VisibleForTesting
-    ReviveManager(TokenBucket tokenBucket) {
-        this.logger = LoggingUtils.getLogger(getClass());
+    ReviveManager(TokenBucket tokenBucket, Optional<String> namespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.tokenBucket = tokenBucket;
     }
 
@@ -96,7 +96,9 @@ public class ReviveManager {
         Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
         newCandidates.removeAll(this.candidates);
 
-        logger.info("Candidates, old: {}, current: {}, new:{}", this.candidates, currCandidates, newCandidates);
+        if (!this.candidates.isEmpty() || !currCandidates.isEmpty() || !newCandidates.isEmpty()) {
+            logger.info("Candidates, old: {}, current: {}, new:{}", this.candidates, currCandidates, newCandidates);
+        }
 
         if (!newCandidates.isEmpty()) {
             if (tokenBucket.tryAcquire()) {

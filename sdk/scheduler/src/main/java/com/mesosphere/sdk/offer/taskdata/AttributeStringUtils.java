@@ -6,8 +6,9 @@ import java.util.List;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
 
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Value;
+import org.apache.mesos.Protos;
+
+import com.google.protobuf.TextFormat;
 
 /**
  * Tools for converting {@link Attribute}s into strings. Spec is defined by Mesos documentation at:
@@ -50,9 +51,9 @@ public class AttributeStringUtils {
      * @throws IllegalArgumentException if some part of the provided attributes couldn't be
      * serialized
      */
-    public static String toString(List<Attribute> attributes) throws IllegalArgumentException {
+    public static String toString(List<Protos.Attribute> attributes) throws IllegalArgumentException {
         StringJoiner joiner = new StringJoiner(ATTRIBUTE_LIST_SEPARATOR);
-        for (Attribute attribute : attributes) {
+        for (Protos.Attribute attribute : attributes) {
             joiner.add(toString(attribute));
         }
         return joiner.toString();
@@ -88,9 +89,30 @@ public class AttributeStringUtils {
      *
      * @see #valueString(Attribute)
      */
-    public static String toString(Attribute attribute) throws IllegalArgumentException {
+    public static String toString(Protos.Attribute attribute) throws IllegalArgumentException {
         return String.format("%s%c%s",
-                attribute.getName(), ATTRIBUTE_KEYVAL_SEPARATOR, valueString(attribute));
+                attribute.getName(), ATTRIBUTE_KEYVAL_SEPARATOR, toString(toValue(attribute)));
+    }
+
+    /**
+     * Copies the value data in the provided Attribute the form of a Value object.
+     */
+    public static Protos.Value toValue(Protos.Attribute attribute) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+                .setType(attribute.getType());
+        if (attribute.hasRanges()) {
+            builder.setRanges(attribute.getRanges());
+        }
+        if (attribute.hasScalar()) {
+            builder.setScalar(attribute.getScalar());
+        }
+        if (attribute.hasSet()) {
+            builder.setSet(attribute.getSet());
+        }
+        if (attribute.hasText()) {
+            builder.setText(attribute.getText());
+        }
+        return builder.build();
     }
 
     /**
@@ -116,14 +138,14 @@ public class AttributeStringUtils {
      * @throws IllegalArgumentException if some part of the provided attributes couldn't be
      * serialized
      */
-    public static String valueString(Attribute attribute) throws IllegalArgumentException {
+    public static String toString(Protos.Value value) throws IllegalArgumentException {
         StringBuffer buf = new StringBuffer();
-        switch (attribute.getType()) {
+        switch (value.getType()) {
         case RANGES: {
             // "ports:[21000-24000,30000-34000]"
             buf.append('[');
             StringJoiner joiner = new StringJoiner(",");
-            for (Value.Range range : attribute.getRanges().getRangeList()) {
+            for (Protos.Value.Range range : value.getRanges().getRangeList()) {
                 joiner.add(String.format("%d-%d", range.getBegin(), range.getEnd()));
             }
             buf.append(joiner.toString());
@@ -133,13 +155,13 @@ public class AttributeStringUtils {
         case SCALAR:
             // according to mesos.proto: "Mesos keeps three decimal digits of precision ..."
             // let's just ensure that we're producing consistent strings.
-            buf.append(String.format("%.3f", attribute.getScalar().getValue()));
+            buf.append(String.format("%.3f", value.getScalar().getValue()));
             break;
         case SET:
             // "bugs(debug_role):{a,b,c}"
             buf.append('{');
             StringJoiner joiner = new StringJoiner(",");
-            for (String item : attribute.getSet().getItemList()) {
+            for (String item : value.getSet().getItemList()) {
                 joiner.add(item);
             }
             buf.append(joiner.toString());
@@ -147,10 +169,10 @@ public class AttributeStringUtils {
             break;
         case TEXT:
             // "key:value"
-            buf.append(attribute.getText().getValue());
+            buf.append(value.getText().getValue());
             break;
         default:
-            throw new IllegalArgumentException("Unsupported attribute value type: " + attribute);
+            throw new IllegalArgumentException("Unsupported value type: " + TextFormat.shortDebugString(value));
         }
         return buf.toString();
     }

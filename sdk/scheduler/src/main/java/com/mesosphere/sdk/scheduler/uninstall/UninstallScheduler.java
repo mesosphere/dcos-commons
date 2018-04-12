@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class UninstallScheduler extends AbstractScheduler {
 
-    private final Logger logger = LoggingUtils.getLogger(getClass());
+    private final Logger logger;
 
     private final ConfigStore<ServiceSpec> configStore;
     private final UninstallRecorder recorder;
@@ -63,6 +63,7 @@ public class UninstallScheduler extends AbstractScheduler {
             Optional<String> namespace,
             Optional<SecretsClient> customSecretsClientForTests) {
         super(serviceSpec, stateStore, planCustomizer, namespace);
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.configStore = configStore;
 
         if (!StateStoreUtils.isUninstalling(stateStore)) {
@@ -72,8 +73,8 @@ public class UninstallScheduler extends AbstractScheduler {
         }
 
         // Construct a plan for uninstalling any remaining resources
-        UninstallPlanFactory planFactory =
-                new UninstallPlanFactory(serviceSpec, stateStore, schedulerConfig, customSecretsClientForTests);
+        UninstallPlanFactory planFactory = new UninstallPlanFactory(
+                serviceSpec, stateStore, schedulerConfig, namespace, customSecretsClientForTests);
         this.recorder = new UninstallRecorder(stateStore, planFactory.getResourceCleanupSteps());
         this.deregisterStubStep = planFactory.getDeregisterStep();
 

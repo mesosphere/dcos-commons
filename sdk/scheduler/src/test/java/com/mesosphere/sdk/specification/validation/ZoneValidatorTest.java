@@ -122,7 +122,7 @@ public class ZoneValidatorTest {
     }
 
     private static PodSpec getPodSpec(TaskSpec taskSpec) {
-        return DefaultPodSpec.newBuilder("test-executor", POD_TYPE, 1, Arrays.asList(taskSpec))
+        return DefaultPodSpec.newBuilder(POD_TYPE, 1, Arrays.asList(taskSpec))
                 .user(TestConstants.SERVICE_USER)
                 .build();
     }

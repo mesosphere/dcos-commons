@@ -9,8 +9,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -28,6 +30,7 @@ import static org.mockito.Mockito.*;
 
 public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
+    private static final Logger LOGGER = LoggingUtils.getLogger(OfferEvaluationUtilsTest.class);
     private static final String RESOURCE_NAME = "blocks";
     private static final String ROLE = "svc-role";
     private static final String PRINCIPAL = "svc-principal";
@@ -60,7 +63,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         }
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                mockStage, getResourceSpec(desired), resourceId, namespace, mockPool);
+                LOGGER, mockStage, getResourceSpec(desired), resourceId, namespace, mockPool);
         Assert.assertFalse(outcome.getEvaluationOutcome().isPassing());
 
         Assert.assertTrue(outcome.getEvaluationOutcome().getOfferRecommendations().isEmpty());
@@ -88,8 +91,8 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
                     .thenReturn(Optional.of(getMesosResource(desired)));
         }
 
-        ReserveEvaluationOutcome outcome =
-                OfferEvaluationUtils.evaluateSimpleResource(mockStage, resourceSpec, resourceId, namespace, mockPool);
+        ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
+                LOGGER, mockStage, resourceSpec, resourceId, namespace, mockPool);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         if (resourceId.isPresent()) {
@@ -127,8 +130,8 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         when(mockPool.consumeReservableMerged(RESOURCE_NAME, toAdd, Constants.ANY_ROLE))
                 .thenReturn(Optional.of(getMesosResource(toAdd)));
 
-        ReserveEvaluationOutcome outcome =
-                OfferEvaluationUtils.evaluateSimpleResource(mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+        ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
@@ -161,8 +164,8 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         when(mockPool.consumeReservableMerged(RESOURCE_NAME, toAdd, Constants.ANY_ROLE))
                 .thenReturn(Optional.empty());
 
-        ReserveEvaluationOutcome outcome =
-                OfferEvaluationUtils.evaluateSimpleResource(mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+        ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
         Assert.assertFalse(outcome.getEvaluationOutcome().isPassing());
 
         Assert.assertTrue(outcome.getEvaluationOutcome().getOfferRecommendations().isEmpty());
@@ -187,8 +190,8 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         when(mockPool.consumeReservableMerged(RESOURCE_NAME, desired, Constants.ANY_ROLE))
                 .thenReturn(Optional.of(getMesosResource(toSubtract)));
 
-        ReserveEvaluationOutcome outcome =
-                OfferEvaluationUtils.evaluateSimpleResource(mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+        ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);

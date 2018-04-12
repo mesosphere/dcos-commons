@@ -23,7 +23,6 @@ import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
-import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
@@ -50,13 +49,14 @@ public class UninstallPlanFactory {
             ServiceSpec serviceSpec,
             StateStore stateStore,
             SchedulerConfig schedulerConfig,
+            Optional<String> namespace,
             Optional<SecretsClient> customSecretsClientForTests) {
         List<Phase> phases = new ArrayList<>();
 
         // First, we kill all the tasks, so that we may release their reserved resources.
         List<Step> taskKillSteps = stateStore.fetchTasks().stream()
                 .map(Protos.TaskInfo::getTaskId)
-                .map(taskID -> new TaskKillStep(taskID))
+                .map(taskID -> new TaskKillStep(taskID, namespace))
                 .collect(Collectors.toList());
         phases.add(new DefaultPhase(TASK_KILL_PHASE, taskKillSteps, new ParallelStrategy<>(), Collections.emptyList()));
 
@@ -83,7 +83,7 @@ public class UninstallPlanFactory {
 
         this.resourceCleanupSteps =
                 ResourceUtils.getResourceIds(ResourceUtils.getAllResources(tasksNotFailedAndErrored)).stream()
-                        .map(resourceId -> new ResourceCleanupStep(resourceId, Status.PENDING))
+                        .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
                         .collect(Collectors.toList());
         LOGGER.info("Configuring resource cleanup of {}/{} tasks: {}/{} expected resources have been unreserved",
                 tasksNotFailedAndErrored.size(), allTasks.size(),
@@ -113,7 +113,8 @@ public class UninstallPlanFactory {
                         TLS_CLEANUP_PHASE,
                         Collections.singletonList(new TLSCleanupStep(
                                 secretsClient,
-                                schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
+                                schedulerConfig.getSecretsNamespace(serviceSpec.getName()),
+                                namespace)),
                         new SerialStrategy<>(),
                         Collections.emptyList()));
             } catch (Exception e) {
@@ -124,7 +125,7 @@ public class UninstallPlanFactory {
 
         // Finally, we wipe remaining ZK data and unregister the framework from Mesos.
         // This is done upstream in FrameworkRunner, then the step is notified when it completes.
-        this.deregisterStep = new DeregisterStep();
+        this.deregisterStep = new DeregisterStep(namespace);
         phases.add(new DefaultPhase(
                 DEREGISTER_PHASE,
                 Collections.singletonList(deregisterStep),

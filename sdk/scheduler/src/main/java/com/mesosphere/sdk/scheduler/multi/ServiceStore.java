@@ -5,8 +5,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.storage.Persister;
@@ -23,7 +23,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
  */
 public class ServiceStore {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceStore.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ServiceStore.class);
     private static final String ROOT_PATH_NAME = "ServiceList";
 
     /**

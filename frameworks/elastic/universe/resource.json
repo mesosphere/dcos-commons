@@ -3,7 +3,6 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "executor-zip": "{{artifact-dir}}/executor.zip",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/elastic-scheduler.zip",
       "statsd-plugin-zip": "https://github.com/mesosphere/elasticsearch-statsd-plugin/releases/download/{{elastic-statsd-version}}/elasticsearch-statsd-{{elastic-statsd-version}}.zip",

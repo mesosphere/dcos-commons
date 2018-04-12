@@ -31,7 +31,6 @@ public class CanaryStrategyTest {
     public static void beforeAll() {
         for (int i=0; i<5; i++) {
             PodSpec podSpec = DefaultPodSpec.newBuilder(
-                    "executor-uri",
                     "type" + i,
                     1,
                     Arrays.asList(TestPodFactory.getTaskSpec()))

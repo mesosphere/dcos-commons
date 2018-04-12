@@ -44,13 +44,12 @@ public class OfferQueue {
     public List<Protos.Offer> takeAll(Duration duration) {
         List<Protos.Offer> offers = new LinkedList<>();
         try {
-            // The poll() waits for one Offer or returns null if none is present within the timeout.  The following
-            // drainTo() call will pull the following Offers (if any) off the queue and return.
+            // The poll() call waits for one Offer or returns null if none becomes available within the timeout.
+            // The following drainTo() call will pull the following Offers (if any) off the queue and return.
             Protos.Offer offer = queue.poll(duration.getSeconds(), TimeUnit.SECONDS);
             if (offer != null) {
                 offers.add(offer);
             }
-
             queue.drainTo(offers);
         } catch (InterruptedException e) {
             logger.warn("Interrupted while waiting for offer in queue.");
@@ -60,7 +59,7 @@ public class OfferQueue {
     }
 
     /**
-     * Calling this method will wait for Offers for a static duration of {@link OfferQueue#DEFAULT_CAPACITY}.
+     * Calling this method will wait for Offers for a static duration of {@link OfferQueue#DEFAULT_OFFER_WAIT}.
      * It returns all Offers currently in the queue if any are present and an empty list if the duration
      * of {@link OfferQueue#DEFAULT_OFFER_WAIT} is reached.
      */
