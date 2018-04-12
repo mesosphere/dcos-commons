@@ -1,6 +1,6 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{SERVICE_PRINCIPAL}}
+  principal: {{FRAMEWORK_PRINCIPAL}}
 pods:
 
   # Exposes basic TLS artifacts in a container
