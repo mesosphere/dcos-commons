@@ -20,6 +20,10 @@ import os.path
 log = logging.getLogger(__name__)
 
 
+def is_env_var_set(key: str, default: str) -> bool:
+    return str(os.environ.get(key, default)).lower() in ["true", "1"]
+
+
 def get_package_name(default: str) -> str:
     return os.environ.get("INTEGRATION_TEST__PACKAGE_NAME") or default
 
@@ -124,11 +128,6 @@ def random_string(length=8):
             string.digits
         ) for _ in range(length)
     )
-
-
-def is_repo_supported(dcos_ver: str, min_dcos_version: str) -> bool:
-    return LooseVersion(dcos_ver.rstrip("-dev")) > \
-           LooseVersion(min_dcos_version.rstrip("-dev"))
 
 
 dcos_ee_only = pytest.mark.skipif(

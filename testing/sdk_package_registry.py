@@ -204,14 +204,19 @@ def build_dcos_file_from_universe_definition(
 
 def grant_perms_for_registry_account(service_uid: str) -> None:
     # Grant only required permissions to registry
-    rc, _, _ = sdk_cmd.run_raw_cli(
-        "security org users grant {} '{}' '{}'".format(
-            service_uid,
-            'dcos:adminrouter:ops:ca:rw',
-            'full'
-        )
+    perms = 'dcos:adminrouter:ops:ca:rw'
+    rc, _, _ = sdk_cmd.run_raw_cli(' '.join([
+        'security',
+        'org',
+        'users',
+        'grant',
+        service_uid,
+        perms,
+        'full'
+    ]))
+    assert rc == 0, 'Required perms [{}] could not be obtained for {}'.format(
+        perms, service_uid
     )
-    assert rc == 0, 'Required perms could not be obtained'
 
 
 def package_registry_session(tmpdir_factory):  # _pytest.TempdirFactory

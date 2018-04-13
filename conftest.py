@@ -40,14 +40,14 @@ log = logging.getLogger(__name__)
 
 # The following environment variable allows for log collection to be turned off.
 # This is useful, for example in testing.
-INTEGRATION_TEST_LOG_COLLECTION = str(
-    os.environ.get('INTEGRATION_TEST_LOG_COLLECTION', "True")
-).lower() in ["true", "1"]
+INTEGRATION_TEST_LOG_COLLECTION = sdk_utils.is_env_var_set(
+    'INTEGRATION_TEST_LOG_COLLECTION', default=str(True)
+)
 
 
 @pytest.fixture(scope='session', autouse=True)
 def configure_universe(tmpdir_factory):
-    if os.environ.get('PACKAGE_REGISTRY_ENABLED', '') == 'true':
+    if sdk_utils.is_env_var_set('PACKAGE_REGISTRY_ENABLED', default=''):
         yield from sdk_package_registry.package_registry_session(tmpdir_factory)
     else:
         yield from sdk_repository.universe_session()

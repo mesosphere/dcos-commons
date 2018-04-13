@@ -131,7 +131,7 @@ case $key in
     package_registry="true"
     ;;
     --dcos-files-path)
-    dcos_files_path="$2"
+    dcos_files_path="$(abs_path "$2")"
     shift
     ;;
     --gradle-cache)
@@ -283,8 +283,8 @@ docker run --rm \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -e PACKAGE_REGISTRY_ENABLED="${package_registry}" \
     -e PACKAGE_REGISTRY_STUB_URL="${PACKAGE_REGISTRY_STUB_URL}" \
-    -e DCOS_FILES_PATH="$(abs_path "${dcos_files_path}")" \
-    -v "$(abs_path "${dcos_files_path}")":"$(abs_path "${dcos_files_path}")" \
+    -e DCOS_FILES_PATH="${dcos_files_path}" \
+    -v "${dcos_files_path}":"${dcos_files_path}" \
     -v $(pwd):$WORK_DIR \
     -v $ssh_path:/ssh/key \
     -w $WORK_DIR \
