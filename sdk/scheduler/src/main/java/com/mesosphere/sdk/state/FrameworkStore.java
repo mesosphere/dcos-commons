@@ -36,16 +36,9 @@ public class FrameworkStore {
     }
 
     /**
-     * Returns the underlying {@link Persister}.
-     */
-    public Persister getPersister() {
-        return persister;
-    }
-
-    /**
      * Stores the FrameworkID for a framework so on Scheduler restart re-registration may occur.
      *
-     * @param fwkId FrameworkID to be store
+     * @param fwkId FrameworkID to be stored
      * @throws StateStoreException when storing the FrameworkID fails
      */
     public void storeFrameworkId(Protos.FrameworkID fwkId) throws StateStoreException {

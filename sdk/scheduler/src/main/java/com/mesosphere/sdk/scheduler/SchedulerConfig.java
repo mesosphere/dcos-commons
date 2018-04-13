@@ -56,6 +56,21 @@ public class SchedulerConfig {
     private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
 
     /**
+     * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
+     * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
+     * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
+     * quotas.</li>
+     * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
+     * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
+     */
+    public static final String SERVICE_RESERVE_DISCIPLINE_ENV = "SERVICE_RESERVE_DISCIPLINE";
+    /**
+     * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
+     * number of parallel deployments via the above envvar.
+     */
+    private static final int DEFAULT_SERVICE_RESERVE_DISCIPLINE = 0; // No limit
+
+    /**
      * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
      * token refresh.
      */
@@ -204,6 +219,14 @@ public class SchedulerConfig {
     public Duration getMultiServiceRemovalTimeout() {
         return Duration.ofSeconds(
                 envStore.getOptionalInt(SERVICE_REMOVAL_TIMEOUT_S_ENV, DEFAULT_SERVICE_REMOVE_TIMEOUT_S));
+    }
+
+    /**
+     * Returns the number of services that can be simultaneously reserving in a multi-service scheduler, or {@code <=0}
+     * for no limit.
+     */
+    public int getMultiServiceReserveDiscipline() {
+        return envStore.getOptionalInt(SERVICE_RESERVE_DISCIPLINE_ENV, DEFAULT_SERVICE_RESERVE_DISCIPLINE);
     }
 
     /**

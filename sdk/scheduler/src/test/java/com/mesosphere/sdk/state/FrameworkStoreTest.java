@@ -66,7 +66,7 @@ public class FrameworkStoreTest {
         store.storeFrameworkId(FRAMEWORK_ID);
         assertEquals(1, PersisterUtils.getAllKeys(persister).size());
 
-        PersisterUtils.clearAllData(store.getPersister());
+        PersisterUtils.clearAllData(persister);
 
         // Verify nothing is left under the root.
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());

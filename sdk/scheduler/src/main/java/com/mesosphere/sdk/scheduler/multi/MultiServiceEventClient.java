@@ -9,6 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
@@ -33,6 +34,8 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
+import com.mesosphere.sdk.state.SelectedReservationStore;
+import com.mesosphere.sdk.storage.PersisterException;
 
 /**
  * An implementation of {@link MesosEventClient} which wraps multiple running services, routing Mesos events to each
@@ -64,12 +67,20 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final DeregisterStep deregisterStep;
     private final Optional<Plan> uninstallPlan;
 
+    // A limit on the size of selectedReservingServices, or <=0 for no limit.
+    private final int reserveDiscipline;
+    // Storage of which services have a RESERVING status at a time, or an empty optional to disable (no limit). We may
+    // limit the number of services that can be RESERVING at the same time. We persist this information to avoid
+    // thrashing across scheduler restarts.
+    private final Optional<SelectedReservationStore> selectedReservationStore;
+
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
             MultiServiceManager multiServiceManager,
             Collection<Object> customEndpoints,
-            UninstallCallback uninstallCallback) {
+            UninstallCallback uninstallCallback,
+            SelectedReservationStore selectedReservationStore) {
         this.frameworkName = frameworkName;
         this.schedulerConfig = schedulerConfig;
         this.multiServiceManager = multiServiceManager;
@@ -89,6 +100,11 @@ public class MultiServiceEventClient implements MesosEventClient {
             this.deregisterStep = null;
             this.uninstallPlan = Optional.empty();
         }
+
+        this.reserveDiscipline = schedulerConfig.getMultiServiceReserveDiscipline();
+        this.selectedReservationStore = reserveDiscipline > 0
+                ? Optional.of(selectedReservationStore)
+                : Optional.empty();
     }
 
     @Override
@@ -152,21 +168,38 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public OfferResponse offers(Collection<Protos.Offer> offers) {
-        // Decline short if any service isn't ready.
-        boolean anyServicesNotReady = false;
+        // Grab the list of services selected for reservation, if a limit is enabled.
+        Set<String> selectedReservingServices = Collections.emptySet();
+        if (selectedReservationStore.isPresent()) {
+            try {
+                selectedReservingServices = selectedReservationStore.get().fetchSelectedReservations();
+            } catch (PersisterException e) {
+                LOGGER.error(String.format(
+                        "Failed to fetch selected reserving services, trying again later (%s=%d)",
+                        SchedulerConfig.SERVICE_RESERVE_DISCIPLINE_ENV, reserveDiscipline), e);
+                return OfferResponse.notReady(Collections.emptyList());
+            }
+        }
 
-        List<OfferRecommendation> recommendations = new ArrayList<>();
-        List<Protos.Offer> remainingOffers = new ArrayList<>();
-        remainingOffers.addAll(offers);
-
-        Collection<String> servicesToUninstall = new HashSet<>();
-        Collection<AbstractScheduler> servicesToRemove = new HashSet<>();
+        Collection<AbstractScheduler> servicesToGiveOffers = new ArrayList<>();
+        Collection<String> servicesToUninstall = new ArrayList<>();
+        Collection<AbstractScheduler> servicesToRemove = new ArrayList<>();
 
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         try {
             if (services.isEmpty()) {
                 // Nothing to do, short-circuit.
                 return OfferResponse.processed(Collections.emptyList());
+            }
+
+            if (selectedReservationStore.isPresent()) {
+                // Clear any entries for services which no longer exist
+                Set<String> knownServices = services.stream()
+                        .map(s -> s.getServiceSpec().getName())
+                        .collect(Collectors.toSet());
+                selectedReservingServices = selectedReservingServices.stream()
+                        .filter(reservingService -> knownServices.contains(reservingService))
+                        .collect(Collectors.toCollection(HashSet::new)); // Get a mutable HashSet
             }
 
             // Before we handle offers, check for any finished services that should be switched to uninstall, or any
@@ -182,34 +215,35 @@ public class MultiServiceEventClient implements MesosEventClient {
                     LOGGER.info("{} status: {}", serviceName, statusResponse.result);
                 }
 
+                if (selectedReservationStore.isPresent()
+                        && statusResponse.result != ClientStatusResponse.Result.RESERVING) {
+                    // This service is not reserving, remove it from the selection if it was present before
+                    selectedReservingServices.remove(serviceName);
+                }
+
                 switch (statusResponse.result) {
                 case RESERVING:
-                    // TODO(nickbp): When implementing reservation discipline, use this to determine that a given
-                    // service is reserving resources.
-                    //$FALL-THROUGH$
-                case RUNNING: {
-                    OfferResponse offerResponse = service.offers(remainingOffers);
-                    recommendations.addAll(offerResponse.recommendations);
-                    if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
-                        // Some offers were consumed. Update what remains to offer to the next service.
-                        remainingOffers =
-                                OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+                    if (selectedReservationStore.isPresent()) {
+                        if (selectedReservingServices.size() < reserveDiscipline) {
+                            // This service is reserving, and there's enough room for it in the selection
+                            selectedReservingServices.add(serviceName);
+                        }
+                        if (!selectedReservingServices.contains(serviceName)) {
+                            // This service is in a reserving state, but limits are enabled and it is NOT selected.
+                            // Avoid providing it with offers until it's been selected.
+                            LOGGER.info("{} isn't a selected deployment {}: not sending offers ({}={})",
+                                    serviceName,
+                                    selectedReservingServices,
+                                    SchedulerConfig.SERVICE_RESERVE_DISCIPLINE_ENV,
+                                    reserveDiscipline);
+                            continue;
+                        }
                     }
-                    boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
-                    if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
-                        // Only log result when it's non-empty/unusual
-                        LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
-                                service.getServiceSpec().getName(),
-                                offerResponse.result,
-                                offerResponse.recommendations.size(),
-                                offerResponse.recommendations.size() == 1 ? "" : "s",
-                                remainingOffers.size(),
-                                remainingOffers.size() == 1 ? "" : "s");
-                    }
-                    if (!readyForOffers) {
-                        anyServicesNotReady = true;
-                    }
-                }
+                    // Otherwise, provide the service with offers as if it were RUNNING:
+                    servicesToGiveOffers.add(service);
+                    break;
+                case RUNNING:
+                    servicesToGiveOffers.add(service);
                     break;
                 case FINISHED:
                     // This service has completed running and can be switched to uninstall.
@@ -228,6 +262,48 @@ public class MultiServiceEventClient implements MesosEventClient {
             multiServiceManager.sharedUnlock();
         }
 
+        if (selectedReservationStore.isPresent()) {
+            // Update the list of selected reservations, to ensure we stay consistent in the event of a restart.
+            try {
+                selectedReservationStore.get().storeSelectedReservations(selectedReservingServices);
+            } catch (PersisterException e) {
+                LOGGER.error("Failed to update list of selected reservations", e);
+            }
+        }
+
+        // Decline short if any service isn't ready.
+        boolean anyServicesNotReady = false;
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+        if (!servicesToGiveOffers.isEmpty()) {
+            LOGGER.info("Sending offers to {} service{}:",
+                    servicesToGiveOffers.size(), servicesToGiveOffers.size() == 1 ? "" : "s");
+            List<Protos.Offer> remainingOffers = new ArrayList<>();
+            remainingOffers.addAll(offers);
+            for (AbstractScheduler service : servicesToGiveOffers) {
+                OfferResponse offerResponse = service.offers(remainingOffers);
+                recommendations.addAll(offerResponse.recommendations);
+                if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
+                    // Some offers were consumed. Update what remains to offer to the next service.
+                    remainingOffers =
+                            OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+                }
+                boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
+                if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
+                    // Only log result when it's non-empty/unusual
+                    LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
+                            service.getServiceSpec().getName(),
+                            offerResponse.result,
+                            offerResponse.recommendations.size(),
+                            offerResponse.recommendations.size() == 1 ? "" : "s",
+                            remainingOffers.size(),
+                            remainingOffers.size() == 1 ? "" : "s");
+                }
+                if (!readyForOffers) {
+                    anyServicesNotReady = true;
+                }
+            }
+        }
+
         if (!servicesToUninstall.isEmpty()) {
             LOGGER.info("Starting uninstall for {} service{}: {}",
                     servicesToUninstall.size(), servicesToUninstall.size() == 1 ? "" : "s", servicesToUninstall);
@@ -239,11 +315,11 @@ public class MultiServiceEventClient implements MesosEventClient {
             LOGGER.info("Removing {} uninstalled service{}: {}",
                     servicesToRemove.size(), servicesToRemove.size() == 1 ? "" : "s", servicesToRemove);
 
-            // Note: It's possible that we can have a race where we attempt to remove the same service twice. This is ok
+            // Note: It's possible that we can have a race where we attempt to remove a service twice. This is fine.
             //       (Picture two near-simultaneous calls to offers(): Both send offers, both get FINISHED back, ...)
             multiServiceManager.removeServices(servicesToRemove.stream()
                     .map(service -> service.getServiceSpec().getName())
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toList()));
 
             for (AbstractScheduler service : servicesToRemove) {
                 service.getStateStore().deleteAllDataIfNamespaced();
