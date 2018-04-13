@@ -110,7 +110,10 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">ServiceStore</span>
 extends java.lang.Object</pre>
 <div class="block">Default implementation of persistent storage which keeps track of the services that have been added to a dynamic
- multi-scheduler. For each service entry, the developer is provided with</div>
+ multi-scheduler. The developer is expected to provide a <a href="../../../../../com/mesosphere/sdk/scheduler/multi/ServiceFactory.html" title="interface in com.mesosphere.sdk.scheduler.multi"><code>ServiceFactory</code></a> callback which constructs the service
+ objects themselves. This callback is provided with a 100KB <code>context</code> buffer for each service to store
+ sufficient information to reconstruct that service. The flow is intentionally structured so that
+ <a href="../../../../../com/mesosphere/sdk/scheduler/multi/ServiceFactory.html" title="interface in com.mesosphere.sdk.scheduler.multi"><code>ServiceFactory</code></a> is exercised at least once before the <code>context</code> is persisted.</div>
 </li>
 </ul>
 </div>

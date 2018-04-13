@@ -3045,7 +3045,9 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html#getOperation--">getOperation()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getOptional-java.lang.String-java.lang.String-">getOptional(String, String)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the requested value if set, or <code>defaultValue</code> if it's missing from the map entirely.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelReader.html#getOptional-java.lang.String-">getOptional(String)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelReader</a></dt>
 <dd>
 <div class="block">Returns the requested label value, or an empty Optional if the value was not found.</div>
@@ -3060,6 +3062,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getOptionalLong-java.lang.String-long-">getOptionalLong(String, long)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getOptionalNonEmpty-java.lang.String-java.lang.String-">getOptionalNonEmpty(String, String)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
+<dd>
+<div class="block">Returns the requested value if set and non-empty, or <code>defaultValue</code> if it's missing from the map or is
+ empty or whitespace.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getOptionalStringList-java.lang.String-java.util.List-">getOptionalStringList(String, List&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
 <dd>
 <div class="block">List of comma-separated strings.</div>
@@ -3445,7 +3452,9 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ServiceSpec.html#getReplacementFailurePolicy--">getReplacementFailurePolicy()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getRequired-java.lang.String-">getRequired(String)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns the requested value if set, or throws an exception if it's missing from the map entirely.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getRequiredInt-java.lang.String-">getRequiredInt(String)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#getRequiredLong-java.lang.String-">getRequiredLong(String)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
