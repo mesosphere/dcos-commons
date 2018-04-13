@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
@@ -73,16 +72,6 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final Optional<Long> uninstallTimeout;
     private final Map<String, Long> uninstallStartTimes;
 
-    // Keep track of which services have a RESERVING status. We only pass offers to one RESERVING service at a time.
-    private Optional<String> selectedReservingService;
-    // A listing of all RESERVING services. This is intentionally an ordered set to ensure that deployment selection is
-    // consistent (but still arbitrary). Consistent selection is needed if the scheduler process is restarted.
-    // For example, we wouldn't want to deploy a bit of A, then B, then A again. Instead we want to stick to A until
-    // it's finished. But the alphabetical solution isn't perfect. A user could add a service that gets alphabetical
-    // priority, THEN restart the scheduler, causing the scheduler to pick the new one. But that's a very special case,
-    // particularly with how quickly it should take for footprint reservation to complete: TODO(nickbp, INFINITY-3476)
-    private final TreeSet<String> allReservingServices;
-
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
@@ -114,9 +103,6 @@ public class MultiServiceEventClient implements MesosEventClient {
             this.uninstallTimeout = timeoutSecs <= 0 ? Optional.empty() : Optional.of(timeoutSecs);
         }
         this.uninstallStartTimes = new HashMap<>();
-
-        this.selectedReservingService = Optional.empty();
-        this.allReservingServices = new TreeSet<>();
     }
 
     @Override
@@ -144,7 +130,6 @@ public class MultiServiceEventClient implements MesosEventClient {
 
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         LOGGER.info("Checking status of {} service{}:", services.size(), services.size() == 1 ? "" : "s");
-        allReservingServices.clear();
         try {
             if (services.isEmpty()) {
                 // If we don't have any clients, then WE aren't ready.
@@ -158,12 +143,8 @@ public class MultiServiceEventClient implements MesosEventClient {
 
                 switch (response.result) {
                 case RESERVING:
-                    // Keep track of all the reserving services. Only one reserving service can get offers at any given
-                    // time. This prevents two reserving services from deadlocking each other.
-                    // TODO(nickbp, INFINITY-3476): Once the underlying service is just collecting footprint for this
-                    //     stage, implement an alert for when footprint collection takes too long. In the meantime, we
-                    //     can't make any assumptions about what 'too long' is, due to potential readiness checks etc.
-                    allReservingServices.add(serviceName);
+                    // TODO(nickbp): When implementing reservation discipline, use this to determine that a given
+                    // service is reserving resources.
                     break;
                 case RUNNING:
                     // No-op, leave it as-is.
@@ -207,24 +188,6 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // This is done in case any of the clients depends on us to turn the crank periodically.
             }
         } finally {
-            if (allReservingServices.isEmpty()) {
-                // Nothing is reserving. Clear the allowed deployment selection (if any).
-                selectedReservingService = Optional.empty();
-            } else {
-                String clause = "continuing with";
-                if (!selectedReservingService.isPresent()
-                        || !allReservingServices.contains(selectedReservingService.get())) {
-                    // Something is reserving, and the selected service is out of date. Update the selection.
-                    selectedReservingService = Optional.of(allReservingServices.iterator().next());
-                    clause = "selecting";
-                }
-                LOGGER.info("{} service{} reserving, {} '{}': {}",
-                        allReservingServices.size(),
-                        allReservingServices.size() == 1 ? " is" : "s are",
-                        clause,
-                        selectedReservingService.get(),
-                        allReservingServices);
-            }
             multiServiceManager.sharedUnlock();
         }
 
@@ -302,16 +265,6 @@ public class MultiServiceEventClient implements MesosEventClient {
         }
         try {
             for (AbstractScheduler service : services) {
-                String serviceName = service.getServiceSpec().getName();
-                if (selectedReservingService.isPresent()
-                        && !serviceName.equals(selectedReservingService.get())
-                        && allReservingServices.contains(serviceName)) {
-                    // This service is in a reserving state, but it is NOT the selected service.
-                    // Avoid providing it with offers until it's been selected.
-                    LOGGER.info("  {} isn't the selected deployment ({}): not sending offers",
-                            serviceName, selectedReservingService.get());
-                    continue;
-                }
                 OfferResponse response = service.offers(remainingOffers);
                 if (!remainingOffers.isEmpty() && !response.recommendations.isEmpty()) {
                     // Some offers were consumed. Update what remains to offer to the next service.
@@ -321,7 +274,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 }
                 recommendations.addAll(response.recommendations);
                 LOGGER.info("  {} offer result: {}[{} rec{}], {} offer{} remaining",
-                        serviceName,
+                        service.getServiceSpec().getName(),
                         response.result,
                         response.recommendations.size(), response.recommendations.size() == 1 ? "" : "s",
                         remainingOffers.size(), remainingOffers.size() == 1 ? "" : "s");
