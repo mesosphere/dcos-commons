@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 
@@ -91,11 +93,26 @@ public class EnvStore {
         return toLong(envKey, getRequired(envKey));
     }
 
+    /**
+     * Returns the requested value if set, or {@code defaultValue} if it's missing from the map entirely.
+     */
     public String getOptional(String envKey, String defaultValue) {
         String value = envMap.get(envKey);
         return (value == null) ? defaultValue : value;
     }
 
+    /**
+     * Returns the requested value if set and non-empty, or {@code defaultValue} if it's missing from the map or is
+     * empty or whitespace.
+     */
+    public String getOptionalNonEmpty(String envKey, String defaultValue) {
+        String value = envMap.get(envKey);
+        return (StringUtils.isBlank(value)) ? defaultValue : value;
+    }
+
+    /**
+     * Returns the requested value if set, or throws an exception if it's missing from the map entirely.
+     */
     public String getRequired(String envKey) {
         String value = envMap.get(envKey);
         if (value == null) {

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.io.File;
@@ -57,7 +56,6 @@ public class RawServiceSpec {
         /**
          * Overrides use of the scheduler's environment variables with the provided custom map.
          */
-        @VisibleForTesting
         public Builder setEnv(Map<String, String> env) {
             this.env = env;
             return this;

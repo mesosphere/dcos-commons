@@ -1,10 +1,10 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{SERVICE_PRINCIPAL}}
+  principal: {{FRAMEWORK_PRINCIPAL}}
 pods:
   hello:
     count: 1
-    user: {{SERVICE_USER}}
+    user: {{FRAMEWORK_USER}}
     tasks:
       server:
         goal: RUNNING
