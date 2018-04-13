@@ -284,15 +284,6 @@ public class PodInfoBuilder {
             taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
         }
 
-        if (podSpec.getIsolateTmp()) {
-            // Isolate the tmp directory of tasks
-            //switch to SANDBOX SELF after dc/os 1.13
-            taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().addVolumes(Protos.Volume.newBuilder()
-                    .setContainerPath("/tmp")
-                    .setHostPath("tmp")
-                    .setMode(Protos.Volume.Mode.RW)));
-        }
-
         //TODO(nickbp): This ContainerInfo handling has turned a bit spaghetti-like and needs cleaning up.
         //              Currently blindly retaining prior behavior.
         if (useDefaultExecutor) {
@@ -301,6 +292,15 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), false, true));
         } else {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
+        }
+
+        if (podSpec.getIsolateTmp()) {
+            // Isolate the tmp directory of tasks
+            //switch to SANDBOX SELF after dc/os 1.13
+            taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                    .setContainerPath("/tmp")
+                    .setHostPath("tmp")
+                    .setMode(Protos.Volume.Mode.RW)));
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
