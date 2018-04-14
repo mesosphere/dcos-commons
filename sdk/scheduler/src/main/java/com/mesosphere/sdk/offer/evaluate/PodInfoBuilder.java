@@ -297,10 +297,17 @@ public class PodInfoBuilder {
         if (podSpec.getIsolateTmp()) {
             // Isolate the tmp directory of tasks
             //switch to SANDBOX SELF after dc/os 1.13
-            taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
-                    .setContainerPath("/tmp")
-                    .setHostPath("tmp")
-                    .setMode(Protos.Volume.Mode.RW)));
+            if (useDefaultExecutor) {
+                taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                        .setContainerPath("/tmp")
+                        .setHostPath("tmp")
+                        .setMode(Protos.Volume.Mode.RW)));
+            } else {
+                executorBuilder.setContainer(executorBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                        .setContainerPath("/tmp")
+                        .setHostPath("tmp")
+                        .setMode(Protos.Volume.Mode.RW)));
+            }
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
