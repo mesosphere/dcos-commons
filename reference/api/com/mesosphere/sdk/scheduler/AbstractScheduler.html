@@ -136,7 +136,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 <!--   -->
 </a>
 <h3>Nested classes/interfaces inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></code></li>
 </ul>
 </li>
 </ul>
@@ -275,8 +275,8 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 </td>
 </tr>
 <tr id="i12" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#status-Protos.TaskStatus-">status</a></span>(Protos.TaskStatus&nbsp;status)</code>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#taskStatus-Protos.TaskStatus-">taskStatus</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Called when the framework has received a task status update from Mesos.</div>
 </td>
 </tr>
@@ -293,7 +293,7 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 <!--   -->
 </a>
 <h3>Methods inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></h3>
-<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getHTTPEndpoints--">getHTTPEndpoints</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getUnexpectedResources-java.util.Collection-">getUnexpectedResources</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">unregistered</a></code></li>
+<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getClientStatus--">getClientStatus</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getHTTPEndpoints--">getHTTPEndpoints</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getUnexpectedResources-java.util.Collection-">getUnexpectedResources</a>, <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">unregistered</a></code></li>
 </ul>
 </li>
 </ul>
@@ -436,18 +436,18 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 </dl>
 </li>
 </ul>
-<a name="status-Protos.TaskStatus-">
+<a name="taskStatus-Protos.TaskStatus-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>status</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a>&nbsp;status(Protos.TaskStatus&nbsp;status)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#status-Protos.TaskStatus-">MesosEventClient</a></code></span></div>
+<h4>taskStatus</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a>&nbsp;taskStatus(Protos.TaskStatus&nbsp;status)</pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#taskStatus-Protos.TaskStatus-">MesosEventClient</a></code></span></div>
 <div class="block">Called when the framework has received a task status update from Mesos.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#status-Protos.TaskStatus-">status</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#taskStatus-Protos.TaskStatus-">taskStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>status</code> - The status message describing the new state of a task</dd>
 <dt><span class="returnLabel">Returns:</span></dt>

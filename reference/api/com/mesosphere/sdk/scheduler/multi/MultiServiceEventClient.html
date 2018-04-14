@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -115,7 +115,7 @@ var activeTableTab = "activeTableTab";
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></pre>
 <div class="block">An implementation of <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a> which wraps multiple running services, routing Mesos events to each
- client appropriately. The underlying running services are stored within a provided <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>MultiServiceManager</code></a>.</div>
+ service appropriately. The underlying running services are stored within a provided <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>MultiServiceManager</code></a>.</div>
 </li>
 </ul>
 </div>
@@ -146,7 +146,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <!--   -->
 </a>
 <h3>Nested classes/interfaces inherited from interface&nbsp;com.mesosphere.sdk.scheduler.<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></code></li>
 </ul>
 </li>
 </ul>
@@ -184,41 +184,47 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#getClientStatus--">getClientStatus</a></span>()</code>
+<div class="block">Returns our status to the upstream <code>OfferProcessor</code>.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.Object&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#getHTTPEndpoints--">getHTTPEndpoints</a></span>()</code>
 <div class="block">Returns a set of multi-service-specific endpoints to be served by the scheduler.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#getUnexpectedResources-java.util.Collection-">getUnexpectedResources</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</code>
 <div class="block">Maps the reserved resources in the provided unused offers according to the services that own them, then queries
  those services directly to see what resources they consider unexpected.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#offers-java.util.Collection-">offers</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers)</code>
 <div class="block">Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#registered-boolean-">registered</a></span>(boolean&nbsp;reRegistered)</code>
 <div class="block">Called when the framework has registered (or re-registered) with Mesos.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#status-Protos.TaskStatus-">status</a></span>(Protos.TaskStatus&nbsp;status)</code>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#taskStatus-Protos.TaskStatus-">taskStatus</a></span>(Protos.TaskStatus&nbsp;status)</code>
 <div class="block">Maps the provided status to the service that owns its task, then queries that service with the status.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#unregistered--">unregistered</a></span>()</code>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>MesosEventClient.offers(Collection)</code></a> which
- returned <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#finished--"><code>MesosEventClient.OfferResponse.finished()</code></a> as a response.</div>
+ returned <code>OfferResponse#finished()</code> as a response.</div>
 </td>
 </tr>
 </table>
@@ -290,11 +296,26 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <pre>public&nbsp;void&nbsp;unregistered()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">MesosEventClient</a></code></span></div>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>MesosEventClient.offers(Collection)</code></a> which
- returned <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#finished--"><code>MesosEventClient.OfferResponse.finished()</code></a> as a response. When this is called, the service should advertise the
+ returned <code>OfferResponse#finished()</code> as a response. When this is called, the service should advertise the
  completion of the uninstall operation in its <code>deploy</code> plan.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">unregistered</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getClientStatus--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getClientStatus</h4>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;getClientStatus()</pre>
+<div class="block">Returns our status to the upstream <code>OfferProcessor</code>. In practice, we only return either <code>RUNNING</code>, or
+ <code>UNINSTALLED</code> if we're ready to be torn down during a scheduler uninstall.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getClientStatus--">getClientStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -349,13 +370,13 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 </dl>
 </li>
 </ul>
-<a name="status-Protos.TaskStatus-">
+<a name="taskStatus-Protos.TaskStatus-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>status</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a>&nbsp;status(Protos.TaskStatus&nbsp;status)</pre>
+<h4>taskStatus</h4>
+<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a>&nbsp;taskStatus(Protos.TaskStatus&nbsp;status)</pre>
 <div class="block">Maps the provided status to the service that owns its task, then queries that service with the status.
 
  <p>This is an optimization which avoids querying services about task statuses that don't relate to them.
@@ -363,7 +384,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
  task statuses which relate to them.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#status-Protos.TaskStatus-">status</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#taskStatus-Protos.TaskStatus-">taskStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>status</code> - The status message describing the new state of a task</dd>
 <dt><span class="returnLabel">Returns:</span></dt>

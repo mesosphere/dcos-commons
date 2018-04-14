@@ -1885,7 +1885,7 @@
 <dd>
 <div class="block">Returns a new list which contains only the tasks for a given pod which matched the provided task names.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#finished--">finished()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#finished--">finished()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
 <dd>
 <div class="block">Tells the caller that this client has finished running and can be switched to uninstall mode.</div>
 </dd>
@@ -2221,6 +2221,18 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterCache.html#getChildren-java.lang.String-">getChildren(String)</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterCache.html" title="class in com.mesosphere.sdk.storage">PersisterCache</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html#getClientStatus--">getClientStatus()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler">DefaultScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.html#getClientStatus--">getClientStatus()</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></dt>
+<dd>
+<div class="block">Called periodically to check the client status.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#getClientStatus--">getClientStatus()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
+<dd>
+<div class="block">Returns our status to the upstream <code>OfferProcessor</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#getClientStatus--">getClientStatus()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ServiceTestResult.html#getClusterState--">getClusterState()</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestResult.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult</a></dt>
 <dd>
 <div class="block">Returns the cluster/task state resulting from the simulation.</div>
@@ -2327,6 +2339,8 @@
 <dd>
 <div class="block">Time retrieval broken out into a separate function to allow overriding its behavior in tests.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html#getCurrentTimeMillis--">getCurrentTimeMillis()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler.TimeFetcher</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html#getCurrentTimeMs--">getCurrentTimeMs()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TimedLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#getCustomEndpoints--">getCustomEndpoints()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
@@ -2911,6 +2925,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html#getMountPath-java.lang.String-">getMountPath(String)</a></span> - Method in enum com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a></dt>
 <dd>
 <div class="block">Returns the path location where the secret should be mounted into task filesystems.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getMultiServiceRemovalTimeout--">getMultiServiceRemovalTimeout()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>
+<div class="block">Returns the configured time to wait for a service to be removed in a multi-service scheduler.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
@@ -5071,25 +5089,33 @@
 <dd>
 <div class="block">Accepts events received from Mesos.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.ClientStatusResponse</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">Response object to be returned by a call to <a href="com/mesosphere/sdk/scheduler/MesosEventClient.html#getClientStatus--"><code>MesosEventClient.getClientStatus()</code></a>.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.ClientStatusResponse.Result</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dd>
+<div class="block">The outcome value to be included in a response object.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.OfferResponse</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
-<div class="block">Response object to be returned by a call to <code>MesosEventClient#offers(List)</code>.</div>
+<div class="block">Response object to be returned by a call to <code>#offers(List)</code>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.OfferResponse.Result</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
 <div class="block">The outcome value to be included in a response object.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.StatusResponse</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.TaskStatusResponse</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
-<div class="block">Response object to be returned by a call to <code>MesosEventClient#status(org.apache.mesos.Protos.TaskStatus)</code>.</div>
+<div class="block">Response object to be returned by a call to <code>#taskStatus(org.apache.mesos.Protos.TaskStatus)</code>.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.StatusResponse.Result</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
+<dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.TaskStatusResponse.Result</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
 <div class="block">The outcome value to be included in a response object.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.UnexpectedResourcesResponse</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
-<div class="block">Response object to be returned by a call to <code>MesosEventClient##getUnexpectedResources(List)</code>.</div>
+<div class="block">Response object to be returned by a call to <code>#getUnexpectedResources(List)</code>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">MesosEventClient.UnexpectedResourcesResponse.Result</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
@@ -5172,7 +5198,7 @@
 <dt><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">MultiServiceEventClient</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
 <dd>
 <div class="block">An implementation of <a href="com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a> which wraps multiple running services, routing Mesos events to each
- client appropriately.</div>
+ service appropriately.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">MultiServiceEventClient(String, SchedulerConfig, MultiServiceManager, Collection&lt;Object&gt;, MultiServiceEventClient.UninstallCallback)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
 <dd>&nbsp;</dd>
@@ -5996,7 +6022,7 @@
 <dd>
 <div class="block">Tells the caller that this client was able to process offers.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html#processed--">processed()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html#processed--">processed()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></dt>
 <dd>
 <div class="block">Tells the caller that this client successfully processed the provided task status.</div>
 </dd>
@@ -6501,6 +6527,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#ReserveOfferRecommendation-Offer-Resource-">ReserveOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#reserving--">reserving()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
+<dd>
+<div class="block">Tells the caller that this client is deploying the service.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/TaskKiller.html#reset-boolean-">reset(boolean)</a></span> - Static method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework">TaskKiller</a></dt>
 <dd>
 <div class="block">Resets the <a href="com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><code>TaskKiller</code></a>'s internal state for tests.</div>
@@ -6616,11 +6646,15 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/PodQueries.html#restartPod-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.lang.String-com.mesosphere.sdk.scheduler.recovery.RecoveryType-com.mesosphere.sdk.http.queries.PodQueries.FailureSetter-">restartPod(StateStore, ConfigStore&lt;ServiceSpec&gt;, String, RecoveryType, PodQueries.FailureSetter)</a></span> - Static method in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/PodQueries.html" title="class in com.mesosphere.sdk.http.queries">PodQueries</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#result">result</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
+<dd>
+<div class="block">The result of the call.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#result">result</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></dt>
 <dd>
 <div class="block">The result of the call.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html#result">result</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html#result">result</a></span> - Variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></dt>
 <dd>
 <div class="block">The result of the call.</div>
 </dd>
@@ -6737,6 +6771,10 @@
 <dd>
 <div class="block">Exercises the service's packaging and resulting Service Specification YAML file, then runs the provided
  simulation ticks, if any are provided.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#running--">running()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
+<dd>
+<div class="block">Tells the caller that this client is running the service following a completed deployment.</div>
 </dd>
 </dl>
 <a name="I:S">
@@ -7421,16 +7459,6 @@
 <dd>
 <div class="block">Utilities for implementations and users of <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#status-Protos.TaskStatus-">status(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.html#status-Protos.TaskStatus-">status(Protos.TaskStatus)</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></dt>
-<dd>
-<div class="block">Called when the framework has received a task status update from Mesos.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#status-Protos.TaskStatus-">status(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
-<dd>
-<div class="block">Maps the provided status to the service that owns its task, then queries that service with the status.</div>
-</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">Status</span></a> - Enum in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
 <div class="block">Status of an <a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Element</code></a>.</div>
@@ -7768,6 +7796,16 @@
 <dd>
 <div class="block">Specification for a Task.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#taskStatus-Protos.TaskStatus-">taskStatus(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.html#taskStatus-Protos.TaskStatus-">taskStatus(Protos.TaskStatus)</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></dt>
+<dd>
+<div class="block">Called when the framework has received a task status update from Mesos.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#taskStatus-Protos.TaskStatus-">taskStatus(Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
+<dd>
+<div class="block">Maps the provided status to the service that owns its task, then queries that service with the status.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#taskStatus-java.lang.String-Protos.TaskState-">taskStatus(String, Protos.TaskState)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html#TaskStatusPair-Protos.TaskInfo-com.mesosphere.sdk.scheduler.plan.Status-">TaskStatusPair(Protos.TaskInfo, Status)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a></dt>
@@ -7843,6 +7881,8 @@
 <div class="block">Create a new constrainer with the given required minimum delay between permanent (destructive) recovery
  operations.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html#TimeFetcher--">TimeFetcher()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler.TimeFetcher</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html#timeout-java.lang.Integer-">timeout(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -8278,14 +8318,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html#UnconstrainedLaunchConstrainer--">UnconstrainedLaunchConstrainer()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">UnconstrainedLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#uninstalled--">uninstalled()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#uninstalled--">uninstalled()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
 <dd>
 <div class="block">Tells the caller that this client has finished uninstalling and can be shut down.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html#uninstalled-java.lang.String-">uninstalled(String)</a></span> - Method in interface com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient.UninstallCallback</a></dt>
 <dd>
-<div class="block">Invoked when a given service has completed its uninstall as triggered by
- <code>MultiServiceEventClient#uninstallService(String)</code>.</div>
+<div class="block">Invoked when a given service has completed its uninstall as triggered by <code>#uninstallService(String)</code>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallPlanFactory</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
 <dd>
@@ -8312,8 +8351,12 @@
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>UninstallScheduler</code></a> using the provided components.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-java.util.Optional-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;String&gt;, Optional&lt;SecretsClient&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-java.util.Optional-com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler.TimeFetcher-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;String&gt;, Optional&lt;SecretsClient&gt;, UninstallScheduler.TimeFetcher)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallScheduler.TimeFetcher</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
+<dd>
+<div class="block">Time retrieval broken out into a separate object to allow overriding its behavior in tests.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html#uninstallService-java.lang.String-">uninstallService(String)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a></dt>
 <dd>
 <div class="block">Triggers an uninstall for a service, removing it from the list of services when it has finished.</div>
@@ -8353,7 +8396,7 @@
 <dd>
 <div class="block">List of tasks for which the pod instance couldn't be determined.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html#unknownTask--">unknownTask()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html#unknownTask--">unknownTask()</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></dt>
 <dd>
 <div class="block">Tells the caller that this client did not recognize task described by this status.</div>
 </dd>
@@ -8373,7 +8416,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">unregistered()</a></span> - Method in interface com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></dt>
 <dd>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>MesosEventClient.offers(Collection)</code></a> which
- returned <a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#finished--"><code>MesosEventClient.OfferResponse.finished()</code></a> as a response.</div>
+ returned <code>OfferResponse#finished()</code> as a response.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#unregistered--">unregistered()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
 <dd>&nbsp;</dd>
@@ -8611,11 +8654,15 @@
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.Result</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this type with the specified name.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.Result.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse.Result</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.Result.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse.Result</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.Result.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse.Result</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
@@ -8684,12 +8731,17 @@ the order they are declared.</div>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.Result</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum type, in
+the order they are declared.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.Result.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse.Result</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.Result.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.StatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.StatusResponse.Result</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.Result.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse.Result</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>
