@@ -152,7 +152,7 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
     log.info('Package Registry [{}] IP(s): {}'.format(
         sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME, registry_ips
     ))
-    skip_ips = set(registry_ips.append(scheduler_ip))
+    skip_ips = set(scheduler_ip) | set(registry_ips)
     avoid_tasks = [task for task in server_tasks if task.host not in skip_ips]
     log.info('Found tasks avoiding scheduler and {} at {}: {}'.format(
         sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME,
