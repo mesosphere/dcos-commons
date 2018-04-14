@@ -38,6 +38,13 @@ public class UninstallScheduler extends AbstractScheduler {
     private final DeregisterStep deregisterStubStep;
     private final PlanManager uninstallPlanManager;
 
+    // If an uninstall timeout is enabled, keep track of when the service should have finished uninstalling. This is
+    // only enabled in multi-service cases where the service is being removed from an otherwise active scheduler. It is
+    // not enabled if the scheduler itself is being uninstalled, to avoid leaking resources without user intervention.
+    private final TimeFetcher timeFetcher;
+    private final Optional<Long> uninstallDeadlineMillis;
+    private final long uninstallTimeoutSecs;
+
     /**
      * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
      * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
@@ -50,7 +57,15 @@ public class UninstallScheduler extends AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<String> namespace) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, namespace, Optional.empty());
+        this(
+                serviceSpec,
+                stateStore,
+                configStore,
+                schedulerConfig,
+                planCustomizer,
+                namespace,
+                Optional.empty(),
+                new TimeFetcher());
     }
 
     @VisibleForTesting
@@ -61,7 +76,8 @@ public class UninstallScheduler extends AbstractScheduler {
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
             Optional<String> namespace,
-            Optional<SecretsClient> customSecretsClientForTests) {
+            Optional<SecretsClient> customSecretsClientForTests,
+            TimeFetcher timeFetcher) {
         super(serviceSpec, stateStore, planCustomizer, namespace);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.configStore = configStore;
@@ -84,6 +100,19 @@ public class UninstallScheduler extends AbstractScheduler {
                     SerializationUtils.toJsonString(PlanInfo.forPlan(planFactory.getPlan())));
         } catch (IOException e) {
             logger.error("Failed to deserialize uninstall plan.");
+        }
+
+        this.timeFetcher = timeFetcher;
+        if (schedulerConfig.isUninstallEnabled()) {
+            // No timeout when whole scheduler is uninstalling, make user see what's up:
+            this.uninstallTimeoutSecs = -1;
+            this.uninstallDeadlineMillis = Optional.empty();
+        } else {
+            // Use uninstall timeout, unless disabled in SchedulerConfig with negative or zero value
+            this.uninstallTimeoutSecs = schedulerConfig.getMultiServiceRemovalTimeout().getSeconds();
+            this.uninstallDeadlineMillis = uninstallTimeoutSecs <= 0
+                    ? Optional.empty()
+                    : Optional.of(timeFetcher.getCurrentTimeMillis() + (uninstallTimeoutSecs * 1000));
         }
     }
 
@@ -135,6 +164,32 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
+    public ClientStatusResponse getClientStatus() {
+        if (deregisterStubStep.isRunning() || deregisterStubStep.isComplete()) {
+            // The service resources have been deleted and all that's left is the final deregister operation. After we
+            // return uninstalled(), upstream will finish the uninstall by doing one of the following:
+            // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
+            // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
+            return ClientStatusResponse.uninstalled();
+        } else if (uninstallDeadlineMillis.isPresent()
+                && timeFetcher.getCurrentTimeMillis() > uninstallDeadlineMillis.get()) {
+            // Configured uninstall timeout has passed, and we're still uninstalling. Tell upstream that we're "done".
+            Optional<Plan> deployPlan = getPlans().stream()
+                    .filter(plan -> plan.isDeployPlan())
+                    .findAny();
+            logger.error("Failed to complete uninstall within {}s timeout, forcing cleanup. Deploy plan was: {}",
+                    uninstallTimeoutSecs, deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
+            return ClientStatusResponse.uninstalled();
+        } else {
+            // Still uninstalling, and no timeout has passed.
+            // Note: We return running() instead of reserving(), because the latter is mainly about limiting
+            // simultaneous reservation growth to avoid deadlocks. In the uninstall case the service is strictly
+            // shrinking, so there isn't any reason to get exclusive deployment.
+            return ClientStatusResponse.running();
+        }
+    }
+
+    @Override
     protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
@@ -143,23 +198,10 @@ public class UninstallScheduler extends AbstractScheduler {
             steps.forEach(Step::start);
         }
 
-        if (deregisterStubStep.isRunning()) {
-            // The service resources have been deleted and all that's left is the final deregister operation. After we
-            // return uninstalled(), upstream will finish the uninstall by doing one of the following:
-            // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
-            // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
-
-            // In a multi-service case, we still need to delete our own namespaced data. Meanwhile in the single-service
-            // case the per-service data is wiped with the rest of the framework.
-            stateStore.deleteAllDataIfNamespaced();
-
-            return OfferResponse.uninstalled();
-        } else {
-            // No recommendations. Upstream should invoke the cleaner against any unexpected resources in unclaimed
-            // offers (including the ones that apply to our service), and then notify us via clean() so that we can
-            // record the ones that apply to us.
-            return OfferResponse.processed(Collections.emptyList());
-        }
+        // No recommendations. Upstream should invoke the cleaner against any unexpected resources in unclaimed
+        // offers (including the ones that apply to our service), and then notify us via clean() so that we can
+        // record the ones that apply to us.
+        return OfferResponse.processed(Collections.emptyList());
     }
 
     /**
@@ -192,5 +234,15 @@ public class UninstallScheduler extends AbstractScheduler {
 
     public DeregisterStep getDeregisterStep() {
         return deregisterStubStep;
+    }
+
+    /**
+     * Time retrieval broken out into a separate object to allow overriding its behavior in tests.
+     */
+    @VisibleForTesting
+    protected static class TimeFetcher {
+        protected long getCurrentTimeMillis() {
+            return System.currentTimeMillis();
+        }
     }
 }

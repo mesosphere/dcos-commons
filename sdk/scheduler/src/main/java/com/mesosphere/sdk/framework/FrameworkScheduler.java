@@ -20,7 +20,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.TaskStatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.Persister;
 
@@ -205,7 +205,7 @@ public class FrameworkScheduler implements Scheduler {
                 status.getMessage(),
                 TextFormat.shortDebugString(status));
         Metrics.record(status);
-        StatusResponse response = mesosEventClient.status(status);
+        TaskStatusResponse response = mesosEventClient.taskStatus(status);
         boolean eligibleToKill = TaskKiller.update(status);
         switch (response.result) {
         case UNKNOWN_TASK:

@@ -153,7 +153,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     }
 
     @Override
-    public StatusResponse status(Protos.TaskStatus status) {
+    public TaskStatusResponse taskStatus(Protos.TaskStatus status) {
         try {
             processStatusUpdate(status);
             reconciler.update(status);
@@ -161,11 +161,11 @@ public abstract class AbstractScheduler implements MesosEventClient {
             if (e instanceof StateStoreException && ((StateStoreException) e).getReason() == Reason.NOT_FOUND) {
                 logger.info("Status for unknown task. This may be expected if Mesos sent stale status information: "
                         + TextFormat.shortDebugString(status), e);
-                return StatusResponse.unknownTask();
+                return TaskStatusResponse.unknownTask();
             }
             logger.warn("Failed to update TaskStatus received from Mesos: " + TextFormat.shortDebugString(status), e);
         }
-        return StatusResponse.processed();
+        return TaskStatusResponse.processed();
     }
 
     /**

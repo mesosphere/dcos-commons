@@ -17,7 +17,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
-import com.mesosphere.sdk.scheduler.MesosEventClient.StatusResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.TaskStatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
@@ -123,7 +123,7 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testStatusUnknownTask() {
         Driver.setDriver(mockSchedulerDriver);
-        when(mockMesosEventClient.status(TestConstants.TASK_STATUS)).thenReturn(StatusResponse.unknownTask());
+        when(mockMesosEventClient.taskStatus(TestConstants.TASK_STATUS)).thenReturn(TaskStatusResponse.unknownTask());
         scheduler.statusUpdate(mockSchedulerDriver, TestConstants.TASK_STATUS);
         verify(mockSchedulerDriver).killTask(TestConstants.TASK_STATUS.getTaskId());
     }
@@ -132,7 +132,7 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testStatusUnknownTaskBreakLoop() {
         Driver.setDriver(mockSchedulerDriver);
         Protos.TaskStatus taskStatus = getStatus(Protos.TaskState.TASK_RUNNING);
-        when(mockMesosEventClient.status(any())).thenReturn(StatusResponse.unknownTask());
+        when(mockMesosEventClient.taskStatus(any())).thenReturn(TaskStatusResponse.unknownTask());
 
         // Task is unknown by us and gets killed:
         scheduler.statusUpdate(mockSchedulerDriver, taskStatus);
