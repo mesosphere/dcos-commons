@@ -204,7 +204,7 @@ class OfferProcessor {
             // Match offers with work (call into implementation)
             final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
-                if (checkStatuses()) {
+                if (isActive()) {
                     evaluateOffers(offers);
                 }
             } finally {
@@ -230,16 +230,16 @@ class OfferProcessor {
         }
     }
 
-    private boolean checkStatuses() {
+    /**
+     * Checks the statuses of the underlying client and returns whether it makes sense to pass it offers.
+     */
+    private boolean isActive() {
         ClientStatusResponse response = mesosEventClient.getClientStatus();
         LOGGER.info("Status result: {}", response.result);
 
         switch (response.result) {
         case RESERVING:
-            // TODO(nickbp, INFINITY-3476): Once the underlying service is just collecting footprint for this
-            //     stage, there can be an alert if that footprint collection takes too long. In the meantime, we
-            //     can't make any assumptions about what 'too long' is, due to potential readiness checks etc.
-            // ... but for now, proceed as-is.
+            // Proceed as-is.
             return true;
         case RUNNING:
             // Proceed as-is.
@@ -247,22 +247,19 @@ class OfferProcessor {
         case FINISHED:
             // We do not directly support the FINISHED result at this level. It should only be emitted by services which
             // have a FINISH GoalState. In practice that should only be the case in a multi-service configuration, where
-            // the FINISHED result code would be handled internally by the MultiServiceEventClient.
+            // the FINISHED result code would be handled internally by a MultiServiceEventClient.
             LOGGER.error("Got unsupported {} from service", response.result);
             throw new IllegalStateException(String.format(
                     "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
                     response.result));
-        case UNINSTALLING:
-            // Proceed as-is.
-            return true;
         case UNINSTALLED:
             // The service has finished uninstalling. Unregister and delete the framework.
-            destroyFramework();
             isDeregistered.set(true);
+            destroyFramework();
             return false;
-        default:
-            throw new IllegalStateException("Unsupported StatusResponse type: " + response.result);
         }
+
+        throw new IllegalStateException("Unsupported ClientStatusResponse type: " + response.result);
     }
 
     private void evaluateOffers(List<Protos.Offer> offers) {

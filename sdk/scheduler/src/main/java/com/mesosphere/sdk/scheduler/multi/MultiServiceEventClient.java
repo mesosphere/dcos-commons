@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -37,7 +36,7 @@ import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
 
 /**
  * An implementation of {@link MesosEventClient} which wraps multiple running services, routing Mesos events to each
- * client appropriately. The underlying running services are stored within a provided {@link MultiServiceManager}.
+ * service appropriately. The underlying running services are stored within a provided {@link MultiServiceManager}.
  */
 public class MultiServiceEventClient implements MesosEventClient {
 
@@ -46,9 +45,9 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     public interface UninstallCallback {
         /**
-         * Invoked when a given service has completed its uninstall as triggered by
-         * {@link MultiServiceEventClient#uninstallService(String)}. After this has been called, re-adding the service
-         * to the {@link MultiServiceEventClient} will result in launching a new instance from scratch.
+         * Invoked when a given service has completed its uninstall as triggered by {@link #uninstallService(String)}.
+         * After this has been called, re-adding the service to the {@link MultiServiceEventClient} will result in
+         * launching a new instance from scratch.
          */
         void uninstalled(String serviceName);
     }
@@ -64,13 +63,6 @@ public class MultiServiceEventClient implements MesosEventClient {
     // Additional handling for when we're uninstalling the entire Scheduler.
     private final DeregisterStep deregisterStep;
     private final Optional<Plan> uninstallPlan;
-
-    // Keep track of when services started uninstalling. We remove services that have been stuck in an uninstalling
-    // state for too long. This is to e.g. avoid waiting forever on a dead agent, and instead just clean up if it comes
-    // back later. Note that we wait indefinitely if the entire scheduler is being uninstalled. Also note that this is
-    // best-effort: if the scheduler restarts then these times are reset.
-    private final Optional<Long> uninstallTimeout;
-    private final Map<String, Long> uninstallStartTimes;
 
     public MultiServiceEventClient(
             String frameworkName,
@@ -93,16 +85,10 @@ public class MultiServiceEventClient implements MesosEventClient {
                                     Collections.singletonList(deregisterStep),
                                     new SerialStrategy<>(),
                                     Collections.emptyList()))));
-            // No timeout when whole scheduler is uninstalling, make user see what's up:
-            this.uninstallTimeout = Optional.empty();
         } else {
             this.deregisterStep = null;
             this.uninstallPlan = Optional.empty();
-            // Use uninstall timeout, unless disabled in SchedulerConfig with negative or zero value
-            long timeoutSecs = schedulerConfig.getMultiServiceRemovalTimeout().getSeconds();
-            this.uninstallTimeout = timeoutSecs <= 0 ? Optional.empty() : Optional.of(timeoutSecs);
         }
-        this.uninstallStartTimes = new HashMap<>();
     }
 
     @Override
@@ -119,108 +105,24 @@ public class MultiServiceEventClient implements MesosEventClient {
         deregisterStep.setComplete();
     }
 
+    /**
+     * Returns our status to the upstream {@code OfferProcessor}. In practice, we only return either {@code RUNNING}, or
+     * {@code UNINSTALLED} if we're ready to be torn down during a scheduler uninstall.
+     */
     @Override
     public ClientStatusResponse getClientStatus() {
-        // If the entire scheduler is uninstalling and there are no clients left to uninstall, then tell upstream that
+        // If the entire scheduler is uninstalling and there are no services left to uninstall, then tell upstream that
         // we're uninstalled.
-        boolean noClients = false;
-
-        Collection<String> finishedServices = new HashSet<>();
-        Collection<AbstractScheduler> uninstalledServices = new HashSet<>();
+        boolean noServices = false;
 
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
-        LOGGER.info("Checking status of {} service{}:", services.size(), services.size() == 1 ? "" : "s");
         try {
-            if (services.isEmpty()) {
-                // If we don't have any clients, then WE aren't ready.
-                // Decline short, or finish if there's an uninstall in progress.
-                noClients = true;
-            }
-            for (AbstractScheduler service : services) {
-                String serviceName = service.getServiceSpec().getName();
-                ClientStatusResponse response = service.getClientStatus();
-                LOGGER.info("  {} status result: {}", serviceName, response.result);
-
-                switch (response.result) {
-                case RESERVING:
-                    // TODO(nickbp): When implementing reservation discipline, use this to determine that a given
-                    // service is reserving resources.
-                    break;
-                case RUNNING:
-                    // No-op, leave it as-is.
-                    break;
-                case FINISHED:
-                    // This client has completed running and can be switched to uninstall.
-                    finishedServices.add(serviceName);
-                    break;
-                case UNINSTALLING:
-                    // Check uninstall timeout, if enabled.
-                    if (uninstallTimeout.isPresent()) {
-                        long nowSecs = getCurrentTimeMillis() / 1000;
-                        Long uninstallStart = uninstallStartTimes.get(serviceName);
-                        if (uninstallStart == null) {
-                            // Mark this service as uninstalling
-                            uninstallStartTimes.put(serviceName, nowSecs);
-                        } else if (nowSecs > uninstallStart + uninstallTimeout.get()) {
-                            // Timeout has been exceeded. Force-remove the service.
-                            Optional<Plan> deployPlan = service.getPlans().stream()
-                                    .filter(plan -> plan.isDeployPlan())
-                                    .findAny();
-                            LOGGER.error("Service {} has failed to complete uninstall within {}s timeout, "
-                                    + "forcing cleanup. All active uninstalls: {}, {} deploy plan: {}",
-                                    serviceName,
-                                    uninstallTimeout.get(),
-                                    uninstallStartTimes,
-                                    serviceName,
-                                    deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
-                            uninstalledServices.add(service);
-                        }
-                    }
-                    break;
-                case UNINSTALLED:
-                    // This client has completed uninstall.
-                    // Its data can be removed and its entry can be dropped from the MultiServiceManager (below).
-                    uninstalledServices.add(service);
-                    break;
-                }
-
-                // If we run out of unusedOffers we still keep going with an empty list of offers.
-                // This is done in case any of the clients depends on us to turn the crank periodically.
-            }
+            noServices = services.isEmpty();
         } finally {
             multiServiceManager.sharedUnlock();
         }
 
-        if (!finishedServices.isEmpty()) {
-            LOGGER.info("Starting uninstall for {} service{}: {} (from {} total services)",
-                    finishedServices.size(), finishedServices.size() == 1 ? "" : "s", finishedServices);
-            // Trigger uninstalls. Grabs a lock internally, so we need to be unlocked when calling it here.
-            multiServiceManager.uninstallServices(finishedServices);
-        }
-
-        if (!uninstalledServices.isEmpty()) {
-            // Note: It's possible that we can have a race where we attempt to remove the same service twice. This is ok
-            //       (Picture two near-simultaneous calls to offers(): Both send offers, both get FINISHED back, ...)
-            multiServiceManager.removeServices(uninstalledServices.stream()
-                    .map(service -> service.getServiceSpec().getName())
-                    .collect(Collectors.toSet()));
-            noClients = multiServiceManager.getServiceNames().isEmpty();
-
-            for (AbstractScheduler service : uninstalledServices) {
-                service.getStateStore().deleteAllDataIfNamespaced();
-
-                String serviceName = service.getServiceSpec().getName();
-                // Just in case, avoid invoking the uninstall callback until we are in an unlocked state. This avoids
-                // deadlock if the callback itself calls back into us for any reason. This also ensures that we aren't
-                // blocking other operations (e.g. offer/status handling) while these callbacks are running.
-                uninstallCallback.uninstalled(serviceName);
-
-                // Remove this service from timeout tracking, if enabled.
-                uninstallStartTimes.remove(serviceName);
-            }
-        }
-
-        if (noClients) {
+        if (noServices) {
             // There are no active services to process offers. Should the rest of the framework be torn down?
             if (uninstallPlan.isPresent()) {
                 // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
@@ -232,7 +134,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 return ClientStatusResponse.running();
             }
         } else {
-            // Clients are still present, behave normally.
+            // Services are still present, behave normally.
             return ClientStatusResponse.running();
         }
     }
@@ -250,59 +152,115 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public OfferResponse offers(Collection<Protos.Offer> offers) {
-        // Decline short if any client isn't ready.
-        boolean anyClientsNotReady = false;
+        // Decline short if any service isn't ready.
+        boolean anyServicesNotReady = false;
 
         List<OfferRecommendation> recommendations = new ArrayList<>();
         List<Protos.Offer> remainingOffers = new ArrayList<>();
         remainingOffers.addAll(offers);
 
+        Collection<String> servicesToUninstall = new HashSet<>();
+        Collection<AbstractScheduler> servicesToRemove = new HashSet<>();
+
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
-        if (!services.isEmpty()) {
+        try {
+            if (services.isEmpty()) {
+                // Nothing to do, short-circuit.
+                return OfferResponse.processed(Collections.emptyList());
+            }
+
+            // Before we handle offers, check for any finished services that should be switched to uninstall, or any
+            // uninstalled services that should be removed.
             LOGGER.info("Sending {} offer{} to {} service{}:",
                     offers.size(), offers.size() == 1 ? "" : "s",
                     services.size(), services.size() == 1 ? "" : "s");
-        }
-        try {
             for (AbstractScheduler service : services) {
-                OfferResponse response = service.offers(remainingOffers);
-                if (!remainingOffers.isEmpty() && !response.recommendations.isEmpty()) {
-                    // Some offers were consumed. Update what remains to offer to the next service.
-                    List<Protos.Offer> updatedRemainingOffers =
-                            OfferUtils.filterOutAcceptedOffers(remainingOffers, response.recommendations);
-                    remainingOffers = updatedRemainingOffers;
+                String serviceName = service.getServiceSpec().getName();
+                ClientStatusResponse statusResponse = service.getClientStatus();
+                if (statusResponse.result != ClientStatusResponse.Result.RUNNING) {
+                    // Only log status when it's special/unusual
+                    LOGGER.info("{} status: {}", serviceName, statusResponse.result);
                 }
-                recommendations.addAll(response.recommendations);
-                LOGGER.info("  {} offer result: {}[{} rec{}], {} offer{} remaining",
-                        service.getServiceSpec().getName(),
-                        response.result,
-                        response.recommendations.size(), response.recommendations.size() == 1 ? "" : "s",
-                        remainingOffers.size(), remainingOffers.size() == 1 ? "" : "s");
 
-                switch (response.result) {
-                case NOT_READY:
-                    // This client wasn't ready. Tell upstream to short-decline any remaining offers so that it can get
-                    // another chance shortly.
-                    anyClientsNotReady = true;
+                switch (statusResponse.result) {
+                case RESERVING:
+                    // TODO(nickbp): When implementing reservation discipline, use this to determine that a given
+                    // service is reserving resources.
+                    //$FALL-THROUGH$
+                case RUNNING: {
+                    OfferResponse offerResponse = service.offers(remainingOffers);
+                    recommendations.addAll(offerResponse.recommendations);
+                    if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
+                        // Some offers were consumed. Update what remains to offer to the next service.
+                        remainingOffers =
+                                OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+                    }
+                    boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
+                    if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
+                        // Only log result when it's non-empty/unusual
+                        LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
+                                service.getServiceSpec().getName(),
+                                offerResponse.result,
+                                offerResponse.recommendations.size(),
+                                offerResponse.recommendations.size() == 1 ? "" : "s",
+                                remainingOffers.size(),
+                                remainingOffers.size() == 1 ? "" : "s");
+                    }
+                    if (!readyForOffers) {
+                        anyServicesNotReady = true;
+                    }
+                }
                     break;
-                case PROCESSED:
-                    // No-op, keep going.
+                case FINISHED:
+                    // This service has completed running and can be switched to uninstall.
+                    servicesToUninstall.add(serviceName);
+                    break;
+                case UNINSTALLED:
+                    // This service has completed uninstall and can be torn down.
+                    servicesToRemove.add(service);
                     break;
                 }
 
                 // If we run out of unusedOffers we still keep going with an empty list of offers.
-                // This is done in case any of the clients depends on us to turn the crank periodically.
+                // This is done in case any of the services depends on us to turn the crank periodically.
             }
         } finally {
             multiServiceManager.sharedUnlock();
         }
 
-        if (anyClientsNotReady) {
-            // One or more clients said they weren't ready. Tell upstream to short-decline the unused offers, but still
-            // perform any operations returned by the ready clients.
+        if (!servicesToUninstall.isEmpty()) {
+            LOGGER.info("Starting uninstall for {} service{}: {}",
+                    servicesToUninstall.size(), servicesToUninstall.size() == 1 ? "" : "s", servicesToUninstall);
+            // Trigger uninstalls. Grabs a lock internally, so we need to be unlocked when calling it here.
+            multiServiceManager.uninstallServices(servicesToUninstall);
+        }
+
+        if (!servicesToRemove.isEmpty()) {
+            LOGGER.info("Removing {} uninstalled service{}: {}",
+                    servicesToRemove.size(), servicesToRemove.size() == 1 ? "" : "s", servicesToRemove);
+
+            // Note: It's possible that we can have a race where we attempt to remove the same service twice. This is ok
+            //       (Picture two near-simultaneous calls to offers(): Both send offers, both get FINISHED back, ...)
+            multiServiceManager.removeServices(servicesToRemove.stream()
+                    .map(service -> service.getServiceSpec().getName())
+                    .collect(Collectors.toSet()));
+
+            for (AbstractScheduler service : servicesToRemove) {
+                service.getStateStore().deleteAllDataIfNamespaced();
+
+                // Just in case, avoid invoking the uninstall callback until we are in an unlocked state. This avoids
+                // deadlock if the callback itself calls back into us for any reason. This also ensures that we aren't
+                // blocking other operations (e.g. offer/status handling) while these callbacks are running.
+                uninstallCallback.uninstalled(service.getServiceSpec().getName());
+            }
+        }
+
+        if (anyServicesNotReady) {
+            // One or more services said they weren't ready. Tell upstream to short-decline the unused offers, but still
+            // perform any operations returned by the ready services.
             return OfferResponse.notReady(recommendations);
         } else {
-            // We have one or more clients and they were all able to process offers, so tell upstream to long-decline.
+            // We have one or more services and they were all able to process offers, so tell upstream to long-decline.
             return OfferResponse.processed(recommendations);
         }
     }
@@ -359,7 +317,7 @@ public class MultiServiceEventClient implements MesosEventClient {
 
         // Iterate over offersByService and find out if the services in question still want the resources.
         // Any unwanted resources then get added to unexpectedResources.
-        boolean anyFailedClients = false;
+        boolean anyFailedServices = false;
         for (Map.Entry<String, Map<Protos.OfferID, OfferResources>> entry : offersByService.entrySet()) {
             String serviceName = entry.getKey();
             Collection<OfferResources> serviceOffers = entry.getValue().values();
@@ -384,8 +342,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // (CASE 2) The service has returned the subset of these resources which are unexpected.
                 // Add those to unexpectedResources.
                 // Note: We're careful to only invoke this once per service, as the call is likely to be expensive.
-                UnexpectedResourcesResponse response =
-                        service.get().getUnexpectedResources(offersToSend);
+                UnexpectedResourcesResponse response = service.get().getUnexpectedResources(offersToSend);
                 LOGGER.info("  {} cleanup result: {} with {} unexpected resources in {} offer{}",
                         serviceName,
                         response.result,
@@ -397,7 +354,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 case FAILED:
                     // We should be able to safely proceed to the next service rather than aborting here.
                     // Play it safe by telling upstream to do a short decline.
-                    anyFailedClients = true;
+                    anyFailedServices = true;
                     for (OfferResources unexpectedInOffer : response.offerResources) {
                         getEntry(unexpectedResources, unexpectedInOffer.getOffer())
                                 .addAll(unexpectedInOffer.getResources());
@@ -414,7 +371,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         }
 
         // Return the combined listing of unexpected resources across all services:
-        return anyFailedClients
+        return anyFailedServices
                 ? UnexpectedResourcesResponse.failed(unexpectedResources.values())
                 : UnexpectedResourcesResponse.processed(unexpectedResources.values());
     }
@@ -460,14 +417,6 @@ public class MultiServiceEventClient implements MesosEventClient {
                 new MultiStateResource(multiServiceManager, new StringPropertyDeserializer())));
         endpoints.addAll(customEndpoints);
         return endpoints;
-    }
-
-    /**
-     * Time retrieval broken out into a separate function to allow overriding its behavior in tests.
-     */
-    @VisibleForTesting
-    protected long getCurrentTimeMillis() {
-        return System.currentTimeMillis();
     }
 
     /**

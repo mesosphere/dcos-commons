@@ -80,34 +80,27 @@ public interface MesosEventClient {
         public enum Result {
             /**
              * The client is deploying (or reconfiguring) the reservations for the underlying service. This hint allows
-             * upstream to ensure that only one service is growing its footprint in the cluster at a time. This allows
-             * multi-service schedulers to avoid deadlocks between two services attempting to deploy into a cluster
-             * that's too small to fit both of them. It can also more generally be used by upstream to detect if a
-             * service lacks sufficient resources to be deployed
+             * upstream to ensure that only N services are growing their footprint in the cluster at a time. This allows
+             * multi-service schedulers to reduce the likelihood of deadlocks between two services attempting to deploy
+             * into resources that are too small to fit both of them.
              */
             RESERVING,
 
             /**
-             * The client has finished its deployment and is now in an active, running state.
+             * The client has finished its reservation stage and is now in an active, running state.
              */
             RUNNING,
 
             /**
-             * The client has finished running and should be switched to uninstall mode. This is mainly used for
-             * services which run once and then exit.
+             * The client has finished running and should be switched to uninstall mode. This is used for services which
+             * run once and then exit, and is only applicable to multi-service mode.
              */
             FINISHED,
 
             /**
-             * The client is winding down as it proceeds through an uninstall procedure. This is similar to
-             * {@code DEPLOYING}, except that there's no exclusivity or deadlock prevention as the service is strictly
-             * shrinking its footprint. This response is mainly used as a hint to allow upstream to detect if a service
-             * has been stuck in an uninstall for a long time.
-             */
-            UNINSTALLING,
-
-            /**
-             * The client has finished an uninstall and can be shut down.
+             * The client has finished its uninstall. In multi-service mode, this means that the service can be removed
+             * from the parent scheduler. When uninstalling the scheduler itself, this means that the scheduler can be
+             * torn down, assuming that all other services have also reached {@code UNINSTALLED}.
              */
             UNINSTALLED
         };
@@ -133,7 +126,7 @@ public interface MesosEventClient {
 
         /**
          * Tells the caller that this client is running the service following a completed deployment. This is the
-         * typical state for services.
+         * typical state for healthy services. It is also used for services that are in the process of uninstalling.
          */
         public static ClientStatusResponse running() {
             return new ClientStatusResponse(Result.RUNNING);
@@ -145,15 +138,6 @@ public interface MesosEventClient {
          */
         public static ClientStatusResponse finished() {
             return new ClientStatusResponse(Result.FINISHED);
-        }
-
-        /**
-         * Tells the caller that this client is in the process of uninstalling. This is separate from
-         * {@link #reserving()} because it does not require exclusivity. Instead it's mainly used as a hint for upstream
-         * to detect a stalled uninstall (e.g. waiting to unreserve resources that are no longer available).
-         */
-        public static ClientStatusResponse uninstalling() {
-            return new ClientStatusResponse(Result.UNINSTALLING);
         }
 
         /**
