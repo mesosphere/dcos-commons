@@ -297,7 +297,7 @@ public class PodInfoBuilder {
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
-            SchedulerConfig schedulerConfig) throws IllegalStateException {
+            SchedulerConfig schedulerConfig) throws IllegalStateException, InvalidRequirementException {
         PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
@@ -520,7 +520,8 @@ public class PodInfoBuilder {
      * @return the ContainerInfo to be attached
      */
     private Protos.ContainerInfo getContainerInfo(
-            PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
+            PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer)
+            throws InvalidRequirementException {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
@@ -579,16 +580,38 @@ public class PodInfoBuilder {
         }
 
         if (isTaskContainer && !podSpec.getCapabilities().isEmpty()) {
-            for(String capability : podSpec.getCapabilities())
+            for(Protos.CapabilityInfo.Capability capability : getCapabilityInfo(podSpec.getCapabilities()))
                 containerInfo.getLinuxInfoBuilder().setEffectiveCapabilities(containerInfo
                         .getLinuxInfoBuilder()
                             .getEffectiveCapabilitiesBuilder()
-                                .addCapabilities(Protos.CapabilityInfo.Capability.valueOf(capability))
+                                .addCapabilities(capability)
             );
         }
 
 
         return containerInfo.build();
+    }
+
+    private static Collection<Protos.CapabilityInfo.Capability> getCapabilityInfo(Collection<String> capabilities)
+            throws InvalidRequirementException {
+        //In the case that ALL is passed give all linux capabilities
+        //otherwise pass the set provided in the podSpec
+        Collection<Protos.CapabilityInfo.Capability> capabilitySet = new ArrayList<>();
+        if (capabilities.size() == 1 && capabilities.toArray()[0] == "ALL") {
+            for(Protos.CapabilityInfo.Capability capability : Protos.CapabilityInfo.Capability.values()) {
+                capabilitySet.add(capability);
+            }
+        } else {
+            for(String capability : capabilities) {
+                try {
+                    capabilitySet.add(Protos.CapabilityInfo.Capability.valueOf(capability));
+                } catch (Exception e) {
+                    throw new InvalidRequirementException(e);
+                }
+            }
+        }
+
+        return capabilitySet;
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {
@@ -647,6 +670,7 @@ public class PodInfoBuilder {
      * easier for the framework developer to trace problems in their implementation. These checks
      * reflect requirements enforced elsewhere, eg in {@link com.mesosphere.sdk.state.StateStore}.
      */
+
     private static void validateTaskInfo(Protos.TaskInfo.Builder builder)
             throws InvalidRequirementException {
         if (!builder.hasName() || StringUtils.isEmpty(builder.getName())) {

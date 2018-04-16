@@ -5,6 +5,9 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 public class CapabilitiesEvaluationStage implements OfferEvaluationStage  {
 
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+
+        return null;
+        //return EvaluationOutcome.pass(this,"","").build();
     }
 }
 

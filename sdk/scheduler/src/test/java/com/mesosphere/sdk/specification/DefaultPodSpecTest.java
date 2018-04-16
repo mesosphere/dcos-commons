@@ -65,6 +65,7 @@ public class DefaultPodSpecTest {
                 Arrays.asList(new DefaultSecretSpec("secretPath", "envKey", "filePath")),
                 true,
                 true,
-                true);
+                true,
+                Arrays.asList("ALL"));
     }
 }
