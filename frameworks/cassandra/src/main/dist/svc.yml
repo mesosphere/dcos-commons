@@ -135,16 +135,8 @@ pods:
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
-                aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
-        resource-set: sidecar-resources
-      upload-minio:
-        goal: ONCE
-        cmd: >
-                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
-                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
-                export AWS_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID} ;
-                export AWS_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY } ;
-                aws s3 cp container-path/snapshot/ s3://${MINIO_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive --endpoint-url ${MINIO_ENDPOINT_URL }
+                if [ ! -z $S3_ENDPOINT_URL ]; then ENDPOINT="--endpoint-url=${S3_ENDPOINT_URL}"; fi ;
+                aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive $ENDPOINT
         resource-set: sidecar-resources
       upload-azure:
         goal: ONCE
@@ -169,17 +161,8 @@ pods:
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 mkdir container-path/snapshot ;
-                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
-        resource-set: sidecar-resources
-      fetch-minio:
-        goal: ONCE
-        cmd: >
-                export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
-                export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
-                export AWS_ACCESS_KEY_ID=${MINIO_ACCESS_KEY_ID} ;
-                export AWS_SECRET_ACCESS_KEY=${MINIO_SECRET_ACCESS_KEY } ;
-                mkdir container-path/snapshot ;
-                aws s3 cp s3://${MINIO_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive --endpoint-url ${MINIO_ENDPOINT_URL}
+                if [ ! -z $S3_ENDPOINT_URL ]; then ENDPOINT="--endpoint-url=${S3_ENDPOINT_URL}"; fi ;
+                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive $ENDPOINT
         resource-set: sidecar-resources
       fetch-azure:
         goal: ONCE
@@ -344,47 +327,6 @@ plans:
         pod: node
         steps:
           - default: [[fetch-s3]]
-      restore-schema:
-        strategy: serial
-        pod: node
-        steps:
-          - default: [[restore-schema]]
-      restore-snapshots:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[restore-snapshot]]
-  backup-minio:
-    strategy: serial
-    phases:
-      backup-schema:
-        strategy: serial
-        pod: node
-        steps:
-          - default: [[backup-schema]]
-      create-snapshots:
-        strategy: parallel
-        pod: node
-        steps:
-          - default: [[snapshot]]
-      upload-backups:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[upload-minio]]
-      cleanup-snapshots:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[cleanup-snapshot]]
-  restore-minio:
-    strategy: serial
-    phases:
-      fetch-s3:
-        strategy: {{BACKUP_RESTORE_STRATEGY}}
-        pod: node
-        steps:
-          - default: [[fetch-minio]]
       restore-schema:
         strategy: serial
         pod: node
