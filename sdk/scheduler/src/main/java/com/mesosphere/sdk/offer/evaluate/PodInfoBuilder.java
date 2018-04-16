@@ -380,7 +380,8 @@ public class PodInfoBuilder {
         executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
 
         if (podSpec.getIsolateTmp() && !useDefaultExecutor) {
-            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(
+                    Protos.Volume.newBuilder()
                     .setContainerPath("/tmp")
                     .setHostPath("tmp")
                     .setMode(Protos.Volume.Mode.RW)));
