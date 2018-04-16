@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import org.apache.mesos.Protos;
 
 import java.net.URI;
 import java.util.Collection;
@@ -59,6 +60,9 @@ public interface PodSpec {
 
     @JsonProperty("isolate-tmp")
     Boolean getIsolateTmp();
+
+    @JsonProperty("capabilities")
+    Collection<String> getCapabilities();
 
     @JsonIgnore
     static String getName(PodSpec podSpec, int index) {

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
@@ -54,6 +55,8 @@ public class DefaultPodSpec implements PodSpec {
     private Boolean sharePidNamespace;
     @NotNull
     private final Boolean isolateTmp;
+    @NotNull
+    private final Collection<String> capabilities;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -71,7 +74,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
             @JsonProperty("allow-decommission") Boolean allowDecommission,
-            @JsonProperty("isolate-tmp") Boolean isolateTmp) {
+            @JsonProperty("isolate-tmp") Boolean isolateTmp,
+            @JsonProperty("capabilities") Collection<String> capabilities) {
         this(
                 new Builder(type, count, tasks)
                         .type(type)
@@ -88,7 +92,8 @@ public class DefaultPodSpec implements PodSpec {
                         .secrets(secrets)
                         .sharePidNamespace(sharePidNamespace)
                         .allowDecommission(allowDecommission)
-                        .isolateTmp(isolateTmp));
+                        .isolateTmp(isolateTmp)
+                        .capabilities(capabilities));
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -107,6 +112,7 @@ public class DefaultPodSpec implements PodSpec {
         this.volumes = builder.volumes;
         this.sharePidNamespace = builder.sharePidNamespace;
         this.isolateTmp = builder.isolateTmp;
+        this.capabilities = builder.capabilities;
         ValidationUtils.validate(this);
     }
 
@@ -210,6 +216,9 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<String> getCapabilities() {return capabilities; }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -243,6 +252,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
         private Boolean isolateTmp = false;
+        private Collection<String> capabilities = new ArrayList<>();
 
         private Builder(String type, int count, List<TaskSpec> tasks) {
             this.type = type;
@@ -477,6 +487,22 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder isolateTmp(Boolean isolateTmp) {
             this.isolateTmp = isolateTmp != null && isolateTmp;
+            return this;
+        }
+
+        /**
+         * Sets the list of Linux Capabilities this Pod will heave.
+         *
+         * @param capabilities List of capabilities to start pod with.
+         * @return a reference to this Builder
+         */
+        public Builder capabilities(Collection<String> capabilities) {
+            if (capabilities == null){
+                this.capabilities = new ArrayList();
+            } else {
+                this.capabilities = capabilities;
+            }
+
             return this;
         }
 

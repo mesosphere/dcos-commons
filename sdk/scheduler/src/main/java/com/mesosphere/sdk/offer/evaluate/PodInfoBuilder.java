@@ -533,7 +533,8 @@ public class PodInfoBuilder {
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
                 && secretVolumes.isEmpty()
-                && podSpec.getIsolateTmp() == false) {
+                && podSpec.getIsolateTmp() == false
+                && podSpec.getCapabilities().isEmpty()) {
             // Nothing left to do.
             return containerInfo.build();
         }
@@ -576,6 +577,16 @@ public class PodInfoBuilder {
                     .setHostPath("tmp")
                 .setMode(Protos.Volume.Mode.RW));
         }
+
+        if (isTaskContainer && !podSpec.getCapabilities().isEmpty()) {
+            for(String capability : podSpec.getCapabilities())
+                containerInfo.getLinuxInfoBuilder().setEffectiveCapabilities(containerInfo
+                        .getLinuxInfoBuilder()
+                            .getEffectiveCapabilitiesBuilder()
+                                .addCapabilities(Protos.CapabilityInfo.Capability.valueOf(capability))
+            );
+        }
+
 
         return containerInfo.build();
     }
