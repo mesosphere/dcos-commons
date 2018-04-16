@@ -294,20 +294,13 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
-        if (podSpec.getIsolateTmp()) {
+        if (podSpec.getIsolateTmp() && useDefaultExecutor) {
             // Isolate the tmp directory of tasks
             //switch to SANDBOX SELF after dc/os 1.13
-            if (useDefaultExecutor) {
-                taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
-                        .setContainerPath("/tmp")
-                        .setHostPath("tmp")
-                        .setMode(Protos.Volume.Mode.RW)));
-            } else {
-                executorBuilder.setContainer(executorBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
-                        .setContainerPath("/tmp")
-                        .setHostPath("tmp")
-                        .setMode(Protos.Volume.Mode.RW)));
-            }
+            taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                    .setContainerPath("/tmp")
+                    .setHostPath("tmp")
+                    .setMode(Protos.Volume.Mode.RW)));
         }
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
@@ -385,6 +378,13 @@ public class PodInfoBuilder {
         // Populate ContainerInfo with the appropriate information from PodSpec
         // This includes networks, rlimits, secret volumes...
         executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
+
+        if (podSpec.getIsolateTmp() && !useDefaultExecutor) {
+            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                    .setContainerPath("/tmp")
+                    .setHostPath("tmp")
+                    .setMode(Protos.Volume.Mode.RW)));
+        }
 
         return executorInfoBuilder;
     }
