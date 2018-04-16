@@ -124,11 +124,6 @@
           "type": "number",
           "default": 1.0
         },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
-        },
         "mem": {
           "description": "Node mem requirements",
           "type": "integer",
@@ -189,11 +184,6 @@
           "type": "integer",
           "default": 2,
           "minimum": 1
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         },
         "cpus": {
           "description": "Node cpu requirements",
@@ -256,11 +246,6 @@
           "default": 0,
           "minimum": 0
         },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
-        },
         "cpus": {
           "description": "Node cpu requirements",
           "type": "number",
@@ -321,11 +306,6 @@
           "type": "integer",
           "default": 1,
           "minimum": 0
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         },
         "cpus": {
           "description": "Node cpu requirements",

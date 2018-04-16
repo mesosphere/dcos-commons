@@ -10,6 +10,7 @@
     "DCOS_COMMONS_UNINSTALL": "true",
     "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
     "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "MARATHON_SINGLE_INSTANCE_APP": "true"
     "DCOS_SERVICE_NAME": "{{service.name}}",
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"
@@ -73,7 +74,6 @@
     "MASTER_NODE_DISK": "{{master_nodes.disk}}",
     "MASTER_NODE_DISK_TYPE": "{{master_nodes.disk_type}}",
     "MASTER_NODE_TRANSPORT_PORT": "{{master_nodes.transport_port}}",
-    "MASTER_NODE_ISOLATION": "{{master_nodes.isolation}}",
     "DATA_NODE_COUNT": "{{data_nodes.count}}",
     "DATA_NODE_CPUS": "{{data_nodes.cpus}}",
     "DATA_NODE_MEM": "{{data_nodes.mem}}",
@@ -81,15 +81,13 @@
     "DATA_NODE_HEAP_MB": "{{data_nodes.heap.size}}",
     "DATA_NODE_DISK": "{{data_nodes.disk}}",
     "DATA_NODE_DISK_TYPE": "{{data_nodes.disk_type}}",
-    "DATA_NODE_ISOLATION": "{{data_nodes.isolation}}",
     "INGEST_NODE_COUNT": "{{ingest_nodes.count}}",
     "INGEST_NODE_CPUS": "{{ingest_nodes.cpus}}",
-    "INGEST_NODE_MEM": "{{ingest_nodes.mem}}",
+    "INGEST_NODE_MEM": "{{ingest_nodes.mem}}"
     "INGEST_NODE_PLACEMENT": "{{{ingest_nodes.placement}}}",
     "INGEST_NODE_HEAP_MB": "{{ingest_nodes.heap.size}}",
     "INGEST_NODE_DISK": "{{ingest_nodes.disk}}",
     "INGEST_NODE_DISK_TYPE": "{{ingest_nodes.disk_type}}",
-    "INGEST_NODE_ISOLATION": "{{ingest_nodes.isolation}}",
     "COORDINATOR_NODE_COUNT": "{{coordinator_nodes.count}}",
     "COORDINATOR_NODE_CPUS": "{{coordinator_nodes.cpus}}",
     "COORDINATOR_NODE_MEM": "{{coordinator_nodes.mem}}",
@@ -97,7 +95,6 @@
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
-    "COORDINATOR_NODE_ISOLATION": "{{coordinator_nodes.isolation}}",
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
