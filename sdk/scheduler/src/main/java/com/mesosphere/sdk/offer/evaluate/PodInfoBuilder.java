@@ -297,7 +297,7 @@ public class PodInfoBuilder {
             Protos.FrameworkID frameworkID,
             UUID targetConfigurationId,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
-            SchedulerConfig schedulerConfig) throws IllegalStateException, InvalidRequirementException {
+            SchedulerConfig schedulerConfig) throws IllegalStateException {
         PodSpec podSpec = podInstance.getPod();
         Protos.ExecutorInfo.Builder executorInfoBuilder = Protos.ExecutorInfo.newBuilder()
                 .setName(podSpec.getType())
@@ -520,8 +520,7 @@ public class PodInfoBuilder {
      * @return the ContainerInfo to be attached
      */
     private Protos.ContainerInfo getContainerInfo(
-            PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer)
-            throws InvalidRequirementException {
+            PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
@@ -534,8 +533,7 @@ public class PodInfoBuilder {
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
                 && secretVolumes.isEmpty()
-                && podSpec.getIsolateTmp() == false
-                && podSpec.getCapabilities().isEmpty()) {
+                && podSpec.getIsolateTmp() == false) {
             // Nothing left to do.
             return containerInfo.build();
         }
@@ -592,8 +590,7 @@ public class PodInfoBuilder {
         return containerInfo.build();
     }
 
-    private static Collection<Protos.CapabilityInfo.Capability> getCapabilityInfo(Collection<String> capabilities)
-            throws InvalidRequirementException {
+    public static Collection<Protos.CapabilityInfo.Capability> getCapabilityInfo(Collection<String> capabilities) {
         //In the case that ALL is passed give all linux capabilities
         //otherwise pass the set provided in the podSpec
         Collection<Protos.CapabilityInfo.Capability> capabilitySet = new ArrayList<>();
@@ -603,11 +600,7 @@ public class PodInfoBuilder {
             }
         } else {
             for(String capability : capabilities) {
-                try {
-                    capabilitySet.add(Protos.CapabilityInfo.Capability.valueOf(capability));
-                } catch (Exception e) {
-                    throw new InvalidRequirementException(e);
-                }
+                capabilitySet.add(Protos.CapabilityInfo.Capability.valueOf(capability));
             }
         }
 
