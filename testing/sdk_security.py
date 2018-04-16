@@ -146,7 +146,7 @@ def revoke_permissions(linux_user: str, role_name: str, service_account_name: st
 
 def create_service_account(service_account_name: str, service_account_secret: str) -> None:
     """
-    Creates a servive account. If it already exists, it is deleted.
+    Creates a service account. If it already exists, it is deleted.
     """
     install_enterprise_cli()
 

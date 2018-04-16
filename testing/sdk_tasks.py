@@ -11,6 +11,7 @@ import retrying
 import shakedown
 import dcos.errors
 import sdk_cmd
+import sdk_package_registry
 import sdk_plan
 
 
@@ -135,15 +136,30 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
     for Mesos to decide that the agent is dead. This is also why we perform a manual 'ls' check to
     verify the host is down, rather than waiting for Mesos to tell us.
     '''
+    skip_tasks = {sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME}
+    server_tasks = [
+        task for task in get_summary() if
+        task.name not in skip_tasks and task_name_pattern.match(task.name)
+    ]
+
     scheduler_ip = shakedown.get_service_ips('marathon', service_name).pop()
     log.info('Scheduler IP: {}'.format(scheduler_ip))
 
-    server_tasks = [
-        task for task in get_summary()
-        if task_name_pattern.match(task.name)]
-
-    avoid_tasks = [task for task in server_tasks if task.host != scheduler_ip]
-    log.info('Found tasks avoiding scheduler at {}: {}'.format(scheduler_ip, avoid_tasks))
+    # Always avoid package registry (if present)
+    registry_ips = shakedown.get_service_ips(
+        'marathon',
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME
+    )
+    log.info('Package Registry [{}] IP(s): {}'.format(
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME, registry_ips
+    ))
+    skip_ips = {scheduler_ip} | set(registry_ips)
+    avoid_tasks = [task for task in server_tasks if task.host not in skip_ips]
+    log.info('Found tasks avoiding scheduler and {} at {}: {}'.format(
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME,
+        skip_ips,
+        avoid_tasks
+    ))
     return avoid_tasks
 
 

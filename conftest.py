@@ -5,12 +5,13 @@ Note: pytest must be invoked with this file in the working directory
 E.G. py.test frameworks/<your-frameworks>/tests
 """
 import logging
-import os
 import os.path
 import sys
 
 import pytest
 import sdk_diag
+import sdk_repository
+import sdk_package_registry
 import sdk_utils
 import teamcity
 
@@ -38,10 +39,18 @@ for noise_source in [
 log = logging.getLogger(__name__)
 
 # The following environment variable allows for log collection to be turned off.
-# This is useful, for exampl in testing.
-INTEGRATION_TEST_LOG_COLLECTION = str(
-    os.environ.get('INTEGRATION_TEST_LOG_COLLECTION', "True")
-).lower() in ["true", "1"]
+# This is useful, for example in testing.
+INTEGRATION_TEST_LOG_COLLECTION = sdk_utils.is_env_var_set(
+    'INTEGRATION_TEST_LOG_COLLECTION', default=str(True)
+)
+
+
+@pytest.fixture(scope='session', autouse=True)
+def configure_universe(tmpdir_factory):
+    if sdk_utils.is_env_var_set('PACKAGE_REGISTRY_ENABLED', default=''):
+        yield from sdk_package_registry.package_registry_session(tmpdir_factory)
+    else:
+        yield from sdk_repository.universe_session()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

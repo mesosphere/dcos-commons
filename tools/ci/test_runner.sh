@@ -6,6 +6,9 @@ set -e -x
 export DCOS_ENTERPRISE
 export PYTHONUNBUFFERED=1
 export SECURITY
+export PACKAGE_REGISTRY_ENABLED
+export PACKAGE_REGISTRY_STUB_URL
+export DCOS_FILES_PATH
 
 BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT_DIR="${REPO_ROOT:-$1}"
@@ -25,6 +28,9 @@ fi
 
 # First we need to build the framework(s)
 echo "Using FRAMEWORK_LIST:\n${FRAMEWORK_LIST}"
+echo "PACKAGE_REGISTRY_ENABLED ${PACKAGE_REGISTRY_ENABLED}"
+echo "PACKAGE_REGISTRY_STUB_URL ${PACKAGE_REGISTRY_STUB_URL}"
+echo "DCOS_FILES_PATH ${DCOS_FILES_PATH}"
 
 if [ -n "$STUB_UNIVERSE_URL" ]; then
     if [ x"$SINGLE_FRAMEWORK" == x"False" ]; then
