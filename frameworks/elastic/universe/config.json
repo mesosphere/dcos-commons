@@ -124,6 +124,11 @@
           "type": "number",
           "default": 1.0
         },
+        "isolation": {
+          "description": "boolean flag to control isolation",
+          "type": "boolean",
+          "default": false
+        },
         "mem": {
           "description": "Node mem requirements",
           "type": "integer",
@@ -166,11 +171,6 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         }
       },
       "required": [
@@ -189,6 +189,11 @@
           "type": "integer",
           "default": 2,
           "minimum": 1
+        },
+        "isolation": {
+          "description": "boolean flag to control isolation",
+          "type": "boolean",
+          "default": false
         },
         "cpus": {
           "description": "Node cpu requirements",
@@ -232,11 +237,6 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         }
       },
       "required": [
@@ -255,6 +255,11 @@
           "type": "integer",
           "default": 0,
           "minimum": 0
+        },
+        "isolation": {
+          "description": "boolean flag to control isolation",
+          "type": "boolean",
+          "default": false
         },
         "cpus": {
           "description": "Node cpu requirements",
@@ -298,11 +303,6 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         }
       },
       "required": [
@@ -321,6 +321,11 @@
           "type": "integer",
           "default": 1,
           "minimum": 0
+        },
+        "isolation": {
+          "description": "boolean flag to control isolation",
+          "type": "boolean",
+          "default": false
         },
         "cpus": {
           "description": "Node cpu requirements",
@@ -364,11 +369,6 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         }
       },
       "required": [
