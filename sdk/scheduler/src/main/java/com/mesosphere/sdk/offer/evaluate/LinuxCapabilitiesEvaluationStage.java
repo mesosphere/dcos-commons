@@ -6,7 +6,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import java.util.*;
 
-public class CapabilitiesEvaluationStage implements OfferEvaluationStage  {
+public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
 
     private final Logger logger;
     private final Optional<String> resourceId;
@@ -34,22 +34,24 @@ public class CapabilitiesEvaluationStage implements OfferEvaluationStage  {
         //all offers are valid since Offers do not send capabilities.
         //TODO: Once capabilities come in offers change logic here.
 
-        Collection<Protos.CapabilityInfo.Capability> requestedCapabilities = podInfoBuilder.getCapabilityInfo(this.podSpec.getCapabilities());
+        Collection<Protos.CapabilityInfo.Capability> requestedCapabilities = getCapabilityInfo(this.podSpec.getCapabilities());
 
-        for(Protos.CapabilityInfo.Capability capability : getCapabilityInfo(podSpec.getCapabilities()))
-            podInfoBuilder.getTaskBuilder(taskName).getContainerBuilder().getLinuxInfoBuilder().setEffectiveCapabilities(podInfoBuilder
-                    .getTaskBuilder(taskName)
-                    .getContainerBuilder()
-                    .getLinuxInfoBuilder()
-                    .getEffectiveCapabilitiesBuilder()
-                    .addCapabilities(capability)
-            );
-
+        if (!requestedCapabilities.isEmpty()) {
+            for (Protos.CapabilityInfo.Capability capability : getCapabilityInfo(podSpec.getCapabilities()))
+                podInfoBuilder.getTaskBuilder(taskName).getContainerBuilder().getLinuxInfoBuilder().setEffectiveCapabilities(podInfoBuilder
+                        .getTaskBuilder(taskName)
+                        .getContainerBuilder()
+                        .getLinuxInfoBuilder()
+                        .getEffectiveCapabilitiesBuilder()
+                        .addCapabilities(capability)
+                );
+        }
 
         return EvaluationOutcome.pass(
                 this,
-        )
-
+                "Providing requested capabilities",
+                podSpec.getCapabilities(),
+                taskName).build();
 
     }
 
@@ -69,10 +71,5 @@ public class CapabilitiesEvaluationStage implements OfferEvaluationStage  {
 
         return capabilitySet;
     }
-
-
-
-
-
 }
 

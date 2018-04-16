@@ -577,34 +577,7 @@ public class PodInfoBuilder {
                 .setMode(Protos.Volume.Mode.RW));
         }
 
-        if (isTaskContainer && !podSpec.getCapabilities().isEmpty()) {
-            for(Protos.CapabilityInfo.Capability capability : getCapabilityInfo(podSpec.getCapabilities()))
-                containerInfo.getLinuxInfoBuilder().setEffectiveCapabilities(containerInfo
-                        .getLinuxInfoBuilder()
-                            .getEffectiveCapabilitiesBuilder()
-                                .addCapabilities(capability)
-            );
-        }
-
-
         return containerInfo.build();
-    }
-
-    public static Collection<Protos.CapabilityInfo.Capability> getCapabilityInfo(Collection<String> capabilities) {
-        //In the case that ALL is passed give all linux capabilities
-        //otherwise pass the set provided in the podSpec
-        Collection<Protos.CapabilityInfo.Capability> capabilitySet = new ArrayList<>();
-        if (capabilities.size() == 1 && capabilities.toArray()[0] == "ALL") {
-            for(Protos.CapabilityInfo.Capability capability : Protos.CapabilityInfo.Capability.values()) {
-                capabilitySet.add(capability);
-            }
-        } else {
-            for(String capability : capabilities) {
-                capabilitySet.add(Protos.CapabilityInfo.Capability.valueOf(capability));
-            }
-        }
-
-        return capabilitySet;
     }
 
     private static Protos.NetworkInfo getNetworkInfo(NetworkSpec networkSpec) {

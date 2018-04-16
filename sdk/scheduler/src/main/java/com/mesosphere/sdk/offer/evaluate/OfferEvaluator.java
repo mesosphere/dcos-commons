@@ -219,6 +219,8 @@ public class OfferEvaluator {
                     podInstanceRequirement, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
         }
 
+        if (podInstanceRequirement)
+
         return evaluationPipeline;
     }
 
@@ -338,6 +340,10 @@ public class OfferEvaluator {
                     volumeSpec, Optional.empty(), resourceNamespace));
         }
 
+        if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
+            evaluationStages.add(new LinuxCapabilitiesEvaluationStage())
+        }
+
         String preReservedRole = null;
         String role = null;
         String principal = null;
@@ -379,7 +385,6 @@ public class OfferEvaluator {
                 }
                 shouldAddExecutorResources = false;
             }
-
 
 
             // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
