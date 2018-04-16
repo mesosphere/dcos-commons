@@ -50,6 +50,8 @@ pods:
                 fi
 
                 {{#LIGHTHOUSE_ENABLED}}
+                set -e
+
                 if ! [ -x "$(command -v curl)" ]; then
                     echo 'Error: curl is not installed.' >&2
                     exit 1
@@ -71,6 +73,8 @@ pods:
                     echo 'Error getting PWX token from lighthouse.' >&2
                     exit 1
                 fi
+
+                set +e
                 {{/LIGHTHOUSE_ENABLED}}
 
                 coreos=$(uname -a | grep coreos)
@@ -121,26 +125,60 @@ pods:
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
-                    WantedBy=multi-user.target" > /etc/systemd/system/portworx.service.new
+                    WantedBy=multi-user.target
+                    WantedBy=dcos.target" > /etc/systemd/system/portworx.service.new
 
                 diff -Z /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service
                 difference=$?
 
-                mv /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service &&
-                ln -sf /etc/systemd/system/portworx.service /etc/systemd/system/dcos.target.wants/portworx.service &&
+                set -e
+                if [ ! -f /etc/systemd/system/portworx.service ]; then
+                    freshInstall="true"
+                fi
 
-                if [[ "$difference" -ne 0 || $curPxVersion != $newPxVersion ]]; then
-                    systemctl daemon-reload &&
-                    systemctl enable portworx &&
+                mv /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service
+                systemctl daemon-reload
+
+                if [ "$freshInstall" == "true" ]; then
+                    systemctl enable portworx
+                fi
+                set +e
+
+                svc_status=$(systemctl is-enabled portworx)
+                if [[ ( "$svc_status" == "enabled" || "$svc_status" == "enabled-runtime" ) && \
+                      ( "$difference" -ne 0 || $curPxVersion != $newPxVersion) ]]; then
                     systemctl restart portworx
                 fi &&
 
                 journalctl -afu portworx
         readiness-check:
-          cmd: /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
-          interval: 5
+          cmd: |
+               if [ ! -f /etc/systemd/system/portworx.service ]; then
+                   exit 1
+               fi
+               svc_status=$(systemctl is-enabled portworx)
+               set -e
+               if [[ "$svc_status" == "enabled" || "$svc_status" == "enabled-runtime" ]]; then
+                   /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
+               fi
+          interval: 15
           delay: 0
           timeout: 60
+        health-check:
+          cmd: |
+               svc_status=$(systemctl is-enabled portworx)
+               if [[ "$svc_status" == "enabled" || "$svc_status" == "enabled-runtime" ]]; then
+                   /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
+                   if [ $? != 0 ]; then
+                       /opt/pwx/bin/pxctl status
+                       exit 1
+                   fi
+               fi
+          grace-period: 120
+          interval: 60
+          delay: 0
+          timeout: 60
+          max-consecutive-failures: 5
       upgrade:
         goal: FINISH
         resource-set: px-resources
