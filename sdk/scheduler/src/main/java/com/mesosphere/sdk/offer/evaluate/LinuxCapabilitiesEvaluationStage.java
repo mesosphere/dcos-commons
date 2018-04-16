@@ -14,7 +14,7 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
     private final String taskName;
     private final PodSpec podSpec;
 
-    public CapabilitiesEvaluationStage(
+    public LinuxCapabilitiesEvaluationStage(
             PodSpec podSpec,
             String taskName,
             Optional<String> resourceId,
