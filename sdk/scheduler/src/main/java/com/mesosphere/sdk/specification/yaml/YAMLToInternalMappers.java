@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 
+import com.mesosphere.sdk.offer.InvalidRequirementException;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -240,9 +241,27 @@ public class YAMLToInternalMappers {
                     .collect(Collectors.toList()));
         }
 
+        Collection<Protos.CapabilityInfo.Capability> linuxCapabilities = new ArrayList<>();
+
+        if (rawPod.getCapabilities().size() == 1 && rawPod.getCapabilities().toArray()[0] == "ALL") {
+            for (Protos.CapabilityInfo.Capability linuxCapability : Protos.CapabilityInfo.Capability.values()) {
+                linuxCapabilities.add(linuxCapability);
+            }
+        } else {
+            for (String linuxCapability : rawPod.getCapabilities()) {
+                try {
+                    linuxCapabilities.add(Protos.CapabilityInfo.Capability.valueOf(linuxCapability));
+                } catch (Exception e) {
+                    throw new InvalidRequirementException(e);
+                }
+            }
+        }
+
+
         builder.image(rawPod.getImage())
                 .networks(networks)
-                .rlimits(rlimits);
+                .rlimits(rlimits)
+                .capabilities(linuxCapabilities);
 
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();

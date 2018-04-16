@@ -30,6 +30,7 @@ public class RawPod {
     private final Boolean sharePidNamespace;
     private final Boolean allowDecommission;
     private final Boolean isolateTmp;
+    private final Collection<String> capabilities;
 
     private RawPod(
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -46,7 +47,8 @@ public class RawPod {
             @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
             @JsonProperty("allow-decommission") Boolean allowDecommission,
-            @JsonProperty("isolate-tmp") Boolean isolateTmp) {
+            @JsonProperty("isolate-tmp") Boolean isolateTmp,
+            @JsonProperty("capabilities") Collection<String> capabilities) {
         this.placement = placement;
         this.count = count;
         this.image = image;
@@ -62,6 +64,7 @@ public class RawPod {
         this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
         this.allowDecommission = allowDecommission != null && allowDecommission;
         this.isolateTmp = isolateTmp != null && isolateTmp;
+        this.capabilities = capabilities;
     }
 
     public String getPlacement() {
@@ -120,5 +123,11 @@ public class RawPod {
         return allowDecommission;
     }
 
-    public Boolean getIsolateTmp() { return isolateTmp; }
+    public Boolean getIsolateTmp() {
+        return isolateTmp;
+    }
+
+    public Collection<String> getCapabilities() {
+        return CollectionUtils.isEmpty(capabilities) ? Collections.emptyList() : capabilities;
+    }
 }

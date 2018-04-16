@@ -66,6 +66,6 @@ public class DefaultPodSpecTest {
                 true,
                 true,
                 true,
-                Arrays.asList("ALL"));
+                Arrays.asList());
     }
 }

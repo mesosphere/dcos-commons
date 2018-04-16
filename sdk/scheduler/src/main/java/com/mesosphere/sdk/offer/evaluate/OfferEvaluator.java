@@ -219,8 +219,6 @@ public class OfferEvaluator {
                     podInstanceRequirement, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
         }
 
-        if (podInstanceRequirement)
-
         return evaluationPipeline;
     }
 
@@ -340,10 +338,6 @@ public class OfferEvaluator {
                     volumeSpec, Optional.empty(), resourceNamespace));
         }
 
-        if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
-            evaluationStages.add(new LinuxCapabilitiesEvaluationStage())
-        }
-
         String preReservedRole = null;
         String role = null;
         String principal = null;
@@ -374,6 +368,10 @@ public class OfferEvaluator {
             for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
                 evaluationStages.add(VolumeEvaluationStage.getNew(
                         volumeSpec, Optional.of(taskName), resourceNamespace));
+            }
+
+            if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
+                evaluationStages.add(new LinuxCapabilitiesEvaluationStage(taskName, resourceNamespace));
             }
 
 

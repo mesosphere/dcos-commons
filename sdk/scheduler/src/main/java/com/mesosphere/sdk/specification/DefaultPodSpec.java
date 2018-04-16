@@ -2,7 +2,6 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.specification.validation.UniqueTaskName;
@@ -10,6 +9,7 @@ import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -56,7 +56,7 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     private final Boolean isolateTmp;
     @NotNull
-    private final Collection<String> capabilities;
+    private final Collection<Protos.CapabilityInfo.Capability> capabilities;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -75,7 +75,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
             @JsonProperty("allow-decommission") Boolean allowDecommission,
             @JsonProperty("isolate-tmp") Boolean isolateTmp,
-            @JsonProperty("capabilities") Collection<String> capabilities) {
+            @JsonProperty("capabilities") Collection<Protos.CapabilityInfo.Capability> capabilities) {
         this(
                 new Builder(type, count, tasks)
                         .type(type)
@@ -137,6 +137,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.volumes = copy.getVolumes();
         builder.sharePidNamespace = copy.getSharePidNamespace();
         builder.isolateTmp = copy.getIsolateTmp();
+        builder.capabilities = copy.getCapabilities();
         return builder;
     }
 
@@ -216,7 +217,9 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<String> getCapabilities() {return capabilities; }
+    public Collection<Protos.CapabilityInfo.Capability> getCapabilities() {
+        return capabilities;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -252,7 +255,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
         private Boolean isolateTmp = false;
-        private Collection<String> capabilities = new ArrayList<>();
+        private Collection<Protos.CapabilityInfo.Capability> capabilities = new ArrayList<>();
 
         private Builder(String type, int count, List<TaskSpec> tasks) {
             this.type = type;
@@ -496,7 +499,7 @@ public class DefaultPodSpec implements PodSpec {
          * @param capabilities List of capabilities to start pod with.
          * @return a reference to this Builder
          */
-        public Builder capabilities(Collection<String> capabilities) {
+        public Builder capabilities(Collection<Protos.CapabilityInfo.Capability> capabilities) {
             if (capabilities == null){
                 this.capabilities = new ArrayList();
             } else {

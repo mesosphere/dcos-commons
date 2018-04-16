@@ -62,7 +62,7 @@ public interface PodSpec {
     Boolean getIsolateTmp();
 
     @JsonProperty("capabilities")
-    Collection<String> getCapabilities();
+    Collection<Protos.CapabilityInfo.Capability> getCapabilities();
 
     @JsonIgnore
     static String getName(PodSpec podSpec, int index) {
