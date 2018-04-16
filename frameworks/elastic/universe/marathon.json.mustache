@@ -73,6 +73,7 @@
     "MASTER_NODE_DISK": "{{master_nodes.disk}}",
     "MASTER_NODE_DISK_TYPE": "{{master_nodes.disk_type}}",
     "MASTER_NODE_TRANSPORT_PORT": "{{master_nodes.transport_port}}",
+    "MASTER_ISOLATION": "{{master.isolation}}",
     "DATA_NODE_COUNT": "{{data_nodes.count}}",
     "DATA_NODE_CPUS": "{{data_nodes.cpus}}",
     "DATA_NODE_MEM": "{{data_nodes.mem}}",
@@ -80,6 +81,7 @@
     "DATA_NODE_HEAP_MB": "{{data_nodes.heap.size}}",
     "DATA_NODE_DISK": "{{data_nodes.disk}}",
     "DATA_NODE_DISK_TYPE": "{{data_nodes.disk_type}}",
+    "DATA_ISOLATION": "{{data.isolation}}",
     "INGEST_NODE_COUNT": "{{ingest_nodes.count}}",
     "INGEST_NODE_CPUS": "{{ingest_nodes.cpus}}",
     "INGEST_NODE_MEM": "{{ingest_nodes.mem}}",
@@ -87,6 +89,7 @@
     "INGEST_NODE_HEAP_MB": "{{ingest_nodes.heap.size}}",
     "INGEST_NODE_DISK": "{{ingest_nodes.disk}}",
     "INGEST_NODE_DISK_TYPE": "{{ingest_nodes.disk_type}}",
+    "INGEST_ISOLATION": "{{ingest.isolation}}",
     "COORDINATOR_NODE_COUNT": "{{coordinator_nodes.count}}",
     "COORDINATOR_NODE_CPUS": "{{coordinator_nodes.cpus}}",
     "COORDINATOR_NODE_MEM": "{{coordinator_nodes.mem}}",
@@ -94,6 +97,7 @@
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
+    "COORDINATOR_ISOLATION": "{{coordinator_nodes.isolation}}",
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
@@ -323,7 +327,8 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
+    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}",
+    "ELASTIC_ISOLATION": "{{elasticsearch.isolation}}",
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
