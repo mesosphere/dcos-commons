@@ -26,7 +26,6 @@ public class EvaluationOutcome {
     private final Collection<OfferRecommendation> offerRecommendations;
     private final Collection<EvaluationOutcome> children;
     private final String reason;
-
     /**
      * Returns a new passing outcome object with the provided descriptive reason.
      *

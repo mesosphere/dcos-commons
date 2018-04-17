@@ -29,6 +29,7 @@ public class RawPod {
     private final WriteOnceLinkedHashMap<String, RawSecret> secrets;
     private final Boolean sharePidNamespace;
     private final Boolean allowDecommission;
+    private final Boolean isolateTmp;
 
     private RawPod(
             @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -44,7 +45,8 @@ public class RawPod {
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-            @JsonProperty("allow-decommission") Boolean allowDecommission) {
+            @JsonProperty("allow-decommission") Boolean allowDecommission,
+            @JsonProperty("isolate-tmp") Boolean isolateTmp) {
         this.placement = placement;
         this.count = count;
         this.image = image;
@@ -59,6 +61,7 @@ public class RawPod {
         this.secrets = secrets == null ? new WriteOnceLinkedHashMap<>() : secrets;
         this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
         this.allowDecommission = allowDecommission != null && allowDecommission;
+        this.isolateTmp = isolateTmp != null && isolateTmp;
     }
 
     public String getPlacement() {
@@ -116,4 +119,7 @@ public class RawPod {
     public Boolean getAllowDecommission() {
         return allowDecommission;
     }
+
+    public Boolean getIsolateTmp() { return isolateTmp; }
+
 }
