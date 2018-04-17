@@ -102,7 +102,6 @@
             "tls",
             "uri",
             "web-url",
-            "isolation",
             ""
           ],
           "default": "svc"
@@ -175,11 +174,6 @@
           "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `0`",
           "type": "integer",
           "default": 0
-        },
-        "isolation": {
-          "description": "boolean flag to control isolation",
-          "type": "boolean",
-          "default": false
         }
       },
       "required": [

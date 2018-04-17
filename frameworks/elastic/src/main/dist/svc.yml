@@ -4,7 +4,6 @@ scheduler:
   user: {{FRAMEWORK_USER}}
 pods:
   master:
-    isolate-tmp: true
     count: 3
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -84,7 +83,6 @@ pods:
             type: TLS
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
   data:
-    isolate-tmp: true
     count: {{DATA_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -162,7 +160,6 @@ pods:
             type: TLS
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
   ingest:
-    isolate-tmp: true
     count: {{INGEST_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -240,7 +237,6 @@ pods:
             type: TLS
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
   coordinator:
-    isolate-tmp: true
     count: {{COORDINATOR_NODE_COUNT}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
