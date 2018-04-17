@@ -159,3 +159,9 @@ def get_in(keys, coll, default=None):
         return functools.reduce(operator.getitem, keys, coll)
     except (KeyError, IndexError, TypeError):
         return default
+
+
+def sort(coll):
+    """ Sorts a collection and returns it. """
+    coll.sort()
+    return coll

@@ -6,6 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_security IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import os
+from subprocess import check_output
 from typing import List
 
 import retrying
@@ -272,3 +273,33 @@ def security_session(framework_name: str) -> None:
     finally:
         if is_strict:
             cleanup_security(framework_name)
+
+
+def openssl_ciphers():
+    return set(
+        check_output(['openssl', 'ciphers',
+                      'ALL:eNULL']).decode('utf-8').rstrip().split(':'))
+
+
+def is_cipher_enabled(service_name: str,
+                      task_name: str,
+                      cipher: str,
+                      endpoint: str,
+                      openssl_timeout: str = '1') -> bool:
+    @retrying.retry(stop_max_attempt_number=3,
+                    wait_fixed=2000,
+                    retry_on_result=lambda result: 'Failed to enter mount namespace' in result)
+    def run_openssl_command() -> str:
+        command = ' '.join([
+            'timeout', openssl_timeout,
+            'openssl', 's_client', '-cipher', cipher,
+                                    '-connect', endpoint#,
+                                    #'-CAfile', 'broker.truststore'
+        ])
+
+        _, output = sdk_cmd.service_task_exec(service_name, task_name, command, True)
+        return output
+
+    output = run_openssl_command()
+
+    return "Cipher is {}".format(cipher) in output
