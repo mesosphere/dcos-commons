@@ -45,7 +45,7 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
         for (Protos.CapabilityInfo.Capability capability : podSpec.getCapabilities()) {
             capabilityInfo.addCapabilities(capability);
         }
-        
+
         return capabilityInfo.build();
     }
 }
