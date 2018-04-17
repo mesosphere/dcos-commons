@@ -370,6 +370,7 @@ public class OfferEvaluator {
                         volumeSpec, Optional.of(taskName), resourceNamespace));
             }
 
+
             if (shouldAddExecutorResources) {
                 // The default executor needs a constant amount of resources, account for them here.
                 for (ResourceSpec resourceSpec : getExecutorResources(preReservedRole, role, principal)) {
@@ -378,7 +379,6 @@ public class OfferEvaluator {
                 }
                 shouldAddExecutorResources = false;
             }
-
 
             // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
             // ExecutorInfo equality when launching new tasks

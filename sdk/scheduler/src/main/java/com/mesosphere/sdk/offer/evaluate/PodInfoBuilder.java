@@ -636,7 +636,6 @@ public class PodInfoBuilder {
      * easier for the framework developer to trace problems in their implementation. These checks
      * reflect requirements enforced elsewhere, eg in {@link com.mesosphere.sdk.state.StateStore}.
      */
-
     private static void validateTaskInfo(Protos.TaskInfo.Builder builder)
             throws InvalidRequirementException {
         if (!builder.hasName() || StringUtils.isEmpty(builder.getName())) {

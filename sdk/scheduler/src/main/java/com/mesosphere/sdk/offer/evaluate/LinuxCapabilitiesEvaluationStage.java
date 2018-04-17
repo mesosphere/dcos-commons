@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import java.util.*;
 
 /**
- * Offer evaluation tests concerning Linux Capabilities.
+ * Offer evaluation concerning Linux Capabilities.
  */
 public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
 
@@ -36,19 +36,16 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
 
         return EvaluationOutcome.pass(
                 this,
-                "Providing requested capabilities",
+                "Providing requested linux capabilities",
                 podSpec.getCapabilities(),
                 taskName).build();
-
     }
 
     private static Protos.CapabilityInfo getEffectiveCapabilities(PodSpec podSpec) {
         Protos.CapabilityInfo.Builder capabilityInfo = Protos.CapabilityInfo.newBuilder();
-
         for (Protos.CapabilityInfo.Capability capability : podSpec.getCapabilities()) {
             capabilityInfo.addCapabilities(capability);
         }
-
         return capabilityInfo.build();
     }
 }
