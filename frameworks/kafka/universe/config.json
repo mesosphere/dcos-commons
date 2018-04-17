@@ -193,6 +193,11 @@
                   "description": "Allow plaintext alongside encrypted traffic",
                   "type": "boolean",
                   "default": false
+                },
+                "ciphers": {
+                  "description": "Comma-separated list of cipher suites. Note that Kafka requires cipher suite names to be prefixed with \"TLS_\".",
+                  "type": "string",
+                  "default": "TLS_AES128-GCM-SHA256,TLS_AES128-SHA256,TLS_AES256-GCM-SHA384,TLS_AES256-SHA256,TLS_DHE-RSA-AES128-GCM-SHA256,TLS_DHE-RSA-AES128-SHA256,TLS_DHE-RSA-AES256-GCM-SHA384,TLS_DHE-RSA-AES256-SHA256,TLS_ECDHE-RSA-AES128-GCM-SHA256,TLS_ECDHE-RSA-AES128-SHA256,TLS_ECDHE-RSA-AES256-GCM-SHA384,TLS_ECDHE-RSA-AES256-SHA384"
                 }
               }
             },
