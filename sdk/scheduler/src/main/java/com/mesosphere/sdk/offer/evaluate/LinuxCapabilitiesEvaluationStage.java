@@ -25,21 +25,14 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         //all offers are valid since Offers do not send capabilities.
         //TODO: Once capabilities come in offers change logic here.
-        PodSpec podSpec = podInfoBuilder.getPodInstance().getPod();
-        Collection<Protos.CapabilityInfo.Capability> requestedCapabilities = podSpec.getCapabilities();
 
-        if (!requestedCapabilities.isEmpty()) {
-            for (Protos.CapabilityInfo.Capability capability : podSpec.getCapabilities()) {
-                podInfoBuilder.getTaskBuilder(taskName)
-                        .getContainerBuilder()
-                            .getLinuxInfoBuilder().setEffectiveCapabilities(podInfoBuilder
-                                .getTaskBuilder(taskName)
-                                    .getContainerBuilder()
-                                       .getLinuxInfoBuilder()
-                                            .getEffectiveCapabilitiesBuilder()
-                                                .addCapabilities(capability));
-                }
-        }
+        logger.info("Evaluating Linux capabilities against requested capabilities");
+
+        PodSpec podSpec = podInfoBuilder.getPodInstance().getPod();
+        podInfoBuilder.getTaskBuilder(taskName)
+                .getContainerBuilder()
+                    .getLinuxInfoBuilder()
+                        .setEffectiveCapabilities(getEffectiveCapabilities(podSpec));
 
         return EvaluationOutcome.pass(
                 this,
@@ -47,6 +40,16 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
                 podSpec.getCapabilities(),
                 taskName).build();
 
+    }
+
+    private static Protos.CapabilityInfo getEffectiveCapabilities(PodSpec podSpec) {
+        Protos.CapabilityInfo.Builder capabilityInfo = Protos.CapabilityInfo.newBuilder();
+
+        for (Protos.CapabilityInfo.Capability capability : podSpec.getCapabilities()) {
+            capabilityInfo.addCapabilities(capability);
+        }
+
+        return capabilityInfo.build();
     }
 }
 

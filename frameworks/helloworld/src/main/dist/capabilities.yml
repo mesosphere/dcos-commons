@@ -1,0 +1,16 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{SERVICE_PRINCIPAL}}
+  user: {{SERVICE_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    capabilities: {{HELLO_CAPABILITIES}}
+    tasks:
+      server:
+        goal: FINISHED
+        cmd: "echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+
+

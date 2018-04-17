@@ -370,11 +370,6 @@ public class OfferEvaluator {
                         volumeSpec, Optional.of(taskName), resourceNamespace));
             }
 
-            if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
-                evaluationStages.add(new LinuxCapabilitiesEvaluationStage(taskName, resourceNamespace));
-            }
-
-
             if (shouldAddExecutorResources) {
                 // The default executor needs a constant amount of resources, account for them here.
                 for (ResourceSpec resourceSpec : getExecutorResources(preReservedRole, role, principal)) {
@@ -391,6 +386,10 @@ public class OfferEvaluator {
                 if (!taskSpec.getTransportEncryption().isEmpty()) {
                     evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
                 }
+            }
+
+            if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
+                evaluationStages.add(new LinuxCapabilitiesEvaluationStage(taskName, resourceNamespace));
             }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
@@ -455,6 +454,10 @@ public class OfferEvaluator {
         for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
             if (!taskSpec.getTransportEncryption().isEmpty()) {
                 evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+            }
+
+            if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
+                evaluationStages.add(new LinuxCapabilitiesEvaluationStage(taskSpec.getName(), Optional.empty()));
             }
         }
 

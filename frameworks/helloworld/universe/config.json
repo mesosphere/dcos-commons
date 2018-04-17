@@ -103,6 +103,7 @@
             "uri",
             "web-url",
             "isolation",
+            "capabilities",
             ""
           ],
           "default": "svc"
@@ -180,6 +181,11 @@
           "description": "boolean flag to control isolation",
           "type": "boolean",
           "default": false
+        },
+        "capabilities": {
+          "description": "Set of linux capabilities to run task with",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [

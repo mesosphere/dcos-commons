@@ -243,16 +243,24 @@ public class YAMLToInternalMappers {
 
         Collection<Protos.CapabilityInfo.Capability> linuxCapabilities = new ArrayList<>();
 
-        if (rawPod.getCapabilities().size() == 1 && rawPod.getCapabilities().toArray()[0] == "ALL") {
-            for (Protos.CapabilityInfo.Capability linuxCapability : Protos.CapabilityInfo.Capability.values()) {
-                linuxCapabilities.add(linuxCapability);
-            }
-        } else {
-            for (String linuxCapability : rawPod.getCapabilities()) {
-                try {
-                    linuxCapabilities.add(Protos.CapabilityInfo.Capability.valueOf(linuxCapability));
-                } catch (Exception e) {
-                    throw new InvalidRequirementException(e);
+        String capabilityAsString = rawPod.getCapabilities();
+
+        if (!capabilityAsString.isEmpty()) {
+            String[] capabilityList = capabilityAsString.split(",");
+
+            if (capabilityList.length == 1 && capabilityList[0] == "ALL") {
+                for (Protos.CapabilityInfo.Capability linuxCapability : Protos.CapabilityInfo.Capability.values()) {
+                    linuxCapabilities.add(linuxCapability);
+                }
+            } else if (capabilityAsString.contains("ALL") && capabilityList.length > 0) {
+                throw new InvalidRequirementException("Capability set cannot contain ALL and a specific capability set");
+            } else {
+                for (String capability : capabilityList) {
+                    try {
+                        linuxCapabilities.add(Protos.CapabilityInfo.Capability.valueOf(capability));
+                    } catch (Exception e) {
+                        throw new InvalidRequirementException(e);
+                    }
                 }
             }
         }
