@@ -13,7 +13,6 @@ Misc utilities:
 
 - **[dcos_login.py](#dcos_loginpy)**: Log into a DC/OS cluster using default/test credentials.
 - **[print_package_tag.py](#print_package_tagpy)**: Return the Git repo SHA for the provided package on the cluster.
-- **[universe_builder.py](#universe_builderpy)**: Underlying script which builds a `stub-universe.zip` given the necessary template data (package name, version, upload dir, ...). This is called by `publish_aws.py` and `publish_http.py` after autogenerating an upload directory.
 
 These utilities are designed to be used both in automated CI flows, as well as locally on developer workstations.
 
@@ -114,18 +113,6 @@ We specifically recommend including this script in the project repository alongs
 
 For an example of instantiation, take a look at `build.sh` for [Hello World](../frameworks/helloworld/build.sh).
 
-#### Downloading the latest tools
-
-Within your script, it could make sense to just grab the latest .tgz release of these tools like so:
-
-```
-rm -rf dcos-commons-tools/ && \
-    curl https://infinity-artifacts.s3.amazonaws.com/dcos-commons-tools.tgz | tar xz
-./dcos-commons-tools/universe_builder.py
-```
-
-This .tgz is automatically updated when there's a change to `master`.
-
 ### Release script
 
 This is a fairly minimal detail, but it can't hurt to have some automation around the call to `release_builder.py`. For example, you could create a Jenkins parameterized build which calls this script. The parameters would include:
@@ -140,7 +127,7 @@ What follows is a more detailed description of what each utility does and how it
 
 ### build_package.sh
 
-Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and upload the whole set to S3. This is useful for quickly getting a local build up and available for installation in a DC/OS cluster. This tool relies on `universe_builder.py`, which is described below.
+Given a set of build artifacts, this utility will generate a stub universe against those artifacts, and upload the whole set to S3. This is useful for quickly getting a local build up and available for installation in a DC/OS cluster. This tool relies on `publish_http.py` or `publish_aws.py` based upon the inputs which are described below.
 
 The resulting uploaded stub universe URL is logged to stdout (while all other logging is to stderr).
 
@@ -185,8 +172,7 @@ For other examples of usage, take a look at `build.sh` for [Hello World](https:/
 
 ##### Common
 
-- `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
-- `CUSTOM_UNIVERSES_PATH`: Text file to write the stub universe URL into
+- `TEMPLATE_<SOME_PARAM>`: Inherited by `publish_http.py` and `publish_aws.py`, see below.
 
 ##### AWS Publish
 
@@ -205,13 +191,12 @@ Optional:
 - `HTTP_DIR` (default: `/tmp/dcos-http-<pkgname>/`): Local path to be hosted by the HTTP daemon.
 - `HTTP_HOST` (default: `172.17.0.1`, the IP used in dcos-docker): Host endpoint to be used by HTTP daemon.
 - `HTTP_PORT` (default: `0` for an ephemeral port): Port to be used by HTTP daemon.
-- `TEMPLATE_<SOME_PARAM>`: Inherited by `universe_builder.py`, see below.
 
 ### release_builder.py
 
-Takes a Universe 2.x-format package built by `universe_builder.py`, copies its artifacts to a production S3 location, and automatically builds a Universe 3.x-format PR against [https://github.com/mesosphere/universe](Universe) which reflects the production location. After you've finished your testing and have a 'gold' build, use this to release to DC/OS.
+Takes a Universe package built by `publish_aws.py`, copies its artifacts to a production S3 location, and automatically builds a Universe 3.x-format PR against [https://github.com/mesosphere/universe](Universe) which reflects the production location. After you've finished your testing and have a 'gold' build, use this to release to DC/OS.
 
-The only needed parameters are a `stub-universe.zip` (built by `publish_aws.py`, or directly by `universe_builder.py`) and a version string to be used for the released package (eg `1.2.3-4.5.6`). This tool only interacts with build artifacts and does not have any dependency on the originating source repository.
+The only needed parameters are a `stub-universe.zip` (built by `publish_aws.py`) and a version string to be used for the released package (eg `1.2.3-4.5.6`). This tool only interacts with build artifacts and does not have any dependency on the originating source repository.
 
 Only artifacts which share the same directory path as the `stub-universe.zip` itself are copied. This allows for artifacts which are not built as a part of every release, but are instead shared across builds (e.g. a JVM package).
 
@@ -324,44 +309,6 @@ Example (just print the revision string):
 [dcos CLI must be logged into a cluster already...]
 $ ./print_package_tag.py spark
 1.0.2-2.0.0
-```
-
-### universe_builder.py
-
-Builds a self-contained Universe 2.x-format package ('stub-universe') which may be used to add/test a given build directly on a DC/OS cluster. The resulting zip file's path is printed to stdout, while all other logging goes to stderr.
-
-The provided universe files may contain template parameters of the form `{{some-param}}`. The following parameters are filled by default:
-- `{{package-version}}`: The version string to use for this package. Filled with the provided `package-version` argument
-- `{{artifact-dir}}`: Where the artifacts are being uploaded to. Filled with the provided `artifact-dir` argument
-- `{{sha256:somefile.txt}}`: Automatically populated with the sha256sum value of `somefile.txt`. The paths to these files must be provided as arguments when invoking the builder.
-
-In addition to these default template parameters, the caller may also provide environment variables of the form `TEMPLATE_SOME_PARAM` whose value will automatically be inserted into template fields named `{{some-param}}`. For example, running `TEMPLATE_DOCKER_IMAGE=mesosphere/docker-image ./universe_builder.py` would result in any `{{docker-image}}` parameters being replaced with `mesosphere/docker-image`.
-
-A universe template is effectively a directory with the JSON files that you want to include in your Universe package, with template paramters provided in the above format. For some real-world examples of universe templates, take a look the `universe` directories for the various frameworks in [frameworks/](../frameworks).
-
-#### Usage
-
-```
-$ ./universe_builder.py \
-    <package-name> \
-    <package-version> \
-    <template-package-dir> \
-    <artifact-dir> \
-    [artifact files ...]
-```
-
-Example:
-
-```
-$ TEMPLATE_SOME_CUSTOM_STRING="this text replaces any instances of {{some-custom-string}}" \
-./universe_builder.py \
-    kafka \
-    1.2.3-4.5.6 \
-    dcos-kafka-service/universe/ \
-    https://example.com/path/to/kafka-artifacts \
-    dcos-kafka-service/build/scheduler.zip \
-    dcos-kafka-service/build/executor.zip \
-    dcos-kafka-service/build/cli.zip
 ```
 
 #### Environment variables

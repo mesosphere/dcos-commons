@@ -57,6 +57,10 @@ case $1 in
         publish_method="local"
         shift
         ;;
+    .dcos)
+        publish_method=".dcos"
+        shift
+        ;;
     "")
         # no publish method specified
         ;;
@@ -91,6 +95,10 @@ case "$publish_method" in
     aws)
         echo "Uploading to S3"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_aws.py
+        ;;
+    .dcos)
+        echo "Uploading .dcos files to S3"
+        PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
         ;;
     *)
         echo "---"
