@@ -43,7 +43,17 @@ public class SchedulerConfig {
     /** Envvar to specify a custom amount of time to wait for the Scheduler API to come up during startup. */
     private static final String API_SERVER_TIMEOUT_S_ENV = "API_SERVER_TIMEOUT_S";
     /** The default number of seconds to wait for the Scheduler API to come up during startup. */
-    private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600;
+    private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600; // 10 minutes
+
+    /**
+     * (Multi-service only) Envvar to specify the amount of time in seconds for a removed service to complete uninstall
+     * before removing it. If this envvar is negative or zero, then the timeout is disabled and the Scheduler will wait
+     * indefinitely for removed services to complete. If the Scheduler itself is being uninstalled, it will always wait
+     * indefinitely, regardless of this setting.
+     */
+    private static final String SERVICE_REMOVAL_TIMEOUT_S_ENV = "SERVICE_REMOVAL_TIMEOUT_S";
+    /** The default number of seconds to wait for a service to finish uninstall before being forcibly removed. */
+    private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
 
     /**
      * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
@@ -186,6 +196,14 @@ public class SchedulerConfig {
      */
     public Duration getApiServerInitTimeout() {
         return Duration.ofSeconds(envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
+    }
+
+    /**
+     * Returns the configured time to wait for a service to be removed in a multi-service scheduler.
+     */
+    public Duration getMultiServiceRemovalTimeout() {
+        return Duration.ofSeconds(
+                envStore.getOptionalInt(SERVICE_REMOVAL_TIMEOUT_S_ENV, DEFAULT_SERVICE_REMOVE_TIMEOUT_S));
     }
 
     /**

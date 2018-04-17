@@ -128,7 +128,7 @@ def svc_cli(package_name, service_name, service_cmd, json=False, print_output=Tr
 
 def run_raw_cli(cmd, print_output=True):
     """Runs the command with `dcos` as the prefix to the shell command
-    and returns the resulting output (stdout seperated from stderr by a newline).
+    and returns a tuple containing return code, stdout, and stderr.
 
     eg. `cmd`= "package install <package-name>" results in:
     $ dcos package install <package-name>

@@ -25,6 +25,7 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
         when(schedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
         when(schedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-region"));
+        when(schedulerConfig.getMultiServiceRemovalTimeout()).thenReturn(Duration.ofSeconds(60));
         return schedulerConfig;
     }
 }

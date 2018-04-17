@@ -11,6 +11,7 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -225,7 +226,9 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testLaunchA() throws Exception {
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
         installStep(0, 0, getSufficientOfferForTaskA(), Status.PENDING);
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
                 getStepStatuses(getDeploymentPlan()));
     }
@@ -520,7 +523,7 @@ public class DefaultSchedulerTest {
                             .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
                                 .setIpAddress(updateIp))))
                 .build();
-        defaultScheduler.status(update);
+        defaultScheduler.taskStatus(update);
 
         // Verify the TaskStatus was updated.
         Assert.assertEquals(updateIp,
@@ -545,7 +548,7 @@ public class DefaultSchedulerTest {
                 .setContainerStatus(Protos.ContainerStatus.newBuilder()
                         .addNetworkInfos(Protos.NetworkInfo.newBuilder()))
                 .build();
-        defaultScheduler.status(update);
+        defaultScheduler.taskStatus(update);
 
         // Verify the TaskStatus was NOT updated.
         Assert.assertEquals(TASK_IP,
@@ -576,24 +579,31 @@ public class DefaultSchedulerTest {
         // Finish the deployment. First step is now PREPARED due to the offer we provided above:
         Protos.TaskID taskId = installStep(0, 0, getSufficientOfferForTaskA(), Status.PREPARED);
         installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING);
+
+        // Still RESERVING before the last step is completed:
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
+
         installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
 
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertTrue(getRecoveryPlan().isComplete());
 
         // Now that Deployment has finished, service is FINISHED:
-        offerResponse = defaultScheduler.offers(Collections.emptyList());
-        Assert.assertEquals(OfferResponse.Result.FINISHED, offerResponse.result);
-        Assert.assertTrue(offerResponse.recommendations.isEmpty());
+        Assert.assertEquals(ClientStatusResponse.Result.FINISHED, defaultScheduler.getClientStatus().result);
 
-        // Force recovery action:
+        // Force recovery action, at which point scheduler should go back to RUNNING
+        // (verify recovery is being monitored):
         statusUpdate(taskId, Protos.TaskState.TASK_FAILED);
 
-        // With active recovery, service is no longer FINISHED:
-        offerResponse = defaultScheduler.offers(Collections.emptyList());
-        Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
-        Assert.assertTrue(offerResponse.recommendations.isEmpty());
+        // Implementation detail: recovery plan doesn't wake up until offers come through
+        Assert.assertEquals(ClientStatusResponse.Result.FINISHED, defaultScheduler.getClientStatus().result);
+        Assert.assertTrue(getDeploymentPlan().isComplete());
+        Assert.assertTrue(getRecoveryPlan().isComplete());
 
+        Assert.assertEquals(OfferResponse.Result.PROCESSED, defaultScheduler.offers(Collections.emptyList()).result);
+
+        // After giving offers a kick, we're running again:
+        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertFalse(getRecoveryPlan().isComplete());
     }
@@ -616,7 +626,9 @@ public class DefaultSchedulerTest {
         testLaunchB();
 
         // Launch the second instance of POD-B
+        Assert.assertEquals(ClientStatusResponse.Result.RESERVING, defaultScheduler.getClientStatus().result);
         installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
+        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 getStepStatuses(getDeploymentPlan()));
@@ -764,14 +776,11 @@ public class DefaultSchedulerTest {
     }
 
     private static Protos.TaskStatus getTaskStatus(Protos.TaskID taskID, Protos.TaskState state) {
-        return Protos.TaskStatus.newBuilder()
+        Protos.TaskStatus.Builder builder = Protos.TaskStatus.newBuilder()
                 .setTaskId(taskID)
-                .setState(state)
-                .setContainerStatus(Protos.ContainerStatus.newBuilder()
-                    .addNetworkInfos(Protos.NetworkInfo.newBuilder()
-                        .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
-                            .setIpAddress(TASK_IP))))
-                .build();
+                .setState(state);
+        builder.getContainerStatusBuilder().addNetworkInfosBuilder().addIpAddressesBuilder().setIpAddress(TASK_IP);
+        return builder.build();
     }
 
     private static Protos.Offer getInsufficientOfferForTaskA(UUID offerId) {
@@ -846,7 +855,7 @@ public class DefaultSchedulerTest {
 
     private void statusUpdate(Protos.TaskID launchedTaskId, Protos.TaskState state) {
         Protos.TaskStatus runningStatus = getTaskStatus(launchedTaskId, state);
-        defaultScheduler.status(runningStatus);
+        defaultScheduler.taskStatus(runningStatus);
     }
 
     /**

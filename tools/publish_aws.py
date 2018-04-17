@@ -10,7 +10,6 @@
 #   S3_URL (default: s3://${S3_BUCKET}/${S3_DIR_PATH}/<pkg_name>/<random>
 #   ARTIFACT_DIR (default: ...s3.amazonaws.com...)
 #     Base HTTP dir to use when rendering links
-
 import logging
 import os
 import os.path
@@ -70,7 +69,7 @@ class AWSPublisher(object):
                 s3_dir_path,
                 package_name,
                 dir_name))
-        self._uploader = universe.S3Uploader(self._pkg_name, s3_directory_url, self._dry_run)
+        self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
         self._http_directory_url = os.environ.get(
             'ARTIFACT_DIR',

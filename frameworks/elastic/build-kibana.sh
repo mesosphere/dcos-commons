@@ -19,6 +19,10 @@ case "$PUBLISH_STEP" in
         echo "Uploading to S3"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_aws.py
         ;;
+    .dcos)
+        echo "Uploading .dcos files to S3"
+        PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
+        ;;
     *)
         echo "---"
         echo "Nothing to build as it's a Marathon app, so skipping publish step."

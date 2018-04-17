@@ -30,6 +30,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
+import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -203,7 +204,9 @@ class OfferProcessor {
             // Match offers with work (call into implementation)
             final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
-                evaluateOffers(offers);
+                if (isActive()) {
+                    evaluateOffers(offers);
+                }
             } finally {
                 context.stop();
             }
@@ -227,6 +230,38 @@ class OfferProcessor {
         }
     }
 
+    /**
+     * Checks the statuses of the underlying client and returns whether it makes sense to pass it offers.
+     */
+    private boolean isActive() {
+        ClientStatusResponse response = mesosEventClient.getClientStatus();
+        LOGGER.info("Status result: {}", response.result);
+
+        switch (response.result) {
+        case RESERVING:
+            // Proceed as-is.
+            return true;
+        case RUNNING:
+            // Proceed as-is.
+            return true;
+        case FINISHED:
+            // We do not directly support the FINISHED result at this level. It should only be emitted by services which
+            // have a FINISH GoalState. In practice that should only be the case in a multi-service configuration, where
+            // the FINISHED result code would be handled internally by a MultiServiceEventClient.
+            LOGGER.error("Got unsupported {} from service", response.result);
+            throw new IllegalStateException(String.format(
+                    "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
+                    response.result));
+        case UNINSTALLED:
+            // The service has finished uninstalling. Unregister and delete the framework.
+            isDeregistered.set(true);
+            destroyFramework();
+            return false;
+        }
+
+        throw new IllegalStateException("Unsupported ClientStatusResponse type: " + response.result);
+    }
+
     private void evaluateOffers(List<Protos.Offer> offers) {
         // Offer evaluation:
         // The client (which is composed of one or more services) looks at the provided offers and returns a list of
@@ -238,26 +273,6 @@ class OfferProcessor {
                     offers.size(), offers.size() == 1 ? "" : "s",
                     offerResponse.result,
                     offerResponse.recommendations.size(), offerResponse.recommendations.size() == 1 ? "" : "s");
-        }
-        switch (offerResponse.result) {
-        case FINISHED:
-            // We do not directly support the FINISHED result. It should be internally handled by individual clients
-            // in a multi-client setup. Supporting FINISHED here would involve the following changes:
-            // - API Resources passed to the HTTP server by FrameworkRunner would need to be updated
-            // - Parent FrameworkScheduler would need to be updated (for sending TaskStatuses and registered calls)
-            declineShort(offers);
-            LOGGER.error("Got unsupported {} from service", offerResponse.result);
-            return;
-        case UNINSTALLED:
-            // The service has finished uninstalling. Unregister and delete the framework.
-            declineShort(offers);
-            destroyFramework();
-            isDeregistered.set(true);
-            return;
-        case NOT_READY:
-        case PROCESSED:
-            // Both handled below.
-            break;
         }
 
         Collection<Protos.Offer> unusedOffers =

@@ -103,11 +103,11 @@ public class FrameworkConfig {
         return new FrameworkConfig(
                 frameworkName,
                 getServiceRole(frameworkName),
-                envStore.getOptional("FRAMEWORK_PRINCIPAL", frameworkName + DEFAULT_PRINCIPAL_SUFFIX),
-                envStore.getOptional("FRAMEWORK_USER", DcosConstants.DEFAULT_SERVICE_USER),
-                envStore.getOptional("FRAMEWORK_ZOOKEEPER", DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
+                envStore.getOptionalNonEmpty("FRAMEWORK_PRINCIPAL", frameworkName + DEFAULT_PRINCIPAL_SUFFIX),
+                envStore.getOptionalNonEmpty("FRAMEWORK_USER", DcosConstants.DEFAULT_SERVICE_USER),
+                envStore.getOptionalNonEmpty("FRAMEWORK_ZOOKEEPER", DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
                 envStore.getOptionalStringList("FRAMEWORK_PRERESERVED_ROLES", Collections.emptyList()),
-                envStore.getOptional("FRAMEWORK_WEB_URL", ""));
+                envStore.getOptionalNonEmpty("FRAMEWORK_WEB_URL", ""));
     }
 
     /**
