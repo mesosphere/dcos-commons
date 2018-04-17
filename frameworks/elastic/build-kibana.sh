@@ -9,6 +9,7 @@ ROOT_DIR="$(dirname "$(dirname ${FRAMEWORK_DIR})")"
 export TOOLS_DIR=${ROOT_DIR}/tools
 
 PUBLISH_STEP=${1-none}
+PACKAGE_VERSION=${2-"stub-universe"}
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe-kibana}
 case "$PUBLISH_STEP" in
     local)
@@ -34,5 +35,5 @@ esac
 
 if [ -n "$PUBLISH_SCRIPT" ]; then
     TEMPLATE_DOCUMENTATION_PATH="https://docs.mesosphere.com/services/elastic/" \
-        $PUBLISH_SCRIPT kibana ${UNIVERSE_DIR}
+        $PUBLISH_SCRIPT kibana "${PACKAGE_VERSION}" ${UNIVERSE_DIR}
 fi
