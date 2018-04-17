@@ -25,7 +25,6 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         //all offers are valid since Offers do not send capabilities.
         //TODO: Once capabilities come in offers change logic here.
-
         logger.info("Evaluating Linux capabilities against requested capabilities");
 
         PodSpec podSpec = podInfoBuilder.getPodInstance().getPod();
@@ -46,6 +45,7 @@ public class LinuxCapabilitiesEvaluationStage implements OfferEvaluationStage  {
         for (Protos.CapabilityInfo.Capability capability : podSpec.getCapabilities()) {
             capabilityInfo.addCapabilities(capability);
         }
+        
         return capabilityInfo.build();
     }
 }
