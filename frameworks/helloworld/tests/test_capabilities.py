@@ -4,6 +4,7 @@ import pytest
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_cmd
 from tests import config
 
 
@@ -17,6 +18,11 @@ def configure_package(configure_security):
         yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+#TODO cases to cover:
+    #grant ALL permissions
+    #grant subset of permissions
 
 
 @pytest.mark.sanity
@@ -34,8 +40,9 @@ def test_capabilitiy_escalation():
     assert pl['status'] != 'COMPLETE'
 
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['HELLO_CAPABILITIES'] = "SYS_ADMIN";
+
+    #make sure multiple capabilities are parsed correctly
+    marathon_config['env']['HELLO_CAPABILITIES'] = "SYS_ADMIN,NET_RAW";
 
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
-
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
