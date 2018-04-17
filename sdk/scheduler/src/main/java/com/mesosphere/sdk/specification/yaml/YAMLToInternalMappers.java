@@ -253,7 +253,7 @@ public class YAMLToInternalMappers {
                     linuxCapabilities.add(linuxCapability);
                 }
             } else if (capabilityAsString.contains("ALL") && capabilityList.length > 0) {
-                throw new InvalidRequirementException("Capability set cannot contain ALL and a specific capability set");
+                throw new InvalidRequirementException("Invalid capability set");
             } else {
                 for (String capability : capabilityList) {
                     try {
