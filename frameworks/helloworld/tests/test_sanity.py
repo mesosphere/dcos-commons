@@ -307,3 +307,8 @@ def test_lock():
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
     marathon_client.update_app(foldered_name, {"labels": original_labels, "instances": 1}, force=True)
     shakedown.deployment_wait()
+
+@pytest.mark.sanity
+def test_tmp_directory_created():
+   code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar |  grep bar")
+   assert code > 0

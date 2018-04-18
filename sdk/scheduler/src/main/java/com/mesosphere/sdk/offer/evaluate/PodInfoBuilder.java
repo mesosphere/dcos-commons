@@ -294,14 +294,13 @@ public class PodInfoBuilder {
             taskInfoBuilder.setContainer(Protos.ContainerInfo.newBuilder().setType(Protos.ContainerInfo.Type.MESOS));
         }
 
-        if (podSpec.getIsolateTmp() && useDefaultExecutor) {
-            // Isolate the tmp directory of tasks
-            //switch to SANDBOX SELF after dc/os 1.13
-            taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
-                    .setContainerPath("/tmp")
-                    .setHostPath("tmp")
-                    .setMode(Protos.Volume.Mode.RW)));
-        }
+        // Isolate the tmp directory of tasks
+        //switch to SANDBOX SELF after dc/os 1.13
+        taskInfoBuilder.setContainer(taskInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                .setContainerPath("/tmp")
+                .setHostPath("tmp")
+                .setMode(Protos.Volume.Mode.RW)));
+
 
         setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
         setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
@@ -379,13 +378,13 @@ public class PodInfoBuilder {
         // This includes networks, rlimits, secret volumes...
         executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
 
-        if (podSpec.getIsolateTmp() && !useDefaultExecutor) {
-            executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(
-                    Protos.Volume.newBuilder()
-                    .setContainerPath("/tmp")
-                    .setHostPath("tmp")
-                    .setMode(Protos.Volume.Mode.RW)));
-        }
+
+        executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(
+                Protos.Volume.newBuilder()
+                .setContainerPath("/tmp")
+                .setHostPath("tmp")
+                .setMode(Protos.Volume.Mode.RW)));
+
 
         return executorInfoBuilder;
     }
@@ -620,11 +619,17 @@ public class PodInfoBuilder {
             containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
         }
 
+        // Isolate the tmp directory of tasks
+        //switch to SANDBOX SELF after dc/os 1.13
+        containerInfo.addVolumes(Protos.Volume.newBuilder()
+                .setContainerPath("/tmp")
+                .setHostPath("tmp")
+                .setMode(Protos.Volume.Mode.RW));
+
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
-                && secretVolumes.isEmpty()
-                && podSpec.getIsolateTmp() == false) {
+                && secretVolumes.isEmpty()) {
             // Nothing left to do.
             return containerInfo.build();
         }
