@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":9,"i18":9,"i19":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":9,"i17":9,"i18":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -154,7 +154,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-java.lang.Boolean-">DefaultPodSpec</a></span>(java.lang.String&nbsp;type,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-">DefaultPodSpec</a></span>(java.lang.String&nbsp;type,
               java.lang.String&nbsp;user,
               java.lang.Integer&nbsp;count,
               java.lang.String&nbsp;image,
@@ -167,8 +167,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
               java.lang.String&nbsp;preReservedRole,
               java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification">SecretSpec</a>&gt;&nbsp;secrets,
               java.lang.Boolean&nbsp;sharePidNamespace,
-              java.lang.Boolean&nbsp;allowDecommission,
-              java.lang.Boolean&nbsp;isolateTmp)</code>&nbsp;</td>
+              java.lang.Boolean&nbsp;allowDecommission)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -202,68 +201,64 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getImage--">getImage</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>java.lang.Boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getIsolateTmp--">getIsolateTmp</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/NetworkSpec.html" title="interface in com.mesosphere.sdk.specification">NetworkSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getNetworks--">getNetworks</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getPlacementRule--">getPlacementRule</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getPreReservedRole--">getPreReservedRole</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/RLimitSpec.html" title="class in com.mesosphere.sdk.specification">RLimitSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getRLimits--">getRLimits</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification">SecretSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getSecrets--">getSecrets</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.Boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getSharePidNamespace--">getSharePidNamespace</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getTasks--">getTasks</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getType--">getType</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.net.URI&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getUris--">getUris</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getUser--">getUser</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#getVolumes--">getVolumes</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#newBuilder-com.mesosphere.sdk.specification.PodSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#newBuilder-java.lang.String-int-java.util.List-">newBuilder</a></span>(java.lang.String&nbsp;type,
           int&nbsp;count,
           java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;&nbsp;tasks)</code>&nbsp;</td>
 </tr>
-<tr id="i19" class="rowColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -296,7 +291,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-java.lang.Boolean-">
+<a name="DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -315,8 +310,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
                       java.lang.String&nbsp;preReservedRole,
                       java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification">SecretSpec</a>&gt;&nbsp;secrets,
                       java.lang.Boolean&nbsp;sharePidNamespace,
-                      java.lang.Boolean&nbsp;allowDecommission,
-                      java.lang.Boolean&nbsp;isolateTmp)</pre>
+                      java.lang.Boolean&nbsp;allowDecommission)</pre>
 </li>
 </ul>
 </li>
@@ -526,19 +520,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" t
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html#getSharePidNamespace--">getSharePidNamespace</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="getIsolateTmp--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getIsolateTmp</h4>
-<pre>public&nbsp;java.lang.Boolean&nbsp;getIsolateTmp()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html#getIsolateTmp--">getIsolateTmp</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a></code></dd>
 </dl>
 </li>
 </ul>
