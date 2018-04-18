@@ -195,9 +195,9 @@
                   "default": false
                 },
                 "ciphers": {
-                  "description": "Comma-separated list of cipher suites. Note that Kafka requires cipher suite names to be prefixed with \"TLS_\".",
+                  "description": "Comma-separated list of JSSE Cipher Suite Names",
                   "type": "string",
-                  "default": "TLS_AES128-GCM-SHA256,TLS_AES128-SHA256,TLS_AES256-GCM-SHA384,TLS_AES256-SHA256,TLS_DHE-RSA-AES128-GCM-SHA256,TLS_DHE-RSA-AES128-SHA256,TLS_DHE-RSA-AES256-GCM-SHA384,TLS_DHE-RSA-AES256-SHA256,TLS_ECDHE-RSA-AES128-GCM-SHA256,TLS_ECDHE-RSA-AES128-SHA256,TLS_ECDHE-RSA-AES256-GCM-SHA384,TLS_ECDHE-RSA-AES256-SHA384"
+                  "default": "TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_DHE_RSA_WITH_AES_128_GCM_SHA256,TLS_DHE_RSA_WITH_AES_128_CBC_SHA256,TLS_DHE_RSA_WITH_AES_256_GCM_SHA384,TLS_DHE_RSA_WITH_AES_256_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384"
                 }
               }
             },

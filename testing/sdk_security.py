@@ -292,9 +292,7 @@ def is_cipher_enabled(service_name: str,
     def run_openssl_command() -> str:
         command = ' '.join([
             'timeout', openssl_timeout,
-            'openssl', 's_client', '-cipher', cipher,
-                                    '-connect', endpoint#,
-                                    #'-CAfile', 'broker.truststore'
+            'openssl', 's_client', '-cipher', cipher, '-connect', endpoint
         ])
 
         _, output = sdk_cmd.service_task_exec(service_name, task_name, command, True)

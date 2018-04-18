@@ -7,7 +7,7 @@ import sdk_plan
 import sdk_security
 import sdk_utils
 
-from security import transport_encryption
+from security import transport_encryption, cipher_suites
 
 from tests import config
 
@@ -117,11 +117,11 @@ def test_tls_ciphers(kafka_service_tls):
         config.SERVICE_NAME,
         'describe',
         json=True), '').rstrip().split(':'))
-    possible_ciphers = sdk_security.openssl_ciphers()
+    possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
     enabled_ciphers = set()
 
-    assert expected_ciphers  # Non-empty set.
-    assert possible_ciphers  # Non-empty set.
+    assert expected_ciphers, 'Expected ciphers should be non-empty'
+    assert possible_ciphers, 'Possible ciphers should be non-empty'
 
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
     print("\nExpected ciphers:")
@@ -130,10 +130,11 @@ def test_tls_ciphers(kafka_service_tls):
     print("\n".join(sdk_utils.sort(list(possible_ciphers))))
 
     for cipher in possible_ciphers:
-        if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, cipher, endpoint):
+        openssl_cipher = cipher_suites.openssl_name(cipher)
+        if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
             enabled_ciphers.add(cipher)
 
     print('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
     print("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
-    assert expected_ciphers == enabled_ciphers
+    assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
