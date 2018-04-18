@@ -529,11 +529,17 @@ public class PodInfoBuilder {
             containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
         }
 
+        // Isolate the tmp directory of tasks
+        //switch to SANDBOX SELF after dc/os 1.13
+        containerInfo.addVolumes(Protos.Volume.newBuilder()
+                .setContainerPath("/tmp")
+                .setHostPath("tmp")
+                .setMode(Protos.Volume.Mode.RW));
+
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
-                && secretVolumes.isEmpty()
-                && podSpec.getIsolateTmp() == false) {
+                && secretVolumes.isEmpty()) {
             // Nothing left to do.
             return containerInfo.build();
         }
@@ -568,14 +574,6 @@ public class PodInfoBuilder {
             }
         }
 
-        if (isTaskContainer && podSpec.getIsolateTmp()) {
-            // Isolate the tmp directory of tasks
-            //switch to SANDBOX SELF after dc/os 1.13
-            containerInfo.addVolumes(Protos.Volume.newBuilder()
-                .setContainerPath("/tmp")
-                    .setHostPath("tmp")
-                .setMode(Protos.Volume.Mode.RW));
-        }
 
         return containerInfo.build();
     }
