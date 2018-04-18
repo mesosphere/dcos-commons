@@ -53,6 +53,10 @@ ssl.truststore.password=notsecure
 
 ssl.enabled.protocols=TLSv1.2
 
+{{#SECURITY_TRANSPORT_ENCRYPTION_CIPHERS}}
+ssl.cipher.suites={{SECURITY_TRANSPORT_ENCRYPTION_CIPHERS}}
+{{/SECURITY_TRANSPORT_ENCRYPTION_CIPHERS}}
+
 # If Kerberos is NOT enabled, then SSL authentication can be turned on.
 {{^SECURITY_KERBEROS_ENABLED}}
 {{#SECURITY_SSL_AUTHENTICATION_ENABLED}}
