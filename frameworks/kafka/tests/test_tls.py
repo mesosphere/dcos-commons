@@ -116,7 +116,7 @@ def test_tls_ciphers(kafka_service_tls):
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         'describe',
-        json=True), '').rstrip().split(':'))
+        json=True), '').rstrip().split(','))
     possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
     enabled_ciphers = set()
 
