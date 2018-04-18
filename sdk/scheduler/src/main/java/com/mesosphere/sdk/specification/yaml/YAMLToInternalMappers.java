@@ -257,6 +257,7 @@ public class YAMLToInternalMappers {
             } else {
                 for (String capability : capabilityList) {
                     try {
+                        capability = capability.trim();
                         linuxCapabilities.add(Protos.CapabilityInfo.Capability.valueOf(capability));
                     } catch (Exception e) {
                         throw new InvalidRequirementException(e);

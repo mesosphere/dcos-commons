@@ -19,12 +19,6 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-
-#TODO cases to cover:
-    #grant ALL permissions
-    #grant subset of permissions
-
-
 @pytest.mark.sanity
 def test_capabilitiy_escalation():
 
@@ -42,7 +36,7 @@ def test_capabilitiy_escalation():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
 
     #make sure multiple capabilities are parsed correctly
-    marathon_config['env']['HELLO_CAPABILITIES'] = "SYS_ADMIN,NET_RAW";
+    marathon_config['env']['HELLO_CAPABILITIES'] = "SYS_ADMIN";
 
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

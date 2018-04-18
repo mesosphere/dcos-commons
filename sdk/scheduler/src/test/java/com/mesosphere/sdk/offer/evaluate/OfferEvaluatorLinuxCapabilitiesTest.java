@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public class OfferEvaluatorCapabilitiesTest extends DefaultCapabilitiesTestSuite  {
+public class OfferEvaluatorLinuxCapabilitiesTest extends DefaultCapabilitiesTestSuite  {
 
     private static Protos.Offer offerWithAgent(String agentId, Protos.Resource resource) {
         Protos.Offer.Builder o = OfferTestUtils.getCompleteOffer(resource).toBuilder();
@@ -116,8 +116,7 @@ public class OfferEvaluatorCapabilitiesTest extends DefaultCapabilitiesTestSuite
 
         podInstance.getPod().getCapabilities().clear();
 
-        //TODO: fix this test to request a subset of capabilities
-        //podInstance.getPod().getCapabilities().toArray()
+        //TODO: how to alter the podspec in a test?
 
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirement
                 .newBuilder(podInstance, taskNames)

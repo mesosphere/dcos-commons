@@ -9,15 +9,10 @@ pods:
     tasks:
       server:
         goal: FINISHED
-        cmd: "capsh --print && sleep $SLEEP_DURATION"
+        cmd: "capsh --print | grep 'Current: = cap_sys_admin+eip'"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
-        readiness-check:
-          cmd: "echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables"
-          interval: 5
-          delay: 0
-          timeout: 10
 
 
