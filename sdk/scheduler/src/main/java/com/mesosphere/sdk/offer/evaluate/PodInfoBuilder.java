@@ -374,6 +374,11 @@ public class PodInfoBuilder {
             }
         }
 
+        executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(Protos.Volume.newBuilder()
+                .setContainerPath("/tmp")
+                .setHostPath("tmp")
+                .setMode(Protos.Volume.Mode.RW)));
+        
         // Populate ContainerInfo with the appropriate information from PodSpec
         // This includes networks, rlimits, secret volumes...
         executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
