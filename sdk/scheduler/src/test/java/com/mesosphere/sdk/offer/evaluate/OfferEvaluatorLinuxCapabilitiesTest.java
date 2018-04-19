@@ -14,10 +14,7 @@ import org.apache.mesos.Protos;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class OfferEvaluatorLinuxCapabilitiesTest extends DefaultCapabilitiesTestSuite  {
 
@@ -138,9 +135,10 @@ public class OfferEvaluatorLinuxCapabilitiesTest extends DefaultCapabilitiesTest
         Assert.isTrue(outcome.isPassing());
     }
 
-
-
-
-
-
 }
+
+
+
+
+
+

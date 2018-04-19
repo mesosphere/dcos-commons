@@ -20,7 +20,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 @pytest.mark.sanity
-def test_capabilitiy_escalation():
+def test_capabilitiy_escalation_subset():
 
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -36,7 +36,30 @@ def test_capabilitiy_escalation():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
 
     #make sure multiple capabilities are parsed correctly
-    marathon_config['env']['HELLO_CAPABILITIES'] = "SYS_ADMIN";
+    marathon_config['env']['HELLO_CAPABILITIES'] = "SYS_ADMIN, NET_RAW";
 
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+@pytest.mark.sanity
+def test_capabilitiy_escalation_all():
+
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        0,
+        additional_options={"service": {"name": config.SERVICE_NAME, "yaml": "capabilities"}},
+        wait_for_deployment=False)
+
+    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
+
+    assert pl['status'] != 'COMPLETE'
+
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
+
+    #if ALL is passed sys admin should be granted
+    marathon_config['env']['HELLO_CAPABILITIES'] = "ALL";
+
+    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+

@@ -247,12 +247,10 @@ public class YAMLToInternalMappers {
         if (!capabilityAsString.isEmpty()) {
             String[] capabilityList = capabilityAsString.split(",");
 
-            if (capabilityList.length == 1 && capabilityList[0] == "ALL") {
+            if (capabilityAsString.contains("ALL")) {
                 for (Protos.CapabilityInfo.Capability linuxCapability : Protos.CapabilityInfo.Capability.values()) {
                     linuxCapabilities.add(linuxCapability);
                 }
-            } else if (capabilityAsString.contains("ALL") && capabilityList.length > 0) {
-                throw new InvalidRequirementException("Invalid capability set");
             } else {
                 for (String capability : capabilityList) {
                     try {

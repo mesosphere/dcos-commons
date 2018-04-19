@@ -471,7 +471,7 @@ public class DefaultPodSpec implements PodSpec {
         }
 
         /**
-         * Sets the list of Linux Capabilities this Pod will heave.
+         * Sets the list of Linux Capabilities this Pod will have.
          *
          * @param capabilities List of capabilities to start pod with.
          * @return a reference to this Builder
