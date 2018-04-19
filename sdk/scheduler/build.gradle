@@ -24,7 +24,7 @@ ext {
     httpClientVer = "4.5.2"
     awaitilityVer = "2.0.0"
     javaDiffUtilsVer = "1.3.0"
-    jettyServletVer = "9.2.3.v20140905"
+    jettyServletVer = "9.4.9.v20180320"
     jerseyVer = "2.23"
     mimepullVer = "1.9.6"
     jsonProviderVer = "2.2.3"
