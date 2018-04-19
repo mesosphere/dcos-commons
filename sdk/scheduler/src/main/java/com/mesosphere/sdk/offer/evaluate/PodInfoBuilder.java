@@ -378,12 +378,7 @@ public class PodInfoBuilder {
         // This includes networks, rlimits, secret volumes...
         executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
 
-
-        executorInfoBuilder.setContainer(executorInfoBuilder.getContainerBuilder().addVolumes(
-                Protos.Volume.newBuilder()
-                .setContainerPath("/tmp")
-                .setHostPath("tmp")
-                .setMode(Protos.Volume.Mode.RW)));
+   Z
 
 
         return executorInfoBuilder;
@@ -618,13 +613,7 @@ public class PodInfoBuilder {
         if (isTaskContainer) {
             containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
         }
-
-        // Isolate the tmp directory of tasks
-        //switch to SANDBOX SELF after dc/os 1.13
-        containerInfo.addVolumes(Protos.Volume.newBuilder()
-                .setContainerPath("/tmp")
-                .setHostPath("tmp")
-                .setMode(Protos.Volume.Mode.RW));
+        
 
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
