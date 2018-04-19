@@ -9,6 +9,7 @@ buildscript {
 }
 
 plugins {
+    id 'com.github.ben-manes.versions' version '0.17.0'
     id 'com.github.johnrengelman.shadow' version '1.2.3'
     id 'com.github.ksoichiro.console.reporter' version '0.5.0'
 }
