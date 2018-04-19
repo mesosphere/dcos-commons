@@ -28,9 +28,9 @@ class HTTPPublisher(object):
     def __init__(
             self,
             package_name,
+            package_version,
             input_dir_path,
-            artifact_paths,
-            package_version = 'stub-universe'):
+            artifact_paths):
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
@@ -202,18 +202,21 @@ def main(argv):
         return 1
     # the package name:
     package_name = argv[1]
+    # the package version:
+    package_version = argv[2]
     # local path where the package template is located:
-    package_dir_path = argv[2].rstrip('/')
+    package_dir_path = argv[3].rstrip('/')
     # artifact paths (to copy along with stub universe)
-    artifact_paths = argv[3:]
+    artifact_paths = argv[4:]
     logger.info('''###
 Package:         {}
+Version:         {}
 Template path:   {}
 Artifacts:
 {}
-###'''.format(package_name, package_dir_path, '\n'.join(['- {}'.format(path) for path in artifact_paths])))
+###'''.format(package_name, package_version, package_dir_path, '\n'.join(['- {}'.format(path) for path in artifact_paths])))
 
-    publisher = HTTPPublisher(package_name, package_dir_path, artifact_paths)
+    publisher = HTTPPublisher(package_name, package_version, package_dir_path, artifact_paths)
     http_url_root = publisher.launch_http()
     universe_url = publisher.build(http_url_root)
     repo_added = publisher.add_repo_to_cli(universe_url)

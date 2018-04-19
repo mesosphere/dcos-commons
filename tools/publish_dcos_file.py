@@ -28,14 +28,15 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 _REGISTRY_URL_TEMPLATE = "https://downloads.mesosphere.com/package-registry/" \
                          "binaries/cli/{os}/x86-64/latest/dcos-registry-{os}"
 
+
 class DCOSFilePublisher(object):
 
     def __init__(
             self,
             package_name,
+            package_version,
             input_dir_path,
-            artifact_paths,
-            package_version='stub-universe'):
+            artifact_paths):
         self._dry_run = os.environ.get('DRY_RUN', '')
         self._pkg_name = package_name
         self._pkg_version = package_version
@@ -50,32 +51,33 @@ class DCOSFilePublisher(object):
                 )
             )
 
-        s3_bucket = os.environ.get('S3_BUCKET')
-        if not s3_bucket:
-            s3_bucket = 'infinity-artifacts'
+        s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')
         logger.info('Using artifact bucket: {}'.format(s3_bucket))
         self._s3_bucket = s3_bucket
 
-        s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
-        dir_name = '{}-{}'.format(
-            time.strftime("%Y%m%d-%H%M%S"),
-            ''.join([
-                random.SystemRandom().choice(
-                    string.ascii_letters + string.digits) for _ in range(16)
-            ])
-        )
-
-        # Sample s3_directory:
-        # infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy
-        s3_directory_url = os.environ.get(
-            'S3_URL',
-            's3://{}/{}/{}/{}'.format(
-                s3_bucket,
-                s3_dir_path,
-                package_name,
-                dir_name
+        s3_dir_path = os.environ.get('S3_DIR_PATH')
+        if not s3_dir_path:
+            s3_dir_path = os.path.join(
+                'autodelete7d',
+                '{}-{}'.format(
+                    time.strftime("%Y%m%d-%H%M%S"),
+                    ''.join([
+                        random.choice(string.ascii_letters + string.digits)
+                        for _ in range(16)
+                    ])
+                )
             )
-        )
+
+        # Sample S3 file url:
+        # Dev : infinity-artifacts/autodelete7d/20160815-134747-S6vxd0gRQBw43NNy/kafka/stub-universe/kafka-stub-universe.dcos
+        # Release : infinity-artifacts/permanent/kafka/1.2.3/kafka-1.2.3.dcos
+        s3_directory_url = os.environ.get('S3_URL',
+                                          's3://{}/{}/{}/{}'.format(
+                                              s3_bucket,
+                                              s3_dir_path,
+                                              package_name,
+                                              package_version
+                                          ))
         self._uploader = universe.S3Uploader(
             s3_directory_url,
             self._dry_run
@@ -201,22 +203,31 @@ def main(argv):
         return 1
     # the package name:
     package_name = argv[1]
+    # the package version:
+    package_version = argv[2]
     # local path where the package template is located:
-    package_dir_path = argv[2].rstrip('/')
+    package_dir_path = argv[3].rstrip('/')
     # artifact paths (to upload along with stub universe)
-    artifact_paths = argv[3:]
+    artifact_paths = argv[4:]
     logger.info('''###
 Package:         {}
+Version:         {}
 Template path:   {}
 Artifacts:
 {}
 ###'''.format(
         package_name,
+        package_version,
         package_dir_path,
         '\n'.join(['- {}'.format(path) for path in artifact_paths])
     ))
 
-    DCOSFilePublisher(package_name, package_dir_path, artifact_paths).upload()
+    DCOSFilePublisher(
+        package_name,
+        package_version,
+        package_dir_path,
+        artifact_paths
+    ).upload()
     return 0
 
 
