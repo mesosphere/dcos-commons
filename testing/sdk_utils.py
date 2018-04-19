@@ -159,3 +159,14 @@ def get_in(keys, coll, default=None):
         return functools.reduce(operator.getitem, keys, coll)
     except (KeyError, IndexError, TypeError):
         return default
+
+
+def sort(coll):
+    """ Sorts a collection and returns it. """
+    coll.sort()
+    return coll
+
+
+def invert_dict(d: dict) -> dict:
+    """ Returns a dictionary with its values being its keys and vice-versa. """
+    return dict((v, k) for k, v in d.items())

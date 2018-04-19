@@ -58,9 +58,6 @@ public interface PodSpec {
     @JsonProperty("share-pid-namespace")
     Boolean getSharePidNamespace();
 
-    @JsonProperty("isolate-tmp")
-    Boolean getIsolateTmp();
-
     @JsonProperty("capabilities")
     Collection<Protos.CapabilityInfo.Capability> getCapabilities();
 

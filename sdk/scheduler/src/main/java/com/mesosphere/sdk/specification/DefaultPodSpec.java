@@ -54,8 +54,6 @@ public class DefaultPodSpec implements PodSpec {
     @NotNull
     private Boolean sharePidNamespace;
     @NotNull
-    private final Boolean isolateTmp;
-    @NotNull
     private final Collection<Protos.CapabilityInfo.Capability> capabilities;
 
     @JsonCreator
@@ -73,11 +71,11 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
+
             @JsonProperty("allow-decommission") Boolean allowDecommission,
-            @JsonProperty("isolate-tmp") Boolean isolateTmp,
             @JsonProperty("capabilities") Collection<Protos.CapabilityInfo.Capability> capabilities) {
-        this(
-                new Builder(type, count, tasks)
+
+            this(new Builder(type, count, tasks)
                         .type(type)
                         .user(user)
                         .count(count)
@@ -92,9 +90,8 @@ public class DefaultPodSpec implements PodSpec {
                         .secrets(secrets)
                         .sharePidNamespace(sharePidNamespace)
                         .allowDecommission(allowDecommission)
-                        .isolateTmp(isolateTmp)
                         .capabilities(capabilities));
-    }
+         }
 
     private DefaultPodSpec(Builder builder) {
         this.count = builder.count;
@@ -111,7 +108,6 @@ public class DefaultPodSpec implements PodSpec {
         this.user = builder.user;
         this.volumes = builder.volumes;
         this.sharePidNamespace = builder.sharePidNamespace;
-        this.isolateTmp = builder.isolateTmp;
         this.capabilities = builder.capabilities;
         ValidationUtils.validate(this);
     }
@@ -136,7 +132,6 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         builder.sharePidNamespace = copy.getSharePidNamespace();
-        builder.isolateTmp = copy.getIsolateTmp();
         builder.capabilities = copy.getCapabilities();
         return builder;
     }
@@ -212,16 +207,10 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Boolean getIsolateTmp() {
-        return isolateTmp;
-    }
-
-    @Override
     public Collection<Protos.CapabilityInfo.Capability> getCapabilities() {
         return capabilities;
     }
 
-    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -254,7 +243,6 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
-        private Boolean isolateTmp = false;
         private Collection<Protos.CapabilityInfo.Capability> capabilities = new ArrayList<>();
 
         private Builder(String type, int count, List<TaskSpec> tasks) {
@@ -479,17 +467,6 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder sharePidNamespace(Boolean sharePidNamespace) {
             this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
-            return this;
-        }
-
-        /**
-         * Sets whether tasks in this pod will have tmp directories isolated from the host.
-         *
-         * @param isolateTmp Whether the pod should isolate the tmp directories of tasks.
-         * @return a reference to this Builder
-         */
-        public Builder isolateTmp(Boolean isolateTmp) {
-            this.isolateTmp = isolateTmp != null && isolateTmp;
             return this;
         }
 

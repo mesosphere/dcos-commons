@@ -33,7 +33,7 @@ public class DefaultPodSpecTest {
 
     @Test
     public void clonePodSpec() throws InvalidRLimitException {
-        // Just use a mock object for the task spec. We just want to check that the lists match.
+        // Just use a mock object for the task spec. We just want to check that the lists match.ZOO
         // Copying TaskSpecs is tested in DefaultTaskSpecTest.
         TaskSpec mockTaskSpec = Mockito.mock(TaskSpec.class);
         Mockito.when(mockTaskSpec.getName()).thenReturn("test-task");
@@ -63,7 +63,6 @@ public class DefaultPodSpecTest {
                         TestConstants.PRINCIPAL)),
                 "slave_public",
                 Arrays.asList(new DefaultSecretSpec("secretPath", "envKey", "filePath")),
-                true,
                 true,
                 true,
                 Arrays.asList());
