@@ -11,6 +11,7 @@ from typing import List
 
 import retrying
 import sdk_cmd
+import sdk_tasks
 import sdk_utils
 
 log = logging.getLogger(__name__)
@@ -295,7 +296,8 @@ def is_cipher_enabled(service_name: str,
             'openssl', 's_client', '-cipher', cipher, '-connect', endpoint
         ])
 
-        _, output = sdk_cmd.service_task_exec(service_name, task_name, command, True)
+        task_id = sdk_tasks.get_task_ids(service_name, task_name)[0]
+        _, output = sdk_cmd.task_exec(task_id, command, True)
         return output
 
     output = run_openssl_command()

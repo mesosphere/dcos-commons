@@ -5,6 +5,7 @@ import sdk_install
 import sdk_networks
 import sdk_plan
 import sdk_security
+import sdk_tasks
 import sdk_utils
 
 from security import transport_encryption, cipher_suites
@@ -106,24 +107,25 @@ def test_producer_over_tls(kafka_service_tls):
 @pytest.mark.dcos_min_version('1.10')
 def test_tls_ciphers(kafka_service_tls):
     task_name = 'kafka-0-broker'
+    task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, task_name)[0]
     endpoint = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         'endpoints {}'.format(BROKER_TLS_ENDPOINT),
         json=True)['dns'][0]
     ciphers_config_path = ['service', 'security', 'transport_encryption', 'ciphers']
-    expected_ciphers = set(sdk_utils.get_in(ciphers_config_path, sdk_cmd.svc_cli(
+    expected_ciphers = set(filter(None, sdk_utils.get_in(ciphers_config_path, sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         'describe',
-        json=True), '').rstrip().split(','))
+        json=True), '').rstrip().split(',')))
     possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
     enabled_ciphers = set()
 
     assert expected_ciphers, 'Expected ciphers should be non-empty'
     assert possible_ciphers, 'Possible ciphers should be non-empty'
 
-    sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
+    sdk_cmd.task_exec(task_id, 'openssl version')  # Output OpenSSL version.
     print("\nExpected ciphers:")
     print("\n".join(sdk_utils.sort(list(expected_ciphers))))
     print("\n{} ciphers will be checked:".format(len(possible_ciphers)))
