@@ -7,11 +7,11 @@ SHOULD ALSO BE APPLIED TO sdk_repository IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import os
-import random
-import string
 from itertools import chain
+from typing import List
 
 import sdk_cmd
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -35,13 +35,11 @@ def parse_stub_universe_url_string(stub_universe_url_string):
     lines = stub_universe_url_string.split("\n")
     return list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
-def add_universe_repos():
-    log.info('Adding universe repos')
 
+def get_universe_repos() -> List:
     # prepare needed universe repositories
-    stub_universe_urls = os.environ.get('STUB_UNIVERSE_URL', "")
-
-    return add_stub_universe_urls(parse_stub_universe_url_string(stub_universe_urls))
+    stub_universe_url_string = os.environ.get('STUB_UNIVERSE_URL', '')
+    return parse_stub_universe_url_string(stub_universe_url_string)
 
 
 def add_stub_universe_urls(stub_universe_urls: list) -> dict:
@@ -53,9 +51,7 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     log.info('Adding stub URLs: {}'.format(stub_universe_urls))
     for idx, url in enumerate(stub_universe_urls):
         log.info('URL {}: {}'.format(idx, repr(url)))
-        package_name = 'testpkg-'
-        package_name += ''.join(random.choice(string.ascii_lowercase +
-                                              string.digits) for _ in range(8))
+        package_name = 'testpkg-{}'.format(sdk_utils.random_string())
         stub_urls[package_name] = url
 
     # clean up any duplicate repositories
@@ -82,7 +78,7 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
 def remove_universe_repos(stub_urls):
     log.info('Removing universe repos')
 
-    # clear out the added universe repositores at testing end
+    # clear out the added universe repositories at testing end
     for name, url in stub_urls.items():
         log.info('Removing stub URL: {}'.format(url))
         rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo remove {}'.format(name))
@@ -107,7 +103,7 @@ def universe_session():
     """
     stub_urls = {}
     try:
-        stub_urls = add_universe_repos()
+        stub_urls = add_stub_universe_urls(get_universe_repos())
         yield
     finally:
         remove_universe_repos(stub_urls)
