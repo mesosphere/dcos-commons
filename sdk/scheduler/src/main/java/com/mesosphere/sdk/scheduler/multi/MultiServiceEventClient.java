@@ -5,11 +5,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
@@ -34,8 +32,6 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
-import com.mesosphere.sdk.state.SelectedReservationStore;
-import com.mesosphere.sdk.storage.PersisterException;
 
 /**
  * An implementation of {@link MesosEventClient} which wraps multiple running services, routing Mesos events to each
@@ -60,6 +56,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final String frameworkName;
     private final SchedulerConfig schedulerConfig;
     private final MultiServiceManager multiServiceManager;
+    private final OfferDiscipline offerDiscipline;
     private final Collection<Object> customEndpoints;
     private final UninstallCallback uninstallCallback;
 
@@ -67,23 +64,17 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final DeregisterStep deregisterStep;
     private final Optional<Plan> uninstallPlan;
 
-    // A limit on the size of selectedReservingServices, or <=0 for no limit.
-    private final int reserveDiscipline;
-    // Storage of which services have a RESERVING status at a time, or an empty optional to disable (no limit). We may
-    // limit the number of services that can be RESERVING at the same time. We persist this information to avoid
-    // thrashing across scheduler restarts.
-    private final Optional<SelectedReservationStore> selectedReservationStore;
-
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
             MultiServiceManager multiServiceManager,
+            OfferDiscipline offerDiscipline,
             Collection<Object> customEndpoints,
-            UninstallCallback uninstallCallback,
-            SelectedReservationStore selectedReservationStore) {
+            UninstallCallback uninstallCallback) {
         this.frameworkName = frameworkName;
         this.schedulerConfig = schedulerConfig;
         this.multiServiceManager = multiServiceManager;
+        this.offerDiscipline = offerDiscipline;
         this.customEndpoints = customEndpoints;
         this.uninstallCallback = uninstallCallback;
 
@@ -100,11 +91,6 @@ public class MultiServiceEventClient implements MesosEventClient {
             this.deregisterStep = null;
             this.uninstallPlan = Optional.empty();
         }
-
-        this.reserveDiscipline = schedulerConfig.getMultiServiceReserveDiscipline();
-        this.selectedReservationStore = reserveDiscipline > 0
-                ? Optional.of(selectedReservationStore)
-                : Optional.empty();
     }
 
     @Override
@@ -156,31 +142,11 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them.
-     *
-     * TODO(data-agility): Lots of opportunities to optimize this. Needs benchmarks. For example:
-     * <ul>
-     * <li>- Hide reserved resources from services that they don't belong to</li>
-     * <li>- Forward the offers to a random ordering of services to avoid some services starving others</li>
-     * <li>- Distribute the offers across all services in parallel (optimistic offers)</li>
-     * <li>- ... Pretty much anything that you could see Mesos itself doing.</li>
-     * </ul>
+     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
+     * services which actually receive offers is decided by the {@link OfferDiscipline}.
      */
     @Override
     public OfferResponse offers(Collection<Protos.Offer> offers) {
-        // Grab the list of services selected for reservation, if a limit is enabled.
-        Set<String> selectedReservingServices = Collections.emptySet();
-        if (selectedReservationStore.isPresent()) {
-            try {
-                selectedReservingServices = selectedReservationStore.get().fetchSelectedReservations();
-            } catch (PersisterException e) {
-                LOGGER.error(String.format(
-                        "Failed to fetch selected reserving services, trying again later (%s=%d)",
-                        SchedulerConfig.SERVICE_RESERVE_DISCIPLINE_ENV, reserveDiscipline), e);
-                return OfferResponse.notReady(Collections.emptyList());
-            }
-        }
-
         Collection<AbstractScheduler> servicesToGiveOffers = new ArrayList<>();
         Collection<String> servicesToUninstall = new ArrayList<>();
         Collection<AbstractScheduler> servicesToRemove = new ArrayList<>();
@@ -192,14 +158,12 @@ public class MultiServiceEventClient implements MesosEventClient {
                 return OfferResponse.processed(Collections.emptyList());
             }
 
-            if (selectedReservationStore.isPresent()) {
-                // Clear any entries for services which no longer exist
-                Set<String> knownServices = services.stream()
-                        .map(s -> s.getServiceSpec().getName())
-                        .collect(Collectors.toSet());
-                selectedReservingServices = selectedReservingServices.stream()
-                        .filter(reservingService -> knownServices.contains(reservingService))
-                        .collect(Collectors.toCollection(HashSet::new)); // Get a mutable HashSet
+            // Update the offer discipline with the current list of services.
+            try {
+                offerDiscipline.updateServices(services);
+            } catch (Exception e) {
+                LOGGER.error("Failed to update selected services in offer discipline, trying again later", e);
+                return OfferResponse.notReady(Collections.emptyList());
             }
 
             // Before we handle offers, check for any finished services that should be switched to uninstall, or any
@@ -215,35 +179,17 @@ public class MultiServiceEventClient implements MesosEventClient {
                     LOGGER.info("{} status: {}", serviceName, statusResponse.result);
                 }
 
-                if (selectedReservationStore.isPresent()
-                        && statusResponse.result != ClientStatusResponse.Result.RESERVING) {
-                    // This service is not reserving, remove it from the selection if it was present before
-                    selectedReservingServices.remove(serviceName);
-                }
+                // Note: We ALWAYS invoke the offer discipline regardless of status response. This allows the offer
+                // discipline to add/remove selected services based on that status.
+                boolean sendOffers = offerDiscipline.offersEnabled(statusResponse, service);
 
                 switch (statusResponse.result) {
                 case RESERVING:
-                    if (selectedReservationStore.isPresent()) {
-                        if (selectedReservingServices.size() < reserveDiscipline) {
-                            // This service is reserving, and there's enough room for it in the selection
-                            selectedReservingServices.add(serviceName);
-                        }
-                        if (!selectedReservingServices.contains(serviceName)) {
-                            // This service is in a reserving state, but limits are enabled and it is NOT selected.
-                            // Avoid providing it with offers until it's been selected.
-                            LOGGER.info("{} isn't a selected deployment {}: not sending offers ({}={})",
-                                    serviceName,
-                                    selectedReservingServices,
-                                    SchedulerConfig.SERVICE_RESERVE_DISCIPLINE_ENV,
-                                    reserveDiscipline);
-                            continue;
-                        }
-                    }
-                    // Otherwise, provide the service with offers as if it were RUNNING:
-                    servicesToGiveOffers.add(service);
-                    break;
+                    //$FALL-THROUGH$
                 case RUNNING:
-                    servicesToGiveOffers.add(service);
+                    if (sendOffers) {
+                        servicesToGiveOffers.add(service);
+                    }
                     break;
                 case FINISHED:
                     // This service has completed running and can be switched to uninstall.
@@ -260,15 +206,6 @@ public class MultiServiceEventClient implements MesosEventClient {
             }
         } finally {
             multiServiceManager.sharedUnlock();
-        }
-
-        if (selectedReservationStore.isPresent()) {
-            // Update the list of selected reservations, to ensure we stay consistent in the event of a restart.
-            try {
-                selectedReservationStore.get().storeSelectedReservations(selectedReservingServices);
-            } catch (PersisterException e) {
-                LOGGER.error("Failed to update list of selected reservations", e);
-            }
         }
 
         // Decline short if any service isn't ready.

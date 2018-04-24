@@ -12,7 +12,7 @@ import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
- * A {@code FrameworkStore} stores the Framework ID for the scheduler. The framework ID is required for the scheduler to
+ * A {@link FrameworkStore} stores the Framework ID for the scheduler. The framework ID is required for the scheduler to
  * re-identify itself with Mesos after initial registration.
  *
  * <p>The structure used in the underlying persister is as follows:

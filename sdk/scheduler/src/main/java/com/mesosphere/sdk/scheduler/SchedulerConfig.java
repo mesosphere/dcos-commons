@@ -63,12 +63,12 @@ public class SchedulerConfig {
      * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
      * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
      */
-    public static final String SERVICE_RESERVE_DISCIPLINE_ENV = "SERVICE_RESERVE_DISCIPLINE";
+    public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
     /**
      * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
      * number of parallel deployments via the above envvar.
      */
-    private static final int DEFAULT_SERVICE_RESERVE_DISCIPLINE = 0; // No limit
+    private static final int DEFAULT_RESERVE_DISCIPLINE = 0; // No limit
 
     /**
      * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
@@ -226,7 +226,7 @@ public class SchedulerConfig {
      * for no limit.
      */
     public int getMultiServiceReserveDiscipline() {
-        return envStore.getOptionalInt(SERVICE_RESERVE_DISCIPLINE_ENV, DEFAULT_SERVICE_RESERVE_DISCIPLINE);
+        return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
     }
 
     /**

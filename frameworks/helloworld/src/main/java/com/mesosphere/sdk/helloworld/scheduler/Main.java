@@ -12,6 +12,7 @@ import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceRunner;
+import com.mesosphere.sdk.scheduler.multi.OfferDiscipline;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
@@ -118,6 +119,7 @@ public class Main {
                 frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 multiServiceManager,
+                OfferDiscipline.create(schedulerConfig, persister),
                 Collections.singleton(httpResource),
                 httpResource.getUninstallCallback());
 
@@ -158,6 +160,7 @@ public class Main {
                 frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 multiServiceManager,
+                OfferDiscipline.create(schedulerConfig, persister),
                 Collections.emptyList(),
                 new MultiServiceEventClient.UninstallCallback() {
             @Override
