@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
+import org.junit.Assert;
 import org.junit.Test;
-import org.springframework.util.Assert;
 
 import java.util.Collections;
 
@@ -9,33 +9,31 @@ public class StrategyFactoryTest {
 
     @Test
     public void testParallelPhase() {
-        Assert.isInstanceOf(ParallelStrategy.class, StrategyFactory.generateForPhase("parallel"));
+        Assert.assertTrue(StrategyFactory.generateForPhase("parallel") instanceof ParallelStrategy);
     }
 
     @Test
     public void testSerialPhase() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForPhase("serial"));
+        Assert.assertTrue(StrategyFactory.generateForPhase("serial") instanceof SerialStrategy);
     }
 
     @Test
     public void testNullPhase() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForPhase(null));
+        Assert.assertTrue(StrategyFactory.generateForPhase(null) instanceof SerialStrategy);
     }
 
     @Test
     public void testParallelStep() {
-        Assert.isInstanceOf(
-                ParallelStrategy.class,
-                StrategyFactory.generateForSteps("parallel", Collections.emptyList()));
+        Assert.assertTrue(StrategyFactory.generateForSteps("parallel", Collections.emptyList()) instanceof ParallelStrategy);
     }
 
     @Test
     public void testSerialStep() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps("serial", Collections.emptyList()));
+        Assert.assertTrue(StrategyFactory.generateForSteps("serial", Collections.emptyList()) instanceof SerialStrategy);
     }
 
     @Test
     public void testNullStep() {
-        Assert.isInstanceOf(SerialStrategy.class, StrategyFactory.generateForSteps(null, Collections.emptyList()));
+        Assert.assertTrue(StrategyFactory.generateForSteps(null, Collections.emptyList()) instanceof SerialStrategy);
     }
 }

@@ -20,7 +20,8 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.StateStore;
 
 import com.mesosphere.sdk.state.StateStoreUtils;
-import org.apache.logging.log4j.util.Strings;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Port;
@@ -198,7 +199,7 @@ public class EndpointsQueries {
             Port taskInfoPort,
             String autoipHostPort,
             String ipHostPort) throws TaskException {
-        if (Strings.isEmpty(taskInfoPort.getName())) {
+        if (StringUtils.isEmpty(taskInfoPort.getName())) {
             // Older tasks may omit the port name in their DiscoveryInfo. In practice this shouldn't happen because
             // tasks that old should have been long updated/relaunched by the time this is invoked, but just in case...
             LOGGER.warn("Missing port name. Old task?: {}", TextFormat.shortDebugString(taskInfoPort));
@@ -219,7 +220,7 @@ public class EndpointsQueries {
         }
 
         // If no VIPs were found, list the port against the port name:
-        if (vips.isEmpty() && !Strings.isEmpty(taskInfoPort.getName())) {
+        if (vips.isEmpty()) {
             addPortToEndpoints(endpointsByName, taskInfoPort.getName(), autoipHostPort, ipHostPort);
         }
     }

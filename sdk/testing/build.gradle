@@ -1,14 +1,7 @@
-ext {
-    junitVer = "4.12"
-    systemRulesVer = "1.16.0"
-    mockitoVer = "1.9.5"
-}
-
 dependencies {
-    compile project(":scheduler")
-    compile "junit:junit:${junitVer}"
-    compile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
-    compile "org.mockito:mockito-all:${mockitoVer}"
+    compile project(':scheduler')
+    compile 'junit:junit:4.12'
+    compile 'org.mockito:mockito-all:1.9.5'
 }
 
 task sourceJar(type: Jar) {

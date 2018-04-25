@@ -10,7 +10,6 @@ buildscript {
 
 plugins {
     id 'com.github.ben-manes.versions' version '0.17.0'
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
     id 'com.github.ksoichiro.console.reporter' version '0.5.0'
 }
 
@@ -124,14 +123,4 @@ subprojects {
         // Double quotes are required for $mesosVer to be resolved:
         compile "org.apache.mesos:mesos:${mesosVer}"
     }
-}
-
-shadowJar {
-    classifier = 'uber'
-
-    mergeServiceFiles()
-
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
 }
