@@ -64,7 +64,6 @@ public class DefaultPodSpecTest {
                 "slave_public",
                 Arrays.asList(new DefaultSecretSpec("secretPath", "envKey", "filePath")),
                 true,
-                true,
                 true);
     }
 }
