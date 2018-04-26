@@ -36,8 +36,9 @@ shadowJar {
 
     mergeServiceFiles()
 
-    // The following libraries so that they do not conflict with downstream builds.
-    // For now, this list consists of libraries that collide within the Jenkins mesos module.
+    // Rename the following packages so that they do not conflict with downstream builds.
+    // For now, this list specifically consists of libraries that collide within the Jenkins Mesos
+    // plugin, but other cases may be added as needed.
 
     // io.dropwizard.metrics:metrics-core
     // io.dropwizard.metrics:metrics-servlet
@@ -52,6 +53,8 @@ shadowJar {
     // org.eclipse.jetty:jetty-server
     // org.eclipse.jetty:jetty-util
     relocate 'org.eclipse.jetty', 'sdkshadow.org.eclipse.jetty'
+    // via org.glassfish.hk2 (errors only at runtime: jenkins's MesosCloudTest)
+    relocate 'org.jvnet.tiger_types', 'sdkshadow.org.jvnet.tiger_types'
 
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'
