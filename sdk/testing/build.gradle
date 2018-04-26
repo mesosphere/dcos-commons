@@ -1,20 +1,24 @@
 dependencies {
     compile project(':scheduler')
     compile 'junit:junit:4.12'
-    compile 'org.mockito:mockito-all:1.9.5'
+    compile 'org.mockito:mockito-all:1.10.19'
 }
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava
+    classifier 'sources'
+}
+task mainJar(type: Jar) {
+    from sourceSets.main.output
 }
 
 publishing {
     repositories {
         maven {
             if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://downloads.mesosphere.io/maven-snapshot/"
+                url 's3://downloads.mesosphere.io/maven-snapshot/'
             } else {
-                url "s3://downloads.mesosphere.io/maven/"
+                url 's3://downloads.mesosphere.io/maven/'
             }
             credentials(AwsCredentials) {
                 accessKey System.env['AWS_ACCESS_KEY_ID']
@@ -22,16 +26,15 @@ publishing {
             }
         }
         publications {
+            // Base testing.jar (external deps) + source jar
             mavenJava(MavenPublication) {
-                groupId project.group
                 artifactId 'testing'
+                groupId project.group
                 version project.version
 
-                from components.java
-
-                artifact sourceJar {
-                    classifier "sources"
-                }
+                // Gradle gets confused if we just do 'from components.java', but this works:
+                artifact mainJar
+                artifact sourceJar
             }
         }
     }

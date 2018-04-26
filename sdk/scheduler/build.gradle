@@ -1,19 +1,69 @@
 plugins {
+    id 'de.fuerstenau.buildconfig' version '1.1.8'
     id 'com.github.johnrengelman.shadow' version '2.0.3'
 }
-apply plugin: 'application'
+
+// Configure the SDKBuildInfo class generator
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    exec {
+        // Teamcity workaround: using 'git describe' to determine dirty status doesn't work there.
+        commandLine '/bin/sh', '-c', 'if [ -n "$(git diff --name-only HEAD)" ]; then echo -dirty; fi'
+        standardOutput = stdout
+    }
+    return stdout.toString().replace("\n", "")
+}
+buildConfig {
+    packageName = 'com.mesosphere.sdk.generated'
+    clsName = 'SDKBuildInfo'
+
+    version = project.version // VERSION
+    appName = project.group + '.' + project.name // NAME
+    buildConfigField 'String', 'GIT_SHA', "${getGitHash()}"
+    buildConfigField 'long', 'BUILD_TIME_EPOCH_MS', System.currentTimeMillis() + 'L'
+}
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava
+    classifier 'sources'
 }
+shadowJar {
+    classifier = ''
 
+    mergeServiceFiles()
+
+    // The following libraries so that they do not conflict with downstream builds.
+    // For now, this list consists of libraries that collide within the Jenkins mesos module.
+
+    // io.dropwizard.metrics:metrics-core
+    // io.dropwizard.metrics:metrics-servlet
+    // io.dropwizard.metrics:metrics-healthchecks
+    // io.dropwizard.metrics:metrics-jvm
+    // io.dropwizard.metrics:metrics-json
+    relocate 'io.dropwizard.metrics', 'sdkshadow.io.dropwizard.metrics'
+    // com.fasterxml.jackson.core:jackson-annotations
+    relocate 'com.fasterxml.jackson.core', 'sdkshadow.com.fasterxml.jackson.core'
+    // com.google.code.findbugs:annotations
+    relocate 'com.google.code.findbugs', 'sdkshadow.com.google.code.findbugs'
+    // org.eclipse.jetty:jetty-server
+    // org.eclipse.jetty:jetty-util
+    relocate 'org.eclipse.jetty', 'sdkshadow.org.eclipse.jetty'
+
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
 publishing {
     repositories {
         maven {
             if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://downloads.mesosphere.io/maven-snapshot/"
+                url 's3://downloads.mesosphere.io/maven-snapshot/'
             } else {
-                url "s3://downloads.mesosphere.io/maven/"
+                url 's3://downloads.mesosphere.io/maven/'
             }
             credentials(AwsCredentials) {
                 accessKey System.env['AWS_ACCESS_KEY_ID']
@@ -21,26 +71,37 @@ publishing {
             }
         }
         publications {
-            mavenJava(MavenPublication) {
+            // Shadow scheduler.jar (internalized deps) + source jar (of just SDK bits)
+            shadow(MavenPublication) { publication ->
+                project.shadow.component(publication)
+
+                artifactId 'scheduler-shadow'
                 groupId project.group
+                version project.version
+
+                artifact sourceJar
+            }
+
+            // Regular scheduler.jar (external deps) + source jar
+            mavenJava(MavenPublication) {
                 artifactId 'scheduler'
+                groupId project.group
                 version project.version
 
                 from components.java
-
-                artifact sourceJar {
-                    classifier "sources"
-                }
+                artifact sourceJar
             }
         }
     }
 }
 
 configurations {
-    runtime.exclude group: "org.slf4j", module: "slf4j-log4j12"
+    runtime.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
+
 ext {
-    jacksonVer = "2.6.3"
+    // Only include version numbers here if it'd be redundant to repeat them below:
+    jacksonVer = "2.6.7"
     curatorVer = "2.9.1"
     httpClientVer = "4.5.2"
     jerseyVer = "2.23"
@@ -48,18 +109,14 @@ ext {
     bouncyCastleVer = "1.57"
     dropWizardMetricsVer = "3.2.5"
 }
-
 dependencies {
-    compile project(':common')
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonVer}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVer}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
     compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.9-preJackson2.7-proto3'
     compile 'com.googlecode.protobuf-java-format:protobuf-java-format:1.4'
     compile 'com.github.spullara.mustache.java:compiler:0.9.2'
-    compile 'com.google.code.findbugs:annotations:3.0.1u2'
+    compile 'commons-codec:commons-codec:1.11'
     compile 'commons-collections:commons-collections:3.2.2'
     compile 'commons-io:commons-io:2.4'
     compile 'org.apache.commons:commons-lang3:3.4'
@@ -67,7 +124,6 @@ dependencies {
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
     compile "org.apache.curator:curator-framework:${curatorVer}"
     compile "org.apache.curator:curator-recipes:${curatorVer}"
-    compile "org.apache.curator:curator-test:${curatorVer}"
     compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
     compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
     compile 'org.json:json:20160212'
@@ -81,6 +137,7 @@ dependencies {
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
     compile 'com.mesosphere:mesos-http-adapter:0.4.1'
+    compile 'org.apache.mesos:mesos:1.4.0-rc1'
     compile('com.auth0:java-jwt:3.2.0') {
         // JWT package comes with jackson version 2.8.4 which doesn't work properly with
         // scheduler specification classes.
@@ -96,49 +153,18 @@ dependencies {
     compile 'io.prometheus:simpleclient_dropwizard:0.0.26'
     compile 'io.prometheus:simpleclient_servlet:0.0.26'
     compile 'com.readytalk:metrics3-statsd:4.2.0'
+
     testCompile 'org.hamcrest:hamcrest-all:1.3' // note: must be above junit
     testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-all:1.9.5'
-}
-
-distributions {
-    main {
-        mainClassName = ''
-        baseName = 'sdk'
-    }
+    testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile "org.apache.curator:curator-test:${curatorVer}"
 }
 
 check.finalizedBy jacocoTestReport
-
 jacocoTestReport {
     reports {
         xml.enabled false
         csv.enabled false
         html.destination file("${buildDir}/jacocoHtml")
     }
-}
-
-shadowJar {
-    classifier = 'uber'
-
-    mergeServiceFiles()
-
-    relocate ('com', 'sdk.com') {
-        exclude 'com/mesosphere/**'
-    }
-    relocate 'edu', 'sdk.edu'
-    relocate 'io', 'sdk.io'
-    relocate 'net', 'sdk.net'
-    relocate 'org', 'sdk.org'
-
-    relocate 'difflib', 'sdk.difflib'
-    relocate 'j2html', 'sdk.j2html'
-    relocate 'javassist', 'sdk.javassist'
-    relocate 'javax', 'sdk.javax'
-    relocate 'jersey', 'sdk.jersey'
-    relocate 'jline', 'sdk.jline'
-
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
 }

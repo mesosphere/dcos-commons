@@ -13,7 +13,6 @@ import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstr
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.*;
-import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.After;
@@ -420,17 +419,15 @@ public class ServiceTest {
 
     @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
-        Protos.Offer unacceptableOffer = Protos.Offer.newBuilder()
-                .setId(Protos.OfferID.newBuilder().setValue(UUID.randomUUID().toString()))
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(TestConstants.HOSTNAME)
-                .addResources(
-                        Protos.Resource.newBuilder()
-                                .setName("mem")
-                                .setType(Protos.Value.Type.SCALAR)
-                                .setScalar(Protos.Value.Scalar.newBuilder().setValue(1.0)))
-                .build();
+        Protos.Offer.Builder unacceptableOfferBuilder = Protos.Offer.newBuilder().setHostname("test-hostname");
+        unacceptableOfferBuilder.getIdBuilder().setValue(UUID.randomUUID().toString());
+        unacceptableOfferBuilder.getFrameworkIdBuilder().setValue("test-framework-id");
+        unacceptableOfferBuilder.getSlaveIdBuilder().setValue("test-agent-id");
+        unacceptableOfferBuilder.addResourcesBuilder()
+                .setName("mem")
+                .setType(Protos.Value.Type.SCALAR)
+                .getScalarBuilder().setValue(1.0);
+        Protos.Offer unacceptableOffer = unacceptableOfferBuilder.build();
 
         Collection<SimulationTick> ticks = new ArrayList<>();
 

@@ -15,7 +15,6 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
-import com.mesosphere.sdk.testutils.TestConstants;
 
 /**
  * A {@link Send} for sending a {@link Protos.Offer} which matches a specified pod's requirements to a scheduler under
@@ -50,7 +49,7 @@ public class SendOffer implements Send {
         public Builder(String podType) {
             this.podType = podType;
             this.podToReuse = Optional.empty();
-            this.hostname = TestConstants.HOSTNAME;
+            this.hostname = "test-hostname";
         }
 
         /**
@@ -116,11 +115,10 @@ public class SendOffer implements Send {
         }
         PodSpec podSpec = matchingSpec.get();
 
-        Protos.Offer.Builder offerBuilder = Protos.Offer.newBuilder()
-                .setFrameworkId(TestConstants.FRAMEWORK_ID)
-                .setSlaveId(TestConstants.AGENT_ID)
-                .setHostname(hostname);
+        Protos.Offer.Builder offerBuilder = Protos.Offer.newBuilder().setHostname(hostname);
         offerBuilder.getIdBuilder().setValue(UUID.randomUUID().toString());
+        offerBuilder.getFrameworkIdBuilder().setValue("test-framework-id");
+        offerBuilder.getSlaveIdBuilder().setValue("test-agent-id");
 
         // Include pod/executor-level volumes:
         for (VolumeSpec volumeSpec : podSpec.getVolumes()) {
@@ -189,7 +187,7 @@ public class SendOffer implements Send {
         if (isMountDisk) {
             resourceBuilder.getDiskBuilder().getSourceBuilder()
                     .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT)
-                    .getMountBuilder().setRoot(TestConstants.MOUNT_ROOT);
+                    .getMountBuilder().setRoot("test-mount-root");
         }
 
         return resourceBuilder.build();

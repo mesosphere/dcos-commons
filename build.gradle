@@ -1,5 +1,3 @@
-// Config shared by the dcos-commons library and the examples:
-
 // Gradle is bundled with jansi 1.9 which can crash the JVM in some cases
 // Solution taken from: https://github.com/gradle/gradle/issues/778
 buildscript {
@@ -55,10 +53,10 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
-            url "http://downloads.mesosphere.com/maven/"
+            url 'http://downloads.mesosphere.com/maven/'
         }
         maven {
-            url "http://downloads.mesosphere.com/maven-snapshot/"
+            url 'http://downloads.mesosphere.com/maven-snapshot/'
         }
     }
 
@@ -111,16 +109,5 @@ allprojects {
         testLogging {
             events 'passed', 'skipped', 'failed'
         }
-    }
-}
-
-ext {
-    mesosVer = '1.4.0-rc1'
-}
-
-subprojects {
-    dependencies {
-        // Double quotes are required for $mesosVer to be resolved:
-        compile "org.apache.mesos:mesos:${mesosVer}"
     }
 }
