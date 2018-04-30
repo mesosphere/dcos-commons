@@ -74,6 +74,10 @@ public class EnvStore {
         return toLong(envKey, getOptional(envKey, String.valueOf(defaultValue)));
     }
 
+    public double getOptionalDouble(String envKey, double defaultValue) {
+        return toDouble(envKey, getOptional(envKey, String.valueOf(defaultValue)));
+    }
+
     /**
      * List of comma-separated strings. Any whitespace is cleaned up automatically.
      */
@@ -91,6 +95,10 @@ public class EnvStore {
 
     public long getRequiredLong(String envKey) {
         return toLong(envKey, getRequired(envKey));
+    }
+
+    public double getRequiredDouble(String envKey) {
+        return toDouble(envKey, getRequired(envKey));
     }
 
     /**
@@ -148,6 +156,19 @@ public class EnvStore {
         } catch (NumberFormatException e) {
             throw ConfigException.invalidValue(String.format(
                     "Failed to parse configured environment variable '%s' as a long integer: %s", envKey, envVal));
+        }
+    }
+
+    /**
+     * If the value cannot be parsed as a double, this points to the source envKey, and ensures that calls only throw
+     * {@link ConfigException}.
+     */
+    private static double toDouble(String envKey, String envVal) {
+        try {
+            return Double.parseDouble(envVal);
+        } catch (NumberFormatException e) {
+            throw ConfigException.invalidValue(String.format(
+                    "Failed to parse configured environment variable '%s' as a double: %s", envKey, envVal));
         }
     }
 
