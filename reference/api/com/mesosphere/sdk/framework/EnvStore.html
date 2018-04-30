@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
+var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -187,16 +187,21 @@ extends java.lang.Object</pre>
                   boolean&nbsp;defaultValue)</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptionalDouble-java.lang.String-double-">getOptionalDouble</a></span>(java.lang.String&nbsp;envKey,
+                 double&nbsp;defaultValue)</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptionalInt-java.lang.String-int-">getOptionalInt</a></span>(java.lang.String&nbsp;envKey,
               int&nbsp;defaultValue)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptionalLong-java.lang.String-long-">getOptionalLong</a></span>(java.lang.String&nbsp;envKey,
                long&nbsp;defaultValue)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptionalNonEmpty-java.lang.String-java.lang.String-">getOptionalNonEmpty</a></span>(java.lang.String&nbsp;envKey,
                    java.lang.String&nbsp;defaultValue)</code>
@@ -204,28 +209,32 @@ extends java.lang.Object</pre>
  empty or whitespace.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptionalStringList-java.lang.String-java.util.List-">getOptionalStringList</a></span>(java.lang.String&nbsp;envKey,
                      java.util.List&lt;java.lang.String&gt;&nbsp;defaultValue)</code>
 <div class="block">List of comma-separated strings.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getRequired-java.lang.String-">getRequired</a></span>(java.lang.String&nbsp;envKey)</code>
 <div class="block">Returns the requested value if set, or throws an exception if it's missing from the map entirely.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>double</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getRequiredDouble-java.lang.String-">getRequiredDouble</a></span>(java.lang.String&nbsp;envKey)</code>&nbsp;</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getRequiredInt-java.lang.String-">getRequiredInt</a></span>(java.lang.String&nbsp;envKey)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>long</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getRequiredLong-java.lang.String-">getRequiredLong</a></span>(java.lang.String&nbsp;envKey)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#isPresent-java.lang.String-">isPresent</a></span>(java.lang.String&nbsp;envKey)</code>&nbsp;</td>
 </tr>
@@ -306,6 +315,16 @@ extends java.lang.Object</pre>
                             long&nbsp;defaultValue)</pre>
 </li>
 </ul>
+<a name="getOptionalDouble-java.lang.String-double-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getOptionalDouble</h4>
+<pre>public&nbsp;double&nbsp;getOptionalDouble(java.lang.String&nbsp;envKey,
+                                double&nbsp;defaultValue)</pre>
+</li>
+</ul>
 <a name="getOptionalStringList-java.lang.String-java.util.List-">
 <!--   -->
 </a>
@@ -343,6 +362,15 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getRequiredLong</h4>
 <pre>public&nbsp;long&nbsp;getRequiredLong(java.lang.String&nbsp;envKey)</pre>
+</li>
+</ul>
+<a name="getRequiredDouble-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getRequiredDouble</h4>
+<pre>public&nbsp;double&nbsp;getRequiredDouble(java.lang.String&nbsp;envKey)</pre>
 </li>
 </ul>
 <a name="getOptional-java.lang.String-java.lang.String-">
