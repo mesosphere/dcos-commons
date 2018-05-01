@@ -63,28 +63,34 @@ class Task(object):
     @staticmethod
     def parse(cli_task_line):
         # Example:
-        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4
+        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4  aws/us-west-2  aws/us-west-2c
+        # Spark Pi 0     10.0.0.27   nobody    F    0                                                    48f01bd4-f062-4010-b8bf-2ace3b896f4b-S0  aws/us-west-2  aws/us-west-2c
         # FYI: the state value is just the first character of the task state (e.g. STAGING => S)
         cli_task_tokens = cli_task_line.split()
-        if len(cli_task_tokens) < 6:
+        min_count = 8
+        if len(cli_task_tokens) < min_count:
             log.warning('Invalid task line from CLI: {}'.format(cli_task_tokens))
             return None
         return Task(
-            cli_task_tokens[0],
-            cli_task_tokens[1],
-            cli_task_tokens[2],
-            cli_task_tokens[3],
-            cli_task_tokens[4],
-            cli_task_tokens[5])
+            ' '.join(cli_task_tokens[0:len(cli_task_tokens)-(min_count-1)]),
+            cli_task_tokens[-7],
+            cli_task_tokens[-6],
+            cli_task_tokens[-5],
+            cli_task_tokens[-4],
+            cli_task_tokens[-3],
+            cli_task_tokens[-2],
+            cli_task_tokens[-1])
 
 
-    def __init__(self, name, host, user, state_char, id, agent):
+    def __init__(self, name, host, user, state_char, id, agent, region, zone):
         self.name = name
         self.host = host
         self.user = user
         self.state_char = state_char
         self.id = id
         self.agent = agent
+        self.region = region
+        self.zone = zone
 
 
     def __repr__(self):

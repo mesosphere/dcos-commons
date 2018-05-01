@@ -44,7 +44,7 @@ def _get_kdc_task(task_name: str) -> dict:
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
     log.info("Getting KDC task")
-    raw_tasks = sdk_cmd.run_cli("task --json")
+    raw_tasks = sdk_cmd.run_cli("task --json", print_output=False)
     if raw_tasks:
         tasks = json.loads(raw_tasks)
         for task in tasks:

@@ -10,15 +10,6 @@
 # Exit immediately on errors
 set -e
 
-function abs_path() { (
-    if [[ -d $1 ]]; then
-        cd $(dirname $1)
-        echo $(pwd)/$(basename $1)
-    else
-        echo ""
-    fi
-)}
-
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 if [ -d $REPO_ROOT_DIR/frameworks ]; then
     FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
@@ -39,6 +30,16 @@ enterprise="true"
 interactive="false"
 headless="false"
 package_registry="false"
+
+function abs_path()
+{
+    if [[ -d $1 ]]; then
+        cd $(dirname $1)
+        echo $(pwd)/$(basename $1)
+    else
+        echo ""
+    fi
+}
 
 function usage()
 {
@@ -221,28 +222,17 @@ fi
 WORK_DIR="/build"
 
 if [ x"$interactive" == x"false" ]; then
-    if [ -z "$CLUSTER_URL" ]; then
-        echo "Cluster not found. Create and configure one then set \$CLUSTER_URL."
-        exit 1
-    else
-        if [[ x"$security" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
-            echo $CLUSTER_URL
-            echo "CLUSTER_URL must be https in strict mode"
-            exit 1
-        fi
-    fi
-
     framework="$frameworks"
     if [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
         echo "Cannot set \$STUB_UNIVERSE_URL when building all frameworks"
         exit 1
     fi
-    FRAMEWORK_ARGS="-e FRAMEWORK=$framework"
+    framework_args="-e FRAMEWORK=$framework"
     DOCKER_COMMAND="bash /build-tools/test_runner.sh $WORK_DIR"
 else
-# interactive mode
-    # FRAMEWORK_ARGS="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
-    FRAMEWORK_ARGS=""
+    # interactive mode
+    # framework_args="-u $(id -u):$(id -g) -e DCOS_DIR=/build/.dcos-in-docker"
+    framework_args=""
     framework="NOT_SPECIFIED"
     DOCKER_COMMAND="bash"
 fi
@@ -268,6 +258,10 @@ if [ x"$package_registry" == x"true" ]; then
     fi
 fi
 
+if [ -n "$dcos_files_path" ]; then
+    dcos_files_path_args="-e DCOS_FILES_PATH=\"${dcos_files_path}\" -v \"${dcos_files_path}\":\"${dcos_files_path}\""
+fi
+
 docker run --rm \
     -v ${aws_credentials_file}:/root/.aws/credentials:ro \
     -e AWS_PROFILE="${aws_profile}" \
@@ -279,12 +273,12 @@ docker run --rm \
     ${azure_args} \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
-    ${FRAMEWORK_ARGS} \
+    ${framework_args} \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -e PACKAGE_REGISTRY_ENABLED="${package_registry}" \
     -e PACKAGE_REGISTRY_STUB_URL="${PACKAGE_REGISTRY_STUB_URL}" \
-    -e DCOS_FILES_PATH="${dcos_files_path}" \
-    -v "${dcos_files_path}":"${dcos_files_path}" \
+    ${dcos_files_path_args} \
+    ${CUSTOM_DOCKER_ARGS} \
     -v $(pwd):$WORK_DIR \
     -v $ssh_path:/ssh/key \
     -w $WORK_DIR \
