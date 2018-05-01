@@ -30,4 +30,3 @@ com.mesosphere.sdk.specification.yaml
 com.mesosphere.sdk.state
 com.mesosphere.sdk.storage
 com.mesosphere.sdk.testing
-com.mesosphere.sdk.testutils
