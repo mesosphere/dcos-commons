@@ -1,31 +1,28 @@
 rootProject.name = 'dcos-commons'
 
-include 'sdk/common'
-project(":sdk/common").name = "common"
-
 include 'sdk/scheduler'
-project(":sdk/scheduler").name = "scheduler"
+project(':sdk/scheduler').name = 'scheduler'
 
 include 'sdk/testing'
-project(":sdk/testing").name = "testing"
+project(':sdk/testing').name = 'testing'
 
 include 'frameworks/helloworld'
-project(":frameworks/helloworld").name = "helloworld"
+project(':frameworks/helloworld').name = 'helloworld'
 
 include 'frameworks/elastic'
 project(':frameworks/elastic').name = 'elastic'
 
 include 'frameworks/kafka'
-project(":frameworks/kafka").name = "kafka"
+project(':frameworks/kafka').name = 'kafka'
 
 include 'frameworks/hdfs'
-project(":frameworks/hdfs").name = "hdfs"
+project(':frameworks/hdfs').name = 'hdfs'
 
 include 'frameworks/template'
-project(":frameworks/template").name = "template"
+project(':frameworks/template').name = 'template'
 
 include 'frameworks/cassandra'
-project(":frameworks/cassandra").name = "cassandra"
+project(':frameworks/cassandra').name = 'cassandra'
 
 include 'frameworks/helloworld/tests/tls/keystore'
-project(":frameworks/helloworld/tests/tls/keystore").name = 'keystore-app'
+project(':frameworks/helloworld/tests/tls/keystore').name = 'keystore-app'

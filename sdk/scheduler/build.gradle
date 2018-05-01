@@ -1,53 +1,72 @@
-// Config specific to the dcos-commons library:
-apply plugin: 'application'
+plugins {
+    id 'de.fuerstenau.buildconfig' version '1.1.8'
+    id 'com.github.johnrengelman.shadow' version '2.0.3'
+}
 
-ext {
-    antlrVer = "4.5.1-1"
-    commonsCollectionsVer = "3.2.2"
-    commonsIoVer = "2.4"
-    curatorVer = "2.9.1"
-    dropwizardVer = "0.9.2"
-    findbugsAnnotationsVer = "3.0.1u2"
-    hamcrestVer = "1.3"
-    jacksonVer = "2.6.3"
-    jacksonProtobufVer = "0.9.3"
-    junitVer = "4.12"
-    slf4jVer = "1.7.10"
-    jsonVer = "20160212"
-    protobufFormatVer = "1.4"
-    mockitoVer = "1.9.5"
-    restServiceVer = "2.0.1"
-    slf4jVer = "1.7.10"
-    systemRulesVer = "1.16.0"
-    mockServerVer = "3.10.4"
-    springVer = "4.3.1.RELEASE"
-    httpClientVer = "4.5.2"
-    awaitilityVer = "2.0.0"
-    javaDiffUtilsVer = "1.3.0"
-    jettyServletVer = "9.4.9.v20180320"
-    jerseyVer = "2.23"
-    mimepullVer = "1.9.6"
-    jsonProviderVer = "2.2.3"
-    mustacheVer = "0.9.2"
-    hibernateValidatorVer = "5.3.2.Final"
-    elVer = "2.2.4"
-    jwtVer = "3.2.0"
-    bouncyCastleVer = "1.57"
-    j2htmlVer = "1.2.0"
-    dropWizardMetricsVer = "3.2.5"
+// Configure the SDKBuildInfo class generator
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'rev-parse', '--short', 'HEAD'
+        standardOutput = stdout
+    }
+    exec {
+        // Teamcity workaround: using 'git describe' to determine dirty status doesn't work there.
+        commandLine '/bin/sh', '-c', 'if [ -n "$(git diff --name-only HEAD)" ]; then echo -dirty; fi'
+        standardOutput = stdout
+    }
+    return stdout.toString().replace("\n", "")
+}
+buildConfig {
+    packageName = 'com.mesosphere.sdk.generated'
+    clsName = 'SDKBuildInfo'
+
+    version = project.version // VERSION
+    appName = project.group + '.' + project.name // NAME
+    buildConfigField 'String', 'GIT_SHA', "${getGitHash()}"
+    buildConfigField 'long', 'BUILD_TIME_EPOCH_MS', System.currentTimeMillis() + 'L'
 }
 
 task sourceJar(type: Jar) {
     from sourceSets.main.allJava
+    classifier 'sources'
 }
+shadowJar {
+    classifier = ''
 
+    mergeServiceFiles()
+
+    // Rename the following packages so that they do not conflict with downstream builds.
+    // For now, this list specifically consists of libraries that collide within the Jenkins Mesos
+    // plugin, but other cases may be added as needed.
+
+    // io.dropwizard.metrics:metrics-core
+    // io.dropwizard.metrics:metrics-servlet
+    // io.dropwizard.metrics:metrics-healthchecks
+    // io.dropwizard.metrics:metrics-jvm
+    // io.dropwizard.metrics:metrics-json
+    relocate 'io.dropwizard.metrics', 'sdkshadow.io.dropwizard.metrics'
+    // com.fasterxml.jackson.core:jackson-annotations
+    relocate 'com.fasterxml.jackson.core', 'sdkshadow.com.fasterxml.jackson.core'
+    // com.google.code.findbugs:annotations
+    relocate 'com.google.code.findbugs', 'sdkshadow.com.google.code.findbugs'
+    // org.eclipse.jetty:jetty-server
+    // org.eclipse.jetty:jetty-util
+    relocate 'org.eclipse.jetty', 'sdkshadow.org.eclipse.jetty'
+    // via org.glassfish.hk2 (errors only at runtime: jenkins's MesosCloudTest)
+    relocate 'org.jvnet.tiger_types', 'sdkshadow.org.jvnet.tiger_types'
+
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+}
 publishing {
     repositories {
         maven {
             if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://downloads.mesosphere.io/maven-snapshot/"
+                url 's3://downloads.mesosphere.io/maven-snapshot/'
             } else {
-                url "s3://downloads.mesosphere.io/maven/"
+                url 's3://downloads.mesosphere.io/maven/'
             }
             credentials(AwsCredentials) {
                 accessKey System.env['AWS_ACCESS_KEY_ID']
@@ -55,95 +74,100 @@ publishing {
             }
         }
         publications {
-            mavenJava(MavenPublication) {
+            // Shadow scheduler.jar (internalized deps) + source jar (of just SDK bits)
+            shadow(MavenPublication) { publication ->
+                project.shadow.component(publication)
+
+                artifactId 'scheduler-shadow'
                 groupId project.group
+                version project.version
+
+                artifact sourceJar
+            }
+
+            // Regular scheduler.jar (external deps) + source jar
+            mavenJava(MavenPublication) {
                 artifactId 'scheduler'
+                groupId project.group
                 version project.version
 
                 from components.java
-
-                artifact sourceJar {
-                    classifier "sources"
-                }
+                artifact sourceJar
             }
         }
     }
 }
 
 configurations {
-    runtime.exclude group: "org.slf4j", module: "slf4j-log4j12"
+    runtime.exclude group: 'org.slf4j', module: 'slf4j-log4j12'
 }
 
+ext {
+    // Only include version numbers here if it'd be redundant to repeat them below:
+    jacksonVer = "2.6.7"
+    curatorVer = "2.9.1"
+    httpClientVer = "4.5.2"
+    jerseyVer = "2.23"
+    elVer = "2.2.4"
+    bouncyCastleVer = "1.57"
+    dropWizardMetricsVer = "3.2.5"
+}
 dependencies {
-    compile project(":common")
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonVer}"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
-    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVer}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
-    compile "com.hubspot.jackson:jackson-datatype-protobuf:${jacksonProtobufVer}"
-    compile "com.google.code.findbugs:annotations:${findbugsAnnotationsVer}"
-    compile "commons-collections:commons-collections:${commonsCollectionsVer}"
-    compile "commons-io:commons-io:${commonsIoVer}"
-    compile "org.antlr:antlr4-runtime:${antlrVer}"
-    compile "javax.ws.rs:javax.ws.rs-api:${restServiceVer}"
+    compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.9-preJackson2.7-proto3'
+    compile 'com.googlecode.protobuf-java-format:protobuf-java-format:1.4'
+    compile 'com.github.spullara.mustache.java:compiler:0.9.2'
+    compile 'commons-codec:commons-codec:1.11'
+    compile 'commons-collections:commons-collections:3.2.2'
+    compile 'commons-io:commons-io:2.4'
+    compile 'org.apache.commons:commons-lang3:3.4'
+    compile 'org.antlr:antlr4-runtime:4.5.1-1'
+    compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
     compile "org.apache.curator:curator-framework:${curatorVer}"
     compile "org.apache.curator:curator-recipes:${curatorVer}"
-    compile "org.apache.curator:curator-test:${curatorVer}"
     compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
     compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
-    compile "org.apache.commons:commons-lang3:3.4"
-    compile "com.googlecode.protobuf-java-format:protobuf-java-format:${protobufFormatVer}"
-    compile "org.json:json:${jsonVer}"
-    compile "com.googlecode.java-diff-utils:diffutils:${javaDiffUtilsVer}"
+    compile 'org.json:json:20160212'
+    compile 'com.googlecode.java-diff-utils:diffutils:1.3.0'
     compile "org.glassfish.jersey.containers:jersey-container-jetty-http:${jerseyVer}"
     compile "org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-multipart:${jerseyVer}"
-    compile "org.jvnet.mimepull:mimepull:${mimepullVer}"
-    compile "org.eclipse.jetty:jetty-servlet:${jettyServletVer}"
-    compile "org.hibernate:hibernate-validator:${hibernateValidatorVer}"
+    compile 'org.eclipse.jetty:jetty-servlet:9.4.9.v20180320'
+    compile 'org.hibernate:hibernate-validator:5.3.2.Final'
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
     compile 'com.mesosphere:mesos-http-adapter:0.4.1'
-    compile("com.auth0:java-jwt:${jwtVer}") {
+    compile 'org.apache.mesos:mesos:1.4.0-rc1'
+    compile('com.auth0:java-jwt:3.2.0') {
         // JWT package comes with jackson version 2.8.4 which doesn't work properly with
         // scheduler specification classes.
-        exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
     }
     compile "org.bouncycastle:bcprov-jdk15on:${bouncyCastleVer}"
     compile "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVer}"
-    compile "com.j2html:j2html:${j2htmlVer}"
+    compile 'com.j2html:j2html:1.2.0'
     compile "io.dropwizard.metrics:metrics-core:${dropWizardMetricsVer}"
     compile "io.dropwizard.metrics:metrics-servlet:${dropWizardMetricsVer}"
     compile "io.dropwizard.metrics:metrics-servlets:${dropWizardMetricsVer}"
-    compile group: 'com.codahale.metrics', name: 'metrics-jetty9', version: '3.0.2'
-    compile "io.prometheus:simpleclient_dropwizard:0.0.26"
-    compile "io.prometheus:simpleclient_servlet:0.0.26"
-    compile "com.readytalk:metrics3-statsd:4.2.0"
-    testCompile "org.hamcrest:hamcrest-all:${hamcrestVer}" // note: must be above junit
-    testCompile "junit:junit:${junitVer}"
-    testCompile "com.github.stefanbirkner:system-rules:${systemRulesVer}"
-    testCompile "io.dropwizard:dropwizard-testing:${dropwizardVer}"
-    testCompile "org.mockito:mockito-all:${mockitoVer}"
-    testCompile "org.mock-server:mockserver-netty:${mockServerVer}"
-    testCompile "org.springframework.integration:spring-integration-http:${springVer}"
-    testCompile "org.awaitility:awaitility:${awaitilityVer}"
-}
+    compile 'com.codahale.metrics:metrics-jetty9:3.0.2'
+    compile 'io.prometheus:simpleclient_dropwizard:0.0.26'
+    compile 'io.prometheus:simpleclient_servlet:0.0.26'
+    compile 'com.readytalk:metrics3-statsd:4.2.0'
 
-distributions {
-    main {
-        mainClassName = ''
-        baseName = 'sdk'
-    }
+    testCompile 'org.hamcrest:hamcrest-all:1.3' // note: must be above junit
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile "org.apache.curator:curator-test:${curatorVer}"
 }
 
 check.finalizedBy jacocoTestReport
-
 jacocoTestReport {
     reports {
         xml.enabled false
         csv.enabled false
-        html.destination "${buildDir}/jacocoHtml"
+        html.destination file("${buildDir}/jacocoHtml")
     }
 }

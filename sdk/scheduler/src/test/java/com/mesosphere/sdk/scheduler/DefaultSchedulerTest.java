@@ -40,7 +40,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.contrib.java.lang.system.ExpectedSystemExit;
 import org.junit.rules.DisableOnDebug;
 import org.junit.rules.TestRule;
 import org.junit.rules.Timeout;
@@ -64,7 +63,6 @@ import static org.mockito.Mockito.*;
 public class DefaultSchedulerTest {
     @SuppressFBWarnings("URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD")
     @Rule public TestRule globalTimeout = new DisableOnDebug(new Timeout(30, TimeUnit.SECONDS));
-    @Rule public final ExpectedSystemExit exit = ExpectedSystemExit.none();
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Mock private SchedulerConfig mockSchedulerConfig;
 

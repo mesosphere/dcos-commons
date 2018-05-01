@@ -7,8 +7,9 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.mesosphere.sdk.offer.TaskUtils;
-import org.apache.logging.log4j.util.Strings;
 
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -87,8 +88,8 @@ public class TaskEnvCannotChange implements ConfigValidator<ServiceSpec> {
         final String oldEnvVal = oldCommand.getEnvironment().get(envName);
         final String newEnvVal = newCommand.getEnvironment().get(envName);
 
-        if (Strings.isBlank(oldEnvVal)) {
-            if (Strings.isBlank(newEnvVal)) {
+        if (StringUtils.isBlank(oldEnvVal)) {
+            if (StringUtils.isBlank(newEnvVal)) {
                 // <unset> to <unset> (no change)
                 return Optional.empty();
             } else {
@@ -102,7 +103,7 @@ public class TaskEnvCannotChange implements ConfigValidator<ServiceSpec> {
                         String.format("Env value %s cannot change from unset to set", envName)));
             }
         } else {
-            if (Strings.isBlank(newEnvVal)) {
+            if (StringUtils.isBlank(newEnvVal)) {
                 // SomeVal to <unset> (removed)
                 if (rules.contains(Rule.ALLOW_SET_TO_UNSET)) {
                     return Optional.empty();
