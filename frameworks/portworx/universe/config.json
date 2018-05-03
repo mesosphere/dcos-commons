@@ -207,61 +207,8 @@
           "image"
         ]
       },
-      "influxdb": {
-        "description": "InfluxDB properties. This service is required to store Portworx cluster statistics by the Lightouse service",
-        "type": "object",
-        "properties": {
-          "placement_constraint": {
-            "title": "Placement constraint",
-            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
-            "type": "string",
-            "default": ""
-          },
-          "cpus": {
-            "title": "CPU count",
-            "description": "CPU requirements",
-            "type": "number",
-            "default": 0.3
-          },
-          "mem": {
-            "title": "Memory size (MB)",
-            "description": "Mem requirements (in MB)",
-            "type": "integer",
-            "default": 1024
-          },
-          "disk_type": {
-            "title": "Type of disk to use for persisting data",
-            "description": "ROOT or MOUNT",
-            "type": "string",
-            "default": "ROOT"
-          },
-          "disk_size": {
-            "title": "Dize of disk (MB)",
-            "type": "integer",
-            "default": 1024
-          },
-          "image": {
-            "title": "Influxdb Image name",
-            "type": "string",
-            "default": "influxdb:latest"
-          },
-          "listen_port": {
-            "title": "The port on which influxdb listens for incoming requests",
-            "type": "integer",
-            "default": 8086
-          }
-        },
-        "required":[
-          "cpus",
-          "mem",
-          "disk_type",
-          "disk_size",
-          "image",
-          "listen_port"
-        ]
-      },
       "lighthouse": {
-        "description": "Lighthouse exposes the web UI for Portworx. Start this if you don't want to connect to the central Portworx Lighthouse",
+        "description": "Lighthouse exposes the web UI for Portworx. Start this if you don't want to connect to the central Portworx Lighthouse. \nNote: Lighthouse will work only with Portworx 1.4 and above",
         "type": "object",
         "properties": {
           "enabled": {
@@ -275,6 +222,12 @@
             "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
             "type": "string",
             "default": ""
+          },
+          "public_agent": {
+            "title": "public_agent",
+            "description": "Whether to run Lighthouse on a public agent or not. If you do not have a public agent, disable this option to run on a private agent. Remember, this cannot be changed once the framework is deployed.",
+            "type": "boolean",
+            "default": true
           },
           "cpus": {
             "title": "CPU count",
@@ -291,13 +244,19 @@
           "image": {
             "title": "Lighthouse Image name",
             "type": "string",
-            "default": "portworx/px-lighthouse:1.1.8"
+            "default": "portworx/px-lighthouse:1.4.0-rc1"
           },
           "webui_port": {
             "title": "WebUI Port",
-            "description": "",
+            "description": "Port on which Lighthouse can be accessed",
             "type": "integer",
             "default": 8085
+          },
+          "webui_ssl_port": {
+            "title": "WebUI HTTPS Port",
+            "description": "Port to access Lighthouse if you are running it on HTTPS",
+            "type": "integer",
+            "default": 8086
           },
           "company_name": {
             "title": "Company Name",
@@ -305,17 +264,17 @@
             "type": "string",
             "default": "Portworx"
           },
-          "admin_email": {
-            "title": "Administrator Email/Login",
-            "description": "Email to use for the Lighthouse account. Default password is admin and can be changed after first login. Used for resetting password and sending alerts.",
+          "admin_username": {
+            "title": "Administrator username",
+            "description": "Username to use for the Lighthouse account. This should not be changed.",
             "type": "string",
-            "default": "portworx@yourcompany.com"
+            "default": "admin"
           },
           "admin_password": {
             "title": "Administrator Password",
             "description": "Password to use for the Lighthouse account.",
             "type": "string",
-            "default": "admin"
+            "default": "Password1"
           }
         },
         "required":[
@@ -323,7 +282,8 @@
           "mem",
           "webui_port",
           "company_name",
-          "admin_email",
+          "admin_username",
+          "admin_password",
           "image"
         ]
       }

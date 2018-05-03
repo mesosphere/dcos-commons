@@ -49,34 +49,6 @@ pods:
                     set +e
                 fi
 
-                {{#LIGHTHOUSE_ENABLED}}
-                set -e
-
-                if ! [ -x "$(command -v curl)" ]; then
-                    echo 'Error: curl is not installed.' >&2
-                    exit 1
-                fi
-
-                authkey=$(echo -n {{{LIGHTHOUSE_ADMIN_EMAIL}}}:{{{LIGHTHOUSE_ADMIN_PASSWORD}}} | base64)
-
-                if [ $POD_INSTANCE_INDEX -eq "0" ]; then
-                    token=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl -X POST \
-                        -H "Accept:application/json" -H "Authorization:Basic $authkey" \
-                        http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/clusters/create/\?name\={{PORTWORX_CLUSTER_NAME}}\&clusterid\={{PORTWORX_CLUSTER_NAME}});
-                fi
-
-                PWX_TOKEN=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl \
-                        -H "Accept:application/json" -H "Authorization:Basic $authkey" \
-                        http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/token/{{PORTWORX_CLUSTER_NAME}});
-
-                if [ -z "$PWX_TOKEN" ]; then
-                    echo 'Error getting PWX token from lighthouse.' >&2
-                    exit 1
-                fi
-
-                set +e
-                {{/LIGHTHOUSE_ENABLED}}
-
                 coreos=$(uname -a | grep coreos)
 
                 if [ -z "$coreos" ];then
@@ -103,9 +75,6 @@ pods:
                           {{#NODE_CONTAINER_PARAMETERS}}
                           {{{NODE_CONTAINER_PARAMETERS}}}                \
                           {{/NODE_CONTAINER_PARAMETERS}}
-                          {{#LIGHTHOUSE_ENABLED}}
-                          -e API_SERVER=http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}} \
-                          {{/LIGHTHOUSE_ENABLED}}
                           {{#SECRETS_ENABLED}}
                           {{#SECRETS_BASE_PATH}}
                           -e DCOS_SECRETS_BASE_PATH={{SECRETS_BASE_PATH}} \
@@ -116,12 +85,7 @@ pods:
                           {{/SECRETS_ENABLED}}
                           -name=%n \
                           -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
-                          {{#LIGHTHOUSE_ENABLED}}
-                          -t $PWX_TOKEN
-                          {{/LIGHTHOUSE_ENABLED}}
-                          {{^LIGHTHOUSE_ENABLED}}
                           -k {{PORTWORX_KVDB}}
-                          {{/LIGHTHOUSE_ENABLED}}
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
@@ -240,36 +204,14 @@ pods:
           interval: 5
           delay: 0
           timeout: 60
-  influxdb:
-    user: {{SERVICE_USER}}
-    count: 1
-    image: {{INFLUXDB_IMAGE}}
-    placement: {{INFLUXDB_PLACEMENT}}
-    tasks:
-      start:
-        goal: RUNNING
-        memory: {{INFLUXDB_MEM}}
-        cpus: {{INFLUXDB_CPUS}}
-        cmd: >
-          export INFLUXDB_META_DIR=$MESOS_SANDBOX/influxdb/meta &&
-          export INFLUXDB_DATA_DIR=$MESOS_SANDBOX/influxdb/data &&
-          export INFLUXDB_DATA_WAL_DIR=$MESOS_SANDBOX/influxdb/wal &&
-          export INFLUXDB_HTTP_BIND_ADDRESS=:{{INFLUXDB_LISTEN_PORT}} &&
-          influxd
-        volume:
-          path: "influxdb"
-          type: {{INFLUXDB_DISK_TYPE}}
-          size: {{INFLUXDB_DISK_SIZE}}
-        readiness-check:
-          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:/lib64 curl http://influxdb-0-start.${FRAMEWORK_HOST}:{{INFLUXDB_LISTEN_PORT}}/ping
-          interval: 5
-          delay: 0
-          timeout: 60
   lighthouse:
     user: {{SERVICE_USER}}
     count: 1
     image: {{LIGHTHOUSE_IMAGE}}
     placement: {{LIGHTHOUSE_PLACEMENT}}
+    {{#LIGHTHOUSE_PUBLIC_AGENT}}
+    pre-reserved-role: slave_public
+    {{/LIGHTHOUSE_PUBLIC_AGENT}}
     tasks:
       start:
         goal: RUNNING
@@ -277,20 +219,47 @@ pods:
         cpus: {{LIGHTHOUSE_CPUS}}
         ports:
           http:
-            port: {{LIGHTHOUSE_WEBUI_PORT}}
-        cmd: >
-            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X POST http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:{{INFLUXDB_LISTEN_PORT}}/query --data-urlencode "q=CREATE DATABASE px_stats" &&
-            /bin/bash /lighthouse/on-prem-entrypoint.sh -d http://admin:password@influxdb-0-start.${FRAMEWORK_HOST}:{{INFLUXDB_LISTEN_PORT}}/ -k {{PORTWORX_KVDB}}
-        env:
-          PWX_LH_PORT: {{LIGHTHOUSE_WEBUI_PORT}}
-          PWX_PX_PRECREATE_ADMIN: true
-          PWX_PX_COMPANY_NAME: {{LIGHTHOUSE_COMPANY_NAME}}
-          PWX_PX_ADMIN_EMAIL: {{{LIGHTHOUSE_ADMIN_EMAIL}}}
+            port: {{LIGHTHOUSE_HTTP_PORT}}
+            advertise: true
+          https:
+            port: {{LIGHTHOUSE_HTTPS_PORT}}
+            advertise: true
+        volume:
+          path: "lh-data"
+          type: ROOT
+          size: 100
+        cmd: |
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu apt-get install -y curl jq
+
+            clusteruuid=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s http://portworx-0-install.$FRAMEWORK_HOST:9001/config | jq -r '.clusteruuid')
+
+            if [ ! -f $MESOS_SANDBOX/lh-data/config.yaml ]; then
+              echo "ADMIN_USER: {{LIGHTHOUSE_ADMIN_USER}}
+            ADMIN_PASSWORD: \$2y\$10\$HeU6ErdL9KL0oLixfBSFausJ0P9FoYPYsRab7FxhJ.AcZGUzkRp3O
+            servercert: '{{LIGHTHOUSE_SERVER_CERT}}'
+            serverkey: '{{LIGHTHOUSE_SERVER_KEY}}'
+            company:
+              name: {{LIGHTHOUSE_COMPANY_NAME}}
+              id: '1'
+            clusters:
+            - uuid: $clusteruuid
+              clusterid: {{PORTWORX_CLUSTER_NAME}}
+              origendpoint: portworx-0-install.$FRAMEWORK_HOST
+              endpoint: portworx-0-install.$FRAMEWORK_HOST
+              port: '9001'
+              scheme: http
+              clientcertificates:
+                key: ''
+                cert: ''"> $MESOS_SANDBOX/lh-data/config.yaml
+            fi
+
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu /entry-point.sh -confpath $MESOS_SANDBOX/lh-data -http_port {{LIGHTHOUSE_HTTP_PORT}} -https_port {{LIGHTHOUSE_HTTPS_PORT}}
         readiness-check:
-          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -X GET http://lighthouse-0-start.${FRAMEWORK_HOST}:{{LIGHTHOUSE_WEBUI_PORT}}/api/system | grep Lighthouse | grep 2
+          cmd: LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s -u {{LIGHTHOUSE_ADMIN_USER}}:{{LIGHTHOUSE_ADMIN_PASSWORD}} http://$TASK_NAME.$FRAMEWORK_HOST:{{LIGHTHOUSE_HTTP_PORT}}/api/manageCluster/list?companyId=1
           interval: 5
           delay: 0
           timeout: 60
+
 plans:
   deploy:
     strategy: serial
@@ -309,23 +278,18 @@ plans:
           - default : [[start]]
       {{/ETCD_PROXY_ENABLED}}
       {{/ETCD_ENABLED}}
-      {{#LIGHTHOUSE_ENABLED}}
-      influxdb-deploy:
+      portworx-install:
         strategy: serial
-        pod: influxdb
+        pod: portworx
         steps:
-          - default : [[start]]
+          - default : [[install]]
+      {{#LIGHTHOUSE_ENABLED}}
       lighthouse-deploy:
         strategy: serial
         pod: lighthouse
         steps:
           - default : [[start]]
       {{/LIGHTHOUSE_ENABLED}}
-      portworx-install:
-        strategy: serial
-        pod: portworx
-        steps:
-          - default : [[install]]
   upgrade-portworx:
     strategy: serial
     phases:
