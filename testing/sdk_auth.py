@@ -191,16 +191,14 @@ class KerberosEnvironment:
             return success
 
         if sdk_marathon.app_exists(self.app_definition["id"]):
-            log.info("Found installed KDC app")
-            return _get_kdc_task(self.app_definition["id"])
+            log.info("Found installed KDC app, destroying it first")
+            sdk_marathon.destroy(self.app_definition["id"])
 
         log.info("Installing KDC Marathon app")
         _install_marathon_app(self.app_definition)
         log.info("KDC app installed successfully")
 
-        kdc_task_info = _get_kdc_task(self.app_definition["id"])
-
-        return kdc_task_info
+        return _get_kdc_task(self.app_definition["id"])
 
     def __run_kadmin(self, options: list, cmd: str, args: list):
         """

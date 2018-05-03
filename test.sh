@@ -159,17 +159,21 @@ esac
 shift # past argument or value
 done
 
-if [ ! -f "$ssh_path" ]; then
-    echo "The specified CCM key ($ssh_path) does not exist or is not a file"
-    exit 1
+if [ -f "$ssh_path" ]; then
+    ssh_key_args="-v $ssh_path:/ssh/key" # pass provided key into docker env
+else
+    if [ -n "$CLUSTER_URL" ]; then
+        # If the user is providing us with a cluster, we require the SSH key for that cluster.
+        echo "The specified CCM key ($ssh_path) does not exist or is not a file."
+        echo "This is required for communication with provided CLUSTER_URL=$CLUSTER_URL"
+        exit 1
+    fi
+    ssh_key_args="" # test_runner.sh will extract the key after cluster launch, nothing to pass in
 fi
 
 
-if [ ! -f "${aws_credentials_file}" ]; then
-    echo "The required AWS credentials file ${aws_credentials_file} was not found"
-    echo "Try running 'maws' to log in"
-    exit 1
-else
+if [ -f "${aws_credentials_file}" ]; then
+    # Pick a profile from the creds file
     PROFILES=$( grep -oE "^\[\S+\]" $aws_credentials_file )
     if [ "$( echo "$PROFILES" | grep "\[${aws_profile}\]" )" != "[${aws_profile}]" ]; then
         echo "The specified profile (${aws_profile}) was not found in the file $aws_credentials_file"
@@ -188,6 +192,26 @@ else
             echo "Specify the correct profile using the --aws-profile command line option"
             exit 1
         fi
+    fi
+else
+    # CI environments may have creds in AWS_DEV_* envvars:
+    if [ -n "${AWS_DEV_ACCESS_KEY_ID}" -a -n "${AWS_DEV_SECRET_ACCESS_KEY}}" ]; then # CI environment (direct invocation)
+	export AWS_ACCESS_KEY_ID=${AWS_DEV_ACCESS_KEY_ID} AWS_SECRET_ACCESS_KEY=${AWS_DEV_SECRET_ACCESS_KEY}
+    fi
+    # Check AWS_* envvars for credentials, create temp creds file using those credentials:
+    if [ -n "${AWS_ACCESS_KEY_ID}" -a -n "${AWS_SECRET_ACCESS_KEY}}" ]; then # CI environment (via docker run)
+        aws_credentials_file=$(mktemp /tmp/awscreds-XXXXXX)
+	echo "Writing AWS env credentials to: ${aws_credentials_file}"
+        cat > $aws_credentials_file <<EOF
+[default]
+aws_access_key_id = ${AWS_ACCESS_KEY_ID}
+aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+EOF
+    else
+        echo "AWS credentials file '${aws_credentials_file}' was not found,"
+        echo "and there were no AWS credentials in the environment."
+        echo "Try running 'maws' to log in."
+        exit 1
     fi
 fi
 
@@ -280,7 +304,7 @@ docker run --rm \
     ${dcos_files_path_args} \
     ${CUSTOM_DOCKER_ARGS} \
     -v $(pwd):$WORK_DIR \
-    -v $ssh_path:/ssh/key \
+    ${ssh_key_args} \
     -w $WORK_DIR \
     -t \
     ${DOCKER_INTERACTIVE_FLAGS} \
