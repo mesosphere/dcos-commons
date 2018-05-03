@@ -297,6 +297,7 @@ docker run --rm \
     ${azure_args} \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
+    -e TEAMCITY_VERSION="$TEAMCITY_VERSION" \
     ${framework_args} \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -e PACKAGE_REGISTRY_ENABLED="${package_registry}" \
