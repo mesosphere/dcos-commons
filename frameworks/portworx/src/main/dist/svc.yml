@@ -17,7 +17,7 @@ pods:
     resource-sets:
       px-resources:
         cpus: 0.3
-        memory: 512
+        memory: 256
         # Allocate a minimum sized local volume to the tasks so that they are pinned to a node
         volume:
           path: temp
