@@ -49,11 +49,11 @@
     "ZOOKEEPER_DOCKER_VOLUME_NAME": "{{{node.portworx_volume_name}}}",
     "ZOOKEEPER_DOCKER_VOLUME_OPTIONS": "{{{node.portworx_volume_options}}}",
 
-    {{#service.secret_name}}
+    {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
     "MESOS_MODULES": "{\"libraries\": [{\"file\": \"libdcos_security.so\", \"modules\": [{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
-    {{/service.secret_name}}
+    {{/service.service_account_secret}}
 
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
