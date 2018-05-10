@@ -70,7 +70,7 @@ def _revoke(user: str, acl: str, description: str, action: str="create") -> None
     log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
 
 
-def get_permissions(service_account_name: str, role: str, linux_user: str) -> List[dict]:
+def get_default_permissions(service_account_name: str, role: str, linux_user: str) -> List[dict]:
     return [
         # registration permissions
         {
@@ -129,17 +129,23 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
         }]
 
 
-def grant_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
+def grant_permissions(linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]) -> None:
     log.info("Granting permissions to {account}".format(account=service_account_name))
-    permissions = get_permissions(service_account_name, role_name, linux_user)
+
+    if not permissions:
+        permissions = get_default_permissions(service_account_name, role_name, linux_user)
+
     for permission in permissions:
         _grant(**permission)
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
 
-def revoke_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
+def revoke_permissions(linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]) -> None:
     log.info("Revoking permissions to {account}".format(account=service_account_name))
-    permissions = get_permissions(service_account_name, role_name, linux_user)
+
+    if not permissions:
+        permissions = get_default_permissions(service_account_name, role_name, linux_user)
+
     for permission in permissions:
         _revoke(**permission)
     log.info("Permission cleanup completed for {account}".format(account=service_account_name))
@@ -201,6 +207,8 @@ def delete_secret(secret: str) -> None:
 
 
 def setup_security(framework_name: str,
+                   permissions: List[dict]=[],
+                   linux_user: str="nobody",
                    service_account: str="service-acct",
                    service_account_secret: str="secret") -> dict:
 
@@ -215,19 +223,22 @@ def setup_security(framework_name: str,
 
     log.info("Setting up strict-mode security")
     grant_permissions(
-        linux_user="nobody",
+        linux_user=linux_user,
         role_name="{}-role".format(framework_name),
-        service_account_name=service_account
+        service_account_name=service_account,
+        permissions=permissions
     )
     grant_permissions(
-        linux_user="nobody",
+        linux_user=linux_user,
         role_name="slave_public%252F{}-role".format(framework_name),
-        service_account_name=service_account
+        service_account_name=service_account,
+        permissions=permissions
     )
     grant_permissions(
-        linux_user="nobody",
+        linux_user=linux_user,
         role_name="test__integration__{}-role".format(framework_name),
-        service_account_name=service_account
+        service_account_name=service_account,
+        permissions=permissions
     )
     log.info("Finished setting up strict-mode security")
 
@@ -235,44 +246,56 @@ def setup_security(framework_name: str,
 
 
 def cleanup_security(framework_name: str,
+                     permissions: List[dict]=[],
+                     linux_user: str="nobody",
                      service_account: str="service-acct",
                      service_account_secret: str="secret") -> None:
-
     if sdk_utils.is_strict_mode():
-        log.info("Cleaning up strict-mode security")
         revoke_permissions(
-            linux_user="nobody",
-            role_name="{}-role".format(framework_name),
-            service_account_name=service_account
+            linux_user=linux_user,
+            role_name='{}-role'.format(framework_name),
+            service_account_name=service_account,
+            permissions=permissions
         )
         revoke_permissions(
-            linux_user="nobody",
-            role_name="test__integration__{}-role".format(framework_name),
-            service_account_name=service_account
+            linux_user=linux_user,
+            role_name="slave_public%252F{}-role".format(framework_name),
+            service_account_name=service_account,
+            permissions=permissions
+        )
+        revoke_permissions(
+            linux_user=linux_user,
+            role_name='test__integration__{}-role'.format(framework_name),
+            service_account_name=service_account,
+            permissions=permissions
         )
 
     delete_service_account(service_account, service_account_secret)
 
-    log.info("Finished cleaning up strict-mode security")
+    log.info('Finished cleaning up strict-mode security')
 
 
-def security_session(framework_name: str) -> None:
+def security_session(framework_name: str,
+                     permissions: List[dict]=[],
+                     linux_user: str="nobody",
+                     service_account: str="service-acct",
+                     service_account_secret: str="secret") -> None:
     """Create a service account and configure permissions for strict-mode tests.
 
     This should generally be used as a fixture in a framework's conftest.py:
 
     @pytest.fixture(scope='session')
     def configure_security(configure_universe):
-        yield from sdk_security.security_session(framework_name)
+        yield from sdk_security.security_session(framework_name, permissions, 'nobody', 'service-acct')
     """
     try:
         is_strict = sdk_utils.is_strict_mode()
         if is_strict:
-            setup_security(framework_name)
+            setup_security(framework_name, permissions, linux_user, service_account, service_account_secret)
         yield
     finally:
         if is_strict:
-            cleanup_security(framework_name)
+            cleanup_security(framework_name, permissions, linux_user, service_account, service_account_secret)
 
 
 def openssl_ciphers():
