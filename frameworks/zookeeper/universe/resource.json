@@ -3,7 +3,7 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "zookeeper-tar-gz": "http://apache.claz.org/zookeeper/zookeeper-3.4.11/zookeeper-3.4.11.tar.gz",
+      "zookeeper-tar-gz": "https://s3-us-west-1.amazonaws.com/px-dcos/zookeeper/zookeeper-3.4.11.tar.gz",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/zookeeper-scheduler.zip",
       "executor-zip": "{{artifact-dir}}/executor.zip"
