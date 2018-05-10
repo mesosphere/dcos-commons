@@ -286,6 +286,10 @@ if [ -n "$dcos_files_path" ]; then
     dcos_files_path_args="-e DCOS_FILES_PATH=\"${dcos_files_path}\" -v \"${dcos_files_path}\":\"${dcos_files_path}\""
 fi
 
+if [ -n "$TEAMCITY_VERSION" ]; then
+    # Teamcity python module treats a present-but-empty envvar as "ENABLED!"
+    teamcity_args="-e TEAMCITY_VERSION=\"${TEAMCITY_VERSION}\""
+fi
 docker run --rm \
     -v ${aws_credentials_file}:/root/.aws/credentials:ro \
     -e AWS_PROFILE="${aws_profile}" \
@@ -297,7 +301,7 @@ docker run --rm \
     ${azure_args} \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
-    -e TEAMCITY_VERSION="$TEAMCITY_VERSION" \
+    ${teamcity_args} \
     ${framework_args} \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -e PACKAGE_REGISTRY_ENABLED="${package_registry}" \
