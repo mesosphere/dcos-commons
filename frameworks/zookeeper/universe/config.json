@@ -161,12 +161,6 @@
             "type": "integer",
             "default": 60
           },
-          "client_port_address": {
-            "title": "Client port address",
-            "description": "The address (ipv4, ipv6 or hostname) to listen for client connections",
-            "type": "string",
-            "default": ""
-          },
           "min_session_timeout": {
             "title": "Min session timeout",
             "description": "Minimum session timeout that the server will allow the client to negotiate (in milliseconds)",

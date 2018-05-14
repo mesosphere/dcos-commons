@@ -26,10 +26,8 @@ pods:
             advertise: true
           leader-port:
             port: {{TASKCFG_ALL_LEADER_PORT}}
-            advertise: true
           leader-election-port:
             port: {{TASKCFG_ALL_LEADER_ELECTION_PORT}}
-            advertise: true
         volume:
           path: "zookeeper-container"
           type: DOCKER
@@ -59,7 +57,7 @@ pods:
             cd $MESOS_SANDBOX/zookeeper-{{ZOOKEEPER_VERSION}} &&
             $JAVA_HOME/bin/java -cp zookeeper-{{ZOOKEEPER_VERSION}}.jar:lib/log4j-1.2.16.jar:lib/slf4j-log4j12-1.6.1.jar:lib/slf4j-api-1.6.1.jar:conf \
               org.apache.zookeeper.client.FourLetterWordMain \
-              localhost {{TASKCFG_ALL_ZOOKEEPER_CLIENT_PORT}} srvr | grep Mode
+              $TASK_NAME.$FRAMEWORK_HOST {{TASKCFG_ALL_ZOOKEEPER_CLIENT_PORT}} srvr | grep Mode
           interval: 5
           delay: 0
           timeout: 300
