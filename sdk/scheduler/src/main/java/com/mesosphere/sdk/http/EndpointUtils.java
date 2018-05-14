@@ -7,6 +7,24 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
  * Utilities relating to the creation and interpretation of endpoints between DC/OS tasks.
  */
 public class EndpointUtils {
+    private static final Object lock = new Object();
+    private static EndpointUtils endpointUtils;
+
+
+    public static EndpointUtils getInstance() {
+        synchronized (lock) {
+            if (endpointUtils == null) {
+                endpointUtils = new EndpointUtils();
+            }
+            return endpointUtils;
+        }
+    }
+
+    public static void overrideEndpointUtils(EndpointUtils overrides) {
+        synchronized (lock) {
+            endpointUtils = overrides;
+        }
+    }
 
     /**
      * Simple data container representing information about a task VIP entry.
@@ -29,21 +47,21 @@ public class EndpointUtils {
         }
     }
 
-    private EndpointUtils() {
-        // do not instantiate
+    protected EndpointUtils() {
+        // use getInstance()
     }
 
     /**
      * Concatenates the provided hostname/port in "hostname:port" format.
      */
-    public static String toEndpoint(String hostname, int port) {
+    public String toEndpoint(String hostname, int port) {
         return String.format("%s:%d", hostname, port);
     }
 
     /**
      * Returns the correct DNS domain for tasks within the service.
      */
-    public static String toAutoIpDomain(String serviceName, SchedulerConfig schedulerConfig) {
+    public String toAutoIpDomain(String serviceName, SchedulerConfig schedulerConfig) {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
         return String.format("%s.%s",
                 removeSlashes(replaceDotsWithDashes(serviceName)),
@@ -53,7 +71,7 @@ public class EndpointUtils {
     /**
      * Returns the correct DNS hostname for the provided task running within the service.
      */
-    public static String toAutoIpHostname(String serviceName, String taskName, SchedulerConfig schedulerConfig) {
+    public String toAutoIpHostname(String serviceName, String taskName, SchedulerConfig schedulerConfig) {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
         return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(taskName)),
                 toAutoIpDomain(serviceName, schedulerConfig));
@@ -62,7 +80,7 @@ public class EndpointUtils {
     /**
      * Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.
      */
-    public static String toAutoIpEndpoint(String serviceName,
+    public String toAutoIpEndpoint(String serviceName,
                                           String taskName,
                                           int port,
                                           SchedulerConfig schedulerConfig) {
@@ -72,35 +90,35 @@ public class EndpointUtils {
     /**
      * Returns the correct DNS domain for VIPs within the service.
      */
-    public static String toVipDomain(String serviceName) {
+    public String toVipDomain(String serviceName) {
         return String.format("%s.%s", removeSlashes(serviceName), Constants.VIP_HOST_TLD);
     }
 
     /**
      * Returns the correct L4LB VIP hostname for the provided task running within the provided service.
      */
-    public static String toVipHostname(String serviceName, VipInfo vipInfo) {
+    public String toVipHostname(String serviceName, VipInfo vipInfo) {
         return String.format("%s.%s", removeSlashes(vipInfo.getVipName()), toVipDomain(serviceName));
     }
 
     /**
      * Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.
      */
-    public static String toVipEndpoint(String serviceName, VipInfo vipInfo) {
+    public String toVipEndpoint(String serviceName, VipInfo vipInfo) {
         return toEndpoint(toVipHostname(serviceName, vipInfo), vipInfo.getVipPort());
     }
 
     /**
      * Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.
      */
-    public static String toSchedulerApiVipHostname(String serviceName) {
+    public String toSchedulerApiVipHostname(String serviceName) {
         return String.format("api.%s.marathon.%s", removeSlashes(serviceName), Constants.VIP_HOST_TLD);
     }
 
     /**
      * "/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".
      */
-    public static String removeSlashes(String name) {
+    public String removeSlashes(String name) {
         return name.replace("/", "");
     }
 
@@ -108,7 +126,7 @@ public class EndpointUtils {
      * "hello.kafka" => "hello-kafka". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
      * dots are converted to dashes with autoip hostnames. See DCOS-16086.
      */
-    public static String replaceDotsWithDashes(String name) {
+    public String replaceDotsWithDashes(String name) {
         return name.replace('.', '-');
     }
 }

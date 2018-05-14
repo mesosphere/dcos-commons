@@ -104,6 +104,7 @@ public class EndpointsQueries {
                                                                  SchedulerConfig schedulerConfig)
             throws TaskException {
         Map<String, JSONObject> endpointsByName = new TreeMap<>();
+        EndpointUtils endpointUtils = EndpointUtils.getInstance();
         for (TaskInfo taskInfo : stateStore.fetchTasks()) {
             if (!taskInfo.hasDiscovery()) {
                 LOGGER.debug("Task lacks any discovery information, no endpoints to report: {}",
@@ -145,11 +146,11 @@ public class EndpointsQueries {
                         frameworkName,
                         taskInfo.getName(),
                         port,
-                        EndpointUtils.toAutoIpEndpoint(frameworkName,
+                        endpointUtils.toAutoIpEndpoint(frameworkName,
                                 autoIpTaskName,
                                 port.getNumber(),
                                 schedulerConfig),
-                        EndpointUtils.toEndpoint(hostIpString, port.getNumber()));
+                        endpointUtils.toEndpoint(hostIpString, port.getNumber()));
             }
         }
         return endpointsByName;
@@ -216,7 +217,7 @@ public class EndpointsQueries {
                     taskInfoPort.getName(),
                     autoipHostPort,
                     ipHostPort,
-                    EndpointUtils.toVipEndpoint(frameworkName, vip));
+                    EndpointUtils.getInstance().toVipEndpoint(frameworkName, vip));
         }
 
         // If no VIPs were found, list the port against the port name:

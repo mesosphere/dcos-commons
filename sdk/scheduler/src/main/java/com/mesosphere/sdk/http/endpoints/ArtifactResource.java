@@ -26,7 +26,7 @@ public class ArtifactResource {
      * @param serviceName the name of the service/framework (1:1)
      */
     public static ArtifactQueries.TemplateUrlFactory getUrlFactory(String serviceName) {
-        String hostname = EndpointUtils.toSchedulerApiVipHostname(serviceName);
+        String hostname = EndpointUtils.getInstance().toSchedulerApiVipHostname(serviceName);
         return new ArtifactQueries.TemplateUrlFactory() {
             @Override
             public String get(UUID configId, String podType, String taskName, String configName) {
