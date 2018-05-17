@@ -589,17 +589,19 @@ public class PodInfoBuilder {
             containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
         }
 
-        Map<String, List<String>> addedVolumes = new HashMap<String, List<String>>();
-        if (!podSpec.getTasks().isEmpty()) {
-            for (TaskSpec task : podSpec.getTasks()) {
-                if (!task.getResourceSet().getVolumes().isEmpty()) {
-                    addDockerVolumes(containerInfo, task.getResourceSet().getVolumes(), podIndex, addedVolumes);
+        if (!useDefaultExecutor || (useDefaultExecutor && isTaskContainer)) {
+            Map<String, List<String>> addedVolumes = new HashMap<String, List<String>>();
+            if (!podSpec.getTasks().isEmpty()) {
+                for (TaskSpec task : podSpec.getTasks()) {
+                    if (!task.getResourceSet().getVolumes().isEmpty()) {
+                        addDockerVolumes(containerInfo, task.getResourceSet().getVolumes(), podIndex, addedVolumes);
+                    }
                 }
             }
-        }
 
-        if (!podSpec.getVolumes().isEmpty()) {
-            addDockerVolumes(containerInfo, podSpec.getVolumes(), podIndex, addedVolumes);
+            if (!podSpec.getVolumes().isEmpty()) {
+                addDockerVolumes(containerInfo, podSpec.getVolumes(), podIndex, addedVolumes);
+            }
         }
 
         if (!podSpec.getImage().isPresent()

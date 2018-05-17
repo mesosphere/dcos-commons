@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
+import com.mesosphere.sdk.specification.DockerVolumeSpec;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,6 +138,10 @@ public class ExecutorResourceMapper {
     private Optional<ResourceLabels> findMatchingResourceSpec(
             Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
         for (ResourceSpec resourceSpec : resourceSpecs) {
+            if (resourceSpec instanceof DockerVolumeSpec) {
+                continue;
+            }
+
             if (resourceSpec.getName().equals(taskResource.getName())) {
                 Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {

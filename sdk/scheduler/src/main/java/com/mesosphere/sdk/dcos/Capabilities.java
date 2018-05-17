@@ -52,10 +52,8 @@ public class Capabilities {
 
     public boolean supportsDefaultExecutor() {
         // Use of the default executor is supported by DC/OS 1.10 upwards.
-        return false;
-        // XXX: Disable default executor for now as it doesn't mount docker
-        // volumes correctly
-        //return hasOrExceedsVersion(1, 10);
+        // Docker volumes are only supported in default executor from 1.11
+        return hasOrExceedsVersion(1, 11);
     }
 
     public boolean supportsNamedVips() {
