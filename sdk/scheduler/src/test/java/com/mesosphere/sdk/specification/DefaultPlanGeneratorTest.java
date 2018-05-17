@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * Tests for {@link DefaultPlanGenerator}.
+ * Tests for {@link PlanGenerator}.
  */
 public class DefaultPlanGeneratorTest {
 
@@ -43,7 +43,7 @@ public class DefaultPlanGeneratorTest {
 
         Assert.assertNotNull(serviceSpec);
 
-        DefaultPlanGenerator generator = new DefaultPlanGenerator(configStore, stateStore, Optional.empty());
+        PlanGenerator generator = new PlanGenerator(configStore, stateStore, Optional.empty());
         for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);

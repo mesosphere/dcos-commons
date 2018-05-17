@@ -141,36 +141,34 @@ public class CanaryStrategy implements Strategy<Step> {
     public static class Generator implements StrategyGenerator<Step> {
 
         private final int requiredProceeds;
-        private final Strategy<Step> postCanaryStrategy;
-        private final List<Step> steps;
+        private final StrategyGenerator<Step> postCanaryStrategyGenerator;
 
         /**
          * Creates a new generator which will require 2 {@link #proceed()} calls from a user before following the
          * provided {@code postCanaryStrategy}.
          *
-         * @param postCanaryStrategy the strategy to use after the canary stage has completed
+         * @param postCanaryStrategyGenerator the generator of the strategy to use after the canary stage has completed
          */
-        public Generator(Strategy<Step> postCanaryStrategy, List<Step> steps) {
-            this(postCanaryStrategy, DEFAULT_PROCEED_COUNT, steps);
+        public Generator(StrategyGenerator<Step> postCanaryStrategyGenerator) {
+            this(postCanaryStrategyGenerator, DEFAULT_PROCEED_COUNT);
         }
 
         /**
          * Creates a new generator which will require a specified number of {@link #proceed()} calls from a user before
          * following the provided {@code postCanaryStrategy}.
          *
-         * @param postCanaryStrategy the strategy to use after the canary stage has completed
+         * @param postCanaryStrategyGenerator the generator of the strategy to use after the canary stage has completed
          * @param requiredProceeds the number of {@link #proceed()} calls to require before the provided strategy is
          *     executed
          */
-        public Generator(Strategy<Step> postCanaryStrategy, int requiredProceeds, List<Step> steps) {
+        public Generator(StrategyGenerator<Step> postCanaryStrategyGenerator, int requiredProceeds) {
             this.requiredProceeds = requiredProceeds;
-            this.postCanaryStrategy = postCanaryStrategy;
-            this.steps = steps;
+            this.postCanaryStrategyGenerator = postCanaryStrategyGenerator;
         }
 
         @Override
-        public Strategy<Step> generate() {
-            return new CanaryStrategy(postCanaryStrategy, requiredProceeds, steps);
+        public Strategy<Step> generate(List<Step> steps) {
+            return new CanaryStrategy(postCanaryStrategyGenerator.generate(steps), requiredProceeds, steps);
         }
     }
 }

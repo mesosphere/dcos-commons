@@ -8,15 +8,20 @@ import org.apache.mesos.Protos;
 import com.google.protobuf.TextFormat;
 
 /**
- * Grouping of a set of tasks that were launched in a pod, along with their associated executor.
+ * Groups information about a launch operation, including the executor, task(s), and reservations.
  */
 public class LaunchedPod {
     private final Protos.ExecutorInfo executorInfo;
     private final Collection<Protos.TaskInfo> taskInfos;
+    private final Collection<Protos.Resource> reservations;
 
-    public LaunchedPod(Protos.ExecutorInfo executorInfo, Collection<Protos.TaskInfo> taskInfos) {
+    public LaunchedPod(
+            Protos.ExecutorInfo executorInfo,
+            Collection<Protos.TaskInfo> taskInfos,
+            Collection<Protos.Resource> reservations) {
         this.executorInfo = executorInfo;
         this.taskInfos = taskInfos;
+        this.reservations = reservations;
     }
 
     public Protos.ExecutorInfo getExecutor() {
@@ -25,6 +30,10 @@ public class LaunchedPod {
 
     public Collection<Protos.TaskInfo> getTasks() {
         return taskInfos;
+    }
+
+    public Collection<Protos.Resource> getReservations() {
+        return reservations;
     }
 
     @Override

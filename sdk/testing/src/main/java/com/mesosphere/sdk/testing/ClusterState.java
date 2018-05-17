@@ -2,6 +2,7 @@ package com.mesosphere.sdk.testing;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class ClusterState {
 
     private final ServiceSpec serviceSpec;
     private final AbstractScheduler scheduler;
-    private final List<Protos.Offer> sentOffers = new ArrayList<>();
+    private final List<Collection<Protos.Offer>> sentOfferSets = new ArrayList<>();
     private final List<LaunchedPod> createdPods = new ArrayList<>();
 
     private ClusterState(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
@@ -39,7 +40,7 @@ public class ClusterState {
     public static ClusterState withUpdatedConfig(
             ClusterState clusterState, ServiceSpec serviceSpec, AbstractScheduler scheduler) {
         ClusterState updatedClusterState = create(serviceSpec, scheduler);
-        updatedClusterState.sentOffers.addAll(clusterState.sentOffers);
+        updatedClusterState.sentOfferSets.addAll(clusterState.sentOfferSets);
         updatedClusterState.createdPods.addAll(clusterState.createdPods);
         return updatedClusterState;
     }
@@ -69,20 +70,28 @@ public class ClusterState {
      * Adds the provided offer to the list of sent offers.
      */
     public void addSentOffer(Protos.Offer offer) {
-        sentOffers.add(offer);
+        sentOfferSets.add(Collections.singleton(offer));
     }
 
     /**
-     * Returns the last offer to have been sent.
-     *
-     * @return the last offer added to {@link #addSentOffer(org.apache.mesos.Protos.Offer)}
-     * @throws IllegalStateException if no pods had been sent
+     * Adds all of the provided offers to the list of sent offers.
      */
-    public Protos.Offer getLastOffer() {
-        if (sentOffers.isEmpty()) {
+    public void addSentOffers(Collection<Protos.Offer> offers) {
+        sentOfferSets.add(offers);
+    }
+
+    /**
+     * Returns the set of offers received in the last offer cycle.
+     *
+     * @return the last offer added via {@link #addSentOffer(org.apache.mesos.Protos.Offer)} or
+     *          {@link #addSentOffers(Collection)}
+     * @throws IllegalStateException if no offers had been sent
+     */
+    public Collection<Protos.Offer> getLastOfferCycle() {
+        if (sentOfferSets.isEmpty()) {
             throw new IllegalStateException("No offers were sent yet");
         }
-        return sentOffers.get(sentOffers.size() - 1);
+        return sentOfferSets.get(sentOfferSets.size() - 1);
     }
 
     /**
