@@ -254,7 +254,7 @@
           },
           "webui_ssl_port": {
             "title": "WebUI HTTPS Port",
-            "description": "Port to access Lighthouse if you are running it on HTTPS",
+            "description": "Port to access Lighthouse if you are accessing it via HTTPS",
             "type": "integer",
             "default": 8086
           },
@@ -266,15 +266,9 @@
           },
           "admin_username": {
             "title": "Administrator username",
-            "description": "Username to use for the Lighthouse account. This should not be changed.",
+            "description": "Username to use for the Lighthouse account. This cannot be changed later.",
             "type": "string",
             "default": "admin"
-          },
-          "admin_password": {
-            "title": "Administrator Password",
-            "description": "Password to use for the Lighthouse account.",
-            "type": "string",
-            "default": "Password1"
           }
         },
         "required":[
@@ -283,7 +277,6 @@
           "webui_port",
           "company_name",
           "admin_username",
-          "admin_password",
           "image"
         ]
       }

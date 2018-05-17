@@ -36,7 +36,8 @@ public class Main {
                 .setCustomConfigValidators(Arrays.asList(
                         new TaskEnvCannotChange("etcd-cluster", "node", "ETCD_ENABLED"),
                         new TaskEnvCannotChange("etcd-proxy", "node", "ETCD_ENABLED"),
-                        new TaskEnvCannotChange("lighthouse", "start", "LIGHTHOUSE_ENABLED")))
+                        new TaskEnvCannotChange("lighthouse", "start", "LIGHTHOUSE_ENABLED"),
+                        new TaskEnvCannotChange("lighthouse", "start", "LIGHTHOUSE_ADMIN_USER")))
                 .setPlansFrom(rawServiceSpec);
 
         schedulerBuilder.setCustomResources(getResources(schedulerBuilder.getServiceSpec()));
