@@ -55,6 +55,7 @@ shadowJar {
     relocate 'org.eclipse.jetty', 'sdkshadow.org.eclipse.jetty'
     // via org.glassfish.hk2 (errors only at runtime: jenkins's MesosCloudTest)
     relocate 'org.jvnet.tiger_types', 'sdkshadow.org.jvnet.tiger_types'
+    relocate 'javax.el', 'sdkshadow.javax.el'
 
     exclude 'META-INF/*.SF'
     exclude 'META-INF/*.DSA'

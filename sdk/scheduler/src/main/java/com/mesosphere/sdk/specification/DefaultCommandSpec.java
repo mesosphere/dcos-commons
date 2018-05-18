@@ -132,7 +132,7 @@ public class DefaultCommandSpec implements CommandSpec {
          */
         public DefaultCommandSpec build() {
             DefaultCommandSpec defaultCommandSpec = new DefaultCommandSpec(this);
-            ValidationUtils.validate(defaultCommandSpec);
+            //ValidationUtils.validate(defaultCommandSpec);
             return defaultCommandSpec;
         }
     }
