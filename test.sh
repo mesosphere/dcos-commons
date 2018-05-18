@@ -22,9 +22,14 @@ trap cleanup EXIT
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 WORK_DIR="/build" # where REPO_ROOT_DIR is mounted within the image
+
+# Find out what framework(s) are available.
+# - If there's a <REPO>/frameworks directory, get values from there.
+# - Otherwise just use the name of the repo directory.
+# If there's multiple options, the user needs to pick one. If there's only one option then we'll use that automatically.
 if [ -d $REPO_ROOT_DIR/frameworks ]; then
     # mono-repo (e.g. dcos-commons)
-    FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort)
+    FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort | xargs echo -n)
 else
     # standalone repo (e.g. spark-build)
     FRAMEWORK_LIST=$(basename ${REPO_ROOT_DIR})
@@ -49,12 +54,13 @@ ssh_path="${HOME}/.ssh/ccm.pem"
 aws_creds_path="${HOME}/.aws/credentials"
 enterprise="true"
 headless="false"
+interactive="false"
 package_registry="false"
 docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
 
 function usage()
 {
-    echo "Usage: $0 [flags] [framework(s) or 'all': $FRAMEWORK_LIST]"
+    echo "Usage: $0 [flags] [framework:$(echo $FRAMEWORK_LIST | sed 's/ /,/g')]"
     echo ""
     echo "Flags:"
     echo "  -m $pytest_m"
@@ -66,6 +72,8 @@ function usage()
     echo "    Using an Open DC/OS cluster: skip Enterprise-only features."
     echo "  -p $ssh_path"
     echo "    Path to cluster SSH key."
+    echo "  -i/--interactive"
+    echo "    Open a shell prompt in the docker container, without actually running any tests. Equivalent to DOCKER_COMMAND=bash"
     echo "  --headless"
     echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
     echo "  --package-registry"
@@ -74,7 +82,7 @@ function usage()
     echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
     echo "  --gradle-cache $gradle_cache"
     echo "    Sets the gradle build cache to the specified path. Setting this to \"\" disables the cache."
-    echo "  --aws|a $aws_creds_path"
+    echo "  -a/--aws $aws_creds_path"
     echo "    Path to an AWS credentials file. Overrides any AWS_* env credentials."
     echo "  --aws-profile ${AWS_PROFILE:=NAME}"
     echo "    The AWS profile to use. Only required when using an AWS credentials file with multiple profiles."
@@ -93,7 +101,7 @@ function usage()
     echo "  S3_BUCKET"
     echo "    S3 bucket to use for testing."
     echo "  DOCKER_COMMAND=$docker_command"
-    echo "    Command to be run within the docker image (try 'DOCKER_COMMAND=bash' to just get a prompt)"
+    echo "    Command to be run within the docker image (e.g. 'DOCKER_COMMAND=bash' to just get a prompt)"
     echo "  PYTEST_ARGS"
     echo "    Additional arguments (other than -m or -k) to pass to pytest."
     echo "  TEST_SH_*"
@@ -106,7 +114,7 @@ if [ x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
     exit 1
 fi
 
-framework=()
+framework=""
 
 while [[ $# -gt 0 ]]; do
 key="$1"
@@ -130,7 +138,12 @@ case $key in
     ssh_path="$2"
     shift
     ;;
+    -i|--interactive)
+    if [[ x"$headless" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
+    interactive="true"
+    ;;
     --headless)
+    if [[ x"$interactive" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
     headless="true"
     ;;
     --package-registry)
@@ -162,27 +175,36 @@ case $key in
     exit 1
     ;;
     *)
-    framework+=("$key")
+    if [[ -n "$framework" ]]; then echo "Multiple frameworks specified, please only specify one at a time: $framework $@"; exit 1; fi
+    framework=$key
     ;;
 esac
 shift # past argument or value
 done
 
 if [ -z "$framework" ]; then
-    framework=$FRAMEWORK_LIST
-elif [ "$framework" = "all" -a -n "$STUB_UNIVERSE_URL" ]; then
-    echo "Cannot set \$STUB_UNIVERSE_URL when testing all frameworks"
+    # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
+    if [ $(echo $FRAMEWORK_LIST | wc -w) == 1 ]; then
+        framework=$FRAMEWORK_LIST
+    else
+        echo "Multiple frameworks in $(basename $REPO_ROOT_DIR)/frameworks/, please specify one to test: $FRAMEWORK_LIST"
+        exit 1
+    fi
+elif [ "$framework" = "all" ]; then
+    echo "'all' is no longer supported. Please specify one framework to test: $FRAMEWORK_LIST"
     exit 1
 fi
 
+volume_args="-v ${REPO_ROOT_DIR}:$WORK_DIR"
+
 # Configure SSH key for getting into the cluster during tests
 if [ -f "$ssh_path" ]; then
-    ssh_key_volume_args="-v $ssh_path:/ssh/key" # pass provided key into docker env
+    volume_args="$volume_args -v $ssh_path:/ssh/key" # pass provided key into docker env
 else
     if [ -n "$CLUSTER_URL" ]; then
         # If the user is providing us with a cluster, we require the SSH key for that cluster.
-        echo "The specified CCM key ($ssh_path) does not exist or is not a file."
-        echo "This is required for communication with provided CLUSTER_URL=$CLUSTER_URL"
+        echo "SSH key not found at $ssh_path. Use -p <path/to/id_rsa> to customize this path."
+        echo "An SSH key is required for communication with the provided CLUSTER_URL=$CLUSTER_URL"
         exit 1
     fi
     # Don't need ssh key now: test_runner.sh will extract the key after cluster launch
@@ -233,15 +255,18 @@ EOF
         exit 1
     fi
 fi
+volume_args="$volume_args -v $credsfile:/root/.aws/credentials:ro"
 
 if [ -n "$gradle_cache" ]; then
     echo "Setting Gradle cache to ${gradle_cache}"
-    gradle_cache_volume_arg="-v ${gradle_cache}:/root/.gradle"
+    volume_args="$volume_args -v ${gradle_cache}:/root/.gradle"
 fi
 
-# Some automation contexts (e.g. Jenkins) will be unhappy
-# if STDIN is not available. The --headless command accomodates
-# such contexts.
+if [ x"$interactive" == x"true" ]; then
+    docker_command="bash"
+fi
+
+# Some automation contexts (e.g. Jenkins) will be unhappy if STDIN is not available. The --headless command accomodates such contexts.
 if [ x"$headless" != x"true" ]; then
     docker_interactive_arg="-i"
 fi
@@ -267,7 +292,7 @@ if [ x"$package_registry" == x"true" ]; then
 fi
 
 if [ -n "$dcos_files_path" ]; then
-    dcos_files_volume_arg="-v \"${dcos_files_path}\":\"${dcos_files_path}\""
+    volume_args="$volume_args -v \"${dcos_files_path}\":\"${dcos_files_path}\""
 fi
 
 if [ -n "$TEAMCITY_VERSION" ]; then
@@ -310,17 +335,13 @@ while read line; do
 done < <(env)
 
 CMD="docker run --rm \
+-t \
 ${docker_interactive_arg} \
 --env-file $envfile \
--v $credsfile:/root/.aws/credentials:ro \
-${ssh_key_volume_arg} \
-${gradle_cache_volume_arg} \
-${dcos_files_volume_arg} \
--v ${REPO_ROOT_DIR}:$WORK_DIR \
+${volume_args} \
 -w $WORK_DIR \
--t \
 mesosphere/dcos-commons:latest \
-${DOCKER_COMMAND}"
+${docker_command}"
 
 echo "==="
 echo "Docker command:"
