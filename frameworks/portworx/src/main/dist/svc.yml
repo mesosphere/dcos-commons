@@ -130,6 +130,9 @@ pods:
           timeout: 60
         health-check:
           cmd: |
+               if [ ! -f /etc/systemd/system/portworx.service ]; then
+                   pkill -fx 'journalctl -afu portworx'
+               fi
                svc_status=$(systemctl is-enabled portworx)
                if [[ "$svc_status" == "enabled" || "$svc_status" == "enabled-runtime" ]]; then
                    /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
