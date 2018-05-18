@@ -8,9 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -26,7 +28,7 @@ public class ClusterState {
     private final ServiceSpec serviceSpec;
     private final AbstractScheduler scheduler;
     private final List<Collection<Protos.Offer>> sentOfferSets = new ArrayList<>();
-    private final List<LaunchedPod> createdPods = new ArrayList<>();
+    private final List<AcceptEntry> acceptCalls = new ArrayList<>();
 
     private ClusterState(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
         this.serviceSpec = serviceSpec;
@@ -41,7 +43,7 @@ public class ClusterState {
             ClusterState clusterState, ServiceSpec serviceSpec, AbstractScheduler scheduler) {
         ClusterState updatedClusterState = create(serviceSpec, scheduler);
         updatedClusterState.sentOfferSets.addAll(clusterState.sentOfferSets);
-        updatedClusterState.createdPods.addAll(clusterState.createdPods);
+        updatedClusterState.acceptCalls.addAll(clusterState.acceptCalls);
         return updatedClusterState;
     }
 
@@ -97,25 +99,25 @@ public class ClusterState {
     /**
      * Adds the provided pod to the list of launched pods.
      */
-    public void addLaunchedPod(LaunchedPod pod) {
+    public void addAcceptCall(AcceptEntry pod) {
         if (pod.getTasks().isEmpty()) {
             throw new IllegalArgumentException("Refusing to record an empty pod");
         }
-        createdPods.add(pod);
+        acceptCalls.add(pod);
     }
 
     /**
      * Returns the last pod to be launched, regardless of the pod's name.
      *
-     * @return the last pod added to {@link #addLaunchedPod(Collection)}
+     * @return the last pod added to {@link #addAcceptCall(Collection)}
      * @throws IllegalStateException if no pods had been launched
-     * @see #getLastLaunchedPod(String)
+     * @see #getLastAcceptCall(String)
      */
-    public LaunchedPod getLastLaunchedPod() {
-        if (createdPods.isEmpty()) {
+    public AcceptEntry getLastAcceptCall() {
+        if (acceptCalls.isEmpty()) {
             throw new IllegalStateException("No pods were created yet");
         }
-        return createdPods.get(createdPods.size() - 1);
+        return acceptCalls.get(acceptCalls.size() - 1);
     }
 
     /**
@@ -124,32 +126,34 @@ public class ClusterState {
      * @param podName name+index of the pod, of the form "podtype-#"
      * @return a list of tasks which were included in the pod
      * @throws IllegalStateException if no such pod was found
-     * @see #getLastLaunchedPod()
+     * @see #getLastAcceptCall()
      */
-    public LaunchedPod getLastLaunchedPod(String podName) {
+    public AcceptEntry getLastAcceptCall(String podName) {
         Set<String> allPodNames = new TreeSet<>();
-        LaunchedPod foundPod = null;
-        for (LaunchedPod pod : createdPods) {
-            // Sample pod info from the first task. All tasks should share the same pod info:
-            final Protos.TaskInfo task = pod.getTasks().iterator().next();
-            final TaskLabelReader reader = new TaskLabelReader(task);
-            final String thisPod;
-            try {
-                thisPod = PodInstance.getName(reader.getType(), reader.getIndex());
-            } catch (TaskException e) {
-                throw new IllegalStateException("Unable to extract pod from task " + task.getName(), e);
-            }
-            allPodNames.add(thisPod);
-            if (thisPod.equals(podName)) {
-                foundPod = pod;
-                // Don't break: want to collect the most recent version
+        AcceptEntry foundAcceptCall = null;
+        for (AcceptEntry acceptCall : acceptCalls) {
+            // Check the tasks in this accept call for any tasks which match this pod:
+            for (Protos.TaskInfo launchedTask : acceptCall.getTasks()) {
+                final TaskLabelReader reader = new TaskLabelReader(launchedTask);
+                final String thisPod;
+                try {
+                    thisPod = PodInstance.getName(reader.getType(), reader.getIndex());
+                } catch (TaskException e) {
+                    throw new IllegalStateException("Unable to extract pod from task " + launchedTask.getName(), e);
+                }
+                allPodNames.add(thisPod);
+                if (thisPod.equals(podName)) {
+                    foundAcceptCall = acceptCall;
+                    // Stop checking tasks, but don't exit acceptCalls loop: want to collect the most recent version
+                    break;
+                }
             }
         }
-        if (foundPod == null) {
+        if (foundAcceptCall == null) {
             throw new IllegalStateException(String.format(
-                    "Unable to find pod named %s. Available pods were: %s", podName, allPodNames));
+                    "Unable to find launched pod named %s. Available pods were: %s", podName, allPodNames));
         }
-        return foundPod;
+        return foundAcceptCall;
     }
 
     /**
@@ -170,9 +174,11 @@ public class ClusterState {
         // Note: We COULD have just filtered against the task name up-front here, but it'd be more helpful to have a
         // mapping of all tasks available for the error message below.
         Map<String, LaunchedTask> tasksByName = new HashMap<>();
-        for (LaunchedPod pod : createdPods) {
-            for (Protos.TaskInfo task : pod.getTasks()) {
-                tasksByName.put(task.getName(), new LaunchedTask(pod.getExecutor(), task));
+        for (AcceptEntry acceptCall : acceptCalls) {
+            for (Protos.TaskInfo task : acceptCall.getTasks()) {
+                // The accept call should also have an executor matching the launched task:
+                tasksByName.put(
+                        task.getName(), new LaunchedTask(findMatchingExecutor(task, acceptCall.getExecutors()), task));
             }
         }
         LaunchedTask task = tasksByName.get(taskName);
@@ -181,6 +187,40 @@ public class ClusterState {
                     "Unable to find task named %s, known tasks were: %s", taskName, tasksByName.keySet()));
         }
         return task;
+    }
+
+    /**
+     * Searches for exactly one executor in a given accept call which matches the task. The match is found by comparing
+     * the executor name with the pod type of the task. In practice, there should only be one executor of a given type
+     * in a given {@code acceptOffers()} call.
+     */
+    private static Protos.ExecutorInfo findMatchingExecutor(
+            Protos.TaskInfo task, Collection<Protos.ExecutorInfo> executors) {
+        final String podType;
+        try {
+            podType = new TaskLabelReader(task).getType();
+        } catch (TaskException e) {
+            throw new IllegalStateException("Unable to extract pod from task " + task.getName(), e);
+        }
+        Protos.ExecutorInfo matchingExecutor = null;
+        for (Protos.ExecutorInfo executor : executors) {
+            if (executor.getName().equals(podType)) {
+                if (matchingExecutor != null) {
+                    throw new IllegalStateException(String.format(
+                            "Found multiple executors with pod type %s: %s",
+                            podType, executors.stream()
+                                    .map(e -> TextFormat.shortDebugString(e))
+                                    .collect(Collectors.toList())));
+                }
+                matchingExecutor = executor;
+            }
+        }
+        if (matchingExecutor == null) {
+            throw new IllegalStateException(String.format(
+                    "Expected at least one executor with pod type %s, got: %s",
+                    podType, executors.stream().map(e -> e.getName()).collect(Collectors.toList())));
+        }
+        return matchingExecutor;
     }
 
     /**

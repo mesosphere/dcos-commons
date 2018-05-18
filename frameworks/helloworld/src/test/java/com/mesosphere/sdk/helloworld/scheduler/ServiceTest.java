@@ -615,11 +615,14 @@ public class ServiceTest {
             Map<String, Status> expectedSteps = new TreeMap<>();
             expectedSteps.put(String.format("kill-%s-server", stepCount.phaseName),
                     stepCount.statusOfStepIndex(expectedSteps.size()));
-            LaunchedPod pod = state.getLastLaunchedPod(stepCount.phaseName);
+            AcceptEntry acceptCall = state.getLastAcceptCall(stepCount.phaseName);
 
             Collection<String> resourceIds = new ArrayList<>();
-            resourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(pod.getTasks())));
-            resourceIds.addAll(ResourceUtils.getResourceIds(pod.getExecutor().getResourcesList()));
+            resourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(acceptCall.getTasks())));
+            resourceIds.addAll(acceptCall.getExecutors().stream()
+                    .map(e -> ResourceUtils.getResourceIds(e.getResourcesList()))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
             for (String resourceId : resourceIds) {
                 expectedSteps.put(String.format("unreserve-%s", resourceId),
                         stepCount.statusOfStepIndex(expectedSteps.size()));

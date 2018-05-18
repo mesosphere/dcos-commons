@@ -60,16 +60,32 @@ public interface Expect extends SimulationTick {
     }
 
     /**
-     * Verifies that a pod was launched with exactly the provided task names.
+     * Verifies that a pod was launched with exactly the provided task names in the last accept call.
      */
     public static Expect launchedTasks(String... taskNames) {
         return launchedTasks(Arrays.asList(taskNames));
     }
 
     /**
-     * Verifies that a pod was launched with exactly the provided task names.
+     * Verifies that a pod was launched with exactly the provided task names in the last accept call.
      */
     public static Expect launchedTasks(Collection<String> taskNames) {
+        return launchedTasks(1, taskNames);
+    }
+
+    /**
+     * Verifies that a pod was launched with exactly the provided task names over the last N accept calls. If the last
+     * offer cycle had multiple offers from different agents, then separate accept calls are made on a per-agent basis.
+     */
+    public static Expect launchedTasks(int acceptsToCheck, String... taskNames) {
+        return launchedTasks(acceptsToCheck, Arrays.asList(taskNames));
+    }
+
+    /**
+     * Verifies that a pod was launched with exactly the provided task names over the last N accept calls. If the last
+     * offer cycle had multiple offers from different agents, then separate accept calls are made on a per-agent basis.
+     */
+    public static Expect launchedTasks(int acceptsToCheck, Collection<String> taskNames) {
         return new Expect() {
             // Use this form instead of using ArgumentCaptor.forClass() to avoid problems with typecasting generics:
             @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdsCaptor;
@@ -79,50 +95,78 @@ public interface Expect extends SimulationTick {
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 MockitoAnnotations.initMocks(this);
 
-                verify(mockDriver, atLeastOnce())
+                // Get the params from the last N accept calls:
+                verify(mockDriver, atLeast(acceptsToCheck))
                         .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
+                // With the above retrieval, we will have >=acceptsToCheck calls in forward chronological order.
+                // We need to manually cut that down to just the LAST acceptsToCheck calls:
+                List<Collection<Protos.OfferID>> allOfferIdAcceptCalls = offerIdsCaptor.getAllValues();
+                Collection<String> acceptedOfferIds = allOfferIdAcceptCalls
+                        .subList(allOfferIdAcceptCalls.size() - acceptsToCheck, allOfferIdAcceptCalls.size())
+                        .stream()
+                        .flatMap(Collection::stream)
+                        .map(Protos.OfferID::getValue)
+                        .collect(Collectors.toList());
 
-                // Check last accepted offer ID was in last offer cycle:
-                Protos.OfferID lastAcceptedOfferId = offerIdsCaptor.getValue().iterator().next();
+                List<Collection<Protos.Offer.Operation>> allOperationAcceptCalls = operationsCaptor.getAllValues();
+                List<Collection<Protos.Offer.Operation>> selectedOperationAcceptCalls = allOperationAcceptCalls
+                        .subList(allOperationAcceptCalls.size() - acceptsToCheck, allOperationAcceptCalls.size());
+
+                // As a sanity check, verify that the accepted ids were all from the most recent offer cycle. This
+                // ensures that we aren't looking at accepted offers from a prior offer cycle.
                 Set<String> lastCycleOfferIds = state.getLastOfferCycle().stream()
                         .map(o -> o.getId().getValue())
                         .collect(Collectors.toSet());
                 Assert.assertTrue(String.format(
-                            "Expected last accepted offer in last offer cycle: %s, but last accepted offer was %s",
-                            lastCycleOfferIds, lastAcceptedOfferId.getValue()),
-                        lastCycleOfferIds.contains(lastAcceptedOfferId.getValue()));
+                            "Expected last accepted offer in last offer cycle: %s, but last %d accepted %s %s",
+                            lastCycleOfferIds,
+                            acceptsToCheck,
+                            acceptsToCheck == 1 ? "offer was" : "offers were",
+                            acceptedOfferIds),
+                        lastCycleOfferIds.containsAll(acceptedOfferIds));
 
                 // Check (and capture) task launch operations:
                 Collection<String> launchedTaskNames = new ArrayList<>();
-                // A single acceptOffers() call may contain multiple LAUNCH/LAUNCH_GROUP operations.
-                // We want to ensure they're all counted as a unit when tallying the pod.
-                Protos.ExecutorInfo launchedExecutor = null;
-                Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
-                Collection<Protos.Resource> reservedResources = new ArrayList<>();
-                for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
-                    switch (operation.getType()) {
-                    case LAUNCH_GROUP: {
-                        launchedExecutor = operation.getLaunchGroup().getExecutor();
+                // Iterate over acceptOffers() calls, one per agent:
+                for (Collection<Protos.Offer.Operation> acceptCallOperations : selectedOperationAcceptCalls) {
+                    // A single acceptOffers() call may contain multiple LAUNCH_GROUP operations.
+                    // We want to ensure they're all counted as a unit when tallying the pod.
+                    // TODO(nickbp): DCOS-37508 We currently produce multiple LAUNCH_GROUPs (each with identical copies
+                    // of the same ExecutorInfo) when launching multiple tasks in a pod. As a temporary measure, this
+                    // de-dupes executors by their ExecutorID. Remove this de-dupe once DCOS-37508 is fixed.
+                    Map<String, Protos.ExecutorInfo> executorsById = new HashMap<>();
+                    Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
+                    Collection<Protos.Resource> reservedResources = new ArrayList<>();
+                    for (Protos.Offer.Operation operation : acceptCallOperations) {
+                        switch (operation.getType()) {
+                        case LAUNCH_GROUP: {
+                            Protos.ExecutorInfo executor = operation.getLaunchGroup().getExecutor();
+                            executorsById.put(executor.getExecutorId().getValue(), executor);
 
-                        Collection<Protos.TaskInfo> taskInfos =
-                                operation.getLaunchGroup().getTaskGroup().getTasksList();
+                            Collection<Protos.TaskInfo> taskInfos =
+                                    operation.getLaunchGroup().getTaskGroup().getTasksList();
 
-                        launchedTaskNames.addAll(taskInfos.stream()
-                                .map(task -> task.getName())
-                                .collect(Collectors.toList()));
-                        launchedTaskInfos.addAll(taskInfos);
-                        break;
+                            launchedTaskNames.addAll(taskInfos.stream()
+                                    .map(task -> task.getName())
+                                    .collect(Collectors.toList()));
+                            launchedTaskInfos.addAll(taskInfos);
+                            break;
+                        }
+                        case RESERVE:
+                            reservedResources.addAll(operation.getReserve().getResourcesList());
+                            break;
+                        default:
+                            break;
+                        }
                     }
-                    case RESERVE:
-                        reservedResources.addAll(operation.getReserve().getResourcesList());
-                        break;
-                    default:
-                        break;
+                    // Record the accept operation if anything happened:
+                    if (!executorsById.isEmpty() || !launchedTaskInfos.isEmpty() || !reservedResources.isEmpty()) {
+                        state.addAcceptCall(
+                                new AcceptEntry(executorsById.values(), launchedTaskInfos, reservedResources));
                     }
                 }
-                if (launchedExecutor != null) {
-                    state.addLaunchedPod(new LaunchedPod(launchedExecutor, launchedTaskInfos, reservedResources));
-                }
+
+                // Finally, verify that exactly the expected tasks were launched across these acceptOffers() calls:
                 Assert.assertTrue(
                         String.format("Expected launched tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
                         launchedTaskNames.containsAll(taskNames) && taskNames.containsAll(launchedTaskNames));

@@ -194,7 +194,8 @@ public class CustomStepsTest {
 
         // Service should launch both hello-0/1-first using the provided offers:
         ticks.add(Send.offerBuilder("hello").setCount(3).build());
-        ticks.add(Expect.launchedTasks("hello-0-first", "hello-1-first"));
+        // Launches will end up being split across two offers/agents:
+        ticks.add(Expect.launchedTasks(2, "hello-0-first", "hello-1-first"));
 
         // New offer declined since hello-1/2-first aren't RUNNING yet:
         ticks.add(Send.offerBuilder("hello").setCount(3).setPodIndexToReoffer(0).build());
@@ -216,6 +217,9 @@ public class CustomStepsTest {
 
         ticks.add(Expect.samePod("hello-0-first", "hello-0-second"));
         ticks.add(Expect.samePod("hello-1-first", "hello-1-second"));
+
+        ticks.add(Send.taskStatus("hello-0-second", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-1-second", Protos.TaskState.TASK_RUNNING).build());
 
         // No more hellos to launch:
         ticks.add(Send.offerBuilder("hello").setCount(3).build());
@@ -239,7 +243,8 @@ public class CustomStepsTest {
 
         // Service should launch all of hello-0/1-first/second using the provided offers:
         ticks.add(Send.offerBuilder("hello").setCount(3).build());
-        ticks.add(Expect.launchedTasks("hello-0-first", "hello-0-second", "hello-1-first", "hello-1-second"));
+        // Launches will end up being split across two offers/agents:
+        ticks.add(Expect.launchedTasks(2, "hello-0-first", "hello-0-second", "hello-1-first", "hello-1-second"));
 
         ticks.add(Send.taskStatus("hello-0-first", Protos.TaskState.TASK_RUNNING).build());
         ticks.add(Send.taskStatus("hello-0-second", Protos.TaskState.TASK_RUNNING).build());
@@ -271,7 +276,8 @@ public class CustomStepsTest {
 
         // Service should launch both hello-0/1-first using the provided offers:
         ticks.add(Send.offerBuilder("hello").setCount(3).build());
-        ticks.add(Expect.launchedTasks("hello-0-first", "hello-1-first"));
+        // Launches will end up being split across two offers/agents:
+        ticks.add(Expect.launchedTasks(2, "hello-0-first", "hello-1-first"));
 
         // New offer declined since hello-1/2-first aren't RUNNING yet:
         ticks.add(Send.offerBuilder("hello").setCount(3).setPodIndexToReoffer(0).build());
@@ -293,6 +299,11 @@ public class CustomStepsTest {
 
         ticks.add(Expect.samePod("hello-0-first", "hello-0-second", "hello-0-third"));
         ticks.add(Expect.samePod("hello-1-first", "hello-1-second", "hello-1-third"));
+
+        ticks.add(Send.taskStatus("hello-0-second", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-0-third", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-1-second", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("hello-1-third", Protos.TaskState.TASK_RUNNING).build());
 
         // No more hellos to launch:
         ticks.add(Send.offerBuilder("hello").setCount(3).build());

@@ -147,9 +147,10 @@ public class SendOffer implements Send {
         for (TaskSpec taskSpec : podSpec.getTasks()) {
             if (podToReuse.isPresent()) {
                 // Copy executor id and all reserved resources from prior pod launch:
-                LaunchedPod pod = state.getLastLaunchedPod(podToReuse.get());
+                AcceptEntry pod = state.getLastAcceptCall(podToReuse.get());
                 offerBuilder
-                        .addExecutorIds(pod.getExecutor().getExecutorId())
+                        .addAllExecutorIds(
+                                pod.getExecutors().stream().map(e -> e.getExecutorId()).collect(Collectors.toList()))
                         .addAllResources(pod.getReservations());
             } else {
                 // Create new unreserved resources:
