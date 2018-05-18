@@ -62,6 +62,7 @@ class UniverseReleaseBuilder(object):
     @staticmethod
     def apply_beta_version(package_version: str, is_beta: bool) -> str:
         '''Add the '-beta' suffix to the package version if required'''
+        stripped_version = package_version
         if is_beta:
             stripped_version = right_trim(package_version, '-beta')
             log.info('Applying -beta sufix to %s', stripped_version)
@@ -116,7 +117,6 @@ Source URL:      {}
 Package name:    {}
 Package version: {}
 Artifact output: {}
-Upgrades from:   {}
 ###'''.format(self._stub_universe_url,
               self._pkg_name,
               self._pkg_version,
