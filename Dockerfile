@@ -1,4 +1,4 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     tox \
     software-properties-common \
-    python-software-properties \
+    python3-software-properties \
     libssl-dev \
     upx-ucl \
     wget \
