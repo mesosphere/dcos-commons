@@ -71,6 +71,4 @@ public class SendTaskStatus implements Send {
         }
         scheduler.statusUpdate(mockDriver, taskStatusBuilder.build());
     }
-
-
 }

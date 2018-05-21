@@ -54,6 +54,8 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("template").build());
         ticks.add(Expect.launchedTasks("template-0-node"));
         ticks.add(Send.taskStatus("template-0-node", Protos.TaskState.TASK_ERROR).build());
+        // Offers are revived following the failure:
+        ticks.add(Expect.revivedOffers(1));
 
         // Because the task has now been "pinned", a different offer which would fit the task is declined:
         ticks.add(Send.offerBuilder("template").build());

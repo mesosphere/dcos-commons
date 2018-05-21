@@ -33,6 +33,9 @@ public class Capabilities {
         }
     }
 
+    /**
+     * Overrides the cluster capabilities object returned by {@link #getInstance()}, for use in tests.
+     */
     public static void overrideCapabilities(Capabilities overrides) {
         synchronized (lock) {
             capabilities = overrides;

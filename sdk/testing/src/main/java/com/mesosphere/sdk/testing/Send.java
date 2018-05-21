@@ -5,7 +5,7 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * A type of {@link SimulationTick} that performs an operation against the scheduler.
@@ -64,19 +64,20 @@ public interface Send extends SimulationTick {
     }
 
     /**
-     * Sends the provided offer to the scheduler.
+     * Triggers offer processing against an empty list of offers. This is useful for bumping the plan status. In
+     * practice this would happen automatically every few seconds, but we need to do it manually in these tests.
+     * See OfferProcessor.
      */
-    public static Send offer(Protos.Offer offer) {
+    public static Send emptyOffers() {
         return new Send() {
             @Override
             public void send(ClusterState state, SchedulerDriver mockDriver, Scheduler scheduler) {
-                state.addSentOffer(offer);
-                scheduler.resourceOffers(mockDriver, Arrays.asList(offer));
+                scheduler.resourceOffers(mockDriver, Collections.emptyList());
             }
 
             @Override
             public String getDescription() {
-                return String.format("Send offer: %s", offer);
+                return String.format("Nudge offer processing with empty list");
             }
         };
     }
