@@ -10,7 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     tox \
     software-properties-common \
-    python-software-properties \
+    python3-software-properties \
     libssl-dev \
     upx-ucl \
     wget \
