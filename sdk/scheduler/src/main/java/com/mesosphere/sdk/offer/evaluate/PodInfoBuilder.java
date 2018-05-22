@@ -552,6 +552,7 @@ public class PodInfoBuilder {
         if (shouldAddImage) {
             containerInfo.getMesosBuilder().getImageBuilder()
                     .setType(Protos.Image.Type.DOCKER)
+                    .setCached(!podSpec.getForcePull())
                     .getDockerBuilder().setName(podSpec.getImage().get());
         }
 
@@ -561,7 +562,9 @@ public class PodInfoBuilder {
             LOGGER.info("Adding NetworkInfos for networks: {}",
                     podSpec.getNetworks().stream().map(n -> n.getName()).collect(Collectors.toList()));
             containerInfo.addAllNetworkInfos(
-                    podSpec.getNetworks().stream().map(PodInfoBuilder::getNetworkInfo).collect(Collectors.toList()));
+                    podSpec.getNetworks().stream()
+                            .map(PodInfoBuilder::getNetworkInfo)
+                            .collect(Collectors.toList()));
         }
 
         if (!podSpec.getRLimits().isEmpty() && addExtraParameters) {

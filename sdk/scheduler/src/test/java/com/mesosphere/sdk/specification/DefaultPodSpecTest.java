@@ -49,6 +49,7 @@ public class DefaultPodSpecTest {
                 "root",
                 5,
                 "mesosphere:image",
+                 false,
                 Arrays.asList(new DefaultNetworkSpec("net-name", Collections.singletonMap(5, 4), Collections.singletonMap("key", "val"))),
                 Arrays.asList(new RLimitSpec("RLIMIT_CPU", 20L, 50L)),
                 Arrays.asList(URI.create("http://example.com/artifact.tgz")),

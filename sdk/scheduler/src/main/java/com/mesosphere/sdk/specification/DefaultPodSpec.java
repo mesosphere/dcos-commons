@@ -32,6 +32,8 @@ public class DefaultPodSpec implements PodSpec {
     private Boolean allowDecommission;
     @Size(min = 1)
     private String image;
+    @NotNull
+    private Boolean forcePull;
     @Valid
     private Collection<NetworkSpec> networks;
     @Valid
@@ -59,6 +61,7 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
             @JsonProperty("image") String image,
+            @JsonProperty("force-pull") Boolean forcePull,
             @JsonProperty("networks") Collection<NetworkSpec> networks,
             @JsonProperty("rlimits") Collection<RLimitSpec> rlimits,
             @JsonProperty("uris") Collection<URI> uris,
@@ -75,6 +78,7 @@ public class DefaultPodSpec implements PodSpec {
                         .user(user)
                         .count(count)
                         .image(image)
+                        .forcePull(forcePull)
                         .networks(networks)
                         .rlimits(rlimits)
                         .uris(uris)
@@ -91,6 +95,7 @@ public class DefaultPodSpec implements PodSpec {
         this.count = builder.count;
         this.allowDecommission = builder.allowDecommission;
         this.image = builder.image;
+        this.forcePull = builder.forcePull;
         this.networks = builder.networks;
         this.placementRule = builder.placementRule;
         this.preReservedRole = builder.preReservedRole;
@@ -116,6 +121,7 @@ public class DefaultPodSpec implements PodSpec {
                 copy.getTasks());
         builder.allowDecommission = copy.getAllowDecommission();
         builder.image = copy.getImage().isPresent() ? copy.getImage().get() : null;
+        builder.forcePull = copy.getForcePull();
         builder.networks = copy.getNetworks();
         builder.placementRule = copy.getPlacementRule().isPresent() ? copy.getPlacementRule().get() : null;
         builder.preReservedRole = copy.getPreReservedRole();
@@ -151,6 +157,11 @@ public class DefaultPodSpec implements PodSpec {
     @Override
     public Optional<String> getImage() {
         return Optional.ofNullable(image);
+    }
+
+    @Override
+    public Boolean getForcePull() {
+        return forcePull;
     }
 
     @Override
@@ -222,6 +233,7 @@ public class DefaultPodSpec implements PodSpec {
         private Integer count;
         private Boolean allowDecommission = false;
         private String image;
+        private Boolean forcePull = false;
         private PlacementRule placementRule;
         private String preReservedRole = Constants.ANY_ROLE;
         private Collection<NetworkSpec> networks = new ArrayList<>();
@@ -291,6 +303,17 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder image(String image) {
             this.image = image;
+            return this;
+        }
+
+         /**
+         * Sets whether container image for tasks should be force-pulled (i.e., not cached)..
+         *
+         * @param forcePull whether the container image should be force pulled
+         * @return a reference to this Builder
+         */
+        public Builder forcePull(Boolean forcePull) {
+            this.forcePull = forcePull != null && forcePull;
             return this;
         }
 
