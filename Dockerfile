@@ -1,26 +1,35 @@
 FROM ubuntu:18.04
-RUN apt-get update && apt-get install -y \
-    git \
+
+ENV GO_VERSION=1.10.2
+
+# Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
+RUN apt-get update && \
+    apt-get install -y python3-software-properties software-properties-common && \
+    add-apt-repository -y ppa:webupd8team/java && \
+    apt-get update && \
+    echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | debconf-set-selections && \
+    apt-get install -y \
     curl \
+    git \
     jq \
-    default-jdk \
+    libssl-dev \
+    oracle-java8-installer \
     python-pip \
     python3 \
     python3-dev \
     python3-pip \
     tox \
     software-properties-common \
-    python3-software-properties \
-    libssl-dev \
     upx-ucl \
     wget \
     zip && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    java -version && \
+    curl -O https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz && \
+    tar -xf go${GO_VERSION}.linux-amd64.tar.gz && \
+    mv go /usr/local && \
+    rm -f go${GO_VERSION}.linux-amd64.tar.gz
 
-# Install go 1.8.5
-RUN curl -O https://storage.googleapis.com/golang/go1.8.5.linux-amd64.tar.gz && \
-    tar -xf go1.8.5.linux-amd64.tar.gz && \
-    mv go /usr/local
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
@@ -38,7 +47,7 @@ RUN mkdir /root/.ssh
 
 # Create a build-tool directory:
 RUN mkdir /build-tools
-ENV PATH /build-tools:$PATH
+ENV PATH=/build-tools:$PATH
 
 COPY tools/distribution/init /build-tools/
 COPY tools/ci/* /build-tools/
