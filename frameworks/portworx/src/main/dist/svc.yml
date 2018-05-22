@@ -89,8 +89,7 @@ pods:
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
-                    WantedBy=multi-user.target
-                    WantedBy=dcos.target" > /etc/systemd/system/portworx.service.new
+                    WantedBy=multi-user.target" > /etc/systemd/system/portworx.service.new
 
                 diff -Z /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service
                 difference=$?
