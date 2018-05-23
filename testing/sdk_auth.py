@@ -127,8 +127,8 @@ def kinit(marathon_task_id: str, keytab: str, principal: str):
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
     rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, kinit_cmd)
     if rc != 0:
-        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
-                           "stdout: {}\n" \
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n"
+                           "stdout: {}\n"
                            "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
