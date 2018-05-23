@@ -127,8 +127,8 @@ def kinit(marathon_task_id: str, keytab: str, principal: str):
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
     rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, kinit_cmd)
     if rc != 0:
-        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
-                           "stdout: {}\n" \
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n"
+                           "stdout: {}\n"
                            "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
@@ -144,11 +144,12 @@ def kdestroy(marathon_task_id: str):
 
 
 class KerberosEnvironment:
-    def __init__(self):
+    def __init__(self, persist: bool=False):
         """
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
         This just passes a dictionary to be rendered as a JSON app definition to marathon.
         """
+        self._persist = persist
         self._working_dir = None
         self._temp_working_dir = None
 
@@ -191,6 +192,9 @@ class KerberosEnvironment:
             return success
 
         if sdk_marathon.app_exists(self.app_definition["id"]):
+            if self._persist:
+                log.info("Found installed KDC app, reusing it")
+                return _get_kdc_task(self.app_definition["id"])
             log.info("Found installed KDC app, destroying it first")
             sdk_marathon.destroy(self.app_definition["id"])
 
