@@ -62,11 +62,23 @@ public class EndpointUtils {
     /**
      * Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.
      */
-    public static String toAutoIpEndpoint(String serviceName,
-                                          String taskName,
-                                          int port,
-                                          SchedulerConfig schedulerConfig) {
+    public static String toAutoIpEndpoint(
+            String serviceName, String taskName, int port, SchedulerConfig schedulerConfig) {
         return toEndpoint(toAutoIpHostname(serviceName, taskName, schedulerConfig), port);
+    }
+
+    /**
+     * Returns the correct DNS hostname for accessing the Scheduler API given the provided service name.
+     */
+    public static String toSchedulerAutoIpHostname(String serviceName, SchedulerConfig schedulerConfig) {
+        return toAutoIpHostname("marathon", serviceName, schedulerConfig);
+    }
+
+    /**
+     * Returns the correct DNS hostname:port endpoint for accessing the Scheduler API given the provided service name.
+     */
+    public static String toSchedulerAutoIpEndpoint(String serviceName, SchedulerConfig schedulerConfig) {
+        return toAutoIpEndpoint("marathon", serviceName, schedulerConfig.getApiServerPort(), schedulerConfig);
     }
 
     /**
@@ -88,13 +100,6 @@ public class EndpointUtils {
      */
     public static String toVipEndpoint(String serviceName, VipInfo vipInfo) {
         return toEndpoint(toVipHostname(serviceName, vipInfo), vipInfo.getVipPort());
-    }
-
-    /**
-     * Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.
-     */
-    public static String toSchedulerApiVipHostname(String serviceName) {
-        return String.format("api.%s.marathon.%s", removeSlashes(serviceName), Constants.VIP_HOST_TLD);
     }
 
     /**

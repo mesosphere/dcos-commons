@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -49,7 +48,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
@@ -86,7 +85,7 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
