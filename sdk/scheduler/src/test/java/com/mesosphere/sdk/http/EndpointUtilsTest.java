@@ -66,16 +66,16 @@ public class EndpointUtilsTest {
     @Test
     public void testToSchedulerAutoIpHostname() {
         assertEquals("svc.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("svc", mockSchedulerConfig));
-        assertEquals("pathtosvc.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("/path/to/svc", mockSchedulerConfig));
-        assertEquals("pathtosvc.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("path/to/svc", mockSchedulerConfig));
-        assertEquals("pathtosvc-with-dots.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("path/to/svc.with.dots", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("/path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-with-dots-to-path.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("path/to/svc.with.dots", mockSchedulerConfig));
     }
 
     @Test
     public void testToSchedulerAutoIpEndpoint() {
         assertEquals("svc.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("svc", mockSchedulerConfig));
-        assertEquals("pathtosvc.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("/path/to/svc", mockSchedulerConfig));
-        assertEquals("pathtosvc.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("path/to/svc", mockSchedulerConfig));
-        assertEquals("pathtosvc-with-dots.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("path/to/svc.with.dots", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("/path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-with-dots-to-path.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("path/to/svc.with.dots", mockSchedulerConfig));
     }
 }

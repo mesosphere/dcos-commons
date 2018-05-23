@@ -1,7 +1,12 @@
 package com.mesosphere.sdk.http;
 
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
 
 /**
  * Utilities relating to the creation and interpretation of endpoints between DC/OS tasks.
@@ -55,7 +60,7 @@ public class EndpointUtils {
      */
     public static String toAutoIpHostname(String serviceName, String taskName, SchedulerConfig schedulerConfig) {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
-        return String.format("%s.%s", removeSlashes(replaceDotsWithDashes(taskName)),
+        return String.format("%s.%s", reverseSlashedSegmentsWithDashes(replaceDotsWithDashes(taskName)),
                 toAutoIpDomain(serviceName, schedulerConfig));
     }
 
@@ -115,5 +120,12 @@ public class EndpointUtils {
      */
     public static String replaceDotsWithDashes(String name) {
         return name.replace('.', '-');
+    }
+
+    /**
+     * "/path/to/kafka" => "kafka-to-path".
+     */
+    private static String reverseSlashedSegmentsWithDashes(String name) {
+        return Joiner.on('-').join(Lists.reverse(Splitter.on('/').omitEmptyStrings().splitToList(name)));
     }
 }
