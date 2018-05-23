@@ -125,7 +125,7 @@ def get_summary(with_completed=False):
     if with_completed:
         output = all_tasks
     else:
-        output = filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks)
+        output = list(filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks))
     log.info('Task summary (with_completed={}):\n- {}'.format(
         with_completed, '\n- '.join([str(e) for e in output])))
     return output
