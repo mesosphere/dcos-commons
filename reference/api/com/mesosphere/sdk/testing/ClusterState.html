@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":9};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":9,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li>Prev&nbsp;Class</li>
+<li><a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -130,7 +130,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addLaunchedPod-com.mesosphere.sdk.testing.LaunchedPod-">addLaunchedPod</a></span>(<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;pod)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addAcceptCall-com.mesosphere.sdk.testing.AcceptEntry-">addAcceptCall</a></span>(<a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a>&nbsp;pod)</code>
 <div class="block">Adds the provided pod to the list of launched pods.</div>
 </td>
 </tr>
@@ -141,59 +141,65 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addSentOffers-java.util.Collection-">addSentOffers</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers)</code>
+<div class="block">Adds all of the provided offers to the list of sent offers.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#create-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.AbstractScheduler-">create</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
       <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&nbsp;scheduler)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.lang.Object&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getHTTPEndpoints--">getHTTPEndpoints</a></span>()</code>
 <div class="block">Returns the scheduler's HTTP endpoint objects.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod--">getLastLaunchedPod</a></span>()</code>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastAcceptCall--">getLastAcceptCall</a></span>()</code>
 <div class="block">Returns the last pod to be launched, regardless of the pod's name.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod-java.lang.String-">getLastLaunchedPod</a></span>(java.lang.String&nbsp;podName)</code>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastAcceptCall-java.lang.String-">getLastAcceptCall</a></span>(java.lang.String&nbsp;podName)</code>
 <div class="block">Returns the last pod to be launched with the specified name.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/LaunchedTask.html" title="class in com.mesosphere.sdk.testing">LaunchedTask</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedTask-java.lang.String-">getLastLaunchedTask</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns the last task launched with the specified name.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
-<td class="colFirst"><code>Protos.Offer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastOffer--">getLastOffer</a></span>()</code>
-<div class="block">Returns the last offer to have been sent.</div>
+<tr id="i8" class="altColor">
+<td class="colFirst"><code>java.util.Collection&lt;Protos.Offer&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastOfferCycle--">getLastOfferCycle</a></span>()</code>
+<div class="block">Returns the set of offers received in the last offer cycle.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getPlans--">getPlans</a></span>()</code>
 <div class="block">Returns the scheduler's current plans.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getServiceSpec--">getServiceSpec</a></span>()</code>
 <div class="block">Returns the rendered scheduler/service configuration.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>Protos.TaskID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getTaskId-java.lang.String-">getTaskId</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Returns the last task id for a task of the specified name.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#withUpdatedConfig-com.mesosphere.sdk.testing.ClusterState-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.AbstractScheduler-">withUpdatedConfig</a></span>(<a href="../../../../com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a>&nbsp;clusterState,
                  <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
@@ -282,57 +288,68 @@ extends java.lang.Object</pre>
 <div class="block">Adds the provided offer to the list of sent offers.</div>
 </li>
 </ul>
-<a name="getLastOffer--">
+<a name="addSentOffers-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getLastOffer</h4>
-<pre>public&nbsp;Protos.Offer&nbsp;getLastOffer()</pre>
-<div class="block">Returns the last offer to have been sent.</div>
+<h4>addSentOffers</h4>
+<pre>public&nbsp;void&nbsp;addSentOffers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers)</pre>
+<div class="block">Adds all of the provided offers to the list of sent offers.</div>
+</li>
+</ul>
+<a name="getLastOfferCycle--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getLastOfferCycle</h4>
+<pre>public&nbsp;java.util.Collection&lt;Protos.Offer&gt;&nbsp;getLastOfferCycle()</pre>
+<div class="block">Returns the set of offers received in the last offer cycle.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the last offer added to <code>#addSentOffer(org.apache.mesos.Protos.Offer)</code></dd>
+<dd>the last offer added via <code>#addSentOffer(org.apache.mesos.Protos.Offer)</code> or
+          <a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#addSentOffers-java.util.Collection-"><code>addSentOffers(Collection)</code></a></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalStateException</code> - if no pods had been sent</dd>
+<dd><code>java.lang.IllegalStateException</code> - if no offers had been sent</dd>
 </dl>
 </li>
 </ul>
-<a name="addLaunchedPod-com.mesosphere.sdk.testing.LaunchedPod-">
+<a name="addAcceptCall-com.mesosphere.sdk.testing.AcceptEntry-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>addLaunchedPod</h4>
-<pre>public&nbsp;void&nbsp;addLaunchedPod(<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;pod)</pre>
+<h4>addAcceptCall</h4>
+<pre>public&nbsp;void&nbsp;addAcceptCall(<a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a>&nbsp;pod)</pre>
 <div class="block">Adds the provided pod to the list of launched pods.</div>
 </li>
 </ul>
-<a name="getLastLaunchedPod--">
+<a name="getLastAcceptCall--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getLastLaunchedPod</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;getLastLaunchedPod()</pre>
+<h4>getLastAcceptCall</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a>&nbsp;getLastAcceptCall()</pre>
 <div class="block">Returns the last pod to be launched, regardless of the pod's name.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>the last pod added to <code>#addLaunchedPod(Collection)</code></dd>
+<dd>the last pod added to <code>#addAcceptCall(Collection)</code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalStateException</code> - if no pods had been launched</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod-java.lang.String-"><code>getLastLaunchedPod(String)</code></a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastAcceptCall-java.lang.String-"><code>getLastAcceptCall(String)</code></a></dd>
 </dl>
 </li>
 </ul>
-<a name="getLastLaunchedPod-java.lang.String-">
+<a name="getLastAcceptCall-java.lang.String-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getLastLaunchedPod</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/LaunchedPod.html" title="class in com.mesosphere.sdk.testing">LaunchedPod</a>&nbsp;getLastLaunchedPod(java.lang.String&nbsp;podName)</pre>
+<h4>getLastAcceptCall</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a>&nbsp;getLastAcceptCall(java.lang.String&nbsp;podName)</pre>
 <div class="block">Returns the last pod to be launched with the specified name.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
@@ -342,7 +359,7 @@ extends java.lang.Object</pre>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalStateException</code> - if no such pod was found</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedPod--"><code>getLastLaunchedPod()</code></a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/testing/ClusterState.html#getLastAcceptCall--"><code>getLastAcceptCall()</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -409,7 +426,7 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li>Prev&nbsp;Class</li>
+<li><a href="../../../../com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

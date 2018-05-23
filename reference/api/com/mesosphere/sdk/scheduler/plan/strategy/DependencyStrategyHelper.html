@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.InvalidDependencyException.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../../index.html?com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" target="_top">Frames</a></li>
@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
+<li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -121,27 +121,6 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
-<!-- ======== NESTED CLASS SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="nested.class.summary">
-<!--   -->
-</a>
-<h3>Nested Class Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
-<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Class and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>static class&nbsp;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.InvalidDependencyException.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper.InvalidDependencyException</a></span></code>
-<div class="block">An <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.InvalidDependencyException.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><code>DependencyStrategyHelper.InvalidDependencyException</code></a> is thrown when an attempt generate an invalid dependency occurs.</div>
-</td>
-</tr>
-</table>
-</li>
-</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -174,20 +153,20 @@ extends java.lang.Object</pre>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#addDependency-C-C-">addDependency</a></span>(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;child,
-             <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;parent)</code>&nbsp;</td>
+             <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;parent)</code>
+<div class="block">Marks a direct dependency between two nodes.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#addElement-C-">addElement</a></span>(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;element)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#addElement-C-">addElement</a></span>(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;element)</code>
+<div class="block">Adds an element to be considered as a candidate.</div>
+</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#getCandidates-boolean-java.util.Collection-">getCandidates</a></span>(boolean&nbsp;isInterrupted,
              java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.Map&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>,java.util.Set&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&gt;&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#getDependencies--">getDependencies</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -228,22 +207,6 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="addElement-com.mesosphere.sdk.scheduler.plan.Element-">
-<!--   -->
-</a><a name="addElement-C-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>addElement</h4>
-<pre>public&nbsp;void&nbsp;addElement(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;element)
-                throws <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.InvalidDependencyException.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper.InvalidDependencyException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.InvalidDependencyException.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">DependencyStrategyHelper.InvalidDependencyException</a></code></dd>
-</dl>
-</li>
-</ul>
 <a name="addDependency-com.mesosphere.sdk.scheduler.plan.Element-com.mesosphere.sdk.scheduler.plan.Element-">
 <!--   -->
 </a><a name="addDependency-C-C-">
@@ -254,25 +217,33 @@ extends java.lang.Object</pre>
 <h4>addDependency</h4>
 <pre>public&nbsp;void&nbsp;addDependency(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;child,
                           <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;parent)</pre>
+<div class="block">Marks a direct dependency between two nodes. NOTE: This helper does NOT handle any inferred/chained dependencies.
+ It is the responsibility of the caller to explicitly add each dependency directly. For example, given c->b->a,
+ the caller MUST explicitly specify c->b, b->a, AND c->a as dependencies.</div>
+</li>
+</ul>
+<a name="addElement-com.mesosphere.sdk.scheduler.plan.Element-">
+<!--   -->
+</a><a name="addElement-C-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addElement</h4>
+<pre>public&nbsp;void&nbsp;addElement(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;element)</pre>
+<div class="block">Adds an element to be considered as a candidate. This may be used to add standalone entries which should be
+ considered but which don't have any dependencies. Calling this is NOT necessary for any elements which were added
+ (as child or as parent) via <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html#addDependency-C-C-"><code>addDependency(Element, Element)</code></a>, or which were passed via the constructor.</div>
 </li>
 </ul>
 <a name="getCandidates-boolean-java.util.Collection-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>getCandidates</h4>
 <pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&gt;&nbsp;getCandidates(boolean&nbsp;isInterrupted,
                                              java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;&nbsp;dirtyAssets)</pre>
-</li>
-</ul>
-<a name="getDependencies--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getDependencies</h4>
-<pre>public&nbsp;java.util.Map&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>,java.util.Set&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&gt;&gt;&nbsp;getDependencies()</pre>
 </li>
 </ul>
 </li>
@@ -303,7 +274,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.InvalidDependencyException.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../../index.html?com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" target="_top">Frames</a></li>
@@ -327,7 +298,7 @@ extends java.lang.Object</pre>
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
+<li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>

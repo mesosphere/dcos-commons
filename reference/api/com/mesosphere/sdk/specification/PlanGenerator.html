@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
+var methods = {"i0":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -74,13 +74,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -91,26 +91,53 @@ var activeTableTab = "activeTableTab";
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
 <div class="subTitle">com.mesosphere.sdk.specification</div>
-<h2 title="Interface PlanGenerator" class="title">Interface PlanGenerator</h2>
+<h2 title="Class PlanGenerator" class="title">Class PlanGenerator</h2>
 </div>
 <div class="contentContainer">
+<ul class="inheritance">
+<li>java.lang.Object</li>
+<li>
+<ul class="inheritance">
+<li>com.mesosphere.sdk.specification.PlanGenerator</li>
+</ul>
+</li>
+</ul>
 <div class="description">
 <ul class="blockList">
 <li class="blockList">
-<dl>
-<dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../com/mesosphere/sdk/specification/DefaultPlanGenerator.html" title="class in com.mesosphere.sdk.specification">DefaultPlanGenerator</a></dd>
-</dl>
 <hr>
 <br>
-<pre>public interface <span class="typeNameLabel">PlanGenerator</span></pre>
-<div class="block">PlanGenerator generates Plans from a given <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
+<pre>public class <span class="typeNameLabel">PlanGenerator</span>
+extends java.lang.Object</pre>
+<div class="block">Generates <a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>s as defined in a YAML plan specification.</div>
 </li>
 </ul>
 </div>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!--   -->
+</a>
+<h3>Constructor Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PlanGenerator.html#PlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-">PlanGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
+             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+             java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PlanGenerator.html#PlanGenerator-com.mesosphere.sdk.scheduler.plan.StepFactory-">PlanGenerator</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/plan/StepFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan">StepFactory</a>&nbsp;stepFactory)</code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -118,7 +145,7 @@ var activeTableTab = "activeTableTab";
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t3" class="tableTab"><span><a href="javascript:show(4);">Abstract Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -130,6 +157,13 @@ var activeTableTab = "activeTableTab";
         java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;&nbsp;podsSpecs)</code>&nbsp;</td>
 </tr>
 </table>
+<ul class="blockList">
+<li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
+<!--   -->
+</a>
+<h3>Methods inherited from class&nbsp;java.lang.Object</h3>
+<code>clone, equals, finalize, getClass, hashCode, notify, notifyAll, toString, wait, wait, wait</code></li>
+</ul>
 </li>
 </ul>
 </li>
@@ -138,6 +172,34 @@ var activeTableTab = "activeTableTab";
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!--   -->
+</a>
+<h3>Constructor Detail</h3>
+<a name="PlanGenerator-com.mesosphere.sdk.state.ConfigTargetStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>PlanGenerator</h4>
+<pre>public&nbsp;PlanGenerator(<a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a>&nbsp;configTargetStore,
+                     <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                     java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
+</li>
+</ul>
+<a name="PlanGenerator-com.mesosphere.sdk.scheduler.plan.StepFactory-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>PlanGenerator</h4>
+<pre>public&nbsp;PlanGenerator(<a href="../../../../com/mesosphere/sdk/scheduler/plan/StepFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan">StepFactory</a>&nbsp;stepFactory)</pre>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ============ METHOD DETAIL ========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.detail">
@@ -150,9 +212,9 @@ var activeTableTab = "activeTableTab";
 <ul class="blockListLast">
 <li class="blockList">
 <h4>generate</h4>
-<pre><a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;generate(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawPlan.html" title="class in com.mesosphere.sdk.specification.yaml">RawPlan</a>&nbsp;rawPlan,
-              java.lang.String&nbsp;planName,
-              java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;&nbsp;podsSpecs)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&nbsp;generate(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawPlan.html" title="class in com.mesosphere.sdk.specification.yaml">RawPlan</a>&nbsp;rawPlan,
+                     java.lang.String&nbsp;planName,
+                     java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;&nbsp;podsSpecs)</pre>
 </li>
 </ul>
 </li>
@@ -209,13 +271,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>

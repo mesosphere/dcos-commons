@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -157,11 +157,17 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setCount-int-">setCount</a></span>(int&nbsp;count)</code>
+<div class="block">Specifies the number of offers to be sent in the cycle.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setHostname-java.lang.String-">setHostname</a></span>(java.lang.String&nbsp;hostname)</code>
 <div class="block">Assigns a custom hostname to be used in the offer.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html#setPodIndexToReoffer-int-">setPodIndexToReoffer</a></span>(int&nbsp;podIndex)</code>
 <div class="block">Specifies that the previously reserved resources from a previously launched pod should be used in this offer,
@@ -232,6 +238,20 @@ extends java.lang.Object</pre>
 <h4>setHostname</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a>&nbsp;setHostname(java.lang.String&nbsp;hostname)</pre>
 <div class="block">Assigns a custom hostname to be used in the offer. Otherwise a common default will be used.</div>
+</li>
+</ul>
+<a name="setCount-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setCount</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a>&nbsp;setCount(int&nbsp;count)</pre>
+<div class="block">Specifies the number of offers to be sent in the cycle. This is effectively 1 by default.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>count</code> - the number of offers to send</dd>
+</dl>
 </li>
 </ul>
 <a name="build--">
