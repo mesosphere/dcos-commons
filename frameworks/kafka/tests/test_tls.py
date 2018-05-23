@@ -1,3 +1,4 @@
+import logging
 import pytest
 
 import sdk_cmd
@@ -10,6 +11,8 @@ import sdk_utils
 from security import transport_encryption, cipher_suites
 
 from tests import config
+
+log = logging.getLogger(__name__)
 
 # Name of the broker TLS vip
 BROKER_TLS_ENDPOINT = 'broker-tls'
@@ -124,17 +127,17 @@ def test_tls_ciphers(kafka_service_tls):
     assert possible_ciphers, 'Possible ciphers should be non-empty'
 
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
-    print("\nExpected ciphers:")
-    print("\n".join(sdk_utils.sort(list(expected_ciphers))))
-    print("\n{} ciphers will be checked:".format(len(possible_ciphers)))
-    print("\n".join(sdk_utils.sort(list(possible_ciphers))))
+    log.info("\nExpected ciphers:")
+    log.info("\n".join(sdk_utils.sort(list(expected_ciphers))))
+    log.info("\n{} ciphers will be checked:".format(len(possible_ciphers)))
+    log.info("\n".join(sdk_utils.sort(list(possible_ciphers))))
 
     for cipher in possible_ciphers:
         openssl_cipher = cipher_suites.openssl_name(cipher)
         if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
             enabled_ciphers.add(cipher)
 
-    print('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
-    print("\n".join(sdk_utils.sort(list(enabled_ciphers))))
+    log.info('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
+    log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
