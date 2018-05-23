@@ -58,6 +58,21 @@ plans:
         pod: hello
         steps:
           - default: [[once], [server]]
+      parallel-tasks:
+        strategy: serial
+        pod: hello
+        steps:
+          - default: [[once, server]]
+      parallel-strategy:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[once, server]]
+      parallel-pods:
+        strategy: parallel
+        pod: hello
+        steps:
+          - default: [[once], [server]]
       full-custom:
         strategy: serial
         pod: hello
@@ -71,8 +86,3 @@ plans:
         steps:
           - 1: [[once], [server]]
           - default: [[server], [once]]
-      omit-step:
-        strategy: serial
-        pod: hello
-        steps:
-          - 1: [[once], [server]]

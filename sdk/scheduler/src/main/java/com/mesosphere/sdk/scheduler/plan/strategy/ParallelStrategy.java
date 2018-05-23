@@ -4,6 +4,7 @@ import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 
 import java.util.Collection;
+import java.util.List;
 
 /**
  * A ParallelStrategy indicates that all Elements are candidates simultaneously.
@@ -34,7 +35,7 @@ public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C
      */
     public static class Generator<C extends Element> implements StrategyGenerator<C> {
         @Override
-        public Strategy<C> generate() {
+        public Strategy<C> generate(List<C> ignored) {
             return new ParallelStrategy<C>();
         }
     }

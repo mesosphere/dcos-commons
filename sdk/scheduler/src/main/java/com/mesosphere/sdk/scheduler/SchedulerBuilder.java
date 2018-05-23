@@ -149,7 +149,7 @@ public class SchedulerBuilder {
 
     /**
      * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
-     * {@link DefaultPlanGenerator} to handle conversion.
+     * {@link PlanGenerator} to handle conversion.
      */
     public SchedulerBuilder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
         if (rawServiceSpec.getPlans() != null) {
@@ -508,7 +508,7 @@ public class SchedulerBuilder {
             plansType = "YAML";
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.
-            DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore, namespace);
+            PlanGenerator planGenerator = new PlanGenerator(configStore, stateStore, namespace);
             plans = yamlPlans.entrySet().stream()
                     .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                     .collect(Collectors.toList());
