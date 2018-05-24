@@ -52,6 +52,6 @@ public class ServiceTest {
 
         return new ServiceTestRunner()
                 .setPodEnv("kafka", map)
-                .setBuildTemplateParams("kafka-version", "2.11-1.1.0"); // set by build.sh/versions.sh
+                .setBuildTemplateParams("kafka-version", "2.12-1.1.0"); // set by build.sh/versions.sh
     }
 }
