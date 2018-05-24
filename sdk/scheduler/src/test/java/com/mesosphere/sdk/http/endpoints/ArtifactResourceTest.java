@@ -31,7 +31,7 @@ public class ArtifactResourceTest {
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 ArtifactResource.getUrlFactory("svc-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
         assertEquals(
-                "http://pathtosvc-name.marathon.some.tld:1234/v1/artifacts/template/"
+                "http://svc-name-to-path.marathon.some.tld:1234/v1/artifacts/template/"
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 ArtifactResource.getUrlFactory("/path/to/svc-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
     }
