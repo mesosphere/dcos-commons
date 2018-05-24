@@ -35,7 +35,7 @@ public class MultiArtifactResourceTest {
     public void testGetQueuesTemplateUrlSlashed() {
         UUID uuid = UUID.randomUUID();
         assertEquals(
-                "http://pathtofwk-name.marathon.some.tld:1234/v1/service/path.to.job-name/artifacts/template/"
+                "http://fwk-name-to-path.marathon.some.tld:1234/v1/service/path.to.job-name/artifacts/template/"
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 MultiArtifactResource.getUrlFactory("/path/to/fwk-name", "/path/to/job-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
     }
