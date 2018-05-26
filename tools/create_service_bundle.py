@@ -22,12 +22,6 @@ class Bundle(object):
         self.service_name = service_name
         self.directory_name = directory_name
 
-    def run_on_all_tasks(self, task_prefix, fn):
-        task_ids = sdk_tasks.get_task_ids(self.service_name, task_prefix)
-
-        for task_id in task_ids:
-            fn(task_id)
-
     def write_file(self, file_name, content, is_json=True):
         file_path = os.path.join(self.directory_name, file_name)
 
@@ -42,7 +36,15 @@ class Bundle(object):
         raise NotImplementedError
 
 
-class CassandraBundle(Bundle):
+class BaseTechBundle(Bundle):
+    def for_each_task(self, task_prefix, fn):
+        task_ids = sdk_tasks.get_task_ids(self.service_name, task_prefix)
+
+        for task_id in task_ids:
+            fn(task_id)
+
+
+class CassandraBundle(BaseTechBundle):
     def task_exec(self, task_id, cmd):
         full_cmd = " ".join([
             'export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/jre/) &&',
@@ -73,10 +75,10 @@ class CassandraBundle(Bundle):
             is_json=False)
 
     def create_tasks_nodetool_status_files(self):
-        self.run_on_all_tasks('node', self.create_nodetool_status_file)
+        self.for_each_task('node', self.create_nodetool_status_file)
 
     def create_tasks_nodetool_tpstats_files(self):
-        self.run_on_all_tasks('node', self.create_nodetool_tpstats_file)
+        self.for_each_task('node', self.create_nodetool_tpstats_file)
 
     def create(self):
         logger.info('Creating Cassandra bundle')
@@ -84,22 +86,26 @@ class CassandraBundle(Bundle):
         self.create_tasks_nodetool_tpstats_files()
 
 
-class ElasticBundle(Bundle):
+class ElasticBundle(BaseTechBundle):
     def create(self):
         logger.info('Creating Elastic bundle')
 
 
-class HdfsBundle(Bundle):
+class HdfsBundle(BaseTechBundle):
     def create(self):
         logger.info('Creating HDFS bundle')
 
 
-class KafkaBundle(Bundle):
+class KafkaBundle(BaseTechBundle):
     def create(self):
         logger.info('Creating Kafka bundle')
 
 
-SERVICE_BUNDLE = {
+BASE_TECH_BUNDLE = {
+    'beta-cassandra': CassandraBundle,
+    'beta-elastic': ElasticBundle,
+    'beta-hdfs': HdfsBundle,
+    'beta-kafka': KafkaBundle,
     'cassandra': CassandraBundle,
     'elastic': ElasticBundle,
     'hdfs': HdfsBundle,
@@ -137,7 +143,7 @@ class ServiceBundle(Bundle):
 
         self.write_file('service_pod_status.json', output)
 
-    def create_plan_status_files(self, plan):
+    def create_plan_status_file(self, plan):
         output = sdk_cmd.svc_cli(
             self.package_name,
             self.service_name,
@@ -156,7 +162,7 @@ class ServiceBundle(Bundle):
             print_output=False)
 
         for plan in plans:
-            self.create_plan_status_files(plan)
+            self.create_plan_status_file(plan)
 
     def create(self):
         self.create_task_file()
@@ -164,8 +170,9 @@ class ServiceBundle(Bundle):
         self.create_service_configuration_file()
         self.create_service_pod_status_file()
         self.create_plans_status_files()
-        SERVICE_BUNDLE[self.service_name](self.package_name, self.service_name,
-                                          self.directory_name).create()
+        BASE_TECH_BUNDLE[self.service_name](self.package_name,
+                                            self.service_name,
+                                            self.directory_name).create()
 
 
 def print_usage(argv):
@@ -176,6 +183,7 @@ def main(argv):
     if len(argv) < 2:
         print_usage(argv)
         return 1
+
     package_name = argv[1]
     service_name = argv[2]
 
