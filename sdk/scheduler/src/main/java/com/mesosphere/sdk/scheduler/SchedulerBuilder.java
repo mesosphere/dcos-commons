@@ -69,6 +69,7 @@ public class SchedulerBuilder {
     private PlanCustomizer planCustomizer;
     private Optional<String> multiServiceFrameworkName = Optional.empty();
     private boolean regionAwarenessEnabled = false;
+    private Collection<Class<?>> additionalDeserializableSubtypes = new ArrayList<>();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -199,6 +200,15 @@ public class SchedulerBuilder {
     }
 
     /**
+     * Specifies additional class subtypes which should be registered with Jackson for deserialization, in addition
+     * to the defaults. This includes custom {@see PlacementRule}s.
+     */
+    public SchedulerBuilder setAdditionalDeserializableSubtypes(Collection<Class<?>> additionalDeserializableSubtypes) {
+        this.additionalDeserializableSubtypes = additionalDeserializableSubtypes;
+        return this;
+    }
+
+    /**
      * Creates a new Mesos scheduler instance with the provided values or their defaults, or an empty {@link Optional}
      * if no Mesos scheduler should be registered for this run.
      *
@@ -269,7 +279,9 @@ public class SchedulerBuilder {
         // Otherwise use an empty namespace, which indicates single-service mode.
         StateStore stateStore = new StateStore(persister, namespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, additionalDeserializableSubtypes),
+                persister,
+                namespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
