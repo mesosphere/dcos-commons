@@ -1,18 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import static org.mockito.Mockito.*;
-
-import java.util.*;
-
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.SchedulerDriver;
-
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -26,6 +13,23 @@ import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.TestConstants;
+import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.SchedulerDriver;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.mockito.Mockito.when;
 
 /**
  * Tests for {@link AbstractScheduler}.
@@ -85,14 +89,14 @@ public class AbstractSchedulerTest {
     private TestScheduler getScheduler() {
         TestScheduler scheduler = new TestScheduler(stateStore);
         // Start and register.
-        scheduler.start().registered(false);
+        scheduler.registered(false);
         return scheduler;
     }
 
     private class TestScheduler extends AbstractScheduler {
 
         protected TestScheduler(StateStore stateStore) {
-            super(mockServiceSpec, stateStore, Optional.empty(), Optional.empty());
+            super(mockServiceSpec, stateStore, null, Optional.empty(), Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }

@@ -2,7 +2,11 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.evaluate.placement.*;
+import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -23,12 +27,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Mockito.*;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the {@link SchedulerBuilder}.

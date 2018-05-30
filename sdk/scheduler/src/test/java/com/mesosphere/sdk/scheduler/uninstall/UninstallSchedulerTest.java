@@ -229,7 +229,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 Optional.of(mockSecretsClient),
                 new TestTimeFetcher());
-        uninstallScheduler.start().registered(false);
+        uninstallScheduler.registered(false);
         // Starts with a near-empty plan with only the deregistered call incomplete
         PlanCoordinator planCoordinator = uninstallScheduler.getPlanCoordinator();
         Plan plan = planCoordinator.getPlanManagers().stream().findFirst().get().getPlan();
@@ -326,7 +326,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 Optional.of(mockSecretsClient),
                 new TestTimeFetcher());
-        uninstallScheduler.start();
 
         Plan plan = uninstallScheduler.getPlanCoordinator().getPlanManagers().stream().findFirst().get().getPlan();
 
@@ -382,9 +381,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 Optional.of(mockSecretsClient),
                 timeFetcher);
-        uninstallScheduler
-                .start()
-                .registered(false);
+        uninstallScheduler.registered(false);
         return uninstallScheduler;
     }
 
