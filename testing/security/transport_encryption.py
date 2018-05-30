@@ -61,12 +61,7 @@ def cleanup_service_account(service_name: str, service_account_info: dict):
     if isinstance(service_account_info, str):
         service_account_info = {"name": service_account_info}
 
-    name = service_account_info["name"]
-    secret = service_account_info["secret"] if "secret" in service_account_info else name
-
-    sdk_security.cleanup_security(service_name,
-                                  service_account=name,
-                                  service_account_secret=secret)
+    sdk_security.cleanup_security(service_name, service_account_info)
 
 
 def fetch_dcos_ca_bundle(marathon_task: str) -> str:
