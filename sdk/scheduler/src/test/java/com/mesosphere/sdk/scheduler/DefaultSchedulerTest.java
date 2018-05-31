@@ -640,8 +640,7 @@ public class DefaultSchedulerTest {
         DefaultScheduler.newBuilder(
                 getServiceSpec(podA, scaledInPodB), SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
                 .setPlanCustomizer(planCustomizer)
-                .build()
-                .start();
+                .build();
 
         Assert.assertTrue(decommissionPlanCustomized.get());
     }
@@ -877,8 +876,7 @@ public class DefaultSchedulerTest {
     private DefaultScheduler getScheduler(ServiceSpec serviceSpec) throws PersisterException {
         AbstractScheduler scheduler = DefaultScheduler.newBuilder(
                 serviceSpec, SchedulerConfigTestUtils.getTestSchedulerConfig(), persister)
-                .build()
-                .start();
+                .build();
         scheduler.registered(false);
         return (DefaultScheduler) scheduler;
     }

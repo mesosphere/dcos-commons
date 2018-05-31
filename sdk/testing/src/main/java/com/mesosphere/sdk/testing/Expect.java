@@ -4,13 +4,13 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
 import org.apache.mesos.SchedulerDriver;
@@ -32,15 +32,25 @@ import static org.mockito.Mockito.*;
 public interface Expect extends SimulationTick {
 
     /**
-     * Verifies that the last offer sent to the scheduler was declined.
+     * Verifies that the offers sent to scheduler in the last offer cycle were all declined.
      */
     public static Expect declinedLastOffer() {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 ArgumentCaptor<Protos.OfferID> offerIdCaptor = ArgumentCaptor.forClass(Protos.OfferID.class);
-                verify(mockDriver, atLeastOnce()).declineOffer(offerIdCaptor.capture(), any());
-                Assert.assertEquals(state.getLastOffer().getId().getValue(), offerIdCaptor.getValue().getValue());
+                Set<String> lastCycleOfferIds = state.getLastOfferCycle().stream()
+                        .map(o -> o.getId().getValue())
+                        .collect(Collectors.toSet());
+                verify(mockDriver, atLeast(lastCycleOfferIds.size())).declineOffer(offerIdCaptor.capture(), any());
+                // Check that the offer ids from the last cycle were all declined:
+                Set<String> declinedOfferIds = offerIdCaptor.getAllValues().stream()
+                        .map(o -> o.getValue())
+                        .collect(Collectors.toSet());
+                Assert.assertTrue(
+                        String.format("Expected all offers from last offer cycle to be declined: %s, got: %s",
+                                lastCycleOfferIds, declinedOfferIds),
+                        declinedOfferIds.containsAll(lastCycleOfferIds));
             }
 
             @Override
@@ -51,16 +61,32 @@ public interface Expect extends SimulationTick {
     }
 
     /**
-     * Verifies that a pod was launched with exactly the provided task names.
+     * Verifies that a pod was launched with exactly the provided task names in the last accept call.
      */
     public static Expect launchedTasks(String... taskNames) {
         return launchedTasks(Arrays.asList(taskNames));
     }
 
     /**
-     * Verifies that a pod was launched with exactly the provided task names.
+     * Verifies that a pod was launched with exactly the provided task names in the last accept call.
      */
     public static Expect launchedTasks(Collection<String> taskNames) {
+        return launchedTasks(1, taskNames);
+    }
+
+    /**
+     * Verifies that a pod was launched with exactly the provided task names over the last N accept calls. If the last
+     * offer cycle had multiple offers from different agents, then separate accept calls are made on a per-agent basis.
+     */
+    public static Expect launchedTasks(int acceptsToCheck, String... taskNames) {
+        return launchedTasks(acceptsToCheck, Arrays.asList(taskNames));
+    }
+
+    /**
+     * Verifies that a pod was launched with exactly the provided task names over the last N accept calls. If the last
+     * offer cycle had multiple offers from different agents, then separate accept calls are made on a per-agent basis.
+     */
+    public static Expect launchedTasks(int acceptsToCheck, Collection<String> taskNames) {
         return new Expect() {
             // Use this form instead of using ArgumentCaptor.forClass() to avoid problems with typecasting generics:
             @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdsCaptor;
@@ -69,50 +95,79 @@ public interface Expect extends SimulationTick {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 MockitoAnnotations.initMocks(this);
-                verify(mockDriver, atLeastOnce())
+
+                // Get the params from the last N accept calls:
+                verify(mockDriver, atLeast(acceptsToCheck))
                         .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
-                Protos.OfferID lastAcceptedOfferId = offerIdsCaptor.getValue().iterator().next();
-                Assert.assertEquals(String.format(
-                            "Expected last offer with ID %s to be accepted, but last accepted offer was %s",
-                            state.getLastOffer().getId().getValue(), lastAcceptedOfferId.getValue()),
-                        state.getLastOffer().getId(), lastAcceptedOfferId);
+                // With the above retrieval, we will have >=acceptsToCheck calls in forward chronological order.
+                // We need to manually cut that down to just the LAST acceptsToCheck calls:
+                List<Collection<Protos.OfferID>> allOfferIdAcceptCalls = offerIdsCaptor.getAllValues();
+                Collection<String> acceptedOfferIds = allOfferIdAcceptCalls
+                        .subList(allOfferIdAcceptCalls.size() - acceptsToCheck, allOfferIdAcceptCalls.size())
+                        .stream()
+                        .flatMap(Collection::stream)
+                        .map(Protos.OfferID::getValue)
+                        .collect(Collectors.toList());
+
+                List<Collection<Protos.Offer.Operation>> allOperationAcceptCalls = operationsCaptor.getAllValues();
+                List<Collection<Protos.Offer.Operation>> selectedOperationAcceptCalls = allOperationAcceptCalls
+                        .subList(allOperationAcceptCalls.size() - acceptsToCheck, allOperationAcceptCalls.size());
+
+                // As a sanity check, verify that the accepted ids were all from the most recent offer cycle. This
+                // ensures that we aren't looking at accepted offers from a prior offer cycle.
+                Set<String> lastCycleOfferIds = state.getLastOfferCycle().stream()
+                        .map(o -> o.getId().getValue())
+                        .collect(Collectors.toSet());
+                Assert.assertTrue(String.format(
+                            "Expected last accepted offer in last offer cycle: %s, but last %d accepted %s %s",
+                            lastCycleOfferIds,
+                            acceptsToCheck,
+                            acceptsToCheck == 1 ? "offer was" : "offers were",
+                            acceptedOfferIds),
+                        lastCycleOfferIds.containsAll(acceptedOfferIds));
+
+                // Check (and capture) task launch operations:
                 Collection<String> launchedTaskNames = new ArrayList<>();
-                // A single acceptOffers() call may contain multiple LAUNCH/LAUNCH_GROUP operations.
-                // We want to ensure they're all counted as a unit when tallying the pod.
-                Protos.ExecutorInfo launchedExecutor = null;
-                Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
-                for (Protos.Offer.Operation operation : operationsCaptor.getValue()) {
-                    if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH)) {
-                        // Old-style custom executor launch: each TaskInfo gets a nested copy of the ExecutorInfo. Grab
-                        // the first one we can find, as they should all be identical.
-                        Collection<Protos.TaskInfo> taskInfos = operation.getLaunch().getTaskInfosList();
-                        launchedExecutor = taskInfos.iterator().next().getExecutor();
+                // Iterate over acceptOffers() calls, one per agent:
+                for (Collection<Protos.Offer.Operation> acceptCallOperations : selectedOperationAcceptCalls) {
+                    // A single acceptOffers() call may contain multiple LAUNCH_GROUP operations.
+                    // We want to ensure they're all counted as a unit when tallying the pod.
+                    // TODO(nickbp): DCOS-37508 We currently produce multiple LAUNCH_GROUPs (each with identical copies
+                    // of the same ExecutorInfo) when launching multiple tasks in a pod. As a temporary measure, this
+                    // de-dupes executors by their ExecutorID. Remove this de-dupe once DCOS-37508 is fixed.
+                    Map<String, Protos.ExecutorInfo> executorsById = new HashMap<>();
+                    Collection<Protos.TaskInfo> launchedTaskInfos = new ArrayList<>();
+                    Collection<Protos.Resource> reservedResources = new ArrayList<>();
+                    for (Protos.Offer.Operation operation : acceptCallOperations) {
+                        switch (operation.getType()) {
+                        case LAUNCH_GROUP: {
+                            Protos.ExecutorInfo executor = operation.getLaunchGroup().getExecutor();
+                            executorsById.put(executor.getExecutorId().getValue(), executor);
 
-                        launchedTaskNames.addAll(taskInfos.stream()
-                                .map(task -> task.getName())
-                                .collect(Collectors.toList()));
-                        // Old-style custom executor launches also use packed TaskInfos. Unpack them.
-                        launchedTaskInfos.addAll(taskInfos.stream()
-                                .map(task -> TaskPackingUtils.unpack(task))
-                                .collect(Collectors.toList()));
-                    } else if (operation.getType().equals(Protos.Offer.Operation.Type.LAUNCH_GROUP)) {
-                        // New-style default executor launch: TaskInfos lack the ExecutorInfo. Instead, the ExecutorInfo
-                        // is in the parent LaunchGroup operation.
-                        launchedExecutor = operation.getLaunchGroup().getExecutor();
+                            Collection<Protos.TaskInfo> taskInfos =
+                                    operation.getLaunchGroup().getTaskGroup().getTasksList();
 
-                        Collection<Protos.TaskInfo> taskInfos =
-                                operation.getLaunchGroup().getTaskGroup().getTasksList();
-
-                        launchedTaskNames.addAll(taskInfos.stream()
-                                .map(task -> task.getName())
-                                .collect(Collectors.toList()));
-                        // New-style default executor launches no longer need to pack TaskInfos, so don't unpack.
-                        launchedTaskInfos.addAll(taskInfos);
+                            launchedTaskNames.addAll(taskInfos.stream()
+                                    .map(task -> task.getName())
+                                    .collect(Collectors.toList()));
+                            launchedTaskInfos.addAll(taskInfos);
+                            break;
+                        }
+                        case RESERVE:
+                            reservedResources.addAll(operation.getReserve().getResourcesList());
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                    // Record the accept operation if anything happened:
+                    if (!executorsById.isEmpty() || !launchedTaskInfos.isEmpty() || !reservedResources.isEmpty()) {
+                        state.addAcceptCall(
+                                new AcceptEntry(executorsById.values(), launchedTaskInfos, reservedResources));
                     }
                 }
-                if (launchedExecutor != null) {
-                    state.addLaunchedPod(new LaunchedPod(launchedExecutor, launchedTaskInfos));
-                }
+
+                // Finally, verify that exactly the expected tasks were launched across these acceptOffers() calls:
                 Assert.assertTrue(
                         String.format("Expected launched tasks: %s, got tasks: %s", taskNames, launchedTaskNames),
                         launchedTaskNames.containsAll(taskNames) && taskNames.containsAll(launchedTaskNames));
@@ -144,9 +199,21 @@ public interface Expect extends SimulationTick {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 MockitoAnnotations.initMocks(this);
+
                 verify(mockDriver, atLeastOnce())
                         .acceptOffers(offerIdsCaptor.capture(), operationsCaptor.capture(), any());
-                Assert.assertEquals(state.getLastOffer().getId(), offerIdsCaptor.getValue().iterator().next());
+
+                // Check last accepted offer ID was in last offer cycle:
+                Protos.OfferID lastAcceptedOfferId = offerIdsCaptor.getValue().iterator().next();
+                Set<String> lastCycleOfferIds = state.getLastOfferCycle().stream()
+                        .map(o -> o.getId().getValue())
+                        .collect(Collectors.toSet());
+                Assert.assertTrue(String.format(
+                            "Expected last accepted offer in last offer cycle: %s, but last accepted offer was %s",
+                            lastCycleOfferIds, lastAcceptedOfferId.getValue()),
+                        lastCycleOfferIds.contains(lastAcceptedOfferId.getValue()));
+
+                // Check unreserved/destroyed resources in operations:
                 Collection<String> expectedResourceIds = new ArrayList<>();
                 for (String taskName : taskNames) {
                     LaunchedTask task = state.getLastLaunchedTask(taskName);
@@ -465,7 +532,6 @@ public interface Expect extends SimulationTick {
                 return String.format("Plan %s has %d total steps", planName, expectedStepCount);
             }
         };
-
     }
 
     /**
@@ -520,6 +586,29 @@ public interface Expect extends SimulationTick {
                         key, env.stream().map(e -> TextFormat.shortDebugString(e)).collect(Collectors.toList())),
                         actualValue.isPresent());
                 Assert.assertEquals(value, actualValue.get());
+            }
+        };
+    }
+
+    /**
+     * Verifies that a set of two or more tasks all share the same ExecutorInfo (i.e. the same pod).
+     */
+    public static Expect samePod(String... taskNames) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+                Set<Protos.ExecutorInfo> executors = Arrays.asList(taskNames).stream()
+                        .map(name -> state.getLastLaunchedTask(name).getExecutor())
+                        .collect(Collectors.toSet());
+                Assert.assertEquals(String.format(
+                        "Expected tasks to share a single matching executor, but had: %s",
+                        executors.stream().map(e -> TextFormat.shortDebugString(e)).collect(Collectors.toList())),
+                        1, executors.size());
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Tasks share the same executor: %s", Arrays.asList(taskNames));
             }
         };
     }

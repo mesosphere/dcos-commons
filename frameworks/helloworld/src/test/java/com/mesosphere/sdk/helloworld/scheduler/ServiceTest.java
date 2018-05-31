@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
@@ -129,50 +128,8 @@ public class ServiceTest {
      * Checks that if an unessential task in a pod fails, that the other task in the same pod is unaffected.
      */
     @Test
-    public void testNonEssentialTaskFailure() throws Exception {
-        Collection<SimulationTick> ticks = new ArrayList<>();
-
-        ticks.add(Send.register());
-        ticks.add(Expect.reconciledImplicitly());
-
-        // Verify that service launches 1 hello pod.
-        ticks.add(Send.offerBuilder("hello").build());
-        ticks.add(Expect.launchedTasks("hello-0-essential", "hello-0-nonessential"));
-
-        // Running, no readiness check is applicable:
-        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_RUNNING).build());
-        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
-
-        // No more hellos to launch:
-        ticks.add(Send.offerBuilder("hello").setHostname("host-foo").build());
-        ticks.add(Expect.declinedLastOffer());
-        ticks.add(Expect.allPlansComplete());
-
-        // When non-essential "agent" task fails, only agent task is relaunched, server task is unaffected:
-        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_FAILED).build());
-        // Offers are revived following the failure:
-        ticks.add(Expect.revivedOffers(1));
-
-        // Turn the crank with an arbitrary offer so that the failure is processed.
-        // This also tests that the task is still tied to its prior location by checking that the offer is declined.
-        ticks.add(Send.offerBuilder("hello").build());
-        ticks.add(Expect.declinedLastOffer());
-        // Neither task should be killed: server should be unaffected, and agent is already in a terminal state
-        ticks.add(Expect.taskNameNotKilled("hello-0-nonessential"));
-        ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
-
-        // Send the matching offer to relaunch ONLY the agent against:
-        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
-        ticks.add(Expect.launchedTasks("hello-0-nonessential"));
-
-        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
-
-        ticks.add(Expect.allPlansComplete());
-
-        // Matching ExecutorInfo == same pod:
-        ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
-
-        new ServiceTestRunner("nonessential_tasks.yml").run(ticks);
+    public void testNonessentialTaskFailure() throws Exception {
+        testRecoverEssentialOrNonessential(false);
     }
 
     /**
@@ -180,6 +137,10 @@ public class ServiceTest {
      */
     @Test
     public void testEssentialTaskFailure() throws Exception {
+        testRecoverEssentialOrNonessential(true);
+    }
+
+    private static void testRecoverEssentialOrNonessential(boolean essential) throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
@@ -198,30 +159,44 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
         ticks.add(Expect.allPlansComplete());
 
-        // When essential "server" task fails, both server+agent are relaunched:
-        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_FAILED).build());
-        // Offers are revived following the failure:
-        ticks.add(Expect.revivedOffers(1));
+        if (essential) {
+            // When essential "server" task fails, both server+agent are relaunched:
+            ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_FAILED).build());
+        } else {
+            // When non-essential "agent" task fails, only agent task is relaunched, server task is unaffected:
+            ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_FAILED).build());
+        }
 
         // Turn the crank with an arbitrary offer so that the failure is processed.
         // This also tests that the task is still tied to its prior location by checking that the offer is declined.
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.declinedLastOffer());
-        // Only the agent task is killed: server is already in a terminal state
-        ticks.add(Expect.taskNameKilled("hello-0-nonessential", 1));
-        ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
+        if (essential) {
+            // Only the agent task is killed: server is already in a terminal state
+            ticks.add(Expect.taskNameKilled("hello-0-nonessential", 1));
+            ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
+        } else {
+            // Neither task should be killed: server should be unaffected, and agent is already in a terminal state
+            ticks.add(Expect.taskNameNotKilled("hello-0-nonessential"));
+            ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
+        }
 
         // Send the matching offer to relaunch both the server and agent:
         ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
-        ticks.add(Expect.launchedTasks("hello-0-essential", "hello-0-nonessential"));
 
-        ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
-        ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_RUNNING).build());
+        if (essential) {
+            ticks.add(Expect.launchedTasks("hello-0-essential", "hello-0-nonessential"));
+            ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
+            ticks.add(Send.taskStatus("hello-0-essential", Protos.TaskState.TASK_RUNNING).build());
+        } else {
+            ticks.add(Expect.launchedTasks("hello-0-nonessential"));
+            ticks.add(Send.taskStatus("hello-0-nonessential", Protos.TaskState.TASK_RUNNING).build());
+        }
 
         ticks.add(Expect.allPlansComplete());
 
         // Matching ExecutorInfo == same pod:
-        ticks.add(new ExpectTasksShareExecutor("hello-0-essential", "hello-0-nonessential"));
+        ticks.add(Expect.samePod("hello-0-essential", "hello-0-nonessential"));
 
         new ServiceTestRunner("nonessential_tasks.yml").run(ticks);
     }
@@ -252,34 +227,6 @@ public class ServiceTest {
         ticks.add(Expect.taskNameNotKilled("hello-0-server"));
 
         new ServiceTestRunner("simple.yml").run(ticks);
-    }
-
-    /**
-     * Verifies that a set of two or more tasks all share the same ExecutorInfo (i.e. the same pod).
-     */
-    private static class ExpectTasksShareExecutor implements Expect {
-
-        private final List<String> taskNames;
-
-        private ExpectTasksShareExecutor(String... taskNames) {
-            this.taskNames = Arrays.asList(taskNames);
-        }
-
-        @Override
-        public String getDescription() {
-            return String.format("Tasks share the same executor: %s", taskNames);
-        }
-
-        @Override
-        public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
-            Set<Protos.ExecutorInfo> executors = taskNames.stream()
-                    .map(name -> state.getLastLaunchedTask(name).getExecutor())
-                    .collect(Collectors.toSet());
-            Assert.assertEquals(String.format(
-                    "Expected tasks to share a single matching executor, but had: %s",
-                    executors.stream().map(e -> TextFormat.shortDebugString(e)).collect(Collectors.toList())),
-                    1, executors.size());
-        }
     }
 
     /**
@@ -680,7 +627,7 @@ public class ServiceTest {
         ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.COMPLETE));
         ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.COMPLETE));
 
-        // Following the recovery, the task then gets picked up by the deploy plan and bumped to the new config.
+        // Following the recovery, the world-1 task gets picked up by the deploy plan and bumped to the new config.
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
         ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.STARTING));
         ticks.add(Expect.launchedTasks("world-1-server"));
@@ -837,11 +784,17 @@ public class ServiceTest {
             Map<String, Status> expectedSteps = new TreeMap<>();
             expectedSteps.put(String.format("kill-%s-server", stepCount.phaseName),
                     stepCount.statusOfStepIndex(expectedSteps.size()));
-            LaunchedPod pod = state.getLastLaunchedPod(stepCount.phaseName);
+            List<AcceptEntry> acceptCalls = state.getAcceptCalls(stepCount.phaseName);
+            // Get information based on the LAST operation. This wouldn't work if the last operation didn't reserve
+            // anything, as would occur when a task is restarted, but this is close enough for our purposes.
+            AcceptEntry acceptCall = acceptCalls.get(acceptCalls.size() - 1);
 
             Collection<String> resourceIds = new ArrayList<>();
-            resourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(pod.getTasks())));
-            resourceIds.addAll(ResourceUtils.getResourceIds(pod.getExecutor().getResourcesList()));
+            resourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(acceptCall.getTasks())));
+            resourceIds.addAll(acceptCall.getExecutors().stream()
+                    .map(e -> ResourceUtils.getResourceIds(e.getResourcesList()))
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList()));
             for (String resourceId : resourceIds) {
                 expectedSteps.put(String.format("unreserve-%s", resourceId),
                         stepCount.statusOfStepIndex(expectedSteps.size()));
@@ -921,6 +874,9 @@ public class ServiceTest {
                 "WORLD_SECRET1", "hello-world/secret1",
                 "WORLD_SECRET2", "hello-world/secret2",
                 "WORLD_SECRET3", "hello-world/secret3"));
+        schedulerEnvForExamples.put("custom_steps.yml", toMap(
+                "DEPLOY_STRATEGY", "serial",
+                "DEPLOY_STEPS", "[[first, second, third]]"));
 
         // Iterate over yml files in dist/examples/, run sanity check for each:
         File[] exampleFiles = ServiceTestRunner.getDistDir().listFiles();

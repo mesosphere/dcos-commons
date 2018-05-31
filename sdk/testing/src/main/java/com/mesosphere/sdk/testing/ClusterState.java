@@ -2,14 +2,17 @@ package com.mesosphere.sdk.testing;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
 
+import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -24,8 +27,8 @@ public class ClusterState {
 
     private final ServiceSpec serviceSpec;
     private final AbstractScheduler scheduler;
-    private final List<Protos.Offer> sentOffers = new ArrayList<>();
-    private final List<LaunchedPod> createdPods = new ArrayList<>();
+    private final List<Collection<Protos.Offer>> sentOfferSets = new ArrayList<>();
+    private final List<AcceptEntry> acceptCalls = new ArrayList<>();
 
     private ClusterState(ServiceSpec serviceSpec, AbstractScheduler scheduler) {
         this.serviceSpec = serviceSpec;
@@ -39,8 +42,8 @@ public class ClusterState {
     public static ClusterState withUpdatedConfig(
             ClusterState clusterState, ServiceSpec serviceSpec, AbstractScheduler scheduler) {
         ClusterState updatedClusterState = create(serviceSpec, scheduler);
-        updatedClusterState.sentOffers.addAll(clusterState.sentOffers);
-        updatedClusterState.createdPods.addAll(clusterState.createdPods);
+        updatedClusterState.sentOfferSets.addAll(clusterState.sentOfferSets);
+        updatedClusterState.acceptCalls.addAll(clusterState.acceptCalls);
         return updatedClusterState;
     }
 
@@ -69,78 +72,74 @@ public class ClusterState {
      * Adds the provided offer to the list of sent offers.
      */
     public void addSentOffer(Protos.Offer offer) {
-        sentOffers.add(offer);
+        sentOfferSets.add(Collections.singleton(offer));
     }
 
     /**
-     * Returns the last offer to have been sent.
-     *
-     * @return the last offer added to {@link #addSentOffer(org.apache.mesos.Protos.Offer)}
-     * @throws IllegalStateException if no pods had been sent
+     * Adds all of the provided offers to the list of sent offers.
      */
-    public Protos.Offer getLastOffer() {
-        if (sentOffers.isEmpty()) {
+    public void addSentOffers(Collection<Protos.Offer> offers) {
+        sentOfferSets.add(offers);
+    }
+
+    /**
+     * Returns the set of offers received in the last offer cycle.
+     *
+     * @return the last offer added via {@link #addSentOffer(org.apache.mesos.Protos.Offer)} or
+     *          {@link #addSentOffers(Collection)}
+     * @throws IllegalStateException if no offers had been sent
+     */
+    public Collection<Protos.Offer> getLastOfferCycle() {
+        if (sentOfferSets.isEmpty()) {
             throw new IllegalStateException("No offers were sent yet");
         }
-        return sentOffers.get(sentOffers.size() - 1);
+        return sentOfferSets.get(sentOfferSets.size() - 1);
     }
 
     /**
      * Adds the provided pod to the list of launched pods.
      */
-    public void addLaunchedPod(LaunchedPod pod) {
+    public void addAcceptCall(AcceptEntry pod) {
         if (pod.getTasks().isEmpty()) {
             throw new IllegalArgumentException("Refusing to record an empty pod");
         }
-        createdPods.add(pod);
+        acceptCalls.add(pod);
     }
 
     /**
-     * Returns the last pod to be launched, regardless of the pod's name.
-     *
-     * @return the last pod added to {@link #addLaunchedPod(Collection)}
-     * @throws IllegalStateException if no pods had been launched
-     * @see #getLastLaunchedPod(String)
-     */
-    public LaunchedPod getLastLaunchedPod() {
-        if (createdPods.isEmpty()) {
-            throw new IllegalStateException("No pods were created yet");
-        }
-        return createdPods.get(createdPods.size() - 1);
-    }
-
-    /**
-     * Returns the last pod to be launched with the specified name.
+     * Returns all launch operations where the specified pod was launched, in chronological order.
      *
      * @param podName name+index of the pod, of the form "podtype-#"
-     * @return a list of tasks which were included in the pod
+     * @return a list of accept calls (LAUNCH_GROUP + RESERVE) performed for the specified pod, or an empty list if none
+     * were found
      * @throws IllegalStateException if no such pod was found
-     * @see #getLastLaunchedPod()
      */
-    public LaunchedPod getLastLaunchedPod(String podName) {
+    public List<AcceptEntry> getAcceptCalls(String podName) {
         Set<String> allPodNames = new TreeSet<>();
-        LaunchedPod foundPod = null;
-        for (LaunchedPod pod : createdPods) {
-            // Sample pod info from the first task. All tasks should share the same pod info:
-            final Protos.TaskInfo task = pod.getTasks().iterator().next();
-            final TaskLabelReader reader = new TaskLabelReader(task);
-            final String thisPod;
-            try {
-                thisPod = PodInstance.getName(reader.getType(), reader.getIndex());
-            } catch (TaskException e) {
-                throw new IllegalStateException("Unable to extract pod from task " + task.getName(), e);
-            }
-            allPodNames.add(thisPod);
-            if (thisPod.equals(podName)) {
-                foundPod = pod;
-                // Don't break: want to collect the most recent version
+        List<AcceptEntry> matchingAcceptCalls = new ArrayList<>();
+        for (AcceptEntry acceptCall : acceptCalls) {
+            // Check the tasks in this accept call for any tasks which match this pod:
+            for (Protos.TaskInfo launchedTask : acceptCall.getTasks()) {
+                final TaskLabelReader reader = new TaskLabelReader(launchedTask);
+                final String thisPod;
+                try {
+                    thisPod = PodInstance.getName(reader.getType(), reader.getIndex());
+                } catch (TaskException e) {
+                    throw new IllegalStateException("Unable to extract pod from task " + launchedTask.getName(), e);
+                }
+                allPodNames.add(thisPod);
+                if (thisPod.equals(podName)) {
+                    matchingAcceptCalls.add(acceptCall);
+                    // Stop checking tasks, but don't exit acceptCalls loop: want to collect all versions
+                    break;
+                }
             }
         }
-        if (foundPod == null) {
+        if (matchingAcceptCalls.isEmpty()) {
             throw new IllegalStateException(String.format(
-                    "Unable to find pod named %s. Available pods were: %s", podName, allPodNames));
+                    "Unable to find launched pod named %s. Available pods were: %s", podName, allPodNames));
         }
-        return foundPod;
+        return matchingAcceptCalls;
     }
 
     /**
@@ -161,9 +160,11 @@ public class ClusterState {
         // Note: We COULD have just filtered against the task name up-front here, but it'd be more helpful to have a
         // mapping of all tasks available for the error message below.
         Map<String, LaunchedTask> tasksByName = new HashMap<>();
-        for (LaunchedPod pod : createdPods) {
-            for (Protos.TaskInfo task : pod.getTasks()) {
-                tasksByName.put(task.getName(), new LaunchedTask(pod.getExecutor(), task));
+        for (AcceptEntry acceptCall : acceptCalls) {
+            for (Protos.TaskInfo task : acceptCall.getTasks()) {
+                // The accept call should also have an executor matching the launched task:
+                tasksByName.put(
+                        task.getName(), new LaunchedTask(findMatchingExecutor(task, acceptCall.getExecutors()), task));
             }
         }
         LaunchedTask task = tasksByName.get(taskName);
@@ -172,6 +173,40 @@ public class ClusterState {
                     "Unable to find task named %s, known tasks were: %s", taskName, tasksByName.keySet()));
         }
         return task;
+    }
+
+    /**
+     * Searches for exactly one executor in a given accept call which matches the task. The match is found by comparing
+     * the executor name with the pod type of the task. In practice, there should only be one executor of a given type
+     * in a given {@code acceptOffers()} call.
+     */
+    private static Protos.ExecutorInfo findMatchingExecutor(
+            Protos.TaskInfo task, Collection<Protos.ExecutorInfo> executors) {
+        final String podType;
+        try {
+            podType = new TaskLabelReader(task).getType();
+        } catch (TaskException e) {
+            throw new IllegalStateException("Unable to extract pod from task " + task.getName(), e);
+        }
+        Protos.ExecutorInfo matchingExecutor = null;
+        for (Protos.ExecutorInfo executor : executors) {
+            if (executor.getName().equals(podType)) {
+                if (matchingExecutor != null) {
+                    throw new IllegalStateException(String.format(
+                            "Found multiple executors with pod type %s: %s",
+                            podType, executors.stream()
+                                    .map(e -> TextFormat.shortDebugString(e))
+                                    .collect(Collectors.toList())));
+                }
+                matchingExecutor = executor;
+            }
+        }
+        if (matchingExecutor == null) {
+            throw new IllegalStateException(String.format(
+                    "Expected at least one executor with pod type %s, got: %s",
+                    podType, executors.stream().map(e -> e.getName()).collect(Collectors.toList())));
+        }
+        return matchingExecutor;
     }
 
     /**

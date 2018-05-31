@@ -129,7 +129,7 @@ public class CassandraRecoveryPlanOverriderTest {
     }
 
     private Plan getReplacePlan(ConfigStore<ServiceSpec> configStore) throws Exception {
-        return new DefaultPlanGenerator(configStore, stateStore, Optional.empty())
+        return new PlanGenerator(configStore, stateStore, Optional.empty())
                 .generate(rawSpec.getPlans().get("replace"), "replace", serviceSpec.getPods());
     }
 }

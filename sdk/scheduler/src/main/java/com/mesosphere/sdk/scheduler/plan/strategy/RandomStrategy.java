@@ -40,7 +40,7 @@ public class RandomStrategy<C extends Element> extends InterruptibleStrategy<C> 
      */
     public static class Generator<C extends Element> implements StrategyGenerator<C> {
         @Override
-        public Strategy<C> generate() {
+        public Strategy<C> generate(List<C> ignored) {
             return new RandomStrategy<>();
         }
     }

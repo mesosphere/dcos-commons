@@ -20,14 +20,6 @@ public class DefaultPhaseFactory implements PhaseFactory {
         this.stepFactory = stepFactory;
     }
 
-    public static Phase getPhase(String name, List<Step> steps, Strategy<Step> strategy) {
-        return new DefaultPhase(
-                name,
-                steps,
-                strategy,
-                Collections.emptyList());
-    }
-
     @Override
     public Phase getPhase(PodSpec podSpec, Strategy<Step> strategy) {
         return new DefaultPhase(

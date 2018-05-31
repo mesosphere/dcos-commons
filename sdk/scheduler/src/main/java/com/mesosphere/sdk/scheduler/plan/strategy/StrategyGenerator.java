@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan.strategy;
 
+import java.util.List;
+
 import com.mesosphere.sdk.scheduler.plan.Element;
 
 /**
@@ -8,5 +10,5 @@ import com.mesosphere.sdk.scheduler.plan.Element;
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
 public interface StrategyGenerator<C extends Element> {
-    Strategy<C> generate();
+    Strategy<C> generate(List<C> elements);
 }
