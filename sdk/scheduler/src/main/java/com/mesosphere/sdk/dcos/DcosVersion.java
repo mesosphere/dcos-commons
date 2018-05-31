@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.dcos;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.specification.DefaultPlanGenerator;
+import com.mesosphere.sdk.specification.PlanGenerator;
 import org.json.JSONObject;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -29,7 +29,7 @@ import org.slf4j.Logger;
  */
 public class DcosVersion {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultPlanGenerator.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PlanGenerator.class);
 
     /**
      * A broken-down representation of a version string's elements.

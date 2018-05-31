@@ -363,7 +363,11 @@ public class ServiceTestRunner {
                 }
             } else if (tick instanceof Send) {
                 LOGGER.info("SEND:   {}", tick.getDescription());
-                ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
+                try {
+                    ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
+                } catch (Throwable e) {
+                    throw buildSimulationError(ticks, tick, e);
+                }
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
             }

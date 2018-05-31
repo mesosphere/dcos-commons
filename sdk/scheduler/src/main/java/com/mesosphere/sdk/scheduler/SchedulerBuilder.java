@@ -69,6 +69,7 @@ public class SchedulerBuilder {
     private PlanCustomizer planCustomizer;
     private Optional<String> multiServiceFrameworkName = Optional.empty();
     private boolean regionAwarenessEnabled = false;
+    private Collection<Class<?>> additionalDeserializableSubtypes = new ArrayList<>();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -149,7 +150,7 @@ public class SchedulerBuilder {
 
     /**
      * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
-     * {@link DefaultPlanGenerator} to handle conversion.
+     * {@link PlanGenerator} to handle conversion.
      */
     public SchedulerBuilder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
         if (rawServiceSpec.getPlans() != null) {
@@ -195,6 +196,15 @@ public class SchedulerBuilder {
      */
     public SchedulerBuilder enableMultiService(String frameworkName) {
         this.multiServiceFrameworkName = Optional.of(frameworkName);
+        return this;
+    }
+
+    /**
+     * Specifies additional class subtypes which should be registered with Jackson for deserialization, in addition
+     * to the defaults. This includes custom {@see PlacementRule}s.
+     */
+    public SchedulerBuilder setAdditionalDeserializableSubtypes(Collection<Class<?>> additionalDeserializableSubtypes) {
+        this.additionalDeserializableSubtypes = additionalDeserializableSubtypes;
         return this;
     }
 
@@ -269,7 +279,9 @@ public class SchedulerBuilder {
         // Otherwise use an empty namespace, which indicates single-service mode.
         StateStore stateStore = new StateStore(persister, namespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, additionalDeserializableSubtypes),
+                persister,
+                namespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
@@ -509,7 +521,7 @@ public class SchedulerBuilder {
             plansType = "YAML";
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.
-            DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore, namespace);
+            PlanGenerator planGenerator = new PlanGenerator(configStore, stateStore, namespace);
             plans = yamlPlans.entrySet().stream()
                     .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                     .collect(Collectors.toList());

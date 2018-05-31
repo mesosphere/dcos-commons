@@ -150,7 +150,12 @@ public class PlanInfoTest {
         when(mockPhase0.getStrategy()).thenReturn(new SerialStrategy<>());
         when(mockPhase0.getChildren()).thenReturn(Collections.emptyList());
 
-        PlanInfo planInfo = PlanInfo.forPlan(new DefaultPlan("deploy", Arrays.asList(mockPhase0)));
+        PlanInfo planInfo = PlanInfo.forPlan(
+                new DefaultPlan(
+                        "deploy",
+                        Arrays.asList(mockPhase0)
+                )
+        );
 
         // Plan shows IN_PROGRESS, phase shows COMPLETE:
         assertEquals(planInfo.toString(), Status.IN_PROGRESS, planInfo.getStatus());
