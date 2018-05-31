@@ -277,7 +277,7 @@ def test_hostname_unique():
 
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
+    old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)

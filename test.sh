@@ -91,7 +91,7 @@ function usage()
     echo "  CLUSTER_URL"
     echo "    URL to cluster. If unset then a cluster will be created using dcos-launch"
     echo "  STUB_UNIVERSE_URL"
-    echo "    URL to stub-universe build. If unset then a build will be performed internally."
+    echo "    One or more comma-separated stub-universe URLs. If unset then a build will be performed internally."
     echo "  DCOS_LOGIN_USERNAME/DCOS_LOGIN_PASSWORD"
     echo "    Custom login credentials to use for the cluster."
     echo "  AZURE_[CLIENT_ID,CLIENT_SECRET,TENANT_ID,STORAGE_ACCOUNT,STORAGE_KEY]"
