@@ -274,11 +274,14 @@ def test_hostname_unique():
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
         config.get_num_private_agents() * 2, additional_options=options)
+
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
+    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
-    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
+
     sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
     sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
@@ -425,6 +428,7 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
     # Restart the task, and verify it doesn't move hosts
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart hello-0')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     assert get_task_host('hello-0-server') == some_agent
 
@@ -436,6 +440,7 @@ def test_updated_placement_constraints_replaced_tasks_do_move():
     # Replace the task, and verify it moves hosts
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     assert get_task_host('hello-0-server') == other_agent
 
