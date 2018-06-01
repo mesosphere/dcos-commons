@@ -9,7 +9,6 @@ import logging
 import operator
 import random
 import string
-from distutils.version import LooseVersion
 
 import dcos
 import shakedown

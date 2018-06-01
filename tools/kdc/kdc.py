@@ -103,7 +103,7 @@ def deploy(args: dict):
 def create_keytab_secret(args: dict, kerberos=None):
 
     if not kerberos:
-        kerberos = sdk_auth.KerberosEnvironment()
+        kerberos = sdk_auth.KerberosEnvironment(persist=True)
 
     principals = parse_principals(args.principals_file)
     kerberos.add_principals(principals)
