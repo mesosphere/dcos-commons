@@ -5,6 +5,7 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +45,7 @@ public class OfferQueueTest {
     public void testTakeOne() {
         OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         offerQueue.offer(getOffer());
-        List<Protos.Offer> offers = offerQueue.takeAll();
+        List<Protos.Offer> offers = offerQueue.takeAll(Duration.ZERO);
         Assert.assertEquals(1, offers.size());
         Assert.assertEquals(TEST_CAPACITY, offerQueue.getRemainingCapacity());
     }
@@ -57,7 +58,7 @@ public class OfferQueueTest {
             offerQueue.offer(getOffer());
         }
 
-        List<Protos.Offer> offers = offerQueue.takeAll();
+        List<Protos.Offer> offers = offerQueue.takeAll(Duration.ZERO);
         Assert.assertEquals(halfCapacity, offers.size());
         Assert.assertEquals(TEST_CAPACITY, offerQueue.getRemainingCapacity());
     }
@@ -70,7 +71,7 @@ public class OfferQueueTest {
             offerQueue.offer(getOffer());
         }
 
-        List<Protos.Offer> offers = offerQueue.takeAll();
+        List<Protos.Offer> offers = offerQueue.takeAll(Duration.ZERO);
         Assert.assertEquals(capacity, offers.size());
         Assert.assertEquals(TEST_CAPACITY, offerQueue.getRemainingCapacity());
     }

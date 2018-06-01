@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.framework;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -43,6 +44,7 @@ import com.mesosphere.sdk.storage.PersisterUtils;
 class OfferProcessor {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferProcessor.class);
+    private static final Duration DEFAULT_OFFER_WAIT = Duration.ofSeconds(5);
 
     // Avoid attempting to process offers until initialization has completed via the first call to registered().
     private final AtomicBoolean isInitialized = new AtomicBoolean(false);
@@ -102,7 +104,7 @@ class OfferProcessor {
             offerExecutor.execute(() -> {
                 while (true) {
                     try {
-                        processQueuedOffers();
+                        processQueuedOffers(DEFAULT_OFFER_WAIT);
                     } catch (Exception e) {
                         LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
                         ProcessExit.exit(ProcessExit.ERROR, e);
@@ -143,8 +145,9 @@ class OfferProcessor {
         }
 
         if (!multithreaded) {
-            // Process on this thread, rather than depending on offerExecutor to do it.
-            processQueuedOffers();
+            // Immediately process on this thread, rather than depending on offerExecutor to do it.
+            // In the single-threaded case, we also disable waiting for offers to come in.
+            processQueuedOffers(Duration.ZERO);
         }
     }
 
@@ -180,12 +183,12 @@ class OfferProcessor {
     }
 
     /**
-     * Dequeues and processes any elements which are present on the offer queue, potentially blocking for offers to
-     * appear.
+     * Dequeues and processes any elements which are present on the offer queue, potentially blocking up to
+     * {@code queueWait} for offers to appear.
      */
-    private void processQueuedOffers() {
-        LOGGER.info("Idling for offers...");
-        List<Protos.Offer> offers = offerQueue.takeAll();
+    private void processQueuedOffers(Duration queueWait) {
+        LOGGER.info("Waiting up to {}s for offers...", queueWait.getSeconds());
+        List<Protos.Offer> offers = offerQueue.takeAll(queueWait);
         try {
             if (offers.isEmpty() && !isInitialized.get()) {
                 // The scheduler hasn't finished registration yet, so many members haven't been initialized either.

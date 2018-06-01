@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.testing;
 
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.Persister;
 
@@ -248,24 +249,38 @@ public interface Expect extends SimulationTick {
     }
 
     /**
-     * Verifies that the specified task was killed.
+     * Verifies that the specified task (by name) was killed during the test, the specified number of times.
+     *
+     * This count is (only) against the most recent id of the task at the point the {@link Expect} is invoked.
      */
-    public static Expect taskNameKilled(String taskName) {
+    public static Expect taskNameKilled(String taskName, int totalTimes) {
+        if (totalTimes <= 0) {
+            throw new IllegalArgumentException("To verify zero kills, use taskNameNotKilled()");
+        }
+
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
                 ArgumentCaptor<Protos.TaskID> taskIdCaptor = ArgumentCaptor.forClass(Protos.TaskID.class);
                 verify(mockDriver, atLeastOnce()).killTask(taskIdCaptor.capture());
-                Assert.assertEquals(state.getTaskId(taskName).getValue(), taskIdCaptor.getValue().getValue());
+                Protos.TaskID taskId = state.getTaskId(taskName);
+                long matchingTaskKills = taskIdCaptor.getAllValues().stream().filter(i -> taskId.equals(i)).count();
+                Assert.assertEquals(String.format("Task with name %s (id %s) was killed %d time%s",
+                        taskName, taskId.getValue(), matchingTaskKills, matchingTaskKills == 1 ? "" : "s"),
+                        totalTimes, matchingTaskKills);
             }
 
             @Override
             public String getDescription() {
-                return String.format("Task named %s was killed", taskName);
+                return String.format("Task named %s was killed %d time%s",
+                        taskName, totalTimes, totalTimes == 1 ? "" : "s");
             }
         };
     }
 
+    /**
+     * Verifies that the specified task (by exact id) was killed during the test.
+     */
     public static Expect taskIdKilled(String taskId) {
         return new Expect() {
             @Override
@@ -320,7 +335,10 @@ public interface Expect extends SimulationTick {
                 MockitoAnnotations.initMocks(this);
                 verify(mockDriver, atLeastOnce()).reconcileTasks(statusCaptor.capture());
                 Set<Protos.TaskStatus> expected = new TreeSet<>(statusComparator);
-                expected.addAll(new StateStore(persisterWithStatuses).fetchStatuses());
+                // We only send reconcile calls for tasks that aren't already terminal:
+                expected.addAll(new StateStore(persisterWithStatuses).fetchStatuses().stream()
+                        .filter(s -> !TaskUtils.isTerminal(s))
+                        .collect(Collectors.toList()));
                 // Iterate over all reconcile calls, look for any call that had matching arguments.
                 // We do this arg ourselves, since the in-mock comparison never matches.
                 for (Collection<Protos.TaskStatus> reconcileArgs : statusCaptor.getAllValues()) {
@@ -362,6 +380,24 @@ public interface Expect extends SimulationTick {
     }
 
     /**
+     * Verifies that a revive call was invoked. An exact amount is needed to ensure that a single revive isn't counted
+     * multiple times.
+     */
+    public static Expect revivedOffers(int totalTimes) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                verify(mockDriver, times(totalTimes)).reviveOffers();
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("%d call%s made to revive offers", totalTimes, totalTimes == 1 ? "" : "s");
+            }
+        };
+    }
+
+    /**
      * Verifies that the scheduler's plans are all complete -- that there's no pending work.
      */
     public static Expect allPlansComplete() {
@@ -393,7 +429,7 @@ public interface Expect extends SimulationTick {
                 Plan plan = state.getPlans().stream()
                         .filter(p -> p.getName().equals(planName))
                         .findFirst().get();
-                Assert.assertEquals(status, plan.getStatus());
+                Assert.assertEquals(plan.toString(), status, plan.getStatus());
             }
 
             @Override
@@ -404,41 +440,96 @@ public interface Expect extends SimulationTick {
     }
 
     /**
-     * Verifies that the indicated recovery phase.step has the expected status.
+     * Verifies that the indicated deploy step has the expected status.
+     */
+    public static Expect deployStepStatus(String phaseName, String stepName, Status expectedStatus) {
+        return stepStatus(Constants.DEPLOY_PLAN_NAME, phaseName, stepName, expectedStatus);
+    }
+
+    /**
+     * Verifies that the indicated recovery step has the expected status.
      */
     public static Expect recoveryStepStatus(String phaseName, String stepName, Status expectedStatus) {
-        return stepStatus(DefaultRecoveryPlanManager.DEFAULT_RECOVERY_PLAN_NAME, phaseName, stepName, expectedStatus);
+        return stepStatus(Constants.RECOVERY_PLAN_NAME, phaseName, stepName, expectedStatus);
     }
 
     /**
      * Verifies that the indicated plan.phase.step has the expected status.
      */
-    public static Expect stepStatus(
-            String planName,
-            String phaseName,
-            String stepName,
-            Status expectedStatus) {
+    public static Expect stepStatus(String planName, String phaseName, String stepName, Status expectedStatus) {
         return new Expect() {
             @Override
             public void expect(ClusterState state, SchedulerDriver mockDriver) {
-                Plan recoveryPlan = state.getPlans().stream()
-                        .filter(plan -> plan.getName().equals(planName))
-                        .findAny().get();
+                Optional<Plan> plan = state.getPlans().stream()
+                        .filter(p -> p.getName().equals(planName))
+                        .findAny();
+                Assert.assertTrue(String.format("Missing plan '%s', plans were: %s",
+                        planName, state.getPlans().stream().map(p -> p.getName()).collect(Collectors.toList())),
+                        plan.isPresent());
 
-                Phase phase = recoveryPlan.getChildren().stream()
+                Optional<Phase> phase = plan.get().getChildren().stream()
                         .filter(p -> p.getName().equals(phaseName))
-                        .findAny().get();
+                        .findAny();
+                Assert.assertTrue(String.format("Missing phase '%s' in plan '%s':%n%s",
+                        phaseName, planName, plan.get().toString()),
+                        phase.isPresent());
 
-                Step step = phase.getChildren().stream()
+                Optional<Step> step = phase.get().getChildren().stream()
                         .filter(s -> s.getName().equals(stepName))
-                        .findAny().get();
+                        .findAny();
+                Assert.assertTrue(String.format("Missing step '%s' in plan '%s'/phase '%s':%n%s",
+                        stepName, planName, phaseName, plan.get().toString()),
+                        step.isPresent());
 
-                Assert.assertEquals(expectedStatus, step.getStatus());
+                Assert.assertEquals(plan.get().toString(), expectedStatus, step.get().getStatus());
             }
 
             @Override
             public String getDescription() {
-                return String.format("For Phase: %s, Step: %s, Status is %s", phaseName, stepName, expectedStatus);
+                return String.format("Step status for (%s, %s, %s) is: %s",
+                        planName, phaseName, stepName, expectedStatus);
+            }
+        };
+    }
+
+    /**
+     * Verifies that the deploy plan has the expected total number of steps.
+     */
+    public static Expect deployStepCount(int expectedStepCount) {
+        return stepCount(Constants.DEPLOY_PLAN_NAME, expectedStepCount);
+    }
+
+    /**
+     * Verifies that the recovery plan has the expected total number of steps.
+     */
+    public static Expect recoveryStepCount(int expectedStepCount) {
+        return stepCount(Constants.RECOVERY_PLAN_NAME, expectedStepCount);
+    }
+
+    /**
+     * Verifies the total number of expected steps in the plan, of all statuses.
+     */
+    public static Expect stepCount(String planName, int expectedStepCount) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                Optional<Plan> plan = state.getPlans().stream()
+                        .filter(p -> p.getName().equals(planName))
+                        .findAny();
+                Assert.assertTrue(String.format("Missing plan '%s', plans were: %s",
+                        planName, state.getPlans().stream().map(p -> p.getName()).collect(Collectors.toList())),
+                        plan.isPresent());
+
+                int stepCount = 0;
+                for (Phase phase : plan.get().getChildren()) {
+                    stepCount += phase.getChildren().size();
+                }
+                Assert.assertEquals(plan.get().toString(), expectedStepCount, stepCount);
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("Plan %s has %d total steps", planName, expectedStepCount);
             }
         };
     }
@@ -463,6 +554,38 @@ public interface Expect extends SimulationTick {
                         new StateStore(persisterWithTasks).fetchTasks().stream()
                                 .map(Protos.TaskInfo::getName)
                                 .collect(Collectors.toList()));
+            }
+        };
+    }
+
+    /**
+     * Verifies that the specified task has an environment variable with the specified name and value.
+     */
+    public static Expect taskEnv(Persister persisterWithTasks, String taskName, String key, String value) {
+        return new Expect() {
+            @Override
+            public String getDescription() {
+                return String.format("Task %s has environment variable: %s=%s", taskName, key, value);
+            }
+
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) throws AssertionError {
+                StateStore stateStore = new StateStore(persisterWithTasks);
+                Optional<Protos.TaskInfo> task = stateStore.fetchTask(taskName);
+                Assert.assertTrue(
+                        String.format("Missing task: %s, known tasks are: %s", taskName, stateStore.fetchTaskNames()),
+                        task.isPresent());
+
+                Collection<Protos.Environment.Variable> env =
+                        task.get().getCommand().getEnvironment().getVariablesList();
+                Optional<String> actualValue = env.stream()
+                        .filter(e -> e.getName().equals(key))
+                        .map(e -> e.getValue())
+                        .findFirst();
+                Assert.assertTrue(String.format("Missing env entry %s, known entries are: %s",
+                        key, env.stream().map(e -> TextFormat.shortDebugString(e)).collect(Collectors.toList())),
+                        actualValue.isPresent());
+                Assert.assertEquals(value, actualValue.get());
             }
         };
     }
