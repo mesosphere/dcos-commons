@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":17,"i1":17,"i2":6,"i3":17,"i4":17,"i5":17,"i6":17,"i7":17,"i8":17,"i9":17,"i10":17,"i11":17,"i12":17,"i13":17,"i14":17,"i15":17,"i16":17,"i17":17,"i18":17};
+var methods = {"i0":17,"i1":17,"i2":17,"i3":17,"i4":6,"i5":17,"i6":17,"i7":17,"i8":17,"i9":17,"i10":17,"i11":17,"i12":17,"i13":17,"i14":17,"i15":17,"i16":17,"i17":17,"i18":17,"i19":17,"i20":17,"i21":17,"i22":17,"i23":17,"i24":17};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"],16:["t5","Default Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -137,77 +137,110 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#deployStepCount-int-">deployStepCount</a></span>(int&nbsp;expectedStepCount)</code>
+<div class="block">Verifies that the deploy plan has the expected total number of steps.</div>
+</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#deployStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">deployStepStatus</a></span>(java.lang.String&nbsp;phaseName,
+                java.lang.String&nbsp;stepName,
+                <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;expectedStatus)</code>
+<div class="block">Verifies that the indicated deploy step has the expected status.</div>
+</td>
+</tr>
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#expect-com.mesosphere.sdk.testing.ClusterState-SchedulerDriver-">expect</a></span>(<a href="../../../../com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a>&nbsp;state,
       SchedulerDriver&nbsp;mockDriver)</code>
 <div class="block">Verifies that a certain event had occurred, optionally updating the provided <a href="../../../../com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing"><code>ClusterState</code></a> with a result.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#knownTasks-com.mesosphere.sdk.storage.Persister-java.lang.String...-">knownTasks</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithTasks,
           java.lang.String...&nbsp;taskNames)</code>
 <div class="block">Verifies that the scheduler's list of tasks in the state store matches the provided set.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-java.util.Collection-">launchedTasks</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames)</code>
 <div class="block">Verifies that a pod was launched with exactly the provided task names in the last accept call.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-int-java.util.Collection-">launchedTasks</a></span>(int&nbsp;acceptsToCheck,
              java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames)</code>
 <div class="block">Verifies that a pod was launched with exactly the provided task names over the last N accept calls.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-int-java.lang.String...-">launchedTasks</a></span>(int&nbsp;acceptsToCheck,
              java.lang.String...&nbsp;taskNames)</code>
 <div class="block">Verifies that a pod was launched with exactly the provided task names over the last N accept calls.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#launchedTasks-java.lang.String...-">launchedTasks</a></span>(java.lang.String...&nbsp;taskNames)</code>
 <div class="block">Verifies that a pod was launched with exactly the provided task names in the last accept call.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#planStatus-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">planStatus</a></span>(java.lang.String&nbsp;planName,
           <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#reconciledExplicitly-com.mesosphere.sdk.storage.Persister-">reconciledExplicitly</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithStatuses)</code>
 <div class="block">Verifies that an explicit task reconciliation for the task statuses in the provided persister was invoked.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#reconciledImplicitly--">reconciledImplicitly</a></span>()</code>
 <div class="block">Verifies that an implicit task reconciliation was invoked.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#recoveryStepCount-int-">recoveryStepCount</a></span>(int&nbsp;expectedStepCount)</code>
+<div class="block">Verifies that the recovery plan has the expected total number of steps.</div>
+</td>
+</tr>
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#recoveryStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">recoveryStepStatus</a></span>(java.lang.String&nbsp;phaseName,
                   java.lang.String&nbsp;stepName,
                   <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;expectedStatus)</code>
-<div class="block">Verifies that the indicated recovery phase.step has the expected status.</div>
+<div class="block">Verifies that the indicated recovery step has the expected status.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i15" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#revivedOffers-int-">revivedOffers</a></span>(int&nbsp;totalTimes)</code>
+<div class="block">Verifies that a revive call was invoked.</div>
+</td>
+</tr>
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#samePod-java.lang.String...-">samePod</a></span>(java.lang.String...&nbsp;taskNames)</code>
 <div class="block">Verifies that a set of two or more tasks all share the same ExecutorInfo (i.e.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i17" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#stepCount-java.lang.String-int-">stepCount</a></span>(java.lang.String&nbsp;planName,
+         int&nbsp;expectedStepCount)</code>
+<div class="block">Verifies the total number of expected steps in the plan, of all statuses.</div>
+</td>
+</tr>
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#stepStatus-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">stepStatus</a></span>(java.lang.String&nbsp;planName,
           java.lang.String&nbsp;phaseName,
@@ -216,29 +249,41 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="block">Verifies that the indicated plan.phase.step has the expected status.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#taskIdKilled-java.lang.String-">taskIdKilled</a></span>(java.lang.String&nbsp;taskId)</code>&nbsp;</td>
-</tr>
-<tr id="i15" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#taskNameKilled-java.lang.String-">taskNameKilled</a></span>(java.lang.String&nbsp;taskName)</code>
-<div class="block">Verifies that the specified task was killed.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#taskEnv-com.mesosphere.sdk.storage.Persister-java.lang.String-java.lang.String-java.lang.String-">taskEnv</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithTasks,
+       java.lang.String&nbsp;taskName,
+       java.lang.String&nbsp;key,
+       java.lang.String&nbsp;value)</code>
+<div class="block">Verifies that the specified task has an environment variable with the specified name and value.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i20" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#taskIdKilled-java.lang.String-">taskIdKilled</a></span>(java.lang.String&nbsp;taskId)</code>
+<div class="block">Verifies that the specified task (by exact id) was killed during the test.</div>
+</td>
+</tr>
+<tr id="i21" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#taskNameKilled-java.lang.String-int-">taskNameKilled</a></span>(java.lang.String&nbsp;taskName,
+              int&nbsp;totalTimes)</code>
+<div class="block">Verifies that the specified task (by name) was killed during the test, the specified number of times.</div>
+</td>
+</tr>
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#taskNameNotKilled-java.lang.String-">taskNameNotKilled</a></span>(java.lang.String&nbsp;taskName)</code>
 <div class="block">Verifies that the specified task was not killed.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
+<tr id="i23" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#unreservedTasks-java.util.Collection-">unreservedTasks</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames)</code>
 <div class="block">Verifies that the resources for the provided task names have been unreserved.</div>
 </td>
 </tr>
-<tr id="i18" class="altColor">
+<tr id="i24" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Expect.html#unreservedTasks-java.lang.String...-">unreservedTasks</a></span>(java.lang.String...&nbsp;taskNames)</code>
 <div class="block">Verifies that the resources for the provided task names have been unreserved.</div>
@@ -340,14 +385,17 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="block">Verifies that the resources for the provided task names have been unreserved.</div>
 </li>
 </ul>
-<a name="taskNameKilled-java.lang.String-">
+<a name="taskNameKilled-java.lang.String-int-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>taskNameKilled</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;taskNameKilled(java.lang.String&nbsp;taskName)</pre>
-<div class="block">Verifies that the specified task was killed.</div>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;taskNameKilled(java.lang.String&nbsp;taskName,
+                             int&nbsp;totalTimes)</pre>
+<div class="block">Verifies that the specified task (by name) was killed during the test, the specified number of times.
+
+ This count is (only) against the most recent id of the task at the point the <a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing"><code>Expect</code></a> is invoked.</div>
 </li>
 </ul>
 <a name="taskIdKilled-java.lang.String-">
@@ -357,6 +405,7 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <li class="blockList">
 <h4>taskIdKilled</h4>
 <pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;taskIdKilled(java.lang.String&nbsp;taskId)</pre>
+<div class="block">Verifies that the specified task (by exact id) was killed during the test.</div>
 </li>
 </ul>
 <a name="taskNameNotKilled-java.lang.String-">
@@ -389,6 +438,17 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="block">Verifies that an implicit task reconciliation was invoked.</div>
 </li>
 </ul>
+<a name="revivedOffers-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>revivedOffers</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;revivedOffers(int&nbsp;totalTimes)</pre>
+<div class="block">Verifies that a revive call was invoked. An exact amount is needed to ensure that a single revive isn't counted
+ multiple times.</div>
+</li>
+</ul>
 <a name="allPlansComplete--">
 <!--   -->
 </a>
@@ -409,6 +469,18 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
                          <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</pre>
 </li>
 </ul>
+<a name="deployStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>deployStepStatus</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;deployStepStatus(java.lang.String&nbsp;phaseName,
+                               java.lang.String&nbsp;stepName,
+                               <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;expectedStatus)</pre>
+<div class="block">Verifies that the indicated deploy step has the expected status.</div>
+</li>
+</ul>
 <a name="recoveryStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">
 <!--   -->
 </a>
@@ -418,7 +490,7 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;recoveryStepStatus(java.lang.String&nbsp;phaseName,
                                  java.lang.String&nbsp;stepName,
                                  <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;expectedStatus)</pre>
-<div class="block">Verifies that the indicated recovery phase.step has the expected status.</div>
+<div class="block">Verifies that the indicated recovery step has the expected status.</div>
 </li>
 </ul>
 <a name="stepStatus-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">
@@ -434,6 +506,37 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="block">Verifies that the indicated plan.phase.step has the expected status.</div>
 </li>
 </ul>
+<a name="deployStepCount-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>deployStepCount</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;deployStepCount(int&nbsp;expectedStepCount)</pre>
+<div class="block">Verifies that the deploy plan has the expected total number of steps.</div>
+</li>
+</ul>
+<a name="recoveryStepCount-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recoveryStepCount</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;recoveryStepCount(int&nbsp;expectedStepCount)</pre>
+<div class="block">Verifies that the recovery plan has the expected total number of steps.</div>
+</li>
+</ul>
+<a name="stepCount-java.lang.String-int-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>stepCount</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;stepCount(java.lang.String&nbsp;planName,
+                        int&nbsp;expectedStepCount)</pre>
+<div class="block">Verifies the total number of expected steps in the plan, of all statuses.</div>
+</li>
+</ul>
 <a name="knownTasks-com.mesosphere.sdk.storage.Persister-java.lang.String...-">
 <!--   -->
 </a>
@@ -443,6 +546,19 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;knownTasks(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithTasks,
                          java.lang.String...&nbsp;taskNames)</pre>
 <div class="block">Verifies that the scheduler's list of tasks in the state store matches the provided set.</div>
+</li>
+</ul>
+<a name="taskEnv-com.mesosphere.sdk.storage.Persister-java.lang.String-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>taskEnv</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a>&nbsp;taskEnv(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persisterWithTasks,
+                      java.lang.String&nbsp;taskName,
+                      java.lang.String&nbsp;key,
+                      java.lang.String&nbsp;value)</pre>
+<div class="block">Verifies that the specified task has an environment variable with the specified name and value.</div>
 </li>
 </ul>
 <a name="samePod-java.lang.String...-">

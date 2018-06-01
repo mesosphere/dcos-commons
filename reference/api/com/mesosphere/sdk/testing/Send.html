@@ -130,8 +130,8 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Send.html#offer-Protos.Offer-">offer</a></span>(Protos.Offer&nbsp;offer)</code>
-<div class="block">Sends the provided offer to the scheduler.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/testing/Send.html#emptyOffers--">emptyOffers</a></span>()</code>
+<div class="block">Triggers offer processing against an empty list of offers.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -222,14 +222,16 @@ extends <a href="../../../../com/mesosphere/sdk/testing/SimulationTick.html" tit
 <div class="block">Initiates the replacement of a pod through a call to <code>PodResource#replacePod(String)</code>.</div>
 </li>
 </ul>
-<a name="offer-Protos.Offer-">
+<a name="emptyOffers--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>offer</h4>
-<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a>&nbsp;offer(Protos.Offer&nbsp;offer)</pre>
-<div class="block">Sends the provided offer to the scheduler.</div>
+<h4>emptyOffers</h4>
+<pre>static&nbsp;<a href="../../../../com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a>&nbsp;emptyOffers()</pre>
+<div class="block">Triggers offer processing against an empty list of offers. This is useful for bumping the plan status. In
+ practice this would happen automatically every few seconds, but we need to do it manually in these tests.
+ See OfferProcessor.</div>
 </li>
 </ul>
 <a name="send-com.mesosphere.sdk.testing.ClusterState-SchedulerDriver-Scheduler-">

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -182,12 +182,6 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.util.List&lt;Protos.Offer&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferQueue.html#takeAll--">takeAll</a></span>()</code>
-<div class="block">Calling this method will wait for Offers for a static duration of <a href="../../../../com/mesosphere/sdk/framework/OfferQueue.html#DEFAULT_OFFER_WAIT"><code>DEFAULT_OFFER_WAIT</code></a>.</div>
-</td>
-</tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>java.util.List&lt;Protos.Offer&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferQueue.html#takeAll-java.time.Duration-">takeAll</a></span>(java.time.Duration&nbsp;duration)</code>
 <div class="block">Calling this method will wait for Offers for the provided duration.</div>
 </td>
@@ -253,19 +247,8 @@ extends java.lang.Object</pre>
 <h4>takeAll</h4>
 <pre>public&nbsp;java.util.List&lt;Protos.Offer&gt;&nbsp;takeAll(java.time.Duration&nbsp;duration)</pre>
 <div class="block">Calling this method will wait for Offers for the provided duration.
- It returns all Offers currently in the queue if any are present and none otherwise.</div>
-</li>
-</ul>
-<a name="takeAll--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>takeAll</h4>
-<pre>public&nbsp;java.util.List&lt;Protos.Offer&gt;&nbsp;takeAll()</pre>
-<div class="block">Calling this method will wait for Offers for a static duration of <a href="../../../../com/mesosphere/sdk/framework/OfferQueue.html#DEFAULT_OFFER_WAIT"><code>DEFAULT_OFFER_WAIT</code></a>.
- It returns all Offers currently in the queue if any are present and an empty list if the duration
- of <a href="../../../../com/mesosphere/sdk/framework/OfferQueue.html#DEFAULT_OFFER_WAIT"><code>DEFAULT_OFFER_WAIT</code></a> is reached.</div>
+ It returns all Offers currently in the queue if any are present, or an empty list if none appear in the provided
+ duration.</div>
 </li>
 </ul>
 <a name="offer-Protos.Offer-">

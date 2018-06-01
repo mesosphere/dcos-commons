@@ -129,13 +129,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-java.util.Optional-">ReviveManager</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
-<div class="block">Creates an instance using the singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instance.</div>
-</td>
-</tr>
-<tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-com.mesosphere.sdk.framework.TokenBucket-java.util.Optional-">ReviveManager</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket,
-             java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
-<div class="block">Creates an instance with a custom <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instead of the singleton instance.</div>
+<div class="block">Creates an instance which will use the configured singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> for rate limiting.</div>
 </td>
 </tr>
 </table>
@@ -155,8 +149,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#resetTimers--">resetTimers</a></span>()</code>
-<div class="block">Resets revive limits in the global token bucket, for tests.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html#overrideTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">overrideTokenBucket</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket)</code>
+<div class="block">Overrides the <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> object to be used by all <a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework"><code>ReviveManager</code></a>s within the process.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -191,23 +185,13 @@ extends java.lang.Object</pre>
 <a name="ReviveManager-java.util.Optional-">
 <!--   -->
 </a>
-<ul class="blockList">
-<li class="blockList">
-<h4>ReviveManager</h4>
-<pre>public&nbsp;ReviveManager(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
-<div class="block">Creates an instance using the singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instance. The <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> is a singleton
- because we want rate limits to be enforced across all running services in the scheduler.</div>
-</li>
-</ul>
-<a name="ReviveManager-com.mesosphere.sdk.framework.TokenBucket-java.util.Optional-">
-<!--   -->
-</a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ReviveManager</h4>
-<pre>ReviveManager(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket,
-              java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
-<div class="block">Creates an instance with a custom <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instead of the singleton instance. Only for use in tests.</div>
+<pre>public&nbsp;ReviveManager(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
+<div class="block">Creates an instance which will use the configured singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> for rate limiting. The
+ <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> is a shared singleton because we want revive rate limits to be enforced across all running
+ services in the scheduler process.</div>
 </li>
 </ul>
 </li>
@@ -218,14 +202,15 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="resetTimers--">
+<a name="overrideTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>resetTimers</h4>
-<pre>public static&nbsp;void&nbsp;resetTimers()</pre>
-<div class="block">Resets revive limits in the global token bucket, for tests.</div>
+<h4>overrideTokenBucket</h4>
+<pre>public static&nbsp;void&nbsp;overrideTokenBucket(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket)</pre>
+<div class="block">Overrides the <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> object to be used by all <a href="../../../../com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework"><code>ReviveManager</code></a>s within the process.
+ Only for use in tests.</div>
 </li>
 </ul>
 <a name="revive-java.util.Collection-">
@@ -236,7 +221,7 @@ extends java.lang.Object</pre>
 <h4>revive</h4>
 <pre>public&nbsp;void&nbsp;revive(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;activeWorkSet)</pre>
 <div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
- (a.k.a. forever) whenever we decline any offer.  When we see *new* work (<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>`s) we
+ (a.k.a. forever) whenever we decline any offer.  When we see *new* work (<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>s) we
  assume that the offers we've declined forever may be useful to that work, and so we revive offers.
 
  Pseudo-code algorithm is this:

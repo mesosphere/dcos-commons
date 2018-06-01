@@ -1006,8 +1006,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DEFAULT_RECOVERY_PHASE_NAME">DEFAULT_RECOVERY_PHASE_NAME</a></span> - Static variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DEFAULT_RECOVERY_PLAN_NAME">DEFAULT_RECOVERY_PLAN_NAME</a></span> - Static variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DEFAULT_SECRET_STORE_URI">DEFAULT_SECRET_STORE_URI</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#DEFAULT_SERVICE_USER">DEFAULT_SERVICE_USER</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
@@ -1308,6 +1306,14 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DeployPlanFactory.html#DeployPlanFactory-com.mesosphere.sdk.scheduler.plan.PhaseFactory-com.mesosphere.sdk.scheduler.plan.strategy.StrategyGenerator-">DeployPlanFactory(PhaseFactory, StrategyGenerator&lt;Phase&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeployPlanFactory.html" title="class in com.mesosphere.sdk.scheduler.plan">DeployPlanFactory</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#deployStepCount-int-">deployStepCount(int)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the deploy plan has the expected total number of steps.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#deployStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">deployStepStatus(String, String, Status)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the indicated deploy step has the expected status.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/http/endpoints/DeprecatedPlanResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">DeprecatedPlanResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
 <dd>
 <div class="block">Implements a set of deprecated <code>/v1/plan/</code> endpoints which operate against the Deploy plan.</div>
@@ -1415,6 +1421,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonIdUtils.html#emptyAgentId--">emptyAgentId()</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonIdUtils.html" title="class in com.mesosphere.sdk.offer">CommonIdUtils</a></dt>
 <dd>
 <div class="block">Returns an Agent ID whose value is an empty string.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#emptyOffers--">emptyOffers()</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
+<dd>
+<div class="block">Triggers offer processing against an empty list of offers.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CommonIdUtils.html#emptyTaskId--">emptyTaskId()</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CommonIdUtils.html" title="class in com.mesosphere.sdk.offer">CommonIdUtils</a></dt>
 <dd>
@@ -2076,6 +2086,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterCache.html#get-java.lang.String-">get(String)</a></span> - Method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterCache.html" title="class in com.mesosphere.sdk.storage">PersisterCache</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ClusterState.html#getAcceptCalls-java.lang.String-">getAcceptCalls(String)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></dt>
+<dd>
+<div class="block">Returns all launch operations where the specified pod was launched, in chronological order.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getAgentPlacementRule-java.util.List-java.util.List-">getAgentPlacementRule(List&lt;String&gt;, List&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>
 <div class="block">Returns the appropriate placement rule, given a set of agents to avoid or colocate with.</div>
@@ -2794,14 +2808,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html#getLabelsCsv--">getLabelsCsv()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html" title="class in com.mesosphere.sdk.specification.yaml">RawNetwork</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ClusterState.html#getLastAcceptCall--">getLastAcceptCall()</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></dt>
-<dd>
-<div class="block">Returns the last pod to be launched, regardless of the pod's name.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ClusterState.html#getLastAcceptCall-java.lang.String-">getLastAcceptCall(String)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></dt>
-<dd>
-<div class="block">Returns the last pod to be launched with the specified name.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ClusterState.html#getLastLaunchedTask-java.lang.String-">getLastLaunchedTask(String)</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></dt>
 <dd>
 <div class="block">Returns the last task launched with the specified name.</div>
@@ -5374,10 +5380,6 @@
 <dd>
 <div class="block">This method enqueues an Offer from Mesos if there is capacity.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#offer-Protos.Offer-">offer(Protos.Offer)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
-<dd>
-<div class="block">Sends the provided offer to the scheduler.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#OFFER_ATTRIBUTES_LABEL">OFFER_ATTRIBUTES_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Storage of the original Offer's attributes (in a string representation), for use in placement constraints.</div>
@@ -5514,7 +5516,13 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html#override-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">override(PodInstanceRequirement)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#overrideCapabilities-com.mesosphere.sdk.dcos.Capabilities-">overrideCapabilities(Capabilities)</a></span> - Static method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Overrides the cluster capabilities object returned by <a href="com/mesosphere/sdk/dcos/Capabilities.html#getInstance--"><code>Capabilities.getInstance()</code></a>, for use in tests.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ReviveManager.html#overrideTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">overrideTokenBucket(TokenBucket)</a></span> - Static method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework">ReviveManager</a></dt>
+<dd>
+<div class="block">Overrides the <a href="com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> object to be used by all <a href="com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework"><code>ReviveManager</code></a>s within the process.</div>
+</dd>
 </dl>
 <a name="I:P">
 <!--   -->
@@ -6217,9 +6225,13 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-java.util.Optional-">RecoveryStep(String, PodInstanceRequirement, LaunchConstrainer, StateStore, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">RecoveryStep</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#recoveryStepCount-int-">recoveryStepCount(int)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the recovery plan has the expected total number of steps.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#recoveryStepStatus-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">recoveryStepStatus(String, String, Status)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
-<div class="block">Verifies that the indicated recovery phase.step has the expected status.</div>
+<div class="block">Verifies that the indicated recovery step has the expected status.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html#recoveryType-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">recoveryType(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.Builder.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement.Builder</a></dt>
 <dd>&nbsp;</dd>
@@ -6461,10 +6473,6 @@
 <dd>
 <div class="block">Resets internal counters for tests.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ReviveManager.html#resetTimers--">resetTimers()</a></span> - Static method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework">ReviveManager</a></dt>
-<dd>
-<div class="block">Resets revive limits in the global token bucket, for tests.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#RESOURCE_ID_RESERVATION_LABEL">RESOURCE_ID_RESERVATION_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
 <dd>
 <div class="block">Label used to uniquely map resources to tasks.</div>
@@ -6595,17 +6603,17 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.html#REVIVE_THROTTLES">REVIVE_THROTTLES</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#revivedOffers-int-">revivedOffers(int)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that a revive call was invoked.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">ReviveManager</span></a> - Class in <a href="com/mesosphere/sdk/framework/package-summary.html">com.mesosphere.sdk.framework</a></dt>
 <dd>
 <div class="block">This class determines whether offers should be revived based on changes to the work being processed by the scheduler.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-java.util.Optional-">ReviveManager(Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework">ReviveManager</a></dt>
 <dd>
-<div class="block">Creates an instance using the singleton <a href="com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instance.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ReviveManager.html#ReviveManager-com.mesosphere.sdk.framework.TokenBucket-java.util.Optional-">ReviveManager(TokenBucket, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ReviveManager.html" title="class in com.mesosphere.sdk.framework">ReviveManager</a></dt>
-<dd>
-<div class="block">Creates an instance with a custom <a href="com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> instead of the singleton instance.</div>
+<div class="block">Creates an instance which will use the configured singleton <a href="com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> for rate limiting.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.html#REVIVES">REVIVES</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></dt>
 <dd>&nbsp;</dd>
@@ -7390,6 +7398,10 @@
 <dd>
 <div class="block">Defines the interface for a Step of a <a href="com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#stepCount-java.lang.String-int-">stepCount(String, int)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies the total number of expected steps in the plan, of all statuses.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/plan/StepFactory.html" title="interface in com.mesosphere.sdk.scheduler.plan"><span class="typeNameLink">StepFactory</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/plan/package-summary.html">com.mesosphere.sdk.scheduler.plan</a></dt>
 <dd>
 <div class="block">An implementation of this interface should provide <a href="com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s based on <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>s.</div>
@@ -7548,10 +7560,6 @@
 <dd>
 <div class="block">Calling this method will wait for Offers for the provided duration.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/OfferQueue.html#takeAll--">takeAll()</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/OfferQueue.html" title="class in com.mesosphere.sdk.framework">OfferQueue</a></dt>
-<dd>
-<div class="block">Calling this method will wait for Offers for a static duration of <a href="com/mesosphere/sdk/framework/OfferQueue.html#DEFAULT_OFFER_WAIT"><code>OfferQueue.DEFAULT_OFFER_WAIT</code></a>.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html#target">target</a></span> - Variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a></dt>
 <dd>
 <div class="block">The target override state for this task.</div>
@@ -7578,6 +7586,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html#TaskConfig-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">TaskConfig(String, String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ServiceTestResult.TaskConfig.html" title="class in com.mesosphere.sdk.testing">ServiceTestResult.TaskConfig</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskEnv-com.mesosphere.sdk.storage.Persister-java.lang.String-java.lang.String-java.lang.String-">taskEnv(Persister, String, String, String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dd>
+<div class="block">Verifies that the specified task has an environment variable with the specified name and value.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/config/validate/TaskEnvCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">TaskEnvCannotChange</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
 <dd>
 <div class="block">Customizable configuration validator which requires that a specified task environment variable cannot be changed
@@ -7625,7 +7637,9 @@
 <div class="block">Determines if a task is launched in any zones.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskIdKilled-java.lang.String-">taskIdKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Verifies that the specified task (by exact id) was killed during the test.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/http/types/TaskInfoAndStatus.html" title="class in com.mesosphere.sdk.http.types"><span class="typeNameLink">TaskInfoAndStatus</span></a> - Class in <a href="com/mesosphere/sdk/http/types/package-summary.html">com.mesosphere.sdk.http.types</a></dt>
 <dd>
 <div class="block">Basic container which holds a <code>TaskInfo</code> and optionally a corresponding <code>TaskStatus</code> if any is
@@ -7662,9 +7676,9 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#TaskLabelWriter-TaskInfo.Builder-">TaskLabelWriter(TaskInfo.Builder)</a></span> - Constructor for class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskNameKilled-java.lang.String-">taskNameKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskNameKilled-java.lang.String-int-">taskNameKilled(String, int)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
-<div class="block">Verifies that the specified task was killed.</div>
+<div class="block">Verifies that the specified task (by name) was killed during the test, the specified number of times.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#taskNameNotKilled-java.lang.String-">taskNameNotKilled(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
@@ -7850,8 +7864,6 @@
 <dd>
 <div class="block">Returns the correct DNS hostname for the provided task running within the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/TokenBucket.html#toBuilder--">toBuilder()</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toEndpoint-java.lang.String-int-">toEndpoint(String, int)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
 <div class="block">Concatenates the provided hostname/port in "hostname:port" format.</div>
