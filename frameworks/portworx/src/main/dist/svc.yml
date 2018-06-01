@@ -55,6 +55,18 @@ pods:
                     USR_SRC_MOUNT="-v /usr/src:/usr/src"
                 fi
 
+                {{#ETCD_ENABLED}}
+                {{#ETCD_PROXY_ENABLED}}
+                PORTWORX_KVDB=etcd://etcd-proxy-0-start.${FRAMEWORK_HOST}:{{ETCD_PROXY_ADVERTISE_PORT}}
+                {{/ETCD_PROXY_ENABLED}}
+                {{^ETCD_PROXY_ENABLED}}
+                PORTWORX_KVDB=etcd://etcd-cluster-0-node.${FRAMEWORK_HOST}:{{ETCD_NODE_ADVERTISE_PORT}},etcd://etcd-cluster-1-node.${FRAMEWORK_HOST}:{{ETCD_NODE_ADVERTISE_PORT}},etcd://etcd-cluster-2-node.${FRAMEWORK_HOST}:{{ETCD_NODE_ADVERTISE_PORT}}
+                {{/ETCD_PROXY_ENABLED}}
+                {{/ETCD_ENABLED}}
+                {{^ETCD_ENABLED}}
+                PORTWORX_KVDB={{PORTWORX_KVDB_SERVERS}}
+                {{/ETCD_ENABLED}}
+
                 echo "[Unit]
                     Description=Portworx Container
                     Before=docker.service
@@ -85,7 +97,7 @@ pods:
                           {{/SECRETS_ENABLED}}
                           -name=%n \
                           -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
-                          -k {{PORTWORX_KVDB}}
+                          -k $PORTWORX_KVDB
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
