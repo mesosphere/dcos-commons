@@ -41,6 +41,10 @@
         <value>{{IPC_CLIENT_CONNECT_MAX_RETRIES}}</value>
     </property>
     <property>
+        <name>ipc.maximum.data.length</name>
+        <value>{{IPC_MAXIMUM_DATA_LENGTH}}</value>
+    </property>
+    <property>
         <name>hadoop.tmp.dir</name>
         <value>{{HADOOP_TMP_DIR}}</value>
     </property>
