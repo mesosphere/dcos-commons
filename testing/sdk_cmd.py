@@ -339,7 +339,7 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bo
     """
     Use bootstrap to resolve the specified list of hosts
     """
-    bootstrap_cmd = [
+    bootstrap_cmd_list = [
         bootstrap_cmd,
         '-print-env=false',
         '-template=false',
@@ -347,7 +347,7 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bo
         '-self-resolve=false',
         '-resolve-hosts', ','.join(hosts)]
     log.info("Running bootstrap to wait for DNS resolution of: %s", ', '.join(hosts))
-    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
+    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd_list))
 
     # Note that bootstrap returns its output in STDERR
     resolved = 'SDK Bootstrap successful.' in bootstrap_stderr
