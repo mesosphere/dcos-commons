@@ -19,6 +19,9 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
+DEFAULT_LINUX_USER = "nobody"
+
+
 def install_enterprise_cli(force=False):
     """ Install the enterprise CLI if required """
 
@@ -224,7 +227,7 @@ def _get_role_list(service_name: str) -> List[str]:
 
 def setup_security(service_name: str,
                    permissions: List[dict]=[],
-                   linux_user: str="nobody",
+                   linux_user: str=DEFAULT_LINUX_USER,
                    service_account: str="service-acct",
                    service_account_secret: str="secret") -> dict:
 
@@ -268,7 +271,7 @@ def cleanup_security(service_name: str,
 
     log.info("Cleaning up strict-mode security")
 
-    linux_user = service_account_info.get("linux_user", "nobody")
+    linux_user = service_account_info.get("linux_user", DEFAULT_LINUX_USER)
     permissions = service_account_info.get("permissions", [])
     roles = service_account_info.get("roles", _get_role_list(service_name))
 
@@ -287,7 +290,7 @@ def cleanup_security(service_name: str,
 
 def security_session(framework_name: str,
                      permissions: List[dict]=[],
-                     linux_user: str="nobody",
+                     linux_user: str=DEFAULT_LINUX_USER,
                      service_account: str="service-acct",
                      service_account_secret: str="secret") -> None:
     """Create a service account and configure permissions for strict-mode tests.
@@ -296,7 +299,7 @@ def security_session(framework_name: str,
 
     @pytest.fixture(scope='session')
     def configure_security(configure_universe):
-        yield from sdk_security.security_session(framework_name, permissions, 'nobody', 'service-acct')
+        yield from sdk_security.security_session(framework_name, permissions, linux_user, 'service-acct')
     """
     try:
         is_strict = sdk_utils.is_strict_mode()
