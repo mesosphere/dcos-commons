@@ -27,6 +27,7 @@ def setup_service_account(service_name: str,
     secret = name if service_account_secret is None else service_account_secret
 
     service_account_info = sdk_security.setup_security(service_name,
+                                                       linux_user="nobody",
                                                        service_account=name,
                                                        service_account_secret=secret)
 

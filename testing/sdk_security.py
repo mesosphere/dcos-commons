@@ -210,7 +210,12 @@ def delete_secret(secret: str) -> None:
 
 
 def _get_role_list(service_name: str) -> List[str]:
-    role_basename = service_name.replace("/", "__")
+    # TODO: spark_utils uses:
+    # app_id_encoded = urllib.parse.quote(
+    #     urllib.parse.quote(app_id, safe=''),
+    #     safe=''
+    # )
+    role_basename = service_name.strip("/").replace("/", "__")
     return [
         "{}-role".format(role_basename),
         "slave_public%252F{}-role".format(role_basename),
@@ -228,6 +233,7 @@ def setup_security(service_name: str,
 
     service_account_info = {"name": service_account,
                             "secret": service_account_secret,
+                            "linux_user": linux_user,
                             "roles": [],
                             "permissions": [],
                             }
@@ -243,7 +249,7 @@ def setup_security(service_name: str,
 
     for role_name in service_account_info["roles"]:
         grant_permissions(
-            linux_user="nobody",
+            linux_user=linux_user,
             role_name=role_name,
             service_account_name=service_account,
             permissions=permissions,
@@ -262,12 +268,13 @@ def cleanup_security(service_name: str,
 
     log.info("Cleaning up strict-mode security")
 
+    linux_user = service_account_info.get("linux_user", "nobody")
     permissions = service_account_info.get("permissions", [])
     roles = service_account_info.get("roles", _get_role_list(service_name))
 
     for role_name in roles:
         revoke_permissions(
-            linux_user="nobody",
+            linux_user=linux_user,
             role_name=role_name,
             service_account_name=service_account,
             permissions=permissions
