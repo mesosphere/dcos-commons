@@ -262,6 +262,12 @@ OPENSSL_TO_RFC_NAMES = {
 RFC_TO_OPENSSL_NAMES = sdk_utils.invert_dict(OPENSSL_TO_RFC_NAMES)
 
 
+def missing_ciphers(openssl_ciphers: set) -> bool:
+    """Returns the OpenSSL ciphers absent from OPENSSL_TO_RFC_NAMES.
+    """
+    return openssl_ciphers - set(OPENSSL_TO_RFC_NAMES.keys())
+
+
 def rfc_name(openssl_name: str) -> str:
     return OPENSSL_TO_RFC_NAMES.get(openssl_name)
 
