@@ -1,3 +1,5 @@
+from functools import partial
+from operator import is_not
 import logging
 import pytest
 
@@ -120,16 +122,20 @@ def test_tls_ciphers(kafka_service_tls):
         config.SERVICE_NAME,
         'describe',
         json=True), '').rstrip().split(','))
-    possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
+
+    openssl_ciphers = sdk_security.openssl_ciphers()
+    possible_ciphers = set(filter(partial(is_not, None),
+                                  map(cipher_suites.rfc_name, openssl_ciphers)))
     enabled_ciphers = set()
 
+    assert openssl_ciphers, 'OpenSSL ciphers should be non-empty'
     assert expected_ciphers, 'Expected ciphers should be non-empty'
     assert possible_ciphers, 'Possible ciphers should be non-empty'
 
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
-    log.info("\nExpected ciphers:")
+    log.info("\n%s expected ciphers:", len(expected_ciphers))
     log.info("\n".join(sdk_utils.sort(list(expected_ciphers))))
-    log.info("\n{} ciphers will be checked:".format(len(possible_ciphers)))
+    log.info("\n%s ciphers will be checked:", len(possible_ciphers))
     log.info("\n".join(sdk_utils.sort(list(possible_ciphers))))
 
     for cipher in possible_ciphers:
@@ -137,7 +143,7 @@ def test_tls_ciphers(kafka_service_tls):
         if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
             enabled_ciphers.add(cipher)
 
-    log.info('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
+    log.info('%s ciphers enabled out of %s:', len(enabled_ciphers), len(possible_ciphers))
     log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"

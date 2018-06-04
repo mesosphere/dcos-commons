@@ -263,8 +263,8 @@ RFC_TO_OPENSSL_NAMES = sdk_utils.invert_dict(OPENSSL_TO_RFC_NAMES)
 
 
 def rfc_name(openssl_name: str) -> str:
-    return OPENSSL_TO_RFC_NAMES[openssl_name]
+    return OPENSSL_TO_RFC_NAMES.get(openssl_name)
 
 
 def openssl_name(rfc_name: str) -> str:
-    return RFC_TO_OPENSSL_NAMES[rfc_name]
+    return RFC_TO_OPENSSL_NAMES.get(rfc_name)
