@@ -43,7 +43,7 @@ allprojects {
     // 2. In the GitHub UI, add a Release entry against the tag created in step 1. List any changes in release notes.
     // 3. Create a PR which bumps this from '0.10.0-SNAPSHOT' to '0.11.0-SNAPSHOT' in master to start the 0.11.0 track.
     // --
-    version = '0.50.1-SNAPSHOT'
+    version = '0.60.0-SNAPSHOT'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
