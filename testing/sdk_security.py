@@ -51,7 +51,7 @@ def install_enterprise_cli(force=False):
         raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
 
 
-def _grant(user: str, acl: str, description: str, action: str="create") -> None:
+def _grant(user: str, acl: str, description: str, action: str) -> None:
     log.info('Granting permission to {user} for {acl}/{action} ({description})'.format(
         user=user, acl=acl, action=action, description=description))
 
@@ -71,7 +71,7 @@ def _grant(user: str, acl: str, description: str, action: str="create") -> None:
     assert r.status_code in [204, 409, ], '{} failed {}: {}'.format(r.url, r.status_code, r.text)
 
 
-def _revoke(user: str, acl: str, description: str, action: str="create") -> None:
+def _revoke(user: str, acl: str, description: str, action: str) -> None:
     # TODO(kwood): INFINITY-2065 - implement security cleanup
     log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
 
@@ -84,6 +84,7 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
             'acl': "dcos:mesos:master:framework:role:{}".format(role),
             'description': "Service {} may register with the Mesos master with role={}".format(
                 service_account_name, role),
+            'action': 'create'
         },
 
         # task execution permissions
@@ -91,7 +92,8 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
             'user': service_account_name,
             'acl': "dcos:mesos:master:task:user:{}".format(linux_user),
             'description': "Service {} may execute Mesos tasks as user={}".format(
-                service_account_name, linux_user)
+                service_account_name, linux_user),
+            'action': 'create'
         },
 
         # XXX 1.10 currently requires this mesos:agent permission as well as
@@ -101,7 +103,8 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
             'user': service_account_name,
             'acl': "dcos:mesos:agent:task:user:{}".format(linux_user),
             'description': "Service {} may execute Mesos tasks as user={}".format(
-                service_account_name, linux_user)
+                service_account_name, linux_user),
+            'action': 'create'
         },
 
         # resource permissions
@@ -109,7 +112,8 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
             'user': service_account_name,
             'acl': "dcos:mesos:master:reservation:role:{}".format(role),
             'description': "Service {} may reserve Mesos resources with role={}".format(
-                service_account_name, role)
+                service_account_name, role),
+            'action': 'create'
         },
         {
             'user': service_account_name,
@@ -124,7 +128,8 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
             'user': service_account_name,
             'acl': "dcos:mesos:master:volume:role:{}".format(role),
             'description': "Service {} may create Mesos volumes with role={}".format(
-                service_account_name, role)
+                service_account_name, role),
+            'action': 'create'
         },
         {
             'user': service_account_name,
@@ -135,26 +140,24 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
         }]
 
 
-def grant_permissions(linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]) -> None:
+def grant_permissions(linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]) -> List[dict]:
     log.info("Granting permissions to {account}".format(account=service_account_name))
 
     if not permissions:
         permissions = get_default_permissions(service_account_name, role_name, linux_user)
 
     for permission in permissions:
-        _grant(**permission)
+        _grant(permission["user"], permission["acl"], permission["description"], permission["action"])
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
+    return permissions
 
-def revoke_permissions(linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]) -> None:
-    log.info("Revoking permissions to {account}".format(account=service_account_name))
-
-    if not permissions:
-        permissions = get_default_permissions(service_account_name, role_name, linux_user)
+def revoke_permissions(service_account_name: str, role_name: str, permissions: List[dict]) -> None:
+    log.info("Revoking permissions from %s (role: %s)", service_account_name, role_name)
 
     for permission in permissions:
-        _revoke(**permission)
-    log.info("Permission cleanup completed for {account}".format(account=service_account_name))
+        _revoke(permission["user"], permission["acl"], permission["description"], permission["action"])
+    log.info("Permission cleanup completed for %s (role: %s)", service_account_name, role_name)
 
 
 def create_service_account(service_account_name: str, service_account_secret: str) -> None:
@@ -238,7 +241,7 @@ def setup_security(service_name: str,
                      "secret": service_account_secret,
                      "linux_user": linux_user,
                      "roles": [],
-                     "permissions": [],
+                     "permissions": {},
                      "is_strict": sdk_utils.is_strict_mode()
                      }
 
@@ -248,11 +251,10 @@ def setup_security(service_name: str,
 
     log.info("Setting up strict-mode security")
 
-    security_info["permissions"] = permissions
     security_info["roles"] = _get_role_list(service_name)
 
     for role_name in security_info["roles"]:
-        grant_permissions(
+        security_info["permissions"] = grant_permissions(
             linux_user=linux_user,
             role_name=role_name,
             service_account_name=service_account,
@@ -272,17 +274,8 @@ def cleanup_security(service_name: str,
 
     log.info("Cleaning up strict-mode security")
 
-    linux_user = security_info.get("linux_user", DEFAULT_LINUX_USER)
-    permissions = security_info.get("permissions", [])
-    roles = security_info.get("roles", _get_role_list(service_name))
-
-    for role_name in roles:
-        revoke_permissions(
-            linux_user=linux_user,
-            role_name=role_name,
-            service_account_name=service_account,
-            permissions=permissions
-        )
+    for role_name, permissions in security_info["permissions"].items():
+        revoke_permissions(service_account, role_name, permissions)
 
     delete_service_account(service_account, service_account_secret)
 
