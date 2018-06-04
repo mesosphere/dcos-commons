@@ -1,5 +1,3 @@
-from functools import partial
-from operator import is_not
 import logging
 import pytest
 
@@ -129,8 +127,7 @@ def test_tls_ciphers(kafka_service_tls):
     log.warning("\n%s OpenSSL ciphers missing from the cipher_suites module:", len(missing_openssl_ciphers))
     log.warning("\n".join(sdk_utils.sort(list(missing_openssl_ciphers))))
 
-    possible_ciphers = set(filter(partial(is_not, None),
-                                  map(cipher_suites.rfc_name, openssl_ciphers)))
+    possible_ciphers = set(map(cipher_suites.rfc_name, openssl_ciphers - missing_openssl_ciphers)))
     enabled_ciphers = set()
 
     assert openssl_ciphers, 'OpenSSL ciphers should be non-empty'
