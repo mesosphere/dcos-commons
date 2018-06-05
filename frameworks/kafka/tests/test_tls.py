@@ -122,7 +122,7 @@ def test_tls_ciphers(kafka_service_tls):
         json=True), '').rstrip().split(','))
 
     openssl_ciphers = sdk_security.openssl_ciphers()
-    missing_openssl_ciphers = sdk_security.missing_openssl_ciphers(openssl_ciphers)
+    missing_openssl_ciphers = cipher_suites.missing_openssl_ciphers(openssl_ciphers)
     possible_openssl_ciphers = openssl_ciphers - missing_openssl_ciphers
     enabled_ciphers = set()
 
