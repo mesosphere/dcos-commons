@@ -215,20 +215,31 @@ def delete_secret(secret: str) -> None:
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
 
 
-def _get_role_list(service_name: str) -> List[str]:
+def _get_service_role(service_name: str) -> List[str]:
     # TODO: spark_utils uses:
     # app_id_encoded = urllib.parse.quote(
     #     urllib.parse.quote(app_id, safe=''),
     #     safe=''
     # )
     role_basename = service_name.strip("/").replace("/", "__")
+
     return [
         "{}-role".format(role_basename),
         "slave_public%252F{}-role".format(role_basename),
     ]
 
 
+def _get_integration_test_foldered_role(service_name: str) -> List[str]:
+    """
+    The following role is required due to how the test fixtures are used.
+    """
+
+    role_basename = service_name.strip("/").replace("/", "__")
+    return ["test__integration__{}-role".format(role_basename), ]
+
+
 def setup_security(service_name: str,
+                   roles: List[str]=[],
                    permissions: List[dict]=[],
                    linux_user: str=DEFAULT_LINUX_USER,
                    service_account: str="service-acct",
@@ -251,7 +262,7 @@ def setup_security(service_name: str,
 
     log.info("Setting up strict-mode security")
 
-    security_info["roles"] = _get_role_list(service_name)
+    security_info["roles"] = roles.copy() if roles else _get_service_role(service_name)
 
     for role_name in security_info["roles"]:
         security_info["permissions"] = grant_permissions(
@@ -298,11 +309,13 @@ def security_session(framework_name: str,
     try:
         is_strict = sdk_utils.is_strict_mode()
         if is_strict:
+            roles = _get_service_role(framework_name) + _get_integration_test_foldered_role(framework_name)
             security_info = setup_security(framework_name,
-                                           permissions,
-                                           linux_user,
-                                           service_account,
-                                           service_account_secret)
+                                           roles=roles,
+                                           permissions=permissions,
+                                           linux_user=linux_user,
+                                           service_account=service_account,
+                                           service_account_secret=service_account_secret)
         yield
     finally:
         if is_strict:
