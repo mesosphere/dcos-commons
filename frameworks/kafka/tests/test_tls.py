@@ -143,7 +143,7 @@ def test_tls_ciphers(kafka_service_tls):
         if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
             enabled_ciphers.add(cipher_suites.rfc_name(openssl_cipher))
 
-    log.info('%s ciphers enabled out of %s:', len(enabled_ciphers), len(possible_ciphers))
+    log.info('%s ciphers enabled out of %s:', len(enabled_ciphers), len(possible_openssl_ciphers))
     log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
