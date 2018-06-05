@@ -136,7 +136,7 @@ def test_tls_ciphers(kafka_service_tls):
     log.info("\n%s expected ciphers:", len(expected_ciphers))
     log.info("\n".join(sdk_utils.sort(list(expected_ciphers))))
     log.info("\n%s ciphers will be checked:", len(possible_openssl_ciphers))
-    for openssl_cipher in sdk_utils.sort(possible_openssl_ciphers):
+    for openssl_cipher in sdk_utils.sort(list(possible_openssl_ciphers)):
         log.info("%s (%s)", cipher_suites.rfc_name(openssl_cipher), openssl_cipher)
 
     for openssl_cipher in possible_openssl_ciphers:
