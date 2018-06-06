@@ -265,7 +265,7 @@ def setup_security(service_name: str,
     security_info["roles"] = roles.copy() if roles else _get_service_role(service_name)
 
     for role_name in security_info["roles"]:
-        security_info["permissions"] = grant_permissions(
+        security_info["permissions"][role_name] = grant_permissions(
             linux_user=linux_user,
             role_name=role_name,
             service_account_name=service_account,
