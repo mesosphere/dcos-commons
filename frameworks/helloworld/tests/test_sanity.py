@@ -234,6 +234,7 @@ def test_config_cli():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke # include in smoke: verify that cluster is healthy after earlier service config changes
 def test_plan_cli():
     plan_name = 'deploy'
     phase_name = 'world'
@@ -362,6 +363,7 @@ def test_lock():
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
     marathon_client.update_app(foldered_name, {"labels": original_labels, "instances": 1}, force=True)
     shakedown.deployment_wait()
+
 
 @pytest.mark.sanity
 def test_tmp_directory_created():

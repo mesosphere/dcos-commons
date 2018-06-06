@@ -83,6 +83,9 @@ if [ -z "$CLUSTER_URL" ]; then
         echo "Error creating cluster"
         exit 1
     fi
+elif [[ x"$SECURITY" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
+    echo "CLUSTER_URL must be https in strict mode: $CLUSTER_URL"
+    exit 1
 fi
 
 echo "Configuring dcoscli for cluster: $CLUSTER_URL"

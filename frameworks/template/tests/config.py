@@ -1,4 +1,4 @@
 PACKAGE_NAME = 'template'
 SERVICE_NAME = 'template'
 DEFAULT_TASK_COUNT = 1
-
+DEFAULT_LINUX_USER = 'nobody'

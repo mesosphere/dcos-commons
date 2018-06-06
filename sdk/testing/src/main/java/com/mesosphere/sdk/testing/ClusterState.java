@@ -107,30 +107,16 @@ public class ClusterState {
     }
 
     /**
-     * Returns the last pod to be launched, regardless of the pod's name.
-     *
-     * @return the last pod added to {@link #addAcceptCall(Collection)}
-     * @throws IllegalStateException if no pods had been launched
-     * @see #getLastAcceptCall(String)
-     */
-    public AcceptEntry getLastAcceptCall() {
-        if (acceptCalls.isEmpty()) {
-            throw new IllegalStateException("No pods were created yet");
-        }
-        return acceptCalls.get(acceptCalls.size() - 1);
-    }
-
-    /**
-     * Returns the last pod to be launched with the specified name.
+     * Returns all launch operations where the specified pod was launched, in chronological order.
      *
      * @param podName name+index of the pod, of the form "podtype-#"
-     * @return a list of tasks which were included in the pod
+     * @return a list of accept calls (LAUNCH_GROUP + RESERVE) performed for the specified pod, or an empty list if none
+     * were found
      * @throws IllegalStateException if no such pod was found
-     * @see #getLastAcceptCall()
      */
-    public AcceptEntry getLastAcceptCall(String podName) {
+    public List<AcceptEntry> getAcceptCalls(String podName) {
         Set<String> allPodNames = new TreeSet<>();
-        AcceptEntry foundAcceptCall = null;
+        List<AcceptEntry> matchingAcceptCalls = new ArrayList<>();
         for (AcceptEntry acceptCall : acceptCalls) {
             // Check the tasks in this accept call for any tasks which match this pod:
             for (Protos.TaskInfo launchedTask : acceptCall.getTasks()) {
@@ -143,17 +129,17 @@ public class ClusterState {
                 }
                 allPodNames.add(thisPod);
                 if (thisPod.equals(podName)) {
-                    foundAcceptCall = acceptCall;
-                    // Stop checking tasks, but don't exit acceptCalls loop: want to collect the most recent version
+                    matchingAcceptCalls.add(acceptCall);
+                    // Stop checking tasks, but don't exit acceptCalls loop: want to collect all versions
                     break;
                 }
             }
         }
-        if (foundAcceptCall == null) {
+        if (matchingAcceptCalls.isEmpty()) {
             throw new IllegalStateException(String.format(
                     "Unable to find launched pod named %s. Available pods were: %s", podName, allPodNames));
         }
-        return foundAcceptCall;
+        return matchingAcceptCalls;
     }
 
     /**
