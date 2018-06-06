@@ -7,7 +7,6 @@ import com.google.common.collect.Lists;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
-
 /**
  * Utilities relating to the creation and interpretation of endpoints between DC/OS tasks.
  */
