@@ -155,8 +155,9 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html#getUrlFactory-java.lang.String-java.lang.String-">getUrlFactory</a></span>(java.lang.String&nbsp;frameworkName,
-             java.lang.String&nbsp;serviceName)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html#getUrlFactory-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">getUrlFactory</a></span>(java.lang.String&nbsp;frameworkName,
+             java.lang.String&nbsp;serviceName,
+             <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Returns a factory for schedulers which use <a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>MultiArtifactResource</code></a>.</div>
 </td>
 </tr>
@@ -199,14 +200,15 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getUrlFactory-java.lang.String-java.lang.String-">
+<a name="getUrlFactory-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getUrlFactory</h4>
 <pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/http/queries/ArtifactQueries.TemplateUrlFactory.html" title="interface in com.mesosphere.sdk.http.queries">ArtifactQueries.TemplateUrlFactory</a>&nbsp;getUrlFactory(java.lang.String&nbsp;frameworkName,
-                                                               java.lang.String&nbsp;serviceName)</pre>
+                                                               java.lang.String&nbsp;serviceName,
+                                                               <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Returns a factory for schedulers which use <a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>MultiArtifactResource</code></a>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

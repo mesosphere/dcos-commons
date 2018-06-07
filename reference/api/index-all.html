@@ -4031,11 +4031,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getUris--">getUris()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/ArtifactResource.html#getUrlFactory-java.lang.String-">getUrlFactory(String)</a></span> - Static method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/ArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints">ArtifactResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/ArtifactResource.html#getUrlFactory-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">getUrlFactory(String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/ArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints">ArtifactResource</a></dt>
 <dd>
 <div class="block">Returns a factory for schedulers which use <a href="com/mesosphere/sdk/http/endpoints/ArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>ArtifactResource</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html#getUrlFactory-java.lang.String-java.lang.String-">getUrlFactory(String, String)</a></span> - Static method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiArtifactResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html#getUrlFactory-java.lang.String-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">getUrlFactory(String, String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiArtifactResource</a></dt>
 <dd>
 <div class="block">Returns a factory for schedulers which use <a href="com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>MultiArtifactResource</code></a>.</div>
 </dd>
@@ -6714,8 +6714,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#SCHEDULER_API_HOSTNAME_TASKENV">SCHEDULER_API_HOSTNAME_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
-<div class="block">Provides the hostname of the Scheduler's own API.</div>
+<div class="block">Provides the hostname/port of the Scheduler's own API.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#SCHEDULER_API_PORT_TASKENV">SCHEDULER_API_PORT_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">SchedulerBuilder</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler</code></a>.</div>
@@ -7964,9 +7966,13 @@
 <dd>
 <div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerApiVipHostname-java.lang.String-">toSchedulerApiVipHostname(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerAutoIpEndpoint-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toSchedulerAutoIpEndpoint(String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
 <dd>
-<div class="block">Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.</div>
+<div class="block">Returns the correct DNS hostname:port endpoint for accessing the Scheduler API given the provided service name.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerAutoIpHostname-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toSchedulerAutoIpHostname(String, SchedulerConfig)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/EndpointUtils.html" title="class in com.mesosphere.sdk.http">EndpointUtils</a></dt>
+<dd>
+<div class="block">Returns the correct DNS hostname for accessing the Scheduler API given the provided service name.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#toShortJsonString-T-">toShortJsonString(T)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
 <dd>

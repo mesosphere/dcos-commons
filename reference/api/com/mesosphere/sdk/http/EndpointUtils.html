@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -194,24 +194,32 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerApiVipHostname-java.lang.String-">toSchedulerApiVipHostname</a></span>(java.lang.String&nbsp;serviceName)</code>
-<div class="block">Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerAutoIpEndpoint-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toSchedulerAutoIpEndpoint</a></span>(java.lang.String&nbsp;serviceName,
+                         <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
+<div class="block">Returns the correct DNS hostname:port endpoint for accessing the Scheduler API given the provided service name.</div>
 </td>
 </tr>
 <tr id="i7" class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toSchedulerAutoIpHostname-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">toSchedulerAutoIpHostname</a></span>(java.lang.String&nbsp;serviceName,
+                         <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
+<div class="block">Returns the correct DNS hostname for accessing the Scheduler API given the provided service name.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toVipDomain-java.lang.String-">toVipDomain</a></span>(java.lang.String&nbsp;serviceName)</code>
 <div class="block">Returns the correct DNS domain for VIPs within the service.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toVipEndpoint-java.lang.String-com.mesosphere.sdk.http.EndpointUtils.VipInfo-">toVipEndpoint</a></span>(java.lang.String&nbsp;serviceName,
              <a href="../../../../com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a>&nbsp;vipInfo)</code>
 <div class="block">Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#toVipHostname-java.lang.String-com.mesosphere.sdk.http.EndpointUtils.VipInfo-">toVipHostname</a></span>(java.lang.String&nbsp;serviceName,
              <a href="../../../../com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a>&nbsp;vipInfo)</code>
@@ -287,6 +295,28 @@ extends java.lang.Object</pre>
 <div class="block">Returns the correct DNS hostname:port endpoint for the provided task and port running within the service.</div>
 </li>
 </ul>
+<a name="toSchedulerAutoIpHostname-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toSchedulerAutoIpHostname</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;toSchedulerAutoIpHostname(java.lang.String&nbsp;serviceName,
+                                                         <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
+<div class="block">Returns the correct DNS hostname for accessing the Scheduler API given the provided service name.</div>
+</li>
+</ul>
+<a name="toSchedulerAutoIpEndpoint-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toSchedulerAutoIpEndpoint</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;toSchedulerAutoIpEndpoint(java.lang.String&nbsp;serviceName,
+                                                         <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
+<div class="block">Returns the correct DNS hostname:port endpoint for accessing the Scheduler API given the provided service name.</div>
+</li>
+</ul>
 <a name="toVipDomain-java.lang.String-">
 <!--   -->
 </a>
@@ -317,16 +347,6 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.lang.String&nbsp;toVipEndpoint(java.lang.String&nbsp;serviceName,
                                              <a href="../../../../com/mesosphere/sdk/http/EndpointUtils.VipInfo.html" title="class in com.mesosphere.sdk.http">EndpointUtils.VipInfo</a>&nbsp;vipInfo)</pre>
 <div class="block">Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.</div>
-</li>
-</ul>
-<a name="toSchedulerApiVipHostname-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>toSchedulerApiVipHostname</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;toSchedulerApiVipHostname(java.lang.String&nbsp;serviceName)</pre>
-<div class="block">Returns the correct L4LB VIP hostname for accessing the Scheduler API given the provided service name.</div>
 </li>
 </ul>
 <a name="removeSlashes-java.lang.String-">

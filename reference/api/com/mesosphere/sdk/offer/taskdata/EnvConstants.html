@@ -168,16 +168,20 @@ extends java.lang.Object</pre>
 <tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/EnvConstants.html#SCHEDULER_API_HOSTNAME_TASKENV">SCHEDULER_API_HOSTNAME_TASKENV</a></span></code>
-<div class="block">Provides the hostname of the Scheduler's own API.</div>
+<div class="block">Provides the hostname/port of the Scheduler's own API.</div>
 </td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/EnvConstants.html#SCHEDULER_API_PORT_TASKENV">SCHEDULER_API_PORT_TASKENV</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/EnvConstants.html#TASK_NAME_TASKENV">TASK_NAME_TASKENV</a></span></code>
 <div class="block">Provides the name of the pod/task within the service.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/EnvConstants.html#ZONE_TASKENV">ZONE_TASKENV</a></span></code>
 <div class="block">Provides the zone in which the task has been launched.</div>
@@ -292,11 +296,24 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>SCHEDULER_API_HOSTNAME_TASKENV</h4>
 <pre>public static final&nbsp;java.lang.String SCHEDULER_API_HOSTNAME_TASKENV</pre>
-<div class="block">Provides the hostname of the Scheduler's own API. Pods within the service may access scheduler-hosted APIs under
-  this hostname. For example, <SCHEDULER_API_HOSTNAME>/v1/state/files/notavirus.exe.txt</div>
+<div class="block">Provides the hostname/port of the Scheduler's own API. Pods within the service may access scheduler-hosted APIs
+  under this hostname. For example, &lt;hostname>:&lt;port>/v1/state/files/notavirus.exe.txt</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="SCHEDULER_API_PORT_TASKENV">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>SCHEDULER_API_PORT_TASKENV</h4>
+<pre>public static final&nbsp;java.lang.String SCHEDULER_API_PORT_TASKENV</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.EnvConstants.SCHEDULER_API_PORT_TASKENV">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
