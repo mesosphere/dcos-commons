@@ -114,29 +114,35 @@ def test_tls_ciphers(kafka_service_tls):
         'endpoints {}'.format(BROKER_TLS_ENDPOINT),
         json=True)['dns'][0]
     ciphers_config_path = ['service', 'security', 'transport_encryption', 'ciphers']
-    expected_ciphers = set(filter(None, sdk_utils.get_in(ciphers_config_path, sdk_cmd.svc_cli(
+    expected_ciphers = set(sdk_utils.get_in(ciphers_config_path, sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         'describe',
-        json=True), '').rstrip().split(',')))
-    possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
+        json=True), '').rstrip().split(','))
+
+    openssl_ciphers = sdk_security.openssl_ciphers()
+    missing_openssl_ciphers = cipher_suites.missing_openssl_ciphers(openssl_ciphers)
+    possible_openssl_ciphers = openssl_ciphers - missing_openssl_ciphers
     enabled_ciphers = set()
 
+    assert openssl_ciphers, 'OpenSSL ciphers should be non-empty'
     assert expected_ciphers, 'Expected ciphers should be non-empty'
-    assert possible_ciphers, 'Possible ciphers should be non-empty'
+    assert possible_openssl_ciphers, 'Possible OpenSSL ciphers should be non-empty'
 
     sdk_cmd.task_exec(task_id, 'openssl version')  # Output OpenSSL version.
-    print("\nExpected ciphers:")
+    print("\n{} OpenSSL ciphers missing from the cipher_suites module:".format(len(missing_openssl_ciphers)))
+    print("\n".join(sdk_utils.sort(list(missing_openssl_ciphers))))
+    print("\n{} expected ciphers:".format(len(expected_ciphers)))
     print("\n".join(sdk_utils.sort(list(expected_ciphers))))
-    print("\n{} ciphers will be checked:".format(len(possible_ciphers)))
-    print("\n".join(sdk_utils.sort(list(possible_ciphers))))
+    print("\n{} ciphers will be checked:".format(len(possible_openssl_ciphers)))
+    for openssl_cipher in sdk_utils.sort(list(possible_openssl_ciphers)):
+        print("{} ({})".format(cipher_suites.rfc_name(openssl_cipher), openssl_cipher))
 
-    for cipher in possible_ciphers:
-        openssl_cipher = cipher_suites.openssl_name(cipher)
+    for openssl_cipher in possible_openssl_ciphers:
         if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
-            enabled_ciphers.add(cipher)
+            enabled_ciphers.add(cipher_suites.rfc_name(openssl_cipher))
 
-    print('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
+    print('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_openssl_ciphers)))
     print("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
