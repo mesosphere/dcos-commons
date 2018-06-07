@@ -120,24 +120,30 @@ def test_tls_ciphers(kafka_service_tls):
         config.SERVICE_NAME,
         'describe',
         json=True), '').rstrip().split(','))
-    possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
+
+    openssl_ciphers = sdk_security.openssl_ciphers()
+    missing_openssl_ciphers = cipher_suites.missing_openssl_ciphers(openssl_ciphers)
+    possible_openssl_ciphers = openssl_ciphers - missing_openssl_ciphers
     enabled_ciphers = set()
 
+    assert openssl_ciphers, 'OpenSSL ciphers should be non-empty'
     assert expected_ciphers, 'Expected ciphers should be non-empty'
-    assert possible_ciphers, 'Possible ciphers should be non-empty'
+    assert possible_openssl_ciphers, 'Possible OpenSSL ciphers should be non-empty'
 
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
-    log.info("\nExpected ciphers:")
+    log.warning("\n%s OpenSSL ciphers missing from the cipher_suites module:", len(missing_openssl_ciphers))
+    log.warning("\n".join(sdk_utils.sort(list(missing_openssl_ciphers))))
+    log.info("\n%s expected ciphers:", len(expected_ciphers))
     log.info("\n".join(sdk_utils.sort(list(expected_ciphers))))
-    log.info("\n{} ciphers will be checked:".format(len(possible_ciphers)))
-    log.info("\n".join(sdk_utils.sort(list(possible_ciphers))))
+    log.info("\n%s ciphers will be checked:", len(possible_openssl_ciphers))
+    for openssl_cipher in sdk_utils.sort(list(possible_openssl_ciphers)):
+        log.info("%s (%s)", cipher_suites.rfc_name(openssl_cipher), openssl_cipher)
 
-    for cipher in possible_ciphers:
-        openssl_cipher = cipher_suites.openssl_name(cipher)
+    for openssl_cipher in possible_openssl_ciphers:
         if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
-            enabled_ciphers.add(cipher)
+            enabled_ciphers.add(cipher_suites.rfc_name(openssl_cipher))
 
-    log.info('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
+    log.info('%s ciphers enabled out of %s:', len(enabled_ciphers), len(possible_openssl_ciphers))
     log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
