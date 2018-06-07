@@ -419,8 +419,9 @@ public class SchedulerBuilder {
                 stateStore,
                 configStore,
                 multiServiceFrameworkName.isPresent()
-                    ? MultiArtifactResource.getUrlFactory(multiServiceFrameworkName.get(), serviceSpec.getName())
-                    : ArtifactResource.getUrlFactory(serviceSpec.getName()),
+                    ? MultiArtifactResource.getUrlFactory(
+                            multiServiceFrameworkName.get(), serviceSpec.getName(), schedulerConfig)
+                    : ArtifactResource.getUrlFactory(serviceSpec.getName(), schedulerConfig),
                 endpointProducers);
     }
 

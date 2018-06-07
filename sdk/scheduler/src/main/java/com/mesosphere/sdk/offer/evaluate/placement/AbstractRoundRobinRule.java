@@ -50,7 +50,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
         final String offerKey = getKey(offer);
         if (offerKey == null) {
             // offer doesn't have the required attribute at all. denied.
-            return EvaluationOutcome.fail(this, "Offer lacks required round robin key").build();
+            return EvaluationOutcome.fail(this, "Offer lacks needed information for round robin placement").build();
         }
 
         // search across tasks, keeping key counts on a per-key basis.
