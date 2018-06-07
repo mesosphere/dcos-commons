@@ -252,12 +252,6 @@
             "type": "integer",
             "default": 8085
           },
-          "webui_ssl_port": {
-            "title": "WebUI HTTPS Port",
-            "description": "Port to access Lighthouse if you are accessing it via HTTPS",
-            "type": "integer",
-            "default": 8086
-          },
           "company_name": {
             "title": "Company Name",
             "description": "Company Name to use for creating Lighthouse account",

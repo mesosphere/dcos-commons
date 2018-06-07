@@ -235,9 +235,6 @@ pods:
           http:
             port: {{LIGHTHOUSE_HTTP_PORT}}
             advertise: true
-          https:
-            port: {{LIGHTHOUSE_HTTPS_PORT}}
-            advertise: true
         volume:
           path: "lh-data"
           type: ROOT
@@ -267,7 +264,7 @@ pods:
                 cert: ''"> $MESOS_SANDBOX/lh-data/config.yaml
             fi
 
-            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu /entry-point.sh -confpath $MESOS_SANDBOX/lh-data -http_port {{LIGHTHOUSE_HTTP_PORT}} -https_port {{LIGHTHOUSE_HTTPS_PORT}}
+            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu /entry-point.sh -confpath $MESOS_SANDBOX/lh-data -http_port {{LIGHTHOUSE_HTTP_PORT}}
         readiness-check:
           cmd: |
             status_code=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s -o /dev/null -I -w %{http_code} http://$TASK_NAME.$FRAMEWORK_HOST:{{LIGHTHOUSE_HTTP_PORT}}/login)
