@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.scheduler.multi;
 
 import java.util.Collection;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.storage.PersisterException;
 
@@ -17,15 +17,18 @@ public class AllDiscipline implements OfferDiscipline {
     }
 
     /**
-     * Prunes any entries from the persister for services which no longer exist.
+     * Does nothing: This discipline has no state
      */
     @Override
-    public void updateServices(Collection<AbstractScheduler> services) throws PersisterException {
+    public void updateServices(Collection<String> serviceNames) throws PersisterException {
         // No-op, nothing to update
     }
 
+    /**
+     * Returns {@code true}: All services are enabled at all times.
+     */
     @Override
-    public boolean offersEnabled(ClientStatusResponse statusResponse, AbstractScheduler service) {
+    public boolean offersEnabled(String serviceName, ClientStatusResponse statusResponse) {
         return true;
     }
 }

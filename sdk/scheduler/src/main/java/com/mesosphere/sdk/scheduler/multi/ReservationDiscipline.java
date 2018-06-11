@@ -4,12 +4,9 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.storage.Persister;
@@ -59,10 +56,11 @@ public class ReservationDiscipline implements OfferDiscipline {
     }
 
     /**
-     * Prunes any entries from the persister for services which no longer exist.
+     * Updates the internal list of selected services. In particular, if any selected services were removed from the
+     * scheduler, this call will also remove them from the internal selected list.
      */
     @Override
-    public void updateServices(Collection<AbstractScheduler> services) throws PersisterException {
+    public void updateServices(Collection<String> serviceNames) throws PersisterException {
         // Initial fetch is deferred until first update:
         if (!selectedReservingServices.isPresent()) {
             // Ensure stored set is mutable:
@@ -73,16 +71,7 @@ public class ReservationDiscipline implements OfferDiscipline {
         }
 
         // Prune any newly unknown services (in-place):
-        Set<String> knownServices = services.stream()
-                .map(s -> s.getServiceSpec().getName())
-                .collect(Collectors.toSet());
-        selectedReservingServices.get().retainAll(knownServices);
-
-        try {
-            throw new Exception("hi");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        selectedReservingServices.get().retainAll(serviceNames);
 
         // Store updated set (internally a no-op if nothing changes):
         if (selectionStore.storeSelectedServices(selectedReservingServices.get())) {
@@ -90,13 +79,18 @@ public class ReservationDiscipline implements OfferDiscipline {
         }
     }
 
+    /**
+     * Returns whether offers should be enabled for the specified service, based on its status.
+     *
+     * Among services with a {@code RESERVING} status, only {@code reservingMax} may receive offers at a time.
+     * Meanwhile, services with any status other than {@code RESERVING} do not have any limitation.
+     */
     @Override
-    public boolean offersEnabled(ClientStatusResponse statusResponse, AbstractScheduler service) {
+    public boolean offersEnabled(String serviceName, ClientStatusResponse statusResponse) {
         if (!selectedReservingServices.isPresent()) {
             throw new IllegalStateException("offersEnabled() called without any preceding call to updateServices()");
         }
 
-        String serviceName = service.getServiceSpec().getName();
         Set<String> selected = selectedReservingServices.get();
 
         if (statusResponse.result == ClientStatusResponse.Result.RESERVING) {
