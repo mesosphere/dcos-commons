@@ -45,6 +45,8 @@
       
       <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
       
+      <li><a href="/dcos-commons/multi-service/">Multi-Service Schedulers</a></li>
+      
       <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
       
       <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
@@ -68,7 +70,6 @@
     </ul>
   </li>
   
-  <li><a href="/dcos-commons/services">Services</a></li>
   <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
   <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
 </ul>
@@ -247,8 +248,12 @@ If Secret content is changed, relevant pod needs to be restarted, so it can upda
             <p><code class="highlighter-rouge">goal</code></p>
 
             <p>The goal state of the task. Must be either <code class="highlighter-rouge">RUNNING</code>, <code class="highlighter-rouge">FINISH</code> or <code class="highlighter-rouge">ONCE</code>:</p>
+
             <ul>
-              <li><code class="highlighter-rouge">RUNNING</code>: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically. To demonstrate, let’s assume a running instance the <code class="highlighter-rouge">hello-world</code> service on your DC/OS cluster. We’ll be updating the configuration of the <code class="highlighter-rouge">hello-0</code> pod and verifying that the <code class="highlighter-rouge">hello-0-server</code> task with goal state <code class="highlighter-rouge">RUNNING</code> is restarted and stays running. First, we verify that the deploy plan has completed:
+              <li>
+                <p><code class="highlighter-rouge">RUNNING</code></p>
+
+                <p>The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically. To demonstrate, let’s assume a running instance the <code class="highlighter-rouge">hello-world</code> service on your DC/OS cluster. We’ll be updating the configuration of the <code class="highlighter-rouge">hello-0</code> pod and verifying that the <code class="highlighter-rouge">hello-0-server</code> task with goal state <code class="highlighter-rouge">RUNNING</code> is restarted and stays running. First, we verify that the deploy plan has completed:</p>
                 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ dcos hello-world plan show deploy
 deploy (COMPLETE)
 ├─ hello (COMPLETE)
@@ -276,7 +281,10 @@ NAME            HOST         USER   STATE  ID                                   
 hello-0-server  10.0.3.117  nobody    R    hello-0-server__3007283c-837d-48e1-aa0b-d60baead6f4e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
 </code></pre></div>                </div>
               </li>
-              <li><code class="highlighter-rouge">FINISH</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it is rerun. To demonstrate, let’s assume that we’ve now launched hello-world with the <code class="highlighter-rouge">finish_state.yml</code> specfile, like so:
+              <li>
+                <p><code class="highlighter-rouge">FINISH</code></p>
+
+                <p>The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it is rerun. To demonstrate, let’s assume that we’ve now launched hello-world with the <code class="highlighter-rouge">finish_state.yml</code> specfile, like so:</p>
                 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo '{"service": {"yaml": "finish_state"}}' &gt; options.json
 $ dcos package install --yes hello-world --options=options.json
 </code></pre></div>                </div>
@@ -300,7 +308,10 @@ world-0-finish  10.0.3.117  nobody    F    world-0-finish__bd03efc2-26a0-4e36-a3
 ...
 </code></pre></div>                </div>
               </li>
-              <li><code class="highlighter-rouge">ONCE</code>: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it will not be rerun. To demonstrate, let’s assume that this time we’ve launched hello-world with the <code class="highlighter-rouge">discovery.yml</code> specfile, like so:&lt;/li&gt;
+              <li>
+                <p><code class="highlighter-rouge">ONCE</code></p>
+
+                <p>The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task’s configuration is updated, it will not be rerun. To demonstrate, let’s assume that this time we’ve launched hello-world with the <code class="highlighter-rouge">discovery.yml</code> specfile, like so:</p>
                 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>$ echo '{"service": {"yaml": "discovery"}}' &gt; options.json
 $ dcos package install --yes hello-world --options=options.json
 </code></pre></div>                </div>
@@ -396,7 +407,7 @@ root: {{ROOT_DIR}}
             <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>env:
   SSL_ENABLED: {{WEB_SSL_ENABLED}}
   CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
-  CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+  CUSTOM_403_MESSAGE: {{WEB_CUSTOM_403_MESSAGE}}
   HTTP_ROOT: {{WEB_ROOT_DIR}}
 </code></pre></div>            </div>
 

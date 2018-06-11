@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Multi-Service Schedulers</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons/">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons/">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      <li><a href="/dcos-commons/multi-service/">Multi-Service Schedulers</a></li>
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+    </ul>
+  </li>
+  
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Multi-Service Schedulers</h1>
+<div id="content">
+
+<ul class="section-nav">
+<li class="toc-entry toc-h1"><a href="#building-multi-service-schedulers">Building Multi-Service Schedulers</a>
+<ul>
+<li class="toc-entry toc-h2"><a href="#overview">Overview</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#terminology">Terminology</a></li>
+<li class="toc-entry toc-h3"><a href="#existing-data-services">Existing Data Services</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#limitations">Limitations</a></li>
+<li class="toc-entry toc-h2"><a href="#requirements">Requirements</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#config-serialization-and-servicefactory-implementation">Config serialization and ServiceFactory implementation</a></li>
+<li class="toc-entry toc-h3"><a href="#call-schedulerbuilderenablemultiservice">Call SchedulerBuilder.enableMultiService()</a></li>
+<li class="toc-entry toc-h3"><a href="#http-endpoints-optional">HTTP Endpoint(s) (optional)</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#implementation">Implementation</a></li>
+<li class="toc-entry toc-h2"><a href="#example-flows">Example flows</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#adding-a-service">Adding a Service</a></li>
+<li class="toc-entry toc-h3"><a href="#reconfiguring-a-service">Reconfiguring a Service</a></li>
+<li class="toc-entry toc-h3"><a href="#restarting-the-scheduler">Restarting the Scheduler</a></li>
+<li class="toc-entry toc-h3"><a href="#removing-a-service">Removing a Service</a></li>
+<li class="toc-entry toc-h3"><a href="#uninstalling-the-scheduler">Uninstalling the Scheduler</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul><h1 id="building-multi-service-schedulers">
+<a id="building-multi-service-schedulers" class="anchor" href="#building-multi-service-schedulers" aria-hidden="true"><span class="octicon octicon-link"></span></a>Building Multi-Service Schedulers</h1>
+
+<p>This is a “getting started” guide for running multiple services from a single SDK-based Scheduler process/Framework, with support for dynamically adding or removing those services from the Scheduler without needing to restart it.</p>
+
+<p>Readers of this document should already have some experience with writing SDK-based services. It assumes that the reader has some knowledge/experience with high-level SDK concepts, such as <code class="highlighter-rouge">ServiceSpec</code>s and <code class="highlighter-rouge">AbstractScheduler</code>s.</p>
+
+<p>Everything here is subject to change. There may be bugs or deficiencies in the current implementation as described here, and there may need be API changes before this feature will be ready for use in a production situation. But please send feedback! And patches!</p>
+
+<p>If you’re looking for example usage, just take a look at the <a href="https://github.com/mesosphere/dcos-commons/blob/693cfb0/frameworks/helloworld/src/main/java/com/mesosphere/sdk/helloworld/scheduler/Main.java#L101">reference implementation in hello-world</a>. In particular, the ‘Dynamic Multi-Service’ example should be applicable to most people. It also has <a href="https://github.com/mesosphere/dcos-commons/blob/693cfb0/frameworks/helloworld/tests/test_multiservice_dynamic.py">integration tests</a>. In addition to that, most of the SDK code involved in this change resides in the SDK’s <a href="https://github.com/mesosphere/dcos-commons/tree/6ad5021/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/multi/">scheduler.multi</a> package.</p>
+
+<h2 id="overview">
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h2>
+<p>A Multi-Service Scheduler is effectively a single Mesos Framework/Scheduler process, which manages multiple underlying Services. A “Service” is represented by a single <code class="highlighter-rouge">ServiceSpec</code> (and associated <code class="highlighter-rouge">Plan</code>s), which are wrapped in an <code class="highlighter-rouge">AbstractScheduler</code> object, potentially with other customizations provided by the developer.</p>
+
+<h3 id="terminology">
+<a id="terminology" class="anchor" href="#terminology" aria-hidden="true"><span class="octicon octicon-link"></span></a>Terminology</h3>
+<ul>
+  <li>
+<strong>Framework</strong>: A client of Mesos which receives Offers and TaskStatus messages and performs Mesos Operations in the cluster.</li>
+  <li>
+<strong>Service</strong>: Something that’s being run by the cluster via commands to Mesos. The “payload” that a user wants to run, effectively.</li>
+  <li>
+<strong>Mono-Scheduler</strong>: A process which connects to Mesos as a single Framework and which operates a single hardcoded (but configurable) Service for its entire lifetime.</li>
+  <li>
+<strong>Multi-Scheduler</strong>: A process which connects to Mesos as a single Framework but which runs zero or more Services, which at runtime can be dynamically added/removed.</li>
+</ul>
+
+<h3 id="existing-data-services">
+<a id="existing-data-services" class="anchor" href="#existing-data-services" aria-hidden="true"><span class="octicon octicon-link"></span></a>Existing Data Services</h3>
+<p>In practice, existing data services (Kafka, Cassandra, etc.) will continue to use the Mono-Scheduler structure for the foreseeable future, for the following reasons:</p>
+<ul>
+  <li>Each of those services requires distinct custom logic implemented in Java, so having a single Scheduler running multiple types of data services would be complicated.</li>
+  <li>Production database users would want to manage multiple instances fully independently, with different versions of the software on each. It’s therefore more straightforward (and safer) to just keep the management layer separate as well.
+    <ul>
+      <li>In particular, separate management of each database instance allows e.g. a prod instance which is upgraded fully independently from a test/staging instance.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="limitations">
+<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h2>
+<p>The following are known limitations of this Multi-Schedulers:</p>
+<ul>
+  <li>A multi-service Scheduler instance is still only operating a single Framework from Mesos’ perspective, so anything that has to <a href="https://github.com/apache/mesos/blob/9f2b497/include/mesos/mesos.proto#L228">vary on a per-Framework basis</a> will require multiple Scheduler instances.
+    <ul>
+      <li>Similarly, the Framework is registered up-front on Scheduler startup, so changing Framework-level parameters such as registered roles would involve restarting the Scheduler process. This shouldn’t be an issue in practice as the Scheduler is designed to be permissive of periodic restarts, but there’s nothing saying that live re-registration couldn’t be implemented, either.</li>
+    </ul>
+  </li>
+  <li>Existing instances of Mono-Scheduler services cannot be directly migrated to/from Multi-Scheduler services, due to a few underlying differences in the SDK between the two modes:
+    <ul>
+      <li>Multi-service support requires that <code class="highlighter-rouge">TaskID</code>s contain the service name, so that e.g. <code class="highlighter-rouge">TaskStatus</code>es can be routed to the correct service. Old single-service tasks therefore are not recognized by a new multi-service scheduler. However, all tasks launched with newer versions of the SDK (0.50+) will include this, even with mono-schedulers.</li>
+      <li>Multi-service support requires an additional <code class="highlighter-rouge">namespace</code> label in Mesos resource reservations, so that resources can be mapped back to the service they belong to. In addition, there are deficiencies with the Mesos Scheduler API that prevent having a smooth transition for existing services, unlike with Task IDs. Specifically, Mesos considers labels as immutable, so adding them requires re-reserving all resources, potentially disrupting the service and/or <em>losing data</em>.</li>
+      <li>Multi-service support requires a new ZK layout where Service-specific data is grouped into per-Service subnodes, this is treated as a new <em>SchemaVersion</em> value of <code class="highlighter-rouge">2</code>.</li>
+    </ul>
+  </li>
+</ul>
+
+<h2 id="requirements">
+<a id="requirements" class="anchor" href="#requirements" aria-hidden="true"><span class="octicon octicon-link"></span></a>Requirements</h2>
+<p>In order to build a Multi-Service Scheduler, the developer needs to implement a few things themselves:</p>
+<ol>
+  <li>A serialized format for the per-service config. This config must have the necessary information to rebuild your <code class="highlighter-rouge">AbstractScheduler</code> objects if/when the Scheduler is restarted.</li>
+  <li>A <a href="https://github.com/mesosphere/dcos-commons/blob/b056632/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/multi/ServiceFactory.java"><code class="highlighter-rouge">ServiceFactory</code></a> callback which will use that serialized config to build services via <code class="highlighter-rouge">SchedulerBuilder</code>.</li>
+  <li>When building the service using <a href="https://github.com/mesosphere/dcos-commons/blob/bea2874/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/SchedulerBuilder.java"><code class="highlighter-rouge">SchedulerBuilder</code></a>, call <code class="highlighter-rouge">enableMultiService(String frameworkName)</code>.</li>
+  <li>If services are supposed to be added/removed by end users, any HTTP endpoints or similar functionality needed to support those calls must be implemented by the developer.</li>
+</ol>
+
+<p>Keep reading for more information on each of those points, with links to examples.</p>
+
+<h3 id="config-serialization-and-servicefactory-implementation">
+<a id="config-serialization-and-servicefactory-implementation" class="anchor" href="#config-serialization-and-servicefactory-implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Config serialization and ServiceFactory implementation</h3>
+<p>If the Scheduler process is restarted, any previously added services must be re-added so that they can resume running. In order for the SDK to do this, the developer needs to provide a <a href="https://github.com/mesosphere/dcos-commons/blob/b056632/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/multi/ServiceFactory.java"><code class="highlighter-rouge">ServiceFactory</code></a> callback which will recreate the <code class="highlighter-rouge">AbstractScheduler</code> object when invoked. This callback is provided with a <code class="highlighter-rouge">byte[] context</code> field, where any application-specific information needed to reconstruct a given service can be stored. To use this <code class="highlighter-rouge">context</code> field, the service developer must implement a serialization format for config. For example, this could be used to store a small JSON blob storing application-level information about the service’s configuration.</p>
+<ul>
+  <li>
+<code class="highlighter-rouge">Hello-world</code> includes a <a href="https://github.com/mesosphere/dcos-commons/blob/693cfb0/frameworks/helloworld/src/main/java/com/mesosphere/sdk/helloworld/scheduler/ExampleMultiServiceResource.java#L63">sample implementations</a> of <code class="highlighter-rouge">ServiceFactory</code>, which uses a JSON serialization format. It’s recommended that your context be a 1:1 mapping of the input data provided by the user. Then you don’t have any issues with losing user intent as they upgrade your service.</li>
+  <li>Note: Things are done this way because we allow developers to insert arbitrary Java logic/objects into their service when constructing it. This makes it difficult for the SDK to automatically serialize/persist these customizations on the SDK’s end. Having the developer provide their own callback in this way allows them to continue injecting their own customizations into services, while also allowing the service objects to be consistently rebuilt across scheduler restarts.</li>
+</ul>
+
+<h3 id="call-schedulerbuilderenablemultiservice">
+<a id="call-schedulerbuilderenablemultiservice" class="anchor" href="#call-schedulerbuilderenablemultiservice" aria-hidden="true"><span class="octicon octicon-link"></span></a>Call SchedulerBuilder.enableMultiService()</h3>
+<p>Within that <a href="https://github.com/mesosphere/dcos-commons/blob/b056632/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/multi/ServiceFactory.java"><code class="highlighter-rouge">ServiceFactory</code></a> callback, the developer should use a <a href="https://github.com/mesosphere/dcos-commons/blob/bea2874/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/SchedulerBuilder.java"><code class="highlighter-rouge">SchedulerBuilder</code></a> to build the <code class="highlighter-rouge">AbstractScheduler</code> object, as they would do with single-service schedulers today. However, the developer must also be careful to invoke <a href="https://github.com/mesosphere/dcos-commons/blob/bea2874/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/SchedulerBuilder.java"><code class="highlighter-rouge">SchedulerBuilder.enableMultiService(String frameworkName)</code></a> to enable multi-service support within the service being built. <code class="highlighter-rouge">Hello-world</code> has an <a href="https://github.com/mesosphere/dcos-commons/blob/693cfb0/frameworks/helloworld/src/main/java/com/mesosphere/sdk/helloworld/scheduler/ExampleMultiServiceResource.java#L111">example of a ServiceFactory implementation</a>.</p>
+
+<h3 id="http-endpoints-optional">
+<a id="http-endpoints-optional" class="anchor" href="#http-endpoints-optional" aria-hidden="true"><span class="octicon octicon-link"></span></a>HTTP Endpoint(s) (optional)</h3>
+<p>If the developer intends for end-users to add/remove services from the Scheduler, the developer must implement their own HTTP endpoint(s) which do this. The exact functionality of these endpoints depends on the specific service being implemented. For example, a Spark Dispatcher implementation could include an endpoint that emulates the <code class="highlighter-rouge">spark-submit</code> endpoint, which internally adds the submitted jobs as new services. For example, <a href="https://github.com/mesosphere/dcos-commons/blob/693cfb0/frameworks/helloworld/src/main/java/com/mesosphere/sdk/helloworld/scheduler/ExampleMultiServiceResource.java">this endpoint</a> in the <code class="highlighter-rouge">hello-world</code> reference implementation accepts an example YAML template filename to be run and any parameters to use with it.</p>
+
+<h2 id="implementation">
+<a id="implementation" class="anchor" href="#implementation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Implementation</h2>
+<p>Here are the main components to know about when building a Multi-Service Scheduler.</p>
+
+<p>There are four new classes in the SDK to be aware of:</p>
+<ul>
+  <li>
+<strong>MultiServiceManager</strong>: In-memory management of running services. Adding/removing services by developers is done here.</li>
+  <li>
+<strong>ServiceStore</strong>: Persists information about running services to ZK so that they are remembered across scheduler restarts. As mentioned in the Requirements above, the developer only needs to provide a callback which will rebuild service objects, given a buffer of developer-defined context data.</li>
+  <li>
+<strong>MultiServiceEventClient</strong>: Routes Mesos events (<code class="highlighter-rouge">Offer</code>s, <code class="highlighter-rouge">TaskStatus</code>es, etc) to individual services which are stored within the <code class="highlighter-rouge">MultiServiceManager</code>. For example, this routes a received <code class="highlighter-rouge">TaskStatus</code> to the service which owns that task.</li>
+  <li>
+<strong>MultiServiceRunner</strong>: Runs the main Framework thread, passing events from Mesos to a provided <code class="highlighter-rouge">MultiServiceEventClient</code>. <code class="highlighter-rouge">MultiServiceRunner</code> mirrors today’s <code class="highlighter-rouge">ServiceRunner</code> used by Mono-Schedulers.</li>
+</ul>
+
+<table>
+  <thead>
+    <tr>
+      <th>Single-service structure</th>
+      <th>Multi-service structure</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><img src="/dcos-commons/img/multi-service-single.png" alt="Single-service structure"></td>
+      <td><img src="/dcos-commons/img/multi-service-multi.png" alt="Multi-service structure"></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Given these classes, there are three things you’d want to implement:</p>
+<ol>
+  <li>Your <code class="highlighter-rouge">main()</code> function, which creates/initializes the above three classes, and then invokes <code class="highlighter-rouge">MultiServiceRunner.run()</code> to start the Framework thread.</li>
+  <li>A callback which will rebuild any active services which were previously added via <code class="highlighter-rouge">MultiServiceManager.putService()</code>. If you have a fixed/static list of services to add, then this is very simple, since you’d just re-add the same list of services every time the scheduler starts. Otherwise, you would use a <code class="highlighter-rouge">ServiceStore</code> to handle persisting the services while they’re active, along with a <code class="highlighter-rouge">ServiceFactory</code> callback which would be used by the SDK to rebuild the services upon restart.</li>
+  <li>Any application-specific logic for dynamically adding/updating/removing services in the list, For example this could be HTTP endpoints which would result in calling <code class="highlighter-rouge">MultiServiceManager.putService()</code>/<code class="highlighter-rouge">uninstallService()</code>, after having updated the list of active services in the developer’s persisted storage (see previous requirement). This logic is only needed if the list of services can change on the fly – a fixed set of services would not need this.</li>
+</ol>
+
+<h2 id="example-flows">
+<a id="example-flows" class="anchor" href="#example-flows" aria-hidden="true"><span class="octicon octicon-link"></span></a>Example flows</h2>
+<p>The following describe the steps to perform common operations in a Multi-Scheduler. To see a full reference implementation supporting all of these operations, take a look at the additions to <code class="highlighter-rouge">hello-world</code> in this <a href="https://github.com/mesosphere/dcos-commons/pull/2462">dcos-commons PR</a>.</p>
+
+<h3 id="adding-a-service">
+<a id="adding-a-service" class="anchor" href="#adding-a-service" aria-hidden="true"><span class="octicon octicon-link"></span></a>Adding a Service</h3>
+<p>Adding a service to a Multi-Scheduler works as follows:</p>
+<ul>
+  <li>Somebody (e.g. end user via HTTP endpoint, or hardcoded in Main) notifies the scheduler process that a service should be added.</li>
+  <li>The <code class="highlighter-rouge">AbstractScheduler</code> object is built via the <code class="highlighter-rouge">ServiceFactory</code> within <code class="highlighter-rouge">ServiceStore</code>. This has the side effect of persisting the service context to ZK so that it can be reconstructed on scheduler restart.
+    <ul>
+      <li>The SDK invokes the developer’s <code class="highlighter-rouge">ServiceFactory</code> on initial service construction in order to ensure that the submitted data works at least once before it’s persisted.</li>
+      <li>The developer’s <code class="highlighter-rouge">ServiceFactory</code> will internally use a <code class="highlighter-rouge">SchedulerBuilder</code>, being careful to call <code class="highlighter-rouge">SchedulerBuilder.enableMultiService()</code>.</li>
+    </ul>
+  </li>
+  <li>The constructed <code class="highlighter-rouge">AbstractScheduler</code> is then added to the set of running services using <code class="highlighter-rouge">MultiServiceManager.putService()</code>. The <code class="highlighter-rouge">MultiServiceManager</code> adds the service to its internal map, and <code class="highlighter-rouge">MultiServiceEventClient</code> automatically starts sending Mesos <code class="highlighter-rouge">Offer</code>s to it. The service uses those <code class="highlighter-rouge">Offer</code>s to deploy as usual.</li>
+</ul>
+
+<h3 id="reconfiguring-a-service">
+<a id="reconfiguring-a-service" class="anchor" href="#reconfiguring-a-service" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reconfiguring a Service</h3>
+<p>Updating the configuration of existing services which were previously added is also supported. The flow for doing this in a Multi-Scheduler works as follows:</p>
+<ul>
+  <li>A new version of the service is constructed via the <code class="highlighter-rouge">ServiceStore</code> and <code class="highlighter-rouge">ServiceFactory</code> as described in <a href="#adding-a-service">Adding a Service</a> above, with a new service name that exactly matches the previous version’s service name.</li>
+  <li>When this new version of the service is added to the <code class="highlighter-rouge">MultiServiceManager</code>, it automatically <em>replaces</em> the previous version.</li>
+  <li>The new version of the service starts getting Offers and internally goes through the same config update flow that a normal single-service scheduler would go through, redeploying the underlying nodes of the service as needed to reflect the config change.</li>
+</ul>
+
+<h3 id="restarting-the-scheduler">
+<a id="restarting-the-scheduler" class="anchor" href="#restarting-the-scheduler" aria-hidden="true"><span class="octicon octicon-link"></span></a>Restarting the Scheduler</h3>
+<p>In the event of a Scheduler process restart, the Scheduler will automatically reconstruct the active services as it’s initialized. This reconstruction is done using the ServiceFactory provided by the developer.</p>
+<ul>
+  <li>The scheduler process is restarted for some reason, e.g. agent failure or config change.</li>
+  <li>The developer’s <code class="highlighter-rouge">main()</code> function should construct a <code class="highlighter-rouge">ServiceStore</code> with a developer-implemented <code class="highlighter-rouge">ServiceFactory</code>, and then invoke <code class="highlighter-rouge">ServiceStore.recover()</code>.</li>
+  <li>
+<code class="highlighter-rouge">ServiceStore.recover()</code> will return a list of recovered <code class="highlighter-rouge">AbstractScheduler</code>s which were reconstructed via the <code class="highlighter-rouge">ServiceFactory</code>. These should each be passed to <code class="highlighter-rouge">MultiServiceManager.putService(AbstractScheduler)</code>.</li>
+  <li>Each of the added services will automatically re-initialize and pick up where they left off before the restart.</li>
+</ul>
+
+<h3 id="removing-a-service">
+<a id="removing-a-service" class="anchor" href="#removing-a-service" aria-hidden="true"><span class="octicon octicon-link"></span></a>Removing a Service</h3>
+<p>Service removal is handled asynchronously. The developer requests that a service be removed, and it gets removed in the background (killing that service’s tasks and unreserving its resources). The developer is notified via a callback when the removal is complete:</p>
+<ul>
+  <li>Somebody (e.g. end user via HTTP endpoint) invokes <code class="highlighter-rouge">MultiServiceManager.uninstallService(String)</code>, with the argument being the name of a service previously added via <code class="highlighter-rouge">putService()</code>. See <code class="highlighter-rouge">ServiceSpec.getName()</code>.</li>
+  <li>Internally, the previously-added <code class="highlighter-rouge">AbstractScheduler</code> for this service is converted to an <code class="highlighter-rouge">UninstallScheduler</code>, which starts tearing down the service. In the meantime the service is still considered added and running, and should still be re-added if the Scheduler is restarted (at which point uninstall will automatically resume).
+    <ul>
+      <li>By default, service removals taking more than 10 minutes will be force-completed. In practice, this should only happen when e.g. an agent containing some resources is offline and previously-reserved resources from that agent are not being re-offered. If these resources are reoffered later, they will be automatically cleaned up via the SDK’s default garbage collection behavior.</li>
+    </ul>
+  </li>
+  <li>Finally, after the service has finished its teardown, a developer-provided <code class="highlighter-rouge">UninstallCallback</code> will be invoked, telling upstream that the service has been fully removed. In practice, this callback should have been <a href="https://github.com/mesosphere/dcos-commons/blob/693cfb0/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/multi/ServiceStore.java#L141">obtained</a> from the <code class="highlighter-rouge">ServiceStore</code>. This default callback implementation will remove the uninstalled service from the <code class="highlighter-rouge">ServiceStore</code>. The developer may implement their own custom callback which also performs other work, but the service should always be removed from the <code class="highlighter-rouge">ServiceStore</code> when it’s complete, otherwise it will just be recovered later on.</li>
+</ul>
+
+<h3 id="uninstalling-the-scheduler">
+<a id="uninstalling-the-scheduler" class="anchor" href="#uninstalling-the-scheduler" aria-hidden="true"><span class="octicon octicon-link"></span></a>Uninstalling the Scheduler</h3>
+<p>Uninstalling the scheduler (i.e. via <code class="highlighter-rouge">dcos package uninstall ...</code>) works as follows. This effectively works by unwinding all previously-added services, and then removing the parent framework and main Scheduler process once all services have been torn down:</p>
+<ul>
+  <li>As with any SDK-based package, the scheduler process is restarted with an <code class="highlighter-rouge">SDK_UNINSTALL=true</code> envvar added by Cosmos. This is the hint to the SDK that it should tear everything down.</li>
+  <li>As with <a href="#restarting-the-scheduler">any Scheduler restart</a>, the SDK will recover any previously running Services by calling <code class="highlighter-rouge">ServiceStore.recover()</code> and then passing the results to <code class="highlighter-rouge">MultiServiceManager.putService(AbstractScheduler)</code>.</li>
+  <li>As the services are each constructed by <code class="highlighter-rouge">SchedulerBuilder</code>, the global <code class="highlighter-rouge">SDK_UNINSTALL</code> envvar will be detected automatically, and the services will automatically be built in uninstall mode. As a result, the services will automatically start tearing down in parallel as they’re added to <code class="highlighter-rouge">MultiServiceManager</code>.
+    <ul>
+      <li>Unlike with <a href="#removing-a-service">service removal</a>, there is no timeout for per-service when the whole scheduler is being uninstalled. This is because there will be no opportunity to garbage-collect leftover resources at this point.</li>
+    </ul>
+  </li>
+  <li>After all the services have finished teardown, the scheduler process will see that nothing is left to be torn down. The Framework will be deregistered from Mesos and the Scheduler process will advertise completion to Cosmos.</li>
+  <li>Cosmos will then detect the completion and remove the Scheduler app from Marathon, finishing the uninstall.</li>
+</ul>
+
+</div>
+</div>
+</body>
+
+</html>
