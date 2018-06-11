@@ -35,7 +35,10 @@ def zookeeper_server(configure_security):
                 }
             }, service_options)
 
-            sdk_security.setup_security(config.ZOOKEEPER_SERVICE_NAME, zk_account, zk_secret)
+            service_account_info = sdk_security.setup_security(config.ZOOKEEPER_SERVICE_NAME,
+                                                               linux_user="nobody",
+                                                               service_account=zk_account,
+                                                               service_account_secret=zk_secret)
 
         sdk_install.install(
             config.ZOOKEEPER_PACKAGE_NAME,
@@ -49,9 +52,7 @@ def zookeeper_server(configure_security):
 
     finally:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
-        if sdk_utils.is_strict_mode():
-            sdk_security.delete_service_account(
-                service_account_name=zk_account, service_account_secret=zk_secret)
+        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)

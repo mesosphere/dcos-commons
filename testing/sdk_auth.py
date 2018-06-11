@@ -20,6 +20,8 @@ import uuid
 import retrying
 import subprocess
 
+from typing import List
+
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
@@ -196,7 +198,7 @@ class KerberosEnvironment:
                 log.info("Found installed KDC app, reusing it")
                 return _get_kdc_task(self.app_definition["id"])
             log.info("Found installed KDC app, destroying it first")
-            sdk_marathon.destroy(self.app_definition["id"])
+            sdk_marathon.destroy_app(self.app_definition["id"])
 
         log.info("Installing KDC Marathon app")
         _install_marathon_app(self.app_definition)
@@ -338,7 +340,7 @@ class KerberosEnvironment:
         keytab_id = self.get_keytab_path().replace("/", "_")
         return self.get_keytab_for_principals(keytab_id, self.principals)
 
-    def __encode_secret(self, keytab_path: str) -> str:
+    def __encode_secret(self, keytab_path: str) -> List[str]:
         if self.get_keytab_path().startswith(DCOS_BASE64_PREFIX):
             try:
                 base64_encoded_keytab_path = "{}.base64".format(keytab_path)
