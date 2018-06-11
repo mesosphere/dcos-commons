@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.testutils;
 
+import com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -55,5 +56,14 @@ public class PodTestUtils {
     public static PodInstanceRequirement getPodInstanceRequirement(int index) {
         List<String> tasksToLaunch = Arrays.asList(getTaskSpec().getName());
         return PodInstanceRequirement.newBuilder(getPodInstance(index), tasksToLaunch).build();
+    }
+
+    public static TemplateUrlFactory getTemplateUrlFactory() {
+        return new TemplateUrlFactory() {
+            @Override
+            public String get(UUID configId, String podType, String taskName, String configName) {
+                return String.format("http://test-template/%s/%s/%s/%s", podType, taskName, configName, configId.toString());
+            }
+        };
     }
 }

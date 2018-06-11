@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
@@ -38,7 +37,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                                PodTestUtils.getTemplateUrlFactory(),
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
@@ -91,7 +90,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                                PodTestUtils.getTemplateUrlFactory(),
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,

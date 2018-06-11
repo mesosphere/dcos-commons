@@ -81,12 +81,18 @@ public class MultiServiceEventClient implements MesosEventClient {
         if (schedulerConfig.isUninstallEnabled()) {
             this.deregisterStep = new DeregisterStep(Optional.empty());
             this.uninstallPlan = Optional.of(
-                    new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.singletonList(
-                            new DefaultPhase(
+                    new DefaultPlan(
+                            Constants.DEPLOY_PLAN_NAME,
+                            Collections.singletonList(
+                                new DefaultPhase(
                                     "deregister-framework",
                                     Collections.singletonList(deregisterStep),
                                     new SerialStrategy<>(),
-                                    Collections.emptyList()))));
+                                    Collections.emptyList()
+                                )
+                            )
+                    )
+            );
         } else {
             this.deregisterStep = null;
             this.uninstallPlan = Optional.empty();

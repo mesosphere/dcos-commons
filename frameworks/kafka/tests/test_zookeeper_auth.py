@@ -18,6 +18,12 @@ from tests import client
 from tests import config
 
 
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="Kerberos tests require DC/OS 1.10 or higher")]
+
+
 log = logging.getLogger(__name__)
 
 
@@ -86,7 +92,10 @@ def zookeeper_server(kerberos):
 
     try:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
-        sdk_security.setup_security(config.ZOOKEEPER_SERVICE_NAME, zk_account, zk_secret)
+        service_account_info = sdk_security.setup_security(config.ZOOKEEPER_SERVICE_NAME,
+                                                           linux_user="nobody",
+                                                           service_account=zk_account,
+                                                           service_account_secret=zk_secret)
         sdk_install.install(
             config.ZOOKEEPER_PACKAGE_NAME,
             config.ZOOKEEPER_SERVICE_NAME,
@@ -99,6 +108,7 @@ def zookeeper_server(kerberos):
 
     finally:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)

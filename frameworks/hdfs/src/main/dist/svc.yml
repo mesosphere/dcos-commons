@@ -47,7 +47,7 @@ pods:
           echo "Creating version directory in the journal-data persistent volume"
           mkdir -p journal-data/hdfs/current
           echo "Fetching VERSION file"
-          curl $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION > journal-data/hdfs/current/VERSION
+          curl ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/VERSION > journal-data/hdfs/current/VERSION
           echo "VERSION has the following content:"
           cat journal-data/hdfs/current/VERSION
         resource-set: journal-resources
@@ -104,7 +104,7 @@ pods:
             if [ -f $VERSION_FILE ] && [ ! -f journal-data/uploadedVersionFile ]; then
               echo "Uploading $VERSION_FILE to Scheduler:"
               cat $VERSION_FILE
-              curl -v -X PUT -F "file=@${VERSION_FILE}" $SCHEDULER_API_HOSTNAME/v1/state/files/VERSION
+              curl -v -X PUT -F "file=@${VERSION_FILE}" ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/VERSION
               touch journal-data/uploadedVersionFile
             fi
             if [ ! -f rolledEdits ]; then

@@ -23,26 +23,33 @@ public class DependencyStrategyHelper<C extends Element> {
         elements.forEach(element -> dependencies.put(element, new HashSet<>()));
     }
 
-    public void addElement(C element) throws InvalidDependencyException {
-        if (dependencies.get(element) != null) {
-            throw new InvalidDependencyException("Attempted to overwrite previously added element: " + element);
-        }
-
-        dependencies.put(element, new HashSet<>());
-    }
-
+    /**
+     * Marks a direct dependency between two nodes. NOTE: This helper does NOT handle any inferred/chained dependencies.
+     * It is the responsibility of the caller to explicitly add each dependency directly. For example, given c->b->a,
+     * the caller MUST explicitly specify c->b, b->a, AND c->a as dependencies.
+     */
     public void addDependency(C child, C parent) {
+        // Ensure parent element is listed:
+        addElement(parent);
+
+        // Update dependencies in child:
         Set<C> deps = dependencies.get(child);
         if (deps == null) {
             deps = new HashSet<>();
         }
-
-        if (dependencies.get(parent) == null) {
-            dependencies.put(parent, new HashSet<>());
-        }
-
         deps.add(parent);
         dependencies.put(child, deps);
+    }
+
+    /**
+     * Adds an element to be considered as a candidate. This may be used to add standalone entries which should be
+     * considered but which don't have any dependencies. Calling this is NOT necessary for any elements which were added
+     * (as child or as parent) via {@link #addDependency(Element, Element)}, or which were passed via the constructor.
+     */
+    public void addElement(C element) {
+        if (dependencies.get(element) == null) {
+            dependencies.put(element, new HashSet<>());
+        }
     }
 
     public Collection<C> getCandidates(boolean isInterrupted, Collection<PodInstanceRequirement> dirtyAssets) {
@@ -56,20 +63,7 @@ public class DependencyStrategyHelper<C extends Element> {
                 .collect(Collectors.toList());
     }
 
-    public Map<C, Set<C>> getDependencies() {
-        return dependencies;
-    }
-
     private static <C extends Element> boolean dependenciesFulfilled(Set<C> deps) {
         return deps.isEmpty() || deps.stream().allMatch(c -> c.isComplete());
-    }
-
-    /**
-     * An {@link InvalidDependencyException} is thrown when an attempt generate an invalid dependency occurs.
-     */
-    public static class InvalidDependencyException extends Exception {
-        public InvalidDependencyException(String message) {
-            super(message);
-        }
     }
 }

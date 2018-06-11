@@ -26,7 +26,11 @@ public class RawNetwork {
         this.labelsCsv = labels;
     }
 
-    private RawNetwork(String name) {
+    /**
+     * Included so that we support empty network specifications (e.g. a network of {@code networks: dcos:}).
+     */
+    @JsonCreator
+    private RawNetwork(String ignored) {
         this(Collections.emptyList(), Collections.emptyList(), "");
     }
 

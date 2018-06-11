@@ -49,8 +49,13 @@ public class SendTaskStatus implements Send {
 
     @Override
     public String getDescription() {
-        return String.format("TaskStatus[state=%s,readinessExitCode=%s] for name=%s and id=%s",
-                builder.taskState, builder.readinessCheckExitCode, builder.taskName, builder.taskId);
+        if (builder.readinessCheckExitCode.isPresent()) {
+            return String.format("TaskStatus[%s,readinessExitCode=%s] for name=%s and id=%s",
+                    builder.taskState, builder.readinessCheckExitCode.get(), builder.taskName, builder.taskId);
+        } else {
+            return String.format("TaskStatus[%s] for name=%s and id=%s",
+                    builder.taskState, builder.taskName, builder.taskId);
+        }
     }
 
     @Override
@@ -71,6 +76,4 @@ public class SendTaskStatus implements Send {
         }
         scheduler.statusUpdate(mockDriver, taskStatusBuilder.build());
     }
-
-
 }

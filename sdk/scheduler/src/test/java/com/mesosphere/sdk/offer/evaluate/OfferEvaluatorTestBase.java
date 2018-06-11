@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -8,10 +7,7 @@ import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
@@ -49,7 +45,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 TestConstants.SERVICE_NAME,
                 targetConfig,
-                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                PodTestUtils.getTemplateUrlFactory(),
                 SCHEDULER_CONFIG,
                 Optional.empty());
     }

@@ -71,17 +71,20 @@ def install_package_registry(service_secret_path: str) -> Dict:
             PACKAGE_REGISTRY_SERVICE_NAME
         )
     ])
+
     # If `describe` endpoint is working, registry is writable by AR.
-    package_name = 'hello'
-    package_version = 'world'
-    expected_msg = 'Version [{}] of package [{}] ' \
-                   'not found'.format(package_version, package_name)
-    wait_until_cli_condition(
-        'registry describe --package-name={} --package-version={}'.format(
-            package_name, package_version
-        ),
-        lambda code, out, err: code == 1 and expected_msg in err
+    @retrying.retry(
+        stop_max_delay=5 * 60 * 1000,
+        wait_fixed=5 * 1000
     )
+    def wait_for_registry_available():
+        code, stdout, stderr = sdk_cmd.run_raw_cli(
+            'registry describe --package-name=hello --package-version=world'
+        )
+        assert code == 1 and 'Version [world] of package [hello] not found' in stderr
+
+    wait_for_registry_available()
+
     return pkg_reg_repo
 
 
@@ -106,38 +109,24 @@ def add_dcos_files_to_registry(
         tmpdir_factory
     )
     log.info('Bundled .dcos files : {}'.format(dcos_files_list))
+
+    @retrying.retry(
+        stop_max_delay=5 * 60 * 1000,
+        wait_fixed=5 * 1000
+    )
+    def wait_for_added_registry(name, version):
+        code, stdout, stderr = sdk_cmd.run_raw_cli(
+            'registry describe --package-name={} --package-version={} --json'.format(
+                name, version
+            ),
+            print_output=False)
+        assert code == 0 and json.loads(stdout).get('status') == 'Added'
+
     for file_path, name, version in dcos_files_list:
-        rc, out, err = sdk_cmd.run_raw_cli(' '.join([
-            'registry',
-            'add',
-            '--dcos-file={}'.format(file_path),
-            '--json'
-        ]))
+        rc, out, err = sdk_cmd.run_raw_cli('registry add --dcos-file={} --json'.format(file_path))
         assert rc == 0
         assert len(json.loads(out)['packages']) > 0, 'No packages were added'
-        wait_until_cli_condition(
-            ' '.join([
-                'registry',
-                'describe',
-                '--package-name=' + name,
-                '--package-version=' + version,
-                '--json'
-            ]),
-            lambda code, out, err: code == 0 and
-            json.loads(out).get('status') == 'Added'
-        )
-
-
-@retrying.retry(
-    stop_max_delay=5 * 60 * 1000,
-    wait_fixed=5 * 1000
-)
-def wait_until_cli_condition(
-        cmd: str,
-        check: Callable[[int, str, str], bool]
-) -> None:
-    code, stdout, stderr = sdk_cmd.run_raw_cli(cmd)
-    assert check(code, stdout, stderr)
+        wait_for_added_registry(name, version)
 
 
 def build_dcos_files_from_stubs(

@@ -17,9 +17,7 @@ package com.mesosphere.sdk.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 
 import java.io.IOException;
@@ -53,8 +51,6 @@ public class SerializationUtils {
     public static ObjectMapper registerDefaultModules(ObjectMapper mapper) {
         // enable support for ...
         return mapper.registerModules(
-                new GuavaModule(),     // Guava types
-                new JavaTimeModule(),  // java.time.* types
                 new Jdk8Module(),      // Optional<>s
                 new ProtobufModule()); // Protobuf objects
     }

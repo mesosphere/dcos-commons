@@ -1,5 +1,3 @@
-// Config shared by the dcos-commons library and the examples:
-
 // Gradle is bundled with jansi 1.9 which can crash the JVM in some cases
 // Solution taken from: https://github.com/gradle/gradle/issues/778
 buildscript {
@@ -10,7 +8,6 @@ buildscript {
 
 plugins {
     id 'com.github.ben-manes.versions' version '0.17.0'
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
     id 'com.github.ksoichiro.console.reporter' version '0.5.0'
 }
 
@@ -46,7 +43,7 @@ allprojects {
     // 2. In the GitHub UI, add a Release entry against the tag created in step 1. List any changes in release notes.
     // 3. Create a PR which bumps this from '0.10.0-SNAPSHOT' to '0.11.0-SNAPSHOT' in master to start the 0.11.0 track.
     // --
-    version = '0.50.0-SNAPSHOT'
+    version = '0.51.0-SNAPSHOT'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -56,10 +53,10 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
-            url "http://downloads.mesosphere.com/maven/"
+            url 'http://downloads.mesosphere.com/maven/'
         }
         maven {
-            url "http://downloads.mesosphere.com/maven-snapshot/"
+            url 'http://downloads.mesosphere.com/maven-snapshot/'
         }
     }
 
@@ -113,25 +110,4 @@ allprojects {
             events 'passed', 'skipped', 'failed'
         }
     }
-}
-
-ext {
-    mesosVer = '1.4.0-rc1'
-}
-
-subprojects {
-    dependencies {
-        // Double quotes are required for $mesosVer to be resolved:
-        compile "org.apache.mesos:mesos:${mesosVer}"
-    }
-}
-
-shadowJar {
-    classifier = 'uber'
-
-    mergeServiceFiles()
-
-    exclude 'META-INF/*.SF'
-    exclude 'META-INF/*.DSA'
-    exclude 'META-INF/*.RSA'
 }

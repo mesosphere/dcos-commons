@@ -42,13 +42,11 @@ public class OfferAccepter {
             List<Protos.Offer.Operation> operations = agentRecs.getValue().stream()
                     .map(rec -> rec.getOperation())
                     .collect(Collectors.toList());
-            logOperations(agentRecs.getKey(), operations);
-            driver.get().acceptOffers(
-                    agentRecs.getValue().stream()
-                            .map(rec -> rec.getOffer().getId())
-                            .collect(Collectors.toSet()),
-                    operations,
-                    FILTERS);
+            Collection<Protos.OfferID> offerIds = agentRecs.getValue().stream()
+                    .map(rec -> rec.getOffer().getId())
+                    .collect(Collectors.toSet());
+            logOperations(agentRecs.getKey(), offerIds, operations);
+            driver.get().acceptOffers(offerIds, operations, FILTERS);
         }
     }
 
@@ -71,9 +69,15 @@ public class OfferAccepter {
         return recommendationsByAgent;
     }
 
-    private static void logOperations(String agentId, List<Protos.Offer.Operation> operations) {
-        LOGGER.info("Sending {} operation{} for agent {}:",
-                operations.size(), operations.size() == 1 ? "" : "s", agentId);
+    private static void logOperations(
+            String agentId, Collection<Protos.OfferID> offerIds, List<Protos.Offer.Operation> operations) {
+        LOGGER.info("Accepting {} offer{} for agent {} with {} operation{}: {}",
+                offerIds.size(),
+                offerIds.size() == 1 ? "" : "s",
+                agentId,
+                operations.size(),
+                operations.size() == 1 ? "" : "s",
+                offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toSet()));
         for (Protos.Offer.Operation op : operations) {
             LOGGER.info("  {}", TextFormat.shortDebugString(op));
         }

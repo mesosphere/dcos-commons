@@ -16,7 +16,7 @@ import urllib.request
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = 'https://downloads.mesosphere.com/java/server-jre-8u162-linux-x64.tar.gz'
+_jre_url = 'https://downloads.mesosphere.com/java/server-jre-8u172-linux-x64.tar.gz'
 _libmesos_bundle_url = 'https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.11.0.tar.gz'
 _dcos_sdk_version = '0.41.0-SNAPSHOT'
 

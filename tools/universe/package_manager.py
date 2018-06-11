@@ -96,7 +96,7 @@ def _get_packages_with_curl(universe_url, headers):
                "--write-out", "%{http_code}",
                "--silent",
                "-L",
-               "--max-time", "5",
+               "--max-time", "60",
                "-X", "GET",
                "-o", tmp_filename, ]
         for k, header in headers.items():

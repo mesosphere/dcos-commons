@@ -6,14 +6,20 @@ SHOULD ALSO BE APPLIED TO sdk_security IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import os
+import retrying
+
 from subprocess import check_output
+
+from typing import Dict
 from typing import List
 
-import retrying
 import sdk_cmd
 import sdk_utils
 
 log = logging.getLogger(__name__)
+
+
+DEFAULT_LINUX_USER: str = "nobody"
 
 
 def install_enterprise_cli(force=False):
@@ -45,7 +51,7 @@ def install_enterprise_cli(force=False):
         raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
 
 
-def _grant(user: str, acl: str, description: str, action: str="create") -> None:
+def _grant(user: str, acl: str, description: str, action: str) -> None:
     log.info('Granting permission to {user} for {acl}/{action} ({description})'.format(
         user=user, acl=acl, action=action, description=description))
 
@@ -65,12 +71,12 @@ def _grant(user: str, acl: str, description: str, action: str="create") -> None:
     assert r.status_code in [204, 409, ], '{} failed {}: {}'.format(r.url, r.status_code, r.text)
 
 
-def _revoke(user: str, acl: str, description: str, action: str="create") -> None:
+def _revoke(user: str, acl: str, description: str, action: str) -> None:
     # TODO(kwood): INFINITY-2065 - implement security cleanup
     log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
 
 
-def get_permissions(service_account_name: str, role: str, linux_user: str) -> List[dict]:
+def get_default_permissions(service_account_name: str, role: str, linux_user: str) -> List[dict]:
     return [
         # registration permissions
         {
@@ -78,6 +84,7 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
             'acl': "dcos:mesos:master:framework:role:{}".format(role),
             'description': "Service {} may register with the Mesos master with role={}".format(
                 service_account_name, role),
+            'action': 'create'
         },
 
         # task execution permissions
@@ -85,7 +92,8 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
             'user': service_account_name,
             'acl': "dcos:mesos:master:task:user:{}".format(linux_user),
             'description': "Service {} may execute Mesos tasks as user={}".format(
-                service_account_name, linux_user)
+                service_account_name, linux_user),
+            'action': 'create'
         },
 
         # XXX 1.10 currently requires this mesos:agent permission as well as
@@ -95,7 +103,8 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
             'user': service_account_name,
             'acl': "dcos:mesos:agent:task:user:{}".format(linux_user),
             'description': "Service {} may execute Mesos tasks as user={}".format(
-                service_account_name, linux_user)
+                service_account_name, linux_user),
+            'action': 'create'
         },
 
         # resource permissions
@@ -103,7 +112,8 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
             'user': service_account_name,
             'acl': "dcos:mesos:master:reservation:role:{}".format(role),
             'description': "Service {} may reserve Mesos resources with role={}".format(
-                service_account_name, role)
+                service_account_name, role),
+            'action': 'create'
         },
         {
             'user': service_account_name,
@@ -118,7 +128,8 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
             'user': service_account_name,
             'acl': "dcos:mesos:master:volume:role:{}".format(role),
             'description': "Service {} may create Mesos volumes with role={}".format(
-                service_account_name, role)
+                service_account_name, role),
+            'action': 'create'
         },
         {
             'user': service_account_name,
@@ -129,20 +140,24 @@ def get_permissions(service_account_name: str, role: str, linux_user: str) -> Li
         }]
 
 
-def grant_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
+def grant_permissions(linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]) -> List[dict]:
     log.info("Granting permissions to {account}".format(account=service_account_name))
-    permissions = get_permissions(service_account_name, role_name, linux_user)
+
+    if not permissions:
+        permissions = get_default_permissions(service_account_name, role_name, linux_user)
+
     for permission in permissions:
-        _grant(**permission)
+        _grant(permission["user"], permission["acl"], permission["description"], permission["action"])
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
+    return permissions
 
-def revoke_permissions(linux_user: str, role_name: str, service_account_name: str) -> None:
-    log.info("Revoking permissions to {account}".format(account=service_account_name))
-    permissions = get_permissions(service_account_name, role_name, linux_user)
+def revoke_permissions(service_account_name: str, role_name: str, permissions: List[dict]) -> None:
+    log.info("Revoking permissions from %s (role: %s)", service_account_name, role_name)
+
     for permission in permissions:
-        _revoke(**permission)
-    log.info("Permission cleanup completed for {account}".format(account=service_account_name))
+        _revoke(permission["user"], permission["acl"], permission["description"], permission["action"])
+    log.info("Permission cleanup completed for %s (role: %s)", service_account_name, role_name)
 
 
 def create_service_account(service_account_name: str, service_account_secret: str) -> None:
@@ -200,82 +215,114 @@ def delete_secret(secret: str) -> None:
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
 
 
-def setup_security(framework_name: str,
+def _get_service_role(service_name: str) -> List[str]:
+    # TODO: spark_utils uses:
+    # app_id_encoded = urllib.parse.quote(
+    #     urllib.parse.quote(app_id, safe=''),
+    #     safe=''
+    # )
+    role_basename = service_name.strip("/").replace("/", "__")
+
+    return [
+        "{}-role".format(role_basename),
+        "slave_public%252F{}-role".format(role_basename),
+    ]
+
+
+def _get_integration_test_foldered_role(service_name: str) -> List[str]:
+    """
+    The following role is required due to how the test fixtures are used.
+    """
+
+    role_basename = service_name.strip("/").replace("/", "__")
+    return ["test__integration__{}-role".format(role_basename), ]
+
+
+def setup_security(service_name: str,
+                   roles: List[str]=[],
+                   permissions: List[dict]=[],
+                   linux_user: str=DEFAULT_LINUX_USER,
                    service_account: str="service-acct",
                    service_account_secret: str="secret") -> dict:
 
     create_service_account(service_account_name=service_account,
                            service_account_secret=service_account_secret)
 
-    service_account_info = {"name": service_account, "secret": service_account_secret}
+    security_info = {"name": service_account,
+                     "secret": service_account_secret,
+                     "linux_user": linux_user,
+                     "roles": [],
+                     "permissions": {},
+                     "is_strict": sdk_utils.is_strict_mode()
+                     }
 
-    if not sdk_utils.is_strict_mode():
+    if not security_info["is_strict"]:
         log.info("Skipping strict-mode security setup on non-strict cluster")
-        return service_account_info
+        return security_info
 
     log.info("Setting up strict-mode security")
-    grant_permissions(
-        linux_user="nobody",
-        role_name="{}-role".format(framework_name),
-        service_account_name=service_account
-    )
-    grant_permissions(
-        linux_user="nobody",
-        role_name="slave_public%252F{}-role".format(framework_name),
-        service_account_name=service_account
-    )
-    grant_permissions(
-        linux_user="nobody",
-        role_name="test__integration__{}-role".format(framework_name),
-        service_account_name=service_account
-    )
+
+    security_info["roles"] = roles.copy() if roles else _get_service_role(service_name)
+
+    for role_name in security_info["roles"]:
+        security_info["permissions"][role_name] = grant_permissions(
+            linux_user=linux_user,
+            role_name=role_name,
+            service_account_name=service_account,
+            permissions=permissions,
+        )
+
     log.info("Finished setting up strict-mode security")
 
-    return service_account_info
+    return security_info
 
 
-def cleanup_security(framework_name: str,
-                     service_account: str="service-acct",
-                     service_account_secret: str="secret") -> None:
+def cleanup_security(service_name: str,
+                     security_info: Dict) -> None:
 
-    if sdk_utils.is_strict_mode():
-        log.info("Cleaning up strict-mode security")
-        revoke_permissions(
-            linux_user="nobody",
-            role_name="{}-role".format(framework_name),
-            service_account_name=service_account
-        )
-        revoke_permissions(
-            linux_user="nobody",
-            role_name="test__integration__{}-role".format(framework_name),
-            service_account_name=service_account
-        )
+    service_account = security_info.get("name", "service-acct")
+    service_account_secret = security_info.get("secret", "secret")
+
+    log.info("Cleaning up strict-mode security")
+
+    for role_name, permissions in security_info["permissions"].items():
+        revoke_permissions(service_account, role_name, permissions)
 
     delete_service_account(service_account, service_account_secret)
 
-    log.info("Finished cleaning up strict-mode security")
+    log.info('Finished cleaning up strict-mode security')
 
 
-def security_session(framework_name: str) -> None:
+def security_session(framework_name: str,
+                     permissions: List[dict]=[],
+                     linux_user: str=DEFAULT_LINUX_USER,
+                     service_account: str="service-acct",
+                     service_account_secret: str="secret"):
     """Create a service account and configure permissions for strict-mode tests.
 
     This should generally be used as a fixture in a framework's conftest.py:
 
     @pytest.fixture(scope='session')
     def configure_security(configure_universe):
-        yield from sdk_security.security_session(framework_name)
+        yield from sdk_security.security_session(framework_name, permissions, linux_user, 'service-acct')
     """
     try:
         is_strict = sdk_utils.is_strict_mode()
         if is_strict:
-            setup_security(framework_name)
+            roles = _get_service_role(framework_name) + _get_integration_test_foldered_role(framework_name)
+            security_info = setup_security(framework_name,
+                                           roles=roles,
+                                           permissions=permissions,
+                                           linux_user=linux_user,
+                                           service_account=service_account,
+                                           service_account_secret=service_account_secret)
         yield
     finally:
         if is_strict:
-            cleanup_security(framework_name)
+            cleanup_security(framework_name, security_info)
 
 
-def openssl_ciphers():
+def openssl_ciphers() -> set:
     return set(
         check_output(['openssl', 'ciphers',
                       'ALL:eNULL']).decode('utf-8').rstrip().split(':'))
