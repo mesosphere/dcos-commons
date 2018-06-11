@@ -43,7 +43,7 @@ class PackageManager:
 
         if package_name not in self.__package_cache:
             LOGGER.info("Retrieving information for package: %s", package_name)
-            url = self._universe_package_prefix + package_name
+            url = urllib.parse.urljoin(self._universe_package_prefix, package_name)
             try:
                 req = urllib.request.Request(url, headers=self._headers)
                 with urllib.request.urlopen(req, timeout=60) as f:
