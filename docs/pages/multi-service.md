@@ -1,10 +1,8 @@
 ---
-title: Multi-Service Schedulers
+title: Building Multi-Service Schedulers
 menuWeight: 1
 toc: true
 ---
-
-# Building Multi-Service Schedulers
 
 This is a "getting started" guide for running multiple services from a single SDK-based Scheduler process/Framework, with support for dynamically adding or removing those services from the Scheduler without needing to restart it.
 
