@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li>Prev&nbsp;Class</li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -162,9 +162,19 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">MultiServiceEventClient</a></span>(java.lang.String&nbsp;frameworkName,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-com.mesosphere.sdk.scheduler.multi.OfferDiscipline-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-java.util.Optional-">MultiServiceEventClient</a></span>(java.lang.String&nbsp;frameworkName,
                        <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                        <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a>&nbsp;multiServiceManager,
+                       <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a>&nbsp;offerDiscipline,
+                       java.util.Collection&lt;java.lang.Object&gt;&nbsp;customEndpoints,
+                       <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient.UninstallCallback</a>&nbsp;uninstallCallback,
+                       java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>&gt;&nbsp;deregisterStep)</code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-com.mesosphere.sdk.storage.Persister-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">MultiServiceEventClient</a></span>(java.lang.String&nbsp;frameworkName,
+                       <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
+                       <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a>&nbsp;multiServiceManager,
+                       <a href="../../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                        java.util.Collection&lt;java.lang.Object&gt;&nbsp;customEndpoints,
                        <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient.UninstallCallback</a>&nbsp;uninstallCallback)</code>&nbsp;</td>
 </tr>
@@ -249,17 +259,33 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">
+<a name="MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-com.mesosphere.sdk.storage.Persister-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>MultiServiceEventClient</h4>
 <pre>public&nbsp;MultiServiceEventClient(java.lang.String&nbsp;frameworkName,
                                <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                                <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a>&nbsp;multiServiceManager,
+                               <a href="../../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                                java.util.Collection&lt;java.lang.Object&gt;&nbsp;customEndpoints,
                                <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient.UninstallCallback</a>&nbsp;uninstallCallback)</pre>
+</li>
+</ul>
+<a name="MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-com.mesosphere.sdk.scheduler.multi.OfferDiscipline-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>MultiServiceEventClient</h4>
+<pre>MultiServiceEventClient(java.lang.String&nbsp;frameworkName,
+                        <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
+                        <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceManager.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceManager</a>&nbsp;multiServiceManager,
+                        <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a>&nbsp;offerDiscipline,
+                        java.util.Collection&lt;java.lang.Object&gt;&nbsp;customEndpoints,
+                        <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient.UninstallCallback</a>&nbsp;uninstallCallback,
+                        java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a>&gt;&nbsp;deregisterStep)</pre>
 </li>
 </ul>
 </li>
@@ -326,15 +352,8 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <li class="blockList">
 <h4>offers</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>&nbsp;offers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers)</pre>
-<div class="block">Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them.
-
- TODO(data-agility): Lots of opportunities to optimize this. Needs benchmarks. For example:
- <ul>
- <li>- Hide reserved resources from services that they don't belong to</li>
- <li>- Forward the offers to a random ordering of services to avoid some services starving others</li>
- <li>- Distribute the offers across all services in parallel (optimistic offers)</li>
- <li>- ... Pretty much anything that you could see Mesos itself doing.</li>
- </ul></div>
+<div class="block">Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
+ services which actually receive offers is decided by the <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi"><code>OfferDiscipline</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-">offers</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
@@ -436,7 +455,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 </div>
 <div class="subNav">
 <ul class="navList">
-<li>Prev&nbsp;Class</li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

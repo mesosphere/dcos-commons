@@ -178,6 +178,14 @@
 <div class="block">This rule enforces that a task be placed on a provided agent ID, or enforces that the task avoid
  that agent ID, depending on the factory method used.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">AllDiscipline</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
+<dd>
+<div class="block">Offer discipline implementation which imposes no limits on which services may receive offers at any given time.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#AllDiscipline--">AllDiscipline()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">AllDiscipline</a></dt>
+<dd>
+<div class="block">Use <code>OfferDiscipline#create(SchedulerConfig, Persister)</code> to create a new instance.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">AllLaunchConstrainer</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
 <dd>
 <div class="block">A <a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><code>LaunchConstrainer</code></a> combinator that ensures that all the given constrainers are satisfied before launching a
@@ -1362,6 +1370,15 @@
 <dd>
 <div class="block">Forces the instance to run in a synchronous/single-threaded mode for tests.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">DisciplineSelectionStore</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
+<dd>
+<div class="block">A <a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>DisciplineSelectionStore</code></a> stores the list of services selected to receive reservations.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html#DisciplineSelectionStore-com.mesosphere.sdk.storage.Persister-">DisciplineSelectionStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi">DisciplineSelectionStore</a></dt>
+<dd>
+<div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>DisciplineSelectionStore</code></a> which uses the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access the list of
+ selected services.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/FrameworkScheduler.html#disconnected-SchedulerDriver-">disconnected(SchedulerDriver)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ProcessExit.html#DISCONNECTED">DISCONNECTED</a></span> - Static variable in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ProcessExit.html" title="class in com.mesosphere.sdk.framework">ProcessExit</a></dt>
@@ -1565,6 +1582,14 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">TaskTypeRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#equals-java.lang.Object-">equals(Object)</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>&nbsp;</dd>
@@ -1788,6 +1813,10 @@
 <dd>
 <div class="block">Returns the requested property, or an empty array if the property is not present.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html#fetchSelectedServices--">fetchSelectedServices()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi">DisciplineSelectionStore</a></dt>
+<dd>
+<div class="block">Fetches the previously stored selected services, or returns an empty Set if none were previously stored.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterUtils.html#fetchServiceNamespaces-com.mesosphere.sdk.storage.Persister-">fetchServiceNamespaces(Persister)</a></span> - Static method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></dt>
 <dd>
 <div class="block">Returns all <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or an empty collection if
@@ -1946,7 +1975,7 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">FrameworkStore</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
-<div class="block">A <code>FrameworkStore</code> stores the Framework ID for the scheduler.</div>
+<div class="block">A <a href="com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state"><code>FrameworkStore</code></a> stores the Framework ID for the scheduler.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/FrameworkStore.html#FrameworkStore-com.mesosphere.sdk.storage.Persister-">FrameworkStore(Persister)</a></span> - Constructor for class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a></dt>
 <dd>
@@ -2902,6 +2931,11 @@
 <dd>
 <div class="block">Returns the configured time to wait for a service to be removed in a multi-service scheduler.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getMultiServiceReserveDiscipline--">getMultiServiceReserveDiscipline()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>
+<div class="block">Returns the number of services that can be simultaneously reserving in a multi-service scheduler, or <code>&lt;=0</code>
+ for no limit.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PhaseInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PhaseInfo.html" title="class in com.mesosphere.sdk.http.types">PhaseInfo</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/StepInfo.html#getName--">getName()</a></span> - Method in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/StepInfo.html" title="class in com.mesosphere.sdk.http.types">StepInfo</a></dt>
@@ -3100,10 +3134,6 @@
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> object which was provided via the constructor, or which was created by default
  internally.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/FrameworkStore.html#getPersister--">getPersister()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state">FrameworkStore</a></dt>
-<dd>
-<div class="block">Returns the underlying <a href="com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getPersister--">getPersister()</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
@@ -4283,6 +4313,14 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.decommission.<a href="com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/AbstractStep.html" title="class in com.mesosphere.sdk.scheduler.plan">AbstractStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a></dt>
@@ -5150,7 +5188,9 @@
 <div class="block">An implementation of <a href="com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a> which wraps multiple running services, routing Mesos events to each
  service appropriately.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">MultiServiceEventClient(String, SchedulerConfig, MultiServiceManager, Collection&lt;Object&gt;, MultiServiceEventClient.UninstallCallback)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-com.mesosphere.sdk.storage.Persister-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-">MultiServiceEventClient(String, SchedulerConfig, MultiServiceManager, Persister, Collection&lt;Object&gt;, MultiServiceEventClient.UninstallCallback)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#MultiServiceEventClient-java.lang.String-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.scheduler.multi.MultiServiceManager-com.mesosphere.sdk.scheduler.multi.OfferDiscipline-java.util.Collection-com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient.UninstallCallback-java.util.Optional-">MultiServiceEventClient(String, SchedulerConfig, MultiServiceManager, OfferDiscipline, Collection&lt;Object&gt;, MultiServiceEventClient.UninstallCallback, Optional&lt;DeregisterStep&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">MultiServiceEventClient.UninstallCallback</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
 <dd>
@@ -5407,6 +5447,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#offerBuilder-java.lang.String-">offerBuilder(String)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">OfferDiscipline</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
+<dd>
+<div class="block">Interface used by <a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>MultiServiceEventClient</code></a> to enforce the services which should or shouldn't be receiving
+ offers.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">OfferEvaluationStage</span></a> - Interface in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
 <dd>
 <div class="block">Classes implementing this interface evaluate a pod against an offer and its resources for suitability to run.</div>
@@ -5486,6 +5531,18 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#offers-java.util.Collection-">offers(Collection&lt;Protos.Offer&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></dt>
 <dd>
 <div class="block">Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">offersEnabled(String, MesosEventClient.ClientStatusResponse)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">AllDiscipline</a></dt>
+<dd>
+<div class="block">Returns <code>true</code>: All services are enabled at all times.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">offersEnabled(String, MesosEventClient.ClientStatusResponse)</a></span> - Method in interface com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a></dt>
+<dd>
+<div class="block">Returns whether the specified service should be provided with offers, based on its status response.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html#offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">offersEnabled(String, MesosEventClient.ClientStatusResponse)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">ReservationDiscipline</a></dt>
+<dd>
+<div class="block">Returns whether offers should be enabled for the specified service, based on its status.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/offer/OfferUtils.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">OfferUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
@@ -6453,6 +6510,19 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/FrameworkScheduler.html#reregistered-SchedulerDriver-Protos.MasterInfo-">reregistered(SchedulerDriver, Protos.MasterInfo)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">ReservationDiscipline</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
+<dd>
+<div class="block">Offer discipline implementation which only allows a subset of N deploying services to receive offers at the same
+ time.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html#ReservationDiscipline-int-com.mesosphere.sdk.scheduler.multi.DisciplineSelectionStore-">ReservationDiscipline(int, DisciplineSelectionStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">ReservationDiscipline</a></dt>
+<dd>
+<div class="block">Use <code>OfferDiscipline#create(SchedulerConfig, Persister)</code> to create a new instance.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#RESERVE_DISCIPLINE_ENV">RESERVE_DISCIPLINE_ENV</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>
+<div class="block">(Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.ReserveEvaluationOutcome.html#ReserveEvaluationOutcome-com.mesosphere.sdk.offer.evaluate.EvaluationOutcome-java.lang.String-">ReserveEvaluationOutcome(EvaluationOutcome, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.ReserveEvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils.ReserveEvaluationOutcome</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">ReserveOfferRecommendation</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
@@ -7471,6 +7541,10 @@
 <dd>
 <div class="block">Stores an arbitrary key/value pair.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html#storeSelectedServices-java.util.Set-">storeSelectedServices(Set&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi">DisciplineSelectionStore</a></dt>
+<dd>
+<div class="block">Stores the list of services that are selected for reservations.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-">storeStatus(String, Protos.TaskStatus)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
@@ -8440,6 +8514,18 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html#UpdateResult-java.util.UUID-java.util.Collection-">UpdateResult(UUID, Collection&lt;ConfigValidationError&gt;)</a></span> - Constructor for class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/ConfigurationUpdater.UpdateResult.html" title="class in com.mesosphere.sdk.config">ConfigurationUpdater.UpdateResult</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#updateServices-java.util.Collection-">updateServices(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">AllDiscipline</a></dt>
+<dd>
+<div class="block">Does nothing: This discipline has no state</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#updateServices-java.util.Collection-">updateServices(Collection&lt;String&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a></dt>
+<dd>
+<div class="block">Updates the discipline's internal state with a list of all known services.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html#updateServices-java.util.Collection-">updateServices(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">ReservationDiscipline</a></dt>
+<dd>
+<div class="block">Updates the internal list of selected services.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html#updateTaskResourcesWithinResourceSet-com.mesosphere.sdk.specification.PodInstance-Protos.TaskInfo-">updateTaskResourcesWithinResourceSet(PodInstance, Protos.TaskInfo)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a></dt>
 <dd>
 <div class="block">This method keeps the resources associated with tasks in the state store up to date, when a task which shares

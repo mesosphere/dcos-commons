@@ -87,6 +87,13 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a></td>
+<td class="colLast">
+<div class="block">Interface used by <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>MultiServiceEventClient</code></a> to enforce the services which should or shouldn't be receiving
+ offers.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ServiceFactory.html" title="interface in com.mesosphere.sdk.scheduler.multi">ServiceFactory</a></td>
 <td class="colLast">
 <div class="block">Callback object which constructs (or reconstructs) a service based on its name/id and context data.</div>
@@ -103,6 +110,18 @@
 <th class="colLast" scope="col">Description</th>
 </tr>
 <tbody>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">AllDiscipline</a></td>
+<td class="colLast">
+<div class="block">Offer discipline implementation which imposes no limits on which services may receive offers at any given time.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi">DisciplineSelectionStore</a></td>
+<td class="colLast">
+<div class="block">A <a href="../../../../../com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>DisciplineSelectionStore</code></a> stores the list of services selected to receive reservations.</div>
+</td>
+</tr>
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html" title="class in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient</a></td>
 <td class="colLast">
@@ -130,6 +149,13 @@
 </td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">ReservationDiscipline</a></td>
+<td class="colLast">
+<div class="block">Offer discipline implementation which only allows a subset of N deploying services to receive offers at the same
+ time.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ServiceStore.html" title="class in com.mesosphere.sdk.scheduler.multi">ServiceStore</a></td>
 <td class="colLast">
 <div class="block">Default implementation of persistent storage which keeps track of the services that have been added to a dynamic
