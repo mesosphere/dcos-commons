@@ -312,8 +312,14 @@ def service_task_exec(service_name: str, task_name: str, cmd: str, return_stderr
     # - Regexes don't work at all.
     # Therefore, we need to provide a full TaskID prefix, including "servicename__taskname":
     task_id_prefix = '{}__{}__'.format(sdk_utils.get_task_id_service_name(service_name), task_name)
+    rc, stdout, stderr = _task_exec(task_id_prefix, cmd, return_stderr_in_stdout)
 
-    return _task_exec(task_id_prefix, cmd, return_stderr_in_stdout)
+    if 'Cannot find a task with ID containing' in stderr:
+        # If the service is doing an upgrade test, the old version may not use prefixed task ids.
+        # Get around this by trying again without the service name prefix in the task id.
+        rc, stdout, stderr = _task_exec(task_name, cmd, return_stderr_in_stdout)
+
+    return rc, stdout, stderr
 
 
 def _task_exec(task_id_prefix: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
