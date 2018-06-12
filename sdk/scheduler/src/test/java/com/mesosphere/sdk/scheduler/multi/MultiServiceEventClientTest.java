@@ -11,7 +11,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
-import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -20,6 +20,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.TaskStatusResponse;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -78,15 +79,15 @@ public class MultiServiceEventClientTest {
         }
     };
 
-    @Mock private DefaultScheduler mockClient1;
-    @Mock private DefaultScheduler mockClient2;
-    @Mock private DefaultScheduler mockClient3;
-    @Mock private DefaultScheduler mockClient4;
-    @Mock private DefaultScheduler mockClient5;
-    @Mock private DefaultScheduler mockClient6;
-    @Mock private DefaultScheduler mockClient7;
-    @Mock private DefaultScheduler mockClient8;
-    @Mock private DefaultScheduler mockClient9;
+    @Mock private AbstractScheduler mockClient1;
+    @Mock private AbstractScheduler mockClient2;
+    @Mock private AbstractScheduler mockClient3;
+    @Mock private AbstractScheduler mockClient4;
+    @Mock private AbstractScheduler mockClient5;
+    @Mock private AbstractScheduler mockClient6;
+    @Mock private AbstractScheduler mockClient7;
+    @Mock private AbstractScheduler mockClient8;
+    @Mock private AbstractScheduler mockClient9;
     @Mock private ServiceSpec mockServiceSpec1;
     @Mock private ServiceSpec mockServiceSpec2;
     @Mock private ServiceSpec mockServiceSpec3;
@@ -99,7 +100,9 @@ public class MultiServiceEventClientTest {
     @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private StateStore mockStateStore;
     @Mock private MultiServiceManager mockMultiServiceManager;
+    @Mock private OfferDiscipline mockOfferDiscipline;
     @Mock private MultiServiceEventClient.UninstallCallback mockUninstallCallback;
+    @Mock private DeregisterStep mockDeregisterStep;
 
     private MultiServiceEventClient client;
 
@@ -125,15 +128,14 @@ public class MultiServiceEventClientTest {
         when(mockServiceSpec8.getName()).thenReturn("8");
         when(mockServiceSpec9.getName()).thenReturn("9");
         when(mockSchedulerConfig.getMultiServiceRemovalTimeout()).thenReturn(Duration.ZERO);
-        client = buildClient();
+        when(mockOfferDiscipline.offersEnabled(any(), any())).thenReturn(true);
+        client = buildClient(false);
     }
 
     @Test
     public void offerNoClientsUninstalling() {
-        // Tell client that it's doing an uninstall:
-        when(mockSchedulerConfig.isUninstallEnabled()).thenReturn(true);
-        // Rebuild client because uninstall bit is checked in constructor:
-        client = buildClient();
+        // Rebuild client in uninstall mode:
+        client = buildClient(true);
 
         Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, client.getClientStatus().result);
     }
@@ -154,7 +156,7 @@ public class MultiServiceEventClientTest {
     }
 
     @Test
-    public void clientRemoval() {
+    public void clientRemoval() throws Exception {
         when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Collections.singleton(mockClient1));
         when(mockClient1.getStateStore()).thenReturn(mockStateStore);
 
@@ -162,15 +164,19 @@ public class MultiServiceEventClientTest {
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.finished());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
         Assert.assertEquals(ClientStatusResponse.Result.RUNNING, client.getClientStatus().result);
-        verify(mockMultiServiceManager).uninstallServices(Collections.singleton("1"));
+        verify(mockOfferDiscipline).updateServices(Collections.singleton("1"));
+        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.finished());
+        verify(mockMultiServiceManager).uninstallServices(Collections.singletonList("1"));
         verifyZeroInteractions(mockStateStore);
         verifyZeroInteractions(mockUninstallCallback);
 
         // client is uninstalled, expect removal:
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.uninstalled());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
+        verify(mockOfferDiscipline, times(2)).updateServices(Collections.singleton("1"));
+        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.uninstalled());
         verify(mockStateStore).deleteAllDataIfNamespaced();
-        verify(mockMultiServiceManager).removeServices(Collections.singleton("1"));
+        verify(mockMultiServiceManager).removeServices(Collections.singletonList("1"));
         verify(mockUninstallCallback).uninstalled("1");
 
         Assert.assertEquals(ClientStatusResponse.Result.RUNNING, client.getClientStatus().result);
@@ -182,10 +188,9 @@ public class MultiServiceEventClientTest {
     }
 
     @Test
-    public void clientRemovalDuringUninstall() {
-        when(mockSchedulerConfig.isUninstallEnabled()).thenReturn(true);
-        // Rebuild client because uninstall bit is checked in constructor:
-        client = buildClient();
+    public void clientRemovalDuringUninstall() throws Exception {
+        // Rebuild client in uninstall mode:
+        client = buildClient(true);
 
         when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Collections.singleton(mockClient1));
         when(mockClient1.getStateStore()).thenReturn(mockStateStore);
@@ -194,15 +199,19 @@ public class MultiServiceEventClientTest {
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.finished());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
         Assert.assertEquals(ClientStatusResponse.Result.RUNNING, client.getClientStatus().result);
-        verify(mockMultiServiceManager).uninstallServices(Collections.singleton("1"));
+        verify(mockOfferDiscipline).updateServices(Collections.singleton("1"));
+        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.finished());
+        verify(mockMultiServiceManager).uninstallServices(Collections.singletonList("1"));
         verifyZeroInteractions(mockStateStore);
         verifyZeroInteractions(mockUninstallCallback);
 
         // client is uninstalled, expect removal:
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.uninstalled());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
+        verify(mockOfferDiscipline, times(2)).updateServices(Collections.singleton("1"));
+        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.uninstalled());
         verify(mockStateStore).deleteAllDataIfNamespaced();
-        verify(mockMultiServiceManager).removeServices(Collections.singleton("1"));
+        verify(mockMultiServiceManager).removeServices(Collections.singletonList("1"));
         verify(mockUninstallCallback).uninstalled("1");
 
         // still RUNNING until the getServices call returns an empty collection, below:
@@ -215,9 +224,9 @@ public class MultiServiceEventClientTest {
     }
 
     @Test
-    public void finishedAndUninstalled() {
-        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Arrays.asList(
-                mockClient1, mockClient2, mockClient3, mockClient4));
+    public void finishedAndUninstalled() throws Exception {
+        Collection<AbstractScheduler> services = Arrays.asList(mockClient1, mockClient2, mockClient3, mockClient4);
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(services);
 
         // 1,3: Finished uninstall, remove.
         // 2,4: Finished normal run, switch to uninstall.
@@ -233,18 +242,27 @@ public class MultiServiceEventClientTest {
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
 
         // As uninstalled clients are removed, data is cleared and upstream is notified via callback:
+        verify(mockOfferDiscipline).updateServices(new HashSet<>(Arrays.asList("1", "2", "3", "4")));
+        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.uninstalled());
+        verify(mockOfferDiscipline).offersEnabled("2", ClientStatusResponse.finished());
+        verify(mockOfferDiscipline).offersEnabled("3", ClientStatusResponse.uninstalled());
+        verify(mockOfferDiscipline).offersEnabled("4", ClientStatusResponse.finished());
         verify(mockStateStore, times(2)).deleteAllDataIfNamespaced();
-        verify(mockMultiServiceManager).removeServices(new HashSet<>(Arrays.asList("1", "3")));
+        verify(mockMultiServiceManager).removeServices(Arrays.asList("1", "3"));
         verify(mockUninstallCallback).uninstalled("1");
         verify(mockUninstallCallback).uninstalled("3");
         // Uninstall triggered for finished clients:
-        verify(mockMultiServiceManager).uninstallServices(new HashSet<>(Arrays.asList("2", "4")));
+        verify(mockMultiServiceManager).uninstallServices(Arrays.asList("2", "4"));
 
         Assert.assertEquals(ClientStatusResponse.Result.RUNNING, client.getClientStatus().result);
     }
 
     @Test
-    public void emptyOffersHitAllServices() {
+    public void emptyOffersHitAllServices() throws Exception {
+        Collection<AbstractScheduler> services =
+                Arrays.asList(mockClient1, mockClient2, mockClient3, mockClient4, mockClient5);
+        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(services);
+
         when(mockClient1.offers(any())).then(CONSUME_FIRST_OFFER);
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.running());
         when(mockClient2.offers(any())).then(CONSUME_LAST_OFFER);
@@ -254,22 +272,28 @@ public class MultiServiceEventClientTest {
         when(mockClient4.getClientStatus()).thenReturn(ClientStatusResponse.finished());
         when(mockClient5.getClientStatus()).thenReturn(ClientStatusResponse.uninstalled());
         when(mockClient5.getStateStore()).thenReturn(mockStateStore);
-        when(mockMultiServiceManager.sharedLockAndGetServices()).thenReturn(Arrays.asList(
-                mockClient1, mockClient2, mockClient3, mockClient4, mockClient5));
 
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, response.result);
         Assert.assertTrue(response.recommendations.isEmpty());
+
+        verify(mockOfferDiscipline).updateServices(new HashSet<>(Arrays.asList("1", "2", "3", "4", "5")));
+        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.running());
+        verify(mockOfferDiscipline).offersEnabled("2", ClientStatusResponse.reserving());
+        verify(mockOfferDiscipline).offersEnabled("3", ClientStatusResponse.running());
+        verify(mockOfferDiscipline).offersEnabled("4", ClientStatusResponse.finished());
+        verify(mockOfferDiscipline).offersEnabled("5", ClientStatusResponse.uninstalled());
+
         verify(mockClient1).offers(Collections.emptyList());
         verify(mockClient2).offers(Collections.emptyList());
         verify(mockClient3).offers(Collections.emptyList());
         // 4 not hit due to finished status:
         verify(mockClient4, never()).offers(Collections.emptyList());
-        verify(mockMultiServiceManager).uninstallServices(Collections.singleton("4"));
+        verify(mockMultiServiceManager).uninstallServices(Collections.singletonList("4"));
         // 5 not hit due to uninstalled status:
         verify(mockClient4, never()).offers(Collections.emptyList());
-        verify(mockMultiServiceManager).removeServices(Collections.singleton("5"));
+        verify(mockMultiServiceManager).removeServices(Collections.singletonList("5"));
         verify(mockStateStore).deleteAllDataIfNamespaced();
     }
 
@@ -398,13 +422,15 @@ public class MultiServiceEventClientTest {
         verify(mockClient3, times(1)).taskStatus(status);
     }
 
-    private MultiServiceEventClient buildClient() {
+    private MultiServiceEventClient buildClient(boolean uninstalling) {
         return new MultiServiceEventClient(
                 TestConstants.SERVICE_NAME,
                 mockSchedulerConfig,
                 mockMultiServiceManager,
+                mockOfferDiscipline,
                 Collections.emptyList(),
-                mockUninstallCallback);
+                mockUninstallCallback,
+                uninstalling ? Optional.of(mockDeregisterStep) : Optional.empty());
     }
 
     @SuppressWarnings("deprecation")
