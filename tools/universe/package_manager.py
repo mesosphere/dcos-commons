@@ -9,6 +9,7 @@ import subprocess
 import json
 import os
 import tempfile
+import urllib.parse
 import urllib.request
 
 from . import package
