@@ -342,8 +342,8 @@ def is_cipher_enabled(service_name: str,
             'openssl', 's_client', '-cipher', cipher, '-connect', endpoint
         ])
 
-        _, output = sdk_cmd.service_task_exec(service_name, task_name, command, True)
-        return output
+        _, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, command)
+        return stdout + '\n' + stderr
 
     output = run_openssl_command()
 
