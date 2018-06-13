@@ -65,8 +65,8 @@ public class RawServiceSpec {
         /**
          * Set whether the rendering should be strict.
          */
-        public Builder setStrictRendering(boolean isStrict) {
-            this.isRenderingStrict = isStrict;
+        public Builder enableStrictRendering() {
+            this.isRenderingStrict = true;
             return this;
         }
 
