@@ -18,13 +18,12 @@ import java.util.*;
  * This class tests the {@link ZoneValidator} class.
  */
 public class ZoneValidatorTest {
-    private static final ZoneValidator validator = new ZoneValidator();
     private static final String POD_TYPE = TestConstants.POD_TYPE;
     private static final String TASK_NAME = TestConstants.TASK_NAME;
 
     @Test
     public void noOldConfig() {
-        Collection<ConfigValidationError> errors = validator.validate(
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(
                 Optional.empty(), null, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
@@ -36,8 +35,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(newTaskSpec);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -48,8 +46,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(true);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -60,8 +57,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(false);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -70,8 +66,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(true);
         ServiceSpec newSpec = getServiceSpec(false);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -80,8 +75,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(false);
         ServiceSpec newSpec = getServiceSpec(true);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -90,8 +84,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(true);
         ServiceSpec newSpec = getServiceSpec(true);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -129,11 +122,8 @@ public class ZoneValidatorTest {
     }
 
     private static PodSpec getPodSpec(TaskSpec taskSpec) {
-        return DefaultPodSpec.newBuilder("test-executor")
-                .type(POD_TYPE)
-                .count(1)
+        return DefaultPodSpec.newBuilder(POD_TYPE, 1, Arrays.asList(taskSpec))
                 .user(TestConstants.SERVICE_USER)
-                .tasks(Arrays.asList(taskSpec))
                 .build();
     }
 
@@ -146,10 +136,12 @@ public class ZoneValidatorTest {
                 TestConstants.SERVICE_NAME,
                 TestConstants.ROLE,
                 TestConstants.PRINCIPAL,
+                TestConstants.SERVICE_USER,
+                null,
+                null,
                 "http://web-url",
                 "http://zookeeper",
-                Arrays.asList(podSpec),
                 null,
-                TestConstants.SERVICE_USER);
+                Arrays.asList(podSpec));
     }
 }

@@ -114,7 +114,7 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         return False, stderr
 
     log.info("Waiting for app %s to be running...", app_name)
-    shakedown.wait_for_task("marathon", app_name)
+    shakedown.wait_for_task("marathon", app_name, TIMEOUT_SECONDS)
     return True, ""
 
 

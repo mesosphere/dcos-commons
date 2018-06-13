@@ -39,6 +39,10 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
                     .collect(Collectors.toList());
             Collections.reverse(planElements);
 
+            // Note: We mark ALL dependencies (including inferred dependencies) because DependencyStrategyHelper doesn't
+            // internally navigate the chain to see if ALL dependencies are complete.
+            // For example, say we had c->b->a where b is complete but the other two are not. In this situation,
+            // DependencyStrategyHelper would return both c and a as candidates!
             for (int i = 1; i < planElements.size(); i++) {
                 C previous = planElements.get(i - 1);
 
@@ -59,7 +63,7 @@ public class SerialStrategy<C extends Element> extends InterruptibleStrategy<C> 
      */
     public static class Generator<C extends Element> implements StrategyGenerator<C> {
         @Override
-        public Strategy<C> generate() {
+        public Strategy<C> generate(List<C> ignored) {
             return new SerialStrategy<>();
         }
     }

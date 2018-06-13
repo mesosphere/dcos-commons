@@ -16,17 +16,16 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
  */
 public class LaunchEvaluationStage implements OfferEvaluationStage {
+
+    private final String serviceName;
     private final String taskName;
     private final boolean shouldLaunch;
-    private final boolean useDefaultExecutor;
 
-    public LaunchEvaluationStage(String taskName) {
-        this(taskName, true, true);
-    }
-    public LaunchEvaluationStage(String taskName, boolean shouldLaunch, boolean useDefaultExecutor) {
+    public LaunchEvaluationStage(
+            String serviceName, String taskName, boolean shouldLaunch) {
+        this.serviceName = serviceName;
         this.taskName = taskName;
         this.shouldLaunch = shouldLaunch;
-        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     @Override
@@ -34,7 +33,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-        taskBuilder.setTaskId(CommonIdUtils.toTaskId(taskBuilder.getName()));
+        taskBuilder.setTaskId(CommonIdUtils.toTaskId(serviceName, taskBuilder.getName()));
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         TaskLabelWriter writer = new TaskLabelWriter(taskBuilder);
@@ -51,14 +50,10 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         taskBuilder.setLabels(writer.toProto());
         updateFaultDomainEnv(taskBuilder, offer);
 
-        if (!useDefaultExecutor) {
-            taskBuilder.setExecutor(executorBuilder);
-        }
-
         return pass(
                 this,
                 Arrays.asList(new LaunchOfferRecommendation(
-                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch, useDefaultExecutor)),
+                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch)),
                 "Added launch information to offer requirement")
                 .build();
     }

@@ -16,6 +16,8 @@ import com.mesosphere.sdk.config.ConfigurationFactory;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.validation.UniquePodType;
@@ -28,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -45,47 +46,55 @@ import java.util.stream.Collectors;
  */
 public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
-    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceSpec.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(DefaultServiceSpec.class);
 
     @NotNull(message = "Service name cannot be empty")
     @Size(min = 1, message = "Service name cannot be empty")
-    private String name;
-    private String role;
-    private String principal;
-    private String user;
-
-    private String webUrl;
-    private String zookeeperConnection;
+    private final String name;
+    private final String role;
+    private final String principal;
+    private final String user;
+    private final GoalState goalState;
+    private final String region;
+    private final String webUrl;
+    private final String zookeeperConnection;
 
     @Valid
     @NotNull
     @Size(min = 1, message = "At least one pod must be configured.")
     @UniquePodType(message = "Pod types must be unique")
-    private List<PodSpec> pods;
+    private final List<PodSpec> pods;
 
     @Valid
-    private ReplacementFailurePolicy replacementFailurePolicy;
+    private final ReplacementFailurePolicy replacementFailurePolicy;
 
     @JsonCreator
     public DefaultServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
+            @JsonProperty("user") String user,
+            @JsonProperty("goal") GoalState goalState,
+            @JsonProperty("region") String region,
             @JsonProperty("web-url") String webUrl,
             @JsonProperty("zookeeper") String zookeeperConnection,
-            @JsonProperty("pod-specs") List<PodSpec> pods,
             @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
-            @JsonProperty("user") String user) {
+            @JsonProperty("pod-specs") List<PodSpec> pods) {
         this.name = name;
         this.role = role;
         this.principal = principal;
+        this.user = getUser(user, pods);
+        this.goalState = goalState == null ? GoalState.RUNNING : goalState;
+        if (goalState == GoalState.FINISHED) {
+            throw new IllegalArgumentException("Service goal state is deprecated FINISHED. Did you mean FINISH?");
+        }
+        this.region = region;
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
         this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
-        this.pods = pods;
         this.replacementFailurePolicy = replacementFailurePolicy;
-        this.user = getUser(user, pods);
+        this.pods = pods;
         ValidationUtils.validate(this);
     }
 
@@ -114,11 +123,13 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.name,
                 builder.role,
                 builder.principal,
+                builder.user,
+                builder.goalState,
+                builder.region,
                 builder.webUrl,
                 builder.zookeeperConnection,
-                builder.pods,
                 builder.replacementFailurePolicy,
-                builder.user);
+                builder.pods);
     }
 
     /**
@@ -169,11 +180,13 @@ public class DefaultServiceSpec implements ServiceSpec {
         builder.name = copy.getName();
         builder.role = copy.getRole();
         builder.principal = copy.getPrincipal();
-        builder.zookeeperConnection = copy.getZookeeperConnection();
-        builder.webUrl = copy.getWebUrl();
-        builder.pods = copy.getPods();
-        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
         builder.user = copy.getUser();
+        builder.goalState = copy.getGoal();
+        builder.region = copy.getRegion().orElse(null);
+        builder.webUrl = copy.getWebUrl();
+        builder.zookeeperConnection = copy.getZookeeperConnection();
+        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
+        builder.pods = copy.getPods();
         return builder;
     }
 
@@ -193,6 +206,21 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
+    public String getUser() {
+        return user;
+    }
+
+    @Override
+    public GoalState getGoal() {
+        return goalState;
+    }
+
+    @Override
+    public Optional<String> getRegion() {
+        return Optional.ofNullable(region);
+    }
+
+    @Override
     public String getWebUrl() {
         return webUrl;
     }
@@ -203,13 +231,13 @@ public class DefaultServiceSpec implements ServiceSpec {
     }
 
     @Override
-    public List<PodSpec> getPods() {
-        return pods;
+    public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
+        return Optional.ofNullable(replacementFailurePolicy);
     }
 
     @Override
-    public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
-        return Optional.ofNullable(replacementFailurePolicy);
+    public List<PodSpec> getPods() {
+        return pods;
     }
 
     @Override
@@ -228,11 +256,6 @@ public class DefaultServiceSpec implements ServiceSpec {
      */
     public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
         return COMPARATOR;
-    }
-
-    @Override
-    public String getUser() {
-        return user;
     }
 
     /**
@@ -257,11 +280,10 @@ public class DefaultServiceSpec implements ServiceSpec {
      * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
-     * @param serviceSpec           specification to test for successful serialization/deserialization
-     * @throws ConfigStoreException if testing the provided specification fails
+     * @param serviceSpec               specification to test for successful serialization/deserialization
+     * @throws IllegalArgumentException if testing the provided specification fails
      */
-    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec)
-            throws ConfigStoreException {
+    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec) {
         return getConfigurationFactory(serviceSpec, Collections.emptyList());
     }
 
@@ -271,38 +293,64 @@ public class DefaultServiceSpec implements ServiceSpec {
      * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
      *
      * @param serviceSpec                  specification to test for successful serialization/deserialization
-     * @param additionalSubtypesToRegister any class subtypes which should be registered with
-     *                                     Jackson for deserialization. any custom placement rule implementations
-     *                                     must be provided
-     * @throws ConfigStoreException        if testing the provided specification fails
+     * @param additionalSubtypesToRegister any class subtypes which should be registered with Jackson for
+     *                                     deserialization. any custom placement rule implementations must be provided
+     * @throws IllegalArgumentException    if testing the provided specification fails
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
-            ServiceSpec serviceSpec, Collection<Class<?>> additionalSubtypesToRegister) throws ConfigStoreException {
-        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister, serviceSpec);
+            ServiceSpec serviceSpec,
+            Collection<Class<?>> additionalSubtypesToRegister) {
+        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(
+                additionalSubtypesToRegister,
+                ConfigFactory.getReferenceTerminalGoalState(serviceSpec));
 
-        ServiceSpec loopbackSpecification;
+        final byte[] serviceSpecBytes;
+        try {
+            serviceSpecBytes = serviceSpec.getBytes();
+        } catch (ConfigStoreException e) {
+            throw new IllegalArgumentException("Failed to convert ServiceSpec to bytes", e);
+        }
+
+        final ServiceSpec loopbackSpecification;
         try {
             // Serialize and then deserialize:
-            loopbackSpecification = factory.parse(serviceSpec.getBytes());
+            loopbackSpecification = factory.parse(serviceSpecBytes);
         } catch (Exception e) {
-            logger.error("Failed to parse JSON for loopback validation", e);
-            logger.error("JSON to be parsed was:\n{}",
-                    new String(serviceSpec.getBytes(), StandardCharsets.UTF_8));
-            throw e;
+            LOGGER.error("Failed to parse JSON for loopback validation", e);
+            LOGGER.error("JSON to be parsed was:\n{}", new String(serviceSpecBytes, StandardCharsets.UTF_8));
+            throw new IllegalArgumentException("Failed to parse JSON for loopback validation", e);
         }
         // Verify that equality works:
         if (!loopbackSpecification.equals(serviceSpec)) {
-            StringBuilder error = new StringBuilder();  // TODO (arand) this is not a very helpful error message
+            final String originalSpecString;
+            try {
+                originalSpecString = serviceSpec.toJsonString();
+            } catch (ConfigStoreException e) {
+                throw new IllegalArgumentException("Failed to convert original ServiceSpec to String", e);
+            }
+            final String loopbackSpecString;
+            try {
+                loopbackSpecString = loopbackSpecification.toJsonString();
+            } catch (ConfigStoreException e) {
+                throw new IllegalArgumentException("Failed to convert loopback ServiceSpec to String", e);
+            }
+
+            StringBuilder error = new StringBuilder();
             error.append("Equality test failed: Loopback result is not equal to original:\n");
             error.append("- Original:\n");
-            error.append(serviceSpec.toJsonString());
+            error.append(originalSpecString);
             error.append('\n');
             error.append("- Result:\n");
-            error.append(loopbackSpecification.toJsonString());
+            error.append(loopbackSpecString);
             error.append('\n');
-            throw new ConfigStoreException(Reason.LOGIC_ERROR, error.toString());
+
+            throw new IllegalArgumentException(error.toString());
         }
         return factory;
+    }
+
+    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory() {
+        return new ConfigFactory(Collections.emptyList());
     }
 
     /**
@@ -351,7 +399,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
          */
-        private ConfigFactory(Collection<Class<?>> additionalSubtypes, ServiceSpec serviceSpec) {
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes, GoalState goalState) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
@@ -365,7 +413,11 @@ public class DefaultServiceSpec implements ServiceSpec {
             module.addDeserializer(GoalState.class, new GoalStateDeserializer());
             objectMapper.registerModule(module);
 
-            referenceTerminalGoalState = getReferenceTerminalGoalState(serviceSpec);
+            referenceTerminalGoalState = goalState;
+        }
+
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
+            this(additionalSubtypes, GoalState.ONCE);
         }
 
         @VisibleForTesting
@@ -384,7 +436,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             }
         }
 
-        private GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
+        private static GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
             Collection<TaskSpec> serviceTasks =
                     serviceSpec.getPods().stream().flatMap(p -> p.getTasks().stream()).collect(Collectors.toList());
             for (TaskSpec taskSpec : serviceTasks) {
@@ -426,7 +478,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 } else if (value.equals("RUNNING")) {
                     return GoalState.RUNNING;
                 } else {
-                    logger.warn("Found unknown goal state in config store: {}", value);
+                    LOGGER.warn("Found unknown goal state in config store: {}", value);
                     return GoalState.UNKNOWN;
                 }
             }
@@ -441,6 +493,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         private final RawServiceSpec rawServiceSpec;
         private final SchedulerConfig schedulerConfig;
         private final TaskEnvRouter taskEnvRouter;
+        private Optional<FrameworkConfig> multiServiceFrameworkConfig;
         private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
 
         private Generator(
@@ -451,6 +504,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             this.rawServiceSpec = rawServiceSpec;
             this.schedulerConfig = schedulerConfig;
             this.taskEnvRouter = taskEnvRouter;
+            this.multiServiceFrameworkConfig = Optional.empty();
             this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
         }
 
@@ -475,6 +529,15 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
+         * Assigns a custom framework config. In the default single-service case, this is derived from the
+         * {@link RawServiceSpec} provided in the constructor.
+         */
+        public Generator setMultiServiceFrameworkConfig(FrameworkConfig multiServiceFrameworkConfig) {
+            this.multiServiceFrameworkConfig = Optional.of(multiServiceFrameworkConfig);
+            return this;
+        }
+
+        /**
          * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
          * templates.  This is exposed to support mocking in tests.
          */
@@ -486,7 +549,12 @@ public class DefaultServiceSpec implements ServiceSpec {
 
         public DefaultServiceSpec build() throws Exception {
             return YAMLToInternalMappers.convertServiceSpec(
-                    rawServiceSpec, schedulerConfig, taskEnvRouter, configTemplateReader);
+                    rawServiceSpec,
+                    // Use provided multi-service config, or derive single-service config from the RawServiceSpec:
+                    multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec)),
+                    schedulerConfig,
+                    taskEnvRouter,
+                    configTemplateReader);
         }
     }
 
@@ -498,11 +566,13 @@ public class DefaultServiceSpec implements ServiceSpec {
         private String name;
         private String role;
         private String principal;
+        private String user;
+        private GoalState goalState;
+        private String region;
         private String webUrl;
         private String zookeeperConnection;
-        private List<PodSpec> pods = new ArrayList<>();
         private ReplacementFailurePolicy replacementFailurePolicy;
-        private String user;
+        private List<PodSpec> pods = new ArrayList<>();
 
         private Builder() {
         }
@@ -542,6 +612,40 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
 
         /**
+         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param user the {@code user} to set
+         * @return a reference to this Builder
+         */
+        public Builder user(String user) {
+            this.user = user;
+            return this;
+        }
+
+        /**
+         * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be chained
+         * together. Default value is {@code RUNNING}.
+         *
+         * @param goalState the {@code goalState} to set
+         * @return a reference to this Builder
+         */
+        public Builder goalState(GoalState goalState) {
+            this.goalState = goalState;
+            return this;
+        }
+
+        /**
+         * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained together.
+         *
+         * @param region the {@code region} to set
+         * @return a reference to this Builder
+         */
+        public Builder region(String region) {
+            this.region = region;
+            return this;
+        }
+
+        /**
          * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
          * can be chained together.
          *
@@ -550,18 +654,6 @@ public class DefaultServiceSpec implements ServiceSpec {
          */
         public Builder webUrl(String webUrl) {
             this.webUrl = webUrl;
-            return this;
-        }
-
-        /**
-         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param user the {@code principal} to set
-         * @return a reference to this Builder
-         */
-        public Builder user(String user) {
-            this.user = user;
             return this;
         }
 

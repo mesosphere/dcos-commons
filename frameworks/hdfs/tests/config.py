@@ -22,12 +22,13 @@ TEST_CONTENT_SMALL = "This is some test data"
 TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
-DOCKER_IMAGE_NAME = "elezar/hdfs-client:dev"
+DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:stable"
 KEYTAB = "hdfs.keytab"
+HADOOP_VERSION = "hadoop-2.6.0-cdh5.9.1"
 
 
 def get_kerberized_hdfs_client_app():
-    app_def_path = "{current_dir}/../tools/{client_id}".format(
+    app_def_path = "{current_dir}/../tools/docker-client/{client_id}".format(
         current_dir=os.path.dirname(os.path.realpath(__file__)),
         client_id="hdfsclient.json"
     )
@@ -38,11 +39,11 @@ def get_kerberized_hdfs_client_app():
 
 
 def hdfs_command(command):
-    return "./bin/hdfs dfs -{}".format(command)
+    return "/{}/bin/hdfs dfs -{}".format(HADOOP_VERSION, command)
 
 
 def hdfs_write_command(content_to_write, filename):
-    return "echo {} | ./bin/hdfs dfs -put - {}".format(content_to_write, filename)
+    return "echo {} | /{}/bin/hdfs dfs -put - {}".format(content_to_write, HADOOP_VERSION, filename)
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
@@ -52,7 +53,7 @@ def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMA
 
 
 def hdfs_read_command(filename):
-    return "./bin/hdfs dfs -cat {}".format(filename)
+    return "/{}/bin/hdfs dfs -cat {}".format(HADOOP_VERSION, filename)
 
 
 def read_data_from_hdfs(service_name, filename):
@@ -61,7 +62,7 @@ def read_data_from_hdfs(service_name, filename):
 
 
 def hdfs_delete_file_command(filename):
-    return "./bin/hdfs dfs -rm /{}".format(filename)
+    return "/{}/bin/hdfs dfs -rm /{}".format(HADOOP_VERSION, filename)
 
 
 def delete_data_from_hdfs(service_name, filename):
@@ -70,7 +71,8 @@ def delete_data_from_hdfs(service_name, filename):
 
 
 def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | ./bin/hdfs dfs -put /{}".format(TEST_CONTENT_LARGE_SOURCE, filename)
+    write_command = "wget {} -qO- | /{}/bin/hdfs dfs -put /{}"\
+        .format(TEST_CONTENT_LARGE_SOURCE, HADOOP_VERSION, filename)
     rc, _ = run_hdfs_command(service_name, write_command)
     return rc
 
@@ -92,7 +94,8 @@ def get_active_name_node(service_name):
     stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
-    rc, output = run_hdfs_command(service_name, "./bin/hdfs haadmin -getServiceState {}".format(name_node))
+    rc, output = run_hdfs_command(service_name, "/{}/bin/hdfs haadmin -getServiceState {}"
+                                  .format(HADOOP_VERSION, name_node))
     if not rc:
         return rc
 
@@ -115,7 +118,7 @@ def run_hdfs_command(service_name, command):
     cmd = ["docker", "run",
            "-e", "HDFS_SERVICE_NAME={}".format(service_name),
            DOCKER_IMAGE_NAME,
-           get_bash_command("/configure-hdfs.sh && {}".format(command), ""), ]
+           get_bash_command("/{}/configure-hdfs.sh && /bin/bash -c '{}'".format(HADOOP_VERSION, command), ""), ]
     full_command = " ".join(cmd)
 
     @retrying.retry(
@@ -123,9 +126,7 @@ def run_hdfs_command(service_name, command):
         stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
         retry_on_result=lambda res: not res[0])
     def fn():
-        rc, output = shakedown.run_command_on_master(full_command)
-        log.info('Command output ({} bytes, success={}):\n{}'.format(len(output), rc, output))
-        return rc, output
+        return sdk_cmd.master_ssh(full_command)
     return fn()
 
 

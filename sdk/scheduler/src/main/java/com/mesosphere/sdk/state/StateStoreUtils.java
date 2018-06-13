@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
@@ -12,7 +12,6 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +23,8 @@ import java.util.stream.Collectors;
  */
 public class StateStoreUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StateStoreUtils.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(StateStoreUtils.class);
+
     private static final String UNINSTALLING_PROPERTY_KEY = "uninstalling";
     private static final String LAST_COMPLETED_UPDATE_TYPE_KEY = "last-completed-update-type";
     private static final String PROPERTY_TASK_INFO_SUFFIX = ":task-status";
@@ -94,18 +94,8 @@ public class StateStoreUtils {
             boolean isPermanentlyFailed = markedFailed && taskSpec.get().getGoal() == GoalState.RUNNING;
 
             if (TaskUtils.needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
-
-                LOGGER.info(
-                        "Task: '{}' needs recovery " +
-                                "with status: {}, " +
-                                "marked failed: {}, " +
-                                "goal state: {}, " +
-                                "permanently failed: {}.",
-                        taskSpec.get().getName(),
-                        TextFormat.shortDebugString(status),
-                        markedFailed,
-                        taskSpec.get().getGoal().name(),
-                        isPermanentlyFailed);
+                LOGGER.info("{} needs recovery with state: {}, goal state: {}, marked permanently failed: {}",
+                        info.getName(), status.getState(), taskSpec.get().getGoal().name(), isPermanentlyFailed);
                 results.add(info);
             }
         }
@@ -215,14 +205,18 @@ public class StateStoreUtils {
     }
 
     /**
-     * Returns the current value of the 'uninstall' property in the provided {@link StateStore}.
+     * Returns the current value of the 'uninstall' property in the provided {@link StateStore}. If the
+     * {@link StateStore} was created against a namespaced service, then this returns whether that service is
+     * uninstalling.
      */
     public static boolean isUninstalling(StateStore stateStore) throws StateStoreException {
         return fetchBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY);
     }
 
     /**
-     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}.
+     * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}. If the {@link StateStore} was
+     * created against a namespaced service, then this flags that service as uninstalling. This value may be checked
+     * using {@link #isUninstalling(StateStore)}.
      */
     public static void setUninstalling(StateStore stateStore) {
         setBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY, true);

@@ -10,12 +10,12 @@ import java.util.UUID;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 
 /**
@@ -26,22 +26,53 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
  */
 public class AuxLabelAccess {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuxLabelAccess.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(AuxLabelAccess.class);
 
     private AuxLabelAccess() {
         // do not instantiate
     }
 
-    // Resource ID
+    // Reservation labels: Resource ID and Service Name
 
+    /**
+     * Assigns a resource ID label to the provided reservation.
+     *
+     * @param reservationBuilder the reservation where labels should be added
+     * @param resourceId a unique id for tracking the reservation
+     */
     public static void setResourceId(Protos.Resource.ReservationInfo.Builder reservationBuilder, String resourceId) {
-        reservationBuilder.setLabels(
-                withLabel(reservationBuilder.getLabels(), LabelConstants.RESOURCE_ID_RESERVATION_LABEL, resourceId));
+        Map<String, String> map = LabelUtils.toMap(reservationBuilder.getLabels());
+        map.put(LabelConstants.RESOURCE_ID_RESERVATION_LABEL, resourceId);
+        reservationBuilder.setLabels(LabelUtils.toProto(map));
     }
 
+    /**
+     * Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
+     * if none is present. This label should always be present in reservations which were created by the SDK.
+     */
     public static Optional<String> getResourceId(Protos.Resource.ReservationInfo reservation) {
-        return Optional.ofNullable(
-                LabelUtils.toMap(reservation.getLabels()).get(LabelConstants.RESOURCE_ID_RESERVATION_LABEL));
+        return getLabel(reservation.getLabels(), LabelConstants.RESOURCE_ID_RESERVATION_LABEL);
+    }
+
+    /**
+     * Assigns a resource ID label to the provided reservation.
+     *
+     * @param reservationBuilder the reservation where labels should be added
+     * @param namespace a namespace to be assigned
+     */
+    public static void setResourceNamespace(
+            Protos.Resource.ReservationInfo.Builder reservationBuilder, String namespace) {
+        Map<String, String> map = LabelUtils.toMap(reservationBuilder.getLabels());
+        map.put(LabelConstants.NAMESPACE_RESERVATION_LABEL, namespace);
+        reservationBuilder.setLabels(LabelUtils.toProto(map));
+    }
+
+    /**
+     * Returns the service name embedded in the reservation, or an empty optional if none is present. This label is only
+     * present in reservations which were created in SDK 0.50 or later.
+     */
+    public static Optional<String> getResourceNamespace(Protos.Resource.ReservationInfo reservation) {
+        return getLabel(reservation.getLabels(), LabelConstants.NAMESPACE_RESERVATION_LABEL);
     }
 
     // DC/OS Space
@@ -130,6 +161,14 @@ public class AuxLabelAccess {
             return Optional.empty();
         }
         return Optional.of(new VipInfo(namePort.get(0), vipPort));
+    }
+
+    private static Optional<String> getLabel(Protos.Labels labels, String key) {
+        if (labels.getLabelsCount() == 0) {
+            // Shortcut/optimization
+            return Optional.empty();
+        }
+        return Optional.ofNullable(LabelUtils.toMap(labels).get(key));
     }
 
     /**

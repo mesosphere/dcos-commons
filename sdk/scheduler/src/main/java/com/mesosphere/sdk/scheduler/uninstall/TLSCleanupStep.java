@@ -9,8 +9,6 @@ import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import org.apache.mesos.Protos;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -23,15 +21,13 @@ public class TLSCleanupStep extends AbstractStep {
     private final SecretsClient secretsClient;
     private final String namespace;
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
     /**
      * Creates a new instance with initial {@code status}.
      */
-    TLSCleanupStep(SecretsClient secretsClient, String namespace) {
-        super("tls-cleanup", Status.PENDING);
+    TLSCleanupStep(SecretsClient secretsClient, String secretsNamespace, Optional<String> namespace) {
+        super("tls-cleanup", namespace);
         this.secretsClient = secretsClient;
-        this.namespace = namespace;
+        this.namespace = secretsNamespace;
     }
 
     @Override

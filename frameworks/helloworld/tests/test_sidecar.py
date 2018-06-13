@@ -55,8 +55,8 @@ def test_sidecar_parameterized():
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=600*1000,
+    wait_fixed=2000,
+    stop_max_delay=5*60*1000,
     retry_on_result=lambda res: not res)
 def wait_for_toxic_sidecar():
     """
@@ -69,15 +69,17 @@ def wait_for_toxic_sidecar():
     causes the check of the file contents to fail. Here we simply rely on the existence of the file.
     """
     if sdk_utils.dcos_version_less_than("1.10"):
-        cmd = "task ls hello-0-server hello-container-path/toxic-output"
+        # Note: As of this writing, 'task ls' does 'contains' comparisons of task ids correctly,
+        # so we don't need to include a service name prefix here.
+        output = sdk_cmd.run_cli("task ls hello-0-server hello-container-path/toxic-output")
         expected_output = ""
     else:
-        cmd = "task exec hello-0-server cat hello-container-path/toxic-output"
+        _, output, _ = sdk_cmd.service_task_exec(
+            config.SERVICE_NAME,
+            'hello-0-server',
+            'cat hello-container-path/toxic-output')
         expected_output = "I'm addicted to you / Don't you know that you're toxic?"
-    output = sdk_cmd.run_cli(cmd).strip()
-    logging.info("Checking for toxic output returned: %s", output)
-
-    return output == expected_output
+    return output.strip() == expected_output
 
 
 @pytest.mark.sanity

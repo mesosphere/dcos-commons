@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.decommission;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
 
@@ -13,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory.PodKey;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -122,7 +124,8 @@ public class DecommissionPlanFactoryTest {
         when(mockPodSpecE.getCount()).thenReturn(2);
         when(mockServiceSpec.getPods()).thenReturn(
                 Arrays.asList(mockPodSpecA, mockPodSpecB, mockPodSpecC, mockPodSpecD, mockPodSpecE));
-        DecommissionPlanFactory factory = new DecommissionPlanFactory(mockServiceSpec, mockStateStore);
+        DecommissionPlanFactory factory =
+                new DecommissionPlanFactory(mockServiceSpec, mockStateStore, Optional.empty());
         Assert.assertFalse(factory.getPlan().isPresent());
         Assert.assertTrue(factory.getResourceSteps().isEmpty());
 
@@ -142,7 +145,8 @@ public class DecommissionPlanFactoryTest {
     @Test
     public void testBigPlanConstruction() {
         when(mockStateStore.fetchTasks()).thenReturn(tasks);
-        DecommissionPlanFactory factory = new DecommissionPlanFactory(mockServiceSpec, mockStateStore);
+        DecommissionPlanFactory factory =
+                new DecommissionPlanFactory(mockServiceSpec, mockStateStore, Optional.empty());
 
         // any tasks with existing decommission bits but which are not to be decommissioned have had their decommission bits cleared (see list above):
         for (String taskToClear : Arrays.asList("podA-0-taskA", "podB-0-taskB")) {
@@ -217,7 +221,8 @@ public class DecommissionPlanFactoryTest {
     @Test
     public void testPodOrdering() {
         SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission =
-                DecommissionPlanFactory.getPodsToDecommission(mockServiceSpec, tasks);
+                DecommissionPlanFactory.getPodsToDecommission(
+                        LoggingUtils.getLogger(getClass()), mockServiceSpec, tasks);
         Assert.assertEquals(Arrays.asList("podD-1", "podD-0", "podE-0", "podB-1", "podA-2", "podA-1"),
                 podsToDecommission.keySet().stream().map(PodKey::getPodName).collect(Collectors.toList()));
     }

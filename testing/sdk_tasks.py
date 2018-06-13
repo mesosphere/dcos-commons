@@ -11,10 +11,18 @@ import retrying
 import shakedown
 import dcos.errors
 import sdk_cmd
+import sdk_package_registry
 import sdk_plan
 
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
+
+# From dcos-cli:
+COMPLETED_TASK_STATES = set([
+    "TASK_FINISHED", "TASK_KILLED", "TASK_FAILED", "TASK_LOST", "TASK_ERROR",
+    "TASK_GONE", "TASK_GONE_BY_OPERATOR", "TASK_DROPPED", "TASK_UNREACHABLE",
+    "TASK_UNKNOWN"
+])
 
 log = logging.getLogger(__name__)
 
@@ -60,35 +68,34 @@ class Task(object):
     '''Entry value returned by get_summary()'''
 
     @staticmethod
-    def parse(cli_task_line):
-        # Example:
-        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4
-        # FYI: the state value is just the first character of the task state (e.g. STAGING => S)
-        cli_task_tokens = cli_task_line.split()
-        if len(cli_task_tokens) < 6:
-            log.warning('Invalid task line from CLI: {}'.format(cli_task_tokens))
-            return None
+    def parse(task_entry, agents):
+        agent_id = task_entry['slave_id']
+        matching_agent_hosts = [agent['hostname'] for agent in agents['slaves'] if agent['id'] == agent_id]
+        if len(matching_agent_hosts) != 1:
+            host = "UNKNOWN:" + agent_id
+        else:
+            host = matching_agent_hosts[0]
         return Task(
-            cli_task_tokens[0],
-            cli_task_tokens[1],
-            cli_task_tokens[2],
-            cli_task_tokens[3],
-            cli_task_tokens[4],
-            cli_task_tokens[5])
+            task_entry['name'],
+            host,
+            task_entry['state'],
+            task_entry['id'],
+            task_entry['framework_id'],
+            agent_id)
 
 
-    def __init__(self, name, host, user, state_char, id, agent):
+    def __init__(self, name, host, state, task_id, framework_id, agent):
         self.name = name
         self.host = host
-        self.user = user
-        self.state_char = state_char
-        self.id = id
+        self.state = state
+        self.id = task_id
+        self.framework_id = framework_id
         self.agent = agent
 
 
     def __repr__(self):
-        return 'Task[name={} host={} user={} state_char={} id={} agent={}]'.format(
-            self.name, self.host, self.user, self.state_char, self.id, self.agent)
+        return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent={}]'.format(
+            self.name, self.state.split('_')[-1], self.id, self.host, self.framework_id, self.agent)
 
 
 def get_status_history(task_name: str) -> list:
@@ -112,15 +119,13 @@ def get_summary(with_completed=False):
 
     Returns a list of Task objects.
     '''
-
-    # Note: We COULD use --json, but there appears to be some fancy handling done in the CLI for the
-    # non-json version, particularly around the running user. Just grab the non-"--json" version of things.
-    task_lines = sdk_cmd.run_cli('task --all' if with_completed else 'task', print_output=False).split('\n')
-    output = []
-    for task_line in task_lines[1:]:  # First line is the header line
-        task = Task.parse(task_line)
-        if task is not None:
-            output.append(task)
+    cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
+    cluster_agents = sdk_cmd.cluster_request('GET', '/mesos/slaves').json()
+    all_tasks = [Task.parse(entry, cluster_agents) for entry in cluster_tasks['tasks']]
+    if with_completed:
+        output = all_tasks
+    else:
+        output = list(filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks))
     log.info('Task summary (with_completed={}):\n- {}'.format(
         with_completed, '\n- '.join([str(e) for e in output])))
     return output
@@ -135,15 +140,30 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
     for Mesos to decide that the agent is dead. This is also why we perform a manual 'ls' check to
     verify the host is down, rather than waiting for Mesos to tell us.
     '''
+    skip_tasks = {sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME}
+    server_tasks = [
+        task for task in get_summary() if
+        task.name not in skip_tasks and task_name_pattern.match(task.name)
+    ]
+
     scheduler_ip = shakedown.get_service_ips('marathon', service_name).pop()
     log.info('Scheduler IP: {}'.format(scheduler_ip))
 
-    server_tasks = [
-        task for task in get_summary()
-        if task_name_pattern.match(task.name)]
-
-    avoid_tasks = [task for task in server_tasks if task.host != scheduler_ip]
-    log.info('Found tasks avoiding scheduler at {}: {}'.format(scheduler_ip, avoid_tasks))
+    # Always avoid package registry (if present)
+    registry_ips = shakedown.get_service_ips(
+        'marathon',
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME
+    )
+    log.info('Package Registry [{}] IP(s): {}'.format(
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME, registry_ips
+    ))
+    skip_ips = {scheduler_ip} | set(registry_ips)
+    avoid_tasks = [task for task in server_tasks if task.host not in skip_ips]
+    log.info('Found tasks avoiding scheduler and {} at {}: {}'.format(
+        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME,
+        skip_ips,
+        avoid_tasks
+    ))
     return avoid_tasks
 
 

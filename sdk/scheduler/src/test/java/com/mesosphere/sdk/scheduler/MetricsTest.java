@@ -6,6 +6,9 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+
+import java.util.Arrays;
+
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
@@ -93,28 +96,7 @@ public class MetricsTest {
 
     @Test
     public void taskLaunches() throws Exception {
-        OfferRecommendation realRecommendation = getRecommendation(true);
-        Assert.assertTrue(((LaunchOfferRecommendation)realRecommendation).shouldLaunch());
-
-        OfferRecommendation suppressedRecommendation = getRecommendation(false);
-        Assert.assertFalse(((LaunchOfferRecommendation)suppressedRecommendation).shouldLaunch());
-
-        Counter launchCounter = Metrics.getRegistry().counter("operation.launch_group");
-
-        long val = launchCounter.getCount();
-        Metrics.OperationsCounter.getInstance().record(realRecommendation);
-        Metrics.OperationsCounter.getInstance().record(realRecommendation);
-        Metrics.OperationsCounter.getInstance().record(realRecommendation);
-        Assert.assertEquals(3, launchCounter.getCount() - val);
-
-        val = launchCounter.getCount();
-        Metrics.OperationsCounter.getInstance().record(suppressedRecommendation);
-        Metrics.OperationsCounter.getInstance().record(suppressedRecommendation);
-        Assert.assertEquals(0, launchCounter.getCount() - val);
-    }
-
-    private static OfferRecommendation getRecommendation(boolean shouldLaunch) {
-        return new LaunchOfferRecommendation(
+        OfferRecommendation realRecommendation = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
                 Protos.TaskInfo.newBuilder()
                         .setTaskId(TestConstants.TASK_ID)
@@ -123,7 +105,14 @@ public class MetricsTest {
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
                         Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                shouldLaunch,
                 true);
+        Assert.assertTrue(((LaunchOfferRecommendation)realRecommendation).shouldLaunch());
+
+        Counter launchCounter = Metrics.getRegistry().counter("operation.launch_group");
+        long val = launchCounter.getCount();
+
+        Metrics.incrementRecommendations(Arrays.asList(realRecommendation, realRecommendation, realRecommendation));
+
+        Assert.assertEquals(3, launchCounter.getCount() - val);
     }
 }

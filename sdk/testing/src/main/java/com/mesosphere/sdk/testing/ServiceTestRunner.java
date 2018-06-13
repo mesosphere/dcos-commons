@@ -2,26 +2,32 @@ package com.mesosphere.sdk.testing;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.framework.FrameworkScheduler;
+import com.mesosphere.sdk.framework.ReviveManager;
+import com.mesosphere.sdk.framework.TaskKiller;
+import com.mesosphere.sdk.framework.TokenBucket;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.TemplateUtils;
-import com.mesosphere.sdk.state.ConfigStore;
-import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import org.apache.mesos.SchedulerDriver;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -30,7 +36,7 @@ import java.util.*;
  */
 public class ServiceTestRunner {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceTestRunner.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(ServiceTestRunner.class);
     private static final Random RANDOM = new Random();
 
     /**
@@ -55,8 +61,8 @@ public class ServiceTestRunner {
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
-    private boolean supportsDefaultExecutor = true;
-    private List<ConfigValidator<ServiceSpec>> validators = Collections.emptyList();
+    private Optional<String> multiServiceFrameworkName = Optional.empty();
+    private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
     /**
      * Returns a {@link File} object for the service's {@code src/main/dist} directory. Does not check if the directory
@@ -242,18 +248,20 @@ public class ServiceTestRunner {
         return this;
     }
 
-    public ServiceTestRunner setCustomValidators(ConfigValidator<ServiceSpec>... validators) {
-        this.validators = Arrays.asList(validators);
+    /**
+     * Adds a custom config validator to the validators to be used by the service.
+     */
+    public ServiceTestRunner addCustomValidator(ConfigValidator<ServiceSpec> validator) {
+        this.validators.add(validator);
         return this;
     }
-
     /**
-     * Simulates DC/OS 1.9 behavior of using a custom executor instead of the default executor.
+     * Simulates running the service within a configured namespace.
      *
-     * Individual services shouldn't need to use this, it's more for testing of the SDK itself.
+     * Individual service tests shouldn't need to use this, it's more for testing features of the SDK itself.
      */
-    public ServiceTestRunner setUseCustomExecutor() {
-        this.supportsDefaultExecutor = false;
+    public ServiceTestRunner enableMultiService(String frameworkName) {
+        this.multiServiceFrameworkName = Optional.of(frameworkName);
         return this;
     }
 
@@ -277,12 +285,13 @@ public class ServiceTestRunner {
      */
     public ServiceTestResult run(Collection<SimulationTick> ticks) throws Exception {
         SchedulerConfig mockSchedulerConfig = Mockito.mock(SchedulerConfig.class);
-        Mockito.when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
         Mockito.when(mockSchedulerConfig.getLibmesosURI()).thenReturn("test-libmesos-uri");
         Mockito.when(mockSchedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
+        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
+        Mockito.when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-scheduler-region"));
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -294,11 +303,12 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
-        Mockito.when(mockCapabilities.supportsDefaultExecutor()).thenReturn(supportsDefaultExecutor);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
         TaskKiller.reset(false);
+        // Disable rate limiting on revive calls, to ensure consistency and avoid unnecessary waiting.
+        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
 
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
@@ -314,27 +324,35 @@ public class ServiceTestRunner {
                 rawServiceSpec, mockSchedulerConfig, schedulerEnvironment, configTemplateDir).build();
 
         // Test 3: Does the scheduler build?
-        AbstractScheduler scheduler = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
-                .setStateStore(new StateStore(persister))
-                .setConfigStore(new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister))
+        SchedulerBuilder schedulerBuilder = DefaultScheduler.newBuilder(serviceSpec, mockSchedulerConfig, persister)
                 .setPlansFrom(rawServiceSpec)
                 .setRecoveryManagerFactory(recoveryManagerFactory)
-                .setCustomConfigValidators(validators)
-                .build()
-                .disableThreading()
-                .disableApiServer();
+                .setCustomConfigValidators(validators);
+        if (multiServiceFrameworkName.isPresent()) {
+            schedulerBuilder.enableMultiService(multiServiceFrameworkName.get());
+        }
+        AbstractScheduler abstractScheduler = schedulerBuilder.build();
+        FrameworkScheduler frameworkScheduler =
+                new FrameworkScheduler(
+                        FrameworkConfig.fromRawServiceSpec(rawServiceSpec).getAllResourceRoles(),
+                        mockSchedulerConfig,
+                        persister,
+                        new FrameworkStore(persister),
+                        abstractScheduler)
+                .setApiServerStarted()
+                .disableThreading();
 
         // Test 4: Can we render the per-task config templates without any missing values?
-        Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec);
+        Collection<ServiceTestResult.TaskConfig> taskConfigs = getTaskConfigs(serviceSpec, mockSchedulerConfig);
 
         // Test 5: Run simulation, if any was provided
         ClusterState clusterState;
         if (oldClusterState == null) {
             // Initialize new cluster state
-            clusterState = ClusterState.create(serviceSpec, scheduler);
+            clusterState = ClusterState.create(serviceSpec, abstractScheduler);
         } else {
             // Carry over prior cluster state
-            clusterState = ClusterState.withUpdatedConfig(oldClusterState, serviceSpec, scheduler);
+            clusterState = ClusterState.withUpdatedConfig(oldClusterState, serviceSpec, abstractScheduler);
         }
         SchedulerDriver mockDriver = Mockito.mock(SchedulerDriver.class);
         for (SimulationTick tick : ticks) {
@@ -347,7 +365,11 @@ public class ServiceTestRunner {
                 }
             } else if (tick instanceof Send) {
                 LOGGER.info("SEND:   {}", tick.getDescription());
-                ((Send) tick).send(clusterState, mockDriver, scheduler.getMesosScheduler().get());
+                try {
+                    ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
+                } catch (Throwable e) {
+                    throw buildSimulationError(ticks, tick, e);
+                }
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
             }
@@ -356,8 +378,11 @@ public class ServiceTestRunner {
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
 
-        // Re-enable background TaskKiller thread for other tests
+        // Re-enable background TaskKiller thread for other tests:
         TaskKiller.reset(true);
+
+        // Return to default rate limit duration on revive calls:
+        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().build());
 
         return new ServiceTestResult(
                 serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs, persister, clusterState);
@@ -367,30 +392,45 @@ public class ServiceTestRunner {
             Collection<SimulationTick> allTicks, SimulationTick failedTick, Throwable originalError) {
         StringJoiner errorRows = new StringJoiner("\n");
         errorRows.add(String.format("Expectation failed: %s", failedTick.getDescription()));
-        errorRows.add("Simulation steps:");
+        errorRows.add("Simulation ticks:");
+        // Display checkmarks for the ticks that passed, then an X mark for the tick that failed. Following that leave
+        // the others with an empty/blank status mark since they weren't run.
+        boolean seenFailedTick = false;
         for (SimulationTick tick : allTicks) {
-            String prefix = tick == failedTick ? ">>>FAIL<<< " : "";
-            if (tick instanceof Expect) {
-                prefix += "EXPECT";
-            } else if (tick instanceof Send) {
-                prefix += "SEND";
+            final String status;
+            if (tick == failedTick) {
+                seenFailedTick = true;
+                status = "✘";
+            } else if (seenFailedTick) {
+                status = " ";
             } else {
-                prefix += "???";
+                status = "✔";
             }
-            errorRows.add(String.format("- %s %s", prefix, tick.getDescription()));
+
+            final String type;
+            if (tick instanceof Expect) {
+                type = "EXPECT";
+            } else if (tick instanceof Send) {
+                type = "SEND  ";
+            } else {
+                type = "????  ";
+            }
+
+            errorRows.add(String.format("%s %s %s", status, type, tick.getDescription()));
         }
         // Print the original message last, because junit output will truncate based on its content:
         errorRows.add(String.format("Failure was: %s", originalError.getMessage()));
         return new AssertionError(errorRows.toString(), originalError);
     }
 
-    private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(ServiceSpec serviceSpec) {
+    private Collection<ServiceTestResult.TaskConfig> getTaskConfigs(
+            ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) {
         Collection<ServiceTestResult.TaskConfig> taskConfigs = new ArrayList<>();
         for (PodSpec podSpec : serviceSpec.getPods()) {
             PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
             Map<String, String> customEnv = customPodEnvs.get(podSpec.getType());
             for (TaskSpec taskSpec : podSpec.getTasks()) {
-                Map<String, String> taskEnv = getTaskEnv(serviceSpec, podInstance, taskSpec);
+                Map<String, String> taskEnv = getTaskEnv(serviceSpec, podInstance, taskSpec, schedulerConfig);
                 if (customEnv != null) {
                     taskEnv.putAll(customEnv);
                 }
@@ -409,9 +449,11 @@ public class ServiceTestRunner {
         return taskConfigs;
     }
 
-    private static Map<String, String> getTaskEnv(ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec) {
+    private static Map<String, String> getTaskEnv(
+            ServiceSpec serviceSpec, PodInstance podInstance, TaskSpec taskSpec, SchedulerConfig schedulerConfig) {
         Map<String, String> taskEnv = new HashMap<>();
-        taskEnv.putAll(PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec));
+        taskEnv.putAll(
+                PodInfoBuilder.getTaskEnvironment(serviceSpec.getName(), podInstance, taskSpec, schedulerConfig));
         taskEnv.putAll(DCOS_TASK_ENVVARS);
         // Inject envvars for any ports with envvar advertisement configured:
         for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {

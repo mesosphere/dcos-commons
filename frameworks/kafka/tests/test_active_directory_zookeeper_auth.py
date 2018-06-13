@@ -37,7 +37,7 @@ def kerberos(configure_security):
 def zookeeper_server(kerberos):
     service_kerberos_options = {
         "service": {
-            "name": "kafka-zookeeper",
+            "name": config.ZOOKEEPER_SERVICE_NAME,
             "security": {
                 "kerberos": {
                     "enabled": True,
@@ -53,18 +53,18 @@ def zookeeper_server(kerberos):
     }
 
     try:
-        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
         sdk_install.install(
-            "beta-kafka-zookeeper",
-            "kafka-zookeeper",
-            6,
+            config.ZOOKEEPER_PACKAGE_NAME,
+            config.ZOOKEEPER_SERVICE_NAME,
+            config.ZOOKEEPER_TASK_COUNT,
             additional_options=service_kerberos_options,
             timeout_seconds=30 * 60)
 
-        yield {**service_kerberos_options, **{"package_name": "beta-kafka-zookeeper"}}
+        yield {**service_kerberos_options, **{"package_name": config.ZOOKEEPER_PACKAGE_NAME}}
 
     finally:
-        sdk_install.uninstall("beta-kafka-zookeeper", "kafka-zookeeper")
+        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -126,7 +126,7 @@ def kafka_client(kerberos, kafka_server):
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "elezar/kafka-client:latest",
+                    "image": "elezar/kafka-client:4b9c060",
                     "forcePullImage": True
                 },
                 "volumes": [
@@ -168,7 +168,7 @@ def kafka_client(kerberos, kafka_server):
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+    sdk_cmd.resolve_hosts(kafka_client["id"], kafka_client["brokers"])
 
     topic_name = "authn.test"
     sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],

@@ -49,6 +49,14 @@
           ],
           "default": "INFO"
         },
+        "region": {
+          "description": "The region that the service's tasks should run in.",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-region+string"
+          }
+        },
         "sleep": {
           "description": "The sleep duration in seconds before tasks exit.",
           "type": "number",
@@ -60,21 +68,16 @@
           "default": true
         },
         "scenario": {
-          "description": "A value to test various SDK customization scenarios",
+          "description": "A comma-separated list of SDK customization scenarios to perform on the service(s)",
           "type": "string",
-          "enum": [
-            "YAML",
-            "JAVA",
-            "CUSTOM_PLAN",
-            "CUSTOM_DECOMMISSION"
-          ],
           "default": "YAML"
         },
         "yaml": {
-          "description": "An example YAML file to deploy",
+          "description": "A single example YAML file to deploy, or an empty string to launch an empty multi-scheduler",
           "type": "string",
           "enum": [
             "canary",
+            "custom_tld",
             "discovery",
             "enable-disable",
             "executor_volume",
@@ -98,14 +101,25 @@
             "svc",
             "tls",
             "uri",
-            "web-url"
+            "web-url",
+            ""
           ],
           "default": "svc"
+        },
+        "yamls": {
+          "description": "A comma-separated list of example YAML files to deploy in a multi-scheduler, in addition to any listed in 'yaml'",
+          "type": "string",
+          "default": ""
         },
         "allow_region_awareness": {
           "description": "Allow region awareness",
           "type": "boolean",
           "default": true
+        },
+        "custom_service_tld": {
+          "description": "Specifies a custom TLD to use for endpoints",
+          "type": "string",
+          "default": ""
         }
       }
     },
@@ -187,7 +201,7 @@
         "disk": {
           "description": "World pod persistent disk requirements (in MB)",
           "type": "integer",
-          "default": 50
+          "default": 25
         },
         "count": {
           "description": "Number of World pods to run",

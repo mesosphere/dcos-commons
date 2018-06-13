@@ -8,9 +8,6 @@ import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.Resource.DiskInfo;
-import org.apache.mesos.Protos.Value;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -21,29 +18,37 @@ import java.util.UUID;
 public class ResourceBuilder {
     private final String resourceName;
     private Optional<String> principal;
-    private Value value;
+    private Protos.Value value;
     private Optional<String> role;
     private final String preReservedRole;
     private Optional<String> resourceId;
+    private Optional<String> resourceNamespace;
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
-    private Optional<DiskInfo.Source> diskMountInfo;
-    private MesosResource mesosResource;
+    private Optional<Protos.Resource.DiskInfo.Source> diskMountInfo;
+    private Optional<MesosResource> mesosResource;
 
-    public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
-        return new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
+    public static ResourceBuilder fromSpec(
+            ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace) {
+        ResourceBuilder builder = new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
                 .setRole(Optional.of(spec.getRole()))
-                .setPrincipal(Optional.of(spec.getPrincipal()))
-                .setResourceId(resourceId);
+                .setPrincipal(Optional.of(spec.getPrincipal()));
+        if (resourceId.isPresent()) {
+            builder.setResourceId(resourceId.get());
+        }
+        if (resourceNamespace.isPresent()) {
+            builder.setResourceNamespace(resourceNamespace.get());
+        }
+        return builder;
     }
 
     public static ResourceBuilder fromSpec(
             VolumeSpec spec,
             Optional<String> resourceId,
+            Optional<String> resourceNamespace,
             Optional<String> persistenceId,
             Optional<String> sourceRoot) {
-
-        ResourceBuilder resourceBuilder = fromSpec(spec, resourceId);
+        ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace);
         switch (spec.getType()) {
             case ROOT:
                 return resourceBuilder.setRootVolume(spec.getContainerPath(), persistenceId);
@@ -57,26 +62,28 @@ public class ResourceBuilder {
         }
     }
 
-    public static ResourceBuilder fromExistingResource(Resource resource) {
-        Optional<String> resourceId = ResourceUtils.getResourceId(resource);
-
+    public static ResourceBuilder fromExistingResource(Protos.Resource resource) {
         if (!resource.hasDisk()) {
-            ResourceSpec resourceSpec = getResourceSpec(resource);
-            return fromSpec(resourceSpec, resourceId);
+            return fromSpec(
+                    getResourceSpec(resource),
+                    ResourceUtils.getResourceId(resource),
+                    ResourceUtils.getNamespace(resource));
         } else {
-            VolumeSpec volumeSpec = getVolumeSpec(resource);
-            Optional<String> persistenceId = ResourceUtils.getPersistenceId(resource);
-            Optional<String> sourceRoot = ResourceUtils.getSourceRoot(resource);
-            return fromSpec(volumeSpec, resourceId, persistenceId, sourceRoot);
+            return fromSpec(
+                    getVolumeSpec(resource),
+                    ResourceUtils.getResourceId(resource),
+                    ResourceUtils.getNamespace(resource),
+                    ResourceUtils.getPersistenceId(resource),
+                    ResourceUtils.getSourceRoot(resource));
         }
     }
 
-    public static ResourceBuilder fromUnreservedValue(String resourceName, Value value) {
+    public static ResourceBuilder fromUnreservedValue(String resourceName, Protos.Value value) {
         return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
     }
 
     @SuppressWarnings("deprecation")
-    private static ResourceSpec getResourceSpec(Resource resource) {
+    private static ResourceSpec getResourceSpec(Protos.Resource resource) {
         if (!ResourceUtils.hasResourceId(resource)) {
             throw new IllegalStateException(
                     "Cannot generate resource spec from resource which has not been reserved by the SDK.");
@@ -91,7 +98,7 @@ public class ResourceBuilder {
     }
 
     @SuppressWarnings("deprecation")
-    private static VolumeSpec getVolumeSpec(Resource resource) {
+    private static VolumeSpec getVolumeSpec(Protos.Resource resource) {
         VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
         return new DefaultVolumeSpec(
                 resource.getScalar().getValue(),
@@ -102,49 +109,41 @@ public class ResourceBuilder {
                 resource.getDisk().getPersistence().getPrincipal());
     }
 
-    private ResourceBuilder(String resourceName, Value value, String preReservedRole) {
+    private ResourceBuilder(String resourceName, Protos.Value value, String preReservedRole) {
         this.resourceName = resourceName;
         this.value = value;
         this.preReservedRole = preReservedRole;
         this.role = Optional.empty();
         this.principal = Optional.empty();
         this.resourceId = Optional.empty();
+        this.resourceNamespace = Optional.empty();
         this.diskContainerPath = Optional.empty();
         this.diskPersistenceId = Optional.empty();
         this.diskMountInfo = Optional.empty();
+        this.mesosResource = Optional.empty();
     }
 
     /**
      * Sets the value for this resource. Supported types are {@code SCALAR}, {@code RANGES}, and {@code SET}.
      */
-    public ResourceBuilder setValue(Value value) {
+    public ResourceBuilder setValue(Protos.Value value) {
         this.value = value;
         return this;
     }
 
     /**
-     * Assigns a unique resource ID for this resource, which is used to uniquely identify it in later offer evaluation
-     * runs. This may be used with e.g. restarting a task at its prior location.
+     * Assigns the resource id to the provided value.
      */
-    public ResourceBuilder setResourceId(Optional<String> resourceId) {
-        this.resourceId = resourceId;
+    public ResourceBuilder setResourceId(String resourceId) {
+        this.resourceId = Optional.of(resourceId);
         return this;
     }
 
     /**
-     * Clears a previously set resource ID, or does nothing if the resource ID is already unset. This may be used to
-     * disassociate a task with a given reserved resource, e.g. with task replacement.
+     * Assigns the resource namespace to the provided value.
      */
-    public ResourceBuilder clearResourceId() {
-        this.resourceId = Optional.empty();
-        return this;
-    }
-
-    /**
-     * Clears a previously set disk persistence ID, or does nothing if the disk persistence ID is already unset.
-     */
-    public ResourceBuilder clearPersistenceId() {
-        this.diskPersistenceId = Optional.empty();
+    private ResourceBuilder setResourceNamespace(String resourceNamespace) {
+        this.resourceNamespace = Optional.of(resourceNamespace);
         return this;
     }
 
@@ -175,7 +174,8 @@ public class ResourceBuilder {
         // common information across ROOT + MOUNT volumes:
         setRootVolume(containerPath, existingPersistenceId);
         // additional information specific to MOUNT volumes:
-        DiskInfo.Source.Builder sourceBuilder = DiskInfo.Source.newBuilder().setType(DiskInfo.Source.Type.MOUNT);
+        Protos.Resource.DiskInfo.Source.Builder sourceBuilder = Protos.Resource.DiskInfo.Source.newBuilder()
+                .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT);
         if (existingMountRoot.isPresent()) {
             sourceBuilder.getMountBuilder().setRoot(existingMountRoot.get());
         }
@@ -184,22 +184,21 @@ public class ResourceBuilder {
     }
 
     public ResourceBuilder setMesosResource(MesosResource mesosResource) {
-        this.mesosResource = mesosResource;
+        this.mesosResource = Optional.of(mesosResource);
         return this;
     }
 
     @SuppressWarnings("deprecation")
-    public Resource build() {
+    public Protos.Resource build() {
         // Note:
         // In the pre-resource-refinment world (< 1.9), Mesos will expect
         // reserved Resources to have role and reservation set.
         //
         // In the post-resource-refinement world (1.10+), Mesos will expect
         // reserved Resources to have reservations (and ONLY reservations) set.
-        Resource.Builder builder =
-                mesosResource == null ?
-                        Resource.newBuilder() :
-                        mesosResource.getResource().toBuilder().clearAllocationInfo();
+        Protos.Resource.Builder builder = mesosResource.isPresent()
+                ? mesosResource.get().getResource().toBuilder().clearAllocationInfo()
+                : Protos.Resource.newBuilder();
         builder.setName(resourceName)
                 .setRole(Constants.ANY_ROLE)
                 .setType(value.getType());
@@ -211,19 +210,15 @@ public class ResourceBuilder {
         // todo (bwood): @gabriel, why do we not just re-run if resource id is already set?
         // is the reservation setting destructive / non-repeatable?
         if (role.isPresent() && !ResourceUtils.hasResourceId(builder.build())) {
-            String resId = resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString();
-            Resource.ReservationInfo reservationInfo = getReservationInfo(role.get(), resId);
-
             if (preReservedSupported) {
-                if (!preReservedRole.equals(Constants.ANY_ROLE) && mesosResource == null) {
-                    builder.addReservations(
-                            Resource.ReservationInfo.newBuilder()
+                if (!preReservedRole.equals(Constants.ANY_ROLE) && !mesosResource.isPresent()) {
+                    builder.addReservations(Protos.Resource.ReservationInfo.newBuilder()
                             .setRole(preReservedRole)
-                            .setType(Resource.ReservationInfo.Type.STATIC));
+                            .setType(Protos.Resource.ReservationInfo.Type.STATIC));
                 }
-                builder.addReservations(reservationInfo);
+                builder.addReservations(getRefinedReservationInfo());
             } else {
-                builder.setReservation(reservationInfo);
+                builder.setReservation(getLegacyReservationInfo());
             }
         }
 
@@ -235,7 +230,7 @@ public class ResourceBuilder {
         }
 
         if (diskContainerPath.isPresent()) {
-            DiskInfo.Builder diskBuilder = builder.getDiskBuilder();
+            Protos.Resource.DiskInfo.Builder diskBuilder = builder.getDiskBuilder();
             diskBuilder.getVolumeBuilder()
                     .setContainerPath(diskContainerPath.get())
                     .setMode(Protos.Volume.Mode.RW);
@@ -250,31 +245,31 @@ public class ResourceBuilder {
         return setValue(builder, value).build();
     }
 
-    private Resource.ReservationInfo getReservationInfo(String role, String resId) {
-        if (Capabilities.getInstance().supportsPreReservedResources()) {
-            return getRefinedReservationInfo(role, resId);
-        } else {
-            return getLegacyReservationInfo(resId);
+    private Protos.Resource.ReservationInfo getRefinedReservationInfo() {
+        return withReservationLabels(Protos.Resource.ReservationInfo.newBuilder()
+                .setRole(role.get())
+                .setType(Protos.Resource.ReservationInfo.Type.DYNAMIC)
+                .setPrincipal(principal.get()));
+    }
+
+    private Protos.Resource.ReservationInfo getLegacyReservationInfo() {
+        return withReservationLabels(Protos.Resource.ReservationInfo.newBuilder()
+                .setPrincipal(principal.get()));
+    }
+
+    private Protos.Resource.ReservationInfo withReservationLabels(
+            Protos.Resource.ReservationInfo.Builder reservationBuilder) {
+        // If resourceId is empty, create a new resourceId:
+        AuxLabelAccess.setResourceId(
+                reservationBuilder,
+                resourceId.isPresent() ? resourceId.get() : UUID.randomUUID().toString());
+        if (resourceNamespace.isPresent()) {
+            AuxLabelAccess.setResourceNamespace(reservationBuilder, resourceNamespace.get());
         }
-    }
-
-    private Resource.ReservationInfo getRefinedReservationInfo(String role, String resId) {
-        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
-                .setRole(role)
-                .setType(Resource.ReservationInfo.Type.DYNAMIC)
-                .setPrincipal(principal.get());
-        AuxLabelAccess.setResourceId(reservationBuilder, resId);
         return reservationBuilder.build();
     }
 
-    private Resource.ReservationInfo getLegacyReservationInfo(String resId) {
-        Resource.ReservationInfo.Builder reservationBuilder = Resource.ReservationInfo.newBuilder()
-                .setPrincipal(principal.get());
-        AuxLabelAccess.setResourceId(reservationBuilder, resId);
-        return reservationBuilder.build();
-    }
-
-    private static Resource.Builder setValue(Resource.Builder builder, Value value) {
+    private static Protos.Resource.Builder setValue(Protos.Resource.Builder builder, Protos.Value value) {
         builder.setType(value.getType());
         switch (value.getType()) {
         case SCALAR:

@@ -61,6 +61,7 @@ public class ResourceTestUtils {
         return ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.of(resourceId),
+                Optional.empty(),
                 Optional.of(persistenceId),
                 Optional.empty())
                 .build();
@@ -133,17 +134,18 @@ public class ResourceTestUtils {
     @SuppressWarnings("deprecation") // for Resource.setRole()
     private static Protos.Resource.Builder addReservation(
             Protos.Resource.Builder builder, String resourceId) {
+        Protos.Resource.ReservationInfo.Builder reservationBuilder;
         if (Capabilities.getInstance().supportsPreReservedResources()) {
-            Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.addReservationsBuilder()
+            reservationBuilder = builder.addReservationsBuilder()
                     .setRole(TestConstants.ROLE)
                     .setPrincipal(TestConstants.PRINCIPAL);
-            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         } else {
             builder.setRole(TestConstants.ROLE);
-            Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.getReservationBuilder()
+            reservationBuilder = builder.getReservationBuilder()
                     .setPrincipal(TestConstants.PRINCIPAL);
-            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         }
+        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+        AuxLabelAccess.setResourceNamespace(reservationBuilder, TestConstants.SERVICE_NAME);
         return builder;
     }
 

@@ -138,7 +138,7 @@ def get_config(package_name, service_name):
     try:
         # Refrain from dumping the full ServiceSpec to stdout
         target_config = sdk_cmd.svc_cli(
-            package_name, service_name, 'config target', json=True, print_output=False)
+            package_name, service_name, 'debug config target', json=True, print_output=False)
     except Exception as e:
         log.error("Could not determine target config: %s", str(e))
         return None

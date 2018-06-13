@@ -2,10 +2,8 @@ package com.mesosphere.sdk.dcos;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.DcosVersionClient;
-
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -13,7 +11,7 @@ import java.io.IOException;
  * This class represents a set of capabilities that may or may not be supported in a given version of DC/OS.
  */
 public class Capabilities {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Capabilities.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(Capabilities.class);
     private static final Object lock = new Object();
     private static Capabilities capabilities;
 
@@ -35,6 +33,9 @@ public class Capabilities {
         }
     }
 
+    /**
+     * Overrides the cluster capabilities object returned by {@link #getInstance()}, for use in tests.
+     */
     public static void overrideCapabilities(Capabilities overrides) {
         synchronized (lock) {
             capabilities = overrides;
@@ -48,11 +49,6 @@ public class Capabilities {
 
     public DcosVersion getDcosVersion() {
         return dcosVersion;
-    }
-
-    public boolean supportsDefaultExecutor() {
-        // Use of the default executor is supported by DC/OS 1.10 upwards.
-        return hasOrExceedsVersion(1, 10);
     }
 
     public boolean supportsNamedVips() {
@@ -101,15 +97,10 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 11);
     }
 
-    public boolean supportsRegionAwareness() {
-        // This feature is in BETA for 1.11, so requires explicit opt-in by end-users.
-        return SchedulerConfig.fromEnv().isregionAwarenessEnabled() && hasOrExceedsVersion(1, 11);
-    }
-
     public boolean supportsDomains() {
         // A given DC/OS cluster may or may not have domain information available in Offers.  This information is
-        // dependent upon the cluster operator and is unknown to the scheduler.  However it is only possible that
-        // domain information be present in DC/OS 1.11+ clusters.
+        // dependent upon the cluster operator and is unknown to the scheduler.  However domain information is only
+        // present on DC/OS 1.11+ clusters.
         return hasOrExceedsVersion(1, 11);
     }
 

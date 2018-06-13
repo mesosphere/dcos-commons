@@ -1,0 +1,27 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: 1
+    uris:
+      - {{BOOTSTRAP_URI}}
+    resource-sets:
+      hello-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: 256
+        ports:
+          test:
+            port: 0
+            advertise: true
+    tasks:
+      resolution:
+        goal: RUNNING
+        resource-set: hello-resources
+        cmd: |
+          set -e
+
+          # Test DNS resolution and then sleep so endpoints
+          # can be checked
+          ./bootstrap && sleep 1000000

@@ -1,11 +1,11 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.util.Collection;
 import java.util.Map;
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  */
 public class TLSArtifactsUpdater {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private final String serviceName;
     private final SecretsClient secretsClient;

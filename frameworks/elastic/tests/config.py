@@ -9,7 +9,6 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -17,6 +16,10 @@ PACKAGE_NAME = 'elastic'
 SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
+KIBANA_SERVICE_NAME = 'kibana'
+KIBANA_DEFAULT_TIMEOUT = 30 * 60
+
+XPACK_PLUGIN_NAME = 'x-pack'
 
 # sum of default pod counts, with one task each:
 # - master: 3
@@ -30,8 +33,7 @@ DEFAULT_TASK_COUNT = 6
 #         * count for a specific type, ie 3
 #         * count by type, ie [{'ingest':1},{'data':3},...]
 
-DEFAULT_ELASTIC_TIMEOUT = 30 * 60
-DEFAULT_KIBANA_TIMEOUT = 30 * 60
+DEFAULT_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
@@ -59,18 +61,18 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_KIBANA_TIMEOUT*1000,
+    stop_max_delay=KIBANA_DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_kibana_adminrouter_integration(path):
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
         shakedown.dcos_acs_token(), shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
-    exit_ok, output = shakedown.run_command_on_master(curl_cmd)
+    exit_ok, output = sdk_cmd.master_ssh(curl_cmd)
     return exit_ok and output and "HTTP/1.1 200" in output
 
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
@@ -79,7 +81,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
@@ -93,7 +95,7 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     result = _curl_query(service_name, "GET", "_cluster/health")
@@ -107,18 +109,35 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
-def check_plugin_installed(plugin_name, service_name=SERVICE_NAME):
+def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
+    task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
+    # Environment variables aren't available on DC/OS 1.9 so we manually inject
+    # MESOS_SANDBOX (and can't use ELASTIC_VERSION).
+    #
+    # TODO(mpereira): improve this by making task environment variables
+    # available in task_exec commands on 1.9.
+    # Ticket: https://jira.mesosphere.com/browse/INFINITY-3360
+    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(task_sandbox)
+    _, stdout, _ = sdk_cmd.marathon_task_exec(service_name, cmd)
+    return plugin_name in stdout
+
+
+@retrying.retry(
+    wait_fixed=1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    retry_on_result=lambda res: not res)
+def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and len(result) == DEFAULT_TASK_COUNT
 
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
-def check_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
+def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and result == []
 
@@ -247,7 +266,7 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
     if json_data:
         curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
     task_name = "master-0-node"
-    exit_code, stdout, stderr = sdk_cmd.task_exec(task_name, curl_cmd)
+    exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
 
     def build_errmsg(msg):
         return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)

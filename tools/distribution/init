@@ -1,0 +1,135 @@
+#!/usr/bin/env python3
+
+import logging
+import argparse
+import subprocess
+import os
+import re
+
+logging.basicConfig(level="INFO")
+
+LOGGER = logging.getLogger(__name__)
+
+DCOS_COMMONS_DIST_ROOT = os.environ.get("DCOS_COMMONS_DIST_ROOT", "/dcos-commons-dist")
+DCOS_SDK_VERSION = "0.40.2"
+
+
+def get_sdk_version():
+    version_path = os.path.join(DCOS_COMMONS_DIST_ROOT, ".version")
+    if os.path.exists(version_path):
+        with open(version_path) as f:
+            version = f.read().strip().strip("'")
+            LOGGER.info("Read version: %s", version)
+
+            if version:
+                DCOS_SDK_VERSION = version
+
+    return os.environ.get("DCOS_SDK_VERSION", DCOS_SDK_VERSION)
+
+
+def read_file(file_path: str) -> str:
+    LOGGER.info("Reading from %s", file_path)
+    with open(file_path, "r") as handle:
+        return handle.read()
+
+
+def write_file(file_path: str, content: str) -> str:
+    LOGGER.info("Writing to %s", file_path)
+    with open(file_path, "w") as handle:
+        handle.write(content)
+
+
+def copy_dist_file(filename: str, output_path: str):
+    """Copy a distribution file to the specified output path"""
+    source_file = os.path.join(DCOS_COMMONS_DIST_ROOT, filename)
+
+    LOGGER.info("Copying %s to %s", source_file, output_path)
+    subprocess.check_output(["cp", source_file, output_path])
+
+
+def copy_dist_folder(folder: str, output_path: str, exclude: list=[]):
+    """Copy a distribution folder to the specified ouput path"""
+    source_folder = os.path.join(DCOS_COMMONS_DIST_ROOT, folder.rstrip("/"))
+
+    LOGGER.info("Copying %s to %s", source_folder, output_path)
+    cmd = ["rsync", "-avz", "--delete", ]
+
+    if exclude:
+        for e in exclude:
+            cmd.extend(["--exclude={}".format(e)])
+
+    cmd.extend([source_folder, output_path])
+
+    subprocess.check_output(cmd)
+
+
+def distribute_test_utils(output_path: str):
+    """Copies the required files into the target folders"""
+
+    output_path = output_path.rstrip("/") + "/"
+
+    files = ["conftest.py",
+             "test.sh",
+             "TESTING.md",
+             "UPDATING.md", ]
+
+    for f in files:
+        copy_dist_file(f, output_path)
+
+    folders = [("tools", ["tools/ci", "tools/distribution"]), ("testing", []), ]
+    for f in folders:
+        copy_dist_folder(f[0], output_path, f[1])
+
+
+def update_sdk(output_path: str, target_version: str):
+    build_gradle_path = os.path.join(output_path, "build.gradle")
+
+    gradle_file_contents = read_file(build_gradle_path)
+
+    gradle_file_contents = re.sub('dcosSDKVer = ".*?"',
+                                  'dcosSDKVer = "{}"'.format(target_version),
+                                  gradle_file_contents)
+
+    gradle_file_contents = re.sub(r'compile "mesosphere:scheduler:[\d\w\.\-]"',
+                                  'compile "mesosphere:scheduler:{}"'.format(target_version),
+                                  gradle_file_contents)
+    gradle_file_contents = re.sub(r'compile "mesosphere:executor:[\d\w\.\-]"',
+                                  'compile "mesosphere:executor:{}"'.format(target_version),
+                                  gradle_file_contents)
+    gradle_file_contents = re.sub(r'testCompile "mesosphere:testing:[\d\w\.\-]"',
+                                  'testCompile "mesosphere:testing:{}"'.format(target_version),
+                                  gradle_file_contents)
+
+    write_file(build_gradle_path, gradle_file_contents)
+
+    package_builder_path = os.path.join(output_path, "tools", "universe", "package_builder.py")
+
+    package_builder_contents = read_file(package_builder_path)
+
+    package_builder_contents = re.sub('_dcos_sdk_version = [\'"].*?[\'"]',
+                                      '_dcos_sdk_version = "{}"'.format(target_version),
+                                      package_builder_contents)
+    write_file(package_builder_path, package_builder_contents)
+
+    LOGGER.info("Updated to SDK version %s", target_version)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Init DC/OS test environment")
+    parser.add_argument('output_path', type=str,
+                        help='The absolute path where the testing tools should be created')
+    parser.add_argument("--update-sdk", type=str,
+                        help="Update the SDK in the target framework.")
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+    distribute_test_utils(args.output_path)
+
+    if (args.update_sdk):
+        update_sdk(args.output_path, args.update_sdk)
+
+
+if __name__ == "__main__":
+    main()

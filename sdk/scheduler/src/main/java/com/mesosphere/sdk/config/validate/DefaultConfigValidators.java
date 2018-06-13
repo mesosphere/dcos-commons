@@ -26,6 +26,8 @@ public class DefaultConfigValidators {
                 new UserCannotChange(),
                 new TLSRequiresServiceAccount(schedulerConfig),
                 new DomainCapabilityValidator(),
-                new PlacementRuleIsValid());
+                new PlacementRuleIsValid(),
+                new RegionCannotChange(),
+                new ServiceNameCannotBreakDNS());
     }
 }

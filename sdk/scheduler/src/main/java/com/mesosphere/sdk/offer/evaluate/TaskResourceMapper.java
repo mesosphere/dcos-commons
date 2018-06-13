@@ -2,12 +2,12 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,24 +17,33 @@ import java.util.stream.Collectors;
  * of expected {@link ResourceSpec}s for that task.
  */
 class TaskResourceMapper {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-    private final List<Protos.Resource> orphanedResources = new ArrayList<>();
-    private final List<OfferEvaluationStage> evaluationStages;
+
+    private final Logger logger;
+
+    private final Optional<String> resourceNamespace;
     private final String taskSpecName;
+    private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final Collection<ResourceSpec> resourceSpecs;
     private final TaskPortLookup taskPortFinder;
     private final Collection<Protos.Resource> resources;
-    private final boolean useDefaultExecutor;
 
-    public TaskResourceMapper(TaskSpec taskSpec, Protos.TaskInfo taskInfo, boolean useDefaultExecutor) {
+    private final List<OfferEvaluationStage> evaluationStages;
+
+    public TaskResourceMapper(
+            TaskSpec taskSpec,
+            Protos.TaskInfo taskInfo,
+            Optional<String> resourceNamespace) {
+        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+        this.resourceNamespace = resourceNamespace;
         this.taskSpecName = taskSpec.getName();
         this.resourceSpecs = new ArrayList<>();
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
         this.taskPortFinder = new TaskPortLookup(taskInfo);
         this.resources = taskInfo.getResourcesList();
+
+        // ONLY call this AFTER initializing all members above:
         this.evaluationStages = getEvaluationStagesInternal();
-        this.useDefaultExecutor = useDefaultExecutor;
     }
 
     public List<Protos.Resource> getOrphanedResources() {
@@ -213,14 +222,20 @@ class TaskResourceMapper {
             Optional<String> persistenceId,
             Optional<String> sourceRoot) {
         if (resourceSpec instanceof NamedVIPSpec) {
-            return new NamedVIPEvaluationStage((NamedVIPSpec) resourceSpec, taskSpecName, resourceId);
+            return new NamedVIPEvaluationStage(
+                    (NamedVIPSpec) resourceSpec, taskSpecName, resourceId, resourceNamespace);
         } else if (resourceSpec instanceof PortSpec) {
-            return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecName, resourceId);
+            return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecName, resourceId, resourceNamespace);
         } else if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getExisting(
-                    (VolumeSpec) resourceSpec, taskSpecName, resourceId, persistenceId, sourceRoot, useDefaultExecutor);
+                    (VolumeSpec) resourceSpec,
+                    Optional.of(taskSpecName),
+                    resourceId,
+                    resourceNamespace,
+                    persistenceId,
+                    sourceRoot);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, resourceId, taskSpecName);
+            return new ResourceEvaluationStage(resourceSpec, Optional.of(taskSpecName), resourceId, resourceNamespace);
         }
     }
 }

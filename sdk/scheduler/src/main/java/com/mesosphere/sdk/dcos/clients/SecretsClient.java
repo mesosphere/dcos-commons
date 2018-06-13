@@ -14,11 +14,11 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.entity.ContentType;
 import org.json.JSONObject;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 /**
  * Client for communicating with DC/OS secret service API.
@@ -72,7 +72,7 @@ public class SecretsClient {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggingUtils.getLogger(getClass());
 
     private DcosHttpExecutor httpExecutor;
 

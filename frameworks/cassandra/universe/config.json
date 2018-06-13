@@ -83,6 +83,14 @@
           ],
           "default": "serial"
         },
+        "region": {
+          "description": "The Cassandra cluster will run in this region.  When no region is specified the cluster is constrained to the local region.",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-region+string"
+          }
+        },
         "security": {
           "description": "Cassandra security settings",
           "type": "object",
@@ -598,6 +606,18 @@
           "type": "string",
           "description": "The strategy to use for coalescing network messages",
           "default": "TIMEHORIZON"
+        },
+        "disk_failure_policy": {
+          "type": "string",
+          "description": "The policy for how Cassandra responds to disk failure",
+          "default": "stop",
+          "enum": [
+            "die",
+            "stop_paranoid",
+            "stop",
+            "best_effort",
+            "ignore"
+          ]
         }
       },
       "additionalProperties": false,

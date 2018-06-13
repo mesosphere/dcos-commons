@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
@@ -34,7 +34,7 @@ public class TaskKillStepTest {
     }
 
     private TaskKillStep createStep() {
-        TaskKillStep step = new TaskKillStep(taskID);
+        TaskKillStep step = new TaskKillStep(taskID, Optional.empty());
         return step;
     }
 }

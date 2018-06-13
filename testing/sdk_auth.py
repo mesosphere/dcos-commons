@@ -20,6 +20,8 @@ import uuid
 import retrying
 import subprocess
 
+from typing import List
+
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
@@ -44,7 +46,7 @@ def _get_kdc_task(task_name: str) -> dict:
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
     log.info("Getting KDC task")
-    raw_tasks = sdk_cmd.run_cli("task --json")
+    raw_tasks = sdk_cmd.run_cli("task --json", print_output=False)
     if raw_tasks:
         tasks = json.loads(raw_tasks)
         for task in tasks:
@@ -116,39 +118,40 @@ def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_file
     log.info("Downloaded %d bytes to %s", os.stat(output_filename).st_size, output_filename)
 
 
-def kinit(task_id: str, keytab: str, principal: str):
+def kinit(marathon_task_id: str, keytab: str, principal: str):
     """
     Performs a kinit command to authenticate the specified principal.
-    :param task_id: The task in whose environment the kinit will run.
+    :param marathon_task_id: The marathon task in whose environment the kinit will run.
     :param keytab: The keytab used by kinit to authenticate.
     :param principal: The name of the principal the user wants to authenticate as.
     """
     kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
     log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
-    rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
+    rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, kinit_cmd)
     if rc != 0:
-        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
-                           "stdout: {}\n" \
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n"
+                           "stdout: {}\n"
                            "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
-def kdestroy(task_id: str):
+def kdestroy(marathon_task_id: str):
     """
     Performs a kdestroy command to erase an auth session for a principal.
-    :param task_id: The task in whose environment the kinit will run.
+    :param task_id: The marathon task in whose environment the kdestroy will run.
     """
     log.info("Erasing auth session:")
-    rc, stdout, stderr = sdk_cmd.task_exec(task_id, "kdestroy")
+    rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, "kdestroy")
     if rc != 0:
         raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
 
 class KerberosEnvironment:
-    def __init__(self):
+    def __init__(self, persist: bool=False):
         """
         Installs the Kerberos Domain Controller (KDC) as the initial step in creating a kerberized cluster.
         This just passes a dictionary to be rendered as a JSON app definition to marathon.
         """
+        self._persist = persist
         self._working_dir = None
         self._temp_working_dir = None
 
@@ -182,7 +185,8 @@ class KerberosEnvironment:
 
     def install(self) -> dict:
 
-        @retrying.retry(wait_exponential_multiplier=1000,
+        @retrying.retry(stop_max_delay=3*60*1000,
+                        wait_exponential_multiplier=1000,
                         wait_exponential_max=120 * 1000,
                         retry_on_result=lambda result: not result)
         def _install_marathon_app(app_definition):
@@ -190,16 +194,17 @@ class KerberosEnvironment:
             return success
 
         if sdk_marathon.app_exists(self.app_definition["id"]):
-            log.info("Found installed KDC app")
-            return _get_kdc_task(self.app_definition["id"])
+            if self._persist:
+                log.info("Found installed KDC app, reusing it")
+                return _get_kdc_task(self.app_definition["id"])
+            log.info("Found installed KDC app, destroying it first")
+            sdk_marathon.destroy_app(self.app_definition["id"])
 
         log.info("Installing KDC Marathon app")
         _install_marathon_app(self.app_definition)
         log.info("KDC app installed successfully")
 
-        kdc_task_info = _get_kdc_task(self.app_definition["id"])
-
-        return kdc_task_info
+        return _get_kdc_task(self.app_definition["id"])
 
     def __run_kadmin(self, options: list, cmd: str, args: list):
         """
@@ -217,7 +222,7 @@ class KerberosEnvironment:
         )
 
         log.info("Running kadmin: {}".format(kadmin_cmd))
-        rc, stdout, stderr = sdk_cmd.task_exec(self.task_id, kadmin_cmd)
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
             raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
 
@@ -276,7 +281,7 @@ class KerberosEnvironment:
             return None
 
         log.info("Deleting any previous keytab just in case (kadmin will append to it)")
-        sdk_cmd.task_exec(self.task_id, "rm {}".format(name))
+        sdk_cmd.marathon_task_exec(self.task_id, "rm {}".format(name))
 
         kadmin_options = ["-l"]
         kadmin_cmd = "ext"
@@ -335,7 +340,7 @@ class KerberosEnvironment:
         keytab_id = self.get_keytab_path().replace("/", "_")
         return self.get_keytab_for_principals(keytab_id, self.principals)
 
-    def __encode_secret(self, keytab_path: str) -> str:
+    def __encode_secret(self, keytab_path: str) -> List[str]:
         if self.get_keytab_path().startswith(DCOS_BASE64_PREFIX):
             try:
                 base64_encoded_keytab_path = "{}.base64".format(keytab_path)

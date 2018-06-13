@@ -5,6 +5,7 @@ import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -14,7 +15,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -25,12 +25,12 @@ import java.util.*;
  */
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
+    private final Logger logger;
     private final String serviceName;
     private final String taskName;
     private final String namespace;
     private final TLSArtifactsUpdater tlsArtifactsUpdater;
+    private final SchedulerConfig schedulerConfig;
 
     /**
      * Class for building {@link TLSEvaluationStage} instances for individual tasks that need it.
@@ -39,6 +39,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         private final String serviceName;
         private final String namespace;
         private final TLSArtifactsUpdater tlsArtifactsUpdater;
+        private final SchedulerConfig schedulerConfig;
 
         /**
          * Creates a new builder instance. Callers should avoid invoking this until/unless they have validated that TLS
@@ -49,6 +50,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
          */
         public Builder(String serviceName, SchedulerConfig schedulerConfig) throws IOException {
             this.serviceName = serviceName;
+            this.schedulerConfig = schedulerConfig;
             this.namespace = schedulerConfig.getSecretsNamespace(serviceName);
             DcosHttpExecutor executor = new DcosHttpExecutor(new DcosHttpClientBuilder()
                     .setTokenProvider(schedulerConfig.getDcosAuthTokenProvider())
@@ -63,16 +65,22 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         }
 
         public TLSEvaluationStage build(String taskName) {
-            return new TLSEvaluationStage(serviceName, taskName, namespace, tlsArtifactsUpdater);
+            return new TLSEvaluationStage(serviceName, taskName, namespace, tlsArtifactsUpdater, schedulerConfig);
         }
     }
 
     @VisibleForTesting
-    TLSEvaluationStage(String serviceName, String taskName, String namespace, TLSArtifactsUpdater tlsArtifactsUpdater) {
+    TLSEvaluationStage(String serviceName,
+                       String taskName,
+                       String namespace,
+                       TLSArtifactsUpdater tlsArtifactsUpdater,
+                       SchedulerConfig schedulerConfig) {
+        this.logger = LoggingUtils.getLogger(getClass());
         this.serviceName = serviceName;
         this.taskName = taskName;
         this.namespace = namespace;
         this.tlsArtifactsUpdater = tlsArtifactsUpdater;
+        this.schedulerConfig = schedulerConfig;
     }
 
     @Override
@@ -86,7 +94,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         }
 
         CertificateNamesGenerator certificateNamesGenerator =
-                new CertificateNamesGenerator(serviceName, taskSpec, podInfoBuilder.getPodInstance());
+                new CertificateNamesGenerator(serviceName, taskSpec, podInfoBuilder.getPodInstance(), schedulerConfig);
         TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
                 namespace,
                 TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),

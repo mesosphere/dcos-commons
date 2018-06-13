@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.curator;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -16,7 +17,6 @@ import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
  */
 public class CuratorPersister implements Persister {
 
-    private static final Logger logger = LoggerFactory.getLogger(CuratorPersister.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(CuratorPersister.class);
 
     /**
      * Number of times to attempt an atomic write transaction in storeMany().
@@ -45,21 +45,23 @@ public class CuratorPersister implements Persister {
      */
     public static class Builder {
         private final String serviceName;
-        private final String connectionString;
+        private final String zookeeperHostPort;
         private RetryPolicy retryPolicy;
         private String username;
         private String password;
+        private boolean lockEnabled;
 
         /**
          * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
          */
-        private Builder(String serviceName, String zookeeperConnection) {
+        private Builder(String serviceName, String zookeeperHostPort) {
             this.serviceName = serviceName;
+            this.zookeeperHostPort = zookeeperHostPort;
             // Set defaults for customizable options:
-            this.connectionString = zookeeperConnection;
             this.retryPolicy = CuratorUtils.getDefaultRetry();
             this.username = "";
             this.password = "";
+            this.lockEnabled = true;
         }
 
         /**
@@ -85,18 +87,25 @@ public class CuratorPersister implements Persister {
         }
 
         /**
+         * Disables getting a curator lock before returning a {@link CuratorPersister}.
+         *
+         * This should only be invoked in tests.
+         */
+        @VisibleForTesting
+        public Builder disableLock() {
+            this.lockEnabled = false;
+            return this;
+        }
+
+        /**
          * Returns a new {@link CuratorPersister} instance using the provided settings, using reasonable defaults where
          * custom values were not specified.
          */
         public CuratorPersister build() {
             CuratorFrameworkFactory.Builder builder = CuratorFrameworkFactory.builder()
-                    .connectString(connectionString)
+                    .connectString(zookeeperHostPort)
                     .retryPolicy(retryPolicy);
-            final CuratorFramework client;
-
-            if (username.isEmpty() && password.isEmpty()) {
-                client = builder.build();
-            } else if (!username.isEmpty() && !password.isEmpty()) {
+            if (!username.isEmpty() && !password.isEmpty()) {
                 List<ACL> acls = new ArrayList<ACL>();
                 acls.addAll(ZooDefs.Ids.CREATOR_ALL_ACL);
                 acls.addAll(ZooDefs.Ids.READ_ACL_UNSAFE);
@@ -114,13 +123,17 @@ public class CuratorPersister implements Persister {
                                 return acls;
                             }
                         });
-                client = builder.build();
-            } else {
+            } else if (!username.isEmpty() || !password.isEmpty()) {
                 throw new IllegalArgumentException(
                         "username and password must both be provided, or both must be empty.");
             }
 
-            CuratorPersister persister = new CuratorPersister(serviceName, client);
+            if (lockEnabled) {
+                // Lock curator (using a separate client created from this builder) BEFORE returning access to persister
+                CuratorLocker.lock(serviceName, builder);
+            }
+
+            CuratorPersister persister = new CuratorPersister(serviceName, builder.build());
             CuratorUtils.initServiceName(persister, serviceName);
             return persister;
         }
@@ -129,10 +142,20 @@ public class CuratorPersister implements Persister {
     /**
      * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
      *
-     * @param serviceSpec the service for which data will be stored
+     * @param serviceSpec a service specification containing the name and zookeeper connection info
      */
     public static Builder newBuilder(ServiceSpec serviceSpec) {
-        return new Builder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+        return newBuilder(serviceSpec.getName(), serviceSpec.getZookeeperConnection());
+    }
+
+    /**
+     * Creates a new {@link Builder} instance which has been initialized with reasonable default values.
+     *
+     * @param serviceName the name of the service, e.g. {@code /path/to/service}
+     * @param zookeeperHostPort the {@code host:port} where zookeeper is located
+     */
+    public static Builder newBuilder(String serviceName, String zookeeperHostPort) {
+        return new Builder(serviceName, zookeeperHostPort);
     }
 
     @VisibleForTesting
@@ -200,7 +223,7 @@ public class CuratorPersister implements Persister {
              * The best we can do is to wipe everything under the root node. A proposed way to "fix" things
              * lives at https://jira.mesosphere.com/browse/INFINITY-1470.
              */
-            logger.debug("Deleting children of root {}", path);
+            LOGGER.debug("Deleting children of root {}", path);
             try {
                 CuratorTransactionFinal transaction = client.inTransaction().check().forPath(serviceRootPath).and();
                 Set<String> pendingDeletePaths = new HashSet<>();
@@ -222,7 +245,7 @@ public class CuratorPersister implements Persister {
             set(unprefixedPath, null);
         } else {
             // Normal case: Delete node itself and any/all children.
-            logger.debug("Deleting {} (and any children)", path);
+            LOGGER.debug("Deleting {} (and any children)", path);
             try {
                 client.delete().deletingChildrenIfNeeded().forPath(path);
             } catch (KeeperException.NoNodeException e) {
@@ -237,7 +260,7 @@ public class CuratorPersister implements Persister {
     @Override
     public void set(String unprefixedPath, byte[] bytes) throws PersisterException {
         final String path = withFrameworkPrefix(unprefixedPath);
-        logger.debug("Setting {} => {}", path, getInfo(bytes));
+        LOGGER.debug("Setting {} => {}", path, getInfo(bytes));
         try {
             try {
                 client.create().creatingParentsIfNeeded().forPath(path, bytes);
@@ -260,7 +283,7 @@ public class CuratorPersister implements Persister {
         for (Map.Entry<String, byte[]> entry : unprefixedPathBytesMap.entrySet()) {
             pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
         }
-        logger.debug("Updating {} entries: {}", pathBytesMap.size(), pathBytesMap.keySet());
+        LOGGER.debug("Updating {} entries: {}", pathBytesMap.size(), pathBytesMap.keySet());
         runTransactionWithRetries(new SetTransactionFactory(pathBytesMap));
     }
 
@@ -272,7 +295,7 @@ public class CuratorPersister implements Persister {
         Collection<String> paths = unprefixedPaths.stream()
                 .map(unprefixedPath -> withFrameworkPrefix(unprefixedPath))
                 .collect(Collectors.toList());
-        logger.debug("Deleting {} entries: {}", paths.size(), paths);
+        LOGGER.debug("Deleting {} entries: {}", paths.size(), paths);
         runTransactionWithRetries(new ClearTransactionFactory(paths));
     }
 
@@ -289,7 +312,7 @@ public class CuratorPersister implements Persister {
                     } catch (Exception e) {
                         // Transaction failed! Bad connection? Existence check rendered invalid?
                         // Swallow exception and try again
-                        logger.error(String.format("Failed to complete transaction attempt %d/%d: %s",
+                        LOGGER.error(String.format("Failed to complete transaction attempt %d/%d: %s",
                                 i + 1, ATOMIC_WRITE_ATTEMPTS, transaction), e);
                     }
                 } else {
@@ -307,7 +330,7 @@ public class CuratorPersister implements Persister {
         if (unprefixedPaths.isEmpty()) {
             return Collections.emptyMap();
         }
-        logger.debug("Getting {} entries: {}", unprefixedPaths.size(), unprefixedPaths);
+        LOGGER.debug("Getting {} entries: {}", unprefixedPaths.size(), unprefixedPaths);
 
         Map<String, byte[]> result = new TreeMap<>();
         // Unlike with writes, there is not an atomic read operation. Therefore we wing it with a series of plain reads.

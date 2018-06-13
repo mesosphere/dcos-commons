@@ -20,31 +20,17 @@ public class SchedulerRestartServiceTest {
     @Test
     public void startedTaskIsPendingAfterRestart_DefaultExecutor() throws Exception {
         // A task that fails its readiness check (exit_code=1), should remain in the PENDING state on restart
-        testTaskWithReadinessCheckHasStatus(1, Status.PENDING, true);
+        testTaskWithReadinessCheckHasStatus(1, Status.PENDING);
     }
 
     @Test
     public void completeTaskIsCompleteAfterRestart_DefaultExecutor() throws Exception {
         // A task that succeeds its readiness check (exit_code=0), should remain in the COMPLETE state on restart
-        testTaskWithReadinessCheckHasStatus(0, Status.COMPLETE, true);
+        testTaskWithReadinessCheckHasStatus(0, Status.COMPLETE);
     }
 
-    @Test
-    public void startedTaskIsPendingAfterRestart_CustomExecutor() throws Exception {
-        // A task that fails its readiness check (exit_code=1), should remain in the PENDING state on restart
-        testTaskWithReadinessCheckHasStatus(1, Status.PENDING, false);
-    }
-
-    @Test
-    public void completeTaskIsCompleteAfterRestart_CustomExecutor() throws Exception {
-        // A task that succeeds its readiness check (exit_code=0), should remain in the COMPLETE state on restart
-        testTaskWithReadinessCheckHasStatus(0, Status.COMPLETE, false);
-    }
-
-
-    private void testTaskWithReadinessCheckHasStatus(int readinessCheckStatusCode,
-                                                     Status expectedStatus,
-                                                     boolean useDefaultExecutor) throws Exception {
+    private static void testTaskWithReadinessCheckHasStatus(
+            int readinessCheckStatusCode, Status expectedStatus) throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
 
         ticks.add(Send.register());
@@ -62,7 +48,7 @@ public class SchedulerRestartServiceTest {
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.launchedTasks("world-0-server"));
 
-        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.STARTING));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.STARTING));
 
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING)
                 .setReadinessCheckExitCode(readinessCheckStatusCode).build());
@@ -73,18 +59,13 @@ public class SchedulerRestartServiceTest {
         } else {
             postReadinessStatus = Status.STARTED;
         }
-        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", postReadinessStatus));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", postReadinessStatus));
 
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.declinedLastOffer());
 
-        ServiceTestRunner runner;
+        ServiceTestRunner runner = new ServiceTestRunner();
 
-        if (useDefaultExecutor) {
-            runner = new ServiceTestRunner();
-        } else {
-            runner = new ServiceTestRunner().setUseCustomExecutor();
-        }
         ServiceTestResult result = runner.run(ticks);
 
         // Start a new scheduler:
@@ -93,7 +74,7 @@ public class SchedulerRestartServiceTest {
         ticks.add(Send.register());
         ticks.add(Expect.reconciledExplicitly(result.getPersister()));
 
-        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", expectedStatus));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", expectedStatus));
 
         new ServiceTestRunner().setState(result).run(ticks);
     }

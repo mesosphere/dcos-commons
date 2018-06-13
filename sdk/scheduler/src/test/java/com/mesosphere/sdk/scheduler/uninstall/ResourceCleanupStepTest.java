@@ -1,18 +1,16 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.offer.CreateOfferRecommendation;
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
 
 public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
@@ -21,51 +19,45 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
 
     @Before
     public void beforeEach() throws Exception {
-        resourceCleanupStep = new ResourceCleanupStep(TestConstants.RESOURCE_ID, Status.PENDING);
+        resourceCleanupStep = new ResourceCleanupStep(TestConstants.RESOURCE_ID, Optional.empty());
     }
 
     @Test
     public void testStart() throws Exception {
-        assert resourceCleanupStep.getStatus().equals(Status.PENDING);
-        assert resourceCleanupStep.start().equals(Optional.empty());
-        assert resourceCleanupStep.getStatus().equals(Status.PREPARED);
+        Assert.assertEquals(Status.PENDING, resourceCleanupStep.getStatus());
+        Assert.assertFalse(resourceCleanupStep.start().isPresent());
+        Assert.assertEquals(Status.PREPARED, resourceCleanupStep.getStatus());
     }
 
     @Test
     public void testMatchingUpdateOfferStatus() throws Exception {
-        OfferRecommendation offerRecommendation = new UnreserveOfferRecommendation(null,
-                ResourceTestUtils.getReservedCpus(1.0, TestConstants.RESOURCE_ID));
         resourceCleanupStep.start();
-        resourceCleanupStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
-        assert resourceCleanupStep.getStatus().equals(Status.COMPLETE);
+        resourceCleanupStep.updateResourceStatus(Collections.singleton(TestConstants.RESOURCE_ID));
+        Assert.assertEquals(Status.COMPLETE, resourceCleanupStep.getStatus());
     }
 
     @Test
     public void testNonMatchingUpdateOfferStatus() throws Exception {
-        OfferRecommendation offerRecommendation = new UnreserveOfferRecommendation(null,
-                ResourceTestUtils.getReservedCpus(1.0, DIFFERENT_RESOURCE_ID));
         resourceCleanupStep.start();
-        resourceCleanupStep.updateOfferStatus(Collections.singletonList(offerRecommendation));
-        assert resourceCleanupStep.getStatus().equals(Status.PREPARED);
+        resourceCleanupStep.updateResourceStatus(Collections.singleton(DIFFERENT_RESOURCE_ID));
+        Assert.assertEquals(Status.PREPARED, resourceCleanupStep.getStatus());
     }
 
     @Test
     public void testMixedUpdateOfferStatus() throws Exception {
-        OfferRecommendation rec1 = new CreateOfferRecommendation(null, ResourceTestUtils.getReservedRootVolume(999.0));
-        OfferRecommendation rec2 = new UnreserveOfferRecommendation(null,
-                ResourceTestUtils.getReservedCpus(1.0, TestConstants.RESOURCE_ID));
         resourceCleanupStep.start();
-        resourceCleanupStep.updateOfferStatus(Arrays.asList(rec1, rec2));
-        assert resourceCleanupStep.getStatus().equals(Status.COMPLETE);
+        resourceCleanupStep.updateResourceStatus(
+                new HashSet<>(Arrays.asList(TestConstants.RESOURCE_ID, DIFFERENT_RESOURCE_ID)));
+        Assert.assertEquals(Status.COMPLETE, resourceCleanupStep.getStatus());
     }
 
     @Test
     public void testGetAsset() throws Exception {
-        assert resourceCleanupStep.getPodInstanceRequirement().equals(Optional.empty());
+        Assert.assertFalse(resourceCleanupStep.getPodInstanceRequirement().isPresent());
     }
 
     @Test
     public void testGetErrors() throws Exception {
-        assert resourceCleanupStep.getErrors().equals(Collections.emptyList());
+        Assert.assertEquals(Collections.emptyList(), resourceCleanupStep.getErrors());
     }
 }

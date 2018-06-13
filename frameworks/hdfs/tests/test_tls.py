@@ -4,10 +4,11 @@ import sdk_cmd
 import sdk_install
 import sdk_hosts
 import sdk_plan
-import sdk_security
 import sdk_utils
 import retrying
-import shakedown
+
+from security import transport_encryption
+
 from tests import config
 
 
@@ -19,19 +20,16 @@ DEFAULT_DATA_NODE_TLS_PORT = 9006
 @pytest.fixture(scope='module')
 def service_account(configure_security):
     """
-    Creates service account and yields the name.
+    Sets up a service account for use with TLS.
     """
     try:
         name = config.SERVICE_NAME
-        sdk_security.create_service_account(
-            service_account_name=name, service_account_secret=name)
-        # TODO(mh): Fine grained permissions needs to be addressed in DCOS-16475
-        sdk_cmd.run_cli(
-            "security org groups add_user superusers {name}".format(name=name))
-        yield name
+        service_account_info = transport_encryption.setup_service_account(name)
+
+        yield service_account_info
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=name)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
+                                                     service_account_info)
 
 
 @pytest.fixture(scope='module')
@@ -44,8 +42,8 @@ def hdfs_service_tls(service_account):
             expected_running_tasks=config.DEFAULT_TASK_COUNT,
             additional_options={
                 "service": {
-                    "service_account_secret": service_account,
-                    "service_account": service_account,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
                     "security": {
                         "transport_encryption": {
                             "enabled": True
@@ -102,8 +100,7 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
         stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
         retry_on_result=lambda res: not res)
     def fn():
-        exit_status, output = shakedown.run_command_on_master(
-            _curl_https_get_code(host))
+        exit_status, output = sdk_cmd.master_ssh(_curl_https_get_code(host))
         return exit_status and output == '200'
 
     assert fn()

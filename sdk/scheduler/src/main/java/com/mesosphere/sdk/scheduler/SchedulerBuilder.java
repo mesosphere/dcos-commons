@@ -8,12 +8,18 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.config.validate.DefaultConfigValidators;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.framework.ProcessExit;
+import com.mesosphere.sdk.http.endpoints.ArtifactResource;
+import com.mesosphere.sdk.http.endpoints.MultiArtifactResource;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
@@ -31,13 +37,14 @@ import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
+
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.*;
@@ -48,15 +55,10 @@ import java.util.stream.Collectors;
  */
 public class SchedulerBuilder {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerBuilder.class);
-
-    private ServiceSpec serviceSpec;
+    private Logger logger;
+    private final ServiceSpec originalServiceSpec;
     private final SchedulerConfig schedulerConfig;
     private final Persister persister;
-
-    // When these optionals are unset, we use default values:
-    private Optional<StateStore> stateStoreOptional = Optional.empty();
-    private Optional<ConfigStore<ServiceSpec>> configStoreOptional = Optional.empty();
 
     // When these collections are empty, we don't do anything extra:
     private final Map<String, RawPlan> yamlPlans = new HashMap<>();
@@ -65,6 +67,9 @@ public class SchedulerBuilder {
     private Collection<Object> customResources = new ArrayList<>();
     private RecoveryPlanOverriderFactory recoveryPlanOverriderFactory;
     private PlanCustomizer planCustomizer;
+    private Optional<String> multiServiceFrameworkName = Optional.empty();
+    private boolean regionAwarenessEnabled = false;
+    private Collection<Class<?>> additionalDeserializableSubtypes = new ArrayList<>();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
@@ -76,7 +81,8 @@ public class SchedulerBuilder {
     }
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig, Persister persister) {
-        this.serviceSpec = serviceSpec;
+        this.logger = LoggingUtils.getLogger(getClass());
+        this.originalServiceSpec = serviceSpec;
         this.schedulerConfig = schedulerConfig;
         this.persister = persister;
     }
@@ -85,7 +91,7 @@ public class SchedulerBuilder {
      * Returns the {@link ServiceSpec} which was provided via the constructor.
      */
     public ServiceSpec getServiceSpec() {
-        return serviceSpec;
+        return originalServiceSpec;
     }
 
     /**
@@ -96,65 +102,19 @@ public class SchedulerBuilder {
     }
 
     /**
-     * Specifies a custom {@link StateStore}.  The state store persists copies of task information and task status for
-     * all tasks running in the service.
-     *
-     * @throws IllegalStateException if the state store is already set, via a previous call to either
-     * {@link #setStateStore(StateStore)} or to {@link #getStateStore()}
+     * Returns the {@link Persister} object which was provided via the constructor, or which was created by default
+     * internally.
      */
-    public SchedulerBuilder setStateStore(StateStore stateStore) {
-        if (stateStoreOptional.isPresent()) {
-            // Any customization of the state store must be applied BEFORE getStateStore() is ever called.
-            throw new IllegalStateException("State store is already set. Was getStateStore() invoked before this?");
-        }
-        this.stateStoreOptional = Optional.ofNullable(stateStore);
-        return this;
+    public Persister getPersister() {
+        return persister;
     }
 
     /**
-     * Returns the {@link StateStore} provided via {@link #setStateStore(StateStore)}, or a reasonable default.
-     *
-     * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setStateStore(StateStore)} may not be invoked after this has been called.
+     * Returns whether the developer has enabled region awareness for this service, either via
+     * {@link #withSingleRegionConstraint()} or via the scheduler process environment.
      */
-    public StateStore getStateStore() {
-        if (!stateStoreOptional.isPresent()) {
-            setStateStore(new StateStore(persister));
-        }
-        return stateStoreOptional.get();
-    }
-
-    /**
-     * Specifies a custom {@link ConfigStore}.
-     *
-     * The config store persists a copy of the current configuration ('target' configuration),
-     * while also storing historical configurations.
-     */
-    public SchedulerBuilder setConfigStore(ConfigStore<ServiceSpec> configStore) {
-        if (configStoreOptional.isPresent()) {
-            // Any customization of the config store must be applied BEFORE getConfigStore() is ever called.
-            throw new IllegalStateException(
-                    "Config store is already set. Was getConfigStore() invoked before this?");
-        }
-        this.configStoreOptional = Optional.ofNullable(configStore);
-        return this;
-    }
-
-    /**
-     * Returns the {@link ConfigStore} provided via {@link #setConfigStore(ConfigStore)}, or a reasonable default.
-     *
-     * In order to avoid cohesiveness issues between this setting and the {@link #build()} step,
-     * {@link #setConfigStore(ConfigStore)} may not be invoked after this has been called.
-     */
-    public ConfigStore<ServiceSpec> getConfigStore() {
-        if (!configStoreOptional.isPresent()) {
-            try {
-                setConfigStore(createConfigStore(serviceSpec, Collections.emptyList(), persister));
-            } catch (ConfigStoreException e) {
-                throw new IllegalStateException("Failed to create default config store", e);
-            }
-        }
-        return configStoreOptional.get();
+    public boolean isRegionAwarenessEnabled() {
+        return regionAwarenessEnabled || schedulerConfig.isRegionAwarenessEnabled();
     }
 
     /**
@@ -190,7 +150,7 @@ public class SchedulerBuilder {
 
     /**
      * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
-     * {@link DefaultPlanGenerator} to handle conversion.
+     * {@link PlanGenerator} to handle conversion.
      */
     public SchedulerBuilder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
         if (rawServiceSpec.getPlans() != null) {
@@ -210,8 +170,41 @@ public class SchedulerBuilder {
         return this;
     }
 
+    /**
+     * Assigns a {@link PlanCustomizer} to be used for customizing plans.
+     *
+     * @param planCustomizer the plan customizer
+     */
     public SchedulerBuilder setPlanCustomizer(PlanCustomizer planCustomizer) {
         this.planCustomizer = planCustomizer;
+        return this;
+    }
+
+    /**
+     * Configures the resulting scheduler instance with a region constraint.
+     */
+    public SchedulerBuilder withSingleRegionConstraint() {
+        this.regionAwarenessEnabled = true;
+        return this;
+    }
+
+    /**
+     * Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
+     * multiple underlying services.
+     *
+     * @param frameworkName the name of the Mesos Framework which will be running the service
+     */
+    public SchedulerBuilder enableMultiService(String frameworkName) {
+        this.multiServiceFrameworkName = Optional.of(frameworkName);
+        return this;
+    }
+
+    /**
+     * Specifies additional class subtypes which should be registered with Jackson for deserialization, in addition
+     * to the defaults. This includes custom {@see PlacementRule}s.
+     */
+    public SchedulerBuilder setAdditionalDeserializableSubtypes(Collection<Class<?>> additionalDeserializableSubtypes) {
+        this.additionalDeserializableSubtypes = additionalDeserializableSubtypes;
         return this;
     }
 
@@ -223,33 +216,114 @@ public class SchedulerBuilder {
      * @throws IllegalArgumentException if validating the provided configuration failed
      */
     public AbstractScheduler build() {
-        // Get custom or default config and state stores (defaults handled by getStateStore()/getConfigStore()):
-        final StateStore stateStore = getStateStore();
-        final ConfigStore<ServiceSpec> configStore = getConfigStore();
+        // If we're running in multi-service mode, update our logger to include the service name/"namespace".
+        Optional<String> namespace = multiServiceFrameworkName.isPresent()
+                ? Optional.of(originalServiceSpec.getName())
+                : Optional.empty();
+        logger = LoggingUtils.getLogger(getClass(), namespace);
+
+        // If region awareness is enabled (via java bit or via env) and the cluster supports it, update the ServiceSpec
+        // to include region constraints.
+        final ServiceSpec serviceSpec;
+        if (Capabilities.getInstance().supportsDomains()) {
+            // This cluster supports domains. We need to update pod placement with region configuration, for any pods
+            // that weren't already configured by the developer (expected to be rare, but possible).
+
+            // Whether region awareness is enabled for the service (via env or via java).
+            boolean regionAwarenessEnabled = isRegionAwarenessEnabled();
+            // A region to target, as specified in env, if any.
+            Optional<String> schedulerRegion = schedulerConfig.getSchedulerRegion();
+
+            // Target the specified region, or use the local region.
+            // Local region is determined at framework registration, see IsLocalRegionRule.setLocalDomain().
+            final PlacementRule placementRuleToAdd;
+            if (regionAwarenessEnabled && schedulerRegion.isPresent()) {
+                logger.info("Updating pods with placement rule for region={}", schedulerRegion.get());
+                placementRuleToAdd =
+                        RegionRuleFactory.getInstance().require(ExactMatcher.create(schedulerRegion.get()));
+            } else {
+                logger.info("Updating pods with local region placement rule: region awareness={}, scheduler region={}",
+                        regionAwarenessEnabled, schedulerRegion);
+                placementRuleToAdd = new IsLocalRegionRule();
+            }
+
+            List<PodSpec> updatedPodSpecs = new ArrayList<>();
+            for (PodSpec podSpec : originalServiceSpec.getPods()) {
+                if (PlacementUtils.placementRuleReferencesRegion(podSpec)) {
+                    // Pod already has a region constraint (specified by developer?). Leave it as-is.
+                    logger.info("Pod {} already has a region rule defined, leaving as-is", podSpec.getType());
+                    updatedPodSpecs.add(podSpec);
+                } else {
+                    // Combine the new rule with any existing rules:
+                    PlacementRule mergedRule = podSpec.getPlacementRule().isPresent()
+                            ? new AndRule(placementRuleToAdd, podSpec.getPlacementRule().get())
+                            : placementRuleToAdd;
+                    updatedPodSpecs.add(DefaultPodSpec.newBuilder(podSpec).placementRule(mergedRule).build());
+                }
+            }
+
+            DefaultServiceSpec.Builder builder =
+                    DefaultServiceSpec.newBuilder(originalServiceSpec).pods(updatedPodSpecs);
+            if (schedulerRegion.isPresent()) {
+                builder.region(schedulerRegion.get());
+            }
+            serviceSpec = builder.build();
+        } else {
+            serviceSpec = originalServiceSpec;
+        }
+
+        // NOTE: we specifically avoid accessing the provided persister before build() is called.
+        // This is to ensure that upstream has a chance to e.g. lock it via CuratorLocker.
+
+        // When multi-service is enabled, state/configs are stored within a namespace matching the service name.
+        // Otherwise use an empty namespace, which indicates single-service mode.
+        StateStore stateStore = new StateStore(persister, namespace);
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, additionalDeserializableSubtypes),
+                persister,
+                namespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
-            if (!StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.info("Service has been told to uninstall. Marking this in the persistent state store. " +
-                        "Uninstall cannot be canceled once enabled.");
-                StateStoreUtils.setUninstalling(stateStore);
-            }
+            // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
+            // uninstall mode. UninstallScheduler will internally flag the stateStore with an uninstall bit if needed.
+            return new UninstallScheduler(
+                    serviceSpec,
+                    stateStore,
+                    configStore,
+                    schedulerConfig,
+                    Optional.ofNullable(planCustomizer),
+                    namespace);
+        }
 
-            return new UninstallScheduler(serviceSpec, stateStore, configStore,
-                    schedulerConfig, Optional.ofNullable(planCustomizer));
-        } else {
-            if (StateStoreUtils.isUninstalling(stateStore)) {
-                LOGGER.error("Service has been previously told to uninstall, this cannot be reversed. " +
+        if (StateStoreUtils.isUninstalling(stateStore)) {
+            // SERVICE UNINSTALL: The service has an uninstall bit set in its (potentially namespaced) state store.
+            if (multiServiceFrameworkName.isPresent()) {
+                // This namespaced service is partway through being removed from the parent multi-service scheduler.
+                // Launch the service in uninstall mode so that it can continue with whatever may be left.
+                return new UninstallScheduler(
+                        serviceSpec,
+                        stateStore,
+                        configStore,
+                        schedulerConfig,
+                        Optional.ofNullable(planCustomizer),
+                        namespace);
+            } else {
+                // This is an illegal state for a single-service scheduler. SchedulerConfig's uninstall bit should have
+                // also been enabled. If we got here, it means that the user likely tampered with the scheduler env
+                // after having previously triggered an uninstall, which had set the bit in stateStore. Just exit,
+                // because the service is likely now in an inconsistent state resulting from the incomplete uninstall.
+                logger.error("Service has been previously told to uninstall, this cannot be reversed. " +
                         "Reenable the uninstall flag to complete the process.");
-                SchedulerUtils.hardExit(SchedulerErrorCode.SCHEDULER_ALREADY_UNINSTALLING);
+                ProcessExit.exit(ProcessExit.SCHEDULER_ALREADY_UNINSTALLING);
             }
+        }
 
-            try {
-                return getDefaultScheduler(stateStore, configStore);
-            } catch (ConfigStoreException e) {
-                LOGGER.error("Failed to construct scheduler.", e);
-                SchedulerUtils.hardExit(SchedulerErrorCode.INITIALIZATION_FAILURE);
-                return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
-            }
+        try {
+            return getDefaultScheduler(serviceSpec, new FrameworkStore(persister), stateStore, configStore, namespace);
+        } catch (ConfigStoreException e) {
+            logger.error("Failed to construct scheduler.", e);
+            ProcessExit.exit(ProcessExit.INITIALIZATION_FAILURE, e);
+            return null; // This is so the compiler doesn't complain.  The scheduler is going down anyway.
         }
     }
 
@@ -260,8 +334,11 @@ public class SchedulerBuilder {
      * @throws IllegalArgumentException if config validation failed when updating the target config.
      */
     private DefaultScheduler getDefaultScheduler(
+            ServiceSpec serviceSpec,
+            FrameworkStore frameworkStore,
             StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
+            ConfigStore<ServiceSpec> configStore,
+            Optional<String> namespace) throws ConfigStoreException {
 
         // Determine whether deployment had previously completed BEFORE we update the config.
         // Plans may be generated from the config content.
@@ -271,46 +348,41 @@ public class SchedulerBuilder {
                 // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
-                Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(
-                        getPlans(stateStore, configStore, lastServiceSpec, yamlPlans));
+                Optional<Plan> deployPlan = getDeployPlan(
+                        getPlans(stateStore, configStore, lastServiceSpec, namespace, yamlPlans));
                 if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                    LOGGER.info("Marking deployment as having been previously completed");
+                    logger.info("Marking deployment as having been previously completed");
                     StateStoreUtils.setDeploymentWasCompleted(stateStore);
                     hasCompletedDeployment = true;
                 }
             } catch (ConfigStoreException e) {
                 // This is expected during initial deployment, when there is no prior configuration.
-                LOGGER.info("Unable to retrieve last configuration. Assuming that no prior deployment has completed");
+                logger.info("Unable to retrieve last configuration. Assuming that no prior deployment has completed");
             }
         }
-
-        List<PodSpec> pods = serviceSpec.getPods().stream()
-                .map(podSpec -> updatePodPlacement(podSpec))
-                .collect(Collectors.toList());
-        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec).pods(pods).build();
 
         // Update/validate config as needed to reflect the new service spec:
         Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
         configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
         configValidators.addAll(customConfigValidators);
         final ConfigurationUpdater.UpdateResult configUpdateResult =
-                updateConfig(serviceSpec, stateStore, configStore, configValidators);
+                updateConfig(serviceSpec, stateStore, configStore, configValidators, namespace);
         if (!configUpdateResult.getErrors().isEmpty()) {
-            LOGGER.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
+            logger.warn("Failed to update configuration due to validation errors: {}", configUpdateResult.getErrors());
             try {
                 // If there were errors, stick with the last accepted target configuration.
                 serviceSpec = configStore.fetch(configStore.getTargetConfig());
             } catch (ConfigStoreException e) {
                 // Uh oh. Bail.
-                LOGGER.error("Failed to retrieve previous target configuration", e);
+                logger.error("Failed to retrieve previous target configuration", e);
                 throw new IllegalArgumentException(e);
             }
         }
 
         // Now that a ServiceSpec has been chosen, generate the plans.
-        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, yamlPlans);
+        Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, namespace, yamlPlans);
         plans = selectDeployPlan(plans, hasCompletedDeployment);
-        Optional<Plan> deployPlan = SchedulerUtils.getDeployPlan(plans);
+        Optional<Plan> deployPlan = getDeployPlan(plans);
         if (!deployPlan.isPresent()) {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
@@ -324,39 +396,46 @@ public class SchedulerBuilder {
         }
 
         PlanManager deploymentPlanManager =
-                DefaultPlanManager.createProceeding(SchedulerUtils.getDeployPlan(plans).get());
+                DefaultPlanManager.createProceeding(getDeployPlan(plans).get());
         PlanManager recoveryPlanManager = getRecoveryPlanManager(
+                serviceSpec,
                 Optional.ofNullable(recoveryPlanOverriderFactory),
                 stateStore,
                 configStore,
-                plans);
-        Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(stateStore);
+                plans,
+                namespace);
+        Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(serviceSpec, stateStore, namespace);
         PlanCoordinator planCoordinator = buildPlanCoordinator(
-                deploymentPlanManager,
-                recoveryPlanManager,
-                decommissionPlanManager,
-                plans);
+                deploymentPlanManager, recoveryPlanManager, decommissionPlanManager, plans, namespace);
 
         return new DefaultScheduler(
                 serviceSpec,
                 schedulerConfig,
+                namespace,
                 customResources,
                 planCoordinator,
                 Optional.ofNullable(planCustomizer),
+                frameworkStore,
                 stateStore,
                 configStore,
+                multiServiceFrameworkName.isPresent()
+                    ? MultiArtifactResource.getUrlFactory(
+                            multiServiceFrameworkName.get(), serviceSpec.getName(), schedulerConfig)
+                    : ArtifactResource.getUrlFactory(serviceSpec.getName(), schedulerConfig),
                 endpointProducers);
     }
 
     private PlanManager getRecoveryPlanManager(
+            ServiceSpec serviceSpec,
             Optional<RecoveryPlanOverriderFactory> recoveryOverriderFactory,
             StateStore stateStore,
-            ConfigStore configStore,
-            Collection<Plan> plans) {
+            ConfigStore<ServiceSpec> configStore,
+            Collection<Plan> plans,
+            Optional<String> namespace) {
 
         List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
         if (recoveryOverriderFactory.isPresent()) {
-            LOGGER.info("Adding overriding recovery plan manager.");
+            logger.info("Adding overriding recovery plan manager.");
             overrideRecoveryPlanManagers.add(recoveryOverriderFactory.get().create(stateStore, plans));
         }
         final LaunchConstrainer launchConstrainer;
@@ -379,27 +458,32 @@ public class SchedulerBuilder {
                 PlanUtils.getLaunchableTasks(plans),
                 launchConstrainer,
                 failureMonitor,
+                namespace,
                 overrideRecoveryPlanManagers);
     }
 
-    public Optional<PlanManager> getDecommissionPlanManager(StateStore stateStore) {
-        DecommissionPlanFactory decommissionPlanFactory = new DecommissionPlanFactory(serviceSpec, stateStore);
+    private static Optional<PlanManager> getDecommissionPlanManager(
+            ServiceSpec serviceSpec, StateStore stateStore, Optional<String> namespace) {
+        DecommissionPlanFactory decommissionPlanFactory =
+                new DecommissionPlanFactory(serviceSpec, stateStore, namespace);
         Optional<Plan> decommissionPlan = decommissionPlanFactory.getPlan();
         if (decommissionPlan.isPresent()) {
             return Optional.of(
                     new DecommissionPlanManager(
                             decommissionPlan.get(),
+                            decommissionPlanFactory.getResourceSteps(),
                             decommissionPlanFactory.getTasksToDecommission()));
         }
 
         return Optional.empty();
     }
 
-    private PlanCoordinator buildPlanCoordinator(
+    private static PlanCoordinator buildPlanCoordinator(
             PlanManager deploymentPlanManager,
             PlanManager recoveryPlanManager,
             Optional<PlanManager> decommissionPlanManager,
-            Collection<Plan> plans) {
+            Collection<Plan> plans,
+            Optional<String> namespace) {
 
         final Collection<PlanManager> planManagers = new ArrayList<>();
         planManagers.add(deploymentPlanManager);
@@ -415,30 +499,7 @@ public class SchedulerBuilder {
                 .map(DefaultPlanManager::createInterrupted)
                 .collect(Collectors.toList()));
 
-        return new DefaultPlanCoordinator(planManagers);
-    }
-
-    /**
-     * Update pods with appropriate placement constraints to enforce user REGION intent.
-     * If a pod's placement rules do not explicitly reference a REGION the assumption should be that
-     * the user intends that a pod be restriced to the local REGION.
-     *
-     * @param podSpec The {@link PodSpec} whose placement rule will be updated to enforce appropriate region placement.
-     * @return The updated {@link PodSpec}
-     */
-    static PodSpec updatePodPlacement(PodSpec podSpec) {
-        if (!Capabilities.getInstance().supportsDomains() || PlacementUtils.placementRuleReferencesRegion(podSpec)) {
-            return podSpec;
-        }
-
-        PlacementRule rule;
-        if (podSpec.getPlacementRule().isPresent()) {
-            rule = new AndRule(new IsLocalRegionRule(), podSpec.getPlacementRule().get());
-        } else {
-            rule = new IsLocalRegionRule();
-        }
-
-        return DefaultPodSpec.newBuilder(podSpec).placementRule(rule).build();
+        return new DefaultPlanCoordinator(namespace, planManagers);
     }
 
     /**
@@ -448,10 +509,11 @@ public class SchedulerBuilder {
      * @param configStore The config store to use for plan generation.
      * @return a collection of plans
      */
-    private static Collection<Plan> getPlans(
+    private Collection<Plan> getPlans(
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             ServiceSpec serviceSpec,
+            Optional<String> namespace,
             Map<String, RawPlan> yamlPlans) {
         final String plansType;
         final Collection<Plan> plans;
@@ -459,7 +521,7 @@ public class SchedulerBuilder {
             plansType = "YAML";
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.
-            DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore);
+            PlanGenerator planGenerator = new PlanGenerator(configStore, stateStore, namespace);
             plans = yamlPlans.entrySet().stream()
                     .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                     .collect(Collectors.toList());
@@ -468,7 +530,7 @@ public class SchedulerBuilder {
             try {
                 if (!configStore.list().isEmpty()) {
                     PlanFactory planFactory = new DeployPlanFactory(
-                            new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore)));
+                            new DefaultPhaseFactory(new DefaultStepFactory(configStore, stateStore, namespace)));
                     plans = Arrays.asList(planFactory.getPlan(configStore.fetch(configStore.getTargetConfig())));
                 } else {
                     plans = Collections.emptyList();
@@ -478,12 +540,24 @@ public class SchedulerBuilder {
             }
         }
 
-        LOGGER.info("Got {} {} plan{}: {}",
+        logger.info("Got {} {} plan{}: {}",
                 plans.size(),
                 plansType,
                 plans.size() == 1 ? "" : "s",
                 plans.stream().map(plan -> plan.getName()).collect(Collectors.toList()));
         return plans;
+    }
+
+    private static Optional<Plan> getDeployPlan(Collection<Plan> plans) {
+        List<Plan> deployPlans = plans.stream().filter(Plan::isDeployPlan).collect(Collectors.toList());
+
+        if (deployPlans.size() == 1) {
+            return Optional.of(deployPlans.get(0));
+        } else if (deployPlans.size() == 0) {
+            return Optional.empty();
+        } else {
+            throw new IllegalStateException(String.format("Found multiple deploy plans: %s", deployPlans));
+        }
     }
 
     /**
@@ -507,32 +581,23 @@ public class SchedulerBuilder {
         return updatedPlans;
     }
 
-    @VisibleForTesting
-    static ConfigStore<ServiceSpec> createConfigStore(
-            ServiceSpec serviceSpec, Collection<Class<?>> customDeserializationSubtypes, Persister persister)
-                    throws ConfigStoreException {
-        return new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec, customDeserializationSubtypes),
-                persister);
-    }
-
     /**
      * Replaces the deploy plan with an update plan, in the case that an update deployment is being performed AND that
      * a custom update plan has been specified.
      */
     @VisibleForTesting
-    static Collection<Plan> selectDeployPlan(Collection<Plan> plans, boolean hasCompletedDeployment) {
+    Collection<Plan> selectDeployPlan(Collection<Plan> plans, boolean hasCompletedDeployment) {
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
 
         if (!hasCompletedDeployment || !updatePlanOptional.isPresent()) {
-            LOGGER.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
+            logger.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
                     hasCompletedDeployment, updatePlanOptional.isPresent());
             return plans;
         }
 
-        LOGGER.info("Overriding deploy plan with custom update plan. " +
+        logger.info("Overriding deploy plan with custom update plan. " +
                 "(Has completed deployment: {}, Custom update plan defined: {})",
                 hasCompletedDeployment, updatePlanOptional.isPresent());
         Collection<Plan> newPlans = new ArrayList<>();
@@ -560,18 +625,19 @@ public class SchedulerBuilder {
      * @return the config update result, which may contain one or more validation errors produced by
      *     {@code configValidators}
      */
-    private static ConfigurationUpdater.UpdateResult updateConfig(
+    private ConfigurationUpdater.UpdateResult updateConfig(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
-            Collection<ConfigValidator<ServiceSpec>> configValidators) {
-        LOGGER.info("Updating config with {} validators...", configValidators.size());
+            Collection<ConfigValidator<ServiceSpec>> configValidators,
+            Optional<String> namespace) {
+        logger.info("Updating config with {} validators...", configValidators.size());
         ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
-                stateStore, configStore, DefaultServiceSpec.getComparatorInstance(), configValidators);
+                stateStore, configStore, DefaultServiceSpec.getComparatorInstance(), configValidators, namespace);
         try {
             return configurationUpdater.updateConfiguration(serviceSpec);
         } catch (ConfigStoreException e) {
-            LOGGER.error("Fatal error when performing configuration update. Service exiting.", e);
+            logger.error("Fatal error when performing configuration update. Service exiting.", e);
             throw new IllegalStateException(e);
         }
     }

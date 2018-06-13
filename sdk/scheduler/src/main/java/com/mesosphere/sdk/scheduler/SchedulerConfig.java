@@ -1,10 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
+import org.slf4j.Logger;
 
 import com.auth0.jwt.algorithms.Algorithm;
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
@@ -12,6 +14,9 @@ import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
+import com.mesosphere.sdk.framework.EnvStore;
+import com.mesosphere.sdk.generated.SDKBuildInfo;
+import com.mesosphere.sdk.offer.LoggingUtils;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -23,7 +28,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
-import java.util.Map;
+import java.time.Instant;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
@@ -31,49 +38,37 @@ import java.util.Map;
  */
 public class SchedulerConfig {
 
-    /**
-     * Exception which is thrown when failing to retrieve or parse a given flag value.
-     */
-    public static class ConfigException extends RuntimeException {
-
-        /**
-         * A machine-accessible error type.
-         */
-        public enum Type {
-            UNKNOWN,
-            NOT_FOUND,
-            INVALID_VALUE
-        }
-
-        public static ConfigException notFound(String message) {
-            return new ConfigException(Type.NOT_FOUND, message);
-        }
-
-        public static ConfigException invalidValue(String message) {
-            return new ConfigException(Type.INVALID_VALUE, message);
-        }
-
-        private final Type type;
-
-        private ConfigException(Type type, String message) {
-            super(message);
-            this.type = type;
-        }
-
-        public Type getType() {
-            return type;
-        }
-
-        @Override
-        public String getMessage() {
-            return String.format("%s (errtype: %s)", super.getMessage(), type);
-        }
-    }
+    private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerConfig.class);
 
     /** Envvar to specify a custom amount of time to wait for the Scheduler API to come up during startup. */
     private static final String API_SERVER_TIMEOUT_S_ENV = "API_SERVER_TIMEOUT_S";
     /** The default number of seconds to wait for the Scheduler API to come up during startup. */
-    private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600;
+    private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600; // 10 minutes
+
+    /**
+     * (Multi-service only) Envvar to specify the amount of time in seconds for a removed service to complete uninstall
+     * before removing it. If this envvar is negative or zero, then the timeout is disabled and the Scheduler will wait
+     * indefinitely for removed services to complete. If the Scheduler itself is being uninstalled, it will always wait
+     * indefinitely, regardless of this setting.
+     */
+    private static final String SERVICE_REMOVAL_TIMEOUT_S_ENV = "SERVICE_REMOVAL_TIMEOUT_S";
+    /** The default number of seconds to wait for a service to finish uninstall before being forcibly removed. */
+    private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
+
+    /**
+     * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
+     * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
+     * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
+     * quotas.</li>
+     * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
+     * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
+     */
+    public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
+    /**
+     * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
+     * number of parallel deployments via the above envvar.
+     */
+    private static final int DEFAULT_RESERVE_DISCIPLINE = 0; // No limit
 
     /**
      * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
@@ -85,8 +80,6 @@ public class SchedulerConfig {
     /** The default number of seconds before auth token expiration that will trigger auth token refresh. */
     private static final int DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S = 30;
 
-    /** Specifies the URI of the executor artifact to be used when launching tasks. */
-    private static final String EXECUTOR_URI_ENV = "EXECUTOR_URI";
     /** Specifies the URI of the bootstrap artifact to be used when launching stopped tasks. */
     private static final String BOOTSTRAP_URI_ENV = "BOOTSTRAP_URI";
     /** Specifies the URI of the libmesos package used by the scheduler itself. */
@@ -136,6 +129,11 @@ public class SchedulerConfig {
     private static final String PACKAGE_BUILD_TIME_EPOCH_MS_ENV = "PACKAGE_BUILD_TIME_EPOCH_MS";
 
     /**
+     * An environment variable that advertises to the service what region its tasks should run in.
+     */
+    private static final String SERVICE_REGION_ENV = "SERVICE_REGION";
+
+    /**
      * Environment variables for configuring metrics reporting behavior.
      */
     private static final String STATSD_POLL_INTERVAL_S_ENV = "STATSD_POLL_INTERVAL_S";
@@ -148,9 +146,17 @@ public class SchedulerConfig {
     private static final String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
     /**
-     * Environment variables for configuring goal state override behavior.
+     * Environment variable for manually configuring the command to run when pausing a pod.
      */
     private static final String PAUSE_OVERRIDE_CMD_ENV = "PAUSE_OVERRIDE_CMD";
+
+    /**
+     * Environment variables for configuring implicit reconciliation:
+     * <ul><li>Delay before first implicit reconciliation is triggered (in milliseconds).</li>
+     * <li>Duration between implicit reconciliations (in milliseconds).</li></ul>
+     */
+    private static final String IMPLICIT_RECONCILIATION_DELAY_MS_ENV = "IMPLICIT_RECONCILIATION_DELAY_MS";
+    private static final String IMPLICIT_RECONCILIATION_PERIOD_MS_ENV = "IMPLICIT_RECONCILIATION_PERIOD_MS";
 
     /**
      * Environment variable for allowing region awareness.
@@ -158,23 +164,46 @@ public class SchedulerConfig {
     private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
 
     /**
+     * Environment variable for setting a custom TLD for the service (replaces Constants.TLD_NET).
+     */
+    private static final String USER_SPECIFIED_TLD_ENVVAR = "SERVICE_TLD";
+
+    /**
+     * We print the build info here because this is likely to be a very early point in the service's execution. In a
+     * multi-service situation, however, this code may be getting invoked multiple times, so only print if we haven't
+     * printed before.
+     */
+    private static final AtomicBoolean PRINTED_BUILD_INFO = new AtomicBoolean(false);
+
+    /**
      * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
      */
     public static SchedulerConfig fromEnv() {
-        return fromMap(System.getenv());
+        return fromEnvStore(EnvStore.fromEnv());
     }
 
     /**
-     * Returns a new {@link SchedulerConfig} instance which is based off the provided custom environment map.
+     * Returns a new {@link SchedulerConfig} instance which is based off the provided env store.
      */
-    public static SchedulerConfig fromMap(Map<String, String> map) {
-        return new SchedulerConfig(map);
+    public static SchedulerConfig fromEnvStore(EnvStore envStore) {
+        return new SchedulerConfig(envStore);
     }
 
     private final EnvStore envStore;
 
-    private SchedulerConfig(Map<String, String> flagMap) {
-        this.envStore = new EnvStore(flagMap);
+    private SchedulerConfig(EnvStore envStore) {
+        this.envStore = envStore;
+
+        if (!PRINTED_BUILD_INFO.getAndSet(true)) {
+            LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
+                    getPackageName(),
+                    getPackageVersion(),
+                    Instant.ofEpochMilli(getPackageBuildTimeMs()),
+
+                    SDKBuildInfo.VERSION,
+                    SDKBuildInfo.GIT_SHA,
+                    Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+        }
     }
 
     /**
@@ -185,15 +214,27 @@ public class SchedulerConfig {
     }
 
     /**
+     * Returns the configured time to wait for a service to be removed in a multi-service scheduler.
+     */
+    public Duration getMultiServiceRemovalTimeout() {
+        return Duration.ofSeconds(
+                envStore.getOptionalInt(SERVICE_REMOVAL_TIMEOUT_S_ENV, DEFAULT_SERVICE_REMOVE_TIMEOUT_S));
+    }
+
+    /**
+     * Returns the number of services that can be simultaneously reserving in a multi-service scheduler, or {@code <=0}
+     * for no limit.
+     */
+    public int getMultiServiceReserveDiscipline() {
+        return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
+    }
+
+    /**
      * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
      * information.
      */
     public int getApiServerPort() {
         return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
-    }
-
-    public String getExecutorURI() {
-        return envStore.getRequired(EXECUTOR_URI_ENV);
     }
 
     public String getBootstrapURI() {
@@ -219,6 +260,10 @@ public class SchedulerConfig {
             return value;
         }
         return envStore.getOptional(MARATHON_APP_ID_ENV, "/");
+    }
+
+    public Optional<String> getSchedulerRegion() {
+        return Optional.ofNullable(envStore.getOptional(SERVICE_REGION_ENV, null));
     }
 
     public String getSecretsNamespace(String serviceName) {
@@ -284,21 +329,21 @@ public class SchedulerConfig {
     /**
      * Returns the package name as advertised in the scheduler environment.
      */
-    public String getPackageName() {
+    private String getPackageName() {
         return envStore.getRequired(PACKAGE_NAME_ENV);
     }
 
     /**
      * Returns the package version as advertised in the scheduler environment.
      */
-    public String getPackageVersion() {
+    private String getPackageVersion() {
         return envStore.getRequired(PACKAGE_VERSION_ENV);
     }
 
     /**
      * Returns the package build time (unix epoch milliseconds) as advertised in the scheduler environment.
      */
-    public long getPackageBuildTimeMs() {
+    private long getPackageBuildTimeMs() {
         return envStore.getRequiredLong(PACKAGE_BUILD_TIME_EPOCH_MS_ENV);
     }
 
@@ -337,78 +382,32 @@ public class SchedulerConfig {
         return envStore.getOptional(PAUSE_OVERRIDE_CMD_ENV, GoalStateOverride.PAUSE_COMMAND);
     }
 
-    public boolean isregionAwarenessEnabled() {
-        return Boolean.valueOf(envStore.getOptional(ALLOW_REGION_AWARENESS_ENV, "false"));
+    /**
+     * Returns the {@code autoip} service TLD to be used in advertised endpoints.
+     */
+    public String getServiceTLD() {
+        return envStore.getOptional(USER_SPECIFIED_TLD_ENVVAR, Constants.DNS_TLD);
     }
 
     /**
-     * Internal utility class for grabbing values from a mapping of flag values (typically the process env).
+     * Returns the duration to wait after framework registration before performing the first implicit reconcilation, in
+     * milliseconds.
      */
-    private static class EnvStore {
+    public long getImplicitReconcileDelayMs() {
+        return envStore.getOptionalLong(IMPLICIT_RECONCILIATION_DELAY_MS_ENV, 0 /* no delay */);
+    }
 
-        private final Map<String, String> envMap;
+    /**
+     * Returns the duration to wait between implicit reconcilations, in milliseconds.
+     */
+    public long getImplicitReconcilePeriodMs() {
+        return envStore.getOptionalLong(IMPLICIT_RECONCILIATION_PERIOD_MS_ENV, 60 * 60 * 1000 /* 1 hour */);
+    }
 
-        private EnvStore(Map<String, String> envMap) {
-            this.envMap = envMap;
-        }
-
-        private int getOptionalInt(String envKey, int defaultValue) {
-            return toInt(envKey, getOptional(envKey, String.valueOf(defaultValue)));
-        }
-
-        private long getOptionalLong(String envKey, long defaultValue) {
-            return toLong(envKey, getOptional(envKey, String.valueOf(defaultValue)));
-        }
-
-        private int getRequiredInt(String envKey) {
-            return toInt(envKey, getRequired(envKey));
-        }
-
-        private long getRequiredLong(String envKey) {
-            return toLong(envKey, getRequired(envKey));
-        }
-
-        private String getOptional(String envKey, String defaultValue) {
-            String value = envMap.get(envKey);
-            return (value == null) ? defaultValue : value;
-        }
-
-        private String getRequired(String envKey) {
-            String value = envMap.get(envKey);
-            if (value == null) {
-                throw ConfigException.notFound(String.format("Missing required environment variable: %s", envKey));
-            }
-            return value;
-        }
-
-        private boolean isPresent(String envKey) {
-            return envMap.containsKey(envKey);
-        }
-
-        /**
-         * If the value cannot be parsed as an int, this points to the source envKey, and ensures that
-         * {@link SchedulerConfig} calls only throw {@link ConfigException}.
-         */
-        private static int toInt(String envKey, String envVal) {
-            try {
-                return Integer.parseInt(envVal);
-            } catch (NumberFormatException e) {
-                throw ConfigException.invalidValue(String.format(
-                        "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
-            }
-        }
-
-        /**
-         * If the value cannot be parsed as a long, this points to the source envKey, and ensures that
-         * {@link SchedulerConfig} calls only throw {@link ConfigException}.
-         */
-        private static long toLong(String envKey, String envVal) {
-            try {
-                return Long.parseLong(envVal);
-            } catch (NumberFormatException e) {
-                throw ConfigException.invalidValue(String.format(
-                        "Failed to parse configured environment variable '%s' as an integer: %s", envKey, envVal));
-            }
-        }
+    /**
+     * Returns whether region awareness should be enabled. In 1.11, this is an explicit opt-in by users.
+     */
+    public boolean isRegionAwarenessEnabled() {
+        return envStore.getOptionalBoolean(ALLOW_REGION_AWARENESS_ENV, false);
     }
 }

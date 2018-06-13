@@ -73,6 +73,14 @@
           ],
           "default": "parallel"
         },
+        "region": {
+          "description": "All HDFS nodes will run in this region.  When no region is specified the nodes are constrained to the local region.",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-region+string"
+          }
+        },
         "security": {
           "description": "HDFS security settings.",
           "type": "object",

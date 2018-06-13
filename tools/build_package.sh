@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -e -x
 
 user_usage() {
     # This script is generally called by an upstream 'build.sh' which would be invoked directly by users.
@@ -57,6 +57,10 @@ case $1 in
         publish_method="local"
         shift
         ;;
+    .dcos)
+        publish_method=".dcos"
+        shift
+        ;;
     "")
         # no publish method specified
         ;;
@@ -92,6 +96,10 @@ case "$publish_method" in
         echo "Uploading to S3"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_aws.py
         ;;
+    .dcos)
+        echo "Uploading .dcos files to S3"
+        PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
+        ;;
     *)
         echo "---"
         echo "Build complete, skipping publish step."
@@ -101,7 +109,9 @@ case "$publish_method" in
         ;;
 esac
 
+PACKAGE_VERSION=${1:-"stub-universe"}
+
 if [ -n "$PUBLISH_SCRIPT" ]; then
-    # Both scripts use the same argument format:
-    $PUBLISH_SCRIPT ${FRAMEWORK_NAME} ${UNIVERSE_DIR} ${custom_artifacts}
+    # All the scripts use the same argument format:
+    $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts}
 fi

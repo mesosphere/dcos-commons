@@ -1,11 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.OfferID;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -15,29 +12,10 @@ import java.util.stream.Collectors;
  */
 public class PlanUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(PlanUtils.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(PlanUtils.class);
 
     private PlanUtils() {
         // do not instantiate
-    }
-
-    public static List<Offer> filterAcceptedOffers(List<Offer> offers, Collection<OfferID> acceptedOfferIds) {
-        return offers.stream().filter(offer -> !acceptedOfferIds.contains(offer.getId())).collect(Collectors.toList());
-    }
-
-    /**
-     * Indicates whether a plan has any work left to do.  A plan can be in ERROR state because of a rejected
-     * target configuration, but still have work to do reaching it's target configuration.  If all of a plan's
-     * elements are not complete, it has operations.
-     */
-    public static boolean hasOperations(Plan plan) {
-        boolean complete = allMatch(
-                Status.COMPLETE,
-                plan.getChildren().stream()
-                        .map(phase -> phase.getStatus())
-                        .collect(Collectors.toList()));
-        boolean interrupted = plan.isInterrupted();
-        return !complete && !interrupted;
     }
 
     /**
@@ -49,12 +27,6 @@ public class PlanUtils {
         return dirtyAssets.stream()
                 .filter(dirtyAsset -> asset.conflictsWith(dirtyAsset))
                 .count() > 0;
-    }
-
-    public static List<PlanManager> getActivePlanManagers(List<PlanManager> planManagers) {
-        return planManagers.stream()
-                .filter(planManager -> !planManager.getPlan().isInterrupted())
-                .collect(Collectors.toList());
     }
 
     public static Set<String> getLaunchableTasks(Collection<Plan> plans) {

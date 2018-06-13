@@ -24,11 +24,8 @@ public class AgentRuleTest {
     private static final String AGENT_2 = "agent-2-uuid";
     private static final String AGENT_3 = "agent-3-uuid";
 
-    private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-            .type("type")
-            .count(1)
-            .tasks(Arrays.asList(TestPodFactory.getTaskSpec()))
-            .build();
+    private static final PodSpec podSpec =
+            DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
 
     @Test

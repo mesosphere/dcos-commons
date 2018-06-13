@@ -105,7 +105,7 @@ class UniverseReleaseBuilder(object):
 
         s3_directory_url = 's3://{}/{}/{}'.format(
             s3_release_bucket, release_dir_path, self._pkg_version)
-        self._uploader = universe.S3Uploader(self._pkg_name, s3_directory_url, self._dry_run)
+        self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
         self._pkg_manager = universe.PackageManager()
 
         self._http_directory_url = '{}/{}/{}'.format(

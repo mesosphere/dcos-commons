@@ -7,6 +7,8 @@ SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 import functools
 import logging
 import operator
+import random
+import string
 
 import dcos
 import shakedown
@@ -15,6 +17,10 @@ import os
 import os.path
 
 log = logging.getLogger(__name__)
+
+
+def is_env_var_set(key: str, default: str) -> bool:
+    return str(os.environ.get(key, default)).lower() in ["true", "1"]
 
 
 def get_package_name(default: str) -> str:
@@ -47,6 +53,21 @@ def get_foldered_name(service_name):
     return '/test/integration/' + service_name
 
 
+def get_task_id_service_name(service_name):
+    '''Converts the provided service name to a sanitized name as used in task ids.
+
+    For example: /test/integration/foo => test.integration.foo'''
+    return service_name.lstrip('/').replace('/', '.')
+
+
+def get_task_id_prefix(service_name, task_name):
+    '''Returns the TaskID prefix to be used for the provided service name and task name.
+    The full TaskID would consist of this prefix, plus two underscores and a UUID.
+
+    For example: /test/integration/foo + hello-0-server => test.integration.foo__hello-0-server'''
+    return '{}__{}'.format(get_task_id_service_name(service_name), task_name)
+
+
 def get_deslashed_service_name(service_name):
     # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'.
     return service_name.lstrip('/').replace('/', '__')
@@ -54,6 +75,11 @@ def get_deslashed_service_name(service_name):
 
 def get_zk_path(service_name):
     return 'dcos-service-{}'.format(get_deslashed_service_name(service_name))
+
+
+@functools.lru_cache()
+def dcos_version():
+    return shakedown.dcos_version()
 
 
 @functools.lru_cache()
@@ -94,6 +120,15 @@ def is_strict_mode():
     return os.environ.get('SECURITY', '') == 'strict'
 
 
+def random_string(length=8):
+    return ''.join(
+        random.choice(
+            string.ascii_lowercase +
+            string.digits
+        ) for _ in range(length)
+    )
+
+
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
@@ -123,3 +158,14 @@ def get_in(keys, coll, default=None):
         return functools.reduce(operator.getitem, keys, coll)
     except (KeyError, IndexError, TypeError):
         return default
+
+
+def sort(coll):
+    """ Sorts a collection and returns it. """
+    coll.sort()
+    return coll
+
+
+def invert_dict(d: dict) -> dict:
+    """ Returns a dictionary with its values being its keys and vice-versa. """
+    return dict((v, k) for k, v in d.items())

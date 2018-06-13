@@ -96,7 +96,8 @@ def verify_shared_executor(pod_name, expected_files=['essential', 'nonessential'
     if delete_files:
         if sdk_utils.dcos_version_less_than("1.10"):
             # 1.9 just uses the host filesystem in 'task exec', so figure out the absolute volume path manually
-            expected_file_path = sdk_cmd.task_exec(
+            expected_file_path = sdk_cmd.service_task_exec(
+                config.SERVICE_NAME,
                 task_names[0],
                 'find /var/lib/mesos/slave/volumes -iname ' + filenames[0])[1].strip()
             # volume dir is parent of the expected file path.
@@ -104,4 +105,7 @@ def verify_shared_executor(pod_name, expected_files=['essential', 'nonessential'
         else:
             # 1.10+ works correctly: path is relative to sandbox
             volume_dir = 'shared-volume/'
-        sdk_cmd.task_exec(task_names[0], 'rm ' + ' '.join([os.path.join(volume_dir, name) for name in filenames]))
+        sdk_cmd.service_task_exec(
+            config.SERVICE_NAME,
+            task_names[0],
+            'rm ' + ' '.join([os.path.join(volume_dir, name) for name in filenames]))

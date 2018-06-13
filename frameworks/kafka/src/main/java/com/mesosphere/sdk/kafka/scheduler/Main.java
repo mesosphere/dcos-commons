@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.kafka.api.BrokerResource;
 import com.mesosphere.sdk.kafka.api.KafkaZKClient;
@@ -19,7 +20,6 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerRunner;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
@@ -48,7 +48,7 @@ public class Main {
         if (StringUtils.isEmpty(kafkaZookeeperUri)) {
             // "master.mesos:2181" + "/dcos-service-path__to__my__kafka":
             kafkaZookeeperUri =
-                    SchedulerUtils.getZkHost(rawServiceSpec, schedulerConfig)
+                    FrameworkConfig.fromRawServiceSpec(rawServiceSpec).getZookeeperHostPort()
                     + CuratorUtils.getServiceRootPath(rawServiceSpec.getName());
         }
         LOGGER.info("Running Kafka with zookeeper path: {}", kafkaZookeeperUri);
@@ -64,7 +64,8 @@ public class Main {
 
         return schedulerBuilder
                 .setEndpointProducer("zookeeper", EndpointProducer.constant(kafkaZookeeperUri))
-                .setCustomResources(getResources(kafkaZookeeperUri));
+                .setCustomResources(getResources(kafkaZookeeperUri))
+                .withSingleRegionConstraint();
     }
 
     private static Collection<Object> getResources(String kafkaZookeeperUri) {

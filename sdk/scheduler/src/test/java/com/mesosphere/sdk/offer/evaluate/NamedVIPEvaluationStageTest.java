@@ -32,8 +32,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         // Evaluate stage
         NamedVIPEvaluationStage vipEvaluationStage = getEvaluationStageOnNetwork(10000, Optional.empty(), Optional.empty());
         EvaluationOutcome outcome = vipEvaluationStage.evaluate(
-                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
-                podInfoBuilder);
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
 
         Protos.DiscoveryInfo discoveryInfo = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getDiscovery();
@@ -174,7 +173,11 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             int taskPort, Optional<String> resourceId, Optional<String> network) {
         Collection<String> networks = network.isPresent()
                 ? Collections.singleton(network.get()) : Collections.emptyList();
-        return new NamedVIPEvaluationStage(getNamedVIPSpec(taskPort, networks), TestConstants.TASK_NAME, resourceId);
+        return new NamedVIPEvaluationStage(
+                getNamedVIPSpec(taskPort, networks),
+                TestConstants.TASK_NAME,
+                resourceId,
+                Optional.empty());
     }
 
     private static NamedVIPSpec getNamedVIPSpec(int taskPort, Collection<String> networkNames) {
@@ -214,11 +217,8 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
                 .build();
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .addTask(taskSpec)
-                .count(1)
-                .type(TestConstants.POD_TYPE)
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME)).build();
@@ -233,10 +233,10 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPodInstanceRequirement(taskPort, networks),
                 TestConstants.SERVICE_NAME,
                 UUID.randomUUID(),
+                PodTestUtils.getTemplateUrlFactory(),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 taskInfos,
                 TestConstants.FRAMEWORK_ID,
-                true,
                 Collections.emptyMap());
     }
 

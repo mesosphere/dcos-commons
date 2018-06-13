@@ -2,12 +2,15 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.http.types.PlanInfo;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -15,7 +18,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -29,10 +31,10 @@ import java.util.stream.Collectors;
  * generates a new {@link RecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager implements PlanManager {
-    public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
     public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
-    protected final Logger logger = LoggerFactory.getLogger(getClass());
+    protected final Logger logger;
     protected final ConfigStore<ServiceSpec> configStore;
+    private final Optional<String> namespace;
     private final List<RecoveryPlanOverrider> recoveryPlanOverriders;
     private final Set<String> recoverableTaskNames;
 
@@ -48,8 +50,16 @@ public class DefaultRecoveryPlanManager implements PlanManager {
             ConfigStore<ServiceSpec> configStore,
             Set<String> recoverableTaskNames,
             LaunchConstrainer launchConstrainer,
-            FailureMonitor failureMonitor) {
-        this(stateStore, configStore, recoverableTaskNames, launchConstrainer, failureMonitor, Collections.emptyList());
+            FailureMonitor failureMonitor,
+            Optional<String> namespace) {
+        this(
+                stateStore,
+                configStore,
+                recoverableTaskNames,
+                launchConstrainer,
+                failureMonitor,
+                namespace,
+                Collections.emptyList());
     }
 
     public DefaultRecoveryPlanManager(
@@ -58,14 +68,17 @@ public class DefaultRecoveryPlanManager implements PlanManager {
             Set<String> recoverableTaskNames,
             LaunchConstrainer launchConstrainer,
             FailureMonitor failureMonitor,
-            List<RecoveryPlanOverrider> overrideRecoveryManagers) {
+            Optional<String> namespace,
+            List<RecoveryPlanOverrider> recoveryPlanOverriders) {
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.stateStore = stateStore;
         this.configStore = configStore;
         this.recoverableTaskNames = recoverableTaskNames;
         this.failureMonitor = failureMonitor;
         this.launchConstrainer = launchConstrainer;
-        this.recoveryPlanOverriders = overrideRecoveryManagers;
-        plan = new DefaultPlan(DEFAULT_RECOVERY_PLAN_NAME, Collections.emptyList());
+        this.namespace = namespace;
+        this.recoveryPlanOverriders = recoveryPlanOverriders;
+        plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
     }
 
     @Override
@@ -83,14 +96,17 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     protected void setPlanInternal(Plan plan) {
         synchronized (planLock) {
             this.plan = plan;
-            List<String> stepNames = plan.getChildren().stream()
-                    .flatMap(phase -> phase.getChildren().stream())
-                    .map(step -> step.getName())
-                    .collect(Collectors.toList());
-            try {
-                logger.info("Recovery plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
-            } catch (IOException e) {
-                logger.error("Failed to serialize plan to JSON. Recovery plan set to: {}", stepNames);
+            if (!plan.getChildren().isEmpty()) {
+                try {
+                    logger.info("Recovery plan set to: {}",
+                            SerializationUtils.toShortJsonString(PlanInfo.forPlan(plan)));
+                } catch (IOException e) {
+                    List<String> stepNames = plan.getChildren().stream()
+                            .flatMap(phase -> phase.getChildren().stream())
+                            .map(step -> step.getName())
+                            .collect(Collectors.toList());
+                    logger.error("Failed to serialize plan to JSON. Recovery plan set to: {}", stepNames);
+                }
             }
         }
     }
@@ -124,7 +140,9 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     }
 
     protected void updatePlan(Collection<PodInstanceRequirement> dirtyAssets) {
-        logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
+        if (!dirtyAssets.isEmpty()) {
+            logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
+        }
 
         synchronized (planLock) {
             Collection<PodInstanceRequirement> newRequirements = null;
@@ -199,100 +217,20 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         phases.addAll(inProgressPhases);
         phases.addAll(overridePhases);
 
-        return DeployPlanFactory.getPlan(DEFAULT_RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
+        return DeployPlanFactory.getPlan(Constants.RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
     }
 
     private boolean isTaskPermanentlyFailed(Protos.TaskInfo taskInfo) {
         return FailureUtils.isPermanentlyFailed(taskInfo) || failureMonitor.hasFailed(taskInfo);
     }
 
-    private boolean failureStateHasChanged(PodInstanceRequirement podInstanceRequirement) {
-        RecoveryType original = podInstanceRequirement.getRecoveryType();
-
-        Collection<String> taskInfoNames =
-                TaskUtils.getTaskNames(
-                        podInstanceRequirement.getPodInstance(),
-                        podInstanceRequirement.getTasksToLaunch());
-        Collection<Protos.TaskInfo> taskInfos =
-                StateStoreUtils.fetchPodTasks(stateStore, podInstanceRequirement.getPodInstance()).stream()
-                .filter(taskInfo -> taskInfoNames.contains(taskInfo.getName()))
-                .collect(Collectors.toList());
-
-        RecoveryType current = getRecoveryType(taskInfos);
-
-        boolean recoveryStateHasChanged = !original.equals(current);
-        if (recoveryStateHasChanged) {
-            logger.info("Pod: {} recovery state has changed from: {} to: {}",
-                    getPodNames(Arrays.asList(podInstanceRequirement)),
-                    original,
-                    current);
-        }
-
-        return recoveryStateHasChanged;
-    }
-
-    /**
-     * A set of Tasks must have a uniform recovery type.  Either they have all failed permanently or they have all
-     * failed transiently.  If this constraint is violated then the Recovery type is {@link RecoveryType#NONE}.
-     */
-    private RecoveryType getRecoveryType(Collection<Protos.TaskInfo> taskInfos) {
-        // PodInstanceRequirements must have a uniform recovery type (PERMANENT OR TRANSIENT).
-        if (taskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
-            return RecoveryType.PERMANENT;
-        } else if (taskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
-            return RecoveryType.TRANSIENT;
-        } else {
-            for (Protos.TaskInfo taskInfo : taskInfos) {
-                RecoveryType recoveryType =
-                        isTaskPermanentlyFailed(taskInfo) ? RecoveryType.PERMANENT : RecoveryType.TRANSIENT;
-                logger.info("Task: {} has recovery type: {}", taskInfo.getName(), recoveryType);
-            }
-            return RecoveryType.NONE;
-        }
-    }
-
     private List<PodInstanceRequirement> getNewRecoveryRequirements(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
 
-        Collection<Protos.TaskInfo> failedTasks = StateStoreUtils.fetchTasksNeedingRecovery(
-                stateStore,
-                configStore,
-                recoverableTaskNames);
-        logger.info("Found tasks needing recovery: {}", getTaskNames(failedTasks));
-
-        List<Protos.TaskInfo> allLaunchedTasks = stateStore.fetchTasks().stream()
-                .filter(taskInfo -> stateStore.fetchStatus(taskInfo.getName()).isPresent())
-                .collect(Collectors.toList());
-
-        List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
-                configStore,
-                failedTasks,
-                allLaunchedTasks);
-        if (!failedPods.isEmpty()) {
-            logger.info("All failed tasks: {}", getPodNames(failedPods));
-        }
-        failedPods = failedPods.stream()
-                .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))
-                .collect(Collectors.toList());
-        logger.info("Found pods needing recovery: " + getPodNames(failedPods));
-
-        List<PodInstanceRequirement> inProgressRecoveries = getPlan().getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> !step.isComplete())
-                .map(step -> step.getPodInstanceRequirement())
-                .filter(requirement -> requirement.isPresent())
-                .map(requirement -> requirement.get())
-                .filter(requirement -> !failureStateHasChanged(requirement))
-                .collect(Collectors.toList());
-        logger.info("Found recoveries already in progress: " + getPodNames(inProgressRecoveries));
-
-        failedPods = failedPods.stream()
-                .filter(pod -> !PlanUtils.assetConflicts(pod, inProgressRecoveries))
-                .collect(Collectors.toList());
-        logger.info("New pods needing recovery: " + getPodNames(failedPods));
-
+        List<PodInstanceRequirement> newFailedPods = getNewFailedPods(dirtyAssets);
         List<PodInstanceRequirement> recoveryRequirements = new ArrayList<>();
-        for (PodInstanceRequirement failedPod : failedPods) {
+
+        for (PodInstanceRequirement failedPod : newFailedPods) {
             List<Protos.TaskInfo> failedPodTaskInfos = failedPod.getTasksToLaunch().stream()
                     .map(taskSpecName -> TaskSpec.getInstanceName(failedPod.getPodInstance(), taskSpecName))
                     .map(taskInfoName -> stateStore.fetchTask(taskInfoName))
@@ -302,7 +240,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
             logFailedPod(failedPod.getPodInstance().getName(), failedPodTaskInfos);
 
-            RecoveryType recoveryType = getRecoveryType(failedPodTaskInfos);
+            RecoveryType recoveryType = getTaskRecoveryType(failedPodTaskInfos);
             if (RecoveryType.NONE.equals(recoveryType)) {
                 logger.error(
                         "Cannot recover tasks within pod: '{}' due to having recovery type: '{}'.",
@@ -326,6 +264,71 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         return recoveryRequirements;
     }
 
+    private List<PodInstanceRequirement> getNewFailedPods(Collection<PodInstanceRequirement> dirtyAssets)
+            throws TaskException {
+        Collection<Protos.TaskInfo> failedTasks =
+                StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore, recoverableTaskNames);
+        if (!failedTasks.isEmpty()) {
+            logger.info("Tasks needing recovery: {}", getTaskNames(failedTasks));
+        }
+
+        List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(stateStore, configStore, failedTasks);
+        if (!failedPods.isEmpty()) {
+            logger.info("All failed pods: {}", getPodNames(failedPods));
+        }
+
+        failedPods = failedPods.stream()
+                .filter(pod -> !PlanUtils.assetConflicts(pod, dirtyAssets))
+                .collect(Collectors.toList());
+        if (!failedPods.isEmpty()) {
+            logger.info("Pods needing recovery: {}", getPodNames(failedPods));
+        }
+
+        List<PodInstanceRequirement> incompleteRecoveries = getPlan().getChildren().stream()
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> !step.isComplete())
+                .map(step -> step.getPodInstanceRequirement())
+                .filter(requirement -> requirement.isPresent())
+                .map(requirement -> requirement.get())
+                .collect(Collectors.toList());
+        if (!incompleteRecoveries.isEmpty()) {
+            logger.info("Pods with incomplete recoveries: {}", getPodNames(incompleteRecoveries));
+        }
+
+        // Build map of Steps (PodInstanceRequirements) to pod instances
+        // e.g. journal-0 --> [bootstrap, node]
+
+        // Initialize map with empty arrays for values
+        Map<PodInstance, List<PodInstanceRequirement>> recoveryMap = new HashMap<>();
+        incompleteRecoveries.forEach(
+                podInstanceRequirement -> recoveryMap.put(podInstanceRequirement.getPodInstance(), new ArrayList<>()));
+
+        for (PodInstanceRequirement inProgressRecovery : incompleteRecoveries) {
+            recoveryMap.get(inProgressRecovery.getPodInstance()).add(inProgressRecovery);
+        }
+
+        Collection<PodInstanceRequirement> inProgressRecoveries = new ArrayList<>();
+        for (Map.Entry<PodInstance, List<PodInstanceRequirement>> entry : recoveryMap.entrySet()) {
+            // If a pod's failure state has escalated (transient --> permanent) it should NOT be counted as
+            // in progress, so that it can be re-evaluated the for the appropriate recovery approach.
+            if (!failureStateHasEscalated(entry.getKey(), entry.getValue())) {
+                inProgressRecoveries.addAll(entry.getValue());
+            }
+        }
+        if (!inProgressRecoveries.isEmpty()) {
+            logger.info("Pods with recoveries already in progress: {}", getPodNames(inProgressRecoveries));
+        }
+
+        failedPods = failedPods.stream()
+                .filter(pod -> !PlanUtils.assetConflicts(pod, inProgressRecoveries))
+                .collect(Collectors.toList());
+        if (!failedPods.isEmpty()) {
+            logger.info("New pods needing recovery: {}", getPodNames(failedPods));
+        }
+
+        return failedPods;
+    }
+
     private void logFailedPod(String failedPodName, List<Protos.TaskInfo> failedTasks) {
         List<String> permanentlyFailedTasks = failedTasks.stream()
                 .filter(taskInfo -> isTaskPermanentlyFailed(taskInfo))
@@ -337,8 +340,60 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
 
-        logger.info("Failed tasks in pod: {}, permanent{}, transient{}",
-                failedPodName, permanentlyFailedTasks, transientlyFailedTasks);
+        if (!permanentlyFailedTasks.isEmpty() || !transientlyFailedTasks.isEmpty()) {
+            logger.info("Failed tasks in pod: {}, permanent{}, transient{}",
+                    failedPodName, permanentlyFailedTasks, transientlyFailedTasks);
+        }
+    }
+
+    /**
+     * A pod instance failure has escalated if it has transitioned from TRANSIENT to PERMANENT ({@link RecoveryType}.
+     */
+    private boolean failureStateHasEscalated(
+            PodInstance podInstance,
+            Collection<PodInstanceRequirement> podInstanceRequirements) {
+
+        Collection<Protos.TaskInfo> taskInfos =
+                StateStoreUtils.fetchPodTasks(stateStore, podInstance).stream().collect(Collectors.toList());
+
+        RecoveryType original = getPodRecoveryType(podInstanceRequirements);
+        RecoveryType current = getTaskRecoveryType(taskInfos);
+
+        boolean failureStateHasEscalated = false;
+        if (original.equals(RecoveryType.TRANSIENT) && current.equals(RecoveryType.PERMANENT)) {
+            failureStateHasEscalated = true;
+        }
+
+        String mode = failureStateHasEscalated ? "" : "NOT ";
+        List<String> podNames = getPodNames(podInstanceRequirements);
+        logger.info("Failure state for {} has {}escalated. original: {}, current: {}",
+                podNames, mode, original, current);
+
+        return failureStateHasEscalated;
+    }
+
+    private RecoveryType getPodRecoveryType(Collection<PodInstanceRequirement> podInstanceRequirements) {
+        if (podInstanceRequirements.stream()
+                .anyMatch(req -> req.getRecoveryType().equals(RecoveryType.PERMANENT))) {
+            return RecoveryType.PERMANENT;
+        } else {
+            return RecoveryType.TRANSIENT;
+        }
+    }
+
+    private RecoveryType getTaskRecoveryType(Collection<Protos.TaskInfo> taskInfos) {
+        if (taskInfos.stream().allMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
+            return RecoveryType.PERMANENT;
+        } else if (taskInfos.stream().noneMatch(taskInfo -> isTaskPermanentlyFailed(taskInfo))) {
+            return RecoveryType.TRANSIENT;
+        } else {
+            for (Protos.TaskInfo taskInfo : taskInfos) {
+                RecoveryType recoveryType =
+                        isTaskPermanentlyFailed(taskInfo) ? RecoveryType.PERMANENT : RecoveryType.TRANSIENT;
+                logger.info("Task: {} has recovery type: {}", taskInfo.getName(), recoveryType);
+            }
+            return RecoveryType.NONE;
+        }
     }
 
     Step createStep(PodInstanceRequirement podInstanceRequirement) {
@@ -347,7 +402,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                 podInstanceRequirement.getName(),
                 podInstanceRequirement,
                 launchConstrainer,
-                stateStore);
+                stateStore,
+                namespace);
     }
 
     @Override
@@ -355,7 +411,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         return PlanUtils.getDirtyAssets(plan);
     }
 
-    private List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
+    private static List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
         return taskInfos.stream()
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toList());
@@ -367,5 +423,4 @@ public class DefaultRecoveryPlanManager implements PlanManager {
                         podInstanceRequirement.getPodInstance().getName(), podInstanceRequirement.getTasksToLaunch()))
                 .collect(Collectors.toList());
     }
-
 }

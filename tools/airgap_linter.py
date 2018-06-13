@@ -17,7 +17,7 @@ def extract_uris(file_name):
     with open(file_name, "r") as file:
         lines = file.readlines()
 
-    matcher = re.compile(".*https?:\/\/([^\/\?]*)", re.IGNORECASE)
+    matcher = re.compile(".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
     matches = []
     for line in lines:
         line = line.strip()
@@ -51,11 +51,15 @@ def is_bad_uri(uri, file_name):
     exceptions = [
         ".thisdcos",
         ".mesos:",
+        ".mesos/",
         "$MESOS_CONTAINER_IP",
         "${MESOS_CONTAINER_IP}",
         "{{FRAMEWORK_HOST}}",
         "$FRAMEWORK_HOST",
         "${FRAMEWORK_HOST}",
+        "{{SCHEDULER_API_HOSTNAME}}",
+        "${SCHEDULER_API_HOSTNAME}",
+        "$SCHEDULER_API_HOSTNAME",
     ]
 
     # Are any of the exceptions present?

@@ -3,7 +3,9 @@ package com.mesosphere.sdk.kafka.scheduler;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.testing.ConfigValidatorUtils;
+import com.mesosphere.sdk.testing.ServiceTestResult;
 import com.mesosphere.sdk.testing.ServiceTestRunner;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
@@ -32,6 +34,14 @@ public class ServiceTest {
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "PLACEMENT_CONSTRAINTS");
     }
 
+    @Test
+    public void testRegionAwareness() throws Exception {
+        ServiceTestResult result = getDefaultRunner()
+                .setOptions("service.region", "Europe")
+                .run();
+        Assert.assertEquals(result.getSchedulerEnvironment().get("SERVICE_REGION"), "Europe");
+    }
+
     private ServiceTestRunner getDefaultRunner() {
         Map<String, String> map = new HashMap<>();
         map.put("KAFKA_ZOOKEEPER_URI", "/path/to/zk"); // set by our Main.java
@@ -41,6 +51,7 @@ public class ServiceTest {
         map.put("SETUP_HELPER_SUPER_USERS", "User:fake"); // set by setup-helper
 
         return new ServiceTestRunner()
-                .setPodEnv("kafka", map);
+                .setPodEnv("kafka", map)
+                .setBuildTemplateParams("kafka-version", "2.11-1.0.0"); // set by build.sh/versions.sh
     }
 }

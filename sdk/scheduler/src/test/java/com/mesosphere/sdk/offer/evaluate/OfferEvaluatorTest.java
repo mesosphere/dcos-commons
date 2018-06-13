@@ -368,12 +368,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .resourceSet(resourceSetB)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .addTask(taskSpecA)
-                .addTask(taskSpecB)
-                .count(1)
-                .type(TestConstants.POD_TYPE)
-                .build();
+        PodSpec podSpec =
+                DefaultPodSpec.newBuilder(
+                        TestConstants.POD_TYPE,
+                        1,
+                        Arrays.asList(taskSpecA, taskSpecB))
+                        .build();
 
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
@@ -605,7 +605,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("task-name")).build();
-        DeploymentStep deploymentStep = new DeploymentStep("test-step", podInstanceRequirement, stateStore);
+        DeploymentStep deploymentStep =
+                new DeploymentStep("test-step", podInstanceRequirement, stateStore, Optional.empty());
 
         Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
@@ -653,6 +654,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
     }
 
+    @SuppressWarnings("deprecated")
     @Test
     public void testResourceRefinementSucceeds() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
@@ -731,6 +733,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         }
     }
 
+    @SuppressWarnings("deprecated")
     @Test
     public void testResourceRefinementFailsForDifferentPreReservation() throws Exception {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
@@ -871,10 +874,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {
-        OperationRecorder operationRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
-        for (OfferRecommendation recommendation : recommendations) {
-            operationRecorder.record(recommendation);
-        }
+        new PersistentLaunchRecorder(stateStore, serviceSpec, Optional.empty()).record(recommendations);
     }
 
     private ServiceSpec getServiceSpec(String specFileName) throws Exception {
@@ -883,6 +883,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         return DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
+    @SuppressWarnings("deprecated")
     static void validateRole(Resource resource) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
             Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());

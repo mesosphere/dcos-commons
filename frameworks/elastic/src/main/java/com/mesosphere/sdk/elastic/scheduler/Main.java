@@ -31,7 +31,6 @@ public class Main {
         // Modify pod environments in two ways:
         // 1) Elastic is unhappy if cluster.name contains slashes. Replace any slashes with double-underscores.
         // 2) Base64 decode the custom YAML block.
-
         DefaultServiceSpec.Generator serviceSpecGenerator =
                 DefaultServiceSpec.newGenerator(
                         rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
@@ -45,6 +44,7 @@ public class Main {
 
         return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
                 .setCustomConfigValidators(Arrays.asList(new ElasticZoneValidator()))
-                .setPlansFrom(rawServiceSpec);
+                .setPlansFrom(rawServiceSpec)
+                .withSingleRegionConstraint();
     }
 }

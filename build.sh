@@ -11,7 +11,6 @@ usage() {
     echo "Env:"
     echo "  BOOTSTRAP_DIR: Custom directory where bootstrap is located, or 'disable' to disable bootstrap build"
     echo "  CLI_DIR: Custom directory where default CLI is located, or 'disable' to disable default CLI build"
-    echo "  EXECUTOR_DIR: Custom directory where executor is located, or 'disable' to disable executor build"
 }
 
 while getopts 'b' opt; do
@@ -56,12 +55,6 @@ fi
 ##
 # JAVA BUILD
 ##
-
-# Build Java bits: Executor
-if [ "$EXECUTOR_DIR" != $DISABLED_VALUE ]; then
-    echo "Building executor in $EXECUTOR_DIR"
-    ./gradlew distZip -p $EXECUTOR_DIR
-fi
 
 # Run ALL Java unit tests
 if [ x"${JAVA_TESTS:-true}" == x"true" ]; then

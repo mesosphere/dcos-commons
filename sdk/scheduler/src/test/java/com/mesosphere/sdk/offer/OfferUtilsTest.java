@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.scheduler.Driver;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Assert;
 import org.junit.Before;
@@ -13,20 +14,19 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.verify;
-
 public class OfferUtilsTest {
-    public static final int SUFFICIENT_CPUS = 2;
-    public static final int SUFFICIENT_MEM = 2000;
-    public static final int SUFFICIENT_DISK = 10000;
 
     @Mock
     private SchedulerDriver mockSchedulerDriver;
+
+    private static final List<Protos.Offer> OFFERS = getOffers();
+    private static final List<OfferRecommendation> OFFER_RECOMMENDATIONS = OFFERS.stream()
+            .map(offer -> toOfferRecommendation(offer))
+            .collect(Collectors.toList());
 
     @Before
     public void beforeEach() throws Exception {
@@ -35,11 +35,9 @@ public class OfferUtilsTest {
 
     @Test
     public void testFilterAcceptedOffers() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final Protos.Offer acceptedOffer = offers.get(0);
-        final Protos.Offer unAcceptedOffer = offers.get(1);
-        final List<Protos.Offer> unacceptedOffers = OfferUtils
-                .filterOutAcceptedOffers(offers, Arrays.asList(acceptedOffer.getId()));
+        final Protos.Offer unAcceptedOffer = OFFERS.get(1);
+        final List<Protos.Offer> unacceptedOffers =
+                OfferUtils.filterOutAcceptedOffers(OFFERS, Collections.singletonList(OFFER_RECOMMENDATIONS.get(0)));
         Assert.assertNotNull(unacceptedOffers);
         Assert.assertEquals(1, unacceptedOffers.size());
         Assert.assertEquals(unAcceptedOffer.getId(), unacceptedOffers.get(0).getId());
@@ -47,55 +45,63 @@ public class OfferUtilsTest {
 
     @Test
     public void testFilterAcceptedOffersNoAccepted() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.Offer> unacceptedOffers = OfferUtils
-                .filterOutAcceptedOffers(offers, Arrays.asList());
+        final List<Protos.Offer> unacceptedOffers = OfferUtils.filterOutAcceptedOffers(OFFERS, Collections.emptyList());
         Assert.assertNotNull(unacceptedOffers);
         Assert.assertEquals(2, unacceptedOffers.size());
     }
 
     @Test
     public void testFilterAcceptedOffersAllAccepted() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.Offer> unacceptedOffers = OfferUtils
-                .filterOutAcceptedOffers(offers, Arrays.asList(offers.get(0).getId(), offers.get(1).getId()));
+        final List<Protos.Offer> unacceptedOffers = OfferUtils.filterOutAcceptedOffers(
+                OFFERS,
+                Arrays.asList(OFFER_RECOMMENDATIONS.get(0), OFFER_RECOMMENDATIONS.get(1)));
         Assert.assertNotNull(unacceptedOffers);
         Assert.assertEquals(0, unacceptedOffers.size());
     }
 
     @Test
     public void testFilterAcceptedOffersAcceptedInvalidId() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.Offer> unacceptedOffers = OfferUtils
-                .filterOutAcceptedOffers(offers, Arrays.asList(Protos.OfferID.newBuilder().setValue("abc").build()));
+        final List<Protos.Offer> unacceptedOffers = OfferUtils.filterOutAcceptedOffers(
+                OFFERS,
+                Collections.singletonList(toOfferRecommendation(Protos.Offer.newBuilder(OfferTestUtils.getOffers(
+                        Arrays.asList(
+                                ResourceTestUtils.getUnreservedCpus(2),
+                                ResourceTestUtils.getUnreservedMem(1000),
+                                ResourceTestUtils.getUnreservedDisk(10000))).get(0))
+                        .setId(Protos.OfferID.newBuilder().setValue("abc"))
+                        .build())));
         Assert.assertNotNull(unacceptedOffers);
         Assert.assertEquals(2, unacceptedOffers.size());
     }
 
-    @Test
-    public void testDeclineOffers() {
-        final List<Protos.Offer> offers = getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK);
-        final List<Protos.OfferID> offerIds = offers.stream().map(Protos.Offer::getId).collect(Collectors.toList());
-        Driver.setDriver(mockSchedulerDriver);
-        OfferUtils.declineLong(offers);
-        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(0)), any());
-        verify(mockSchedulerDriver).declineOffer(eq(offerIds.get(1)), any());
-    }
-
-    private List<Protos.Offer> getOffers(double cpus, double mem, double disk) {
-        final ArrayList<Protos.Offer> offers = new ArrayList<>();
+    private static List<Protos.Offer> getOffers() {
+        final List<Protos.Offer> offers = new ArrayList<>();
         offers.addAll(OfferTestUtils.getOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpus(cpus),
-                        ResourceTestUtils.getUnreservedMem(mem),
-                        ResourceTestUtils.getUnreservedDisk(disk))));
+                        ResourceTestUtils.getUnreservedCpus(2),
+                        ResourceTestUtils.getUnreservedMem(1000),
+                        ResourceTestUtils.getUnreservedDisk(10000))));
         offers.add(Protos.Offer.newBuilder(OfferTestUtils.getOffers(
                 Arrays.asList(
-                        ResourceTestUtils.getUnreservedCpus(cpus),
-                        ResourceTestUtils.getUnreservedMem(mem),
-                        ResourceTestUtils.getUnreservedDisk(disk))).get(0))
+                        ResourceTestUtils.getUnreservedCpus(2),
+                        ResourceTestUtils.getUnreservedMem(1000),
+                        ResourceTestUtils.getUnreservedDisk(10000))).get(0))
                 .setId(Protos.OfferID.newBuilder().setValue("other-offer"))
                 .build());
         return offers;
+    }
+
+    private static OfferRecommendation toOfferRecommendation(Protos.Offer offer) {
+        return new OfferRecommendation() {
+            @Override
+            public Operation getOperation() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Offer getOffer() {
+                return offer;
+            }
+        };
     }
 }

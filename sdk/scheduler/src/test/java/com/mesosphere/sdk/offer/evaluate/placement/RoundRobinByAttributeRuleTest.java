@@ -16,6 +16,7 @@ import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -33,11 +34,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite {
     private static final StringMatcher MATCHER = RegexMatcher.create("[0-9]");
-    private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-            .type("type")
-            .count(1)
-            .tasks(Arrays.asList(TestPodFactory.getTaskSpec()))
-            .build();
+    private static final PodSpec podSpec =
+            DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
 
     private static final String ATTRIB_NAME = "rack_id";
@@ -49,7 +47,7 @@ public class RoundRobinByAttributeRuleTest extends DefaultCapabilitiesTestSuite 
     private static TaskInfo getTaskInfo(String taskName, String attrName, String attrVal) {
         TaskInfo.Builder infoBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder()
                 .setName(taskName)
-                .setTaskId(CommonIdUtils.toTaskId(taskName));
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName));
         infoBuilder.setLabels(new TaskLabelWriter(infoBuilder)
                 .setOfferAttributes(offerWithAttribute(attrName, attrVal))
                 .toProto());

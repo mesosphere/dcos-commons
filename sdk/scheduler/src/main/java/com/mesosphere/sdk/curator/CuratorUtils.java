@@ -60,6 +60,7 @@ public class CuratorUtils {
         return new ExponentialBackoffRetry(
                 CuratorUtils.DEFAULT_CURATOR_POLL_DELAY_MS, CuratorUtils.DEFAULT_CURATOR_MAX_RETRIES);
     }
+
     /**
      * Compares the service name to the previously stored name in zookeeper, or creates a new node containing this data
      * if it isn't already present. This is useful for two situations where foldered service names may be confused with

@@ -1,6 +1,6 @@
 ---
 title: SDK Developer Guide
-menuWeight: 1
+menuWeight: 0
 redirect_from:
 - /dev-guide/developer-guide
 - /developer-guide.html
@@ -668,8 +668,7 @@ helloworld has a [marathon.json.mustache template](https://github.com/mesosphere
         {
             "port": 0,
             "protocol": "tcp",
-            "name": "api",
-            "labels": { "VIP_0": "/api.{{service.name}}:80" }
+            "name": "api"
         }
     ],
     "...": "..."
@@ -1383,6 +1382,7 @@ The SDK allows region-aware scheduling as a beta feature.  Enable it by setting 
 
 Any placement rules that do *not* reference the `@region` key require placement in the local region.
 
+Alternatively, a stronger constraint on the region that scheduler tasks run in can be specified by setting the `ALLOW_REGION_AWARENESS` environment variable to true as before, and then calling the `withSingleRegionConstraint()` method on `SchedulerBuilder` when creating a scheduler object. This will cause the scheduler to look for the `SERVICE_REGION` variable in its environment, running all tasks in that region if specified and in the local region otherwise. To allow service users to specify an alternative region, a configuration field can be added in `config.json` and used to set the `SERVICE_REGION` environment variable in `marathon.json.mustache`. A service deployed in this fashion may not have its configuration updated to change the region that its tasks run in. Doing so will cause a configuration validation failure and the tasks will remain in their current state.
 
 # TLS
 
@@ -1547,6 +1547,20 @@ A scheduler must run with a `service account` that has permission to access:
   The secrets store authorizer supports only permissions on explicit secrets paths. Since SDK provisions many secrets for TLS artifacts it is necessary to give a `service account` broad `dcos:superuser`.
 
   This is a known limitation and it will get addressed in the future releases of the DC/OS.
+
+## Externalizing Transport Encryption and Security
+
+To use transport encryption when exposing a service outside of the cluster (e.g., putting clients on the same network as the private agents) it may be necessary to use either the DC/OS cluster's external DNS addresses or a custom domain that fits within existing infrastructure. As such, the SDK provides a mechanism to override the domain used whenever a hostname is required (e.g., generating TLS certs)
+
+By default, the SDK uses `autoip.dcos.thisdcos.directory` as the default top-level domain for the cluster, but as noted this may not work outside of the cluster if either multiple DC/OS clusters are being used or it is desirable to have the service accessible from an existing non DC/OS domain.
+
+To set a custom top-level domain for the SDK, the scheduler environment variable `SERVICE_TLD` is used. In practice, this is done in the Marathon definition of the scheduler. Successfully using the custom domain requires setting up DNS forwarding.
+
+Every DC/OS cluster has a unique cryptographic ID which can be used to forward DNS queries to that Cluster. External clients must have an upstream resolver configured to forward DNS queries to the DC/OS cluster of the service as described [here](https://docs.mesosphere.com/latest/networking/DNS/mesos-dns/expose-mesos-zone/).
+
+With only forwarding configured, DNS entries within the DC/OS cluster will be resolvable at `<task-domain>.autoip.dcos.<cryptographic-id>.dcos.directory`. However, if you configure a DNS alias, you can use a custom domain. For example, `<task-domain>.cluster-1.acmeco.net`. If using a custom domain, you'll also need to have the DC/OS cluster use that same upstream resolver so that the service DNS will resolve.
+
+With `SERVICE_TLD` set to `cluster-1.acemeco.net` and the correct DNS configurations then the service will use `<task-domain>.cluster-1.acemeco.net` for all of its DNS hosts.
 
 # Testing
 

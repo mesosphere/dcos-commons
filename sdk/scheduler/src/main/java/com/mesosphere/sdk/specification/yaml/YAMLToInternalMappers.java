@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.google.common.base.Strings;
 import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.framework.FrameworkConfig;
+
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -13,7 +15,6 @@ import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 
@@ -56,27 +57,47 @@ public class YAMLToInternalMappers {
      */
     public static DefaultServiceSpec convertServiceSpec(
             RawServiceSpec rawServiceSpec,
+            FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             TaskEnvRouter taskEnvRouter,
             ConfigTemplateReader configTemplateReader) throws Exception {
-        verifyDistinctDiscoveryPrefixes(rawServiceSpec.getPods().values());
-        verifyDistinctEndpointNames(rawServiceSpec.getPods().values());
+        if (StringUtils.isEmpty(rawServiceSpec.getName())) {
+            throw new IllegalStateException("Missing required 'name' in Service Spec");
+        }
+        return convertServiceSpec(
+                rawServiceSpec.getName(),
+                rawServiceSpec.getPods(),
+                frameworkConfig,
+                schedulerConfig,
+                taskEnvRouter,
+                configTemplateReader);
+    }
 
-        String role = SchedulerUtils.getServiceRole(rawServiceSpec);
-        String principal = SchedulerUtils.getServicePrincipal(rawServiceSpec);
-        String user = SchedulerUtils.getUser(rawServiceSpec);
+    /**
+     * Note: We make it very explicit here that many fields from the {@link RawServiceSpec} should not be read directly.
+     * Instead we should go to the {@link FrameworkConfig} for those values. This is because they may be different in
+     * the case of a multi-service scheduler.
+     */
+    private static DefaultServiceSpec convertServiceSpec(
+            String serviceName,
+            LinkedHashMap<String, RawPod> rawPods,
+            FrameworkConfig frameworkConfig,
+            SchedulerConfig schedulerConfig,
+            TaskEnvRouter taskEnvRouter,
+            ConfigTemplateReader configTemplateReader) throws Exception {
+        verifyDistinctDiscoveryPrefixes(rawPods.values());
+        verifyDistinctEndpointNames(rawPods.values());
 
         DefaultServiceSpec.Builder builder = DefaultServiceSpec.newBuilder()
-                .name(SchedulerUtils.getServiceName(rawServiceSpec))
-                .role(role)
-                .principal(principal)
-                .zookeeperConnection(SchedulerUtils.getZkHost(rawServiceSpec, schedulerConfig))
-                .webUrl(rawServiceSpec.getWebUrl())
-                .user(user);
+                .name(serviceName)
+                .role(frameworkConfig.getRole())
+                .principal(frameworkConfig.getPrincipal())
+                .zookeeperConnection(frameworkConfig.getZookeeperHostPort())
+                .webUrl(frameworkConfig.getWebUrl())
+                .user(frameworkConfig.getUser());
 
         // Add all pods
         List<PodSpec> pods = new ArrayList<>();
-        final LinkedHashMap<String, RawPod> rawPods = rawServiceSpec.getPods();
         for (Map.Entry<String, RawPod> entry : rawPods.entrySet()) {
             String podName = entry.getKey();
             RawPod rawPod = entry.getValue();
@@ -85,10 +106,9 @@ public class YAMLToInternalMappers {
                     configTemplateReader,
                     podName,
                     taskEnvRouter.getConfig(podName),
-                    getRole(rawPod.getPreReservedRole(), role),
-                    principal,
-                    schedulerConfig.getExecutorURI(),
-                    user));
+                    getPodRole(rawPod.getPreReservedRole(), frameworkConfig.getRole()),
+                    frameworkConfig.getPrincipal(),
+                    frameworkConfig.getUser()));
 
         }
         builder.pods(pods);
@@ -187,11 +207,12 @@ public class YAMLToInternalMappers {
             Map<String, String> additionalEnv,
             String role,
             String principal,
-            String executorUri,
             String user) throws Exception {
-        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(executorUri)
-                .count(rawPod.getCount())
-                .type(podName)
+
+        DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(
+                podName,
+                rawPod.getCount(),
+                Collections.emptyList()) // Tasks are added below
                 .user(user)
                 .preReservedRole(rawPod.getPreReservedRole())
                 .sharePidNamespace(rawPod.getSharePidNamespace())
@@ -614,7 +635,7 @@ public class YAMLToInternalMappers {
      * @param role The role of the service
      * @return The final role which refined resources should use
      */
-    private static String getRole(String preReservedRole, String role) {
+    private static String getPodRole(String preReservedRole, String role) {
         if (preReservedRole == null || preReservedRole.equals(Constants.ANY_ROLE)) {
             return role;
         } else {

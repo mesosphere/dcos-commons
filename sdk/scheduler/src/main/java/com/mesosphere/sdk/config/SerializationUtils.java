@@ -17,9 +17,7 @@ package com.mesosphere.sdk.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.hubspot.jackson.datatype.protobuf.ProtobufModule;
 
 import java.io.IOException;
@@ -53,8 +51,6 @@ public class SerializationUtils {
     public static ObjectMapper registerDefaultModules(ObjectMapper mapper) {
         // enable support for ...
         return mapper.registerModules(
-                new GuavaModule(),     // Guava types
-                new JavaTimeModule(),  // java.time.* types
                 new Jdk8Module(),      // Optional<>s
                 new ProtobufModule()); // Protobuf objects
     }
@@ -108,6 +104,18 @@ public class SerializationUtils {
     }
 
     /**
+     * Returns a single-line JSON representation of the provided value.
+     *
+     * @param value The value that will be converted to JSON
+     * @param <T> The type of the {@code value}
+     * @return A JSON representation of the {@code value}
+     * @throws IOException if conversion fails
+     */
+    public static <T> String toShortJsonString(T value) throws IOException {
+        return toShortString(value, DEFAULT_JSON_MAPPER);
+    }
+
+    /**
      * Returns a JSON representation of the provided value, or an empty string if conversion fails.
      * This is a convenience function for cases like {@link Object#toString()}.
      *
@@ -136,6 +144,13 @@ public class SerializationUtils {
      */
     public static <T> String toString(T value, ObjectMapper mapper) throws IOException {
         return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(value);
+    }
+
+    /**
+     * Returns a single-line representation of the provided value using the provided custom object mapper.
+     */
+    public static <T> String toShortString(T value, ObjectMapper mapper) throws IOException {
+        return mapper.writer().writeValueAsString(value);
     }
 
     /**

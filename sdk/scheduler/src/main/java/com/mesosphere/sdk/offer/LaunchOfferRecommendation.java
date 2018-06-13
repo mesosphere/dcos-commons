@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.offer;
 
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -19,21 +17,17 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
     private final TaskInfo taskInfo;
     private final ExecutorInfo executorInfo;
     private final boolean shouldLaunch;
-    private final boolean useDefaultExecutor;
 
     public LaunchOfferRecommendation(
             Offer offer,
             TaskInfo originalTaskInfo,
             Protos.ExecutorInfo executorInfo,
-            boolean shouldLaunch,
-            boolean useDefaultExecutor) {
+            boolean shouldLaunch) {
         this.offer = offer;
         this.shouldLaunch = shouldLaunch;
-        this.useDefaultExecutor = useDefaultExecutor;
 
         TaskInfo.Builder taskBuilder = originalTaskInfo.toBuilder();
         if (!shouldLaunch) {
-            new TaskLabelWriter(taskBuilder).setTransient();
             taskBuilder.getTaskIdBuilder().setValue("");
         }
 
@@ -62,13 +56,10 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
      * Returns the {@link TaskInfo} to be passed to a StateStore upon launch.
      */
     public TaskInfo getStoreableTaskInfo() {
-        if (useDefaultExecutor) {
-            return taskInfo.toBuilder()
-                    .setExecutor(executorInfo)
-                    .build();
-        }
+        return taskInfo.toBuilder()
+                .setExecutor(executorInfo)
+                .build();
 
-        return taskInfo;
     }
 
     @Override
@@ -78,16 +69,13 @@ public class LaunchOfferRecommendation implements OfferRecommendation {
 
     private Protos.Offer.Operation getLaunchOperation() {
         Protos.Offer.Operation.Builder builder = Protos.Offer.Operation.newBuilder();
-        if (useDefaultExecutor) {
-            builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
-                    .getLaunchGroupBuilder()
-                            .setExecutor(executorInfo)
-                            .getTaskGroupBuilder()
-                                    .addTasks(taskInfo);
-        } else {
-            builder.setType(Protos.Offer.Operation.Type.LAUNCH)
-                    .getLaunchBuilder().addTaskInfos(TaskPackingUtils.pack(taskInfo));
-        }
+
+        builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
+                .getLaunchGroupBuilder()
+                        .setExecutor(executorInfo)
+                        .getTaskGroupBuilder()
+                                .addTasks(taskInfo);
+
         return builder.build();
     }
 }

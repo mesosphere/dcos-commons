@@ -48,10 +48,10 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true,
                         Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -85,10 +85,10 @@ public class PlacementRuleEvaluationStageTest extends DefaultCapabilitiesTestSui
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Collections.emptyList(),
                         TestConstants.FRAMEWORK_ID,
-                        true,
                         Collections.emptyMap()));
 
         Assert.assertFalse(outcome.isPassing());

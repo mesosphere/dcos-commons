@@ -5,12 +5,11 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
-import logging
+import json
+import retrying
 
 import sdk_cmd
 import sdk_utils
-
-LOG = logging.getLogger(__name__)
 
 
 SYSTEM_HOST_SUFFIX = 'mesos'
@@ -40,6 +39,18 @@ def autoip_host(service_name, task_name, port=-1):
         _safe_name(task_name),
         _safe_name(service_name),
         AUTOIP_HOST_SUFFIX,
+        port)
+
+
+def custom_host(service_name, task_name, custom_domain, port=-1):
+    """
+    Returns a properly constructed hostname for the container of the given task using the
+    supplied custom domain.
+    """
+    return _to_host(
+        _safe_name(task_name),
+        _safe_name(service_name),
+        custom_domain,
         port)
 
 
@@ -73,37 +84,25 @@ def _to_host(host_first, host_second, host_third, port):
     return host
 
 
-def resolve_hosts(task_id: str, hosts: list) -> bool:
-    """
-    Use bootstrap to resolve the specified list of hosts
-    """
-    bootstrap_cmd = [
-        './bootstrap',
-        '-print-env=false',
-        '-template=false',
-        '-install-certs=false',
-        '-self-resolve=false',
-        '-resolve-hosts', ','.join(hosts)]
-    LOG.info("Running bootstrap to wait for DNS resolution of %s\n\t%s", hosts, bootstrap_cmd)
-    return_code, bootstrap_stdout, bootstrap_stderr = sdk_cmd.task_exec(task_id, ' '.join(bootstrap_cmd))
-
-    LOG.info("bootstrap return code: %s", return_code)
-    LOG.info("bootstrap STDOUT: %s", bootstrap_stdout)
-    LOG.info("bootstrap STDERR: %s", bootstrap_stderr)
-
-    # Note that bootstrap returns its output in STDERR
-    resolved = 'SDK Bootstrap successful.' in bootstrap_stderr
-    if not resolved:
-        for host in hosts:
-            resolved_host_string = "Resolved '{host}' =>".format(host=host)
-            host_resolved = resolved_host_string in bootstrap_stdout
-            if not host_resolved:
-                LOG.error("Could not resolve: %s", host)
-
-    return resolved
-
-
 def get_foldered_dns_name(service_name):
     if sdk_utils.dcos_version_less_than('1.10'):
         return service_name
     return sdk_utils.get_foldered_name(service_name).replace("/", "")
+
+
+@retrying.retry(
+    wait_fixed=2000,
+    stop_max_delay=5*60*1000)
+def get_crypto_id_domain():
+    """
+    Returns the cluster cryptographic ID equivalent of autoip.dcos.thisdcos.directory.
+
+    These addresses are routable within the cluster but can be used to test setting a custom
+    service domain.
+    """
+    ok, lashup_response = sdk_cmd.master_ssh("curl localhost:62080/lashup/key/")
+    assert ok
+
+    crypto_id = json.loads(lashup_response.strip())["zbase32_public_key"]
+
+    return "autoip.dcos.{}.dcos.directory".format(crypto_id)

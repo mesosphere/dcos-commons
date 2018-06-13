@@ -1,12 +1,16 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
-import com.mesosphere.sdk.http.HealthResource;
-import com.mesosphere.sdk.http.PlansResource;
+import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
+import com.mesosphere.sdk.http.endpoints.HealthResource;
+import com.mesosphere.sdk.http.endpoints.PlansResource;
+import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.PlanInfo;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -14,98 +18,117 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Scheduler;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * This scheduler uninstalls the framework and releases all of its resources.
+ * This scheduler uninstalls a service and releases all of its resources.
  */
 public class UninstallScheduler extends AbstractScheduler {
 
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger;
 
-    private final ServiceSpec serviceSpec;
-    private final Optional<SecretsClient> secretsClient;
+    private final ConfigStore<ServiceSpec> configStore;
+    private final UninstallRecorder recorder;
+    // This step is used in the deploy plan to represent the unregister operation that's handled in FrameworkRunner.
+    // We want to ensure that the deploy plan is only marked complete after deregistration has been completed.
+    private final DeregisterStep deregisterStubStep;
+    private final PlanManager uninstallPlanManager;
 
-    private PlanManager uninstallPlanManager;
-    private Collection<Object> resources = Collections.emptyList();
-    private OfferAccepter offerAccepter;
+    // If an uninstall timeout is enabled, keep track of when the service should have finished uninstalling. This is
+    // only enabled in multi-service cases where the service is being removed from an otherwise active scheduler. It is
+    // not enabled if the scheduler itself is being uninstalled, to avoid leaking resources without user intervention.
+    private final TimeFetcher timeFetcher;
+    private final Optional<Long> uninstallDeadlineMillis;
+    private final long uninstallTimeoutSecs;
 
     /**
-     * Creates a new {@link UninstallScheduler} based on the provided API port and initialization timeout, and a
-     * {@link StateStore}. The {@link UninstallScheduler} builds an uninstall {@link Plan} which will clean up the
-     * service's reservations, TLS artifacts, zookeeper data, and any other artifacts from running the service.
+     * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
+     * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
+     * other artifacts from running the service.
      */
     public UninstallScheduler(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
-            Optional<PlanCustomizer> planCustomizer) {
-        this(serviceSpec, stateStore, configStore, schedulerConfig, planCustomizer, Optional.empty());
+            Optional<PlanCustomizer> planCustomizer,
+            Optional<String> namespace) {
+        this(
+                serviceSpec,
+                stateStore,
+                configStore,
+                schedulerConfig,
+                planCustomizer,
+                namespace,
+                Optional.empty(),
+                new TimeFetcher());
     }
 
+    @VisibleForTesting
     protected UninstallScheduler(
             ServiceSpec serviceSpec,
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             SchedulerConfig schedulerConfig,
             Optional<PlanCustomizer> planCustomizer,
-            Optional<SecretsClient> customSecretsClientForTests) {
-        super(stateStore, configStore, schedulerConfig, planCustomizer);
-        this.serviceSpec = serviceSpec;
-        this.secretsClient = customSecretsClientForTests;
+            Optional<String> namespace,
+            Optional<SecretsClient> customSecretsClientForTests,
+            TimeFetcher timeFetcher) {
+        super(serviceSpec, stateStore, null, planCustomizer, namespace);
+        this.logger = LoggingUtils.getLogger(getClass(), namespace);
+        this.configStore = configStore;
 
-        Plan plan = new UninstallPlanBuilder(
-                serviceSpec,
-                stateStore,
-                configStore,
-                schedulerConfig,
-                secretsClient)
-                .build();
+        if (!StateStoreUtils.isUninstalling(stateStore)) {
+            logger.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+                    "Uninstall cannot be canceled once triggered.");
+            StateStoreUtils.setUninstalling(stateStore);
+        }
 
-        this.uninstallPlanManager = DefaultPlanManager.createProceeding(plan);
-        this.resources = Arrays.asList(
-                new PlansResource().setPlanManagers(Collections.singletonList(uninstallPlanManager)),
-                new HealthResource().setHealthyPlanManagers(Collections.singletonList(uninstallPlanManager)));
+        // Construct a plan for uninstalling any remaining resources
+        UninstallPlanFactory planFactory = new UninstallPlanFactory(
+                serviceSpec, stateStore, schedulerConfig, namespace, customSecretsClientForTests);
+        this.recorder = new UninstallRecorder(stateStore, planFactory.getResourceCleanupSteps());
+        this.deregisterStubStep = planFactory.getDeregisterStep();
 
-        List<ResourceCleanupStep> resourceCleanupSteps = plan.getChildren().stream()
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step instanceof ResourceCleanupStep)
-                .map(step -> (ResourceCleanupStep) step)
-                .collect(Collectors.toList());
-        this.offerAccepter = new OfferAccepter(Collections.singletonList(
-                new UninstallRecorder(stateStore, resourceCleanupSteps)));
-
+        this.uninstallPlanManager = DefaultPlanManager.createProceeding(planFactory.getPlan());
         try {
-            logger.info("Uninstall plan set to: {}", SerializationUtils.toJsonString(PlanInfo.forPlan(plan)));
+            logger.info("Uninstall plan set to: {}",
+                    SerializationUtils.toJsonString(PlanInfo.forPlan(planFactory.getPlan())));
         } catch (IOException e) {
             logger.error("Failed to deserialize uninstall plan.");
         }
-    }
 
-    @Override
-    public Optional<Scheduler> getMesosScheduler() {
-        if (allButStateStoreUninstalled(stateStore, schedulerConfig)) {
-            logger.info("Not registering framework because there are no resources left to unreserve.");
-            return Optional.empty();
+        this.timeFetcher = timeFetcher;
+        if (schedulerConfig.isUninstallEnabled()) {
+            // No timeout when whole scheduler is uninstalling, make user see what's up:
+            this.uninstallTimeoutSecs = -1;
+            this.uninstallDeadlineMillis = Optional.empty();
+        } else {
+            // Use uninstall timeout, unless disabled in SchedulerConfig with negative or zero value
+            this.uninstallTimeoutSecs = schedulerConfig.getMultiServiceRemovalTimeout().getSeconds();
+            this.uninstallDeadlineMillis = uninstallTimeoutSecs <= 0
+                    ? Optional.empty()
+                    : Optional.of(timeFetcher.getCurrentTimeMillis() + (uninstallTimeoutSecs * 1000));
         }
 
-        return super.getMesosScheduler();
+        customizePlans();
     }
 
     @Override
-    public Collection<Object> getResources() {
-        return resources;
+    public Collection<Object> getHTTPEndpoints() {
+        PlansResource plansResource = new PlansResource(Collections.singletonList(uninstallPlanManager));
+        return Arrays.asList(
+                plansResource,
+                new DeprecatedPlanResource(plansResource),
+                new HealthResource(Collections.singletonList(uninstallPlanManager)));
     }
 
     @Override
-    protected PlanCoordinator getPlanCoordinator() {
+    public PlanCoordinator getPlanCoordinator() {
         // Return a stub coordinator which only does work against the sole plan manager.
         return new PlanCoordinator() {
             @Override
@@ -121,13 +144,55 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
+    public Map<String, EndpointProducer> getCustomEndpoints() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public ConfigStore<ServiceSpec> getConfigStore() {
+        return configStore;
+    }
+
+    @Override
     protected void registeredWithMesos() {
         logger.info("Uninstall scheduler registered with Mesos.");
     }
 
     @Override
-    protected void processOffers(List<Protos.Offer> offers, Collection<Step> steps) {
-        List<Protos.Offer> localOffers = new ArrayList<>(offers);
+    public void unregistered() {
+        // Mark the the last step of the uninstall plan as complete.
+        // Cosmos will then see that the plan is complete and remove us from Marathon.
+        deregisterStubStep.setComplete();
+    }
+
+    @Override
+    public ClientStatusResponse getClientStatus() {
+        if (deregisterStubStep.isRunning() || deregisterStubStep.isComplete()) {
+            // The service resources have been deleted and all that's left is the final deregister operation. After we
+            // return uninstalled(), upstream will finish the uninstall by doing one of the following:
+            // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
+            // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
+            return ClientStatusResponse.uninstalled();
+        } else if (uninstallDeadlineMillis.isPresent()
+                && timeFetcher.getCurrentTimeMillis() > uninstallDeadlineMillis.get()) {
+            // Configured uninstall timeout has passed, and we're still uninstalling. Tell upstream that we're "done".
+            Optional<Plan> deployPlan = getPlans().stream()
+                    .filter(plan -> plan.isDeployPlan())
+                    .findAny();
+            logger.error("Failed to complete uninstall within {}s timeout, forcing cleanup. Deploy plan was: {}",
+                    uninstallTimeoutSecs, deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
+            return ClientStatusResponse.uninstalled();
+        } else {
+            // Still uninstalling, and no timeout has passed.
+            // Note: We return running() instead of reserving(), because the latter is mainly about limiting
+            // simultaneous reservation growth to avoid deadlocks. In the uninstall case the service is strictly
+            // shrinking, so there isn't any reason to get exclusive deployment.
+            return ClientStatusResponse.running();
+        }
+    }
+
+    @Override
+    protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
         // Get candidate steps to be scheduled
         if (!steps.isEmpty()) {
             logger.info("Attempting to process {} candidates from uninstall plan: {}",
@@ -135,41 +200,51 @@ public class UninstallScheduler extends AbstractScheduler {
             steps.forEach(Step::start);
         }
 
-        // Destroy/Unreserve any reserved resource or volume that is offered
-        final List<Protos.OfferID> offersWithReservedResources = new ArrayList<>();
+        // No recommendations. Upstream should invoke the cleaner against any unexpected resources in unclaimed
+        // offers (including the ones that apply to our service), and then notify us via clean() so that we can
+        // record the ones that apply to us.
+        return OfferResponse.processed(Collections.emptyList());
+    }
 
-        ResourceCleanerScheduler rcs = new ResourceCleanerScheduler(new UninstallResourceCleaner(), offerAccepter);
-
-        offersWithReservedResources.addAll(rcs.resourceOffers(localOffers));
-
-        // Decline remaining offers.
-        List<Protos.Offer> unusedOffers = OfferUtils.filterOutAcceptedOffers(localOffers, offersWithReservedResources);
-        if (unusedOffers.isEmpty()) {
-            logger.info("No offers to be declined.");
-        } else {
-            logger.info("Declining {} unused offers", unusedOffers.size());
-            OfferUtils.declineLong(unusedOffers);
+    /**
+     * Returns the resources which are not expected by this service. When uninstalling, all resources are unexpected.
+     * The {@link UninstallScheduler} just keeps track of them on its 'checklist' as they are removed.
+     */
+    @Override
+    public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
+        Collection<OfferResources> unexpected = unusedOffers.stream()
+                .map(offer -> new OfferResources(offer).addAll(offer.getResourcesList().stream()
+                        // Omit unreserved resources:
+                        .filter(resource -> ResourceUtils.getReservation(resource).isPresent())
+                        .collect(Collectors.toList())))
+                .collect(Collectors.toList());
+        try {
+            recorder.recordResources(unexpected);
+            return UnexpectedResourcesResponse.processed(unexpected);
+        } catch (Exception e) {
+            // Failed to record the upcoming dereservation. Don't return the resources as unexpected until we can record
+            // the dereservation.
+            logger.error("Failed to record unexpected resources", e);
+            return UnexpectedResourcesResponse.failed(Collections.emptyList());
         }
     }
 
     @Override
-    protected void processStatusUpdate(Protos.TaskStatus status) {
+    protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
         stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
     }
 
-    private static boolean allButStateStoreUninstalled(StateStore stateStore, SchedulerConfig schedulerConfig) {
-        // Because we cannot delete the root ZK node (ACLs on the master, see StateStore.clearAllData() for more
-        // details) we have to clear everything under it. This results in a race condition, where DefaultService can
-        // have register() called after the StateStore already has the uninstall bit wiped.
-        //
-        // As can be seen in DefaultService.initService(), DefaultService.register() will only be called in uninstall
-        // mode if schedulerConfig.isUninstallEnabled() == true. Therefore we can use it as an OR along with
-        // StateStoreUtils.isUninstalling().
+    public DeregisterStep getDeregisterStep() {
+        return deregisterStubStep;
+    }
 
-        // resources are destroyed and unreserved, framework ID is gone, but tasks still need to be cleared
-        return !stateStore.fetchFrameworkId().isPresent() &&
-                ResourceUtils.getResourceIds(
-                        ResourceUtils.getAllResources(stateStore.fetchTasks())).stream()
-                        .allMatch(resourceId -> resourceId.startsWith(Constants.TOMBSTONE_MARKER));
+    /**
+     * Time retrieval broken out into a separate object to allow overriding its behavior in tests.
+     */
+    @VisibleForTesting
+    protected static class TimeFetcher {
+        protected long getCurrentTimeMillis() {
+            return System.currentTimeMillis();
+        }
     }
 }
