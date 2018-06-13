@@ -40,7 +40,7 @@ class PackageManager:
     def get_package_versions(self, package_name):
         """Get all versions for a specified package"""
         if self._dry_run:
-            return DryRunPackages()
+            return DryRunPackages(package_name)
 
         if package_name not in self.__package_cache:
             LOGGER.info("Retrieving information for package: %s", package_name)
@@ -70,6 +70,9 @@ class PackageManager:
 
 
 class DryRunPackages:
-    def get(self, package_name, default):
-        return [package.Package(package_name,
-                                package.Version(0, "DRY_RUN_VERSION")), ]
+
+    def __init__(self, package_name: str):
+        self._package = package.Package(package_name, package.Version(0, "DRY_RUN_VERSION"))
+
+    def __getitem__(self, key):
+        return self._package
