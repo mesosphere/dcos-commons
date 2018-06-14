@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -25,7 +24,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +33,6 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
     private final Logger logger;
     private final Optional<String> namespace;
-    private final AtomicBoolean started = new AtomicBoolean(false);
 
     protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
@@ -47,8 +44,8 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
     protected final Optional<PlanCustomizer> planCustomizer;
 
-    // These are all (re)assigned when the scheduler has (re)registered:
-    private ReviveManager reviveManager;
+    // These are all assigned when the scheduler has registered:
+    protected WorkSetTracker workSetTracker;
     private ExplicitReconciler reconciler;
 
     protected AbstractScheduler(
@@ -101,7 +98,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     @Override
     public void registered(boolean reRegistered) {
         if (!reRegistered) {
-            this.reviveManager = new ReviveManager(namespace);
+            this.workSetTracker = new WorkSetTracker(namespace);
             this.reconciler = new ExplicitReconciler(stateStore, namespace);
             registeredWithMesos();
         }
@@ -132,7 +129,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
                     inProgressSteps.stream().map(step -> step.getMessage()).collect(Collectors.toList()));
         }
         activeWorkSet.addAll(inProgressSteps);
-        reviveManager.revive(activeWorkSet);
+        workSetTracker.updateWorkSet(activeWorkSet);
 
         if (!offers.isEmpty()) {
             logger.info("Processing {} offer{} against {} step{}:",

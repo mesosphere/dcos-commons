@@ -15,7 +15,7 @@ public interface OfferDiscipline {
      * the process of uninstalling, etc. This is called before a series of zero or more calls to
      * {@link #offersEnabled(AbstractScheduler)}.
      *
-     * @param services active services
+     * @param serviceNames names of active services
      * @throws Exception if updating internal state has a problem
      */
     public void updateServices(Collection<String> serviceNames) throws Exception;
@@ -23,8 +23,8 @@ public interface OfferDiscipline {
     /**
      * Returns whether the specified service should be provided with offers, based on its status response.
      *
+     * @param serviceName name of the active service
      * @param statusResponse the status response returned by the service
-     * @param service the active service
      * @return whether to provide the service with offers
      */
     public boolean offersEnabled(String serviceName, ClientStatusResponse statusResponse);

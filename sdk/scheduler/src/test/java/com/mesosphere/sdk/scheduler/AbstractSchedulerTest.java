@@ -133,7 +133,7 @@ public class AbstractSchedulerTest {
 
         @Override
         public ClientStatusResponse getClientStatus() {
-            return ClientStatusResponse.running();
+            return ClientStatusResponse.launching(false);
         }
 
         @Override

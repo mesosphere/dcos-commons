@@ -101,6 +101,18 @@ public class FrameworkScheduler implements Scheduler {
         return this;
     }
 
+    /**
+     * Overrides the token bucket used to handle rate limiting of revive calls.
+     *
+     * @param tokenBucket the replacement {@link TokenBucket}
+     * @return {@code this}
+     */
+    @VisibleForTesting
+    public FrameworkScheduler setReviveTokenBucket(TokenBucket tokenBucket) {
+        offerProcessor.setReviveTokenBucket(tokenBucket);
+        return this;
+    }
+
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
         if (registerCalled.getAndSet(true)) {

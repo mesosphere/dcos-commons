@@ -65,7 +65,7 @@ public class OfferProcessorTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
-        when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.running());
+        when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.launching(false));
 
         processor = new OfferProcessor(mockMesosEventClient, mockPersister);
     }
@@ -134,7 +134,7 @@ public class OfferProcessorTest {
 
     @Test
     public void testStatusUninstalled() throws Exception {
-        when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.uninstalled());
+        when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.readyToRemove());
 
         processor.setOfferQueueSize(0).start(); // unlimited queue size
 

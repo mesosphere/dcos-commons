@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -75,11 +76,34 @@ public class Metrics {
         return metrics.timer(PROCESS_OFFERS).time();
     }
 
-    // Decline / Revive
+    // Suppress
+
+    static final String SUPPRESSES = "suppresses";
+    static final String IS_SUPPRESSED = "is_suppressed";
+
+    private static boolean isSuppressed = false;
+    static {
+        metrics.register(IS_SUPPRESSED, new Gauge<Boolean>() {
+            @Override
+            public Boolean getValue() {
+                return isSuppressed;
+            }
+        });
+    }
+
+    public static void notSuppressed() {
+        Metrics.isSuppressed = false;
+    }
+
+    public static void incrementSuppresses() {
+        metrics.counter(SUPPRESSES).inc();
+        Metrics.isSuppressed = true;
+    }
+
+    // Revive
+
     static final String REVIVES = "revives";
     static final String REVIVE_THROTTLES = "revives.throttles";
-    static final String DECLINE_SHORT = "declines.short";
-    static final String DECLINE_LONG = "declines.long";
 
     public static void incrementRevives() {
         metrics.counter(REVIVES).inc();
@@ -88,6 +112,11 @@ public class Metrics {
     public static void incrementReviveThrottles() {
         metrics.counter(REVIVE_THROTTLES).inc();
     }
+
+    // Decline
+
+    static final String DECLINE_SHORT = "declines.short";
+    static final String DECLINE_LONG = "declines.long";
 
     public static void incrementDeclinesShort(long amount) {
         metrics.counter(DECLINE_SHORT).inc(amount);

@@ -207,7 +207,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         expected = Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PREPARED);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         // Advertise an UNINSTALLED state so that upstream will clean us up and call unregistered():
-        Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, uninstallScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_REMOVE, uninstallScheduler.getClientStatus().result);
 
         // Deregistration completes only after we've told the scheduler that it's unregistered
         uninstallScheduler.unregistered();
@@ -241,14 +241,14 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
         // Turn the crank to get the deregistered step to continue
         uninstallScheduler.offers(Arrays.asList(getOffer()));
-        Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, uninstallScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_REMOVE, uninstallScheduler.getClientStatus().result);
         expected = Arrays.asList(Status.PREPARED);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         Assert.assertTrue(plan.toString(), plan.isRunning());
 
         // Seal the deal by telling the service it's unregistered
         uninstallScheduler.unregistered();
-        Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, uninstallScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_REMOVE, uninstallScheduler.getClientStatus().result);
         expected = Arrays.asList(Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         Assert.assertTrue(plan.toString(), plan.isComplete());
@@ -304,10 +304,10 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.PREPARED);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
         // Advertise an UNINSTALLED state so that upstream will clean us up and call unregistered():
-        Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, uninstallScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_REMOVE, uninstallScheduler.getClientStatus().result);
 
         uninstallScheduler.unregistered();
-        Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, uninstallScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_REMOVE, uninstallScheduler.getClientStatus().result);
         expected = Arrays.asList(
                 Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE, Status.COMPLETE);
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
@@ -351,7 +351,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
 
         // 61s: 'done' due to timeout
         testTimeFetcher.addSeconds(1);
-        Assert.assertEquals(ClientStatusResponse.Result.UNINSTALLED, uninstallScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_REMOVE, uninstallScheduler.getClientStatus().result);
     }
 
     private static Protos.Offer getOffer() {

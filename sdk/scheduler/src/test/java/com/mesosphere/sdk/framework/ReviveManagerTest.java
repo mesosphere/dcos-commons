@@ -1,30 +1,20 @@
 package com.mesosphere.sdk.framework;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.TestStep;
-import com.mesosphere.sdk.testutils.PodTestUtils;
 import org.apache.mesos.SchedulerDriver;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
 /**
- * This class tests {@link ReviveManager}.
+ * Tests for {@link ReviveManager}
  */
 public class ReviveManagerTest {
-    private final UUID testUUID = UUID.randomUUID();
+
     @Mock private SchedulerDriver driver;
 
     @Before
@@ -33,88 +23,83 @@ public class ReviveManagerTest {
         Driver.setDriver(driver);
     }
 
-    @AfterClass
-    public static void afterAll() {
-        // Reset to default behavior:
-        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().build());
-    }
-
     @Test
-    public void reviveOnNewWork() {
+    public void dontReviveWhenNotRequested() {
         ReviveManager manager = getReviveManager();
-        manager.revive(getSteps(0));
-        verify(driver).reviveOffers();
-    }
 
-    @Test
-    public void dontReviveOnTheSameWork() {
-        ReviveManager manager = getReviveManager();
-        manager.revive(getSteps(0));
-        manager.revive(getSteps(0));
-        verify(driver, times(1)).reviveOffers();
-    }
+        manager.reviveIfRequested();
 
-    @Test
-    public void reviveWhenTheSameWorkShowsUpLater() {
-        ReviveManager manager = getReviveManager();
-        manager.revive(getSteps(0));
-        manager.revive(Collections.emptyList());
-        manager.revive(getSteps(0));
-        verify(driver, times(2)).reviveOffers();
-    }
-
-    @Test
-    public void reviveOnAdditionalNewWork() {
-        ReviveManager manager = getReviveManager();
-        manager.revive(getSteps(0));
-        manager.revive(getSteps(1));
-        verify(driver, times(2)).reviveOffers();
+        verify(driver, times(0)).reviveOffers();
     }
 
     @Test
     public void dontReviveWhenThrottled() {
-        ReviveManager manager = new ReviveManager(Optional.empty());
+        ReviveManager manager = getReviveManager();
 
-        // Configure long delay. Should be inherited by previously constructed ReviveManager:
-        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build());
+        manager.requestRevive();
+        manager.reviveIfRequested();
+        manager.requestRevive();
+        manager.reviveIfRequested();
 
-        manager.revive(getSteps(0));
-        manager.revive(getSteps(1));
         verify(driver, times(1)).reviveOffers();
     }
 
     @Test
     public void dontReviveAcrossManagers() {
         // Both managers should share the same underlying token bucket:
-        ReviveManager a = new ReviveManager(Optional.empty());
-        ReviveManager b = new ReviveManager(Optional.empty());
+        TokenBucket tokenBucket = TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build();
+        ReviveManager a = new ReviveManager(tokenBucket);
+        ReviveManager b = new ReviveManager(tokenBucket);
 
-        // Configure long delay. Should be inherited by previously constructed ReviveManagers:
-        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build());
+        a.requestRevive();
+        b.requestRevive();
+        a.reviveIfRequested(); // pass
+        b.reviveIfRequested(); // throttled
 
-        a.revive(getSteps(0)); // pass
-        b.revive(getSteps(1)); // throttled
         verify(driver, times(1)).reviveOffers();
     }
 
     @Test
-    public void dontReviveOnEmptyWork() {
-        getReviveManager().revive(Collections.emptyList());
-        verify(driver, times(0)).reviveOffers();
+    public void suppressRevive() {
+        ReviveManager manager = new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
+
+        // Suppress:
+        manager.notifyOffersNeeded(false);
+        verify(driver, times(1)).suppressOffers();
+
+        // Revive:
+        manager.notifyOffersNeeded(true);
+        manager.reviveIfRequested();
+        verify(driver, times(1)).reviveOffers();
+
+        // Revive again, because previous revive apparently didn't go through:
+        manager.notifyOffersNeeded(true);
+        manager.reviveIfRequested();
+        verify(driver, times(2)).reviveOffers();
+
+        // Finally get an offer, un-suppress must've worked.
+        manager.notifyOffersReceived();
+
+        // Now that we aren't suppressed, revive is not triggered by just needing offers:
+        manager.notifyOffersNeeded(true);
+        manager.reviveIfRequested();
+        verify(driver, times(2)).reviveOffers();
+
+        // .. but still revives if specifically requested (due to new work):
+        manager.requestRevive();
+        manager.reviveIfRequested();
+        verify(driver, times(3)).reviveOffers();
+    }
+
+    @Test
+    public void dontSuppressWhenSuppressed() {
+        ReviveManager manager = getReviveManager();
+        manager.notifyOffersNeeded(false);
+        manager.notifyOffersNeeded(false);
+        verify(driver, times(1)).suppressOffers();
     }
 
     private static ReviveManager getReviveManager() {
-        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
-        // Create a new ReviveManager, rather than reusing a single instance, so that the internal candidates are reset:
-        return new ReviveManager(Optional.empty());
-    }
-
-    private List<Step> getSteps(Integer index) {
-        PodInstanceRequirement podInstanceRequirement = PodTestUtils.getPodInstanceRequirement(index);
-        return Arrays.asList(
-                new TestStep(
-                        testUUID,
-                        String.format("step-%d", podInstanceRequirement.getPodInstance().getIndex()),
-                        podInstanceRequirement));
+        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build());
     }
 }

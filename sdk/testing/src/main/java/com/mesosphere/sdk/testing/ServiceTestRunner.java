@@ -4,7 +4,6 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkScheduler;
-import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.framework.TokenBucket;
 import com.mesosphere.sdk.offer.Constants;
@@ -307,8 +306,6 @@ public class ServiceTestRunner {
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
         TaskKiller.reset(false);
-        // Disable rate limiting on revive calls, to ensure consistency and avoid unnecessary waiting.
-        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
 
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
@@ -340,6 +337,7 @@ public class ServiceTestRunner {
                         new FrameworkStore(persister),
                         abstractScheduler)
                 .setApiServerStarted()
+                .setReviveTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build())
                 .disableThreading();
 
         // Test 4: Can we render the per-task config templates without any missing values?
@@ -380,9 +378,6 @@ public class ServiceTestRunner {
 
         // Re-enable background TaskKiller thread for other tests:
         TaskKiller.reset(true);
-
-        // Return to default rate limit duration on revive calls:
-        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().build());
 
         return new ServiceTestResult(
                 serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs, persister, clusterState);

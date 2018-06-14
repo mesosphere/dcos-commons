@@ -17,7 +17,7 @@ public class AllDiscipline implements OfferDiscipline {
     }
 
     /**
-     * Does nothing: This discipline has no state
+     * Does nothing: This discipline has no state.
      */
     @Override
     public void updateServices(Collection<String> serviceNames) throws PersisterException {

@@ -64,6 +64,9 @@ public class MultiServiceEventClient implements MesosEventClient {
     // Additional handling for when we're uninstalling the entire Scheduler.
     private final Optional<DeregisterStep> deregisterStep;
 
+    // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
+    private ClientStatusResponse clientStatusToReturn;
+
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
@@ -76,7 +79,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 schedulerConfig,
                 multiServiceManager,
                 (schedulerConfig.getMultiServiceReserveDiscipline() > 0)
-                        ? new ReservationDiscipline(
+                        ? new ParallelFootprintDiscipline(
                                 schedulerConfig.getMultiServiceReserveDiscipline(),
                                 new DisciplineSelectionStore(persister))
                         : new AllDiscipline(),
@@ -103,6 +106,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         this.uninstallCallback = uninstallCallback;
         this.offerDiscipline = offerDiscipline;
         this.deregisterStep = deregisterStep;
+        this.clientStatusToReturn = ClientStatusResponse.idle();
     }
 
     @Override
@@ -125,32 +129,8 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public ClientStatusResponse getClientStatus() {
-        // If the entire scheduler is uninstalling and there are no services left to uninstall, then tell upstream that
-        // we're uninstalled.
-        boolean noServices = false;
-
-        Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
-        try {
-            noServices = services.isEmpty();
-        } finally {
-            multiServiceManager.sharedUnlock();
-        }
-
-        if (noServices) {
-            // There are no active services to process offers. Should the rest of the framework be torn down?
-            if (deregisterStep.isPresent()) {
-                // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
-                // can finish with final framework cleanup. After they've finished, they will invoke unregistered(), at
-                // which point we can set our deploy plan to complete.
-                return ClientStatusResponse.uninstalled();
-            } else {
-                // No: We're just not actively running anything. Behave normally until we have work to do.
-                return ClientStatusResponse.running();
-            }
-        } else {
-            // Services are still present, behave normally.
-            return ClientStatusResponse.running();
-        }
+        // Return the client status that had been determined in the last offers() call
+        return clientStatusToReturn;
     }
 
     /**
@@ -166,7 +146,17 @@ public class MultiServiceEventClient implements MesosEventClient {
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         try {
             if (services.isEmpty()) {
-                // Nothing to do, short-circuit.
+                // There are no active services to process offers. Should the rest of the framework be torn down?
+                if (deregisterStep.isPresent()) {
+                    // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that
+                    // they can finish with final framework cleanup. After they've finished, they will invoke our
+                    // unregistered() call, at which point we can set the deregisterStep (and therefore our deploy plan)
+                    // to complete.
+                    clientStatusToReturn = ClientStatusResponse.readyToRemove();
+                } else {
+                    // No: We're just not actively running anything. Idle until we have work to do.
+                    clientStatusToReturn = ClientStatusResponse.idle();
+                }
                 return OfferResponse.processed(Collections.emptyList());
             }
 
@@ -177,6 +167,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                         .collect(Collectors.toSet()));
             } catch (Exception e) {
                 LOGGER.error("Failed to update selected services in offer discipline, trying again later", e);
+                // Just stick with prior clientStatusToReturn...
                 return OfferResponse.notReady(Collections.emptyList());
             }
 
@@ -185,6 +176,9 @@ public class MultiServiceEventClient implements MesosEventClient {
             LOGGER.info("Sending {} offer{} to {} service{}:",
                     offers.size(), offers.size() == 1 ? "" : "s",
                     services.size(), services.size() == 1 ? "" : "s");
+            boolean allServicesIdle = true;
+            boolean anyServicesFootprint = false;
+            boolean anyServicesHaveNewWork = false;
             for (AbstractScheduler service : services) {
                 String serviceName = service.getServiceSpec().getName();
                 ClientStatusResponse statusResponse = service.getClientStatus();
@@ -198,18 +192,31 @@ public class MultiServiceEventClient implements MesosEventClient {
                 boolean sendOffers = offerDiscipline.offersEnabled(serviceName, statusResponse);
 
                 switch (statusResponse.result) {
-                case RESERVING:
-                    //$FALL-THROUGH$
                 case RUNNING:
                     if (sendOffers) {
                         servicesToGiveOffers.add(service);
                     }
+                    switch (statusResponse.runningStatus.state) {
+                    case FOOTPRINT:
+                        allServicesIdle = false;
+                        anyServicesFootprint = true;
+                        break;
+                    case LAUNCH:
+                        allServicesIdle = false;
+                        break;
+                    case IDLE:
+                        // Nothing to change
+                        break;
+                    }
+                    if (statusResponse.runningStatus.hasNewWork) {
+                        anyServicesHaveNewWork = true;
+                    }
                     break;
-                case FINISHED:
+                case READY_TO_UNINSTALL:
                     // This service has completed running and can be switched to uninstall.
                     servicesToUninstall.add(serviceName);
                     break;
-                case UNINSTALLED:
+                case READY_TO_REMOVE:
                     // This service has completed uninstall and can be torn down.
                     servicesToRemove.add(service);
                     break;
@@ -217,6 +224,17 @@ public class MultiServiceEventClient implements MesosEventClient {
 
                 // If we run out of unusedOffers we still keep going with an empty list of offers.
                 // This is done in case any of the services depends on us to turn the crank periodically.
+            }
+
+            if (allServicesIdle) {
+                // ALL services are idle, so we can tell upstream to suppress.
+                clientStatusToReturn = ClientStatusResponse.idle();
+            } else if (anyServicesFootprint) {
+                // One or more of the services is getting footprint, so tell upstream that we're getting footprint.
+                clientStatusToReturn = ClientStatusResponse.footprint(anyServicesHaveNewWork);
+            } else {
+                // Otherwise, one or more services isn't idle, and none of them is getting footprint.
+                clientStatusToReturn = ClientStatusResponse.launching(anyServicesHaveNewWork);
             }
         } finally {
             multiServiceManager.sharedUnlock();

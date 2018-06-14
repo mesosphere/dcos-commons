@@ -62,6 +62,8 @@ class OfferProcessor {
     private final Persister persister;
     private final OfferAccepter offerAccepter;
 
+    // Internal TokenBucket may be overridden in tests:
+    private ReviveManager reviveManager;
     // May be overridden in tests:
     private OfferQueue offerQueue;
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
@@ -71,6 +73,7 @@ class OfferProcessor {
         this.mesosEventClient = mesosEventClient;
         this.persister = persister;
         this.offerAccepter = new OfferAccepter();
+        this.reviveManager = new ReviveManager(TokenBucket.newBuilder().build());
         this.offerQueue = new OfferQueue();
         this.multithreaded = true;
     }
@@ -79,8 +82,9 @@ class OfferProcessor {
      * Forces the instance to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
      * called before calling {@link #start()}.
      *
-     * @return this
+     * @return {@code this}
      */
+    @VisibleForTesting
     OfferProcessor disableThreading() {
         multithreaded = false;
         return this;
@@ -90,11 +94,23 @@ class OfferProcessor {
      * Overrides the offer queue size. Must only be called before the scheduler has {@link #start()}ed.
      *
      * @param queueSize the queue size to use, zero for infinite
-     * @return this
+     * @return {@code this}
      */
     @VisibleForTesting
     OfferProcessor setOfferQueueSize(int queueSize) {
         offerQueue = new OfferQueue(queueSize);
+        return this;
+    }
+
+    /**
+     * Overrides the token bucket used to handle rate limiting of revive calls.
+     *
+     * @param reviveTokenBucket the replacement {@link TokenBucket}
+     * @return {@code this}
+     */
+    @VisibleForTesting
+    OfferProcessor setReviveTokenBucket(TokenBucket reviveTokenBucket) {
+        this.reviveManager = new ReviveManager(reviveTokenBucket);
         return this;
     }
 
@@ -129,6 +145,11 @@ class OfferProcessor {
                     offersInProgress.stream()
                             .map(offerID -> offerID.getValue())
                             .collect(Collectors.toList()));
+        }
+
+        if (!offers.isEmpty()) {
+            // We've gotten some offers, so we're not suppressed anymore.
+            reviveManager.notifyOffersReceived();
         }
 
         for (Protos.Offer offer : offers) {
@@ -190,6 +211,9 @@ class OfferProcessor {
         LOGGER.info("Waiting up to {}s for offers...", queueWait.getSeconds());
         List<Protos.Offer> offers = offerQueue.takeAll(queueWait);
         try {
+            // Always check if a revive is needed:
+            reviveManager.reviveIfRequested();
+
             if (offers.isEmpty() && !isInitialized.get()) {
                 // The scheduler hasn't finished registration yet, so many members haven't been initialized either.
                 // Avoid hitting NPE for planCoordinator, driver, etc.
@@ -207,7 +231,7 @@ class OfferProcessor {
             // Match offers with work (call into implementation)
             final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
-                if (isActive()) {
+                if (checkStatus()) {
                     evaluateOffers(offers);
                 }
             } finally {
@@ -234,35 +258,48 @@ class OfferProcessor {
     }
 
     /**
-     * Checks the statuses of the underlying client and returns whether it makes sense to pass it offers.
+     * Checks the status of the client and returns whether it should be provided with offers.
      */
-    private boolean isActive() {
+    private boolean checkStatus() {
         ClientStatusResponse response = mesosEventClient.getClientStatus();
         LOGGER.info("Status result: {}", response.result);
 
         switch (response.result) {
-        case RESERVING:
-            // Proceed as-is.
-            return true;
         case RUNNING:
-            // Proceed as-is.
-            return true;
-        case FINISHED:
-            // We do not directly support the FINISHED result at this level. It should only be emitted by services which
-            // have a FINISH GoalState. In practice that should only be the case in a multi-service configuration, where
-            // the FINISHED result code would be handled internally by a MultiServiceEventClient.
+            if (response.runningStatus.hasNewWork) {
+                // Service has new work. Revive any previously declined offers.
+                reviveManager.requestRevive();
+            }
+
+            final boolean offersNeeded;
+            if (response.runningStatus.state == ClientStatusResponse.RunningStatus.State.IDLE) {
+                // Service is idle (multi-service: all idle). Suppress offers.
+                offersNeeded = false;
+            } else {
+                // Service is not idle (multi-service: any not idle). Revive offers if suppressed.
+                // Note: We don't care about FOOTPRINT vs LAUNCH at this level. That's instead being used in
+                // MultiServiceEventClient to implement offer discipline (e.g. avoid too many services getting FOOTPRINT
+                // at the same time)
+                offersNeeded = true;
+            }
+            reviveManager.notifyOffersNeeded(offersNeeded);
+            return offersNeeded;
+        case READY_TO_UNINSTALL:
+            // We do not directly support this result at this level. It should only occur in multi-service deployments,
+            // where it would have been handled upstream in the MultiServiceEventClient.
             LOGGER.error("Got unsupported {} from service", response.result);
             throw new IllegalStateException(String.format(
                     "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
                     response.result));
-        case UNINSTALLED:
-            // The service has finished uninstalling. Unregister and delete the framework.
+        case READY_TO_REMOVE:
+            // The managed service(s) have finished uninstalling and there's nothing left to do.
+            // Unregister and delete the framework.
             isDeregistered.set(true);
             destroyFramework();
             return false;
         }
 
-        throw new IllegalStateException("Unsupported ClientStatusResponse type: " + response.result);
+        throw new IllegalStateException("Unsupported ClientStatusResponse result: " + response.result);
     }
 
     private void evaluateOffers(List<Protos.Offer> offers) {
