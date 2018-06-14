@@ -88,6 +88,22 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     return config
 
 
+def is_app_running(app: dict) -> bool:
+    return app['tasksStaged'] == 0 and app['tasksUnhealthy'] == 0 and app['tasksRunning'] > 0
+
+
+def wait_for_deployment_and_app_running(app_name: str, timeout: int):
+    shakedown.deployment_wait(timeout, app_name)
+
+    def app_running():
+        cmd = 'marathon app show {}'.format(app_name)
+        log.info('Running %s', cmd)
+        app = sdk_cmd.get_json_output(cmd)
+        return is_app_running(app)
+
+    shakedown.time_wait(app_running, timeout_seconds=timeout)
+
+
 def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
     """
     Installs a marathon app using the path to an app definition.
@@ -113,9 +129,10 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         log.error(stderr)
         return False, stderr
 
-    log.info("Waiting for app %s to be running...", app_name)
-    shakedown.wait_for_task("marathon", app_name, TIMEOUT_SECONDS)
-    return True, ""
+    log.info('Waiting for app %s to be deployed and running...', app_name)
+    wait_for_deployment_and_app_running(app_name, TIMEOUT_SECONDS)
+
+    return True, ''
 
 
 def install_app(app_definition: dict) -> (bool, str):
@@ -132,7 +149,7 @@ def install_app(app_definition: dict) -> (bool, str):
     app_name = app_definition["id"]
 
     with tempfile.TemporaryDirectory() as d:
-        app_def_file = "{}.json".format(app_name)
+        app_def_file = "{}.json".format(app_name.replace('/', '__'))
         log.info("Launching {} marathon app".format(app_name))
 
         app_def_path = os.path.join(d, app_def_file)
