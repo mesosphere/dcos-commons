@@ -39,6 +39,7 @@ public class RawServiceSpec {
 
         private final File pathToYamlTemplate;
         private Map<String, String> env;
+        private boolean isRenderingStrict = false;
 
         private Builder(File pathToYamlTemplate) {
             this.pathToYamlTemplate = pathToYamlTemplate;
@@ -51,6 +52,14 @@ public class RawServiceSpec {
         @VisibleForTesting
         public Builder setEnv(Map<String, String> env) {
             this.env = env;
+            return this;
+        }
+
+        /**
+         * Set whether the rendering should be strict.
+         */
+        public Builder enableStrictRendering() {
+            this.isRenderingStrict = true;
             return this;
         }
 
@@ -69,6 +78,11 @@ public class RawServiceSpec {
                     missingValues);
             LOGGER.info("Rendered ServiceSpec from {}:\nMissing template values: {}\n{}",
                     pathToYamlTemplate.getAbsolutePath(), missingValues, yamlWithEnv);
+
+            if (this.isRenderingStrict) {
+                TemplateUtils.validateMissingValues(pathToYamlTemplate.getName(), env, missingValues);
+            }
+
             return YAML_MAPPER.readValue(yamlWithEnv.getBytes(StandardCharsets.UTF_8), RawServiceSpec.class);
         }
     }
