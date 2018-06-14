@@ -16,6 +16,8 @@ PACKAGE_NAME = 'elastic'
 SERVICE_NAME = 'elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
+KIBANA_SERVICE_NAME = 'kibana'
+KIBANA_DEFAULT_TIMEOUT = 30 * 60
 
 XPACK_PLUGIN_NAME = 'x-pack'
 
@@ -31,8 +33,7 @@ DEFAULT_TASK_COUNT = 6
 #         * count for a specific type, ie 3
 #         * count by type, ie [{'ingest':1},{'data':3},...]
 
-DEFAULT_ELASTIC_TIMEOUT = 30 * 60
-DEFAULT_KIBANA_TIMEOUT = 30 * 60
+DEFAULT_TIMEOUT = 30 * 60
 DEFAULT_INDEX_NAME = 'customer'
 DEFAULT_INDEX_TYPE = 'entry'
 
@@ -60,7 +61,7 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_KIBANA_TIMEOUT*1000,
+    stop_max_delay=KIBANA_DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_kibana_adminrouter_integration(path):
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
@@ -71,7 +72,7 @@ def check_kibana_adminrouter_integration(path):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
@@ -80,7 +81,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
@@ -94,7 +95,7 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     result = _curl_query(service_name, "GET", "_cluster/health")
@@ -108,7 +109,7 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
@@ -125,7 +126,7 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
@@ -134,7 +135,7 @@ def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME)
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_ELASTIC_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
