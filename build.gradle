@@ -112,10 +112,32 @@ allprojects {
             events 'passed', 'skipped', 'failed'
         }
     }
+
+    ext {
+        pxVersion = '1.2.2'
+        getPxVersion = { ->
+            if (project.version.endsWith('-SNAPSHOT')) {
+                return project.version - '-SNAPSHOT' + '-' + pxVersion + '-SNAPSHOT'
+            }
+            return project.version + '-' + pxVersion
+        }
+    }
 }
 
 ext {
     mesosVer = '1.4.0-rc1'
+}
+
+task publishArtifacts {
+    doLast {
+        def destination = 's3://px-dcos/dcos-commons/artifacts/' + getPxVersion() + '/'
+        exec {
+             commandLine "aws", "s3", "cp", "sdk/bootstrap/bootstrap.zip", destination
+        }
+        exec {
+             commandLine "aws", "s3", "cp", "sdk/executor/build/distributions/executor.zip", destination
+        }
+    }
 }
 
 subprojects {

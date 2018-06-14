@@ -1,5 +1,7 @@
 // Config specific to the dcos-commons library:
-apply plugin: 'application'
+plugins {
+    id 'application'
+}
 
 ext {
     antlrVer = "4.5.1-1"
@@ -43,11 +45,12 @@ task sourceJar(type: Jar) {
 
 publishing {
     repositories {
+        def pxVersion = getPxVersion()
         maven {
-            if(project.version.endsWith('-SNAPSHOT')) {
-                url "s3://downloads.mesosphere.io/maven-snapshot/"
+            if (pxVersion.endsWith('-SNAPSHOT')) {
+                url "s3://px-dcos/maven-snapshot/"
             } else {
-                url "s3://downloads.mesosphere.io/maven/"
+                url "s3://px-dcos/maven/"
             }
             credentials(AwsCredentials) {
                 accessKey System.env['AWS_ACCESS_KEY_ID']
@@ -58,7 +61,7 @@ publishing {
             mavenJava(MavenPublication) {
                 groupId project.group
                 artifactId 'scheduler'
-                version project.version
+                version pxVersion
 
                 from components.java
 
