@@ -10,5 +10,5 @@ shift
 docker run --rm -t \
     -v $(pwd):/build:ro \
     -w /build \
-        mesosphere/dcos-commons:elezar-dev \
+        ${DOCKER_IMAGE} \
             ${TOOL} $*
