@@ -1,5 +1,7 @@
 #!/bin/bash
 
+TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
 if git rev-parse --verify HEAD >/dev/null 2>&1
 then
     against=${COMPARE_TO:-HEAD}
@@ -26,7 +28,7 @@ if [[ -n $FRAMEWORK ]]; then
 fi
 
 IGNORE="\.md\$"
-DIFF_FILES=$(git diff ${against} --name-only | grep -vE "${IGNORE}")
+DIFF_FILES=$( ${TOOL_DIR}/get_changeset.sh | grep -vE "${IGNORE}")
 
 matches=()
 for f in "${patterns[@]}"; do
