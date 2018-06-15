@@ -65,7 +65,7 @@ def _grant(user: str, acl: str, description: str, action: str) -> None:
 
     # Assign the user to the ACL
     r = sdk_cmd.cluster_request(
-        'PUT', '/acs/api/v1/acls/{acl}/users/{user}/{action}'.format(acl=acl.strip("/"), user=user.strip("/"), action=action.strip("/")),
+        'PUT', '/acs/api/v1/acls/{acl}/users/{user}/{action}'.format(acl=acl, user=user, action=action),
         raise_on_error=False)
     # 204=success, 409=already exists
     assert r.status_code in [204, 409, ], '{} failed {}: {}'.format(r.url, r.status_code, r.text)

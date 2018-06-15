@@ -26,18 +26,20 @@ def setup_service_account(service_name: str,
     name = service_name
     secret = name if service_account_secret is None else service_account_secret
 
+    service_account = "{}-service-account".format(service_name.replace("/", ""))
+
     service_account_info = sdk_security.setup_security(service_name,
                                                        linux_user="nobody",
-                                                       service_account=name,
+                                                       service_account=service_account,
                                                        service_account_secret=secret)
 
     log.info("Adding permissions required for TLS.")
     if sdk_utils.dcos_version_less_than("1.11"):
-        sdk_cmd.run_cli("security org groups add_user superusers {name}".format(name=name))
+        sdk_cmd.run_cli("security org groups add_user superusers {sa}".format(sa=service_account))
     else:
         acls = [
-                {"rid": "dcos:secrets:default:/{}/*".format(service_name), "action": "full"},
-                {"rid": "dcos:secrets:list:default:/{}".format(service_name), "action": "read"},
+                {"rid": "dcos:secrets:default:/{}/*".format(service_name.strip("/")), "action": "full"},
+                {"rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")), "action": "read"},
                 {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
                 {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
                 ]
