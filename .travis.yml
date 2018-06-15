@@ -10,9 +10,12 @@ before_install:
   - sudo apt-get install -y awscli
   - eval "$(gimme 1.8.3)"
   - sudo ln -sf /usr/bin/python3.5 /usr/bin/python3
+  - sudo pip install awscli
 script:
   - ./gradlew check
   - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
+      ./sdk/bootstrap/build.sh;
+      ./gradlew :executor:distZip :publishArtifacts :common:publish :scheduler:publish :testing:publish;
       frameworks/cassandra/build.sh aws;
       frameworks/elastic/build.sh aws;
       frameworks/hdfs/build.sh aws;
