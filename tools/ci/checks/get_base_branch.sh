@@ -1,6 +1,8 @@
 #!/bin/bash
 #
 
+set -e
+
 current_branch=${CURRENT_GIT_BRANCH:-$( git symbolic-ref --short HEAD )}
 
 base_branch="master"
