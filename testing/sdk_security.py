@@ -19,7 +19,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
-DEFAULT_LINUX_USER: str = "nobody"
+DEFAULT_LINUX_USER = "nobody"
 
 
 def install_enterprise_cli(force=False):
@@ -151,6 +151,7 @@ def grant_permissions(linux_user: str, role_name: str, service_account_name: str
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
     return permissions
+
 
 def revoke_permissions(service_account_name: str, role_name: str, permissions: List[dict]) -> None:
     log.info("Revoking permissions from %s (role: %s)", service_account_name, role_name)
