@@ -59,10 +59,7 @@ def cleanup_service_account(service_name: str, service_account_info: dict):
 
     Ideally, this service account was created using the setup_service_account function.
     """
-    if isinstance(service_account_info, str):
-        service_account_info = {"name": service_account_info}
-
-    sdk_security.cleanup_security(service_name, service_account_info)
+    sdk_security.cleanup_security(service_account_info)
 
 
 def fetch_dcos_ca_bundle(marathon_task: str) -> str:

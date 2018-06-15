@@ -108,7 +108,7 @@ def zookeeper_server(kerberos):
 
     finally:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
-        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
+        sdk_security.cleanup_security(service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)

@@ -248,7 +248,8 @@ def setup_security(service_name: str,
     create_service_account(service_account_name=service_account,
                            service_account_secret=service_account_secret)
 
-    security_info = {"name": service_account,
+    security_info = {"service_name": service_name,
+                     "name": service_account,
                      "secret": service_account_secret,
                      "linux_user": linux_user,
                      "roles": [],
@@ -277,8 +278,7 @@ def setup_security(service_name: str,
     return security_info
 
 
-def cleanup_security(service_name: str,
-                     security_info: Dict) -> None:
+def cleanup_security(security_info: Dict) -> None:
 
     service_account = security_info.get("name", "service-acct")
     service_account_secret = security_info.get("secret", "secret")
@@ -293,7 +293,7 @@ def cleanup_security(service_name: str,
     log.info('Finished cleaning up strict-mode security')
 
 
-def security_session(framework_name: str,
+def security_session(service_name: str,
                      permissions: List[dict]=[],
                      linux_user: str=DEFAULT_LINUX_USER,
                      service_account: str="service-acct",
@@ -304,13 +304,13 @@ def security_session(framework_name: str,
 
     @pytest.fixture(scope='session')
     def configure_security(configure_universe):
-        yield from sdk_security.security_session(framework_name, permissions, linux_user, 'service-acct')
+        yield from sdk_security.security_session(service_name, permissions, linux_user, 'service-acct')
     """
     try:
         is_strict = sdk_utils.is_strict_mode()
         if is_strict:
-            roles = _get_service_role(framework_name) + _get_integration_test_foldered_role(framework_name)
-            security_info = setup_security(framework_name,
+            roles = _get_service_role(service_name) + _get_integration_test_foldered_role(service_name)
+            security_info = setup_security(service_name,
                                            roles=roles,
                                            permissions=permissions,
                                            linux_user=linux_user,
@@ -319,7 +319,7 @@ def security_session(framework_name: str,
         yield
     finally:
         if is_strict:
-            cleanup_security(framework_name, security_info)
+            cleanup_security(security_info)
 
 
 def openssl_ciphers() -> set:
