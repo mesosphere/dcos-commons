@@ -65,7 +65,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final Optional<DeregisterStep> deregisterStep;
 
     // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
-    private ClientStatusResponse clientStatusToReturn;
+    private final Collection<String> serviceNamesToGiveOffers;
 
     public MultiServiceEventClient(
             String frameworkName,
@@ -106,7 +106,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         this.uninstallCallback = uninstallCallback;
         this.offerDiscipline = offerDiscipline;
         this.deregisterStep = deregisterStep;
-        this.clientStatusToReturn = ClientStatusResponse.idle();
+        this.serviceNamesToGiveOffers = new ArrayList<>();
     }
 
     @Override
@@ -124,25 +124,24 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Returns our status to the upstream {@code OfferProcessor}. In practice, we only return either {@code RUNNING}, or
-     * {@code UNINSTALLED} if we're ready to be torn down during a scheduler uninstall.
+     * Returns our status to the upstream {@code OfferProcessor}. The logic is as follows:
+     *
+     * <ol>
+     * <li>If no services are present: uninstall mode: {@code READY_TO_REMOVE}, otherwise: {@code RUNNING/IDLE}</li>
+     * <li>If all services are idle: {@code RUNNING/IDLE}</li>
+     * <li>If any service is collecting footprint: {@code RUNNING/FOOTPRINT}, with {@code newWork=true} if any service
+     * had {@code newWork=true}</li>
+     * <li>Else (mix of zero or more {@code RUNNING/IDLE} and zero or more {@code RUNNING/LAUNCH}):
+     * {@code RUNNING/LAUNCH}, with {@code newWork=true} if any service had {@code newWork=true}</li>
+     * </ol>
      */
     @Override
     public ClientStatusResponse getClientStatus() {
-        // Return the client status that had been determined in the last offers() call
-        return clientStatusToReturn;
-    }
-
-    /**
-     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
-     * services which actually receive offers is decided by the {@link OfferDiscipline}.
-     */
-    @Override
-    public OfferResponse offers(Collection<Protos.Offer> offers) {
-        Collection<AbstractScheduler> servicesToGiveOffers = new ArrayList<>();
+        serviceNamesToGiveOffers.clear();
         Collection<String> servicesToUninstall = new ArrayList<>();
         Collection<AbstractScheduler> servicesToRemove = new ArrayList<>();
 
+        final ClientStatusResponse clientStatusToReturn;
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         try {
             if (services.isEmpty()) {
@@ -152,12 +151,11 @@ public class MultiServiceEventClient implements MesosEventClient {
                     // they can finish with final framework cleanup. After they've finished, they will invoke our
                     // unregistered() call, at which point we can set the deregisterStep (and therefore our deploy plan)
                     // to complete.
-                    clientStatusToReturn = ClientStatusResponse.readyToRemove();
+                    return ClientStatusResponse.readyToRemove();
                 } else {
                     // No: We're just not actively running anything. Idle until we have work to do.
-                    clientStatusToReturn = ClientStatusResponse.idle();
+                    return ClientStatusResponse.idle();
                 }
-                return OfferResponse.processed(Collections.emptyList());
             }
 
             // Update the offer discipline with the current list of services.
@@ -166,24 +164,21 @@ public class MultiServiceEventClient implements MesosEventClient {
                         .map(s -> s.getServiceSpec().getName())
                         .collect(Collectors.toSet()));
             } catch (Exception e) {
-                LOGGER.error("Failed to update selected services in offer discipline, trying again later", e);
-                // Just stick with prior clientStatusToReturn...
-                return OfferResponse.notReady(Collections.emptyList());
+                LOGGER.error("Failed to update selected services in offer discipline, continuing anyway", e);
+                // The offer discipline failed to flush state to ZK. Its in-memory state should be fine though, so just
+                // continue as-is for now.
             }
 
-            // Before we handle offers, check for any finished services that should be switched to uninstall, or any
-            // uninstalled services that should be removed.
-            LOGGER.info("Sending {} offer{} to {} service{}:",
-                    offers.size(), offers.size() == 1 ? "" : "s",
-                    services.size(), services.size() == 1 ? "" : "s");
+            // Check for any finished services that should be switched to uninstall, or any uninstalled services that
+            // should be removed.
             boolean allServicesIdle = true;
             boolean anyServicesFootprint = false;
             boolean anyServicesHaveNewWork = false;
             for (AbstractScheduler service : services) {
                 String serviceName = service.getServiceSpec().getName();
                 ClientStatusResponse statusResponse = service.getClientStatus();
-                if (statusResponse.result != ClientStatusResponse.Result.RUNNING) {
-                    // Only log status when it's special/unusual
+                if (!statusResponse.equals(ClientStatusResponse.idle())) {
+                    // Only log status when it's active
                     LOGGER.info("{} status: {}", serviceName, statusResponse.result);
                 }
 
@@ -194,7 +189,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 switch (statusResponse.result) {
                 case RUNNING:
                     if (sendOffers) {
-                        servicesToGiveOffers.add(service);
+                        serviceNamesToGiveOffers.add(serviceName);
                     }
                     switch (statusResponse.runningStatus.state) {
                     case FOOTPRINT:
@@ -240,39 +235,6 @@ public class MultiServiceEventClient implements MesosEventClient {
             multiServiceManager.sharedUnlock();
         }
 
-        // Decline short if any service isn't ready.
-        boolean anyServicesNotReady = false;
-        List<OfferRecommendation> recommendations = new ArrayList<>();
-        if (!servicesToGiveOffers.isEmpty()) {
-            LOGGER.info("Sending offers to {} service{}:",
-                    servicesToGiveOffers.size(), servicesToGiveOffers.size() == 1 ? "" : "s");
-            List<Protos.Offer> remainingOffers = new ArrayList<>();
-            remainingOffers.addAll(offers);
-            for (AbstractScheduler service : servicesToGiveOffers) {
-                OfferResponse offerResponse = service.offers(remainingOffers);
-                recommendations.addAll(offerResponse.recommendations);
-                if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
-                    // Some offers were consumed. Update what remains to offer to the next service.
-                    remainingOffers =
-                            OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
-                }
-                boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
-                if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
-                    // Only log result when it's non-empty/unusual
-                    LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
-                            service.getServiceSpec().getName(),
-                            offerResponse.result,
-                            offerResponse.recommendations.size(),
-                            offerResponse.recommendations.size() == 1 ? "" : "s",
-                            remainingOffers.size(),
-                            remainingOffers.size() == 1 ? "" : "s");
-                }
-                if (!readyForOffers) {
-                    anyServicesNotReady = true;
-                }
-            }
-        }
-
         if (!servicesToUninstall.isEmpty()) {
             LOGGER.info("Starting uninstall for {} service{}: {}",
                     servicesToUninstall.size(), servicesToUninstall.size() == 1 ? "" : "s", servicesToUninstall);
@@ -297,6 +259,58 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // deadlock if the callback itself calls back into us for any reason. This also ensures that we aren't
                 // blocking other operations (e.g. offer/status handling) while these callbacks are running.
                 uninstallCallback.uninstalled(service.getServiceSpec().getName());
+            }
+        }
+
+        return clientStatusToReturn;
+    }
+
+    /**
+     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
+     * services which actually receive offers is decided by their status response to {@link #getClientStatus()}, as well
+     * as the configured {@link OfferDiscipline}.
+     */
+    @Override
+    public OfferResponse offers(Collection<Protos.Offer> offers) {
+        if (serviceNamesToGiveOffers.isEmpty()) {
+            return OfferResponse.processed(Collections.emptyList());
+        }
+
+        LOGGER.info("Sending {} offer{} to {} service{}:",
+                offers.size(), offers.size() == 1 ? "" : "s",
+                serviceNamesToGiveOffers.size(), serviceNamesToGiveOffers.size() == 1 ? "" : "s");
+
+        // Decline short if any service isn't ready.
+        boolean anyServicesNotReady = false;
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+
+        List<Protos.Offer> remainingOffers = new ArrayList<>();
+        remainingOffers.addAll(offers);
+        for (String serviceName : serviceNamesToGiveOffers) {
+            Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+            if (!service.isPresent()) {
+                // Service was removed since getClientStatus() calculated this list?
+                continue;
+            }
+            OfferResponse offerResponse = service.get().offers(remainingOffers);
+            recommendations.addAll(offerResponse.recommendations);
+            if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
+                // Some offers were consumed. Update what remains to offer to the next service.
+                remainingOffers = OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+            }
+            boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
+            if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
+                // Only log result when it's non-empty/unusual
+                LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
+                        serviceName,
+                        offerResponse.result,
+                        offerResponse.recommendations.size(),
+                        offerResponse.recommendations.size() == 1 ? "" : "s",
+                        remainingOffers.size(),
+                        remainingOffers.size() == 1 ? "" : "s");
+            }
+            if (!readyForOffers) {
+                anyServicesNotReady = true;
             }
         }
 

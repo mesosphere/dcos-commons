@@ -172,7 +172,7 @@ public interface MesosEventClient {
 
             @Override
             public String toString() {
-                return String.format("%s:%s", state, hasNewWork);
+                return (hasNewWork) ? String.format("%s+newWork", state) : state.toString();
             }
         }
 

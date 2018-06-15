@@ -262,7 +262,7 @@ class OfferProcessor {
      */
     private boolean checkStatus() {
         ClientStatusResponse response = mesosEventClient.getClientStatus();
-        LOGGER.info("Status result: {}", response.result);
+        LOGGER.info("Status result: {}", response);
 
         switch (response.result) {
         case RUNNING:
