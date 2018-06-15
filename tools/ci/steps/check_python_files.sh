@@ -6,6 +6,8 @@ export COMPARE_TO=$( ${TOOL_DIR}/get_base_branch.sh )
 
 CHANGESET=$( ${TOOL_DIR}/get_changeset.sh | grep -E "\.py$" )
 
+CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.sh "${CHANGESET}" )
+
 if [[ -n ${CHANGESET} ]]; then
     echo "Changeset:"
     echo "${CHANGESET}"
