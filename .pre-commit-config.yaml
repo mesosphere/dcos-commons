@@ -6,3 +6,4 @@ repos:
       language: script
       entry: tools/ci/checks/run_flake8_checks.sh
       files: \.py$
+      pass_filenames: true
