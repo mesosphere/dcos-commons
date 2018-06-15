@@ -24,13 +24,11 @@ def service_account(configure_security):
     Sets up a service account for use with TLS.
     """
     try:
-        name = config.SERVICE_NAME
-        service_account_info = transport_encryption.setup_service_account(name)
+        service_account_info = transport_encryption.setup_service_account(config.SERVICE_NAME)
 
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
-                                                     service_account_info)
+        transport_encryption.cleanup_service_account(service_account_info)
 
 
 @pytest.fixture(scope='module')

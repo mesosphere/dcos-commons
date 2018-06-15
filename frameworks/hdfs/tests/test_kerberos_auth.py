@@ -35,7 +35,7 @@ def service_account(configure_security):
         service_account_info = transport_encryption.setup_service_account(config.FOLDERED_SERVICE_NAME)
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(config.FOLDERED_SERVICE_NAME, service_account_info)
+        transport_encryption.cleanup_service_account(service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)

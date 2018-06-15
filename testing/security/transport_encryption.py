@@ -53,7 +53,7 @@ def setup_service_account(service_name: str,
     return service_account_info
 
 
-def cleanup_service_account(service_name: str, service_account_info: dict):
+def cleanup_service_account(service_account_info: dict):
     """
     Clean up the specified service account.
 
