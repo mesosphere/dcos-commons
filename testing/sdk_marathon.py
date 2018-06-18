@@ -89,7 +89,9 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
 
 
 def is_app_running(app: dict) -> bool:
-    return app['tasksStaged'] == 0 and app['tasksUnhealthy'] == 0 and app['tasksRunning'] > 0
+    return (app.get('tasksStaged', 0) == 0
+            and app.get('tasksUnhealthy', 0) == 0
+            and app.get('tasksRunning', 0) > 0)
 
 
 def wait_for_deployment_and_app_running(app_name: str, timeout: int):
