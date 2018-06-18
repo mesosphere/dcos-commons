@@ -87,7 +87,8 @@ pods:
 
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
           # it relies on the task IP being stored in MESOS_CONTAINER_IP
-          ./bootstrap -resolve=false -template=false
+          export MESOS_CONTAINER_IP=$( ./bootstrap --get-task-ip )
+          export LIB_PROCESS_IP=$MESOS_CONTAINER_IP
           ./setup-helper
           export SETUP_HELPER_ADVERTISED_LISTENERS=`cat advertised.listeners`
           export SETUP_HELPER_LISTENERS=`cat listeners`
