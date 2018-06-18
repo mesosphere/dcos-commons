@@ -94,16 +94,22 @@ def is_app_running(app: dict) -> bool:
             and app.get('tasksRunning', 0) > 0)
 
 
-def wait_for_deployment_and_app_running(app_name: str, timeout: int):
-    shakedown.deployment_wait(timeout, app_name)
-
-    def app_running():
+def wait_for_app_running(app_name: str, timeout: int) -> None:
+    @retrying.retry(stop_max_delay=timeout,
+                    wait_fixed=5000,
+                    retry_on_result=lambda result: not result)
+    def _wait_for_app_running(app_name: str) -> bool:
         cmd = 'marathon app show {}'.format(app_name)
         log.info('Running %s', cmd)
         app = sdk_cmd.get_json_output(cmd)
         return is_app_running(app)
 
-    shakedown.time_wait(app_running, timeout_seconds=timeout)
+    _wait_for_app_running(app_name)
+
+
+def wait_for_deployment_and_app_running(app_name: str, timeout: int) -> None:
+    shakedown.deployment_wait(timeout, app_name)
+    wait_for_app_running(app_name, timeout)
 
 
 def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
