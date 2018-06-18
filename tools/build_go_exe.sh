@@ -89,7 +89,7 @@ cd $GOPATH_EXE_DIR
 # previous native build. if the sha1 matches, then we can skip the rebuild.
 NATIVE_FILENAME=".native-${EXE_BASE_NAME}"
 NATIVE_SHA1SUM_FILENAME="${NATIVE_FILENAME}.sha1sum"
-go build -o $NATIVE_FILENAME
+go build -a -o $NATIVE_FILENAME
 # 'shasum' is available on OSX as well as (most?) Linuxes:
 NATIVE_SHA1SUM=$(shasum $NATIVE_FILENAME | awk '{print $1}')
 
