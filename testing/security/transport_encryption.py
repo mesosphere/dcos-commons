@@ -23,8 +23,7 @@ def setup_service_account(service_name: str,
         log.error("The setup of a service account requires DC/OS EE. service_name=%s", service_name)
         raise Exception("The setup of a service account requires DC/OS EE")
 
-    name = service_name
-    secret = name if service_account_secret is None else service_account_secret
+    secret = service_name if service_account_secret is None else service_account_secret
 
     service_account = "{}-service-account".format(service_name.replace("/", ""))
 
@@ -47,7 +46,7 @@ def setup_service_account(service_name: str,
         for acl in acls:
             cmd_list = ["security", "org", "users", "grant",
                         "--description", "\"Allow provisioning TLS certificates\"",
-                        name, acl["rid"], acl["action"]
+                        service_account, acl["rid"], acl["action"]
                         ]
 
             sdk_cmd.run_cli(" ".join(cmd_list))
