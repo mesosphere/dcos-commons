@@ -89,7 +89,7 @@ cd $GOPATH_EXE_DIR
 # previous native build. if the sha1 matches, then we can skip the rebuild.
 NATIVE_FILENAME=".native-${EXE_BASE_NAME}"
 NATIVE_SHA1SUM_FILENAME="${NATIVE_FILENAME}.sha1sum"
-go build -a -o $NATIVE_FILENAME
+go build -a -ldflags "${GO_LDFLAGS}" -o $NATIVE_FILENAME
 # 'shasum' is available on OSX as well as (most?) Linuxes:
 NATIVE_SHA1SUM=$(shasum $NATIVE_FILENAME | awk '{print $1}')
 
@@ -145,7 +145,7 @@ else
 
         # available GOOS/GOARCH permutations are listed at:
         # https://golang.org/doc/install/source#environment
-        CGO_ENABLED=0 GOOS=$PLATFORM GOARCH=386 go build -ldflags="-s -w" -o $PLATFORM_FILENAME
+        CGO_ENABLED=0 GOOS=$PLATFORM GOARCH=386 go build -ldflags="-s -w ${GO_LDFLAGS}" -o $PLATFORM_FILENAME
 
         # use upx if:
         # - upx is installed
