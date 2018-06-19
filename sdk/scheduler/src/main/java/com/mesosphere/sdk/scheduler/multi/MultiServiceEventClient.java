@@ -179,7 +179,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 ClientStatusResponse statusResponse = service.getClientStatus();
                 if (!statusResponse.equals(ClientStatusResponse.idle())) {
                     // Only log status when it's active
-                    LOGGER.info("{} status: {}", serviceName, statusResponse.result);
+                    LOGGER.info("{} status: {}", serviceName, statusResponse);
                 }
 
                 // Note: We ALWAYS invoke the offer discipline regardless of status response. This allows the offer
@@ -187,33 +187,32 @@ public class MultiServiceEventClient implements MesosEventClient {
                 boolean sendOffers = offerDiscipline.offersEnabled(serviceName, statusResponse);
 
                 switch (statusResponse.result) {
-                case RUNNING:
+                case WORKING:
+                    allServicesIdle = false;
                     if (sendOffers) {
                         serviceNamesToGiveOffers.add(serviceName);
                     }
-                    switch (statusResponse.runningStatus.state) {
-                    case FOOTPRINT:
-                        allServicesIdle = false;
+                    if (statusResponse.workingStatus.state == ClientStatusResponse.WorkingStatus.State.FOOTPRINT) {
                         anyServicesFootprint = true;
-                        break;
-                    case LAUNCH:
-                        allServicesIdle = false;
-                        break;
-                    case IDLE:
-                        // Nothing to change
-                        break;
                     }
-                    if (statusResponse.runningStatus.hasNewWork) {
+                    if (statusResponse.workingStatus.hasNewWork) {
                         anyServicesHaveNewWork = true;
                     }
                     break;
-                case READY_TO_UNINSTALL:
-                    // This service has completed running and can be switched to uninstall.
-                    servicesToUninstall.add(serviceName);
-                    break;
-                case READY_TO_REMOVE:
-                    // This service has completed uninstall and can be torn down.
-                    servicesToRemove.add(service);
+                case IDLE:
+                    switch (statusResponse.idleRequest) {
+                    case NONE:
+                        // Nothing to do: Don't send offers, don't mark as having new work.
+                        break;
+                    case REMOVE_CLIENT:
+                        // This service has completed uninstall and can be torn down.
+                        servicesToRemove.add(service);
+                        break;
+                    case START_UNINSTALL:
+                        // This service has completed running and can be switched to uninstall.
+                        servicesToUninstall.add(serviceName);
+                        break;
+                    }
                     break;
                 }
 

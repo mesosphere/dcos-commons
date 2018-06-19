@@ -194,7 +194,7 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    public ClientStatusResponse getClientStatus() {
+    protected ClientStatusResponse getStatus() {
         if (goalState == GoalState.FINISH
                 && deploymentPlanManager.getPlan().isComplete()
                 && recoveryPlanManager.getPlan().isComplete()) {

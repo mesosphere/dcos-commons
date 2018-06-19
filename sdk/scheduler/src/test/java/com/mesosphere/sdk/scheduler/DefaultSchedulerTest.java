@@ -216,6 +216,9 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testEmptyOffers() {
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
+
         // Reconcile already triggered via registration during setup:
         OfferResponse offerResponse = defaultScheduler.offers(Collections.emptyList());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
@@ -224,13 +227,7 @@ public class DefaultSchedulerTest {
 
     @Test
     public void testLaunchA() throws Exception {
-        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
-        Assert.assertEquals(ClientStatusResponse.RunningStatus.State.FOOTPRINT,
-                defaultScheduler.getClientStatus().runningStatus.state);
-        installStep(0, 0, getSufficientOfferForTaskA(), Status.PENDING);
-        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
-        Assert.assertEquals(ClientStatusResponse.RunningStatus.State.FOOTPRINT,
-                defaultScheduler.getClientStatus().runningStatus.state);
+        installStep(0, 0, getSufficientOfferForTaskA(), Status.PENDING, true);
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.PENDING, Status.PENDING),
                 getStepStatuses(getDeploymentPlan()));
     }
@@ -239,7 +236,8 @@ public class DefaultSchedulerTest {
     public void testLaunchB() throws Exception {
         // Launch A-0
         testLaunchA();
-        installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING);
+
+        installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING, true);
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.PENDING),
                 getStepStatuses(getDeploymentPlan()));
     }
@@ -250,6 +248,9 @@ public class DefaultSchedulerTest {
         Plan plan = getDeploymentPlan();
         Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(stepTaskA0.isPending());
+
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
 
         // Offer insufficient Resource and wait for step state transition
         UUID offerId = UUID.randomUUID();
@@ -299,6 +300,9 @@ public class DefaultSchedulerTest {
         Plan plan = getDeploymentPlan();
         Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(stepTaskA0.isPending());
+
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
 
         // Offer sufficient Resources and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
@@ -355,6 +359,9 @@ public class DefaultSchedulerTest {
                 .addResources(mem)
                 .build();
 
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
+
         Collection<Protos.Offer> offers = Arrays.asList(offerA, offerB, offerC);
         response = defaultScheduler.offers(offers);
 
@@ -383,6 +390,9 @@ public class DefaultSchedulerTest {
         Plan plan = getDeploymentPlan();
         Step stepTaskA0 = plan.getChildren().get(0).getChildren().get(0);
         Assert.assertTrue(stepTaskA0.isPending());
+
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
 
         // Offer sufficient Resource and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
@@ -414,9 +424,11 @@ public class DefaultSchedulerTest {
         Protos.Resource neededAdditionalResource = ResourceTestUtils.getUnreservedCpus(UPDATED_TASK_A_CPU - TASK_A_CPU);
         expectedResources.add(neededAdditionalResource);
 
-
         // Start update Step: check behavior before and after reconciliation completes
         Protos.Offer insufficientOffer = OfferTestUtils.getCompleteOffer(neededAdditionalResource);
+
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
 
         // First attempt doesn't do anything because reconciliation hadn't completed yet
         Collection<Protos.Offer> offers = Arrays.asList(insufficientOffer);
@@ -432,6 +444,9 @@ public class DefaultSchedulerTest {
                 Arrays.asList(getTaskStatus(launchedTaskId, Protos.TaskState.TASK_RUNNING)));
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_RUNNING);
 
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(false), defaultScheduler.getClientStatus());
+
         // Second attempt after reconciliation results in triggering task relaunch
         response = defaultScheduler.offers(offers);
         Assert.assertEquals(OfferResponse.Result.PROCESSED, response.result);
@@ -444,6 +459,9 @@ public class DefaultSchedulerTest {
         statusUpdate(launchedTaskId, Protos.TaskState.TASK_KILLED);
         Assert.assertEquals(Status.PREPARED, stepTaskA0.getStatus());
         Assert.assertEquals(0, getRecoveryPlan().getChildren().size());
+
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(false), defaultScheduler.getClientStatus());
 
         Protos.Offer expectedOffer = OfferTestUtils.getCompleteOffer(expectedResources);
         response = defaultScheduler.offers(Arrays.asList(expectedOffer));
@@ -573,43 +591,43 @@ public class DefaultSchedulerTest {
         Assert.assertFalse(getDeploymentPlan().isComplete());
         Assert.assertTrue(getRecoveryPlan().isComplete());
 
+        // Kick getClientStatus() before calling offers():
+        Assert.assertEquals(ClientStatusResponse.footprint(true), defaultScheduler.getClientStatus());
+
         // Deployment hasn't finished, so service isn't FINISHED:
         OfferResponse offerResponse = defaultScheduler.offers(Collections.emptyList());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, offerResponse.result);
         Assert.assertTrue(offerResponse.recommendations.isEmpty());
 
         // Finish the deployment. First step is now PREPARED due to the offer we provided above:
-        Protos.TaskID taskId = installStep(0, 0, getSufficientOfferForTaskA(), Status.PREPARED);
-        installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING);
+        Protos.TaskID taskId = installStep(0, 0, getSufficientOfferForTaskA(), Status.PREPARED, false);
+        installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING, true);
 
         // Still RESERVING before the last step is completed:
-        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
-        Assert.assertEquals(ClientStatusResponse.RunningStatus.State.FOOTPRINT,
-                defaultScheduler.getClientStatus().runningStatus.state);
-
-        installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
+        installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING, true);
 
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertTrue(getRecoveryPlan().isComplete());
 
         // Now that Deployment has finished, service is FINISHED:
-        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_UNINSTALL, defaultScheduler.getClientStatus().result);
+        Assert.assertEquals(ClientStatusResponse.readyToUninstall(), defaultScheduler.getClientStatus());
 
         // Force recovery action, at which point scheduler should go back to RUNNING
         // (verify recovery is being monitored):
         statusUpdate(taskId, Protos.TaskState.TASK_FAILED);
 
-        // Implementation detail: recovery plan doesn't wake up until offers come through
-        Assert.assertEquals(ClientStatusResponse.Result.READY_TO_UNINSTALL, defaultScheduler.getClientStatus().result);
+        // Implementation detail: Now that the recovery action is pending, the scheduler should have reverted to a
+        // launching state so that it starts getting offers again. In practice, though, by this point it would already
+        // be switched over to an UninstallScheduler at this point.
+        Assert.assertEquals(ClientStatusResponse.launching(true), defaultScheduler.getClientStatus());
         Assert.assertTrue(getDeploymentPlan().isComplete());
-        Assert.assertTrue(getRecoveryPlan().isComplete());
+        Assert.assertFalse(getRecoveryPlan().isComplete());
+        Assert.assertEquals(Arrays.asList(Status.PENDING), getStepStatuses(getRecoveryPlan()));
 
         Assert.assertEquals(OfferResponse.Result.PROCESSED, defaultScheduler.offers(Collections.emptyList()).result);
 
         // After giving offers a kick, we're running again:
-        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
-        Assert.assertEquals(ClientStatusResponse.RunningStatus.State.LAUNCH,
-                defaultScheduler.getClientStatus().runningStatus.state);
+        Assert.assertEquals(ClientStatusResponse.launching(false), defaultScheduler.getClientStatus());
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertFalse(getRecoveryPlan().isComplete());
     }
@@ -632,13 +650,8 @@ public class DefaultSchedulerTest {
         testLaunchB();
 
         // Launch the second instance of POD-B
-        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
-        Assert.assertEquals(ClientStatusResponse.RunningStatus.State.FOOTPRINT,
-                defaultScheduler.getClientStatus().runningStatus.state);
-        installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING);
-        Assert.assertEquals(ClientStatusResponse.Result.RUNNING, defaultScheduler.getClientStatus().result);
-        Assert.assertEquals(ClientStatusResponse.RunningStatus.State.IDLE,
-                defaultScheduler.getClientStatus().runningStatus.state);
+        installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING, true);
+        Assert.assertEquals(ClientStatusResponse.idle(), defaultScheduler.getClientStatus());
         Assert.assertEquals(
                 Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 getStepStatuses(getDeploymentPlan()));
@@ -833,9 +846,14 @@ public class DefaultSchedulerTest {
                 .build();
     }
 
-    private Protos.TaskID installStep(int phaseIndex, int stepIndex, Protos.Offer offer, Status expectedStepStatus)
+    private Protos.TaskID installStep(
+            int phaseIndex, int stepIndex, Protos.Offer offer, Status expectedStepStatus, boolean hasNewWork)
             throws Exception {
-        // Get first Step associated with Task A-0
+
+        // Kick getClientStatus() in preparation for the following offers() call
+        Assert.assertEquals(ClientStatusResponse.footprint(hasNewWork), defaultScheduler.getClientStatus());
+
+        // After updating plan state, get first Step associated with Task A-0
         Step step = getDeploymentPlan().getChildren().get(phaseIndex).getChildren().get(stepIndex);
         Assert.assertEquals(expectedStepStatus, step.getStatus());
 
@@ -873,9 +891,9 @@ public class DefaultSchedulerTest {
     private List<Protos.TaskID> install() throws Exception {
         List<Protos.TaskID> taskIds = new ArrayList<>();
 
-        taskIds.add(installStep(0, 0, getSufficientOfferForTaskA(), Status.PENDING));
-        taskIds.add(installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING));
-        taskIds.add(installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING));
+        taskIds.add(installStep(0, 0, getSufficientOfferForTaskA(), Status.PENDING, true));
+        taskIds.add(installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING, true));
+        taskIds.add(installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING, true));
 
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
@@ -894,21 +912,19 @@ public class DefaultSchedulerTest {
     }
 
     private Plan getDeploymentPlan() throws Exception {
-        return getPlan(Constants.DEPLOY_PLAN_NAME);
+        return getPlan(defaultScheduler.getPlanCoordinator(), Constants.DEPLOY_PLAN_NAME);
     }
 
     private Plan getRecoveryPlan() throws Exception {
-        return getPlan(Constants.RECOVERY_PLAN_NAME);
+        return getPlan(defaultScheduler.getPlanCoordinator(), Constants.RECOVERY_PLAN_NAME);
     }
 
-    private Plan getPlan(String planName) throws Exception {
-        for (PlanManager planManager : defaultScheduler.getPlanCoordinator().getPlanManagers()) {
-            if (planManager.getPlan().getName().equals(planName)) {
-                return planManager.getPlan();
-            }
-        }
-        throw new IllegalStateException(String.format(
-                "No %s plan found: %s", planName, defaultScheduler.getPlanCoordinator().getPlanManagers()));
+    private static Plan getPlan(PlanCoordinator planCoordinator, String planName) throws Exception {
+        return planCoordinator.getPlanManagers().stream()
+                .filter(pm -> pm.getPlan().getName().equals(planName))
+                .findAny()
+                .get()
+                .getPlan();
     }
 
     private static List<Status> getStepStatuses(Plan plan) {

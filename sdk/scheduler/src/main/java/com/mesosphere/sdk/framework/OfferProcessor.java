@@ -211,9 +211,6 @@ class OfferProcessor {
         LOGGER.info("Waiting up to {}s for offers...", queueWait.getSeconds());
         List<Protos.Offer> offers = offerQueue.takeAll(queueWait);
         try {
-            // Always check if a revive is needed:
-            reviveManager.reviveIfRequested();
-
             if (offers.isEmpty() && !isInitialized.get()) {
                 // The scheduler hasn't finished registration yet, so many members haven't been initialized either.
                 // Avoid hitting NPE for planCoordinator, driver, etc.
@@ -233,10 +230,16 @@ class OfferProcessor {
             try {
                 if (checkStatus()) {
                     evaluateOffers(offers);
+                } else {
+                    // Offers not needed, at least not right now. Decline long.
+                    declineLong(offers);
                 }
             } finally {
                 context.stop();
             }
+
+            // After the status check, see if a revive is now needed:
+            reviveManager.reviveIfRequested();
         } finally {
             Metrics.incrementProcessedOffers(offers.size());
 
@@ -265,37 +268,39 @@ class OfferProcessor {
         LOGGER.info("Status result: {}", response);
 
         switch (response.result) {
-        case RUNNING:
-            if (response.runningStatus.hasNewWork) {
-                // Service has new work. Revive any previously declined offers.
-                reviveManager.requestRevive();
-            }
+        case WORKING:
+            // Two reasons to revive:
+            // - New work: Issue revive so that any previously declined offers get sent again
+            // - Suppressed: Issue revive so that the offer stream resumes
 
-            final boolean offersNeeded;
-            if (response.runningStatus.state == ClientStatusResponse.RunningStatus.State.IDLE) {
-                // Service is idle (multi-service: all idle). Suppress offers.
-                offersNeeded = false;
+            if (response.workingStatus.hasNewWork) {
+                // Service has new work. Revive any previously declined offers, regardless of whether we're suppressed.
+                reviveManager.requestRevive();
             } else {
                 // Service is not idle (multi-service: any not idle). Revive offers if suppressed.
-                // Note: We don't care about FOOTPRINT vs LAUNCH at this level. That's instead being used in
-                // MultiServiceEventClient to implement offer discipline (e.g. avoid too many services getting FOOTPRINT
-                // at the same time)
-                offersNeeded = true;
+                reviveManager.requestReviveIfSuppressed();
             }
-            reviveManager.notifyOffersNeeded(offersNeeded);
-            return offersNeeded;
-        case READY_TO_UNINSTALL:
-            // We do not directly support this result at this level. It should only occur in multi-service deployments,
-            // where it would have been handled upstream in the MultiServiceEventClient.
-            LOGGER.error("Got unsupported {} from service", response.result);
-            throw new IllegalStateException(String.format(
-                    "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
-                    response.result));
-        case READY_TO_REMOVE:
-            // The managed service(s) have finished uninstalling and there's nothing left to do.
-            // Unregister and delete the framework.
-            isDeregistered.set(true);
-            destroyFramework();
+            return true;
+        case IDLE:
+            // Service is idle (multi-service: all idle). Suppress offers.
+            switch (response.idleRequest) {
+            case NONE:
+                reviveManager.suppressIfActive();
+                break;
+            case REMOVE_CLIENT:
+                // The managed service(s) have finished uninstalling and there's nothing left to do.
+                // Unregister and delete the framework.
+                isDeregistered.set(true);
+                destroyFramework();
+                break;
+            case START_UNINSTALL:
+                // We do not directly support this result at this level. It should only occur in multi-service
+                // deployments, where it would have been handled upstream in the MultiServiceEventClient.
+                LOGGER.error("Got unsupported {} from service", response.result);
+                throw new IllegalStateException(String.format(
+                        "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
+                        response.result));
+            }
             return false;
         }
 

@@ -288,7 +288,6 @@ public class MultiServiceEventClientTest {
 
         when(mockClient1.offers(any())).then(CONSUME_FIRST_OFFER);
         when(mockClient2.offers(any())).then(CONSUME_LAST_OFFER);
-        when(mockClient3.offers(any())).then(NO_CHANGES);
 
         // Empty offers: All clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
@@ -297,8 +296,9 @@ public class MultiServiceEventClientTest {
 
         verify(mockClient1).offers(Collections.emptyList());
         verify(mockClient2).offers(Collections.emptyList());
-        verify(mockClient3).offers(Collections.emptyList());
-        // 4 not hit due to finished status:
+        // 3 not hit due to idle status:
+        verify(mockClient3, never()).offers(Collections.emptyList());
+        // 4 not hit due to readyToUninstall status:
         verify(mockClient4, never()).offers(Collections.emptyList());
         verify(mockMultiServiceManager).uninstallServices(Collections.singletonList("4"));
         // 5 not hit due to uninstalled status:
@@ -385,24 +385,25 @@ public class MultiServiceEventClientTest {
         // One client: Not ready
         when(mockClient1.offers(any())).then(NO_CHANGES);
         when(mockClient2.offers(any())).then(OFFER_NOT_READY);
-        when(mockClient3.offers(any())).then(NO_CHANGES);
 
-        // Empty offers: All clients should have been pinged regardless
+        // Empty offers: All running clients should have been pinged regardless
         OfferResponse response = client.offers(Collections.emptyList());
         Assert.assertEquals(OfferResponse.Result.NOT_READY, response.result); // PROCESSED
         Assert.assertTrue(response.recommendations.isEmpty());
         verify(mockClient1).offers(Collections.emptyList());
         verify(mockClient2).offers(Collections.emptyList());
-        verify(mockClient3).offers(Collections.emptyList());
+        // Client 3 is skipped due to being IDLE:
+        verify(mockClient3, never()).offers(Collections.emptyList());
 
-        // Three offers: All clients should have been pinged with the same offers.
+        // Three offers: All running clients should have been pinged with the same offers.
         List<Protos.Offer> offers = Arrays.asList(getOffer(1), getOffer(2), getOffer(3));
         response = client.offers(offers);
         Assert.assertEquals(OfferResponse.Result.NOT_READY, response.result);
         Assert.assertTrue(response.recommendations.isEmpty());
         verify(mockClient1).offers(offers);
         verify(mockClient2).offers(offers);
-        verify(mockClient3).offers(offers);
+        // Client 3 is skipped due to being IDLE:
+        verify(mockClient3, never()).offers(Collections.emptyList());
     }
 
     @Test

@@ -82,34 +82,28 @@ public interface MesosEventClient {
          */
         public enum Result {
             /**
-             * The client is running normally and requires no direct changes from upstream. However, additional details
-             * about its operation may be obtained by checking the value of {@code runningActivity}. These details may
+             * The client is actively performing work, e.g. acquiring footprint or launching tasks. Additional details
+             * about its operation may be obtained by checking the value of {@code workingStatus}. These details may
              * be used to determine e.g. whether the service currently needs any offers.
              */
-            RUNNING,
+            WORKING,
 
             /**
-             * The client has finished running and should be switched to uninstall mode by the caller. This is used for
-             * services which run once and then exit, and is only applicable to multi-service mode.
+             * The client has no work pending and currently does not require any offers at all (hint: offers can be
+             * suppressed if all services are idle). However, any relevant task statuses should still be sent, and the
+             * response may contain an {@code idleRequest} for any actions to be taken upstream.
              */
-            READY_TO_UNINSTALL,
-
-            /**
-             * The client has finished its uninstall. In multi-service mode, this means that the service can be removed
-             * from the parent scheduler. When uninstalling the scheduler itself, this means that the scheduler can be
-             * torn down, assuming that all other services have also reached {@code UNINSTALLED}.
-             */
-            READY_TO_REMOVE
+            IDLE
         };
 
         /**
-         * Provides additional information about a {@code RUNNING} service, which may be used to determine which
+         * Provides additional information about a {@code WORKING} service, which may be used to determine which
          * services should be receiving offers at any given time.
          */
-        public static class RunningStatus {
+        public static class WorkingStatus {
 
             /**
-             * This gives additional information about the status of a {@code RUNNING} service. Upstream can use this
+             * This gives additional information about the status of a {@code WORKING} service. Upstream can use this
              * information to decide which clients should be receiving offers at any given time.
              */
             public enum State {
@@ -129,17 +123,7 @@ public interface MesosEventClient {
                  * initial deployment after the footprint has been acquired, restarting failed tasks in-place, and
                  * launching sidecar tasks.
                  */
-                LAUNCH,
-
-                /**
-                 * The client has no work pending and currently does not require any offers at all. However, any
-                 * relevant task statuses should still be sent.
-                 *
-                 * This hint allows upstream to determine which services should receive offers. For example, if all
-                 * services are {@code IDLE}, then upstream could suppress all offers until one or more services is no
-                 * longer {@code IDLE} anymore.
-                 */
-                IDLE
+                LAUNCH
             }
 
             /**
@@ -155,7 +139,7 @@ public interface MesosEventClient {
              */
             public final boolean hasNewWork;
 
-            private RunningStatus(State state, boolean hasNewWork) {
+            private WorkingStatus(State state, boolean hasNewWork) {
                 this.state = state;
                 this.hasNewWork = hasNewWork;
             }
@@ -177,15 +161,46 @@ public interface MesosEventClient {
         }
 
         /**
-         * The result of the call.
+         * This notifies upstream of some action that should be performed against this service.
+         */
+        public enum IdleRequest {
+
+            /**
+             * The client has no requested actions for upstream to perform.
+             */
+            NONE,
+
+            /**
+             * The client has finished running and should be switched to uninstall mode by the caller. This is used
+             * for services which run once and then exit, and is only applicable to multi-service mode.
+             */
+            START_UNINSTALL,
+
+            /**
+             * The client has finished its uninstall. In multi-service mode, this means that the service can be
+             * removed from the parent scheduler. When uninstalling the scheduler itself, this means that the
+             * scheduler can be torn down, assuming that all other services have also reached {@code UNINSTALLED}.
+             */
+            REMOVE_CLIENT
+        }
+
+        /**
+         * The status of the service, either {@code WORKING} or {@code IDLE}. Additional detail for either of these
+         * states can be found via {@code workingStatus} or {@code idleRequest}, respectively.
          */
         public final Result result;
 
         /**
-         * Additional detail for a {@code RUNNING} service's status. This is only set if the {@code result} is
-         * {@code RUNNING}, otherwise it is {@code null}.
+         * Additional detail for a {@code WORKING} service's status. This is only set if the {@code result} is
+         * {@code WORKING}, otherwise it is {@code null}.
          */
-        public final RunningStatus runningStatus;
+        public final WorkingStatus workingStatus;
+
+        /**
+         * Additional action required for an {@code IDLE} service. This is set only if the {@code result} is
+         * {@code IDLE}, otherwise it is {@code null}.
+         */
+        public final IdleRequest idleRequest;
 
         /**
          * Tells the caller that this client is deploying the service's footprint. This may either be an initial
@@ -200,7 +215,7 @@ public interface MesosEventClient {
          */
         public static ClientStatusResponse footprint(boolean hasNewWork) {
             return new ClientStatusResponse(
-                    Result.RUNNING, new RunningStatus(RunningStatus.State.FOOTPRINT, hasNewWork));
+                    Result.WORKING, new WorkingStatus(WorkingStatus.State.FOOTPRINT, hasNewWork), null);
         }
 
         /**
@@ -210,7 +225,7 @@ public interface MesosEventClient {
          */
         public static ClientStatusResponse launching(boolean hasNewWork) {
             return new ClientStatusResponse(
-                    Result.RUNNING, new RunningStatus(RunningStatus.State.LAUNCH, hasNewWork));
+                    Result.WORKING, new WorkingStatus(WorkingStatus.State.LAUNCH, hasNewWork), null);
         }
 
         /**
@@ -218,7 +233,7 @@ public interface MesosEventClient {
          * it should continue to receive any task statuses that are relevant to it.
          */
         public static ClientStatusResponse idle() {
-            return new ClientStatusResponse(Result.RUNNING, new RunningStatus(RunningStatus.State.IDLE, false));
+            return new ClientStatusResponse(Result.IDLE, null, IdleRequest.NONE);
         }
 
         /**
@@ -226,7 +241,7 @@ public interface MesosEventClient {
          * should long-decline any unused offers.
          */
         public static ClientStatusResponse readyToUninstall() {
-            return new ClientStatusResponse(Result.READY_TO_UNINSTALL, null);
+            return new ClientStatusResponse(Result.IDLE, null, IdleRequest.START_UNINSTALL);
         }
 
         /**
@@ -237,12 +252,13 @@ public interface MesosEventClient {
          * This status is only relevant to multi-service schedulers.
          */
         public static ClientStatusResponse readyToRemove() {
-            return new ClientStatusResponse(Result.READY_TO_REMOVE, null);
+            return new ClientStatusResponse(Result.IDLE, null, IdleRequest.REMOVE_CLIENT);
         }
 
-        private ClientStatusResponse(Result result, RunningStatus runningStatus) {
+        private ClientStatusResponse(Result result, WorkingStatus workingStatus, IdleRequest idleRequest) {
             this.result = result;
-            this.runningStatus = runningStatus;
+            this.workingStatus = workingStatus;
+            this.idleRequest = idleRequest;
         }
 
         @Override
@@ -257,7 +273,16 @@ public interface MesosEventClient {
 
         @Override
         public String toString() {
-            return (runningStatus == null) ? result.toString() : String.format("%s/%s", result, runningStatus);
+            StringBuilder sb = new StringBuilder();
+            sb.append(result.toString());
+            if (workingStatus != null) {
+                sb.append('/');
+                sb.append(workingStatus.toString());
+            } else if (idleRequest != null) {
+                sb.append('/');
+                sb.append(idleRequest.toString());
+            }
+            return sb.toString();
         }
     }
 

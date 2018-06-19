@@ -74,11 +74,11 @@ public class WorkSetTracker {
 
         // If all three lists are empty (idle state), avoid logging:
         if (!newCandidates.isEmpty()) {
-            logger.info("New work detected in work set: old:{}, current:{}, new:{}",
+            logger.info("New work detected: old:{}, current:{} => new:{}",
                     this.candidates, currCandidates, newCandidates);
             this.hasNewWork = true;
         } else if (!this.candidates.isEmpty() || !currCandidates.isEmpty()) {
-            logger.info("No new work in work set: old:{}, current:{}", this.candidates, currCandidates);
+            logger.info("No new work: old:{}, current:{}", this.candidates, currCandidates);
         }
 
         this.candidates = currCandidates;

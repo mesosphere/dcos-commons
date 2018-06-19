@@ -93,8 +93,8 @@ public class ParallelFootprintDiscipline implements OfferDiscipline {
 
         Set<String> selected = selectedReservingServices.get();
 
-        if (statusResponse.result == ClientStatusResponse.Result.RUNNING
-                && statusResponse.runningStatus.state == ClientStatusResponse.RunningStatus.State.FOOTPRINT) {
+        if (statusResponse.result == ClientStatusResponse.Result.WORKING
+                && statusResponse.workingStatus.state == ClientStatusResponse.WorkingStatus.State.FOOTPRINT) {
             // This service wants to reserve footprint. Should we let it?
 
             if (selected.size() < reservingMax) {

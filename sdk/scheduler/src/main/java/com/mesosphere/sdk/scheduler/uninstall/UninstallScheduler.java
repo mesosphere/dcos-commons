@@ -155,7 +155,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     protected void registeredWithMesos() {
-        logger.info("Uninstall scheduler registered with Mesos.");
+        logger.info("Uninstall scheduler registered with Mesos");
     }
 
     @Override
@@ -166,7 +166,7 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public ClientStatusResponse getClientStatus() {
+    protected ClientStatusResponse getStatus() {
         if (deregisterStubStep.isRunning() || deregisterStubStep.isComplete()) {
             // The service resources have been deleted and all that's left is the final deregister operation. After we
             // return uninstalled(), upstream will finish the uninstall by doing one of the following:

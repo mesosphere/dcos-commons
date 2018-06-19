@@ -64,16 +64,16 @@ public class ReviveManagerTest {
         ReviveManager manager = new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
 
         // Suppress:
-        manager.notifyOffersNeeded(false);
+        manager.suppressIfActive();
         verify(driver, times(1)).suppressOffers();
 
         // Revive:
-        manager.notifyOffersNeeded(true);
+        manager.requestReviveIfSuppressed();
         manager.reviveIfRequested();
         verify(driver, times(1)).reviveOffers();
 
         // Revive again, because previous revive apparently didn't go through:
-        manager.notifyOffersNeeded(true);
+        manager.requestReviveIfSuppressed();
         manager.reviveIfRequested();
         verify(driver, times(2)).reviveOffers();
 
@@ -81,7 +81,7 @@ public class ReviveManagerTest {
         manager.notifyOffersReceived();
 
         // Now that we aren't suppressed, revive is not triggered by just needing offers:
-        manager.notifyOffersNeeded(true);
+        manager.requestReviveIfSuppressed();
         manager.reviveIfRequested();
         verify(driver, times(2)).reviveOffers();
 
@@ -94,8 +94,8 @@ public class ReviveManagerTest {
     @Test
     public void dontSuppressWhenSuppressed() {
         ReviveManager manager = getReviveManager();
-        manager.notifyOffersNeeded(false);
-        manager.notifyOffersNeeded(false);
+        manager.suppressIfActive();
+        manager.suppressIfActive();
         verify(driver, times(1)).suppressOffers();
     }
 

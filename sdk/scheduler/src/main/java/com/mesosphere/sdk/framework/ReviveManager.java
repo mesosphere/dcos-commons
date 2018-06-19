@@ -58,32 +58,38 @@ class ReviveManager {
     }
 
     /**
-     * Notifies the manager that one or more managed services are not idle.
-     * If offers are suppressed, then this schedules a revive.
+     * Issues a call to suppress offers, but only if the service does not already appear to be suppressed.
+     * This should be invoked when the service(s) are all in an IDLE state, so that the offer stream may be temporarily
+     * halted.
      */
-    synchronized void notifyOffersNeeded(boolean needsOffers) {
-        if (needsOffers) {
-            if (isSuppressed) {
-                // Service needs offers, but offers are suppressed. Schedule a revive.
-                requestRevive();
-            }
-        } else {
-            if (isSuppressed) {
-                // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
-                return;
-            }
-
-            // Service doesn't need offers, and offers are not suppressed. Suppress.
-            LOGGER.info("Suppressing offers");
-            Optional<SchedulerDriver> driver = Driver.getDriver();
-            if (!driver.isPresent()) {
-                throw new IllegalStateException("INTERNAL ERROR: No driver present for suppressing offers");
-            }
-            driver.get().suppressOffers();
-
-            isSuppressed = true;
-            Metrics.incrementSuppresses();
+    synchronized void suppressIfActive() {
+        if (isSuppressed) {
+            // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
+            return;
         }
+
+        // Service doesn't need offers, and offers are not suppressed. Suppress.
+        LOGGER.info("Suppressing offers");
+        Optional<SchedulerDriver> driver = Driver.getDriver();
+        if (!driver.isPresent()) {
+            throw new IllegalStateException("INTERNAL ERROR: No driver present for suppressing offers");
+        }
+        driver.get().suppressOffers();
+
+        isSuppressed = true;
+        Metrics.incrementSuppresses();
+    }
+
+    /**
+     * Notifies the manager that a revive should be sent, but only if we're currently suppressed.
+     * This should be invoked when the service(s) are in a WORKING state, so that any suppressed state gets cleared.
+     */
+    synchronized void requestReviveIfSuppressed() {
+        if (!isSuppressed) {
+            // Not suppressed, skip.
+            return;
+        }
+        requestRevive();
     }
 
     /**
@@ -99,11 +105,10 @@ class ReviveManager {
 
     /**
      * Pings the manager to perform a revive call to Mesos if one was previously requested. This must be invoked
-     * periodically to trigger revives.
+     * periodically to trigger revives. This structure allows us to enforce a rate limit on revive calls.
      */
     synchronized void reviveIfRequested() {
         if (!reviveRequested) {
-            // No revive is requested (either via requestRevive() or via notifyNotIdle()) -- no work needed.
             return;
         }
 
