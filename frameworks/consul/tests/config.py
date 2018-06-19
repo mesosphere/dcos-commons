@@ -1,0 +1,3 @@
+PACKAGE_NAME = 'consul'
+SERVICE_NAME = 'consul'
+DEFAULT_TASK_COUNT = 1
