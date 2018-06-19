@@ -60,7 +60,7 @@ public class FrameworkScheduler implements Scheduler {
                 frameworkRolesWhitelist,
                 frameworkStore,
                 mesosEventClient,
-                new OfferProcessor(mesosEventClient, persister),
+                new OfferProcessor(mesosEventClient, persister, schedulerConfig),
                 new ImplicitReconciler(schedulerConfig));
     }
 

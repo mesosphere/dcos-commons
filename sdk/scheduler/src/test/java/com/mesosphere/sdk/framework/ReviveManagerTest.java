@@ -6,6 +6,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
 import java.time.Duration;
 
 import static org.mockito.Mockito.*;
@@ -16,11 +18,13 @@ import static org.mockito.Mockito.*;
 public class ReviveManagerTest {
 
     @Mock private SchedulerDriver driver;
+    @Mock private SchedulerConfig mockSchedulerConfig;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(driver);
+        when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
     }
 
     @Test
@@ -48,8 +52,8 @@ public class ReviveManagerTest {
     public void dontReviveAcrossManagers() {
         // Both managers should share the same underlying token bucket:
         TokenBucket tokenBucket = TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build();
-        ReviveManager a = new ReviveManager(tokenBucket);
-        ReviveManager b = new ReviveManager(tokenBucket);
+        ReviveManager a = new ReviveManager(tokenBucket, mockSchedulerConfig);
+        ReviveManager b = new ReviveManager(tokenBucket, mockSchedulerConfig);
 
         a.requestRevive();
         b.requestRevive();
@@ -61,7 +65,8 @@ public class ReviveManagerTest {
 
     @Test
     public void suppressRevive() {
-        ReviveManager manager = new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
+        ReviveManager manager = new ReviveManager(
+                TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build(), mockSchedulerConfig);
 
         // Suppress:
         manager.suppressIfActive();
@@ -99,7 +104,16 @@ public class ReviveManagerTest {
         verify(driver, times(1)).suppressOffers();
     }
 
-    private static ReviveManager getReviveManager() {
-        return new ReviveManager(TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build());
+    @Test
+    public void dontSuppressWhenDisabled() {
+        when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(false);
+        ReviveManager manager = getReviveManager();
+        manager.suppressIfActive();
+        verify(driver, never()).suppressOffers();
+    }
+
+    private ReviveManager getReviveManager() {
+        return new ReviveManager(
+                TokenBucket.newBuilder().acquireInterval(Duration.ofDays(1)).build(), mockSchedulerConfig);
     }
 }

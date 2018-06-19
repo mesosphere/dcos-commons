@@ -34,6 +34,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
 import com.mesosphere.sdk.scheduler.OfferResources;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -55,6 +56,7 @@ public class OfferProcessorTest {
 
     @Mock private MesosEventClient mockMesosEventClient;
     @Mock private Persister mockPersister;
+    @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private SchedulerDriver mockSchedulerDriver;
     @Captor private ArgumentCaptor<Collection<Protos.OfferID>> offerIdCaptor;
     @Captor private ArgumentCaptor<List<Protos.Offer.Operation>> operationCaptor;
@@ -65,9 +67,10 @@ public class OfferProcessorTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
+        when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
         when(mockMesosEventClient.getClientStatus()).thenReturn(ClientStatusResponse.launching(false));
 
-        processor = new OfferProcessor(mockMesosEventClient, mockPersister);
+        processor = new OfferProcessor(mockMesosEventClient, mockPersister, mockSchedulerConfig);
     }
 
     @Test

@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 /**
  * Handles scheduling of Mesos suppress and revive calls.
@@ -24,14 +25,18 @@ class ReviveManager {
     private static final Logger LOGGER = LoggingUtils.getLogger(ReviveManager.class);
 
     // Rate limiter for revive calls.
-    private TokenBucket reviveTokenBucket;
+    private final TokenBucket reviveTokenBucket;
+    // Whether suppress calls are enabled. We still 'simulate' suppress behavior internally, even when this is disabled.
+    private final boolean suppressEnabled;
+
     // Whether we have had new work appear since the last time revive was called:
     private boolean reviveRequested;
     // Whether we think that we have suppressed offers from Mesos due to an idle state on our end:
     private boolean isSuppressed;
 
-    ReviveManager(TokenBucket reviveTokenBucket) {
+    ReviveManager(TokenBucket reviveTokenBucket, SchedulerConfig schedulerConfig) {
         this.reviveTokenBucket = reviveTokenBucket;
+        this.suppressEnabled = schedulerConfig.isSuppressEnabled();
         this.reviveRequested = false;
         this.isSuppressed = false;
     }
@@ -69,15 +74,19 @@ class ReviveManager {
         }
 
         // Service doesn't need offers, and offers are not suppressed. Suppress.
-        LOGGER.info("Suppressing offers");
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("INTERNAL ERROR: No driver present for suppressing offers");
+        if (suppressEnabled) {
+            LOGGER.info("Suppressing offers");
+            Optional<SchedulerDriver> driver = Driver.getDriver();
+            if (!driver.isPresent()) {
+                throw new IllegalStateException("INTERNAL ERROR: No driver present for suppressing offers");
+            }
+            driver.get().suppressOffers();
+            Metrics.incrementSuppresses();
+        } else {
+            LOGGER.info("Refraining from suppressing offers (disabled via DISABLE_SUPPRESS)");
         }
-        driver.get().suppressOffers();
 
         isSuppressed = true;
-        Metrics.incrementSuppresses();
     }
 
     /**

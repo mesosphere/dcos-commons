@@ -291,6 +291,7 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
         Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
         Mockito.when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-scheduler-region"));
+        Mockito.when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);

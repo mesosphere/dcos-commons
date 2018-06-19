@@ -30,6 +30,7 @@ import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.OfferResources;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
@@ -60,6 +61,7 @@ class OfferProcessor {
 
     private final MesosEventClient mesosEventClient;
     private final Persister persister;
+    private final SchedulerConfig schedulerConfig;
     private final OfferAccepter offerAccepter;
 
     // Internal TokenBucket may be overridden in tests:
@@ -69,11 +71,12 @@ class OfferProcessor {
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded;
 
-    public OfferProcessor(MesosEventClient mesosEventClient, Persister persister) {
+    public OfferProcessor(MesosEventClient mesosEventClient, Persister persister, SchedulerConfig schedulerConfig) {
         this.mesosEventClient = mesosEventClient;
         this.persister = persister;
+        this.schedulerConfig = schedulerConfig;
         this.offerAccepter = new OfferAccepter();
-        this.reviveManager = new ReviveManager(TokenBucket.newBuilder().build());
+        this.reviveManager = new ReviveManager(TokenBucket.newBuilder().build(), schedulerConfig);
         this.offerQueue = new OfferQueue();
         this.multithreaded = true;
     }
@@ -110,7 +113,7 @@ class OfferProcessor {
      */
     @VisibleForTesting
     OfferProcessor setReviveTokenBucket(TokenBucket reviveTokenBucket) {
-        this.reviveManager = new ReviveManager(reviveTokenBucket);
+        this.reviveManager = new ReviveManager(reviveTokenBucket, schedulerConfig);
         return this;
     }
 
