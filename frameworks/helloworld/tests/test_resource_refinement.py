@@ -45,7 +45,7 @@ def test_install():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version('1.10')
-def test_marathon_volume_collission():
+def test_marathon_volume_collision():
     # This test validates that a service registered in a sub-role of
     # slave_public will _not_ unreserve Marathon volumes RESERVED
     # in the `slave_public` role.
@@ -55,11 +55,12 @@ def test_marathon_volume_collission():
 
     # Install the marathon app
     marathon_app_name = "persistent-test"
+    volume_name = "persistent-volume"
     persistent_app = {
         "id": marathon_app_name,
         "mem": 128,
         "user": "nobody",
-        "cmd": "echo 'this is a test' > persistent-volume/test && sleep 10000",
+        "cmd": "echo 'this is a test' > {}/test && sleep 10000".format(volume_name),
         "container": {
             "type": "MESOS",
             "volumes": [
@@ -70,7 +71,7 @@ def test_marathon_volume_collission():
                     "constraints": []
                     },
                     "mode": "RW",
-                    "containerPath": "persistent-volume"
+                    "containerPath": volume_name
                 }
             ]
         }
@@ -80,14 +81,15 @@ def test_marathon_volume_collission():
 
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
-        ok, pv_name = sdk_cmd.agent_ssh(host, "ls /var/lib/mesos/slave/volumes/roles/slave_public")
+        # Should get e.g.: "/var/lib/mesos/slave/volumes/roles/slave_public/persistent-test#persistent-volume#76e7bb6d-64fa-11e8-abc5-8e679b292d5e"
+        ok, pv_path = sdk_cmd.agent_ssh(host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
         assert ok
 
-        pv_name = pv_name.strip()
+        pv_path = pv_path.strip()
 
         @retrying.retry(wait_fixed=1000, stop_max_delay=60*1000)
         def check_content():
-            ok, pv_content = sdk_cmd.agent_ssh(host, "cat /var/lib/mesos/slave/volumes/roles/slave_public/{}/test".format(pv_name))
+            ok, pv_content = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
             assert pv_content.strip() == "this is a test"
 
         check_content()

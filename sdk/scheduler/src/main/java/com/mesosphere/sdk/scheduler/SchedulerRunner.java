@@ -90,7 +90,6 @@ public class SchedulerRunner implements Runnable {
                 schedulerBuilder.isRegionAwarenessEnabled());
 
         AbstractScheduler scheduler = schedulerBuilder.build();
-        scheduler.start();
         frameworkRunner.registerAndRunFramework(persister, scheduler);
     }
 }

@@ -346,7 +346,8 @@ public class PodInfoBuilder {
         environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, EndpointUtils.toVipDomain(serviceName));
         // Inject Scheduler API hostname (with hostname-safe scheduler name)
         environmentMap.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV,
-                EndpointUtils.toSchedulerApiVipHostname(serviceName));
+                EndpointUtils.toSchedulerAutoIpHostname(serviceName, schedulerConfig));
+        environmentMap.put(EnvConstants.SCHEDULER_API_PORT_TASKENV, String.valueOf(schedulerConfig.getApiServerPort()));
 
         // Inject TASK_NAME as KEY:VALUE
         environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));

@@ -6,6 +6,7 @@ import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkScheduler;
 import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.framework.TaskKiller;
+import com.mesosphere.sdk.framework.TokenBucket;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
@@ -26,6 +27,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -305,8 +307,8 @@ public class ServiceTestRunner {
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
         TaskKiller.reset(false);
-        // Reset revive manager token bucket, to ensure semi-consistent timer state and avoid unnecessary waiting.
-        ReviveManager.resetTimers();
+        // Disable rate limiting on revive calls, to ensure consistency and avoid unnecessary waiting.
+        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build());
 
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
@@ -315,6 +317,7 @@ public class ServiceTestRunner {
         // Test 1: Does RawServiceSpec render?
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(specPath)
                 .setEnv(schedulerEnvironment)
+                .enableStrictRendering()
                 .build();
 
         // Test 2: Does ServiceSpec render?
@@ -376,8 +379,11 @@ public class ServiceTestRunner {
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
 
-        // Re-enable background TaskKiller thread for other tests
+        // Re-enable background TaskKiller thread for other tests:
         TaskKiller.reset(true);
+
+        // Return to default rate limit duration on revive calls:
+        ReviveManager.overrideTokenBucket(TokenBucket.newBuilder().build());
 
         return new ServiceTestResult(
                 serviceSpec, rawServiceSpec, schedulerEnvironment, taskConfigs, persister, clusterState);

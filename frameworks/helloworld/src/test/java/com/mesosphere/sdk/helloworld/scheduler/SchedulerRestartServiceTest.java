@@ -48,7 +48,7 @@ public class SchedulerRestartServiceTest {
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.launchedTasks("world-0-server"));
 
-        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", Status.STARTING));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.STARTING));
 
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING)
                 .setReadinessCheckExitCode(readinessCheckStatusCode).build());
@@ -59,7 +59,7 @@ public class SchedulerRestartServiceTest {
         } else {
             postReadinessStatus = Status.STARTED;
         }
-        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", postReadinessStatus));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", postReadinessStatus));
 
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.declinedLastOffer());
@@ -74,7 +74,7 @@ public class SchedulerRestartServiceTest {
         ticks.add(Send.register());
         ticks.add(Expect.reconciledExplicitly(result.getPersister()));
 
-        ticks.add(Expect.stepStatus("deploy", "world", "world-0:[server]", expectedStatus));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", expectedStatus));
 
         new ServiceTestRunner().setState(result).run(ticks);
     }

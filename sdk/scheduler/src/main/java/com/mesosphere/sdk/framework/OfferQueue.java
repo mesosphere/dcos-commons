@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
  */
 public class OfferQueue {
     private static final int DEFAULT_CAPACITY = 100;
-    private static final Duration DEFAULT_OFFER_WAIT = Duration.ofSeconds(5);
     private final Logger logger = LoggingUtils.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
 
@@ -39,7 +38,8 @@ public class OfferQueue {
 
     /**
      * Calling this method will wait for Offers for the provided duration.
-     * It returns all Offers currently in the queue if any are present and none otherwise.
+     * It returns all Offers currently in the queue if any are present, or an empty list if none appear in the provided
+     * duration.
      */
     public List<Protos.Offer> takeAll(Duration duration) {
         List<Protos.Offer> offers = new LinkedList<>();
@@ -56,15 +56,6 @@ public class OfferQueue {
         }
 
         return offers;
-    }
-
-    /**
-     * Calling this method will wait for Offers for a static duration of {@link OfferQueue#DEFAULT_OFFER_WAIT}.
-     * It returns all Offers currently in the queue if any are present and an empty list if the duration
-     * of {@link OfferQueue#DEFAULT_OFFER_WAIT} is reached.
-     */
-    public List<Protos.Offer> takeAll() {
-        return takeAll(DEFAULT_OFFER_WAIT);
     }
 
     /**

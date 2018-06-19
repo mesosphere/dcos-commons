@@ -146,12 +146,18 @@ public class SendOffer implements Send {
         // Include task-level resources (note: resources are not merged, e.g. 1.5cpu+1.0 cpu instead of 2.5cpu):
         for (TaskSpec taskSpec : podSpec.getTasks()) {
             if (podToReuse.isPresent()) {
-                // Copy executor id and all reserved resources from prior pod launch:
-                AcceptEntry pod = state.getLastAcceptCall(podToReuse.get());
-                offerBuilder
-                        .addAllExecutorIds(
-                                pod.getExecutors().stream().map(e -> e.getExecutorId()).collect(Collectors.toList()))
-                        .addAllResources(pod.getReservations());
+                // Copy executor id and all reserved resources from prior pod launches:
+                List<AcceptEntry> acceptCalls = state.getAcceptCalls(podToReuse.get());
+                AcceptEntry lastLaunch = acceptCalls.get(acceptCalls.size() - 1);
+                // Get executor ids to offer from LAST launch operation for the pod:
+                offerBuilder.addAllExecutorIds(lastLaunch.getExecutors().stream()
+                        .map(e -> e.getExecutorId())
+                        .collect(Collectors.toList()));
+                // Get resources to offer from ALL launch operations for the pod:
+                // (Note: this assumes no UNRESERVEs have occurred, but that's close enough for now...)
+                for (AcceptEntry acceptCall : acceptCalls) {
+                    offerBuilder.addAllResources(acceptCall.getReservations());
+                }
             } else {
                 // Create new unreserved resources:
                 for (ResourceSpec resourceSpec : taskSpec.getResourceSet().getResources()) {

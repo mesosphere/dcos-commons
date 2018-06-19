@@ -2,6 +2,7 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import javax.ws.rs.GET;
@@ -24,13 +25,16 @@ public class ArtifactResource {
      * Returns a factory for schedulers which use {@link ArtifactResource}.
      *
      * @param serviceName the name of the service/framework (1:1)
+     * @param schedulerConfig the scheduler config containing the configured API port
      */
-    public static ArtifactQueries.TemplateUrlFactory getUrlFactory(String serviceName) {
-        String hostname = EndpointUtils.toSchedulerApiVipHostname(serviceName);
+    public static ArtifactQueries.TemplateUrlFactory getUrlFactory(
+            String serviceName, SchedulerConfig schedulerConfig) {
+        String hostnameAndPort = EndpointUtils.toSchedulerAutoIpEndpoint(serviceName, schedulerConfig);
         return new ArtifactQueries.TemplateUrlFactory() {
             @Override
             public String get(UUID configId, String podType, String taskName, String configName) {
-                return String.format(SERVICE_ARTIFACT_URI_FORMAT, hostname, configId, podType, taskName, configName);
+                return String.format(SERVICE_ARTIFACT_URI_FORMAT,
+                        hostnameAndPort, configId, podType, taskName, configName);
             }
         };
     }

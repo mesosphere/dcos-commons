@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -29,10 +29,10 @@ import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
-import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
+import com.mesosphere.sdk.storage.Persister;
 
 /**
  * An implementation of {@link MesosEventClient} which wraps multiple running services, routing Mesos events to each
@@ -59,36 +59,50 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final MultiServiceManager multiServiceManager;
     private final Collection<Object> customEndpoints;
     private final UninstallCallback uninstallCallback;
+    private final OfferDiscipline offerDiscipline;
 
     // Additional handling for when we're uninstalling the entire Scheduler.
-    private final DeregisterStep deregisterStep;
-    private final Optional<Plan> uninstallPlan;
+    private final Optional<DeregisterStep> deregisterStep;
 
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
             MultiServiceManager multiServiceManager,
+            Persister persister,
             Collection<Object> customEndpoints,
             UninstallCallback uninstallCallback) {
+        this(
+                frameworkName,
+                schedulerConfig,
+                multiServiceManager,
+                (schedulerConfig.getMultiServiceReserveDiscipline() > 0)
+                        ? new ReservationDiscipline(
+                                schedulerConfig.getMultiServiceReserveDiscipline(),
+                                new DisciplineSelectionStore(persister))
+                        : new AllDiscipline(),
+                customEndpoints,
+                uninstallCallback,
+                schedulerConfig.isUninstallEnabled()
+                        ? Optional.of(new DeregisterStep(Optional.empty()))
+                        : Optional.empty());
+    }
+
+    @VisibleForTesting
+    MultiServiceEventClient(
+            String frameworkName,
+            SchedulerConfig schedulerConfig,
+            MultiServiceManager multiServiceManager,
+            OfferDiscipline offerDiscipline,
+            Collection<Object> customEndpoints,
+            UninstallCallback uninstallCallback,
+            Optional<DeregisterStep> deregisterStep) {
         this.frameworkName = frameworkName;
         this.schedulerConfig = schedulerConfig;
         this.multiServiceManager = multiServiceManager;
         this.customEndpoints = customEndpoints;
         this.uninstallCallback = uninstallCallback;
-
-        if (schedulerConfig.isUninstallEnabled()) {
-            this.deregisterStep = new DeregisterStep(Optional.empty());
-            this.uninstallPlan = Optional.of(
-                    new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.singletonList(
-                            new DefaultPhase(
-                                    "deregister-framework",
-                                    Collections.singletonList(deregisterStep),
-                                    new SerialStrategy<>(),
-                                    Collections.emptyList()))));
-        } else {
-            this.deregisterStep = null;
-            this.uninstallPlan = Optional.empty();
-        }
+        this.offerDiscipline = offerDiscipline;
+        this.deregisterStep = deregisterStep;
     }
 
     @Override
@@ -98,11 +112,11 @@ public class MultiServiceEventClient implements MesosEventClient {
 
     @Override
     public void unregistered() {
-        if (!uninstallPlan.isPresent()) {
+        if (!deregisterStep.isPresent()) {
             // This should have only happened after we returned OfferResponse.finished() below
             throw new IllegalStateException("unregistered() called, but the we are not uninstalling");
         }
-        deregisterStep.setComplete();
+        deregisterStep.get().setComplete();
     }
 
     /**
@@ -124,7 +138,7 @@ public class MultiServiceEventClient implements MesosEventClient {
 
         if (noServices) {
             // There are no active services to process offers. Should the rest of the framework be torn down?
-            if (uninstallPlan.isPresent()) {
+            if (deregisterStep.isPresent()) {
                 // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
                 // can finish with final framework cleanup. After they've finished, they will invoke unregistered(), at
                 // which point we can set our deploy plan to complete.
@@ -140,33 +154,30 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them.
-     *
-     * TODO(data-agility): Lots of opportunities to optimize this. Needs benchmarks. For example:
-     * <ul>
-     * <li>- Hide reserved resources from services that they don't belong to</li>
-     * <li>- Forward the offers to a random ordering of services to avoid some services starving others</li>
-     * <li>- Distribute the offers across all services in parallel (optimistic offers)</li>
-     * <li>- ... Pretty much anything that you could see Mesos itself doing.</li>
-     * </ul>
+     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
+     * services which actually receive offers is decided by the {@link OfferDiscipline}.
      */
     @Override
     public OfferResponse offers(Collection<Protos.Offer> offers) {
-        // Decline short if any service isn't ready.
-        boolean anyServicesNotReady = false;
-
-        List<OfferRecommendation> recommendations = new ArrayList<>();
-        List<Protos.Offer> remainingOffers = new ArrayList<>();
-        remainingOffers.addAll(offers);
-
-        Collection<String> servicesToUninstall = new HashSet<>();
-        Collection<AbstractScheduler> servicesToRemove = new HashSet<>();
+        Collection<AbstractScheduler> servicesToGiveOffers = new ArrayList<>();
+        Collection<String> servicesToUninstall = new ArrayList<>();
+        Collection<AbstractScheduler> servicesToRemove = new ArrayList<>();
 
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         try {
             if (services.isEmpty()) {
                 // Nothing to do, short-circuit.
                 return OfferResponse.processed(Collections.emptyList());
+            }
+
+            // Update the offer discipline with the current list of services.
+            try {
+                offerDiscipline.updateServices(services.stream()
+                        .map(s -> s.getServiceSpec().getName())
+                        .collect(Collectors.toSet()));
+            } catch (Exception e) {
+                LOGGER.error("Failed to update selected services in offer discipline, trying again later", e);
+                return OfferResponse.notReady(Collections.emptyList());
             }
 
             // Before we handle offers, check for any finished services that should be switched to uninstall, or any
@@ -182,34 +193,17 @@ public class MultiServiceEventClient implements MesosEventClient {
                     LOGGER.info("{} status: {}", serviceName, statusResponse.result);
                 }
 
+                // Note: We ALWAYS invoke the offer discipline regardless of status response. This allows the offer
+                // discipline to add/remove selected services based on that status.
+                boolean sendOffers = offerDiscipline.offersEnabled(serviceName, statusResponse);
+
                 switch (statusResponse.result) {
                 case RESERVING:
-                    // TODO(nickbp): When implementing reservation discipline, use this to determine that a given
-                    // service is reserving resources.
                     //$FALL-THROUGH$
-                case RUNNING: {
-                    OfferResponse offerResponse = service.offers(remainingOffers);
-                    recommendations.addAll(offerResponse.recommendations);
-                    if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
-                        // Some offers were consumed. Update what remains to offer to the next service.
-                        remainingOffers =
-                                OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+                case RUNNING:
+                    if (sendOffers) {
+                        servicesToGiveOffers.add(service);
                     }
-                    boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
-                    if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
-                        // Only log result when it's non-empty/unusual
-                        LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
-                                service.getServiceSpec().getName(),
-                                offerResponse.result,
-                                offerResponse.recommendations.size(),
-                                offerResponse.recommendations.size() == 1 ? "" : "s",
-                                remainingOffers.size(),
-                                remainingOffers.size() == 1 ? "" : "s");
-                    }
-                    if (!readyForOffers) {
-                        anyServicesNotReady = true;
-                    }
-                }
                     break;
                 case FINISHED:
                     // This service has completed running and can be switched to uninstall.
@@ -228,6 +222,39 @@ public class MultiServiceEventClient implements MesosEventClient {
             multiServiceManager.sharedUnlock();
         }
 
+        // Decline short if any service isn't ready.
+        boolean anyServicesNotReady = false;
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+        if (!servicesToGiveOffers.isEmpty()) {
+            LOGGER.info("Sending offers to {} service{}:",
+                    servicesToGiveOffers.size(), servicesToGiveOffers.size() == 1 ? "" : "s");
+            List<Protos.Offer> remainingOffers = new ArrayList<>();
+            remainingOffers.addAll(offers);
+            for (AbstractScheduler service : servicesToGiveOffers) {
+                OfferResponse offerResponse = service.offers(remainingOffers);
+                recommendations.addAll(offerResponse.recommendations);
+                if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
+                    // Some offers were consumed. Update what remains to offer to the next service.
+                    remainingOffers =
+                            OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+                }
+                boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
+                if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
+                    // Only log result when it's non-empty/unusual
+                    LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
+                            service.getServiceSpec().getName(),
+                            offerResponse.result,
+                            offerResponse.recommendations.size(),
+                            offerResponse.recommendations.size() == 1 ? "" : "s",
+                            remainingOffers.size(),
+                            remainingOffers.size() == 1 ? "" : "s");
+                }
+                if (!readyForOffers) {
+                    anyServicesNotReady = true;
+                }
+            }
+        }
+
         if (!servicesToUninstall.isEmpty()) {
             LOGGER.info("Starting uninstall for {} service{}: {}",
                     servicesToUninstall.size(), servicesToUninstall.size() == 1 ? "" : "s", servicesToUninstall);
@@ -239,11 +266,11 @@ public class MultiServiceEventClient implements MesosEventClient {
             LOGGER.info("Removing {} uninstalled service{}: {}",
                     servicesToRemove.size(), servicesToRemove.size() == 1 ? "" : "s", servicesToRemove);
 
-            // Note: It's possible that we can have a race where we attempt to remove the same service twice. This is ok
+            // Note: It's possible that we can have a race where we attempt to remove a service twice. This is fine.
             //       (Picture two near-simultaneous calls to offers(): Both send offers, both get FINISHED back, ...)
             multiServiceManager.removeServices(servicesToRemove.stream()
                     .map(service -> service.getServiceSpec().getName())
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toList()));
 
             for (AbstractScheduler service : servicesToRemove) {
                 service.getStateStore().deleteAllDataIfNamespaced();
@@ -402,8 +429,14 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public Collection<Object> getHTTPEndpoints() {
-        Collection<PlanManager> planManagers = uninstallPlan.isPresent()
-                ? Collections.singletonList(DefaultPlanManager.createProceeding(uninstallPlan.get()))
+        Collection<PlanManager> planManagers = deregisterStep.isPresent()
+                ? Collections.singletonList(DefaultPlanManager.createProceeding(new DefaultPlan(
+                        Constants.DEPLOY_PLAN_NAME,
+                        Collections.singletonList(new DefaultPhase(
+                                "deregister-framework",
+                                Collections.singletonList(deregisterStep.get()),
+                                new SerialStrategy<>(),
+                                Collections.emptyList())))))
                 : Collections.emptyList(); // ... any plans to show when running normally?
         List<Object> endpoints = new ArrayList<>();
         endpoints.addAll(Arrays.asList(

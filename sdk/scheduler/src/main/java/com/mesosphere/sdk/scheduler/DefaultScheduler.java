@@ -39,7 +39,6 @@ public class DefaultScheduler extends AbstractScheduler {
     private final SchedulerConfig schedulerConfig;
     private final FrameworkStore frameworkStore;
     private final ConfigStore<ServiceSpec> configStore;
-    private final PlanCoordinator planCoordinator;
     private final Collection<PlanManager> plansToCheckFinished;
     private final PlanManager planToCheckDeployed;
     private final Collection<Object> customResources;
@@ -87,13 +86,12 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(serviceSpec, stateStore, planCustomizer, namespace);
+        super(serviceSpec, stateStore, planCoordinator, planCustomizer, namespace);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.namespace = namespace;
         this.schedulerConfig = schedulerConfig;
         this.frameworkStore = frameworkStore;
         this.configStore = configStore;
-        this.planCoordinator = planCoordinator;
         if (serviceSpec.getGoal() == GoalState.FINISH) {
             // Get the recovery and deploy plans. If they are COMPLETED, then the service can be uninstalled. We store
             // the PlanManagers, not the underlying Plans, because PlanManagers can change their plans at any time.
@@ -134,6 +132,8 @@ public class DefaultScheduler extends AbstractScheduler {
                         namespace),
                 stateStore,
                 namespace);
+
+        customizePlans();
     }
 
     @Override
@@ -157,11 +157,6 @@ public class DefaultScheduler extends AbstractScheduler {
             resources.add(new OfferOutcomeResource(offerOutcomeTracker.get()));
         }
         return resources;
-    }
-
-    @Override
-    public PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
     }
 
     @Override

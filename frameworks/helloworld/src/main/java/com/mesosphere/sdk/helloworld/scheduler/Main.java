@@ -118,6 +118,7 @@ public class Main {
                 frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 multiServiceManager,
+                persister,
                 Collections.singleton(httpResource),
                 httpResource.getUninstallCallback());
 
@@ -158,6 +159,7 @@ public class Main {
                 frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 multiServiceManager,
+                persister,
                 Collections.emptyList(),
                 new MultiServiceEventClient.UninstallCallback() {
             @Override

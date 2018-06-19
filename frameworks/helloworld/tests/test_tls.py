@@ -161,17 +161,17 @@ def test_java_keystore():
             config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
         )
 
-    _, output = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'artifacts-0-node', curl, return_stderr_in_stdout=True)
+    _, _, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'artifacts-0-node', curl)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
-    assert 'HTTP/1.1 200 OK' in output
-    assert 'CAfile: secure-tls-pod.ca' in output
+    assert 'HTTP/1.1 200 OK' in stderr
+    assert 'CAfile: secure-tls-pod.ca' in stderr
     tls_verification_msg = (
         'host "keystore-https.hello-world.l4lb.thisdcos.directory" matched '
         'cert\'s "keystore-https.hello-world.l4lb.thisdcos.directory"'
     )
-    assert tls_verification_msg in output
+    assert tls_verification_msg in stderr
 
 
 @pytest.mark.tls

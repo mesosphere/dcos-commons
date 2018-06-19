@@ -5,18 +5,26 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.PlanCustomizer;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -31,6 +39,12 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
     protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
+    protected final PlanCoordinator planCoordinator;
+
+    public Optional<PlanCustomizer> getPlanCustomizer() {
+        return planCustomizer;
+    }
+
     protected final Optional<PlanCustomizer> planCustomizer;
 
     // These are all (re)assigned when the scheduler has (re)registered:
@@ -40,6 +54,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     protected AbstractScheduler(
             ServiceSpec serviceSpec,
             StateStore stateStore,
+            PlanCoordinator planCoordinator,
             Optional<PlanCustomizer> planCustomizer,
             Optional<String> namespace) {
         this.logger = LoggingUtils.getLogger(AbstractScheduler.class, namespace);
@@ -47,26 +62,10 @@ public abstract class AbstractScheduler implements MesosEventClient {
         this.serviceSpec = serviceSpec;
         this.stateStore = stateStore;
         this.planCustomizer = planCustomizer;
+        this.planCoordinator = planCoordinator;
     }
 
-    /**
-     * Returns the service spec for this service.
-     */
-    public ServiceSpec getServiceSpec() {
-        return serviceSpec;
-    }
-
-    /**
-     * Starts any internal threads to be used by the service.
-     * Must be called after construction, once, in order for work to proceed.
-     *
-     * @return this
-     */
-    public AbstractScheduler start() {
-        if (!started.compareAndSet(false, true)) {
-            throw new IllegalStateException("start() can only be called once");
-        }
-
+    protected void customizePlans() {
         if (planCustomizer.isPresent()) {
             for (PlanManager planManager : getPlanCoordinator().getPlanManagers()) {
                 if (planManager.getPlan().isRecoveryPlan()) {
@@ -80,8 +79,13 @@ public abstract class AbstractScheduler implements MesosEventClient {
                 }
             }
         }
+    }
 
-        return this;
+    /**
+     * Returns the service spec for this service.
+     */
+    public ServiceSpec getServiceSpec() {
+        return serviceSpec;
     }
 
     /**
@@ -178,7 +182,9 @@ public abstract class AbstractScheduler implements MesosEventClient {
     /**
      * Returns the {@link PlanCoordinator}.
      */
-    public abstract PlanCoordinator getPlanCoordinator();
+    public PlanCoordinator getPlanCoordinator() {
+        return planCoordinator;
+    }
 
     /**
      * Returns the custom endpoints, or an empty map if there are none.

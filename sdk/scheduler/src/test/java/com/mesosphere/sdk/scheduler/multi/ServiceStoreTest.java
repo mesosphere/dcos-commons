@@ -17,6 +17,9 @@ import com.mesosphere.sdk.storage.Persister;
 
 import static org.mockito.Mockito.*;
 
+/**
+ * Tests for {@link ServiceStore}
+ */
 public class ServiceStoreTest {
 
     private static final Charset CHARSET = StandardCharsets.UTF_8;

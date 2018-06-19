@@ -1,6 +1,9 @@
 package com.mesosphere.sdk.scheduler;
 
 import java.util.Collection;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -152,6 +155,16 @@ public interface MesosEventClient {
         private ClientStatusResponse(Result result) {
             this.result = result;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
     }
 
     /**
@@ -212,6 +225,16 @@ public interface MesosEventClient {
             this.result = result;
             this.recommendations = recommendations;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
     }
 
     /**
@@ -270,6 +293,16 @@ public interface MesosEventClient {
             this.result = result;
             this.offerResources = offerResources;
         }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
+        }
     }
 
     /**
@@ -315,6 +348,16 @@ public interface MesosEventClient {
 
         private TaskStatusResponse(Result result) {
             this.result = result;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            return EqualsBuilder.reflectionEquals(this, o);
+        }
+
+        @Override
+        public int hashCode() {
+            return HashCodeBuilder.reflectionHashCode(this);
         }
     }
 }

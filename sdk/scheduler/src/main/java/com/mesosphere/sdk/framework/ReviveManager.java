@@ -25,42 +25,33 @@ public class ReviveManager {
      * We use a singleton {@link TokenBucket} because we want rate limits on revive calls to be enforced across all
      * running services in the scheduler.
      */
-    private static final TokenBucket TOKEN_BUCKET_INSTANCE = TokenBucket.newBuilder().build();
+    private static TokenBucket tokenBucket = TokenBucket.newBuilder().build();
 
     private final Logger logger;
-    private final TokenBucket tokenBucket;
 
     private Set<WorkItem> candidates = new HashSet<>();
 
     /**
-     * Resets revive limits in the global token bucket, for tests.
+     * Overrides the {@link TokenBucket} object to be used by all {@link ReviveManager}s within the process.
+     * Only for use in tests.
      */
     @VisibleForTesting
-    public static void resetTimers() {
-        TOKEN_BUCKET_INSTANCE.reset();
+    public static void overrideTokenBucket(TokenBucket tokenBucket) {
+        ReviveManager.tokenBucket = tokenBucket;
     }
 
     /**
-     * Creates an instance using the singleton {@link TokenBucket} instance. The {@link TokenBucket} is a singleton
-     * because we want rate limits to be enforced across all running services in the scheduler.
+     * Creates an instance which will use the configured singleton {@link TokenBucket} for rate limiting. The
+     * {@link TokenBucket} is a shared singleton because we want revive rate limits to be enforced across all running
+     * services in the scheduler process.
      */
     public ReviveManager(Optional<String> namespace) {
-        this(TOKEN_BUCKET_INSTANCE, namespace);
-    }
-
-    /**
-     * Creates an instance with a custom {@link TokenBucket} instead of the singleton instance. Only for use in tests.
-     */
-    @VisibleForTesting
-    ReviveManager(TokenBucket tokenBucket, Optional<String> namespace) {
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
-        this.tokenBucket = tokenBucket;
     }
 
     /**
-     *
      * Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
-     * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}`s) we
+     * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}s) we
      * assume that the offers we've declined forever may be useful to that work, and so we revive offers.
      *
      * Pseudo-code algorithm is this:

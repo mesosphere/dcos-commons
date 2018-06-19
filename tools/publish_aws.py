@@ -50,33 +50,8 @@ class AWSPublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
-        s3_bucket = os.environ.get('S3_BUCKET')
-        if not s3_bucket:
-            s3_bucket = 'infinity-artifacts'
-        logger.info('Using artifact bucket: {}'.format(s3_bucket))
-
-        s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
-        dir_name = '{}-{}'.format(
-            time.strftime("%Y%m%d-%H%M%S"),
-            ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
-
-        # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
-        s3_directory_url = os.environ.get(
-            'S3_URL',
-            's3://{}/{}/{}/{}'.format(
-                s3_bucket,
-                s3_dir_path,
-                package_name,
-                dir_name))
+        s3_directory_url, self._http_directory_url = s3_urls_from_env(self._pkg_name)
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
-
-        self._http_directory_url = os.environ.get(
-            'ARTIFACT_DIR',
-            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
-                s3_bucket,
-                s3_dir_path,
-                package_name,
-                dir_name))
 
     def _spam_universe_url(self, universe_url):
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
@@ -136,6 +111,35 @@ class AWSPublisher(object):
 
         return universe_url
 
+def s3_urls_from_env(package_name):
+    s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')
+    logger.info('Using artifact bucket: {}'.format(s3_bucket))
+
+    s3_dir_path = os.environ.get('S3_DIR_PATH', 'autodelete7d')
+    s3_dir_name = os.environ.get('S3_DIR_NAME')
+    if not s3_dir_name:
+        s3_dir_name = '{}-{}'.format(
+            time.strftime("%Y%m%d-%H%M%S"),
+            ''.join([random.SystemRandom().choice(string.ascii_letters + string.digits) for i in range(16)]))
+
+    # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
+    s3_directory_url = os.environ.get(
+            'S3_URL',
+            's3://{}/{}/{}/{}'.format(
+            s3_bucket,
+            s3_dir_path,
+            package_name,
+            s3_dir_name))
+
+    http_directory_url = os.environ.get(
+            'ARTIFACT_DIR',
+            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
+            s3_bucket,
+            s3_dir_path,
+            package_name,
+            s3_dir_name))
+    
+    return s3_directory_url, http_directory_url
 
 def print_help(argv):
     logger.info('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))

@@ -108,14 +108,14 @@ public class PlanScheduler {
 
         Set<String> resourceSetsToConsume = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
-                .map(taskSpec -> taskSpec.getResourceSet())
-                .map(resourceSet -> resourceSet.getId())
+                .map(taskSpec -> taskSpec.getResourceSet().getId())
                 .collect(Collectors.toSet());
         List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
                 .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
                 .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
                 .collect(Collectors.toList());
-        logger.info("Killing tasks for pod instance requirement {}:{}, with resource sets to consume {}: {}",
+        logger.info("Killing {} for pod instance requirement {}:{}, with resource sets to consume {}",
+                tasksToKill,
                 podInstanceRequirement.getPodInstance().getName(),
                 podInstanceRequirement.getTasksToLaunch(),
                 resourceSetsToConsume,
@@ -123,17 +123,23 @@ public class PlanScheduler {
 
         for (String taskName : tasksToKill) {
             Protos.TaskInfo taskInfo = taskInfoMap.get(taskName);
-            if (taskInfo != null) {
-                Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskInfo.getName());
+            if (taskInfo == null) {
+                // No TaskInfo at all. This should (only) be the case when the service is first being deployed.
+                // Avoid sending out kill requests for tasks that never existed: there's no ID regardless
+                logger.info("Skipping kill request for {}: no TaskInfo found, new task?", taskName);
+                continue;
+            }
 
-                Protos.TaskState state = Protos.TaskState.TASK_RUNNING;
-                if (taskStatusOptional.isPresent()) {
-                    state = taskStatusOptional.get().getState();
-                }
-
-                if (!TaskUtils.isTerminal(state)) {
-                    TaskKiller.killTask(taskInfo.getTaskId());
-                }
+            Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskName);
+            if (!taskStatusOptional.isPresent()) {
+                // Couldn't find status, which shouldn't happen in practice. Just issue a kill request regardless.
+                TaskKiller.killTask(taskInfo.getTaskId());
+            } else if (TaskUtils.isTerminal(taskStatusOptional.get().getState())) {
+                logger.info("Skipping kill request for {}: already in terminal state {}",
+                        taskName, taskStatusOptional.get().getState());
+            } else {
+                // Task isn't already in terminal state. Issue a kill request.
+                TaskKiller.killTask(taskInfo.getTaskId());
             }
         }
     }
