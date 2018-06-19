@@ -2,7 +2,7 @@ package com.mesosphere.sdk.framework;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import org.apache.commons.lang3.builder.EqualsBuilder;

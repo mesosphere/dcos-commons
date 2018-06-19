@@ -1,19 +1,26 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.metrics;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.readytalk.metrics.StatsDReporter;
 
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.mesos.Protos;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+
+import javax.swing.text.html.Option;
 
 /**
  * This class encapsulates the components necessary for tracking Scheduler metrics.
@@ -113,5 +120,33 @@ public class Metrics {
         // Metric name will be of the form "task_status.running"
         final String metricName = String.format("task_status.%s", taskStatus.getState().name().toLowerCase());
         metrics.counter(metricName).inc();
+    }
+
+    public static void setPlanStatus(Optional<String> namespace, String planName, Status status) {
+        final String metricName = namespace.isPresent() ?
+                String.format("plan_status.%s.%s", namespace.get(), planName)
+                :
+                String.format("plan_status.%s", planName);
+
+        Map<String, Gauge> gauges = metrics.getGauges((name, metric) -> name.equals(metricName));
+        if (gauges.size() > 0) {
+            ((PlanGauge) gauges.get(metricName)).setStatus(status);
+        } else {
+            PlanGauge gauge = new PlanGauge();
+            metrics.gauge(metricName, () -> gauge);
+        }
+    }
+
+    static class PlanGauge implements Gauge<Integer> {
+        private Status status;
+
+        public void setStatus(Status status) {
+            this.status = status;
+        }
+
+        @Override
+        public Integer getValue() {
+            return status.ordinal();
+        }
     }
 }

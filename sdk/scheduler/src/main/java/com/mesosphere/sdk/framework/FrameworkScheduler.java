@@ -18,7 +18,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
-import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.MesosEventClient.TaskStatusResponse;
 import com.mesosphere.sdk.state.FrameworkStore;

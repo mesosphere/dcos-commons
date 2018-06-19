@@ -1,7 +1,8 @@
-package com.mesosphere.sdk.scheduler;
+package com.mesosphere.sdk.metrics;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Timer;
+import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
