@@ -23,21 +23,22 @@ def setup_service_account(service_name: str,
         log.error("The setup of a service account requires DC/OS EE. service_name=%s", service_name)
         raise Exception("The setup of a service account requires DC/OS EE")
 
-    name = service_name
-    secret = name if service_account_secret is None else service_account_secret
+    secret = service_name if service_account_secret is None else service_account_secret
+
+    service_account = "{}-service-account".format(service_name.replace("/", ""))
 
     service_account_info = sdk_security.setup_security(service_name,
                                                        linux_user="nobody",
-                                                       service_account=name,
+                                                       service_account=service_account,
                                                        service_account_secret=secret)
 
     log.info("Adding permissions required for TLS.")
     if sdk_utils.dcos_version_less_than("1.11"):
-        sdk_cmd.run_cli("security org groups add_user superusers {name}".format(name=name))
+        sdk_cmd.run_cli("security org groups add_user superusers {sa}".format(sa=service_account))
     else:
         acls = [
-                {"rid": "dcos:secrets:default:/{}/*".format(service_name), "action": "full"},
-                {"rid": "dcos:secrets:list:default:/{}".format(service_name), "action": "read"},
+                {"rid": "dcos:secrets:default:/{}/*".format(service_name.strip("/")), "action": "full"},
+                {"rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")), "action": "read"},
                 {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
                 {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
                 ]
@@ -45,7 +46,7 @@ def setup_service_account(service_name: str,
         for acl in acls:
             cmd_list = ["security", "org", "users", "grant",
                         "--description", "\"Allow provisioning TLS certificates\"",
-                        name, acl["rid"], acl["action"]
+                        service_account, acl["rid"], acl["action"]
                         ]
 
             sdk_cmd.run_cli(" ".join(cmd_list))
