@@ -7,20 +7,16 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.readytalk.metrics.StatsDReporter;
-
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
+import org.apache.mesos.Protos;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
-import org.apache.mesos.Protos;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-
-import javax.swing.text.html.Option;
 
 /**
  * This class encapsulates the components necessary for tracking Scheduler metrics.
@@ -132,7 +128,7 @@ public class Metrics {
         if (gauges.size() > 0) {
             ((PlanGauge) gauges.get(metricName)).setStatus(status);
         } else {
-            PlanGauge gauge = new PlanGauge();
+            PlanGauge gauge = new PlanGauge().setStatus(status);
             metrics.gauge(metricName, () -> gauge);
         }
     }
@@ -140,13 +136,34 @@ public class Metrics {
     static class PlanGauge implements Gauge<Integer> {
         private Status status;
 
-        public void setStatus(Status status) {
+        public PlanGauge setStatus(Status status) {
             this.status = status;
+            return this;
         }
 
         @Override
         public Integer getValue() {
-            return status.ordinal();
+            // We return a set of user facing statuses rather than the complete set of statuses available.
+            // This also insulates us against changes to the Status enum.
+            //
+            // The values step upwards when the plan is active.
+            switch (status) {
+                case ERROR:
+                    return -1;
+                case COMPLETE:
+                    return 0;
+                case WAITING:
+                case PENDING:
+                    return 1;
+                case IN_PROGRESS:
+                case PREPARED:
+                case STARTED:
+                case STARTING:
+                    return 2;
+                default:
+                    throw new IllegalStateException(
+                            "PlanGauge.getValue() has no mapping for this status: " + status.toString());
+            }
         }
     }
 }

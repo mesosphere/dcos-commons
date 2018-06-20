@@ -1,18 +1,20 @@
 package com.mesosphere.sdk.metrics;
 
 import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
-import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
-
-import java.util.Arrays;
-
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This class tests the {@link Metrics} class.
@@ -115,5 +117,72 @@ public class MetricsTest {
         Metrics.incrementRecommendations(Arrays.asList(realRecommendation, realRecommendation, realRecommendation));
 
         Assert.assertEquals(3, launchCounter.getCount() - val);
+    }
+
+    @Test
+    public void testPlanGauge() {
+        Metrics.PlanGauge gauge = new Metrics.PlanGauge();
+
+        class GaugeTest {
+            public Status status;
+            public Integer expected;
+
+            public GaugeTest(Status status, Integer expected) {
+                this.status = status;
+                this.expected = expected;
+            }
+        }
+
+        GaugeTest[] tests = new GaugeTest[]{
+                new GaugeTest(Status.ERROR, -1),
+                new GaugeTest(Status.COMPLETE, 0),
+                new GaugeTest(Status.WAITING, 1),
+                new GaugeTest(Status.PENDING, 1),
+                new GaugeTest(Status.PREPARED, 2),
+                new GaugeTest(Status.IN_PROGRESS, 2),
+                new GaugeTest(Status.STARTED, 2),
+                new GaugeTest(Status.STARTING, 2)
+        };
+
+        for (GaugeTest test : tests) {
+            gauge.setStatus(test.status);
+            Assert.assertEquals("For status "+test.status+" expected status is "+test.expected,
+                    test.expected,
+                    gauge.getValue());
+        }
+    }
+
+    @Test
+    public void testPlanStatusNoNamespace() {
+        String metricName = "plan_status.deploy";
+        MetricRegistry registry = Metrics.getRegistry();
+        Assert.assertEquals(0, registry.getGauges((name, metric) -> name.equals(metricName)).size());
+
+        // Call set status. This will create the gauge.
+        Metrics.setPlanStatus(Optional.empty(), "deploy", Status.ERROR);
+        Assert.assertEquals(1, registry.getGauges((name, metric) -> name.equals(metricName)).size());
+        Gauge gauge = registry.getGauges((name, metric) -> name.equals(metricName)).get(metricName);
+        Assert.assertEquals(-1, gauge.getValue());
+
+        // Verify that an update to status is applied to the same gauge.
+        Metrics.setPlanStatus(Optional.empty(), "deploy", Status.IN_PROGRESS);
+        Assert.assertEquals(2, gauge.getValue());
+    }
+
+    @Test
+    public void testPlanStatusWithNamespace() {
+        String metricName = "plan_status.namespace.deploy";
+        MetricRegistry registry = Metrics.getRegistry();
+        Assert.assertEquals(0, registry.getGauges((name, metric) -> name.equals(metricName)).size());
+
+        // Call set status. This will create the gauge.
+        Metrics.setPlanStatus(Optional.of("namespace"), "deploy", Status.ERROR);
+        Assert.assertEquals(1, registry.getGauges((name, metric) -> name.equals(metricName)).size());
+        Gauge gauge = registry.getGauges((name, metric) -> name.equals(metricName)).get(metricName);
+        Assert.assertEquals(-1, gauge.getValue());
+
+        // Verify that an update to status is applied to the same gauge.
+        Metrics.setPlanStatus(Optional.of("namespace"), "deploy", Status.IN_PROGRESS);
+        Assert.assertEquals(2, gauge.getValue());
     }
 }

@@ -25,7 +25,6 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
         }
         this.planManagers.addAll(planManagers);
         this.planReporter = new PlanReporter(namespace, this.planManagers);
-        this.planReporter.start();
     }
 
     /**
