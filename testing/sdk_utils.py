@@ -8,6 +8,7 @@ import functools
 import logging
 import operator
 import random
+import re
 import string
 
 import dcos
@@ -118,6 +119,18 @@ def is_open_dcos():
 def is_strict_mode():
     '''Determine if the tests are being run on a strict mode cluster.'''
     return os.environ.get('SECURITY', '') == 'strict'
+
+
+def is_channel(channel):
+    '''Determine if the tests are being run on a DC/OS cluster with a particular channel.'''
+    active_channel = os.environ.get('DCOS_LAUNCH_CONFIG_CHANNEL', '')
+    return channel and active_channel and re.match(channel, active_channel)
+
+
+def is_master_channel():
+    '''Determine if the tests are being run on a master-channel DC/OS cluster.'''
+    master_channel = os.environ.get('DCOS_CHANNEL_MASTER', '')
+    return is_channel(master_channel)
 
 
 def random_string(length=8):

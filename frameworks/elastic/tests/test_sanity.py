@@ -167,7 +167,8 @@ def test_custom_yaml_base64():
 
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
-@pytest.mark.skip(reason='MESOS-9008: Mesos Fetcher fails to extract Kibana archive')
+@pytest.mark.skipif(sdk_utils.is_master_channel(),
+                    reason='MESOS-9008: Mesos Fetcher fails to extract Kibana archive')
 def test_xpack_toggle_with_kibana(default_populated_index):
     log.info("\n***** Verify X-Pack disabled by default in elasticsearch")
     config.verify_commercial_api_status(False, service_name=foldered_name)
