@@ -1,4 +1,5 @@
 #!/bin/bash
+# This script is used by
 
 TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 
@@ -13,9 +14,13 @@ if [[ -n ${CHANGESET} ]]; then
     echo "${CHANGESET}"
 
     echo ""
-    echo "Running flake8:"
+    echo "Running flake8 on $(echo \"${CHANGESET}\" | wc -w) files:"
     ${TOOL_DIR}/run_flake8_checks.sh "${CHANGESET}"
-    exit $?
+    rc=$?
+    if [ ${rc} -eq 0 ]; then
+        echo "Success!"
+    fi
+    exit ${rc}
 fi
 
 echo "No Python files in changeset."
