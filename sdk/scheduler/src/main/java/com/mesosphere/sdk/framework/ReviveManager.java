@@ -16,8 +16,9 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
  * <li>Suppress is performed whenever the underlying services are all idle and no further offers are needed. This allows
  * Mesos to scale to more frameworks. When the framework is suppressed, it will not receive any offers for any reason.
  * </li>
- * <li>Revive will reset any prior Suppress call, and/or reset any offers which were previously declined. It should be
- * invoked when any new work has appeared, but Revive calls should be rate limited to avoid taxing Mesos.</li>
+ * <li>From our perspective, a Revive call will reset any prior Suppress call, and/or reset any offers which were
+ * previously declined, resulting in all offers being sent again. It should be invoked when any new work has appeared,
+ * but Revive calls should be rate limited to avoid taxing Mesos.</li>
  * </ul>
  */
 class ReviveManager {
@@ -105,7 +106,7 @@ class ReviveManager {
      * Notifies the manager that a revive should be sent soon. This is needed in either of the following cases:
      * <ul>
      * <li>The service has new work to do and any previously declined offers should be sent again</li>
-     * <li>Offers are suppressed but the service is not idle (via {@link #notifyOffersNeeded(boolean)}</li>
+     * <li>Offers are suppressed but the service is not idle (via {@link #requestReviveIfSuppressed()}</li>
      * </ul>
      */
     synchronized void requestRevive() {

@@ -80,13 +80,14 @@ public class ParallelFootprintDiscipline implements OfferDiscipline {
     }
 
     /**
-     * Returns whether offers should be enabled for the specified service, based on its status.
+     * Updates internal state to reflect the provided service's status, and returns whether offers should be allowed
+     * for the service.
      *
      * Among services with a {@code RESERVING} status, only {@code reservingMax} may receive offers at a time.
      * Meanwhile, services with any status other than {@code RESERVING} do not have any limitation.
      */
     @Override
-    public boolean offersEnabled(String serviceName, ClientStatusResponse statusResponse) {
+    public boolean updateServiceStatus(String serviceName, ClientStatusResponse statusResponse) {
         if (!selectedReservingServices.isPresent()) {
             throw new IllegalStateException("offersEnabled() called without any preceding call to updateServices()");
         }

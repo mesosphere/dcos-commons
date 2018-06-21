@@ -28,7 +28,7 @@ public class AllDiscipline implements OfferDiscipline {
      * Returns {@code true}: All services are enabled at all times.
      */
     @Override
-    public boolean offersEnabled(String serviceName, ClientStatusResponse statusResponse) {
+    public boolean updateServiceStatus(String serviceName, ClientStatusResponse statusResponse) {
         return true;
     }
 }

@@ -137,7 +137,7 @@ public class MultiServiceEventClientTest {
         when(mockMultiServiceManager.getService("7")).thenReturn(Optional.of(mockClient7));
         when(mockMultiServiceManager.getService("8")).thenReturn(Optional.of(mockClient8));
         when(mockMultiServiceManager.getService("9")).thenReturn(Optional.of(mockClient9));
-        when(mockOfferDiscipline.offersEnabled(any(), any())).thenReturn(true);
+        when(mockOfferDiscipline.updateServiceStatus(any(), any())).thenReturn(true);
         client = buildClient(false);
     }
 
@@ -172,7 +172,7 @@ public class MultiServiceEventClientTest {
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.readyToUninstall());
         Assert.assertEquals(ClientStatusResponse.idle(), client.getClientStatus());
         verify(mockOfferDiscipline).updateServices(Collections.singleton("1"));
-        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.readyToUninstall());
+        verify(mockOfferDiscipline).updateServiceStatus("1", ClientStatusResponse.readyToUninstall());
         verify(mockMultiServiceManager).uninstallServices(Collections.singletonList("1"));
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
         verifyZeroInteractions(mockStateStore);
@@ -182,7 +182,7 @@ public class MultiServiceEventClientTest {
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.readyToRemove());
         Assert.assertEquals(ClientStatusResponse.idle(), client.getClientStatus());
         verify(mockOfferDiscipline, times(2)).updateServices(Collections.singleton("1"));
-        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.readyToRemove());
+        verify(mockOfferDiscipline).updateServiceStatus("1", ClientStatusResponse.readyToRemove());
         verify(mockStateStore).deleteAllDataIfNamespaced();
         verify(mockMultiServiceManager).removeServices(Collections.singletonList("1"));
         verify(mockUninstallCallback).uninstalled("1");
@@ -208,7 +208,7 @@ public class MultiServiceEventClientTest {
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.readyToUninstall());
         Assert.assertEquals(ClientStatusResponse.idle(), client.getClientStatus());
         verify(mockOfferDiscipline).updateServices(Collections.singleton("1"));
-        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.readyToUninstall());
+        verify(mockOfferDiscipline).updateServiceStatus("1", ClientStatusResponse.readyToUninstall());
         verify(mockMultiServiceManager).uninstallServices(Collections.singletonList("1"));
         Assert.assertEquals(OfferResponse.Result.PROCESSED, client.offers(Collections.emptyList()).result);
         verifyZeroInteractions(mockStateStore);
@@ -218,7 +218,7 @@ public class MultiServiceEventClientTest {
         when(mockClient1.getClientStatus()).thenReturn(ClientStatusResponse.readyToRemove());
         Assert.assertEquals(ClientStatusResponse.idle(), client.getClientStatus());
         verify(mockOfferDiscipline, times(2)).updateServices(Collections.singleton("1"));
-        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.readyToRemove());
+        verify(mockOfferDiscipline).updateServiceStatus("1", ClientStatusResponse.readyToRemove());
         verify(mockStateStore).deleteAllDataIfNamespaced();
         verify(mockMultiServiceManager).removeServices(Collections.singletonList("1"));
         verify(mockUninstallCallback).uninstalled("1");
@@ -252,10 +252,10 @@ public class MultiServiceEventClientTest {
 
         // As uninstalled clients are removed, data is cleared and upstream is notified via callback:
         verify(mockOfferDiscipline).updateServices(new HashSet<>(Arrays.asList("1", "2", "3", "4")));
-        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.readyToRemove());
-        verify(mockOfferDiscipline).offersEnabled("2", ClientStatusResponse.readyToUninstall());
-        verify(mockOfferDiscipline).offersEnabled("3", ClientStatusResponse.readyToRemove());
-        verify(mockOfferDiscipline).offersEnabled("4", ClientStatusResponse.readyToUninstall());
+        verify(mockOfferDiscipline).updateServiceStatus("1", ClientStatusResponse.readyToRemove());
+        verify(mockOfferDiscipline).updateServiceStatus("2", ClientStatusResponse.readyToUninstall());
+        verify(mockOfferDiscipline).updateServiceStatus("3", ClientStatusResponse.readyToRemove());
+        verify(mockOfferDiscipline).updateServiceStatus("4", ClientStatusResponse.readyToUninstall());
         verify(mockStateStore, times(2)).deleteAllDataIfNamespaced();
         verify(mockMultiServiceManager).removeServices(Arrays.asList("1", "3"));
         verify(mockUninstallCallback).uninstalled("1");
@@ -280,11 +280,11 @@ public class MultiServiceEventClientTest {
         Assert.assertEquals(ClientStatusResponse.footprint(true), client.getClientStatus());
 
         verify(mockOfferDiscipline).updateServices(new HashSet<>(Arrays.asList("1", "2", "3", "4", "5")));
-        verify(mockOfferDiscipline).offersEnabled("1", ClientStatusResponse.launching(true));
-        verify(mockOfferDiscipline).offersEnabled("2", ClientStatusResponse.footprint(false));
-        verify(mockOfferDiscipline).offersEnabled("3", ClientStatusResponse.idle());
-        verify(mockOfferDiscipline).offersEnabled("4", ClientStatusResponse.readyToUninstall());
-        verify(mockOfferDiscipline).offersEnabled("5", ClientStatusResponse.readyToRemove());
+        verify(mockOfferDiscipline).updateServiceStatus("1", ClientStatusResponse.launching(true));
+        verify(mockOfferDiscipline).updateServiceStatus("2", ClientStatusResponse.footprint(false));
+        verify(mockOfferDiscipline).updateServiceStatus("3", ClientStatusResponse.idle());
+        verify(mockOfferDiscipline).updateServiceStatus("4", ClientStatusResponse.readyToUninstall());
+        verify(mockOfferDiscipline).updateServiceStatus("5", ClientStatusResponse.readyToRemove());
 
         when(mockClient1.offers(any())).then(CONSUME_FIRST_OFFER);
         when(mockClient2.offers(any())).then(CONSUME_LAST_OFFER);

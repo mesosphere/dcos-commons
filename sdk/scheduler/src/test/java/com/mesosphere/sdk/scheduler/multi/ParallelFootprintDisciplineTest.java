@@ -36,7 +36,7 @@ public class ParallelFootprintDisciplineTest {
     @Test(expected=IllegalStateException.class)
     public void testMissingUpdate() {
         OfferDiscipline d = new ParallelFootprintDiscipline(1, store);
-        d.offersEnabled("1", ClientStatusResponse.launching(false));
+        d.updateServiceStatus("1", ClientStatusResponse.launching(false));
     }
 
     @Test
@@ -45,23 +45,23 @@ public class ParallelFootprintDisciplineTest {
         d.updateServices(Arrays.asList("1", "2", "3"));
 
         // 1 takes slot with reserving:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
 
         // 1 gives up slot with readyToUninstall, 2 takes it:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.readyToUninstall()));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.readyToUninstall()));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
 
         // 2 gives up slot with launching, 1 takes it:
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.launching(false)));
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
 
         // 1 gives up slot with readyToRemove, 2 takes it:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.readyToRemove()));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.readyToRemove()));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -70,24 +70,24 @@ public class ParallelFootprintDisciplineTest {
         d.updateServices(Arrays.asList("1", "2", "3"));
         Assert.assertEquals(Collections.emptySet(), store.fetchSelectedServices());
 
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.launching(false)));
         // 2 can reserve (gets the slot):
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
         // 3 cannot reserve:
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
         // .. but 3 can run:
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.launching(false)));
         // Meanwhile 2 can still reserve:
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
 
         // 2 gets removed:
         d.updateServices(Arrays.asList("1", "3"));
         // Now 3 can reserve (gets the slot):
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
         // And now 1 cannot reserve:
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
         // 3 can still reserve:
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -101,14 +101,14 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.singleton("2"), store.fetchSelectedServices());
 
         // Only 2 can reserve:
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
 
         // After 2 has stopped reserving, 1 can reserve:
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.launching(false)));
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -122,13 +122,13 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.singleton("2"), store.fetchSelectedServices());
 
         // Now only 2 gets to keep its slot:
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
 
         // sanity check: 1 gets slot after 2 gives it up:
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.launching(false)));
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -139,24 +139,24 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.emptySet(), store.fetchSelectedServices());
 
         // 1 and 2 can reserve (get slots):
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
         // 3 cannot reserve, but 1 and 2 can:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
         // After 1 gives up its slot, 3 gets it:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.launching(false)));
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
 
         // 2 gets removed:
         d.updateServices(Arrays.asList("1", "3"));
         // Change is stored with 2's slot revoked:
         Assert.assertEquals(Collections.singleton("3"), store.fetchSelectedServices());
         // Now 1 can reserve (gets the slot), and 3 can still reserve:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -170,14 +170,14 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.singleton("2"), store.fetchSelectedServices());
 
         // 2 can already reserve, and 1 gets the remaining slot:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
 
         // After 2 has stopped reserving, 3 can reserve:
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.launching(false)));
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -191,8 +191,8 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.singleton("2"), store.fetchSelectedServices());
 
         // 1 and 2 both get slots due to limit=2:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
     }
 
     @Test
@@ -203,9 +203,9 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.emptySet(), store.fetchSelectedServices());
 
         // 2 gets the slot:
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
 
         // Trigger a persister update:
         d.updateServices(Arrays.asList("1", "2", "3"));
@@ -218,9 +218,9 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(Collections.singleton("2"), store.fetchSelectedServices());
 
         // 2 should already have a slot, leading to 3 getting blocked:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
 
         // Trigger another persister update:
         d.updateServices(Arrays.asList("1", "2", "3"));
@@ -232,26 +232,26 @@ public class ParallelFootprintDisciplineTest {
         Assert.assertEquals(new HashSet<>(Arrays.asList("1", "2")), store.fetchSelectedServices());
 
         // Retain the existing 2 selected services, even though the limit is 1:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.footprint(false)));
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
 
         // Updating storage retains them too:
         d.updateServices(Arrays.asList("1", "2", "3"));
         Assert.assertEquals(new HashSet<>(Arrays.asList("1", "2")), store.fetchSelectedServices());
 
         // 2 stops reserving, slot is freed:
-        Assert.assertTrue(d.offersEnabled("2", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("2", ClientStatusResponse.launching(false)));
         // 3 can't get the slot due to the slot decrease:
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
         // But 1 can still reserve:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.footprint(false)));
 
-        Assert.assertFalse(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertFalse(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
         // 1 stops reserving:
-        Assert.assertTrue(d.offersEnabled("1", ClientStatusResponse.launching(false)));
+        Assert.assertTrue(d.updateServiceStatus("1", ClientStatusResponse.launching(false)));
         // NOW 3 can reserve:
-        Assert.assertTrue(d.offersEnabled("3", ClientStatusResponse.footprint(false)));
+        Assert.assertTrue(d.updateServiceStatus("3", ClientStatusResponse.footprint(false)));
 
         // Update storage once more:
         d.updateServices(Arrays.asList("1", "2", "3"));

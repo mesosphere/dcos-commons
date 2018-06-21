@@ -20,7 +20,7 @@ public class WorkSetTracker {
 
     private final Logger logger;
 
-    // NOTE: In practice we are only accessed within a single thread, so we don't worry about locking here.
+    // NOTE: In practice WorkSetTracker is only accessed by single thread, so we don't worry about locking state here.
     private Set<WorkItem> candidates = new HashSet<>();
     private boolean hasNewWork = false;
 

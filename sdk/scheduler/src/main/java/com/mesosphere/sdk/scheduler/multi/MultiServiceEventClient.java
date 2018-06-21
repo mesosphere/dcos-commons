@@ -127,12 +127,12 @@ public class MultiServiceEventClient implements MesosEventClient {
      * Returns our status to the upstream {@code OfferProcessor}. The logic is as follows:
      *
      * <ol>
-     * <li>If no services are present: uninstall mode: {@code READY_TO_REMOVE}, otherwise: {@code RUNNING/IDLE}</li>
-     * <li>If all services are idle: {@code RUNNING/IDLE}</li>
-     * <li>If any service is collecting footprint: {@code RUNNING/FOOTPRINT}, with {@code newWork=true} if any service
+     * <li>If no services are present: uninstall mode: {@code IDLE/REMOVE_CLIENT}, otherwise: {@code IDLE/NONE}</li>
+     * <li>If all services are idle: {@code IDLE/NONE}</li>
+     * <li>If any service is collecting footprint: {@code WORKING/FOOTPRINT}, with {@code newWork=true} if any service
      * had {@code newWork=true}</li>
-     * <li>Else (mix of zero or more {@code RUNNING/IDLE} and zero or more {@code RUNNING/LAUNCH}):
-     * {@code RUNNING/LAUNCH}, with {@code newWork=true} if any service had {@code newWork=true}</li>
+     * <li>Else (mix of zero or more {@code IDLE/*} and zero or more {@code WORKING/*}):
+     * {@code WORKING/LAUNCH}, with {@code newWork=true} if any service had {@code newWork=true}</li>
      * </ol>
      */
     @Override
@@ -158,7 +158,8 @@ public class MultiServiceEventClient implements MesosEventClient {
                 }
             }
 
-            // Update the offer discipline with the current list of services.
+            // Update the offer discipline with the current list of services, so that any removed services can be
+            // updated.
             try {
                 offerDiscipline.updateServices(services.stream()
                         .map(s -> s.getServiceSpec().getName())
@@ -182,14 +183,15 @@ public class MultiServiceEventClient implements MesosEventClient {
                     LOGGER.info("{} status: {}", serviceName, statusResponse);
                 }
 
-                // Note: We ALWAYS invoke the offer discipline regardless of status response. This allows the offer
-                // discipline to add/remove selected services based on that status.
-                boolean sendOffers = offerDiscipline.offersEnabled(serviceName, statusResponse);
+                // Update the offer discipline with the status response we got, and use it's response to decide whether
+                // this service should be allowed offers. Note: We ALWAYS invoke this regardless of the status of the
+                // service. This allows the offer discipline to update internal state based on that status.
+                boolean offersAllowedByDiscipline = offerDiscipline.updateServiceStatus(serviceName, statusResponse);
 
                 switch (statusResponse.result) {
                 case WORKING:
                     allServicesIdle = false;
-                    if (sendOffers) {
+                    if (offersAllowedByDiscipline) {
                         serviceNamesToGiveOffers.add(serviceName);
                     }
                     if (statusResponse.workingStatus.state == ClientStatusResponse.WorkingStatus.State.FOOTPRINT) {
@@ -215,19 +217,16 @@ public class MultiServiceEventClient implements MesosEventClient {
                     }
                     break;
                 }
-
-                // If we run out of unusedOffers we still keep going with an empty list of offers.
-                // This is done in case any of the services depends on us to turn the crank periodically.
             }
 
             if (allServicesIdle) {
-                // ALL services are idle, so we can tell upstream to suppress.
+                // ALL services are idle, so we can tell upstream that we're idle overall.
                 clientStatusToReturn = ClientStatusResponse.idle();
             } else if (anyServicesFootprint) {
                 // One or more of the services is getting footprint, so tell upstream that we're getting footprint.
                 clientStatusToReturn = ClientStatusResponse.footprint(anyServicesHaveNewWork);
             } else {
-                // Otherwise, one or more services isn't idle, and none of them is getting footprint.
+                // Otherwise, one or more services isn't idle, and none of them are getting footprint.
                 clientStatusToReturn = ClientStatusResponse.launching(anyServicesHaveNewWork);
             }
         } finally {
@@ -286,9 +285,13 @@ public class MultiServiceEventClient implements MesosEventClient {
         List<Protos.Offer> remainingOffers = new ArrayList<>();
         remainingOffers.addAll(offers);
         for (String serviceName : serviceNamesToGiveOffers) {
+            // Note: If we run out of remainingOffers we regardless keep going with an empty list of offers against all
+            // eligible services. We do this to turn the crank on the services periodically.
             Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
             if (!service.isPresent()) {
-                // Service was removed since getClientStatus() calculated this list?
+                // In practice this shouldn't happen, unless perhaps the developer removed the service directly.
+                LOGGER.warn("Service '{}' was scheduled to receive offers, then later removed: continuing without it",
+                        serviceName);
                 continue;
             }
             OfferResponse offerResponse = service.get().offers(remainingOffers);

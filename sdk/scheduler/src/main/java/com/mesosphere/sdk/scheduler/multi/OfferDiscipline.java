@@ -21,11 +21,12 @@ public interface OfferDiscipline {
     public void updateServices(Collection<String> serviceNames) throws Exception;
 
     /**
-     * Returns whether the specified service should be provided with offers, based on its status response.
+     * Updates the state of the offer discipline with the service's status information. Returns whether the specified
+     * service should be allowed to be provided with offers.
      *
      * @param serviceName name of the active service
      * @param statusResponse the status response returned by the service
      * @return whether to provide the service with offers
      */
-    public boolean offersEnabled(String serviceName, ClientStatusResponse statusResponse);
+    public boolean updateServiceStatus(String serviceName, ClientStatusResponse statusResponse);
 }
