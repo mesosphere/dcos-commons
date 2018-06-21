@@ -315,6 +315,7 @@ public class ServiceTestRunner {
         // Test 1: Does RawServiceSpec render?
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(specPath)
                 .setEnv(schedulerEnvironment)
+                .enableStrictRendering()
                 .build();
 
         // Test 2: Does ServiceSpec render?

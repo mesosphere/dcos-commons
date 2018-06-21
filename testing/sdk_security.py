@@ -166,6 +166,10 @@ def create_service_account(service_account_name: str, service_account_secret: st
     """
     install_enterprise_cli()
 
+    if "/" in service_account_name:
+        log.error("The specified service account name (%s) contains /'s", service_account_name)
+        raise Exception("A service account must not contain slashes")
+
     log.info('Creating service account for account={account} secret={secret}'.format(
         account=service_account_name,
         secret=service_account_secret))
@@ -342,8 +346,8 @@ def is_cipher_enabled(service_name: str,
             'openssl', 's_client', '-cipher', cipher, '-connect', endpoint
         ])
 
-        _, output = sdk_cmd.service_task_exec(service_name, task_name, command, True)
-        return output
+        _, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, command)
+        return stdout + '\n' + stderr
 
     output = run_openssl_command()
 
