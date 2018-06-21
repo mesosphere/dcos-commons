@@ -14,8 +14,13 @@ import os
 
 
 def extract_uris(file_name):
-    with open(file_name, "r") as file:
-        lines = file.readlines()
+    try:
+        with open(file_name, "r", encoding='utf8',) as file:
+            lines = file.readlines()
+    except UnicodeDecodeError as e:
+        msg = "Skipping extracting uris from file `{}`, looks like binary one: {}"
+        print(msg.format(file_name, e))
+        return []
 
     matcher = re.compile(".*https?:\/\/([^\/\?]*)", re.IGNORECASE)
     matches = []
@@ -94,9 +99,14 @@ def validate_all_uris(framework_directory):
 def validate_images(framework_directory):
     files = get_files_to_check_for_uris(framework_directory)
 
-    for file in files:
-        with open(file, "r") as file:
-            lines = file.readlines()
+    for file_name in files:
+        try:
+            with open(file_name, "r", encoding='utf8') as fh:
+                lines = fh.readlines()
+        except UnicodeDecodeError as e:
+            msg = "Skipping validating images in file `{}`, looks like binary one: {}"
+            print(msg.format(file_name, e))
+            continue
 
         bad_image = False
         for line in lines:
