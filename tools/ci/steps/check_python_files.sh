@@ -1,12 +1,15 @@
 #!/bin/bash
-# This script is used by
+# This script is used by the build system to check MODIFIED Python files in the repository.
 
 TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 
+# Determine the target branch for the diff calculation
 export COMPARE_TO=$( ${TOOL_DIR}/get_base_branch.sh )
 
+# Get the list of Python files in the changeset
 CHANGESET=$( ${TOOL_DIR}/get_changeset.sh | grep -E "\.py$" )
 
+# Further filter the changeset to changes that would trigger a build.
 CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.sh "${CHANGESET}" )
 
 if [[ -n ${CHANGESET} ]]; then
