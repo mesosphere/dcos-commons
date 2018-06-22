@@ -673,6 +673,9 @@ public class ServiceTest {
                 "WORLD_SECRET2", "hello-world/secret2",
                 "WORLD_SECRET3", "hello-world/secret3"));
 
+        schedulerEnvForExamples.put("isolation.yml", toMap(
+                "HELLO_ISOLATION", "true"));
+
         // Iterate over yml files in dist/examples/, run sanity check for each:
         File[] exampleFiles = ServiceTestRunner.getDistDir().listFiles();
         Assert.assertNotNull(exampleFiles);
