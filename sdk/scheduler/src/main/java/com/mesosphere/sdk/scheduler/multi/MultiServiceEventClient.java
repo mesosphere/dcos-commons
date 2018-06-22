@@ -64,6 +64,9 @@ public class MultiServiceEventClient implements MesosEventClient {
     // Additional handling for when we're uninstalling the entire Scheduler.
     private final Optional<DeregisterStep> deregisterStep;
 
+    // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
+    private final Collection<String> serviceNamesToGiveOffers;
+
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
@@ -76,7 +79,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 schedulerConfig,
                 multiServiceManager,
                 (schedulerConfig.getMultiServiceReserveDiscipline() > 0)
-                        ? new ReservationDiscipline(
+                        ? new ParallelFootprintDiscipline(
                                 schedulerConfig.getMultiServiceReserveDiscipline(),
                                 new DisciplineSelectionStore(persister))
                         : new AllDiscipline(),
@@ -103,6 +106,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         this.uninstallCallback = uninstallCallback;
         this.offerDiscipline = offerDiscipline;
         this.deregisterStep = deregisterStep;
+        this.serviceNamesToGiveOffers = new ArrayList<>();
     }
 
     @Override
@@ -120,139 +124,113 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Returns our status to the upstream {@code OfferProcessor}. In practice, we only return either {@code RUNNING}, or
-     * {@code UNINSTALLED} if we're ready to be torn down during a scheduler uninstall.
+     * Returns our status to the upstream {@code OfferProcessor}. The logic is as follows:
+     *
+     * <ol>
+     * <li>If no services are present: uninstall mode: {@code IDLE/REMOVE_CLIENT}, otherwise: {@code IDLE/NONE}</li>
+     * <li>If all services are idle: {@code IDLE/NONE}</li>
+     * <li>If any service is collecting footprint: {@code WORKING/FOOTPRINT}, with {@code newWork=true} if any service
+     * had {@code newWork=true}</li>
+     * <li>Else (mix of zero or more {@code IDLE/*} and zero or more {@code WORKING/*}):
+     * {@code WORKING/LAUNCH}, with {@code newWork=true} if any service had {@code newWork=true}</li>
+     * </ol>
      */
     @Override
     public ClientStatusResponse getClientStatus() {
-        // If the entire scheduler is uninstalling and there are no services left to uninstall, then tell upstream that
-        // we're uninstalled.
-        boolean noServices = false;
-
-        Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
-        try {
-            noServices = services.isEmpty();
-        } finally {
-            multiServiceManager.sharedUnlock();
-        }
-
-        if (noServices) {
-            // There are no active services to process offers. Should the rest of the framework be torn down?
-            if (deregisterStep.isPresent()) {
-                // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
-                // can finish with final framework cleanup. After they've finished, they will invoke unregistered(), at
-                // which point we can set our deploy plan to complete.
-                return ClientStatusResponse.uninstalled();
-            } else {
-                // No: We're just not actively running anything. Behave normally until we have work to do.
-                return ClientStatusResponse.running();
-            }
-        } else {
-            // Services are still present, behave normally.
-            return ClientStatusResponse.running();
-        }
-    }
-
-    /**
-     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
-     * services which actually receive offers is decided by the {@link OfferDiscipline}.
-     */
-    @Override
-    public OfferResponse offers(Collection<Protos.Offer> offers) {
-        Collection<AbstractScheduler> servicesToGiveOffers = new ArrayList<>();
+        serviceNamesToGiveOffers.clear();
         Collection<String> servicesToUninstall = new ArrayList<>();
         Collection<AbstractScheduler> servicesToRemove = new ArrayList<>();
 
+        final ClientStatusResponse clientStatusToReturn;
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         try {
             if (services.isEmpty()) {
-                // Nothing to do, short-circuit.
-                return OfferResponse.processed(Collections.emptyList());
+                // There are no active services to process offers. Should the rest of the framework be torn down?
+                if (deregisterStep.isPresent()) {
+                    // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that
+                    // they can finish with final framework cleanup. After they've finished, they will invoke our
+                    // unregistered() call, at which point we can set the deregisterStep (and therefore our deploy plan)
+                    // to complete.
+                    return ClientStatusResponse.readyToRemove();
+                } else {
+                    // No: We're just not actively running anything. Idle until we have work to do.
+                    return ClientStatusResponse.idle();
+                }
             }
 
-            // Update the offer discipline with the current list of services.
+            // Update the offer discipline with the current list of services, so that any removed services can be
+            // updated.
             try {
                 offerDiscipline.updateServices(services.stream()
                         .map(s -> s.getServiceSpec().getName())
                         .collect(Collectors.toSet()));
             } catch (Exception e) {
-                LOGGER.error("Failed to update selected services in offer discipline, trying again later", e);
-                return OfferResponse.notReady(Collections.emptyList());
+                LOGGER.error("Failed to update selected services in offer discipline, continuing anyway", e);
+                // The offer discipline failed to flush state to ZK. Its in-memory state should be fine though, so just
+                // continue as-is for now.
             }
 
-            // Before we handle offers, check for any finished services that should be switched to uninstall, or any
-            // uninstalled services that should be removed.
-            LOGGER.info("Sending {} offer{} to {} service{}:",
-                    offers.size(), offers.size() == 1 ? "" : "s",
-                    services.size(), services.size() == 1 ? "" : "s");
+            // Check for any finished services that should be switched to uninstall, or any uninstalled services that
+            // should be removed.
+            boolean allServicesIdle = true;
+            boolean anyServicesFootprint = false;
+            boolean anyServicesHaveNewWork = false;
             for (AbstractScheduler service : services) {
                 String serviceName = service.getServiceSpec().getName();
                 ClientStatusResponse statusResponse = service.getClientStatus();
-                if (statusResponse.result != ClientStatusResponse.Result.RUNNING) {
-                    // Only log status when it's special/unusual
-                    LOGGER.info("{} status: {}", serviceName, statusResponse.result);
+                if (!statusResponse.equals(ClientStatusResponse.idle())) {
+                    // Only log status when it's active
+                    LOGGER.info("{} status: {}", serviceName, statusResponse);
                 }
 
-                // Note: We ALWAYS invoke the offer discipline regardless of status response. This allows the offer
-                // discipline to add/remove selected services based on that status.
-                boolean sendOffers = offerDiscipline.offersEnabled(serviceName, statusResponse);
+                // Update the offer discipline with the status response we got, and use it's response to decide whether
+                // this service should be allowed offers. Note: We ALWAYS invoke this regardless of the status of the
+                // service. This allows the offer discipline to update internal state based on that status.
+                boolean offersAllowedByDiscipline = offerDiscipline.updateServiceStatus(serviceName, statusResponse);
 
                 switch (statusResponse.result) {
-                case RESERVING:
-                    //$FALL-THROUGH$
-                case RUNNING:
-                    if (sendOffers) {
-                        servicesToGiveOffers.add(service);
+                case WORKING:
+                    allServicesIdle = false;
+                    if (offersAllowedByDiscipline) {
+                        serviceNamesToGiveOffers.add(serviceName);
+                    }
+                    if (statusResponse.workingStatus.state == ClientStatusResponse.WorkingStatus.State.FOOTPRINT) {
+                        anyServicesFootprint = true;
+                    }
+                    if (statusResponse.workingStatus.hasNewWork) {
+                        anyServicesHaveNewWork = true;
                     }
                     break;
-                case FINISHED:
-                    // This service has completed running and can be switched to uninstall.
-                    servicesToUninstall.add(serviceName);
-                    break;
-                case UNINSTALLED:
-                    // This service has completed uninstall and can be torn down.
-                    servicesToRemove.add(service);
+                case IDLE:
+                    switch (statusResponse.idleRequest) {
+                    case NONE:
+                        // Nothing to do: Don't send offers, don't mark as having new work.
+                        break;
+                    case REMOVE_CLIENT:
+                        // This service has completed uninstall and can be torn down.
+                        servicesToRemove.add(service);
+                        break;
+                    case START_UNINSTALL:
+                        // This service has completed running and can be switched to uninstall.
+                        servicesToUninstall.add(serviceName);
+                        break;
+                    }
                     break;
                 }
+            }
 
-                // If we run out of unusedOffers we still keep going with an empty list of offers.
-                // This is done in case any of the services depends on us to turn the crank periodically.
+            if (allServicesIdle) {
+                // ALL services are idle, so we can tell upstream that we're idle overall.
+                clientStatusToReturn = ClientStatusResponse.idle();
+            } else if (anyServicesFootprint) {
+                // One or more of the services is getting footprint, so tell upstream that we're getting footprint.
+                clientStatusToReturn = ClientStatusResponse.footprint(anyServicesHaveNewWork);
+            } else {
+                // Otherwise, one or more services isn't idle, and none of them are getting footprint.
+                clientStatusToReturn = ClientStatusResponse.launching(anyServicesHaveNewWork);
             }
         } finally {
             multiServiceManager.sharedUnlock();
-        }
-
-        // Decline short if any service isn't ready.
-        boolean anyServicesNotReady = false;
-        List<OfferRecommendation> recommendations = new ArrayList<>();
-        if (!servicesToGiveOffers.isEmpty()) {
-            LOGGER.info("Sending offers to {} service{}:",
-                    servicesToGiveOffers.size(), servicesToGiveOffers.size() == 1 ? "" : "s");
-            List<Protos.Offer> remainingOffers = new ArrayList<>();
-            remainingOffers.addAll(offers);
-            for (AbstractScheduler service : servicesToGiveOffers) {
-                OfferResponse offerResponse = service.offers(remainingOffers);
-                recommendations.addAll(offerResponse.recommendations);
-                if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
-                    // Some offers were consumed. Update what remains to offer to the next service.
-                    remainingOffers =
-                            OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
-                }
-                boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
-                if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
-                    // Only log result when it's non-empty/unusual
-                    LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
-                            service.getServiceSpec().getName(),
-                            offerResponse.result,
-                            offerResponse.recommendations.size(),
-                            offerResponse.recommendations.size() == 1 ? "" : "s",
-                            remainingOffers.size(),
-                            remainingOffers.size() == 1 ? "" : "s");
-                }
-                if (!readyForOffers) {
-                    anyServicesNotReady = true;
-                }
-            }
         }
 
         if (!servicesToUninstall.isEmpty()) {
@@ -279,6 +257,62 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // deadlock if the callback itself calls back into us for any reason. This also ensures that we aren't
                 // blocking other operations (e.g. offer/status handling) while these callbacks are running.
                 uninstallCallback.uninstalled(service.getServiceSpec().getName());
+            }
+        }
+
+        return clientStatusToReturn;
+    }
+
+    /**
+     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
+     * services which actually receive offers is decided by their status response to {@link #getClientStatus()}, as well
+     * as the configured {@link OfferDiscipline}.
+     */
+    @Override
+    public OfferResponse offers(Collection<Protos.Offer> offers) {
+        if (serviceNamesToGiveOffers.isEmpty()) {
+            return OfferResponse.processed(Collections.emptyList());
+        }
+
+        LOGGER.info("Sending {} offer{} to {} service{}:",
+                offers.size(), offers.size() == 1 ? "" : "s",
+                serviceNamesToGiveOffers.size(), serviceNamesToGiveOffers.size() == 1 ? "" : "s");
+
+        // Decline short if any service isn't ready.
+        boolean anyServicesNotReady = false;
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+
+        List<Protos.Offer> remainingOffers = new ArrayList<>();
+        remainingOffers.addAll(offers);
+        for (String serviceName : serviceNamesToGiveOffers) {
+            // Note: If we run out of remainingOffers we regardless keep going with an empty list of offers against all
+            // eligible services. We do this to turn the crank on the services periodically.
+            Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+            if (!service.isPresent()) {
+                // In practice this shouldn't happen, unless perhaps the developer removed the service directly.
+                LOGGER.warn("Service '{}' was scheduled to receive offers, then later removed: continuing without it",
+                        serviceName);
+                continue;
+            }
+            OfferResponse offerResponse = service.get().offers(remainingOffers);
+            recommendations.addAll(offerResponse.recommendations);
+            if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
+                // Some offers were consumed. Update what remains to offer to the next service.
+                remainingOffers = OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+            }
+            boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
+            if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
+                // Only log result when it's non-empty/unusual
+                LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
+                        serviceName,
+                        offerResponse.result,
+                        offerResponse.recommendations.size(),
+                        offerResponse.recommendations.size() == 1 ? "" : "s",
+                        remainingOffers.size(),
+                        remainingOffers.size() == 1 ? "" : "s");
+            }
+            if (!readyForOffers) {
+                anyServicesNotReady = true;
             }
         }
 

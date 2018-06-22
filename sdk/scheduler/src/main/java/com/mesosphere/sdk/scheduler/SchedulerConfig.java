@@ -98,6 +98,12 @@ public class SchedulerConfig {
     private static final String DISABLE_STATE_CACHE_ENV = "DISABLE_STATE_CACHE";
 
     /**
+     * Controls whether the framework will request that offers be suppressed when the service(s) are idle (enabled by
+     * default). If this envvar is set (to anything at all), then offer suppression is disabled.
+     */
+    private static final String DISABLE_SUPPRESS_ENV = "DISABLE_SUPPRESS";
+
+    /**
      * When a port named {@code api} is added to the Marathon app definition for the scheduler, marathon should create
      * an envvar with this name in the scheduler env. This is preferred over using e.g. the {@code PORT0} envvar which
      * is against the index of the port in the list.
@@ -277,6 +283,10 @@ public class SchedulerConfig {
 
     public boolean isStateCacheEnabled() {
         return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
+    }
+
+    public boolean isSuppressEnabled() {
+        return !envStore.isPresent(DISABLE_SUPPRESS_ENV);
     }
 
     public boolean isUninstallEnabled() {

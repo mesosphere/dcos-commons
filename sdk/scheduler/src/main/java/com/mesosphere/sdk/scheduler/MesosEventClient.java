@@ -22,8 +22,8 @@ public interface MesosEventClient {
 
     /**
      * Called after the framework has been unregistered from Mesos following a call to {@link #offers(Collection)} which
-     * returned {@link OfferResponse#finished()} as a response. When this is called, the service should advertise the
-     * completion of the uninstall operation in its {@code deploy} plan.
+     * returned {@link OfferResponse#readyToUninstall()} as a response. When this is called, the service should
+     * advertise the completion of the uninstall operation in its {@code deploy} plan.
      */
     public void unregistered();
 
@@ -82,78 +82,183 @@ public interface MesosEventClient {
          */
         public enum Result {
             /**
-             * The client is deploying (or reconfiguring) the reservations for the underlying service. This hint allows
-             * upstream to ensure that only N services are growing their footprint in the cluster at a time. This allows
-             * multi-service schedulers to reduce the likelihood of deadlocks between two services attempting to deploy
-             * into resources that are too small to fit both of them.
+             * The client is actively performing work, e.g. acquiring footprint or launching tasks. Additional details
+             * about its operation may be obtained by checking the value of {@code workingStatus}. These details may
+             * be used to determine e.g. whether the service currently needs any offers.
              */
-            RESERVING,
+            WORKING,
 
             /**
-             * The client has finished its reservation stage and is now in an active, running state.
+             * The client has no work pending and currently does not require any offers at all (hint: offers can be
+             * suppressed if all services are idle). However, any relevant task statuses should still be sent, and the
+             * response may contain an {@code idleRequest} for any actions to be taken upstream.
              */
-            RUNNING,
-
-            /**
-             * The client has finished running and should be switched to uninstall mode. This is used for services which
-             * run once and then exit, and is only applicable to multi-service mode.
-             */
-            FINISHED,
-
-            /**
-             * The client has finished its uninstall. In multi-service mode, this means that the service can be removed
-             * from the parent scheduler. When uninstalling the scheduler itself, this means that the scheduler can be
-             * torn down, assuming that all other services have also reached {@code UNINSTALLED}.
-             */
-            UNINSTALLED
+            IDLE
         };
 
         /**
-         * The result of the call.
+         * Provides additional information about a {@code WORKING} service, which may be used to determine which
+         * services should be receiving offers at any given time.
+         */
+        public static class WorkingStatus {
+
+            /**
+             * This gives additional information about the status of a {@code WORKING} service. Upstream can use this
+             * information to decide which clients should be receiving offers at any given time.
+             */
+            public enum State {
+                /**
+                 * The client is acquiring new footprint for the underlying service. This includes initial deployment,
+                 * reconfiguration, and replacement of tasks. It does NOT include restarting tasks or launching sidecar
+                 * tasks, as those operations are performed within the existing footprint.
+                 *
+                 * This hint allows upstream to ensure that only N services are growing their footprint in the cluster
+                 * at a time. Multi-service schedulers can use this information to reduce the likelihood of deadlocks
+                 * between two services attempting to deploy into the same resources at the same time.
+                 */
+                FOOTPRINT,
+
+                /**
+                 * The client is launching tasks for the underlying service into an existing footprint. This includes
+                 * initial deployment after the footprint has been acquired, restarting failed tasks in-place, and
+                 * launching sidecar tasks.
+                 */
+                LAUNCH
+            }
+
+            /**
+             * @see State
+             */
+            public final State state;
+
+            /**
+             * Whether the service has a new or different workload since the previous status call. This is an indicator
+             * that previously declined offers should be revived.
+             *
+             * In practice, this is always {@code false} when the {@link State} is {@code IDLE}.
+             */
+            public final boolean hasNewWork;
+
+            private WorkingStatus(State state, boolean hasNewWork) {
+                this.state = state;
+                this.hasNewWork = hasNewWork;
+            }
+
+            @Override
+            public boolean equals(Object o) {
+                return EqualsBuilder.reflectionEquals(this, o);
+            }
+
+            @Override
+            public int hashCode() {
+                return HashCodeBuilder.reflectionHashCode(this);
+            }
+
+            @Override
+            public String toString() {
+                return (hasNewWork) ? String.format("%s+newWork", state) : state.toString();
+            }
+        }
+
+        /**
+         * This notifies upstream of some action that should be performed against this service.
+         */
+        public enum IdleRequest {
+
+            /**
+             * The client has no requested actions for upstream to perform.
+             */
+            NONE,
+
+            /**
+             * The client has finished running and should be switched to uninstall mode by the caller. This is used
+             * for services which run once and then exit, and is only applicable to multi-service mode.
+             */
+            START_UNINSTALL,
+
+            /**
+             * The client has finished its uninstall. In multi-service mode, this means that the service can be
+             * removed from the parent scheduler. When uninstalling the scheduler itself, this means that the
+             * scheduler can be torn down, assuming that all other services have also reached {@code UNINSTALLED}.
+             */
+            REMOVE_CLIENT
+        }
+
+        /**
+         * The status of the service, either {@code WORKING} or {@code IDLE}. Additional detail for either of these
+         * states can be found via {@code workingStatus} or {@code idleRequest}, respectively.
          */
         public final Result result;
 
         /**
-         * Tells the caller that this client is deploying the service. This may either be an initial deployment or a
-         * redeployment following a configuration change, either of which may involve growing the service footprint.
-         * This does NOT include cases of relaunching failed tasks.
+         * Additional detail for a {@code WORKING} service's status. This is only set if the {@code result} is
+         * {@code WORKING}, otherwise it is {@code null}.
+         */
+        public final WorkingStatus workingStatus;
+
+        /**
+         * Additional action required for an {@code IDLE} service. This is set only if the {@code result} is
+         * {@code IDLE}, otherwise it is {@code null}.
+         */
+        public final IdleRequest idleRequest;
+
+        /**
+         * Tells the caller that this client is deploying the service's footprint. This may either be an initial
+         * deployment or a re-deployment following a configuration change, either of which may involve changing the
+         * service footprint. This does NOT include in-place restarts of failed tasks, nor launches of sidecar tasks
+         * which were already allocated.
          *
          * This code has two purposes:
          * <ul><li>Allow upstream to detect a stalled deployment (cluster too small, or other misconfiguration)</li>
          * <li>Allow a multi-service scheduler to only have one service deploying at a time, to prevent deadlocks if the
          * cluster doesn't have enough free room for multiple simultaneous services</li></ul>
          */
-        public static ClientStatusResponse reserving() {
-            return new ClientStatusResponse(Result.RESERVING);
+        public static ClientStatusResponse footprint(boolean hasNewWork) {
+            return new ClientStatusResponse(
+                    Result.WORKING, new WorkingStatus(WorkingStatus.State.FOOTPRINT, hasNewWork), null);
         }
 
         /**
-         * Tells the caller that this client is running the service following a completed deployment. This is the
-         * typical state for healthy services. It is also used for services that are in the process of uninstalling.
+         * Tells the caller that this client is launching tasks into existing footprint. This may either be initial
+         * deployment of tasks into a previously acquired footprint, or restarting tasks into prior footprint, or
+         * launching sidecar tasks into prior footprint.
          */
-        public static ClientStatusResponse running() {
-            return new ClientStatusResponse(Result.RUNNING);
+        public static ClientStatusResponse launching(boolean hasNewWork) {
+            return new ClientStatusResponse(
+                    Result.WORKING, new WorkingStatus(WorkingStatus.State.LAUNCH, hasNewWork), null);
+        }
+
+        /**
+         * Tells the caller that this client has no work pending and does not need to receive offers right now. However
+         * it should continue to receive any task statuses that are relevant to it.
+         */
+        public static ClientStatusResponse idle() {
+            return new ClientStatusResponse(Result.IDLE, null, IdleRequest.NONE);
         }
 
         /**
          * Tells the caller that this client has finished running and can be switched to uninstall mode. The caller
          * should long-decline any unused offers.
          */
-        public static ClientStatusResponse finished() {
-            return new ClientStatusResponse(Result.FINISHED);
+        public static ClientStatusResponse readyToUninstall() {
+            return new ClientStatusResponse(Result.IDLE, null, IdleRequest.START_UNINSTALL);
         }
 
         /**
-         * Tells the caller that this client has finished uninstalling and can be shut down. After this is returned, the
+         * Tells the caller that this client has finished uninstalling and can be torn down. After this is returned, the
          * caller may then notify the client of framework deregistration by calling {@link #unregistered()}, but this is
          * not required.
+         *
+         * This status is only relevant to multi-service schedulers.
          */
-        public static ClientStatusResponse uninstalled() {
-            return new ClientStatusResponse(Result.UNINSTALLED);
+        public static ClientStatusResponse readyToRemove() {
+            return new ClientStatusResponse(Result.IDLE, null, IdleRequest.REMOVE_CLIENT);
         }
 
-        private ClientStatusResponse(Result result) {
+        private ClientStatusResponse(Result result, WorkingStatus workingStatus, IdleRequest idleRequest) {
             this.result = result;
+            this.workingStatus = workingStatus;
+            this.idleRequest = idleRequest;
         }
 
         @Override
@@ -164,6 +269,20 @@ public interface MesosEventClient {
         @Override
         public int hashCode() {
             return HashCodeBuilder.reflectionHashCode(this);
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(result.toString());
+            if (workingStatus != null) {
+                sb.append('/');
+                sb.append(workingStatus.toString());
+            } else if (idleRequest != null) {
+                sb.append('/');
+                sb.append(idleRequest.toString());
+            }
+            return sb.toString();
         }
     }
 
