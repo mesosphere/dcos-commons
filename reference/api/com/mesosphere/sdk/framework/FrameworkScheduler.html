@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -214,11 +214,17 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i10" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#setReviveTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">setReviveTokenBucket</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket)</code>
+<div class="block">Overrides the token bucket used to handle rate limiting of revive calls.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#slaveLost-SchedulerDriver-Protos.SlaveID-">slaveLost</a></span>(SchedulerDriver&nbsp;driver,
          Protos.SlaveID&nbsp;agentId)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html#statusUpdate-SchedulerDriver-Protos.TaskStatus-">statusUpdate</a></span>(SchedulerDriver&nbsp;driver,
             Protos.TaskStatus&nbsp;status)</code>&nbsp;</td>
@@ -303,6 +309,22 @@ extends java.lang.Object</pre>
 <div class="block">Disables multithreading for tests. For this to take effect, it must be invoked before the framework has
  registered.</div>
 <dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd><code>this</code></dd>
+</dl>
+</li>
+</ul>
+<a name="setReviveTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setReviveTokenBucket</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a>&nbsp;setReviveTokenBucket(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;tokenBucket)</pre>
+<div class="block">Overrides the token bucket used to handle rate limiting of revive calls.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>tokenBucket</code> - the replacement <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>this</code></dd>
 </dl>

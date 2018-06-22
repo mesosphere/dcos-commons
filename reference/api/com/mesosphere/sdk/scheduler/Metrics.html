@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -138,23 +138,31 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESS_OFFERS">PROCESS_OFFERS</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#IS_SUPPRESSED">IS_SUPPRESSED</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESS_OFFERS">PROCESS_OFFERS</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESSED_OFFERS">PROCESSED_OFFERS</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#RECEIVED_OFFERS">RECEIVED_OFFERS</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#REVIVE_THROTTLES">REVIVE_THROTTLES</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#REVIVES">REVIVES</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#SUPPRESSES">SUPPRESSES</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -244,6 +252,14 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementSuppresses--">incrementSuppresses</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i12" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#notSuppressed--">notSuppressed</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#record-Protos.TaskStatus-">record</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Records the provided <code>taskStatus</code> received from Mesos.</div>
 </td>
@@ -306,6 +322,32 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.PROCESS_OFFERS">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="SUPPRESSES">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>SUPPRESSES</h4>
+<pre>static final&nbsp;java.lang.String SUPPRESSES</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.SUPPRESSES">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="IS_SUPPRESSED">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>IS_SUPPRESSED</h4>
+<pre>static final&nbsp;java.lang.String IS_SUPPRESSED</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.IS_SUPPRESSED">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -446,6 +488,24 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;Timer.Context&nbsp;getProcessOffersDurationTimer()</pre>
 <div class="block">Returns a timer context which may be used to measure the time spent processing offers. The returned timer must
  be terminated by invoking <code>Timer.Context#stop()</code>.</div>
+</li>
+</ul>
+<a name="notSuppressed--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>notSuppressed</h4>
+<pre>public static&nbsp;void&nbsp;notSuppressed()</pre>
+</li>
+</ul>
+<a name="incrementSuppresses--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>incrementSuppresses</h4>
+<pre>public static&nbsp;void&nbsp;incrementSuppresses()</pre>
 </li>
 </ul>
 <a name="incrementRevives--">

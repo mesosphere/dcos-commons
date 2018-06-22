@@ -153,16 +153,16 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDisci
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">offersEnabled</a></span>(java.lang.String&nbsp;serviceName,
-             <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</code>
-<div class="block">Returns <code>true</code>: All services are enabled at all times.</div>
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#updateServices-java.util.Collection-">updateServices</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;serviceNames)</code>
+<div class="block">Does nothing: This discipline has no state.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#updateServices-java.util.Collection-">updateServices</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;serviceNames)</code>
-<div class="block">Does nothing: This discipline has no state</div>
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html#updateServiceStatus-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">updateServiceStatus</a></span>(java.lang.String&nbsp;serviceName,
+                   <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</code>
+<div class="block">Returns <code>true</code>: All services are enabled at all times.</div>
 </td>
 </tr>
 </table>
@@ -213,27 +213,31 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDisci
 <h4>updateServices</h4>
 <pre>public&nbsp;void&nbsp;updateServices(java.util.Collection&lt;java.lang.String&gt;&nbsp;serviceNames)
                     throws <a href="../../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block">Does nothing: This discipline has no state</div>
+<div class="block">Does nothing: This discipline has no state.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#updateServices-java.util.Collection-">updateServices</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceNames</code> - names of active services</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code></dd>
 </dl>
 </li>
 </ul>
-<a name="offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">
+<a name="updateServiceStatus-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>offersEnabled</h4>
-<pre>public&nbsp;boolean&nbsp;offersEnabled(java.lang.String&nbsp;serviceName,
-                             <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</pre>
+<h4>updateServiceStatus</h4>
+<pre>public&nbsp;boolean&nbsp;updateServiceStatus(java.lang.String&nbsp;serviceName,
+                                   <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</pre>
 <div class="block">Returns <code>true</code>: All services are enabled at all times.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">offersEnabled</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a></code></dd>
+<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#updateServiceStatus-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">updateServiceStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi">OfferDiscipline</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceName</code> - name of the active service</dd>
 <dd><code>statusResponse</code> - the status response returned by the service</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>whether to provide the service with offers</dd>

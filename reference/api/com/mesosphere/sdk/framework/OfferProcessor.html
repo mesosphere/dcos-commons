@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -129,8 +129,9 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#OfferProcessor-com.mesosphere.sdk.scheduler.MesosEventClient-com.mesosphere.sdk.storage.Persister-">OfferProcessor</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient,
-              <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#OfferProcessor-com.mesosphere.sdk.scheduler.MesosEventClient-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.SchedulerConfig-">OfferProcessor</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient,
+              <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+              <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -180,6 +181,12 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>(package private) <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#setReviveTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">setReviveTokenBucket</a></span>(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;reviveTokenBucket)</code>
+<div class="block">Overrides the token bucket used to handle rate limiting of revive calls.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#start--">start</a></span>()</code>&nbsp;</td>
 </tr>
@@ -205,14 +212,15 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="OfferProcessor-com.mesosphere.sdk.scheduler.MesosEventClient-com.mesosphere.sdk.storage.Persister-">
+<a name="OfferProcessor-com.mesosphere.sdk.scheduler.MesosEventClient-com.mesosphere.sdk.storage.Persister-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>OfferProcessor</h4>
 <pre>public&nbsp;OfferProcessor(<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a>&nbsp;mesosEventClient,
-                      <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
+                      <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
+                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 </li>
 </ul>
 </li>
@@ -234,7 +242,7 @@ extends java.lang.Object</pre>
  called before calling <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#start--"><code>start()</code></a>.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>this</dd>
+<dd><code>this</code></dd>
 </dl>
 </li>
 </ul>
@@ -250,7 +258,23 @@ extends java.lang.Object</pre>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>queueSize</code> - the queue size to use, zero for infinite</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>this</dd>
+<dd><code>this</code></dd>
+</dl>
+</li>
+</ul>
+<a name="setReviveTokenBucket-com.mesosphere.sdk.framework.TokenBucket-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>setReviveTokenBucket</h4>
+<pre><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a>&nbsp;setReviveTokenBucket(<a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework">TokenBucket</a>&nbsp;reviveTokenBucket)</pre>
+<div class="block">Overrides the token bucket used to handle rate limiting of revive calls.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>reviveTokenBucket</code> - the replacement <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a></dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd><code>this</code></dd>
 </dl>
 </li>
 </ul>

@@ -123,57 +123,70 @@
 </td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.WorkingStatus.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.WorkingStatus</a></td>
+<td class="colLast">
+<div class="block">Provides additional information about a <code>WORKING</code> service, which may be used to determine which
+ services should be receiving offers at any given time.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a></td>
 <td class="colLast">
 <div class="block">Response object to be returned by a call to <code>#offers(List)</code>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a></td>
 <td class="colLast">
 <div class="block">Response object to be returned by a call to <code>#taskStatus(org.apache.mesos.Protos.TaskStatus)</code>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a></td>
 <td class="colLast">
 <div class="block">Response object to be returned by a call to <code>#getUnexpectedResources(List)</code>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></td>
 <td class="colLast">
 <div class="block">This class encapsulates the components necessary for tracking Scheduler metrics.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a></td>
 <td class="colLast">
 <div class="block">Pairs an offer with a collection of resources within that offer that should be destroyed and/or unreserved.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></td>
 <td class="colLast">
 <div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>DefaultScheduler</code></a>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></td>
 <td class="colLast">
 <div class="block">This class encapsulates global Scheduler settings retrieved from the environment.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler">SchedulerRunner</a></td>
 <td class="colLast">
 <div class="block">Sets up and executes the <a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler"><code>AbstractScheduler</code></a> instance.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></td>
 <td class="colLast">
 <div class="block">This class provides utilities common to the construction and operation of Mesos Schedulers.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/WorkSetTracker.html" title="class in com.mesosphere.sdk.scheduler">WorkSetTracker</a></td>
+<td class="colLast">
+<div class="block">Tracks the current work set in the service, and determines whether the service has new work that warrants a revive.</div>
 </td>
 </tr>
 </tbody>
@@ -188,9 +201,21 @@
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.IdleRequest.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.IdleRequest</a></td>
+<td class="colLast">
+<div class="block">This notifies upstream of some action that should be performed against this service.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.Result</a></td>
 <td class="colLast">
 <div class="block">The outcome value to be included in a response object.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.WorkingStatus.State.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.WorkingStatus.State</a></td>
+<td class="colLast">
+<div class="block">This gives additional information about the status of a <code>WORKING</code> service.</div>
 </td>
 </tr>
 <tr class="rowColor">

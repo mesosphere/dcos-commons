@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceRunner.Builder.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ParallelFootprintDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" target="_top">Frames</a></li>
@@ -99,7 +99,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">AllDiscipline</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">ReservationDiscipline</a></dd>
+<dd><a href="../../../../../com/mesosphere/sdk/scheduler/multi/AllDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">AllDiscipline</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/multi/ParallelFootprintDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi">ParallelFootprintDiscipline</a></dd>
 </dl>
 <hr>
 <br>
@@ -125,16 +125,16 @@ var activeTableTab = "activeTableTab";
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">offersEnabled</a></span>(java.lang.String&nbsp;serviceName,
-             <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</code>
-<div class="block">Returns whether the specified service should be provided with offers, based on its status response.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#updateServices-java.util.Collection-">updateServices</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;serviceNames)</code>
 <div class="block">Updates the discipline's internal state with a list of all known services.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html#updateServiceStatus-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">updateServiceStatus</a></span>(java.lang.String&nbsp;serviceName,
+                   <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</code>
+<div class="block">Updates the state of the offer discipline with the service's status information.</div>
 </td>
 </tr>
 </table>
@@ -165,25 +165,26 @@ var activeTableTab = "activeTableTab";
  <code>#offersEnabled(AbstractScheduler)</code>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>services</code> - active services</dd>
+<dd><code>serviceNames</code> - names of active services</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code> - if updating internal state has a problem</dd>
 </dl>
 </li>
 </ul>
-<a name="offersEnabled-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">
+<a name="updateServiceStatus-java.lang.String-com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>offersEnabled</h4>
-<pre>boolean&nbsp;offersEnabled(java.lang.String&nbsp;serviceName,
-                      <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</pre>
-<div class="block">Returns whether the specified service should be provided with offers, based on its status response.</div>
+<h4>updateServiceStatus</h4>
+<pre>boolean&nbsp;updateServiceStatus(java.lang.String&nbsp;serviceName,
+                            <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</pre>
+<div class="block">Updates the state of the offer discipline with the service's status information. Returns whether the specified
+ service should be allowed to be provided with offers.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceName</code> - name of the active service</dd>
 <dd><code>statusResponse</code> - the status response returned by the service</dd>
-<dd><code>service</code> - the active service</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>whether to provide the service with offers</dd>
 </dl>
@@ -217,7 +218,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceRunner.Builder.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ReservationDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/scheduler/multi/ParallelFootprintDiscipline.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" target="_top">Frames</a></li>

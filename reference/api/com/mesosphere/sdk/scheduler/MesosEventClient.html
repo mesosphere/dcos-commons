@@ -202,7 +202,7 @@ var activeTableTab = "activeTableTab";
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">unregistered</a></span>()</code>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>offers(Collection)</code></a> which
- returned <code>OfferResponse#finished()</code> as a response.</div>
+ returned <code>OfferResponse#readyToUninstall()</code> as a response.</div>
 </td>
 </tr>
 </table>
@@ -242,8 +242,8 @@ var activeTableTab = "activeTableTab";
 <h4>unregistered</h4>
 <pre>void&nbsp;unregistered()</pre>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>offers(Collection)</code></a> which
- returned <code>OfferResponse#finished()</code> as a response. When this is called, the service should advertise the
- completion of the uninstall operation in its <code>deploy</code> plan.</div>
+ returned <code>OfferResponse#readyToUninstall()</code> as a response. When this is called, the service should
+ advertise the completion of the uninstall operation in its <code>deploy</code> plan.</div>
 </li>
 </ul>
 <a name="getClientStatus--">

@@ -234,7 +234,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#unregistered--">unregistered</a></span>()</code>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>MesosEventClient.offers(Collection)</code></a> which
- returned <code>OfferResponse#finished()</code> as a response.</div>
+ returned <code>OfferResponse#readyToUninstall()</code> as a response.</div>
 </td>
 </tr>
 </table>
@@ -322,8 +322,8 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <pre>public&nbsp;void&nbsp;unregistered()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">MesosEventClient</a></code></span></div>
 <div class="block">Called after the framework has been unregistered from Mesos following a call to <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>MesosEventClient.offers(Collection)</code></a> which
- returned <code>OfferResponse#finished()</code> as a response. When this is called, the service should advertise the
- completion of the uninstall operation in its <code>deploy</code> plan.</div>
+ returned <code>OfferResponse#readyToUninstall()</code> as a response. When this is called, the service should
+ advertise the completion of the uninstall operation in its <code>deploy</code> plan.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--">unregistered</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
@@ -337,8 +337,16 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <li class="blockList">
 <h4>getClientStatus</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;getClientStatus()</pre>
-<div class="block">Returns our status to the upstream <code>OfferProcessor</code>. In practice, we only return either <code>RUNNING</code>, or
- <code>UNINSTALLED</code> if we're ready to be torn down during a scheduler uninstall.</div>
+<div class="block">Returns our status to the upstream <code>OfferProcessor</code>. The logic is as follows:
+
+ <ol>
+ <li>If no services are present: uninstall mode: <code>IDLE/REMOVE_CLIENT</code>, otherwise: <code>IDLE/NONE</code></li>
+ <li>If all services are idle: <code>IDLE/NONE</code></li>
+ <li>If any service is collecting footprint: <code>WORKING/FOOTPRINT</code>, with <code>newWork=true</code> if any service
+ had <code>newWork=true</code></li>
+ <li>Else (mix of zero or more <code>IDLE/*</code> and zero or more <code>WORKING/*</code>):
+ <code>WORKING/LAUNCH</code>, with <code>newWork=true</code> if any service had <code>newWork=true</code></li>
+ </ol></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#getClientStatus--">getClientStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>
@@ -353,7 +361,8 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <h4>offers</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.OfferResponse</a>&nbsp;offers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers)</pre>
 <div class="block">Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
- services which actually receive offers is decided by the <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi"><code>OfferDiscipline</code></a>.</div>
+ services which actually receive offers is decided by their status response to <a href="../../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.html#getClientStatus--"><code>getClientStatus()</code></a>, as well
+ as the configured <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDiscipline.html" title="interface in com.mesosphere.sdk.scheduler.multi"><code>OfferDiscipline</code></a>.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-">offers</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler">MesosEventClient</a></code></dd>

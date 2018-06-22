@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":9,"i2":10,"i3":9,"i4":9,"i5":9};
+var methods = {"i0":10,"i1":9,"i2":10,"i3":9,"i4":9,"i5":9,"i6":9,"i7":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.IdleRequest.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" target="_top">Frames</a></li>
@@ -134,8 +134,21 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.IdleRequest.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.IdleRequest</a></span></code>
+<div class="block">This notifies upstream of some action that should be performed against this service.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.Result</a></span></code>
 <div class="block">The outcome value to be included in a response object.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.WorkingStatus.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.WorkingStatus</a></span></code>
+<div class="block">Provides additional information about a <code>WORKING</code> service, which may be used to determine which
+ services should be receiving offers at any given time.</div>
 </td>
 </tr>
 </table>
@@ -154,9 +167,21 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.IdleRequest.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.IdleRequest</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#idleRequest">idleRequest</a></span></code>
+<div class="block">Additional action required for an <code>IDLE</code> service.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.Result</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#result">result</a></span></code>
-<div class="block">The result of the call.</div>
+<div class="block">The status of the service, either <code>WORKING</code> or <code>IDLE</code>.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.WorkingStatus.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.WorkingStatus</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#workingStatus">workingStatus</a></span></code>
+<div class="block">Additional detail for a <code>WORKING</code> service's status.</div>
 </td>
 </tr>
 </table>
@@ -180,8 +205,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#finished--">finished</a></span>()</code>
-<div class="block">Tells the caller that this client has finished running and can be switched to uninstall mode.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#footprint-boolean-">footprint</a></span>(boolean&nbsp;hasNewWork)</code>
+<div class="block">Tells the caller that this client is deploying the service's footprint.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -190,21 +215,31 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#reserving--">reserving</a></span>()</code>
-<div class="block">Tells the caller that this client is deploying the service.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#idle--">idle</a></span>()</code>
+<div class="block">Tells the caller that this client has no work pending and does not need to receive offers right now.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#running--">running</a></span>()</code>
-<div class="block">Tells the caller that this client is running the service following a completed deployment.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#launching-boolean-">launching</a></span>(boolean&nbsp;hasNewWork)</code>
+<div class="block">Tells the caller that this client is launching tasks into existing footprint.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#uninstalled--">uninstalled</a></span>()</code>
-<div class="block">Tells the caller that this client has finished uninstalling and can be shut down.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#readyToRemove--">readyToRemove</a></span>()</code>
+<div class="block">Tells the caller that this client has finished uninstalling and can be torn down.</div>
 </td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#readyToUninstall--">readyToUninstall</a></span>()</code>
+<div class="block">Tells the caller that this client has finished running and can be switched to uninstall mode.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -212,7 +247,7 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;java.lang.Object</h3>
-<code>clone, finalize, getClass, notify, notifyAll, toString, wait, wait, wait</code></li>
+<code>clone, finalize, getClass, notify, notifyAll, wait, wait, wait</code></li>
 </ul>
 </li>
 </ul>
@@ -231,11 +266,34 @@ extends java.lang.Object</pre>
 <a name="result">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>result</h4>
 <pre>public final&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.Result</a> result</pre>
-<div class="block">The result of the call.</div>
+<div class="block">The status of the service, either <code>WORKING</code> or <code>IDLE</code>. Additional detail for either of these
+ states can be found via <code>workingStatus</code> or <code>idleRequest</code>, respectively.</div>
+</li>
+</ul>
+<a name="workingStatus">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>workingStatus</h4>
+<pre>public final&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.WorkingStatus.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.WorkingStatus</a> workingStatus</pre>
+<div class="block">Additional detail for a <code>WORKING</code> service's status. This is only set if the <code>result</code> is
+ <code>WORKING</code>, otherwise it is <code>null</code>.</div>
+</li>
+</ul>
+<a name="idleRequest">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>idleRequest</h4>
+<pre>public final&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.IdleRequest.html" title="enum in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse.IdleRequest</a> idleRequest</pre>
+<div class="block">Additional action required for an <code>IDLE</code> service. This is set only if the <code>result</code> is
+ <code>IDLE</code>, otherwise it is <code>null</code>.</div>
 </li>
 </ul>
 </li>
@@ -246,16 +304,17 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="reserving--">
+<a name="footprint-boolean-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>reserving</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;reserving()</pre>
-<div class="block">Tells the caller that this client is deploying the service. This may either be an initial deployment or a
- redeployment following a configuration change, either of which may involve growing the service footprint.
- This does NOT include cases of relaunching failed tasks.
+<h4>footprint</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;footprint(boolean&nbsp;hasNewWork)</pre>
+<div class="block">Tells the caller that this client is deploying the service's footprint. This may either be an initial
+ deployment or a re-deployment following a configuration change, either of which may involve changing the
+ service footprint. This does NOT include in-place restarts of failed tasks, nor launches of sidecar tasks
+ which were already allocated.
 
  This code has two purposes:
  <ul><li>Allow upstream to detect a stalled deployment (cluster too small, or other misconfiguration)</li>
@@ -263,38 +322,52 @@ extends java.lang.Object</pre>
  cluster doesn't have enough free room for multiple simultaneous services</li></ul></div>
 </li>
 </ul>
-<a name="running--">
+<a name="launching-boolean-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>running</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;running()</pre>
-<div class="block">Tells the caller that this client is running the service following a completed deployment. This is the
- typical state for healthy services. It is also used for services that are in the process of uninstalling.</div>
+<h4>launching</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;launching(boolean&nbsp;hasNewWork)</pre>
+<div class="block">Tells the caller that this client is launching tasks into existing footprint. This may either be initial
+ deployment of tasks into a previously acquired footprint, or restarting tasks into prior footprint, or
+ launching sidecar tasks into prior footprint.</div>
 </li>
 </ul>
-<a name="finished--">
+<a name="idle--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>finished</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;finished()</pre>
+<h4>idle</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;idle()</pre>
+<div class="block">Tells the caller that this client has no work pending and does not need to receive offers right now. However
+ it should continue to receive any task statuses that are relevant to it.</div>
+</li>
+</ul>
+<a name="readyToUninstall--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>readyToUninstall</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;readyToUninstall()</pre>
 <div class="block">Tells the caller that this client has finished running and can be switched to uninstall mode. The caller
  should long-decline any unused offers.</div>
 </li>
 </ul>
-<a name="uninstalled--">
+<a name="readyToRemove--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>uninstalled</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;uninstalled()</pre>
-<div class="block">Tells the caller that this client has finished uninstalling and can be shut down. After this is returned, the
+<h4>readyToRemove</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;readyToRemove()</pre>
+<div class="block">Tells the caller that this client has finished uninstalling and can be torn down. After this is returned, the
  caller may then notify the client of framework deregistration by calling <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--"><code>MesosEventClient.unregistered()</code></a>, but this is
- not required.</div>
+ not required.
+
+ This status is only relevant to multi-service schedulers.</div>
 </li>
 </ul>
 <a name="equals-java.lang.Object-">
@@ -313,13 +386,26 @@ extends java.lang.Object</pre>
 <a name="hashCode--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>hashCode</h4>
 <pre>public&nbsp;int&nbsp;hashCode()</pre>
 <dl>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>hashCode</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
+</dl>
+</li>
+</ul>
+<a name="toString--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>toString</h4>
+<pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
+<dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
 </li>
 </ul>
@@ -351,7 +437,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.IdleRequest.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" target="_top">Frames</a></li>
