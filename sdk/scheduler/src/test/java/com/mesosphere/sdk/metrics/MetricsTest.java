@@ -154,35 +154,35 @@ public class MetricsTest {
 
     @Test
     public void testPlanStatusNoNamespace() {
-        String metricName = "plan_status.deploy";
+        String metricName = "plan_status.nonamespace";
         MetricRegistry registry = Metrics.getRegistry();
         Assert.assertEquals(0, registry.getGauges((name, metric) -> name.equals(metricName)).size());
 
         // Call set status. This will create the gauge.
-        Metrics.setPlanStatus(Optional.empty(), "deploy", Status.ERROR);
+        Metrics.setPlanStatus(Optional.empty(), "nonamespace", Status.ERROR);
         Assert.assertEquals(1, registry.getGauges((name, metric) -> name.equals(metricName)).size());
         Gauge gauge = registry.getGauges((name, metric) -> name.equals(metricName)).get(metricName);
         Assert.assertEquals(-1, gauge.getValue());
 
         // Verify that an update to status is applied to the same gauge.
-        Metrics.setPlanStatus(Optional.empty(), "deploy", Status.IN_PROGRESS);
+        Metrics.setPlanStatus(Optional.empty(), "nonamespace", Status.IN_PROGRESS);
         Assert.assertEquals(2, gauge.getValue());
     }
 
     @Test
     public void testPlanStatusWithNamespace() {
-        String metricName = "plan_status.namespace.deploy";
+        String metricName = "plan_status.namespace.namespaced";
         MetricRegistry registry = Metrics.getRegistry();
         Assert.assertEquals(0, registry.getGauges((name, metric) -> name.equals(metricName)).size());
 
         // Call set status. This will create the gauge.
-        Metrics.setPlanStatus(Optional.of("namespace"), "deploy", Status.ERROR);
+        Metrics.setPlanStatus(Optional.of("namespace"), "namespaced", Status.ERROR);
         Assert.assertEquals(1, registry.getGauges((name, metric) -> name.equals(metricName)).size());
         Gauge gauge = registry.getGauges((name, metric) -> name.equals(metricName)).get(metricName);
         Assert.assertEquals(-1, gauge.getValue());
 
         // Verify that an update to status is applied to the same gauge.
-        Metrics.setPlanStatus(Optional.of("namespace"), "deploy", Status.IN_PROGRESS);
+        Metrics.setPlanStatus(Optional.of("namespace"), "namespaced", Status.IN_PROGRESS);
         Assert.assertEquals(2, gauge.getValue());
     }
 }
