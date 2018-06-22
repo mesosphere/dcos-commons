@@ -856,6 +856,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setHostname("host-bar").build());
         ticks.add(Expect.declinedLastOffer());
 
+        ticks.add(Expect.suppressedOffers(1));
         ticks.add(Expect.allPlansComplete());
 
         return ticks;

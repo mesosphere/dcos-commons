@@ -60,7 +60,7 @@ public class FrameworkScheduler implements Scheduler {
                 frameworkRolesWhitelist,
                 frameworkStore,
                 mesosEventClient,
-                new OfferProcessor(mesosEventClient, persister),
+                new OfferProcessor(mesosEventClient, persister, schedulerConfig),
                 new ImplicitReconciler(schedulerConfig));
     }
 
@@ -98,6 +98,18 @@ public class FrameworkScheduler implements Scheduler {
     public FrameworkScheduler disableThreading() {
         offerProcessor.disableThreading();
         implicitReconciler.disableThreading();
+        return this;
+    }
+
+    /**
+     * Overrides the token bucket used to handle rate limiting of revive calls.
+     *
+     * @param tokenBucket the replacement {@link TokenBucket}
+     * @return {@code this}
+     */
+    @VisibleForTesting
+    public FrameworkScheduler setReviveTokenBucket(TokenBucket tokenBucket) {
+        offerProcessor.setReviveTokenBucket(tokenBucket);
         return this;
     }
 

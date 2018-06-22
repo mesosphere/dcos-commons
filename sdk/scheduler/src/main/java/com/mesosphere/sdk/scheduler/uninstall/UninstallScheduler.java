@@ -155,7 +155,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     protected void registeredWithMesos() {
-        logger.info("Uninstall scheduler registered with Mesos.");
+        logger.info("Uninstall scheduler registered with Mesos");
     }
 
     @Override
@@ -166,13 +166,13 @@ public class UninstallScheduler extends AbstractScheduler {
     }
 
     @Override
-    public ClientStatusResponse getClientStatus() {
+    protected ClientStatusResponse getStatus() {
         if (deregisterStubStep.isRunning() || deregisterStubStep.isComplete()) {
             // The service resources have been deleted and all that's left is the final deregister operation. After we
             // return uninstalled(), upstream will finish the uninstall by doing one of the following:
             // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
             // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
-            return ClientStatusResponse.uninstalled();
+            return ClientStatusResponse.readyToRemove();
         } else if (uninstallDeadlineMillis.isPresent()
                 && timeFetcher.getCurrentTimeMillis() > uninstallDeadlineMillis.get()) {
             // Configured uninstall timeout has passed, and we're still uninstalling. Tell upstream that we're "done".
@@ -181,13 +181,11 @@ public class UninstallScheduler extends AbstractScheduler {
                     .findAny();
             logger.error("Failed to complete uninstall within {}s timeout, forcing cleanup. Deploy plan was: {}",
                     uninstallTimeoutSecs, deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
-            return ClientStatusResponse.uninstalled();
+            return ClientStatusResponse.readyToRemove();
         } else {
             // Still uninstalling, and no timeout has passed.
-            // Note: We return running() instead of reserving(), because the latter is mainly about limiting
-            // simultaneous reservation growth to avoid deadlocks. In the uninstall case the service is strictly
-            // shrinking, so there isn't any reason to get exclusive deployment.
-            return ClientStatusResponse.running();
+            // Note: We return launching() instead of footprint() because we aren't growing footprint.
+            return ClientStatusResponse.launching(workSetTracker.hasNewWork());
         }
     }
 
