@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-
 import itertools
 
 from typing import List
 
 
 def ignore_files(input: List[str]) -> List[str]:
-    ignored_extensions = (".md", )
+    ignored_extensions = (".md",)
     return list(filter(lambda f: not f.lower().endswith(ignored_extensions), input))
 
 
