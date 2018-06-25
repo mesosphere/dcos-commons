@@ -13,8 +13,8 @@ if [[ -n ${CHANGESET} ]]; then
     echo "Changeset:"
     echo "${CHANGESET}"
 
-    echo ""
-    echo "Running flake8 on $(echo \"${CHANGESET}\" | wc -w) files:"
+    echo
+    echo "Running flake8 on $( echo \"${CHANGESET}\" | wc -w ) files:"
     ${TOOL_DIR}/run_flake8_checks.sh "${CHANGESET}"
     rc=$?
     if [ ${rc} -eq 0 ]; then
