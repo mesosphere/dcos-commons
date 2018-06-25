@@ -51,7 +51,8 @@ RUN mkdir /build-tools
 ENV PATH=/build-tools:$PATH
 
 COPY tools/distribution/init /build-tools/
-COPY tools/ci/* /build-tools/
+COPY tools/ci/test_runner.sh /build-tools/
+COPY tools/ci/launch_cluster.sh /build-tools/
 
 # Create a folder to store the distributed artefacts
 RUN mkdir /dcos-commons-dist

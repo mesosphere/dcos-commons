@@ -76,9 +76,13 @@ def distribute_test_utils(output_path: str):
     for f in files:
         copy_dist_file(f, output_path)
 
-    folders = [("tools", ["tools/ci", "tools/distribution"]), ("testing", []), ]
-    for f in folders:
-        copy_dist_folder(f[0], output_path, f[1])
+    folders = {"testing": [],
+               "tools": ["tools/distribution",
+                         "tools/ci/test_runner.sh",
+                         "tools/ci/launch_cluster.sh", ]}
+
+    for folder, exclude in folders.items():
+        copy_dist_folder(folder, output_path, exclude)
 
 
 def update_sdk(output_path: str, target_version: str):
