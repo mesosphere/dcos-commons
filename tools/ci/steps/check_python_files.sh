@@ -7,10 +7,10 @@ TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 export COMPARE_TO=$( ${TOOL_DIR}/get_base_branch.sh )
 
 # Get the list of Python files in the changeset
-CHANGESET=$( ${TOOL_DIR}/get_changeset.sh | grep -E "\.py$" )
+CHANGESET=$( ${TOOL_DIR}/get_changeset.sh )
 
 # Further filter the changeset to changes that would trigger a build.
-CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.sh "${CHANGESET}" )
+CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" "${CHANGESET}" )
 
 if [[ -n ${CHANGESET} ]]; then
     echo "Changeset:"
