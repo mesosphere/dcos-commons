@@ -12,6 +12,7 @@ if [[ x"$current_branch" == x*"pull/"* ]]; then
 
     git_repo=$( git remote get-url origin | sed -e 's/.*://g' )
     git_repo="${git_repo//.git/}"
+
     output=$( curl --silent "https://api.github.com/repos/${git_repo}/${pr_name}" )
     # Note, curl does not return success/failure based on the HTTP code.
     # Check for a valid return value by retrieving the ID.
