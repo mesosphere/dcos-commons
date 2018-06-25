@@ -231,3 +231,32 @@ def test_kill_all_journalnodes(hdfs_server):
     sdk_tasks.check_tasks_updated(service_name, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(service_name, 'name', name_ids)
     sdk_tasks.check_tasks_not_updated(service_name, 'data', data_ids)
+
+
+
+@pytest.mark.auth
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_pod_restart_namenodes(hdfs_server):
+    service_name = hdfs_server["service"]["name"]
+    name_ids = sdk_tasks.get_task_ids(service_name, 'name')
+
+    for name_pod in config.get_pod_type_instances("name", service_name):
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'pod restart {}'.format(name_pod))
+        config.expect_recovery(service_name=service_name)
+
+    sdk_tasks.check_tasks_not_updated(service_name, 'name', name_ids)
+
+
+@pytest.mark.auth
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_pod_replace_namenodes(hdfs_server):
+    service_name = hdfs_server["service"]["name"]
+    name_ids = sdk_tasks.get_task_ids(service_name, 'name')
+
+    for name_pod in config.get_pod_type_instances("name", service_name):
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, 'pod replace {}'.format(name_pod))
+        config.expect_recovery(service_name=service_name)
+
+    sdk_tasks.check_tasks_not_updated(service_name, 'name', name_ids)
