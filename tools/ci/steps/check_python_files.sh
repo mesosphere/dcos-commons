@@ -4,13 +4,10 @@
 TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 
 # Determine the target branch for the diff calculation
-export COMPARE_TO=$( ${TOOL_DIR}/get_base_branch.sh )
+BASE_BRANCH=$( ${TOOL_DIR}/get_base_branch.sh )
 
-# Get the list of Python files in the changeset
-CHANGESET=$( ${TOOL_DIR}/get_changeset.sh )
-
-# Further filter the changeset to changes that would trigger a build.
-CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" "${CHANGESET}" )
+# Get the list of changed .py files relative to the base branch
+CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" --from-git "${BASE_BRANCH}" )
 
 if [[ -n ${CHANGESET} ]]; then
     echo "Changeset:"
