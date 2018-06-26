@@ -233,8 +233,8 @@ class OfferProcessor {
             try {
                 if (checkStatus()) {
                     evaluateOffers(offers);
-                } else {
-                    // Offers not needed, at least not right now. Decline long.
+                } else if (!offers.isEmpty()) {
+                    // The offers are not needed by the service, at least for the moment. Decline long.
                     declineLong(offers);
                 }
             } finally {

@@ -2,7 +2,6 @@ package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.PlanInfo;
-import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.StringMatcher;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 /**
  * API for management of Plan(s).
  */
-public class PlansQueries extends PrettyJsonResource {
+public class PlansQueries {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(PlansQueries.class);
     private static final StringMatcher ENVVAR_MATCHER = RegexMatcher.create("[A-Za-z_][A-Za-z0-9_]*");
@@ -61,10 +60,11 @@ public class PlansQueries extends PrettyJsonResource {
      */
     public static Response start(
             Collection<PlanManager> planManagers, String planName, Map<String, String> parameters) {
-        try {
-            validate(parameters);
-        } catch (ValidationException e) {
-            return invalidParameterResponse(e.getMessage());
+        for (Map.Entry<String, String> entry : parameters.entrySet()) {
+            if (!ENVVAR_MATCHER.matches(entry.getKey())) {
+                return invalidParameterResponse(
+                        String.format("%s is not a valid environment variable name", entry.getKey()));
+            }
         }
 
         final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);
@@ -335,21 +335,6 @@ public class PlansQueries extends PrettyJsonResource {
 
     private static Response stepNotFoundResponse(String step) {
         return ResponseUtils.notFoundResponse(String.format("Step %s", step));
-    }
-
-    private static void validate(Map<String, String> parameters) throws ValidationException {
-        for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            if (!ENVVAR_MATCHER.matches(entry.getKey())) {
-                throw new ValidationException(
-                        String.format("%s is not a valid environment variable name", entry.getKey()));
-            }
-        }
-    }
-
-    private static class ValidationException extends Exception {
-        public ValidationException(String message) {
-            super(message);
-        }
     }
 
     private static JSONObject getCommandResult(String command) {

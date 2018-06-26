@@ -10,6 +10,7 @@ import com.mesosphere.sdk.state.StateStore;
 
 import java.util.Optional;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -20,6 +21,7 @@ import javax.ws.rs.core.Response;
  * A read-only API for accessing information about the pods which compose the service, and restarting/replacing those
  * pods.
  */
+@Singleton
 @Path("/v1/service")
 public class MultiPodResource extends PrettyJsonResource {
 

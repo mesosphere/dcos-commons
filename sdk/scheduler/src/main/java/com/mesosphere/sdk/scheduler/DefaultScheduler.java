@@ -144,7 +144,7 @@ public class DefaultScheduler extends AbstractScheduler {
         Collection<Object> resources = new ArrayList<>();
         resources.addAll(customResources);
         resources.add(new ArtifactResource(configStore));
-        resources.add(new ConfigResource<>(configStore));
+        resources.add(new ConfigResource(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName(), schedulerConfig);
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
