@@ -11,11 +11,11 @@ import javax.ws.rs.core.Response;
  *  A read-only API for accessing the most recently processed offers. It does _not_ return any information
  *  about offers that were declined but never evaluated.
  */
-@Path("/v1/debug/offers")
-public class OfferOutcomeResource {
+@Path("/v1/debug")
+public class DebugResource {
     private final OfferOutcomeTracker offerOutcomeTracker;
 
-    public OfferOutcomeResource(OfferOutcomeTracker offerOutcomeTracker) {
+    public DebugResource(OfferOutcomeTracker offerOutcomeTracker) {
         this.offerOutcomeTracker = offerOutcomeTracker;
     }
 
@@ -24,6 +24,7 @@ public class OfferOutcomeResource {
      * @return HTML response of the table.
      */
     @GET
+    @Path("offers")
     public Response getOfferOutcomes(@QueryParam("json") boolean json) {
         if (json) {
             return ResponseUtils.jsonOkResponse(offerOutcomeTracker.toJson());
