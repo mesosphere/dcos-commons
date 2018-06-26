@@ -57,6 +57,9 @@ class ReviveManager {
      * In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here,
      * because we cannot deterministically tell if we are actually suppressed or not. This logic could be revisited if
      * Mesos someday offers a call which tells us whether or not we're suppressed.
+     *
+     * Note that this also ensures that by flipping the {@code isSuppressed} flag if we receive an offer when we
+     * SHOULD BE suppressed, we are ensuring that the future calls to {@code suppressIfActive} would reissue SUPPRESS.
      */
     synchronized void notifyOffersReceived() {
         isSuppressed = false;
@@ -70,10 +73,8 @@ class ReviveManager {
      */
     synchronized void suppressIfActive() {
         if (isSuppressed) {
-            // Service doesn't need offers, but offers are already suppressed. If we receive offers
-            // when isSuppressed bit is set, this could mean that the previous SUPPRESS call was
-            // never processed. Suppress again. (This is a low cost operation)
-            LOGGER.warn("Re-issuing suppress!");
+            // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
+            return;
         }
 
         // Service doesn't need offers, and offers are not suppressed. Suppress.

@@ -97,9 +97,18 @@ public class ReviveManagerTest {
     }
 
     @Test
-    public void reSuppressWhenSuppressed() {
+    public void dontSuppressWhenSuppressed() {
         ReviveManager manager = getReviveManager();
         manager.suppressIfActive();
+        manager.suppressIfActive();
+        verify(driver, times(1)).suppressOffers();
+    }
+
+    @Test
+    public void resSuppressOnOfferReceived() {
+        ReviveManager manager = getReviveManager();
+        manager.suppressIfActive();
+        manager.notifyOffersReceived();
         manager.suppressIfActive();
         verify(driver, times(2)).suppressOffers();
     }
