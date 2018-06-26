@@ -59,12 +59,6 @@ class ReviveManager {
      * Mesos someday offers a call which tells us whether or not we're suppressed.
      */
     synchronized void notifyOffersReceived() {
-        if(isSuppressed) {
-            // If we receive offers when isSuppressed bit is set, this could mean that the previous
-            // SUPPRESS call was never processed. Suppress again. (This is a low cost operation)
-            isSuppressed = false;
-            suppressIfActive();
-        }
         isSuppressed = false;
         Metrics.notSuppressed();
     }
@@ -76,8 +70,10 @@ class ReviveManager {
      */
     synchronized void suppressIfActive() {
         if (isSuppressed) {
-            // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
-            return;
+            // Service doesn't need offers, but offers are already suppressed. If we receive offers
+            // when isSuppressed bit is set, this could mean that the previous SUPPRESS call was
+            // never processed. Suppress again. (This is a low cost operation)
+            LOGGER.warn("Re-issuing suppress!");
         }
 
         // Service doesn't need offers, and offers are not suppressed. Suppress.
