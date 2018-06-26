@@ -105,6 +105,15 @@ public class ReviveManagerTest {
     }
 
     @Test
+    public void resSuppressOnOfferReceived() {
+        ReviveManager manager = getReviveManager();
+        manager.suppressIfActive();
+        manager.notifyOffersReceived();
+        manager.suppressIfActive();
+        verify(driver, times(2)).suppressOffers();
+    }
+
+    @Test
     public void dontSuppressWhenDisabled() {
         when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(false);
         ReviveManager manager = getReviveManager();
