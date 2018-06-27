@@ -37,6 +37,7 @@ public class ApiServerTest {
 
         Listener listener = new Listener();
         ApiServer server = ApiServer.start(
+                "schedulerName",
                 mockSchedulerConfig,
                 Arrays.asList(
                         new TestResourcePlans(),

@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
  */
 public class SchedulerConfigTestUtils {
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static SchedulerConfig getTestSchedulerConfig() {
         SchedulerConfig schedulerConfig = mock(SchedulerConfig.class);
         when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
@@ -26,6 +27,7 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
         when(schedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-region"));
         when(schedulerConfig.getMultiServiceRemovalTimeout()).thenReturn(Duration.ofSeconds(60));
+        when(schedulerConfig.getSchedulerIP()).thenReturn("127.0.0.1");
         return schedulerConfig;
     }
 }
