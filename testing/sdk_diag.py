@@ -104,7 +104,7 @@ def handle_test_report(item: pytest.Item, result): # _pytest.runner.TestReport
     if not result.failed:
         return # passed, nothing to do
 
-    # Fetch all plans from all currently-installed services.
+    # Fetch all state from all currently-installed services.
     # We do this retrieval first in order to be closer to the actual test failure.
     # Services may still be installed when e.g. we're still in the middle of a test suite.
     service_names = sdk_install.get_installed_service_names()
@@ -113,7 +113,7 @@ def handle_test_report(item: pytest.Item, result): # _pytest.runner.TestReport
             len(service_names), ', '.join(service_names)))
         for service_name in service_names:
             try:
-                _dump_plans(item, service_name)
+                _dump_scheduler(item, service_name)
             except:
                 log.exception('Plan collection from service {} failed!'.format(service_name))
 
@@ -146,6 +146,11 @@ def handle_test_report(item: pytest.Item, result): # _pytest.runner.TestReport
     log.info('Post-failure collection complete')
 
 
+def _dump_scheduler(item: pytest.Item, service_name: str):
+    _dump_plans(item, service_name)
+    _dump_threads(item, service_name)
+
+
 def _dump_plans(item: pytest.Item, service_name: str):
     '''If the test had failed, writes the plan state(s) to log file(s).'''
 
@@ -160,6 +165,15 @@ def _dump_plans(item: pytest.Item, service_name: str):
         with open(out_path, 'w') as f:
             f.write(out_content)
             f.write('\n') # ... and a trailing newline
+
+
+def _dump_threads(item: pytest.Item, service_name: str):
+    threads = sdk_cmd.service_request('GET', 'v1/debug/threads')
+    out_path = _setup_artifact_path(item, 'threads_{}.json'.format(service_name.replace('/', '_')))
+    log.info('=> Writing {} ({} bytes)'.format(out_path, len(threads)))
+    with open(out_path, 'w') as f:
+        f.write(threads)
+        f.write('\n') # ... and a trailing newline
 
 
 def _dump_diagnostics_bundle(item: pytest.Item):
