@@ -1,5 +1,9 @@
 package com.mesosphere.sdk.framework;
 
+import com.codahale.metrics.jvm.ThreadDump;
+
+import java.lang.management.ManagementFactory;
+
 /**
  * This class handles exiting the Scheduler process, after completed teardown or after a fatal error.
  */
@@ -29,6 +33,8 @@ public class ProcessExit {
         String message = String.format("Process exiting immediately with code: %s[%d]", code, code.getValue());
         System.err.println(message);
         System.out.println(message);
+        System.err.println("Printing final thread state");
+        new ThreadDump(ManagementFactory.getThreadMXBean()).dump(System.err);
         System.exit(code.getValue());
     }
 
