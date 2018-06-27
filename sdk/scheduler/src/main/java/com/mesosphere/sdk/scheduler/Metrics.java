@@ -82,7 +82,8 @@ public class Metrics {
     static final String SUPPRESSES = "suppresses";
     static final String IS_SUPPRESSED = "is_suppressed";
 
-    private static AtomicBoolean isSuppressed = new AtomicBoolean(false);
+    // This may be accessed both by whatever thread metrics runs on, and the main offer processing thread:
+    private static final AtomicBoolean isSuppressed = new AtomicBoolean(false);
     static {
         metrics.register(IS_SUPPRESSED, new Gauge<Boolean>() {
             @Override
