@@ -124,7 +124,7 @@ class OfferProcessor {
                 while (true) {
                     try {
                         processQueuedOffers(DEFAULT_OFFER_WAIT);
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
                         ProcessExit.exit(ProcessExit.ERROR, e);
                     }
@@ -167,6 +167,9 @@ class OfferProcessor {
                 }
             }
         }
+
+        // TODO(nick): This is for debugging. Remove it after DCOS-38473 is resolved.
+        LOGGER.info("Enqueued {} offer{}", offers.size(), offers.size() == 1 ? "" : "s");
 
         if (!multithreaded) {
             // Immediately process on this thread, rather than depending on offerExecutor to do it.
