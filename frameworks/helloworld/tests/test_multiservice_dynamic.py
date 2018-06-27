@@ -51,7 +51,7 @@ def test_add_deploy_restart_remove():
     sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
 
     task_ids = sdk_tasks.get_task_ids('marathon', config.SERVICE_NAME)
-    log.info('list of task ids {}').format(task_ids)
+    log.info('list of task ids {}'.format(task_ids))
     old_task_id = task_ids[0]
 
     # restart and check that service is recovered:
