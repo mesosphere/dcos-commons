@@ -1,6 +1,7 @@
 import logging
 import pytest
 import tempfile
+import json
 
 
 import sdk_cmd
@@ -56,6 +57,7 @@ def test_rack():
 
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
+@pytest.mark.rack_changes
 def test_rack_upgrades_to_default_rack():
     # First uninstall the existing package
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -96,6 +98,7 @@ def test_rack_upgrades_to_default_rack():
 @pytest.mark.dcos_min_version('1.11')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
+@pytest.mark.rack_changes
 def test_adding_zone_placement_constraint_fails_racks():
     # First uninstall the existing package
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
