@@ -7,9 +7,9 @@ import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -18,11 +18,14 @@ import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
-import java.util.*;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Class which sets up and executes the correct {@link AbstractScheduler} instance.
@@ -83,7 +86,7 @@ public class FrameworkRunner {
                 throw new IllegalStateException("Unable to clear all data", e);
             }
 
-            runSkeletonScheduler(schedulerConfig);
+            runSkeletonScheduler(frameworkConfig, schedulerConfig);
             // The skeleton scheduler should never exit. But just in case...:
             ProcessExit.exit(ProcessExit.DRIVER_EXITED);
         }
@@ -96,7 +99,11 @@ public class FrameworkRunner {
                 persister,
                 frameworkStore,
                 mesosEventClient);
-        ApiServer httpServer = ApiServer.start(schedulerConfig, mesosEventClient.getHTTPEndpoints(), new Runnable() {
+        ApiServer httpServer = ApiServer.start(
+                frameworkConfig.getFrameworkName(),
+                schedulerConfig,
+                mesosEventClient.getHTTPEndpoints(),
+                new Runnable() {
             @Override
             public void run() {
                 // Notify the framework that it can start accepting offers. This is to avoid the following scenario:
@@ -172,7 +179,7 @@ public class FrameworkRunner {
      * Launches a 'skeleton' scheduler which does nothing other than advertise a completed {@code deploy} plan. This is
      * used in cases where the scheduler is fully uninstalled and is just waiting to get removed from Marathon.
      */
-    private void runSkeletonScheduler(SchedulerConfig schedulerConfig) {
+    private void runSkeletonScheduler(FrameworkConfig frameworkConfig, SchedulerConfig schedulerConfig) {
         PlanManager uninstallPlanManager = DefaultPlanManager.createProceeding(EMPTY_DEPLOY_PLAN);
         // Bare minimum resources to appear healthy/complete to DC/OS:
         Collection<Object> resources = Arrays.asList(
@@ -182,6 +189,7 @@ public class FrameworkRunner {
                 // /v1/health: Invoked by Mesos as directed a configured health check in the scheduler Marathon app.
                 new HealthResource(Collections.singletonList(uninstallPlanManager)));
         ApiServer httpServer = ApiServer.start(
+                frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 resources,
                 new Runnable() {

@@ -2,10 +2,10 @@ package com.mesosphere.sdk.framework;
 
 import com.codahale.metrics.jetty9.InstrumentedHandler;
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -19,8 +19,9 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import org.slf4j.Logger;
 
 import javax.ws.rs.core.UriBuilder;
-
+import java.net.InetAddress;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.HashSet;
@@ -41,15 +42,69 @@ public class ApiServer {
     private Thread serverThread;
 
     public static ApiServer start(
-            SchedulerConfig schedulerConfig, Collection<Object> resources, Runnable startedCallback) {
+            String serviceName,
+            SchedulerConfig schedulerConfig,
+            Collection<Object> resources,
+            Runnable startedCallback) {
         ApiServer apiServer = new ApiServer(schedulerConfig, resources);
         apiServer.start(new AbstractLifeCycle.AbstractLifeCycleListener() {
             @Override
             public void lifeCycleStarted(LifeCycle event) {
+                awaitSchedulerDns(serviceName, schedulerConfig);
                 startedCallback.run();
             }
         });
         return apiServer;
+    }
+
+    private static void awaitSchedulerDns(String schedulerName, SchedulerConfig schedulerConfig) {
+        final String schedulerHostname = EndpointUtils.toSchedulerAutoIpHostname(schedulerName, schedulerConfig);
+        final String expectedAddress = schedulerConfig.getSchedulerIP();
+
+        LOGGER.info("Waiting for the scheduler host {} to resolve to {}", schedulerHostname, expectedAddress);
+
+        final Timer resolutionTimer = new Timer("API-resolution-timeout");
+        resolutionTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                LOGGER.error("Unable to lookup scheduler host {} within {}ms",
+                        schedulerHostname, schedulerConfig.getApiServerInitTimeout().toMillis());
+                ProcessExit.exit(ProcessExit.API_SERVER_ERROR);
+            }
+        }, schedulerConfig.getApiServerInitTimeout().toMillis());
+
+        while (true) {
+            try {
+                InetAddress[] addresses = InetAddress.getAllByName(schedulerHostname);
+
+                if (addresses.length != 1) {
+                    LOGGER.warn("Scheduler host {} resolved to multiple addresses: {}",
+                            schedulerHostname, addresses);
+                    continue;
+                } else {
+                    final String resolvedAddress = addresses[0].getHostAddress();
+                    if (!resolvedAddress.equals(expectedAddress)) {
+                        LOGGER.warn("Scheduler host {} resolved to {} not the expected address {}",
+                                schedulerHostname, resolvedAddress, expectedAddress);
+                        continue;
+                    }
+
+                    LOGGER.info("Resolved scheduler host {} to expected address {}",
+                            schedulerHostname, expectedAddress);
+                    resolutionTimer.cancel();
+                    return;
+                }
+            } catch (UnknownHostException uhe){
+                LOGGER.warn("Unable to look up scheduler host {}", schedulerHostname);
+            } finally {
+                try {
+                    Thread.sleep(Duration.ofSeconds(5).toMillis());
+                } catch (InterruptedException ie) {
+                    LOGGER.error("DNS resolution interrupted", ie);
+                    ProcessExit.exit(ProcessExit.API_SERVER_ERROR);
+                }
+            }
+        }
     }
 
     @VisibleForTesting
