@@ -258,11 +258,11 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>offer</h4>
 <pre>public&nbsp;boolean&nbsp;offer(Protos.Offer&nbsp;offer)</pre>
-<div class="block">This method enqueues an Offer from Mesos if there is capacity. If there is not capacity the Offer is not added
- to the queue.</div>
+<div class="block">This method enqueues an Offer from Mesos if there is capacity. If there is not capacity the Offer is not added to
+ the queue and <code>false</code> is returned.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>true if the Offer was successfully put in the queue, false otherwise</dd>
+<dd><code>true</code> if the Offer was successfully put in the queue, <code>false</code> otherwise</dd>
 </dl>
 </li>
 </ul>
