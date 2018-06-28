@@ -33,7 +33,7 @@ public class ProcessExit {
         String message = String.format("Process exiting immediately with code: %s[%d]", code, code.getValue());
         System.err.println(message);
         System.out.println(message);
-        System.err.println("Printing final thread state");
+        System.err.println("Printing final thread state...");
         new ThreadDump(ManagementFactory.getThreadMXBean()).dump(System.err);
         System.exit(code.getValue());
     }
