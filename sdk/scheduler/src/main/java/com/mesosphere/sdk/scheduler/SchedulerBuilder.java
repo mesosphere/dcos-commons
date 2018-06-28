@@ -350,10 +350,17 @@ public class SchedulerBuilder {
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
                 Optional<Plan> deployPlan = getDeployPlan(
                         getPlans(stateStore, configStore, lastServiceSpec, namespace, yamlPlans));
-                if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                    logger.info("Marking deployment as having been previously completed");
-                    StateStoreUtils.setDeploymentWasCompleted(stateStore);
-                    hasCompletedDeployment = true;
+                if (deployPlan.isPresent()) {
+                    logger.info("Previous deploy plan state: {}", deployPlan.get().toString());
+                    if (deployPlan.get().isComplete()) {
+                        logger.info("Marking deployment as having been previously completed");
+                        StateStoreUtils.setDeploymentWasCompleted(stateStore);
+                        hasCompletedDeployment = true;
+                    } else {
+                        logger.info("Deployment has not previously completed");
+                    }
+                } else {
+                    logger.warn("No previous deploy plan was found");
                 }
             } catch (ConfigStoreException e) {
                 // This is expected during initial deployment, when there is no prior configuration.
@@ -387,6 +394,8 @@ public class SchedulerBuilder {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
 
+        logger.info("New deploy plan state: {}", deployPlan.get().toString());
+
         List<String> errors = configUpdateResult.getErrors().stream()
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
@@ -395,6 +404,7 @@ public class SchedulerBuilder {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
         }
 
+        // Call getDeployPlan() again to inherit any injected config update errors:
         PlanManager deploymentPlanManager =
                 DefaultPlanManager.createProceeding(getDeployPlan(plans).get());
         PlanManager recoveryPlanManager = getRecoveryPlanManager(
