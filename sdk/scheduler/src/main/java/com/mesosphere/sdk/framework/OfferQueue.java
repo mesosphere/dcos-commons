@@ -59,9 +59,10 @@ public class OfferQueue {
     }
 
     /**
-     * This method enqueues an Offer from Mesos if there is capacity. If there is not capacity the Offer is not added
-     * to the queue.
-     * @return true if the Offer was successfully put in the queue, false otherwise
+     * This method enqueues an Offer from Mesos if there is capacity. If there is not capacity the Offer is not added to
+     * the queue and {@code false} is returned.
+     *
+     * @return {@code true} if the Offer was successfully put in the queue, {@code false} otherwise
      */
     public boolean offer(Protos.Offer offer) {
         return queue.offer(offer);

@@ -11,6 +11,7 @@ import io.prometheus.client.dropwizard.DropwizardExports;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.mesos.Protos;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -81,23 +82,24 @@ public class Metrics {
     static final String SUPPRESSES = "suppresses";
     static final String IS_SUPPRESSED = "is_suppressed";
 
-    private static boolean isSuppressed = false;
+    // This may be accessed both by whatever thread metrics runs on, and the main offer processing thread:
+    private static final AtomicBoolean isSuppressed = new AtomicBoolean(false);
     static {
         metrics.register(IS_SUPPRESSED, new Gauge<Boolean>() {
             @Override
             public Boolean getValue() {
-                return isSuppressed;
+                return isSuppressed.get();
             }
         });
     }
 
     public static void notSuppressed() {
-        Metrics.isSuppressed = false;
+        Metrics.isSuppressed.set(false);
     }
 
     public static void incrementSuppresses() {
         metrics.counter(SUPPRESSES).inc();
-        Metrics.isSuppressed = true;
+        Metrics.isSuppressed.set(true);
     }
 
     // Revive

@@ -4,6 +4,8 @@ import com.mesosphere.sdk.http.queries.PlansQueries;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
+
+import javax.inject.Singleton;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -19,6 +21,7 @@ import java.util.Map;
 /**
  * API for management of Plan(s).
  */
+@Singleton
 @Path("/v1/plans")
 public class PlansResource extends PrettyJsonResource {
 
