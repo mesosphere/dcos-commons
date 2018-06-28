@@ -75,10 +75,11 @@ def test_rack_upgrades_to_default_rack():
         package_version="2.0.3-3.0.14"
     )
 
-    target_version = "2.1.0-3.0.16"
+    # target_version = "2.1.0-3.0.16"
+    target_version = "stub-universe"
     # Run the CLI upgrade
     cmd_list = [
-        "package", "install", "--yes", "--cli",
+        "package", "install", config.PACKAGE_NAME, "--yes", "--cli",
         "--package-version={}".format(target_version)
     ]
     sdk_cmd.run_cli(" ".join(cmd_list))
