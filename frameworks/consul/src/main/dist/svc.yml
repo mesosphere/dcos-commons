@@ -4,7 +4,7 @@ scheduler:
   user: {{FRAMEWORK_USER}}
 pods:
   consul-server:
-    count: {{NODE_COUNT}}
+    count: 3
     placement: '{{{NODE_PLACEMENT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -12,13 +12,25 @@ pods:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
     tasks:
-      node:
+      server:
         goal: RUNNING
-        cmd: "echo consul >> consul-container-path/output && sleep $SLEEP_DURATION"
+        cmd: "consul agent -server -bootstrap-expect={{BOOTSTRAP_NODE_COUNT}}"
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
-        volume:
-          path: "consul-container-path"
-          type: {{NODE_DISK_TYPE}}
-          size: {{NODE_DISK}}
         env:
+          CONSUL_LOCAL_CONFIG={{CONSUL_LOCAL_CONFIG}}
+  consul-agent:
+    count: 3
+    placement: '{{NODE_PLACEMENT}}'
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "consul agent -retry-join=consul-server-0-server.consul.autoip.dcos.thisdcos.directory
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+        env:
+          CONSUL_LOCAL_CONFIG={{CONSUL_LOCAL_CONFIG}}
