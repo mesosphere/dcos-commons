@@ -3,6 +3,7 @@ package com.mesosphere.sdk.http.endpoints;
 import com.codahale.metrics.jvm.ThreadDump;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -10,9 +11,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
-import java.io.BufferedOutputStream;
-import java.io.BufferedWriter;
-import java.io.OutputStream;
 import java.lang.management.ManagementFactory;
 
 /**
