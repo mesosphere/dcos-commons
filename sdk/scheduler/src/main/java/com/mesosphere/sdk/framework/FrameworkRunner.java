@@ -35,7 +35,10 @@ public class FrameworkRunner {
      * Empty complete deploy plan to be used if the scheduler is uninstalling and was launched in a finished state.
      */
     @VisibleForTesting
-    static final Plan EMPTY_DEPLOY_PLAN = new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.emptyList());
+    static final Plan EMPTY_DEPLOY_PLAN = new DefaultPlan(
+            Constants.DEPLOY_PLAN_NAME,
+            Collections.emptyList()
+    );
 
     private final SchedulerConfig schedulerConfig;
     private final FrameworkConfig frameworkConfig;

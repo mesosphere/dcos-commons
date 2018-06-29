@@ -56,6 +56,21 @@ public class SchedulerConfig {
     private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
 
     /**
+     * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
+     * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
+     * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
+     * quotas.</li>
+     * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
+     * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
+     */
+    public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
+    /**
+     * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
+     * number of parallel deployments via the above envvar.
+     */
+    private static final int DEFAULT_RESERVE_DISCIPLINE = 0; // No limit
+
+    /**
      * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
      * token refresh.
      */
@@ -81,6 +96,12 @@ public class SchedulerConfig {
      * If this envvar is set (to anything at all), the cache is disabled.
      */
     private static final String DISABLE_STATE_CACHE_ENV = "DISABLE_STATE_CACHE";
+
+    /**
+     * Controls whether the framework will request that offers be suppressed when the service(s) are idle (enabled by
+     * default). If this envvar is set (to anything at all), then offer suppression is disabled.
+     */
+    private static final String DISABLE_SUPPRESS_ENV = "DISABLE_SUPPRESS";
 
     /**
      * When a port named {@code api} is added to the Marathon app definition for the scheduler, marathon should create
@@ -207,6 +228,14 @@ public class SchedulerConfig {
     }
 
     /**
+     * Returns the number of services that can be simultaneously reserving in a multi-service scheduler, or {@code <=0}
+     * for no limit.
+     */
+    public int getMultiServiceReserveDiscipline() {
+        return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
+    }
+
+    /**
      * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
      * information.
      */
@@ -254,6 +283,10 @@ public class SchedulerConfig {
 
     public boolean isStateCacheEnabled() {
         return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
+    }
+
+    public boolean isSuppressEnabled() {
+        return !envStore.isPresent(DISABLE_SUPPRESS_ENV);
     }
 
     public boolean isUninstallEnabled() {

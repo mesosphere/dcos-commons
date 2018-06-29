@@ -60,7 +60,7 @@ public class FrameworkScheduler implements Scheduler {
                 frameworkRolesWhitelist,
                 frameworkStore,
                 mesosEventClient,
-                new OfferProcessor(mesosEventClient, persister),
+                new OfferProcessor(mesosEventClient, persister, schedulerConfig),
                 new ImplicitReconciler(schedulerConfig));
     }
 
@@ -101,54 +101,78 @@ public class FrameworkScheduler implements Scheduler {
         return this;
     }
 
+    /**
+     * Overrides the token bucket used to handle rate limiting of revive calls.
+     *
+     * @param tokenBucket the replacement {@link TokenBucket}
+     * @return {@code this}
+     */
+    @VisibleForTesting
+    public FrameworkScheduler setReviveTokenBucket(TokenBucket tokenBucket) {
+        offerProcessor.setReviveTokenBucket(tokenBucket);
+        return this;
+    }
+
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId, Protos.MasterInfo masterInfo) {
-        if (registerCalled.getAndSet(true)) {
-            // This may occur as the result of a master election.
-            LOGGER.info("Already registered, calling reregistered()");
-            reregistered(driver, masterInfo);
-            return;
-        }
-
-        LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
         try {
-            frameworkStore.storeFrameworkId(frameworkId);
-        } catch (Exception e) {
-            LOGGER.error(String.format(
-                    "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
-            ProcessExit.exit(ProcessExit.REGISTRATION_FAILURE, e);
+            if (registerCalled.getAndSet(true)) {
+                // This may occur as the result of a master election.
+                LOGGER.info("Already registered, calling reregistered()");
+                reregistered(driver, masterInfo);
+                return;
+            }
+
+            LOGGER.info("Registered framework with frameworkId: {}", frameworkId.getValue());
+            try {
+                frameworkStore.storeFrameworkId(frameworkId);
+            } catch (Exception e) {
+                LOGGER.error(String.format(
+                        "Unable to store registered framework ID '%s'", frameworkId.getValue()), e);
+                ProcessExit.exit(ProcessExit.REGISTRATION_FAILURE, e);
+            }
+
+            updateDriverAndDomain(driver, masterInfo);
+            mesosEventClient.registered(false);
+
+            // Start background threads:
+            offerProcessor.start();
+            implicitReconciler.start();
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
         }
-
-        updateDriverAndDomain(driver, masterInfo);
-        mesosEventClient.registered(false);
-
-        // Start background threads:
-        offerProcessor.start();
-        implicitReconciler.start();
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-        LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
-        updateDriverAndDomain(driver, masterInfo);
-        mesosEventClient.registered(true);
+        try {
+            LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
+            updateDriverAndDomain(driver, masterInfo);
+            mesosEventClient.registered(true);
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
     }
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-        Metrics.incrementReceivedOffers(offers.size());
+        try {
+            Metrics.incrementReceivedOffers(offers.size());
 
-        if (!apiServerStarted.get()) {
-            LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
-                    offers.size(), offers.size() == 1 ? "" : "s");
-            OfferProcessor.declineShort(offers);
-            return;
+            if (!apiServerStarted.get()) {
+                LOGGER.info("Declining {} offer{}: Waiting for API Server to start.",
+                        offers.size(), offers.size() == 1 ? "" : "s");
+                OfferProcessor.declineShort(offers);
+                return;
+            }
+
+            // Filter any bad resources from the offers before they even enter processing.
+            offerProcessor.enqueue(offers.stream()
+                    .map(offer -> filterBadResources(offer))
+                    .collect(Collectors.toList()));
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
         }
-
-        // Filter any bad resources from the offers before they even enter processing.
-        offerProcessor.enqueue(offers.stream()
-                .map(offer -> filterBadResources(offer))
-                .collect(Collectors.toList()));
     }
 
     /**
@@ -199,68 +223,108 @@ public class FrameworkScheduler implements Scheduler {
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
-        LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
-                status.getTaskId().getValue(),
-                status.getState().toString(),
-                status.getMessage(),
-                TextFormat.shortDebugString(status));
-        Metrics.record(status);
-        TaskStatusResponse response = mesosEventClient.taskStatus(status);
-        boolean eligibleToKill = TaskKiller.update(status);
-        switch (response.result) {
-        case UNKNOWN_TASK:
-            if (eligibleToKill) {
-                LOGGER.info("Got unknown task in response to status update, marking task to be killed: {}",
-                        status.getTaskId().getValue());
-                TaskKiller.killTask(status.getTaskId());
-            } else {
-                // Special case: Mesos can send TASK_LOST+REASON_RECONCILIATION as a response to a prior kill request
-                // against a task that is unknown to Mesos. When this happens, we don't want to repeat the kill, because
-                // that would create a Kill -> Status -> Kill -> ... loop
-                LOGGER.warn("Received status update for unknown task, but task should not be killed again: {}",
-                        status.getTaskId().getValue());
+        try {
+            LOGGER.info("Received status update for taskId={} state={} message={} protobuf={}",
+                    status.getTaskId().getValue(),
+                    status.getState().toString(),
+                    status.getMessage(),
+                    TextFormat.shortDebugString(status));
+            Metrics.record(status);
+            TaskStatusResponse response = mesosEventClient.taskStatus(status);
+            boolean eligibleToKill = TaskKiller.update(status);
+            switch (response.result) {
+            case UNKNOWN_TASK:
+                if (eligibleToKill) {
+                    LOGGER.info("Received status update for unknown task, marking task to be killed: {}",
+                            status.getTaskId().getValue());
+                    TaskKiller.killTask(status.getTaskId());
+                } else {
+                    // Special case: Mesos can send TASK_LOST+REASON_RECONCILIATION as a response to a prior kill
+                    // request against a task that is unknown to Mesos. When this happens, we don't want to repeat the
+                    // kill, because that would create a Kill -> Status -> Kill -> ... loop
+                    LOGGER.warn("Received status update for unknown task, but task should not be killed again: {}",
+                            status.getTaskId().getValue());
+                }
+                break;
+            case PROCESSED:
+                // No-op
+                break;
             }
-            break;
-        case PROCESSED:
-            // No-op
-            break;
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
         }
     }
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-        LOGGER.info("Rescinding offer: {}", offerId.getValue());
-        offerProcessor.dequeue(offerId);
+        try {
+            LOGGER.info("Rescinding offer: {}", offerId.getValue());
+            offerProcessor.dequeue(offerId);
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
     }
 
     @Override
     public void frameworkMessage(
             SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, byte[] data) {
-        LOGGER.error("Received unsupported {} byte Framework Message from Executor {} on Agent {}",
-                data.length, executorId.getValue(), agentId.getValue());
+        try {
+            LOGGER.error("Received unsupported {} byte Framework Message from Executor {} on Agent {}",
+                    data.length, executorId.getValue(), agentId.getValue());
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
     }
 
     @Override
     public void disconnected(SchedulerDriver driver) {
-        LOGGER.error("Disconnected from Master, shutting down.");
-        ProcessExit.exit(ProcessExit.DISCONNECTED);
+        try {
+            LOGGER.error("Disconnected from Master, shutting down.");
+            ProcessExit.exit(ProcessExit.DISCONNECTED);
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
     }
 
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID agentId) {
-        LOGGER.warn("Agent lost: {}", agentId.getValue());
+        try {
+            LOGGER.warn("Agent lost: {}", agentId.getValue());
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
     }
 
     @Override
-    public void executorLost(
-            SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
-        LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), agentId.getValue());
+    public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId, Protos.SlaveID agentId, int status) {
+        try {
+            LOGGER.warn("Lost Executor: {} on Agent: {}", executorId.getValue(), agentId.getValue());
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
     }
 
     @Override
     public void error(SchedulerDriver driver, String message) {
-        LOGGER.error("SchedulerDriver returned an error, shutting down: {}", message);
-        ProcessExit.exit(ProcessExit.ERROR);
+        try {
+            LOGGER.error("SchedulerDriver returned an error, shutting down: {}", message);
+            ProcessExit.exit(ProcessExit.ERROR);
+        } catch (Throwable e) {
+            logExceptionAndExit(e);
+        }
+    }
+
+    /**
+     * Logs an exception that we threw in response to a call from the Mesos adapter, and then kills the scheduler
+     * process so that it can be restarted. We carefully avoid the possibility of any exceptions reaching the Mesos
+     * adapter, because doing so can leave the Scheduler process in a zombie state: no offers/statuses being processed,
+     * but HTTP (on its own thread) still looking fine.
+     *
+     * @param e the exception that was thrown
+     */
+    private static void logExceptionAndExit(Throwable e) {
+        LOGGER.error("Got exception when invoked by Mesos, shutting down");
+        ProcessExit.exit(ProcessExit.ERROR, e);
     }
 
     private static void updateDriverAndDomain(SchedulerDriver driver, Protos.MasterInfo masterInfo) {

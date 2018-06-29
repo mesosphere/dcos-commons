@@ -64,14 +64,6 @@ public class TokenBucket {
         return new Builder();
     }
 
-    public Builder toBuilder() {
-        return new Builder()
-                .initialTokenCount(initial)
-                .capacity(capacity)
-                .incrementInterval(incrementInterval)
-                .acquireInterval(acquireInterval);
-    }
-
     /**
      * This method returns true if a rate-limited action should be executed, and false if the action should not occur.
      */

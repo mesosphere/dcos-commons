@@ -173,7 +173,7 @@ public class ServiceTest {
         ticks.add(Expect.declinedLastOffer());
         if (essential) {
             // Only the agent task is killed: server is already in a terminal state
-            ticks.add(Expect.taskNameKilled("hello-0-nonessential"));
+            ticks.add(Expect.taskNameKilled("hello-0-nonessential", 1));
             ticks.add(Expect.taskNameNotKilled("hello-0-essential"));
         } else {
             // Neither task should be killed: server should be unaffected, and agent is already in a terminal state
@@ -282,11 +282,9 @@ public class ServiceTest {
      * Tests scheduler behavior when the number of {@code world} pods is reduced.
      */
     @Test
-    public void testWorldDecommissionDefaultExecutor() throws Exception {
+    public void testWorldDecommission() throws Exception {
         // Simulate an initial deployment with default of 2 world nodes (and 1 hello node):
-        ServiceTestRunner runner = new ServiceTestRunner();
-
-        ServiceTestResult result = runner.run(getDefaultDeploymentTicks());
+        ServiceTestResult result = new ServiceTestRunner().run(getDefaultDeploymentTicks());
         Assert.assertEquals(
                 new TreeSet<>(Arrays.asList("hello-0-server", "world-0-server", "world-1-server")),
                 result.getPersister().getChildren("/Tasks"));
@@ -300,6 +298,10 @@ public class ServiceTest {
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
         ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
+
+        // An initial kill is sent early on for the decommissioned tasks:
+        ticks.add(Expect.taskNameKilled("world-0-server", 1));
+        ticks.add(Expect.taskNameKilled("world-1-server", 1));
 
         // Now, we expect there to be the following plan state:
         // - a deploy plan that's COMPLETE, with only hello-0 (empty world phase)
@@ -321,7 +323,7 @@ public class ServiceTest {
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", stepCount - 1, 0, 1), new StepCount("world-0", stepCount, 0, 0))));
-        ticks.add(Expect.taskNameKilled("world-1-server"));
+        ticks.add(Expect.taskNameKilled("world-1-server", 2));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
@@ -348,7 +350,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, stepCount), new StepCount("world-0", 1, 0, stepCount - 1))));
-        ticks.add(Expect.taskNameKilled("world-0-server"));
+        ticks.add(Expect.taskNameKilled("world-0-server", 2));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
         // Turn the crank once again to erase the world-0 stub:
@@ -361,67 +363,81 @@ public class ServiceTest {
 
         ticks.add(Expect.allPlansComplete());
 
-        runner = new ServiceTestRunner()
+        new ServiceTestRunner()
                 .setOptions("world.count", "0")
-                .setState(result);
-
-        runner.run(ticks);
+                .setState(result)
+                .run(ticks);
     }
 
+    /**
+     * Verifies that the transition from a transient failure (task failed) to permanent failure (task replace issued) is
+     * still handled correctly when a custom recovery plan is being used.
+     */
     @Test
     public void transientToCustomPermanentFailureTransition() throws Exception {
-        Protos.Offer.Builder unacceptableOfferBuilder = Protos.Offer.newBuilder().setHostname("test-hostname");
-        unacceptableOfferBuilder.getIdBuilder().setValue(UUID.randomUUID().toString());
-        unacceptableOfferBuilder.getFrameworkIdBuilder().setValue("test-framework-id");
-        unacceptableOfferBuilder.getSlaveIdBuilder().setValue("test-agent-id");
-        unacceptableOfferBuilder.addResourcesBuilder()
-                .setName("mem")
-                .setType(Protos.Value.Type.SCALAR)
-                .getScalarBuilder().setValue(1.0);
-        Protos.Offer unacceptableOffer = unacceptableOfferBuilder.build();
+        final String recoveryPhaseName = "custom-hello-recovery";
+        Optional<RecoveryPlanOverriderFactory> overrider = Optional.of(new RecoveryPlanOverriderFactory() {
+            @Override
+            public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
+                return new RecoveryPlanOverrider() {
+                    @Override
+                    public Optional<Phase> override(PodInstanceRequirement podInstanceRequirement) {
+                        if (podInstanceRequirement.getPodInstance().getPod().getType().equals("hello") &&
+                                podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+                            Phase phase = new DefaultPhase(
+                                    recoveryPhaseName,
+                                    Arrays.asList(
+                                            new RecoveryStep(
+                                                    podInstanceRequirement.getPodInstance().getName(),
+                                                    podInstanceRequirement,
+                                                    new UnconstrainedLaunchConstrainer(),
+                                                    stateStore)),
+                                    new SerialStrategy<>(),
+                                    Collections.emptyList());
 
+                            return Optional.of(phase);
+                        }
+
+                        return Optional.empty();
+                    }
+                };
+            }
+        });
+        testTemporaryToPermanentFailure(
+                overrider, Expect.recoveryStepStatus(recoveryPhaseName, "hello-0", Status.PREPARED));
+    }
+
+    /**
+     * Verifies that the transition from a transient failure (task failed) to permanent failure (task replace issued) is
+     * still handled correctly when the default recovery plan is being used.
+     */
+    @Test
+    public void transientToDefaultPermanentFailureTransition() throws Exception {
+        testTemporaryToPermanentFailure(
+                Optional.empty(), Expect.recoveryStepStatus("hello-0:[server]", "hello-0:[server]", Status.PREPARED));
+    }
+
+    private void testTemporaryToPermanentFailure(
+            Optional<RecoveryPlanOverriderFactory> overrider, Expect expectedRecoveryState) throws Exception {
         Collection<SimulationTick> ticks = new ArrayList<>();
-
-        ticks.add(Send.register());
-        ticks.add(Expect.reconciledImplicitly());
-
-        // Verify that service launches 1 hello pod then 2 world pods.
-        ticks.add(Send.offerBuilder("hello").build());
-        ticks.add(Expect.launchedTasks("hello-0-server"));
-
-        // Send another offer before hello-0 is finished:
-        ticks.add(Send.offerBuilder("world").build());
-        ticks.add(Expect.declinedLastOffer());
-
-        // Running, no readiness check is applicable:
-        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
-
-        // Now world-0 will deploy:
-        ticks.add(Send.offerBuilder("world").build());
-        ticks.add(Expect.launchedTasks("world-0-server"));
-
-        // With world-0's readiness check passing, world-1 still won't launch due to a hostname placement constraint:
-        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
-
-        // world-1 will finally launch if the offered hostname is different:
-        ticks.add(Send.offerBuilder("world").setHostname("host-foo").build());
-        ticks.add(Expect.launchedTasks("world-1-server"));
-        ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
-
-        // *** Complete initial deployment. ***
-        ticks.add(Expect.allPlansComplete());
+        ticks.addAll(getDefaultDeploymentTicks());
 
         // Kill hello-0 to trigger transient recovery
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+        // Offers should have been revived (again) due to the failure.
+        ticks.add(Expect.revivedOffers(3));
         // Send an unused offer to trigger an evaluation of the recovery plan
-        ticks.add(Send.offer(unacceptableOffer));
+        ticks.add(Send.emptyOffers());
         // Expect default transient recovery triggered
         ticks.add(Expect.recoveryStepStatus("hello-0:[server]", "hello-0:[server]", Status.PREPARED));
 
         // Now trigger custom permanent replacement of that pod
         ticks.add(Send.replacePod("hello-0"));
+        // Offers should have been revived again.
+        ticks.add(Expect.revivedOffers(4));
+
         // Send an unused offer to trigger an evaluation of the recovery plan
-        ticks.add(Send.offer(unacceptableOffer));
+        ticks.add(Send.emptyOffers());
 
         // Custom expectation not relevant to other tests
         Expect expectSingleRecoveryPhase = new Expect() {
@@ -441,7 +457,7 @@ public class ServiceTest {
         };
 
         ticks.add(expectSingleRecoveryPhase);
-        ticks.add(Expect.recoveryStepStatus("custom-hello-recovery", "hello-0", Status.PREPARED));
+        ticks.add(expectedRecoveryState);
 
         // Complete recovery
         ticks.add(Send.offerBuilder("hello").build());
@@ -449,34 +465,187 @@ public class ServiceTest {
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
         ticks.add(Expect.allPlansComplete());
 
+        ServiceTestRunner runner = new ServiceTestRunner();
+        if (overrider.isPresent()) {
+            runner.setRecoveryManagerFactory(overrider.get());
+        }
+        runner.run(ticks);
+    }
+
+    /**
+     * Verify recovery behavior when tasks need repair before, after, and during a configuration change.
+     * - hello-0: Fail after reconfiguration is triggered, replaced to new location
+     * - world-0: Fail before reconfiguration is triggered, restart in prior location
+     * - world-1: Fail after reconfiguration is triggered, restart in prior location
+     */
+    @Test
+    public void testFailureDuringDeployment() throws Exception {
+        String oldEnv = "1000";
+        String newEnv = "2000";
+
+        // First run: service deploys successfully, then world-0 comes down.
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+        ticks.addAll(getDefaultDeploymentTicks());
+
+        // Kill world-0 to trigger transient recovery before reconfiguration starts
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_FAILED).build());
+        // Offers should have been revived (again) due to the failure.
+        ticks.add(Expect.revivedOffers(3));
+        // Send an unused offer to trigger an evaluation of the recovery plan
+        ticks.add(Send.emptyOffers());
+        // Expect default transient recovery triggered
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.PREPARED));
+
+        ServiceTestResult result = new ServiceTestRunner().run(ticks);
+
+        // Second run (with config change):
+        // - world-0 already failed from previous run, and then gets bumped to permanent recovery by a replace call.
+        //   Replaced in prior configuration before getting reconfigured.
+        // - hello-0 failed while scheduler was gone, as manifested during reconciliation.
+        //   Deployed in new configuration instead of getting recovered.
+        // - world-1 failed after scheduler came back.
+        //   Similarly to world-0 this is recovered before getting reconfigured, but as a transient recovery.
+
+        ticks = new ArrayList<>();
+
+        ticks.add(Send.register());
+
+        // At reconciliation, world-1 has failed, while world-0 is not explicitly reconciled due to its terminal state
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_FAILED).build());
+
+        // Send an unused offer to trigger an evaluation of the deploy/recovery plans:
+        ticks.add(Send.emptyOffers());
+
+        // Offers should have been revived due to the work change.
+        ticks.add(Expect.revivedOffers(1));
+
+        // Deployment and recovery now ready:
+        ticks.add(Expect.taskNameKilled("hello-0-server", 1)); // killed for deploy plan
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.PREPARED));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.PENDING));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.PENDING));
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.PREPARED));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.PREPARED));
+
+        // Finally, have the current hello-0 fail too, and upgrade world-0 to a permanent recovery:
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_FAILED).build());
+        // Verify no additional revives from the status alone, since the active work set technically hasn't changed
+        // (hello-0 was already deploying):
+        ticks.add(Send.emptyOffers());
+        ticks.add(Expect.revivedOffers(1));
+
+        // Mark world-0 for permanent replacement, verify that this specifically triggers a revive.
+        ticks.add(Send.replacePod("world-0"));
+        // Send an unused offer to trigger an evaluation of the recovery plan and revive check.
+        ticks.add(Send.emptyOffers());
+        // Another revive at offer processing due to the recovery type upgrade.
+        ticks.add(Expect.revivedOffers(2));
+
+        // Now we're fully loaded, with hello-0 omitted from the recovery plan because it's dirtied by the deploy plan:
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.PREPARED));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.PENDING));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.PENDING));
+        ticks.add(Expect.taskNameKilled("world-0-server", 1)); // killed regardless of current TASK_FAILED state
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.PREPARED));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.PREPARED));
+
+        // Exercise recovery of world-0 before the deployment plan gets to it. Send a fresh offer since world-0 is being replaced:
+        ticks.add(Send.offerBuilder("world").build());
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.STARTING));
+        ticks.add(Expect.launchedTasks("world-0-server"));
+        ticks.add(Expect.taskEnv(result.getPersister(), "world-0-server", "SLEEP_DURATION", oldEnv));
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Recovery shows world-0 is recovered while deploy plan is still waiting:
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.PREPARED));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.PENDING));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.PENDING));
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.PREPARED));
+
+        // hello-0 gets an offer. It's redeployed instead of recovered since deployment is given priority:
+        ticks.add(Expect.taskNameKilled("hello-0-server", 1)); // killed issued to ensure resources are reoffered
+        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.STARTING));
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+        ticks.add(Expect.taskEnv(result.getPersister(), "hello-0-server", "SLEEP_DURATION", newEnv));
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Check plans again with hello-0 deployed against the new config:
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.PENDING));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.PENDING));
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.PREPARED));
+
+
+        // world-0 is now eligible for the new deployment and gets an offer:
+        ticks.add(Send.emptyOffers()); // ping the offer queue to trigger the world-0-server deploy step
+        ticks.add(Expect.taskNameKilled("world-0-server", 1)); // kill issued to ensure resources are reoffered
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.STARTING));
+        ticks.add(Expect.launchedTasks("world-0-server"));
+        ticks.add(Expect.taskEnv(result.getPersister(), "world-0-server", "SLEEP_DURATION", newEnv));
+        ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.PENDING));
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.PREPARED));
+
+        // now it's time for world-1, which is currently in a TASK_FAILED state. as such a kill request should NOT be issued:
+        ticks.add(Send.emptyOffers()); // send a ping just to validate that nothing will happen
+        ticks.add(Expect.taskNameNotKilled("world-1-server")); // should not be killed, already TASK_FAILED
+
+        // world-1 now gets its offer as well, which gets handled by the recovery plan rather than the deploy plan:
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.STARTING));
+        ticks.add(Expect.launchedTasks("world-1-server"));
+        // The task is not deployed into the new config yet:
+        ticks.add(Expect.taskEnv(result.getPersister(), "world-1-server", "SLEEP_DURATION", oldEnv));
+        ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).build());
+
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.PENDING));
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.COMPLETE));
+
+        // Following the recovery, the world-1 task gets picked up by the deploy plan and bumped to the new config.
+        ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(1).build());
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.STARTING));
+        ticks.add(Expect.launchedTasks("world-1-server"));
+        // Now the task has the new config:
+        ticks.add(Expect.taskEnv(result.getPersister(), "world-1-server", "SLEEP_DURATION", newEnv));
+        ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).build());
+
+        ticks.add(Expect.deployStepCount(3));
+        ticks.add(Expect.deployStepStatus("hello", "hello-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.deployStepStatus("world", "world-1:[server]", Status.COMPLETE));
+        ticks.add(Expect.recoveryStepCount(2));
+        ticks.add(Expect.recoveryStepStatus("world-0:[server]", "world-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.recoveryStepStatus("world-1:[server]", "world-1:[server]", Status.COMPLETE));
+
         new ServiceTestRunner()
-                .setRecoveryManagerFactory(new RecoveryPlanOverriderFactory() {
-                    @Override
-                    public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
-                        return new RecoveryPlanOverrider() {
-                            @Override
-                            public Optional<Phase> override(PodInstanceRequirement podInstanceRequirement) {
-                                if (podInstanceRequirement.getPodInstance().getPod().getType().equals("hello") &&
-                                        podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
-                                    Phase phase = new DefaultPhase(
-                                            "custom-hello-recovery",
-                                            Arrays.asList(
-                                                    new RecoveryStep(
-                                                            podInstanceRequirement.getPodInstance().getName(),
-                                                            podInstanceRequirement,
-                                                            new UnconstrainedLaunchConstrainer(),
-                                                            stateStore)),
-                                            new SerialStrategy<>(),
-                                            Collections.emptyList());
-
-                                    return Optional.of(phase);
-                                }
-
-                                return Optional.empty();
-                            }
-                        };
-                    }
-                })
+                .setOptions("service.sleep", newEnv)
+                .setState(result)
                 .run(ticks);
     }
 
@@ -615,7 +784,10 @@ public class ServiceTest {
             Map<String, Status> expectedSteps = new TreeMap<>();
             expectedSteps.put(String.format("kill-%s-server", stepCount.phaseName),
                     stepCount.statusOfStepIndex(expectedSteps.size()));
-            AcceptEntry acceptCall = state.getLastAcceptCall(stepCount.phaseName);
+            List<AcceptEntry> acceptCalls = state.getAcceptCalls(stepCount.phaseName);
+            // Get information based on the LAST operation. This wouldn't work if the last operation didn't reserve
+            // anything, as would occur when a task is restarted, but this is close enough for our purposes.
+            AcceptEntry acceptCall = acceptCalls.get(acceptCalls.size() - 1);
 
             Collection<String> resourceIds = new ArrayList<>();
             resourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(acceptCall.getTasks())));
@@ -646,6 +818,9 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("hello").build());
         ticks.add(Expect.launchedTasks("hello-0-server"));
 
+        // Offers revived due to changed work set (NULL => hello-0):
+        ticks.add(Expect.revivedOffers(1));
+
         // Send another offer before hello-0 is finished:
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.declinedLastOffer());
@@ -657,6 +832,9 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.launchedTasks("world-0-server"));
 
+        // Offers revived again due to changed work set (hello-0 => world-0):
+        ticks.add(Expect.revivedOffers(2));
+
         // world-0 has a readiness check, so the scheduler is waiting for that:
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).build());
         ticks.add(Send.offerBuilder("world").build());
@@ -664,6 +842,8 @@ public class ServiceTest {
 
         // With world-0's readiness check passing, world-1 still won't launch due to a hostname placement constraint:
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
+        // Offers revived once more due to changed work set (world-0 => world-1):
+        ticks.add(Expect.revivedOffers(3));
         ticks.add(Send.offerBuilder("world").build());
         ticks.add(Expect.declinedLastOffer());
 
@@ -676,6 +856,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setHostname("host-bar").build());
         ticks.add(Expect.declinedLastOffer());
 
+        ticks.add(Expect.suppressedOffers(1));
         ticks.add(Expect.allPlansComplete());
 
         return ticks;

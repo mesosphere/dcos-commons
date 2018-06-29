@@ -33,7 +33,11 @@ public class DecomissionCustomizer implements PlanCustomizer {
                             Collections.emptyList()));
         }
 
-        return new DefaultPlan(plan.getName(), updatedPhases, new ParallelStrategy<>());
+        return new DefaultPlan(
+                plan.getName(),
+                updatedPhases,
+                new ParallelStrategy<>()
+        );
     }
 
     private Step getCustomDecommissionStep() {

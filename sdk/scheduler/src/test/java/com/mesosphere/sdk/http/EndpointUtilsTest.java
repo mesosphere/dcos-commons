@@ -4,14 +4,27 @@ import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
+
+import org.junit.Before;
 
 /**
  * Tests for {@link EndpointUtils}.
  */
 public class EndpointUtilsTest {
+
+    @Mock SchedulerConfig mockSchedulerConfig;
+
+    @Before
+    public void beforeEach() {
+        MockitoAnnotations.initMocks(this);
+        when(mockSchedulerConfig.getApiServerPort()).thenReturn(1234);
+        when(mockSchedulerConfig.getServiceTLD()).thenReturn("some.tld");
+    }
 
     @Test
     public void testToEndpoint() {
@@ -29,7 +42,7 @@ public class EndpointUtilsTest {
     @Test
     public void testToAutoIpEndpointCustomTLD() {
         SchedulerConfig mockSchedulerConfig = SchedulerConfigTestUtils.getTestSchedulerConfig();
-        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn("what.a.fun.test.tld");
+        when(mockSchedulerConfig.getServiceTLD()).thenReturn("what.a.fun.test.tld");
 
         assertEquals("task.svc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("svc", "task", 5, mockSchedulerConfig));
         assertEquals("task.pathtosvc.what.a.fun.test.tld:5", EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5, mockSchedulerConfig));
@@ -51,10 +64,18 @@ public class EndpointUtilsTest {
     }
 
     @Test
-    public void testToSchedulerApiVipHostname() {
-        assertEquals("api.svc.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("svc"));
-        assertEquals("api.pathtosvc.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("/path/to/svc"));
-        assertEquals("api.pathtosvc.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("path/to/svc"));
-        assertEquals("api.pathtosvc.with.dots.marathon.l4lb.thisdcos.directory", EndpointUtils.toSchedulerApiVipHostname("path/to/svc.with.dots"));
+    public void testToSchedulerAutoIpHostname() {
+        assertEquals("svc.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("/path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-with-dots-to-path.marathon.some.tld", EndpointUtils.toSchedulerAutoIpHostname("path/to/svc.with.dots", mockSchedulerConfig));
+    }
+
+    @Test
+    public void testToSchedulerAutoIpEndpoint() {
+        assertEquals("svc.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("/path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-with-dots-to-path.marathon.some.tld:1234", EndpointUtils.toSchedulerAutoIpEndpoint("path/to/svc.with.dots", mockSchedulerConfig));
     }
 }

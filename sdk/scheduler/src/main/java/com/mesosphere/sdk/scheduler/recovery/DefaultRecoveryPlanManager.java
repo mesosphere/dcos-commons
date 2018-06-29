@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.recovery;
 
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.http.types.PlanInfo;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -30,7 +31,6 @@ import java.util.stream.Collectors;
  * generates a new {@link RecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 public class DefaultRecoveryPlanManager implements PlanManager {
-    public static final String DEFAULT_RECOVERY_PLAN_NAME = "recovery";
     public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
     protected final Logger logger;
     protected final ConfigStore<ServiceSpec> configStore;
@@ -78,7 +78,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         this.launchConstrainer = launchConstrainer;
         this.namespace = namespace;
         this.recoveryPlanOverriders = recoveryPlanOverriders;
-        plan = new DefaultPlan(DEFAULT_RECOVERY_PLAN_NAME, Collections.emptyList());
+        plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
     }
 
     @Override
@@ -217,7 +217,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         phases.addAll(inProgressPhases);
         phases.addAll(overridePhases);
 
-        return DeployPlanFactory.getPlan(DEFAULT_RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
+        return DeployPlanFactory.getPlan(Constants.RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
     }
 
     private boolean isTaskPermanentlyFailed(Protos.TaskInfo taskInfo) {

@@ -6,6 +6,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_tasks
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -49,8 +50,15 @@ def test_add_deploy_restart_remove():
 
     sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
 
+    task_ids = sdk_tasks.get_task_ids('marathon', config.SERVICE_NAME)
+    log.info('list of task ids {}'.format(task_ids))
+    old_task_id = task_ids[0]
+
     # restart and check that service is recovered:
     sdk_marathon.restart_app(config.SERVICE_NAME)
+
+    #check that scheduler task was relaunched
+    sdk_tasks.check_task_relaunched(config.SERVICE_NAME, old_task_id)
 
     service = wait_for_service_count(1)[0]
     assert service['service'] == svc1

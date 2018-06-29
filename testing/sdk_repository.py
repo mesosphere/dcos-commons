@@ -31,8 +31,8 @@ def flatmap(f, items):
 
 
 def parse_stub_universe_url_string(stub_universe_url_string):
-    """Handles newline- and comma-separated strings."""
-    lines = stub_universe_url_string.split("\n")
+    """Handles newline-, space-, and comma-separated strings."""
+    lines = stub_universe_url_string.split()
     return list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
 

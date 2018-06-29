@@ -96,7 +96,7 @@ windows_timer_interval: 1
 role_manager: CassandraRoleManager
 roles_validity_in_ms: 2000
 permissions_validity_in_ms: 2000
-disk_failure_policy: stop
+disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
 commit_failure_policy: stop
 key_cache_size_in_mb:
 counter_cache_size_in_mb:

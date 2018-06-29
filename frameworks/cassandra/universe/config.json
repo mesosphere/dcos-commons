@@ -606,6 +606,18 @@
           "type": "string",
           "description": "The strategy to use for coalescing network messages",
           "default": "TIMEHORIZON"
+        },
+        "disk_failure_policy": {
+          "type": "string",
+          "description": "The policy for how Cassandra responds to disk failure",
+          "default": "stop",
+          "enum": [
+            "die",
+            "stop_paranoid",
+            "stop",
+            "best_effort",
+            "ignore"
+          ]
         }
       },
       "additionalProperties": false,

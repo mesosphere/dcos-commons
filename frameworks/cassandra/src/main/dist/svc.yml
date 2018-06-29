@@ -135,7 +135,8 @@ pods:
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
-                aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive
+                if [ ! -z $S3_ENDPOINT_URL ]; then ENDPOINT="--endpoint-url=${S3_ENDPOINT_URL}"; fi ;
+                aws s3 cp container-path/snapshot/ s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX}/ --recursive $ENDPOINT
         resource-set: sidecar-resources
       upload-azure:
         goal: ONCE
@@ -160,7 +161,8 @@ pods:
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
                 mkdir container-path/snapshot ;
-                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive
+                if [ ! -z $S3_ENDPOINT_URL ]; then ENDPOINT="--endpoint-url=${S3_ENDPOINT_URL}"; fi ;
+                aws s3 cp s3://${S3_BUCKET_NAME}/${SNAPSHOT_NAME}/node-${POD_INSTANCE_INDEX} container-path/snapshot --recursive $ENDPOINT
         resource-set: sidecar-resources
       fetch-azure:
         goal: ONCE
