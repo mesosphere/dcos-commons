@@ -64,7 +64,6 @@ def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_add_deploy_restart_remove():
     svc1 = 'test1'
 
