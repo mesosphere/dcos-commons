@@ -6,6 +6,7 @@ import json
 
 import sdk_cmd
 import sdk_install
+import sdk_marathon
 import sdk_plan
 import sdk_utils
 
@@ -21,7 +22,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -81,31 +82,21 @@ def test_rack_upgrades_to_default_rack():
     ]
     sdk_cmd.run_cli(" ".join(cmd_list))
 
+    # Uninstall the scheduler
+    sdk_marathon.destroy_app(config.SERVICE_NAME)
+
     # target_version = "2.1.0-3.0.16"
-    cmd_list = [
-        "package", "describe", config.PACKAGE_NAME
-    ]
-    describe = sdk_cmd.get_json_output(" ".join(cmd_list))
-    target_version = sdk_utils.get_in(["package", "version"], describe)
-
-    # Run the CLI upgrade
-    cmd_list = [
-        "package", "install", config.PACKAGE_NAME, "--yes", "--cli",
-    ]
-    if target_version:
-        cmd_list.append("--package-version={}".format(target_version))
-    sdk_cmd.run_cli(" ".join(cmd_list))
-
-    # Update the package in-place
-    cmd_list = [
-        "update", "start",
-        "--package-version={}".format(target_version)
-    ]
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd_list))
-
-    # An update plan is a deploy plan
-    sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        3,
+        additional_options={
+            "service": {
+                "rack": "not-rack1"
+            }
+        },
+        package_version="stub-universe"
+    )
 
 
 @pytest.mark.dcos_min_version('1.11')
