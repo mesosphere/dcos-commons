@@ -344,6 +344,9 @@ public class SchedulerBuilder {
         // Plans may be generated from the config content.
         boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
         if (!hasCompletedDeployment) {
+            // TODO(nickbp): Remove this check after we have reached 0.60.x, expected by Oct 2018 or so. See DCOS-38586.
+            // As of SDK 0.51.0+, the deployment-completed bit is immediately set when deployment completes, rather than
+            // here at startup, but we still need to check it here when upgrading from services using SDK 0.40.x.
             try {
                 // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
@@ -394,19 +397,18 @@ public class SchedulerBuilder {
             throw new IllegalArgumentException("No deploy plan provided: " + plans);
         }
 
-        logger.info("New deploy plan state: {}", deployPlan.get().toString());
-
         List<String> errors = configUpdateResult.getErrors().stream()
                 .map(ConfigValidationError::toString)
                 .collect(Collectors.toList());
 
         if (!errors.isEmpty()) {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
+            // Update deployPlan reference to reflect added errors:
+            deployPlan = getDeployPlan(plans);
         }
+        logger.info(deployPlan.get().toString());
 
-        // Call getDeployPlan() again to inherit any injected config update errors:
-        PlanManager deploymentPlanManager =
-                DefaultPlanManager.createProceeding(getDeployPlan(plans).get());
+        PlanManager deploymentPlanManager = DefaultPlanManager.createProceeding(deployPlan.get());
         PlanManager recoveryPlanManager = getRecoveryPlanManager(
                 serviceSpec,
                 Optional.ofNullable(recoveryPlanOverriderFactory),

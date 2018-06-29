@@ -270,7 +270,10 @@ public class StateStoreUtils {
      * Sets whether the service has previously completed deployment.
      */
     public static void setDeploymentWasCompleted(StateStore stateStore) {
-        stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
+        // Optimization: Avoid writing through to curator if possible. We cache reads but not writes.
+        if (!getDeploymentWasCompleted(stateStore)) {
+            stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
+        }
     }
 
     /**

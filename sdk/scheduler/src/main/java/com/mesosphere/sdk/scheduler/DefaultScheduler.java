@@ -43,6 +43,7 @@ public class DefaultScheduler extends AbstractScheduler {
     private final ConfigStore<ServiceSpec> configStore;
     private final GoalState goalState;
     private final PlanManager deploymentPlanManager;
+    private boolean deploymentCompletionWasStored;
     private final PlanManager recoveryPlanManager;
     private final Collection<Object> customResources;
     private final Map<String, EndpointProducer> customEndpointProducers;
@@ -114,6 +115,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 .filter(pm -> pm.getPlan().isDeployPlan())
                 .findAny()
                 .get();
+        this.deploymentCompletionWasStored = false;
         this.recoveryPlanManager = planCoordinator.getPlanManagers().stream()
                 .filter(pm -> pm.getPlan().isRecoveryPlan())
                 .findAny()
@@ -195,12 +197,20 @@ public class DefaultScheduler extends AbstractScheduler {
 
     @Override
     protected ClientStatusResponse getStatus() {
-        if (goalState == GoalState.FINISH
-                && deploymentPlanManager.getPlan().isComplete()
-                && recoveryPlanManager.getPlan().isComplete()) {
+        // Take this opportunity to store whether we've completed our deploy plan.
+        // This ensures that we correctly select the custom update plan if one is provided during an update.
+        boolean deployCompleted = deploymentPlanManager.getPlan().isComplete();
+        if (deployCompleted && !deploymentCompletionWasStored) {
+            logger.info("Marking deployment as completed");
+            StateStoreUtils.setDeploymentWasCompleted(stateStore);
+            // Avoid hitting StateStore too much...:
+            deploymentCompletionWasStored = true;
+        }
+
+        if (goalState == GoalState.FINISH && deployCompleted && recoveryPlanManager.getPlan().isComplete()) {
             // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
             return ClientStatusResponse.readyToUninstall();
-        } else if (!deploymentPlanManager.getPlan().isComplete() // TODO(nickbp): use footprint plan once available
+        } else if (!deployCompleted // TODO(nickbp): use footprint plan once available
                 || isReplacing(recoveryPlanManager)) { // TODO(nickbp): footprint plan should have replacing tasks?
             // Service is acquiring footprint, either via initial deployment or via replacing a task
             return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
