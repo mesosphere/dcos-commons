@@ -84,6 +84,7 @@ def test_add_deploy_restart_remove():
 
     # restart and check that service is recovered:
     sdk_marathon.restart_app(config.SERVICE_NAME)
+    sdk_marathon.wait_for_app_running(config.SERVICE_NAME, sdk_marathon.TIMEOUT_SECONDS)
 
     # check that scheduler task was relaunched
     check_scheduler_relaunched(config.SERVICE_NAME, old_task_id)
@@ -155,6 +156,7 @@ def test_add_multiple_uninstall():
 
     # restart app and wait for removal to succeed after restart:
     sdk_marathon.restart_app(config.SERVICE_NAME)
+    sdk_marathon.wait_for_app_running(config.SERVICE_NAME, sdk_marathon.TIMEOUT_SECONDS)
     wait_for_service_count(1)
 
     plan = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
