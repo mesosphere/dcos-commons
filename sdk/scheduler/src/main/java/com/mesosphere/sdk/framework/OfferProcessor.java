@@ -163,9 +163,6 @@ class OfferProcessor {
             }
         }
 
-        // TODO(nick): This is for debugging. Remove it after DCOS-38473 is resolved.
-        LOGGER.info("Enqueued {} offer{}", offers.size(), offers.size() == 1 ? "" : "s");
-
         if (!multithreaded) {
             // Immediately process on this thread, rather than depending on offerExecutor to do it.
             // In the single-threaded case, we also disable waiting for offers to come in.

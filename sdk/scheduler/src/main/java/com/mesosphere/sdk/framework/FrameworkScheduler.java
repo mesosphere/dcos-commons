@@ -323,7 +323,7 @@ public class FrameworkScheduler implements Scheduler {
      * @param e the exception that was thrown
      */
     private static void logExceptionAndExit(Throwable e) {
-        LOGGER.error("Got exception when invoked by Mesos, shutting down");
+        LOGGER.error("Got exception when invoked by Mesos, shutting down.");
         ProcessExit.exit(ProcessExit.ERROR, e);
     }
 
