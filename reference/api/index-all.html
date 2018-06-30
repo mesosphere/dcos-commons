@@ -955,6 +955,12 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/DcosVersionClient.html#DcosVersionClient-com.mesosphere.sdk.dcos.DcosHttpExecutor-">DcosVersionClient(DcosHttpExecutor)</a></span> - Constructor for class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/DcosVersionClient.html" title="class in com.mesosphere.sdk.dcos.clients">DcosVersionClient</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">DebugResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
+<dd>
+<div class="block">A read-only API for accessing the most recently processed offers.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#DebugResource-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-">DebugResource(OfferOutcomeTracker)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.html#DECLINE_LONG">DECLINE_LONG</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/Metrics.html#DECLINE_SHORT">DECLINE_SHORT</a></span> - Static variable in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/Metrics.html" title="class in com.mesosphere.sdk.scheduler">Metrics</a></dt>
@@ -3051,7 +3057,7 @@
 <dd>
 <div class="block">Returns the string representations of any <code>Offer</code> <code>Attribute</code>s which were embedded in the task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/OfferOutcomeResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http.endpoints">OfferOutcomeResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
 <dd>
 <div class="block">Renders the current set of offer outcomes as an HTML table.</div>
 </dd>
@@ -3978,6 +3984,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html#getTemplateContent--">getTemplateContent()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#getThreads--">getThreads()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
+<dd>
+<div class="block">Renders the current threads and thread state of the scheduler.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getTimeout--">getTimeout()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html#getTimeout--">getTimeout()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec</a></dt>
@@ -5532,12 +5542,6 @@
 <div class="block">Encapsulates the outcome of an offer evaluation in OfferEvaluator.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#OfferOutcome-java.lang.String-boolean-Protos.Offer-java.lang.String-">OfferOutcome(String, boolean, Protos.Offer, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/http/endpoints/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">OfferOutcomeResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
-<dd>
-<div class="block">A read-only API for accessing the most recently processed offers.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/OfferOutcomeResource.html#OfferOutcomeResource-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-">OfferOutcomeResource(OfferOutcomeTracker)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/OfferOutcomeResource.html" title="class in com.mesosphere.sdk.http.endpoints">OfferOutcomeResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcomeTracker</span></a> - Class in <a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a></dt>
 <dd>
