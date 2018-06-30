@@ -3,7 +3,6 @@ package com.mesosphere.sdk.http;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 

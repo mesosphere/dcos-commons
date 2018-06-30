@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Arrays;
@@ -30,14 +31,26 @@ public class ApiServerTest {
     private static final int LONG_TIMEOUT_MILLIS = 30000;
 
     @Test
+    public void testSchedulerDNSResolution() throws Exception {
+        // localhost -> 127.0.0.1
+        Assert.assertTrue(ApiServer.resolveSchedulerDNS(InetAddress.getLoopbackAddress().getHostName(),
+                InetAddress.getLoopbackAddress().getHostAddress()));
+
+        // google.com -> fail due to incorrect address
+        Assert.assertFalse(ApiServer.resolveSchedulerDNS("google.com",
+                InetAddress.getLoopbackAddress().getHostAddress()));
+    }
+
+    @Test
     public void testApiServerEndpointHandling() throws Exception {
         SchedulerConfig mockSchedulerConfig = mock(SchedulerConfig.class);
         when(mockSchedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofMillis(LONG_TIMEOUT_MILLIS));
         when(mockSchedulerConfig.getApiServerPort()).thenReturn(0);
+        when(mockSchedulerConfig.getSchedulerIP()).thenReturn(InetAddress.getLoopbackAddress().getHostAddress());
 
         Listener listener = new Listener();
         ApiServer server = ApiServer.start(
-                "schedulerName",
+                "localhost",
                 mockSchedulerConfig,
                 Arrays.asList(
                         new TestResourcePlans(),

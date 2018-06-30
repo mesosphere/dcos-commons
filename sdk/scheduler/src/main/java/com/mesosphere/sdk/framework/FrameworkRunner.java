@@ -3,6 +3,7 @@ package com.mesosphere.sdk.framework;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
@@ -100,7 +101,7 @@ public class FrameworkRunner {
                 frameworkStore,
                 mesosEventClient);
         ApiServer httpServer = ApiServer.start(
-                frameworkConfig.getFrameworkName(),
+                EndpointUtils.toSchedulerAutoIpHostname(frameworkConfig.getFrameworkName(), schedulerConfig),
                 schedulerConfig,
                 mesosEventClient.getHTTPEndpoints(),
                 new Runnable() {
@@ -189,7 +190,7 @@ public class FrameworkRunner {
                 // /v1/health: Invoked by Mesos as directed a configured health check in the scheduler Marathon app.
                 new HealthResource(Collections.singletonList(uninstallPlanManager)));
         ApiServer httpServer = ApiServer.start(
-                frameworkConfig.getFrameworkName(),
+                EndpointUtils.toSchedulerAutoIpHostname(frameworkConfig.getFrameworkName(), schedulerConfig),
                 schedulerConfig,
                 resources,
                 new Runnable() {

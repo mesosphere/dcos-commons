@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
 public class FrameworkRunnerTest {
 
     @Mock private SchedulerConfig mockSchedulerConfig;
+    @Mock private FrameworkConfig mockFrameworkConfig;
     @Mock private Capabilities mockCapabilities;
     @Mock private MesosEventClient mockMesosEventClient;
     @Mock private Persister mockPersister;
@@ -48,9 +49,10 @@ public class FrameworkRunnerTest {
 
     @Test
     public void testFinishedUninstall() throws Exception {
-        FrameworkRunner runner = new FrameworkRunner(mockSchedulerConfig, null, false, false);
+        FrameworkRunner runner = new FrameworkRunner(mockSchedulerConfig, mockFrameworkConfig, false, false);
         when(mockSchedulerConfig.isUninstallEnabled()).thenReturn(true);
         when(mockPersister.get("FrameworkID")).thenThrow(new PersisterException(Reason.NOT_FOUND, "hi"));
+        when(mockFrameworkConfig.getFrameworkName()).thenReturn("frameworkName");
         Exception abort = new IllegalStateException("Aborting HTTP server run");
         // Don't actually run the HTTP server -- it won't exit:
         when(mockSchedulerConfig.getApiServerPort()).thenThrow(abort);
