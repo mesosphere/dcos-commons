@@ -157,7 +157,7 @@ public class DefaultScheduler extends AbstractScheduler {
         resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
         resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
         if (offerOutcomeTracker.isPresent()) {
-            resources.add(new OfferOutcomeResource(offerOutcomeTracker.get()));
+            resources.add(new DebugResource(offerOutcomeTracker.get()));
         }
         return resources;
     }
