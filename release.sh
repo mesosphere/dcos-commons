@@ -100,6 +100,7 @@ sdk/bootstrap/build.sh # produces sdk/bootstrap/bootstrap.zip
 sdk/cli/build.sh # produces sdk/cli/[dcos-service-cli-linux, dcos-service-cli-darwin, dcos-service-cli.exe]
 rm -f tools/pip/*.whl
 tools/pip/build.sh $SDK_VERSION # produces tools/pip/[testing|tools]-[SDK_VERSION (with modifications)]-py3-none-any.whl
+docker build -t mesosphere/dcos-commons:${SDK_VERSION} .
 
 # Collect the other artifacts into a single directory, calculate a SHA256SUMS file, and then upload the lot.
 # The SHA256SUMS file is required for construction of packages that use default CLIs, and is a Good Idea in general.
@@ -135,6 +136,9 @@ echo "Uploading artifacts to $S3_DIR"
 
 # Upload contents of artifact dir:
 aws s3 sync --acl public-read $SDK_VERSION/ $S3_DIR 1>&2
+
+# Push the tagged docker image:
+docker push mesosphere/dcos-commons:${SDK_VERSION} 1>&2
 
 # Clean up
 rm -rf $SDK_VERSION
