@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e
+set -e -x
 
 current_branch=${CURRENT_GIT_BRANCH:-$( git symbolic-ref --short HEAD )}
 
