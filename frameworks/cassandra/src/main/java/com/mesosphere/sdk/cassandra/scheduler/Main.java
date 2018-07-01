@@ -46,6 +46,8 @@ public class Main {
                 .setCustomConfigValidators(Arrays.asList(
                         new CassandraZoneValidator(),
                         new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_DATA_CENTER",
+                                TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET),
+                        new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_RACK",
                                 TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)
                 .setCustomResources(getResources(localSeeds))
