@@ -23,8 +23,18 @@ if [[ -n ${CHANGESET} ]]; then
     rc=$?
     if [ ${rc} -eq 0 ]; then
         echo "Success!"
+    else
+        exit ${rc}
     fi
-    exit ${rc}
+
+    echo "Running pylint on $( echo \"${CHANGESET}\" | wc -w ) files:"
+    ${TOOL_DIR}/run_pylint_checks.sh "${CHANGESET}"
+    rc=$?
+    if [ ${rc} -eq 0 ]; then
+        echo "Success!"
+    else
+        exit ${rc}
+    fi
 fi
 
 echo "No Python files in changeset."

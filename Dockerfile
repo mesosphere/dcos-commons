@@ -35,7 +35,7 @@ ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
 # AWS CLI for uploading build artifacts
-RUN pip install awscli
+RUN pip3 install awscli
 # Install the testing dependencies
 COPY test_requirements.txt test_requirements.txt
 RUN pip3 install -r test_requirements.txt

@@ -7,3 +7,4 @@ git+https://github.com/dcos/dcos-test-utils.git@c9a4fc583a4a0bca18040ad4c7772e18
 git+https://github.com/dcos/dcos-launch.git@da1f1af3c5943e08a4a40632f45d4e645e87405e
 teamcity-messages
 flake8
+pylint
