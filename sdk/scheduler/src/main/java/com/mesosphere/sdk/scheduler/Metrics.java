@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -10,6 +11,7 @@ import io.prometheus.client.dropwizard.DropwizardExports;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.mesos.Protos;
 import org.eclipse.jetty.servlet.ServletContextHandler;
@@ -75,11 +77,35 @@ public class Metrics {
         return metrics.timer(PROCESS_OFFERS).time();
     }
 
-    // Decline / Revive
+    // Suppress
+
+    static final String SUPPRESSES = "suppresses";
+    static final String IS_SUPPRESSED = "is_suppressed";
+
+    // This may be accessed both by whatever thread metrics runs on, and the main offer processing thread:
+    private static final AtomicBoolean isSuppressed = new AtomicBoolean(false);
+    static {
+        metrics.register(IS_SUPPRESSED, new Gauge<Boolean>() {
+            @Override
+            public Boolean getValue() {
+                return isSuppressed.get();
+            }
+        });
+    }
+
+    public static void notSuppressed() {
+        Metrics.isSuppressed.set(false);
+    }
+
+    public static void incrementSuppresses() {
+        metrics.counter(SUPPRESSES).inc();
+        Metrics.isSuppressed.set(true);
+    }
+
+    // Revive
+
     static final String REVIVES = "revives";
     static final String REVIVE_THROTTLES = "revives.throttles";
-    static final String DECLINE_SHORT = "declines.short";
-    static final String DECLINE_LONG = "declines.long";
 
     public static void incrementRevives() {
         metrics.counter(REVIVES).inc();
@@ -88,6 +114,11 @@ public class Metrics {
     public static void incrementReviveThrottles() {
         metrics.counter(REVIVE_THROTTLES).inc();
     }
+
+    // Decline
+
+    static final String DECLINE_SHORT = "declines.short";
+    static final String DECLINE_LONG = "declines.long";
 
     public static void incrementDeclinesShort(long amount) {
         metrics.counter(DECLINE_SHORT).inc(amount);

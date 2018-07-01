@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -19,13 +18,13 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -35,7 +34,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
     private final Logger logger;
     private final Optional<String> namespace;
-    private final AtomicBoolean started = new AtomicBoolean(false);
+    private final Collection<Step> candidateSteps;
 
     protected final ServiceSpec serviceSpec;
     protected final StateStore stateStore;
@@ -47,8 +46,8 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
     protected final Optional<PlanCustomizer> planCustomizer;
 
-    // These are all (re)assigned when the scheduler has (re)registered:
-    private ReviveManager reviveManager;
+    // These are all assigned when the scheduler has registered:
+    protected WorkSetTracker workSetTracker;
     private ExplicitReconciler reconciler;
 
     protected AbstractScheduler(
@@ -59,6 +58,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
             Optional<String> namespace) {
         this.logger = LoggingUtils.getLogger(AbstractScheduler.class, namespace);
         this.namespace = namespace;
+        this.candidateSteps = new ArrayList<>();
         this.serviceSpec = serviceSpec;
         this.stateStore = stateStore;
         this.planCustomizer = planCustomizer;
@@ -101,13 +101,41 @@ public abstract class AbstractScheduler implements MesosEventClient {
     @Override
     public void registered(boolean reRegistered) {
         if (!reRegistered) {
-            this.reviveManager = new ReviveManager(namespace);
+            this.workSetTracker = new WorkSetTracker(namespace);
             this.reconciler = new ExplicitReconciler(stateStore, namespace);
             registeredWithMesos();
         }
         // Explicit task reconciliation should be (re)started on all (re-)registrations.
         reconciler.start();
         reconciler.reconcile();
+    }
+
+    @Override
+    public ClientStatusResponse getClientStatus() {
+        // Get the current work, and save it for the following offers() call.
+        candidateSteps.clear();
+        candidateSteps.addAll(getPlanCoordinator().getCandidates());
+
+        // Update workSetTracker: detect any new work that triggers the need to revive offers
+        Collection<Step> activeWorkSet = new HashSet<>(candidateSteps);
+        Collection<Step> inProgressSteps = getInProgressSteps(getPlanCoordinator());
+        if (!inProgressSteps.isEmpty()) {
+            logger.info("Steps in progress: {}",
+                    inProgressSteps.stream().map(step -> step.getMessage()).collect(Collectors.toList()));
+        }
+        activeWorkSet.addAll(inProgressSteps);
+        workSetTracker.updateWorkSet(activeWorkSet);
+
+        return getStatus();
+    }
+
+    private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
+        return planCoordinator.getPlanManagers().stream()
+                .map(planManager -> planManager.getPlan())
+                .flatMap(plan -> plan.getChildren().stream())
+                .flatMap(phase -> phase.getChildren().stream())
+                .filter(step -> step.isRunning())
+                .collect(Collectors.toSet());
     }
 
     @Override
@@ -121,39 +149,17 @@ public abstract class AbstractScheduler implements MesosEventClient {
             return OfferResponse.notReady(Collections.emptyList());
         }
 
-        // Get the current work
-        Collection<Step> steps = getPlanCoordinator().getCandidates();
-
-        // Revive previously suspended offers, if necessary
-        Collection<Step> activeWorkSet = new HashSet<>(steps);
-        Collection<Step> inProgressSteps = getInProgressSteps(getPlanCoordinator());
-        if (!inProgressSteps.isEmpty()) {
-            logger.info("Steps in progress: {}",
-                    inProgressSteps.stream().map(step -> step.getMessage()).collect(Collectors.toList()));
-        }
-        activeWorkSet.addAll(inProgressSteps);
-        reviveManager.revive(activeWorkSet);
-
         if (!offers.isEmpty()) {
             logger.info("Processing {} offer{} against {} step{}:",
                     offers.size(), offers.size() == 1 ? "" : "s",
-                    steps.size(), steps.size() == 1 ? "" : "s");
+                    candidateSteps.size(), candidateSteps.size() == 1 ? "" : "s");
             int i = 0;
             for (Protos.Offer offer : offers) {
                 logger.info("  {}: {}", ++i, TextFormat.shortDebugString(offer));
             }
         }
 
-        return processOffers(offers, steps);
-    }
-
-    private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
-        return planCoordinator.getPlanManagers().stream()
-                .map(planManager -> planManager.getPlan())
-                .flatMap(plan -> plan.getChildren().stream())
-                .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> step.isRunning())
-                .collect(Collectors.toSet());
+        return processOffers(offers, candidateSteps);
     }
 
     @Override
@@ -200,6 +206,11 @@ public abstract class AbstractScheduler implements MesosEventClient {
      * Invoked when the framework has registered (or re-registered) with Mesos.
      */
     protected abstract void registeredWithMesos();
+
+    /**
+     * Invoked to get the underlying scheduler object's status.
+     */
+    protected abstract ClientStatusResponse getStatus();
 
     /**
      * Invoked when Mesos has provided offers to be evaluated.
