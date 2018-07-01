@@ -35,6 +35,8 @@ if [[ -n ${CHANGESET} ]]; then
     else
         exit ${rc}
     fi
+
+    exit 0
 fi
 
 echo "No Python files in changeset."

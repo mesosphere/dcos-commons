@@ -38,8 +38,8 @@ if [[ x"$current_branch" == x*"pull/"* ]]; then
     base_branch=$( echo "$output" | jq -r .base.ref )
     current_branch=$( echo "$output" | jq -r .head.ref )
 
-    # Fetch the base branch to ensure that it is availabe locally
-    git fetch origin ${base_branch}
+    # Fetch the base branch to ensure that it is available locally
+    git fetch origin ${base_branch}:${base_branch}
 fi
 
 echo "${base_branch}"
