@@ -10,10 +10,13 @@ if [[ x"$current_branch" == x*"pull/"* ]]; then
     # This is a PR and we need to determine the branch from the API.
     pr_name="${current_branch/pull/pulls}"
 
-    git_repo=$( git remote get-url origin | sed -e 's/.*://g' )
-    git_repo="${git_repo//.git/}"
+    if [ -z ${GIT_REPO} ]; then
+        git_repo=$( git remote get-url origin )
+        git_repo=$( echo "${git_repo}" | sed -e 's/.*github\.com[:\/]//g' )
+        GIT_REPO="${git_repo//.git/}"
+    fi
 
-    output=$( curl --silent "https://api.github.com/repos/${git_repo}/${pr_name}" )
+    output=$( curl --silent "https://api.github.com/repos/${GIT_REPO}/${pr_name}" )
     # Note, curl does not return success/failure based on the HTTP code.
     # Check for a valid return value by retrieving the ID.
     pr_id=$( echo "$output" | jq -r .id )
