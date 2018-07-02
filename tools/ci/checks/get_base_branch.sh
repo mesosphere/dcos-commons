@@ -2,7 +2,7 @@
 
 set -e
 
-current_branch=${CURRENT_GIT_BRANCH:-$( git symbolic-ref --short HEAD )}
+current_branch="${CURRENT_GIT_BRANCH:-$( git symbolic-ref --short HEAD )}"
 
 base_branch="master"
 
@@ -12,19 +12,19 @@ if [[ x"$current_branch" == x*"pull/"* ]]; then
 
     if [ -z ${GIT_REPO} ]; then
         set -x
-        git_repo=$( git remote get-url origin )
-        git_repo=$( echo "${git_repo}" | sed -e 's/.*github\.com[:\/]//g' )
+        git_repo="$( git remote get-url origin )"
+        git_repo="$( echo "${git_repo}" | sed -e 's/.*github\.com[:\/]//g' )"
         GIT_REPO="${git_repo//.git/}"
         set +x
     fi
 
-    output=$( curl --silent "https://api.github.com/repos/${GIT_REPO}/${pr_name}" )
+    output="$( curl --silent "https://api.github.com/repos/${GIT_REPO}/${pr_name}" --retry 3 )"
     # Note, curl does not return success/failure based on the HTTP code.
     # Check for a valid return value by retrieving the ID.
-    pr_id=$( echo "$output" | jq -r .id )
+    pr_id="$( echo "$output" | jq -r .id )"
     if [ x"$pr_id" == x"null" ]; then
         # Check for a message
-        message=$( echo "$output" | jq -r .message )
+        message="$( echo "$output" | jq -r .message )"
         if [ x"$message" == x"Not Found" ]; then
             echo "The specified PR (${git_repo}/${pr_name}) could not be found"
             exit 1
@@ -35,8 +35,8 @@ if [[ x"$current_branch" == x*"pull/"* ]]; then
         exit 1
     fi
 
-    base_branch=$( echo "$output" | jq -r .base.ref )
-    current_branch=$( echo "$output" | jq -r .head.ref )
+    base_branch="$( echo "$output" | jq -r .base.ref )"
+    current_branch="$( echo "$output" | jq -r .head.ref )"
 
     # Fetch the base branch to ensure that it is available locally
     git fetch origin ${base_branch}:${base_branch}
