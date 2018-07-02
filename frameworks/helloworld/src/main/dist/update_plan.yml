@@ -1,0 +1,28 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      hello-deploy:
+        strategy: parallel
+        pod: hello
+  update:
+    strategy: serial
+    phases:
+      hello-update:
+        strategy: serial
+        pod: hello
