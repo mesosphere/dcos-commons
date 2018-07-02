@@ -7,6 +7,10 @@ import subprocess
 from typing import List
 
 
+BUILD_FOLDERS = ["cli/", "clivendor/", "govendor/", "sdk/", "testing/", "tools/"]
+BUILD_FILES = ["conftest.py", "test_requirements.txt", "Dockerfile"]
+
+
 def get_changed_files(git_reference: str) -> List[str]:
     """
     Get the list of files changed relative to the specified git reference.
@@ -41,14 +45,11 @@ def filter_build_files_and_folders(input: List[str], limit_to_build: bool) -> Li
     """
     if not limit_to_build:
         return input
-    folders = ("cli/", "clivendor/", "govendor/", "sdk/", "testing/", "tools/")
-    files = ("conftest.py", "test_requirements.txt", "Dockerfile")
 
-    return list(filter(lambda f: f.startswith(folders + files), input))
+    return list(filter(lambda f: f.startswith(BUILD_FILES + BUILD_FOLDERS), input))
 
 
 def flatten_file_list(file_args: List[str]) -> List[str]:
-
     return list(itertools.chain.from_iterable([f.split() for f in file_args]))
 
 
