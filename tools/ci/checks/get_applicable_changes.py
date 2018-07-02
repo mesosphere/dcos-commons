@@ -15,7 +15,6 @@ def get_changed_files(git_reference: str) -> List[str]:
     """
     Get the list of files changed relative to the specified git reference.
     """
-
     cmd = ["git", "diff", git_reference, "--name-only"]
 
     file_list = subprocess.check_output(cmd).decode("utf-8").split()
