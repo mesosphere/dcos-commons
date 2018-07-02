@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 DOCKER_TAG=${DOCKER_TAG:-latest}
 DOCKER_IMAGE=${DOCKER_IMAGE:-mesosphere/dcos-commons:${DOCKER_TAG}}
 
