@@ -39,15 +39,15 @@ def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
-@pytest.mark.sanity
-@pytest.mark.smoke
-@pytest.mark.mesos_v0
-def test_mesos_v0_api():
-    service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
-    if prior_api_version is not "V0":
-        sdk_marathon.set_mesos_api_version(service_name, "V0")
-        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
+# @pytest.mark.sanity
+# @pytest.mark.smoke
+# @pytest.mark.mesos_v0
+# def test_mesos_v0_api():
+#     service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+#     prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
+#     if prior_api_version is not "V0":
+#         sdk_marathon.set_mesos_api_version(service_name, "V0")
+#         sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
 
 
 @pytest.mark.sanity
