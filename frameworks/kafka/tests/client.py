@@ -93,7 +93,7 @@ class KafkaClient:
             "container": {
                 "type": "MESOS",
                 "docker": {
-                    "image": "elezar/kafka-client:4b9c060",
+                    "image": "elezar/kafka-client:deca3d0",
                     "forcePullImage": True
                 }
             },
