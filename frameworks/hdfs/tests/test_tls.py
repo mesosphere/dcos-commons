@@ -14,10 +14,10 @@ from security import transport_encryption
 
 from tests import config
 
-pytestmark = pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                                reason="TLS requires DC/OS 1.10 or higher")
-pytestmark = pytest.mark.skipif(not sdk_utils.is_open_dcos(),
-                                reason="TLS requres DC/OS Enterprise")
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10+")]
 
 DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
 DEFAULT_NAME_NODE_TLS_PORT = 9003
