@@ -1,16 +1,23 @@
 import pytest
+import retrying
+
 
 import sdk_cmd
-import sdk_install
 import sdk_hosts
+import sdk_install
 import sdk_plan
+import sdk_tasks
 import sdk_utils
-import retrying
+
 
 from security import transport_encryption
 
 from tests import config
 
+pytestmark = pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                reason="TLS requires DC/OS 1.10 or higher")
+pytestmark = pytest.mark.skipif(not sdk_utils.is_open_dcos(),
+                                reason="TLS requres DC/OS Enterprise")
 
 DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
 DEFAULT_NAME_NODE_TLS_PORT = 9003
@@ -34,35 +41,34 @@ def service_account(configure_security):
 
 @pytest.fixture(scope='module')
 def hdfs_service_tls(service_account):
+    service_options = {
+        "service": {
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
+                }
+            }
+        }
+    }
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
             expected_running_tasks=config.DEFAULT_TASK_COUNT,
-            additional_options={
-                "service": {
-                    "service_account": service_account["name"],
-                    "service_account_secret": service_account["secret"],
-                    "security": {
-                        "transport_encryption": {
-                            "enabled": True
-                        }
-                    }
-                }
-            },
+            additional_options=service_options,
             timeout_seconds=30 * 60)
 
-        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-        yield service_account
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_healthy(hdfs_service_tls):
     config.check_healthy(service_name=config.SERVICE_NAME)
@@ -71,7 +77,6 @@ def test_healthy(hdfs_service_tls):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 def test_write_and_read_data_over_tls(hdfs_service_tls):
     test_filename = "test_data_tls"  # must be unique among tests in this suite
@@ -81,7 +86,6 @@ def test_write_and_read_data_over_tls(hdfs_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.parametrize("node_type,port", [
     ('journal', DEFAULT_JOURNAL_NODE_TLS_PORT),
@@ -97,13 +101,38 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
+        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         exit_status, output = sdk_cmd.master_ssh(_curl_https_get_code(host))
         return exit_status and output == '200'
 
     assert fn()
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_tls_recovery(hdfs_service_tls, service_account):
+    try:
+        pod_name = "name-0"
+        inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+
+        cmd_list = [
+            "pod", "replace", pod_name,
+        ]
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                        " ".join(cmd_list))
+
+        recovery_timeout_s = 25 * 60
+        sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
+        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
+
+        sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
+
+        # TODO: Add checks for non-updated tasks
+    finally:
+        hdfs_service_tls(service_account)
 
 
 def _curl_https_get_code(host):
