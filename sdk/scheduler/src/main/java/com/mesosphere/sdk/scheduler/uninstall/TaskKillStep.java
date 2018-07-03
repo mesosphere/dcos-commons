@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.framework.TaskKiller;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import org.apache.mesos.Protos;
 
@@ -20,11 +19,9 @@ public class TaskKillStep extends UninstallStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         setStatus(Status.IN_PROGRESS);
         TaskKiller.killTask(taskID);
         setStatus(Status.COMPLETE);
-
-        return getPodInstanceRequirement();
     }
 }

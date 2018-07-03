@@ -79,8 +79,8 @@ public class DeploymentStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
-        return getPodInstanceRequirement();
+    public void start() {
+        // Do nothing.
     }
 
     @Override

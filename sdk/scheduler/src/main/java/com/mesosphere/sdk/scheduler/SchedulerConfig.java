@@ -430,5 +430,7 @@ public class SchedulerConfig {
      * Returns the IP of the scheduler task's container. Note, this is dependent on the fact we are using the command
      * executor.
      */
-    public String getSchedulerIP() { return envStore.getRequired(LIBPROCESS_IP_ENVVAR); }
+    public String getSchedulerIP() {
+        return envStore.getRequired(LIBPROCESS_IP_ENVVAR);
+    }
 }

@@ -10,6 +10,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
+
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -152,7 +154,7 @@ public class TaskTypeRule implements PlacementRule {
             Collection<TaskInfo> tasksToAvoid) {
 
         for (TaskInfo taskToAvoid : tasksToAvoid) {
-            if (PlacementUtils.areEquivalent(taskToAvoid, podInstance)) {
+            if (TaskUtils.areEquivalent(taskToAvoid, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about avoiding it. This occurs when we're redeploying
                 // a given task with a new configuration (old data not deleted yet).
@@ -182,7 +184,7 @@ public class TaskTypeRule implements PlacementRule {
             Collection<TaskInfo> tasksToColocate) {
 
         for (TaskInfo taskToColocate : tasksToColocate) {
-            if (PlacementUtils.areEquivalent(taskToColocate, podInstance)) {
+            if (TaskUtils.areEquivalent(taskToColocate, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about colocating with it. This occurs when we're
                 // redeploying a given task with a new configuration (old data not deleted yet).

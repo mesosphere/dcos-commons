@@ -47,7 +47,7 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         }
 
         int index = stoppedPod.getPodInstance().getIndex();
-        logger.info(String.format("Returning replacement plan for node %d.", index));
+        logger.info("Returning replacement plan for node {}.", index);
         return Optional.ofNullable(getNodeRecoveryPhase(replaceNodePlan, index));
     }
 
@@ -56,7 +56,8 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Step inputLaunchStep = inputPhase.getChildren().get(index);
 
         // Dig all the way down into the command, so we can append the replace_address option to it.
-        PodInstance podInstance = inputLaunchStep.start().get().getPodInstance();
+        inputLaunchStep.start();
+        PodInstance podInstance = inputLaunchStep.getPodInstanceRequirement().get().getPodInstance();
         PodSpec podSpec = podInstance.getPod();
         TaskSpec taskSpec = podSpec.getTasks().stream().filter(t -> t.getName().equals("server")).findFirst().get();
         CommandSpec command = taskSpec.getCommand().get();

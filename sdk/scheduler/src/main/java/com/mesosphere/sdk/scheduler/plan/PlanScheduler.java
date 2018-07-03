@@ -62,7 +62,8 @@ public class PlanScheduler {
         }
 
         logger.info("Processing resource offers for step: {}", step.getName());
-        Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.start();
+        step.start();
+        Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.getPodInstanceRequirement();
         if (!podInstanceRequirementOptional.isPresent()) {
             logger.info("No PodInstanceRequirement for step: {}", step.getName());
             step.updateOfferStatus(Collections.emptyList());
