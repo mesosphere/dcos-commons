@@ -12,6 +12,10 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 /**
  * Handles scheduling of Mesos suppress and revive calls.
  *
+ * NOTE: Does not protect against multithreaded access. All calls should only be made on a single thread, separate from
+ * the thread that receives offers. Otherwise there is a risk of a deadlock because SchedulerDriver.reviveOffers() can
+ * block on sending us new offers.
+ *
  * <ul>
  * <li>Suppress is performed whenever the underlying services are all idle and no further offers are needed. This allows
  * Mesos to scale to more frameworks. When the framework is suppressed, it will not receive any offers for any reason.
@@ -57,8 +61,11 @@ class ReviveManager {
      * In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here,
      * because we cannot deterministically tell if we are actually suppressed or not. This logic could be revisited if
      * Mesos someday offers a call which tells us whether or not we're suppressed.
+     *
+     * Note that this also ensures that by flipping the {@code isSuppressed} flag if we receive an offer when we
+     * SHOULD BE suppressed, we are ensuring that the future calls to {@code suppressIfActive} would reissue SUPPRESS.
      */
-    synchronized void notifyOffersReceived() {
+    void notifyOffersReceived() {
         isSuppressed = false;
         Metrics.notSuppressed();
     }
@@ -68,7 +75,7 @@ class ReviveManager {
      * This should be invoked when the service(s) are all in an IDLE state, so that the offer stream may be temporarily
      * halted.
      */
-    synchronized void suppressIfActive() {
+    void suppressIfActive() {
         if (isSuppressed) {
             // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
             return;
@@ -94,7 +101,7 @@ class ReviveManager {
      * Notifies the manager that a revive should be sent, but only if we're currently suppressed.
      * This should be invoked when the service(s) are in a WORKING state, so that any suppressed state gets cleared.
      */
-    synchronized void requestReviveIfSuppressed() {
+    void requestReviveIfSuppressed() {
         if (!isSuppressed) {
             // Not suppressed, skip.
             return;
@@ -109,7 +116,7 @@ class ReviveManager {
      * <li>Offers are suppressed but the service is not idle (via {@link #requestReviveIfSuppressed()}</li>
      * </ul>
      */
-    synchronized void requestRevive() {
+    void requestRevive() {
         reviveRequested = true;
     }
 
@@ -117,7 +124,7 @@ class ReviveManager {
      * Pings the manager to perform a revive call to Mesos if one was previously requested. This must be invoked
      * periodically to trigger revives. This structure allows us to enforce a rate limit on revive calls.
      */
-    synchronized void reviveIfRequested() {
+    void reviveIfRequested() {
         if (!reviveRequested) {
             return;
         }

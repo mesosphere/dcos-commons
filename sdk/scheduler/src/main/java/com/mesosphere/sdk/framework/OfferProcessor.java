@@ -124,7 +124,7 @@ class OfferProcessor {
                 while (true) {
                     try {
                         processQueuedOffers(DEFAULT_OFFER_WAIT);
-                    } catch (Exception e) {
+                    } catch (Throwable e) {
                         LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
                         ProcessExit.exit(ProcessExit.ERROR, e);
                     }
@@ -148,11 +148,6 @@ class OfferProcessor {
                     offersInProgress.stream()
                             .map(offerID -> offerID.getValue())
                             .collect(Collectors.toList()));
-        }
-
-        if (!offers.isEmpty()) {
-            // We've gotten some offers, so we're not suppressed anymore.
-            reviveManager.notifyOffersReceived();
         }
 
         for (Protos.Offer offer : offers) {
@@ -214,6 +209,18 @@ class OfferProcessor {
         LOGGER.info("Waiting up to {}s for offers...", queueWait.getSeconds());
         List<Protos.Offer> offers = offerQueue.takeAll(queueWait);
         try {
+            if (!offers.isEmpty()) {
+                LOGGER.info("Received {} offers.", offers.size());
+                // We've gotten some offers, so we're not suppressed anymore. NOTE: We explicitly avoid calling
+                // ReviveManager the offers are first queued because of the following potential for a deadlock:
+                // 1. We call SchedulerDriver.reviveOffers(), which blocks.
+                // 2. The Mesos client immediately passes us an offer, during the reviveOffers() call.
+                // 3. If we directly invoked reviveManager with a lock, we'd hit a deadlock here.
+                // By only notifying reviveManager in this separate thread after taking things off the queue, we avoid
+                // this cycle, and also remove the need to worry about multithreading within ReviveManager itself.
+                reviveManager.notifyOffersReceived();
+            }
+
             if (offers.isEmpty() && !isInitialized.get()) {
                 // The scheduler hasn't finished registration yet, so many members haven't been initialized either.
                 // Avoid hitting NPE for planCoordinator, driver, etc.
@@ -233,8 +240,8 @@ class OfferProcessor {
             try {
                 if (checkStatus()) {
                     evaluateOffers(offers);
-                } else {
-                    // Offers not needed, at least not right now. Decline long.
+                } else if (!offers.isEmpty()) {
+                    // The offers are not needed by the service, at least for the moment. Decline long.
                     declineLong(offers);
                 }
             } finally {

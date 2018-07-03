@@ -1,13 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.state.GoalStateOverride;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.mesos.Protos.Credential;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-
 import com.auth0.jwt.algorithms.Algorithm;
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
@@ -16,7 +8,14 @@ import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.state.GoalStateOverride;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.mesos.Protos.Credential;
+import org.bouncycastle.util.io.pem.PemReader;
+import org.json.JSONObject;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -173,6 +172,12 @@ public class SchedulerConfig {
      * Environment variable for setting a custom TLD for the service (replaces Constants.TLD_NET).
      */
     private static final String USER_SPECIFIED_TLD_ENVVAR = "SERVICE_TLD";
+
+    /**
+     * Environment variable for the IP address of the scheduler task. Note, this is dependent on the fact we are using
+     * the command executor.
+     */
+    private static final String LIBPROCESS_IP_ENVVAR = "LIBPROCESS_IP";
 
     /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
@@ -420,4 +425,10 @@ public class SchedulerConfig {
     public boolean isRegionAwarenessEnabled() {
         return envStore.getOptionalBoolean(ALLOW_REGION_AWARENESS_ENV, false);
     }
+
+    /**
+     * Returns the IP of the scheduler task's container. Note, this is dependent on the fact we are using the command
+     * executor.
+     */
+    public String getSchedulerIP() { return envStore.getRequired(LIBPROCESS_IP_ENVVAR); }
 }

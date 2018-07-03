@@ -125,7 +125,7 @@
     "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",
 
     {{#kafka.kafka_advertise_host_ip}}
-    "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "set",
+    "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "true",
     {{/kafka.kafka_advertise_host_ip}}
 
     "TASKCFG_ALL_KAFKA_RESERVED_BROKER_MAX_ID": "{{kafka.reserved_broker_max_id}}",

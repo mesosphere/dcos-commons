@@ -2,6 +2,7 @@ package com.mesosphere.sdk.http.endpoints;
 
 import java.util.Optional;
 
+import javax.inject.Singleton;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -18,6 +19,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 /**
  * A read-only API for accessing active and inactive configurations from persistent storage.
  */
+@Singleton
 @Path("/v1/service")
 public class MultiConfigResource extends PrettyJsonResource {
 
