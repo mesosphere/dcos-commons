@@ -18,7 +18,9 @@ import sdk_plan
 import sdk_tasks
 import sdk_utils
 
+
 log = logging.getLogger(__name__)
+
 
 # Installs a universe version of a package, then upgrades it to a test version
 #
@@ -30,7 +32,7 @@ def test_upgrade(
         running_task_count,
         additional_options={},
         test_version_additional_options=None,
-        timeout_seconds=25*60,
+        timeout_seconds=25 * 60,
         wait_for_deployment=True):
     # allow providing different options dicts to the universe version vs the test version:
     if test_version_additional_options is None:
@@ -91,7 +93,7 @@ def soak_upgrade_downgrade(
         service_name,
         running_task_count,
         additional_options={},
-        timeout_seconds=25*60,
+        timeout_seconds=25 * 60,
         wait_for_deployment=True):
     sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
     version = 'stub-universe'
@@ -125,7 +127,6 @@ def _get_universe_url():
             log.info("Found Universe URL: {}".format(repo['uri']))
             return repo['uri']
     assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
-
 
 
 @retrying.retry(stop_max_attempt_number=15,
@@ -207,7 +208,7 @@ def _upgrade_or_downgrade(
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=10*1000,
+    stop_max_delay=10 * 1000,
     retry_on_result=lambda result: result is None)
 def _get_pkg_version(package_name):
     cmd = 'package describe {}'.format(package_name)
@@ -224,7 +225,7 @@ def _get_pkg_version(package_name):
             # Old location (until 1.9 or until 1.10):
             version = describe['version']
         return version
-    except:
+    except Exception:
         log.warning('Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         log.warning(traceback.format_exc())
         return None
@@ -232,7 +233,7 @@ def _get_pkg_version(package_name):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=60*1000,
+    stop_max_delay=60 * 1000,
     retry_on_result=lambda result: result is None)
 def _wait_for_new_package_version(package_name, prev_version):
     cur_version = _get_pkg_version(package_name)

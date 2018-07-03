@@ -398,6 +398,24 @@ public interface Expect extends SimulationTick {
     }
 
     /**
+     * Verifies that a suppress call was invoked. An exact amount is needed to ensure that a single suppress isn't
+     * counted multiple times.
+     */
+    public static Expect suppressedOffers(int totalTimes) {
+        return new Expect() {
+            @Override
+            public void expect(ClusterState state, SchedulerDriver mockDriver) {
+                verify(mockDriver, times(totalTimes)).suppressOffers();
+            }
+
+            @Override
+            public String getDescription() {
+                return String.format("%d call%s made to suppress offers", totalTimes, totalTimes == 1 ? "" : "s");
+            }
+        };
+    }
+
+    /**
      * Verifies that the scheduler's plans are all complete -- that there's no pending work.
      */
     public static Expect allPlansComplete() {

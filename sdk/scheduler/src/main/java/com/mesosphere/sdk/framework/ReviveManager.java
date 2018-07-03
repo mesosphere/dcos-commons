@@ -1,151 +1,152 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.Metrics;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.scheduler.plan.Step;
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.util.Optional;
+
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 /**
- * This class determines whether offers should be revived based on changes to the work being processed by the scheduler.
+ * Handles scheduling of Mesos suppress and revive calls.
+ *
+ * NOTE: Does not protect against multithreaded access. All calls should only be made on a single thread, separate from
+ * the thread that receives offers. Otherwise there is a risk of a deadlock because SchedulerDriver.reviveOffers() can
+ * block on sending us new offers.
+ *
+ * <ul>
+ * <li>Suppress is performed whenever the underlying services are all idle and no further offers are needed. This allows
+ * Mesos to scale to more frameworks. When the framework is suppressed, it will not receive any offers for any reason.
+ * </li>
+ * <li>From our perspective, a Revive call will reset any prior Suppress call, and/or reset any offers which were
+ * previously declined, resulting in all offers being sent again. It should be invoked when any new work has appeared,
+ * but Revive calls should be rate limited to avoid taxing Mesos.</li>
+ * </ul>
  */
-public class ReviveManager {
+class ReviveManager {
 
-    /**
-     * We use a singleton {@link TokenBucket} because we want rate limits on revive calls to be enforced across all
-     * running services in the scheduler.
-     */
-    private static TokenBucket tokenBucket = TokenBucket.newBuilder().build();
+    private static final Logger LOGGER = LoggingUtils.getLogger(ReviveManager.class);
 
-    private final Logger logger;
+    // Rate limiter for revive calls.
+    private final TokenBucket reviveTokenBucket;
+    // Whether suppress calls are enabled. We still 'simulate' suppress behavior internally, even when this is disabled.
+    private final boolean suppressEnabled;
 
-    private Set<WorkItem> candidates = new HashSet<>();
+    // Whether we have had new work appear since the last time revive was called:
+    private boolean reviveRequested;
+    // Whether we think that we have suppressed offers from Mesos due to an idle state on our end:
+    private boolean isSuppressed;
 
-    /**
-     * Overrides the {@link TokenBucket} object to be used by all {@link ReviveManager}s within the process.
-     * Only for use in tests.
-     */
-    @VisibleForTesting
-    public static void overrideTokenBucket(TokenBucket tokenBucket) {
-        ReviveManager.tokenBucket = tokenBucket;
+    ReviveManager(TokenBucket reviveTokenBucket, SchedulerConfig schedulerConfig) {
+        this.reviveTokenBucket = reviveTokenBucket;
+        this.suppressEnabled = schedulerConfig.isSuppressEnabled();
+        this.reviveRequested = false;
+        this.isSuppressed = false;
     }
 
     /**
-     * Creates an instance which will use the configured singleton {@link TokenBucket} for rate limiting. The
-     * {@link TokenBucket} is a shared singleton because we want revive rate limits to be enforced across all running
-     * services in the scheduler process.
+     * Notifies the manager that we are no longer suppressed. This should be called whenever offers are received from
+     * Mesos. This confirmation is done separately from the revive call to avoid the possibility of the following
+     * scenario:
+     *
+     * <ol>
+     * <li>Offers are suppressed</li>
+     * <li>A revive call is issued</li>
+     * <li>The revive call fails or is lost for any reason</li>
+     * <li>We continue to be suppressed, even though we think we issued a revive...</li>
+     * </ol>
+     *
+     * In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here,
+     * because we cannot deterministically tell if we are actually suppressed or not. This logic could be revisited if
+     * Mesos someday offers a call which tells us whether or not we're suppressed.
+     *
+     * Note that this also ensures that by flipping the {@code isSuppressed} flag if we receive an offer when we
+     * SHOULD BE suppressed, we are ensuring that the future calls to {@code suppressIfActive} would reissue SUPPRESS.
      */
-    public ReviveManager(Optional<String> namespace) {
-        this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    void notifyOffersReceived() {
+        isSuppressed = false;
+        Metrics.notSuppressed();
     }
 
     /**
-     * Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
-     * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}s) we
-     * assume that the offers we've declined forever may be useful to that work, and so we revive offers.
-     *
-     * Pseudo-code algorithm is this:
-     *
-     *     // We always start out revived
-     *     List<Requirement> oldRequirements = getRequirements();
-     *
-     *     while (true) {
-     *         List<Requirement> currRequirements = getRequirements()
-     *         List<Requirement> newRequirements = oldRequirements - currRequirements;
-     *         if (newRequirements.isEmpty()) {
-     *             print “No new work”;
-     *         } else {
-     *             oldRequirements = currRequirements;
-     *             revive();
-     *         }
-     *     }
-     *
-     * The invariant maintained is that the oldRequirements have always had revive called for them at least once, giving
-     * them access to offers.
-     *
-     * This case must work:
-     *
-     *     kafka-0-broker fails    @ 10:30, it's new work!
-     *     kafka-0-broker recovers @ 10:35
-     *     kafka-0-broker fails    @ 11:00, it's new work!
-     *     ...
+     * Issues a call to suppress offers, but only if the service does not already appear to be suppressed.
+     * This should be invoked when the service(s) are all in an IDLE state, so that the offer stream may be temporarily
+     * halted.
      */
-    public void revive(Collection<Step> activeWorkSet) {
-        Set<WorkItem> currCandidates = activeWorkSet.stream()
-                .map(step -> new WorkItem(step))
-                .collect(Collectors.toSet());
-        Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
-        newCandidates.removeAll(this.candidates);
-
-        if (!this.candidates.isEmpty() || !currCandidates.isEmpty() || !newCandidates.isEmpty()) {
-            logger.info("Candidates, old: {}, current: {}, new:{}", this.candidates, currCandidates, newCandidates);
+    void suppressIfActive() {
+        if (isSuppressed) {
+            // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
+            return;
         }
 
-        if (!newCandidates.isEmpty()) {
-            if (tokenBucket.tryAcquire()) {
-                logger.info(
-                        "Reviving offers with candidates, old: {}, current: {}, new:{}",
-                        this.candidates,
-                        currCandidates,
-                        newCandidates);
-                Optional<SchedulerDriver> driver = Driver.getDriver();
-                if (driver.isPresent()) {
-                    driver.get().reviveOffers();
-                } else {
-                    throw new IllegalStateException(
-                            "No driver present for reviving offers.  This should never happen.");
-                }
-                Metrics.incrementRevives();
-            } else {
-                logger.warn("Revive attempt has been throttled.");
-                Metrics.incrementReviveThrottles();
-                return;
+        // Service doesn't need offers, and offers are not suppressed. Suppress.
+        if (suppressEnabled) {
+            LOGGER.info("Suppressing offers");
+            Optional<SchedulerDriver> driver = Driver.getDriver();
+            if (!driver.isPresent()) {
+                throw new IllegalStateException("INTERNAL ERROR: No driver present for suppressing offers");
             }
+            driver.get().suppressOffers();
+            Metrics.incrementSuppresses();
+        } else {
+            LOGGER.info("Refraining from suppressing offers (disabled via DISABLE_SUPPRESS)");
         }
 
-        this.candidates = currCandidates;
+        isSuppressed = true;
     }
 
     /**
-     * A WorkItem encapsulates the relevant elements of a {@link Step} for the purposes of determining whether reviving
-     * offers is necessary.
+     * Notifies the manager that a revive should be sent, but only if we're currently suppressed.
+     * This should be invoked when the service(s) are in a WORKING state, so that any suppressed state gets cleared.
      */
-    private static class WorkItem {
-        private final Optional<PodInstanceRequirement> podInstanceRequirement;
-        private final String name;
+    void requestReviveIfSuppressed() {
+        if (!isSuppressed) {
+            // Not suppressed, skip.
+            return;
+        }
+        requestRevive();
+    }
 
-        private WorkItem(Step step) {
-            this.podInstanceRequirement = step.getPodInstanceRequirement();
-            this.name = step.getName();
+    /**
+     * Notifies the manager that a revive should be sent soon. This is needed in either of the following cases:
+     * <ul>
+     * <li>The service has new work to do and any previously declined offers should be sent again</li>
+     * <li>Offers are suppressed but the service is not idle (via {@link #requestReviveIfSuppressed()}</li>
+     * </ul>
+     */
+    void requestRevive() {
+        reviveRequested = true;
+    }
+
+    /**
+     * Pings the manager to perform a revive call to Mesos if one was previously requested. This must be invoked
+     * periodically to trigger revives. This structure allows us to enforce a rate limit on revive calls.
+     */
+    void reviveIfRequested() {
+        if (!reviveRequested) {
+            return;
         }
 
-        @Override
-        public boolean equals(Object o) {
-            return EqualsBuilder.reflectionEquals(this, o);
+        if (!reviveTokenBucket.tryAcquire()) {
+            LOGGER.info("Revive attempt has been throttled");
+            Metrics.incrementReviveThrottles();
+            return;
         }
 
-        @Override
-        public int hashCode() {
-            return HashCodeBuilder.reflectionHashCode(this);
+        LOGGER.info("Reviving offers");
+        Optional<SchedulerDriver> driver = Driver.getDriver();
+        if (!driver.isPresent()) {
+            throw new IllegalStateException("INTERNAL ERROR: No driver present for reviving offers.");
         }
+        driver.get().reviveOffers();
+        reviveRequested = false;
 
-        @Override
-        public String toString() {
-            return String.format("%s [%s]",
-                    name,
-                    podInstanceRequirement.isPresent() ?
-                            podInstanceRequirement.get().getRecoveryType() :
-                            "N/A");
-        }
+        // NOTE: We intentionally do not clear isSuppressed here. Instead, we wait until we've actually received new
+        // offers. This is a 'just in case' measure to avoid a zombie state if the revive call is dropped. In practice,
+        // there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here.
+
+        Metrics.incrementRevives();
     }
 }

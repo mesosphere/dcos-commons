@@ -8,15 +8,15 @@ from tests import nodetool
 
 log = logging.getLogger(__name__)
 
+
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
-
 
 
 @pytest.mark.dcos_min_version('1.11')
@@ -46,4 +46,3 @@ def test_rack():
 
     assert node.get_rack() != 'rack1'
     assert 'us-west' in node.get_rack()
-

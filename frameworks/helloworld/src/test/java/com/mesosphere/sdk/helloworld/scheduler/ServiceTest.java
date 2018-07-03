@@ -10,6 +10,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.*;
 import org.apache.mesos.Protos;
@@ -38,7 +39,9 @@ public class ServiceTest {
      */
     @Test
     public void testDefaultDeployment() throws Exception {
-        new ServiceTestRunner().run(getDefaultDeploymentTicks());
+        ServiceTestResult result = new ServiceTestRunner().run(getDefaultDeploymentTicks());
+        // After deployment completed, service should have stored that fact to ZK:
+        Assert.assertTrue(StateStoreUtils.getDeploymentWasCompleted(new StateStore(result.getPersister())));
     }
 
     /**
@@ -856,6 +859,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setHostname("host-bar").build());
         ticks.add(Expect.declinedLastOffer());
 
+        ticks.add(Expect.suppressedOffers(1));
         ticks.add(Expect.allPlansComplete());
 
         return ticks;
