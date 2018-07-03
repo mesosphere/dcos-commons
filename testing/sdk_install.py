@@ -162,7 +162,7 @@ def _uninstall(
     try:
         _installed_service_names.remove(service_name)
     except KeyError:
-        pass # allow tests to 'uninstall' up-front
+        pass  # allow tests to 'uninstall' up-front
 
     if sdk_utils.dcos_version_less_than('1.10'):
         log.info('Uninstalling/janitoring {}'.format(service_name))
@@ -171,7 +171,7 @@ def _uninstall(
                 package_name, service_name=service_name)
         except (dcos.errors.DCOSException, ValueError) as e:
             log.info('Got exception when uninstalling package, ' +
-                          'continuing with janitor anyway: {}'.format(e))
+                     'continuing with janitor anyway: {}'.format(e))
             if 'marathon' in str(e):
                 log.info('Detected a probable marathon flake. Raising so retry will trigger.')
                 raise
@@ -214,6 +214,7 @@ def _uninstall(
 
             # wait for service to be gone according to marathon
             client = shakedown.marathon.create_client()
+
             def marathon_dropped_service():
                 app_ids = [app['id'] for app in client.get_apps()]
                 log.info('Marathon apps: {}'.format(app_ids))
@@ -244,8 +245,7 @@ def merge_dictionaries(dict1, dict2):
     for k, v in dict1.items():
         ret[k] = v
     for k, v in dict2.items():
-        if (k in dict1 and isinstance(dict1[k], dict)
-                and isinstance(dict2[k], collections.Mapping)):
+        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
             ret[k] = merge_dictionaries(dict1[k], dict2[k])
         else:
             ret[k] = dict2[k]
