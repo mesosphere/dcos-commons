@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9,"i23":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9,"i16":9,"i17":9,"i18":9,"i19":9,"i20":9,"i21":9,"i22":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -136,23 +136,31 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">areEquivalent</a></span>(TaskInfo&nbsp;taskInfo,
+             <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
+<div class="block">Returns whether the provided <code>TaskInfo</code>, representing a previously-launched task,
+ is in the same provided pod provided in the <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getGoalState-com.mesosphere.sdk.specification.PodInstance-java.lang.String-">getGoalState</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
             java.lang.String&nbsp;taskName)</code>
 <div class="block">Gets the <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a> of Task.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodInstance-com.mesosphere.sdk.state.ConfigStore-Protos.TaskInfo-">getPodInstance</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
               Protos.TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodInstance-com.mesosphere.sdk.specification.PodSpec-Protos.TaskInfo-">getPodInstance</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec,
               Protos.TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodRequirements-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Collection-">getPodRequirements</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                   <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
@@ -161,7 +169,7 @@ extends java.lang.Object</pre>
  <a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html#getTasksToLaunch--"><code>PodInstanceRequirement.getTasksToLaunch()</code></a>) that should be relaunched.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodSpec-com.mesosphere.sdk.specification.ServiceSpec-Protos.TaskInfo-">getPodSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
           Protos.TaskInfo&nbsp;taskInfo)</code>
@@ -169,102 +177,86 @@ extends java.lang.Object</pre>
  which matches the provided <code>TaskInfo</code>, or <code>null</code> if no match could be found.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;Protos.TaskInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getPodTasks-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.state.StateStore-">getPodTasks</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
            <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>
 <div class="block">Returns the TaskInfos associated with a PodInstance if its ever been launched.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getStepName-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">getStepName</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
            java.util.Collection&lt;java.lang.String&gt;&nbsp;tasksToLaunch)</code>
 <div class="block">Returns a default name for a <a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> given a PodInstance and the tasks to be launched in it.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskIPAddress-Protos.TaskStatus-">getTaskIPAddress</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Gets the IP address associated with the task.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskNames-com.mesosphere.sdk.specification.PodInstance-">getTaskNames</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
 <div class="block">Returns all the Task names for a PodInstance.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskNames-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">getTaskNames</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
             java.util.Collection&lt;java.lang.String&gt;&nbsp;tasksToLaunch)</code>
 <div class="block">Returns all the task names for a pod, after filtering based on the passed in list of tasks to launch.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskSpec-com.mesosphere.sdk.state.ConfigStore-Protos.TaskInfo-">getTaskSpec</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;configStore,
            Protos.TaskInfo&nbsp;taskInfo)</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskSpec-com.mesosphere.sdk.specification.PodInstance-java.lang.String-">getTaskSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
            java.lang.String&nbsp;taskName)</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskSpec-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String-java.lang.String-">getTaskSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
            java.lang.String&nbsp;podType,
            java.lang.String&nbsp;taskName)</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#getTaskZone-Protos.TaskInfo-">getTaskZone</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
 <div class="block">Gets the zone of a task.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#hasTasksWithTLS-com.mesosphere.sdk.specification.ServiceSpec-">hasTasksWithTLS</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
 <div class="block">Returns whether any tasks within the provided <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> have transport encryption specs defined.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isRecoveryNeeded-Protos.TaskStatus-">isRecoveryNeeded</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Returns whether the provided <code>TaskStatus</code> shows that the task needs to recover.</div>
 </td>
 </tr>
-<tr id="i17" class="rowColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-Protos.TaskInfo-com.mesosphere.sdk.specification.PodInstance-">isSamePodInstance</a></span>(Protos.TaskInfo&nbsp;taskInfo,
-                 <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
-<div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the
- <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>) are both effectively for the same pod instance.</div>
-</td>
-</tr>
 <tr id="i18" class="altColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-Protos.TaskInfo-java.lang.String-int-">isSamePodInstance</a></span>(Protos.TaskInfo&nbsp;taskInfo,
-                 java.lang.String&nbsp;type,
-                 int&nbsp;index)</code>
-<div class="block">Returns whether the provided <code>TaskInfo</code> is in the provided pod type and index.</div>
-</td>
-</tr>
-<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isTerminal-Protos.TaskState-">isTerminal</a></span>(Protos.TaskState&nbsp;taskState)</code>
 <div class="block">Returns whether the provided <code>TaskState</code> has reached a terminal state.</div>
 </td>
 </tr>
-<tr id="i20" class="altColor">
+<tr id="i19" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#isTerminal-Protos.TaskStatus-">isTerminal</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Returns whether the provided <code>TaskStatus</code> has reached a terminal state.</div>
 </td>
 </tr>
-<tr id="i21" class="rowColor">
+<tr id="i20" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#needsRecovery-com.mesosphere.sdk.specification.TaskSpec-Protos.TaskStatus-">needsRecovery</a></span>(<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec,
              Protos.TaskStatus&nbsp;taskStatus)</code>
@@ -272,13 +264,13 @@ extends java.lang.Object</pre>
  (TaskStatus).</div>
 </td>
 </tr>
-<tr id="i22" class="altColor">
+<tr id="i21" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#taskHasZone-Protos.TaskInfo-">taskHasZone</a></span>(Protos.TaskInfo&nbsp;taskInfo)</code>
 <div class="block">Determines if a task is launched in any zones.</div>
 </td>
 </tr>
-<tr id="i23" class="rowColor">
+<tr id="i22" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/TaskUtils.html#volumesEqual-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-">volumesEqual</a></span>(<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;first,
             <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;second)</code>
@@ -388,38 +380,16 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="isSamePodInstance-Protos.TaskInfo-com.mesosphere.sdk.specification.PodInstance-">
+<a name="areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>isSamePodInstance</h4>
-<pre>public static&nbsp;boolean&nbsp;isSamePodInstance(Protos.TaskInfo&nbsp;taskInfo,
-                                        <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)
-                                 throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
-<div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the
- <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>) are both effectively for the same pod instance.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="isSamePodInstance-Protos.TaskInfo-java.lang.String-int-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>isSamePodInstance</h4>
-<pre>public static&nbsp;boolean&nbsp;isSamePodInstance(Protos.TaskInfo&nbsp;taskInfo,
-                                        java.lang.String&nbsp;type,
-                                        int&nbsp;index)
-                                 throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
-<div class="block">Returns whether the provided <code>TaskInfo</code> is in the provided pod type and index.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
-</dl>
+<h4>areEquivalent</h4>
+<pre>public static&nbsp;boolean&nbsp;areEquivalent(TaskInfo&nbsp;taskInfo,
+                                    <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</pre>
+<div class="block">Returns whether the provided <code>TaskInfo</code>, representing a previously-launched task,
+ is in the same provided pod provided in the <a href="../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>.</div>
 </li>
 </ul>
 <a name="areDifferent-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.specification.TaskSpec-">

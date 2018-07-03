@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -129,50 +129,42 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">areEquivalent</a></span>(TaskInfo&nbsp;taskInfo,
-             <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
-<div class="block">Returns whether the provided <code>TaskInfo</code>, representing a previously-launched task,
- is in the same provided pod provided in the <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>.</div>
-</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getAgentPlacementRule-java.util.List-java.util.List-">getAgentPlacementRule</a></span>(java.util.List&lt;java.lang.String&gt;&nbsp;avoidAgents,
                      java.util.List&lt;java.lang.String&gt;&nbsp;collocateAgents)</code>
 <div class="block">Returns the appropriate placement rule, given a set of agents to avoid or colocate with.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement">PlacementField</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getField-java.lang.String-">getField</a></span>(java.lang.String&nbsp;fieldName)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#hasZone-Protos.Offer-">hasZone</a></span>(Protos.Offer&nbsp;offer)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#placementRuleReferencesRegion-com.mesosphere.sdk.specification.PodSpec-">placementRuleReferencesRegion</a></span>(<a href="../../../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#placementRuleReferencesZone-com.mesosphere.sdk.specification.PodSpec-">placementRuleReferencesZone</a></span>(<a href="../../../../../../com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification">PodSpec</a>&nbsp;podSpec)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#require-com.mesosphere.sdk.offer.evaluate.placement.RuleFactory-java.util.Collection-">require</a></span>(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/RuleFactory.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">RuleFactory</a>&nbsp;ruleFactory,
        java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;&nbsp;matchers)</code>
 <div class="block">Requires that a task be placed on one of the provided string matchers.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#toExactMatchers-java.util.Collection-">toExactMatchers</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;hostnames)</code>
 <div class="block">Converts the provided keys into <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#toExactMatchers-java.lang.String...-">toExactMatchers</a></span>(java.lang.String...&nbsp;hostnames)</code>
 <div class="block">Converts the provided keys into <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ExactMatcher</code></a>s.</div>
@@ -216,18 +208,6 @@ extends java.lang.Object</pre>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The appropriate placement rule.</dd>
 </dl>
-</li>
-</ul>
-<a name="areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>areEquivalent</h4>
-<pre>public static&nbsp;boolean&nbsp;areEquivalent(TaskInfo&nbsp;taskInfo,
-                                    <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</pre>
-<div class="block">Returns whether the provided <code>TaskInfo</code>, representing a previously-launched task,
- is in the same provided pod provided in the <a href="../../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>.</div>
 </li>
 </ul>
 <a name="require-com.mesosphere.sdk.offer.evaluate.placement.RuleFactory-java.util.Collection-">

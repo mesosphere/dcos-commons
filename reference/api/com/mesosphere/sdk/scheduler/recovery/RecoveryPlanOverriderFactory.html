@@ -123,7 +123,10 @@ var activeTableTab = "activeTableTab";
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html#create-com.mesosphere.sdk.state.StateStore-java.util.Collection-">create</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-      java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)</code>&nbsp;</td>
+      java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)</code>
+<div class="block">Returns a new <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryPlanOverrider</code></a> which will be queried for custom overridden phases when task recovery
+ occurs.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -148,6 +151,13 @@ var activeTableTab = "activeTableTab";
 <h4>create</h4>
 <pre><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a>&nbsp;create(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                              java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a>&gt;&nbsp;plans)</pre>
+<div class="block">Returns a new <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryPlanOverrider</code></a> which will be queried for custom overridden phases when task recovery
+ occurs.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>stateStore</code> - the state store being used by the service</dd>
+<dd><code>plans</code> - all plans being used by the service, as of the time that the service is being initialized</dd>
+</dl>
 </li>
 </ul>
 </li>

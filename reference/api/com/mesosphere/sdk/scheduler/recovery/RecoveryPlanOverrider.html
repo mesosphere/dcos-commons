@@ -122,7 +122,10 @@ var activeTableTab = "activeTableTab";
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan">Phase</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html#override-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">override</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html#override-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">override</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement)</code>
+<div class="block">Returns a phase to be used when recovering the pod as described in the provided <code>PodLaunch</code>, or an empty
+ Optional if a default recovery phase should be used instead.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -146,6 +149,12 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <h4>override</h4>
 <pre>java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan">Phase</a>&gt;&nbsp;override(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement)</pre>
+<div class="block">Returns a phase to be used when recovering the pod as described in the provided <code>PodLaunch</code>, or an empty
+ Optional if a default recovery phase should be used instead.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>podInstanceRequirement</code> - specifies the pod to be recovered, and the type of recovery</dd>
+</dl>
 </li>
 </ul>
 </li>

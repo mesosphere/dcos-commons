@@ -240,7 +240,7 @@
 <dd>
 <div class="block">Determines whether two TaskSpecs are different.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">areEquivalent(TaskInfo, PodInstance)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#areEquivalent-TaskInfo-com.mesosphere.sdk.specification.PodInstance-">areEquivalent(TaskInfo, PodInstance)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided <code>TaskInfo</code>, representing a previously-launched task,
  is in the same provided pod provided in the <a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a>.</div>
@@ -845,7 +845,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html#create-java.lang.String-">create(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/RegexMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">RegexMatcher</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html#create-com.mesosphere.sdk.state.StateStore-java.util.Collection-">create(StateStore, Collection&lt;Plan&gt;)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverriderFactory.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverriderFactory</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns a new <a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryPlanOverrider</code></a> which will be queried for custom overridden phases when task recovery
+ occurs.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ClusterState.html#create-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.AbstractScheduler-">create(ServiceSpec, AbstractScheduler)</a></span> - Static method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ClusterState.html" title="class in com.mesosphere.sdk.testing">ClusterState</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html#createAttribute-java.lang.String-java.lang.String-">createAttribute(String, String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/ExactMatcher.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">ExactMatcher</a></dt>
@@ -4740,15 +4743,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#isRunningExecutor-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-Protos.Offer-">isRunningExecutor(PodInfoBuilder, Protos.Offer)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-Protos.TaskInfo-com.mesosphere.sdk.specification.PodInstance-">isSamePodInstance(Protos.TaskInfo, PodInstance)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
-<dd>
-<div class="block">Returns whether the provided <code>TaskInfo</code> (representing a launched task) and <a href="com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> (from the
- <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>) are both effectively for the same pod instance.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/TaskUtils.html#isSamePodInstance-Protos.TaskInfo-java.lang.String-int-">isSamePodInstance(Protos.TaskInfo, String, int)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/TaskUtils.html" title="class in com.mesosphere.sdk.offer">TaskUtils</a></dt>
-<dd>
-<div class="block">Returns whether the provided <code>TaskInfo</code> is in the provided pod type and index.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#isSideChannelActive--">isSideChannelActive()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>
 <div class="block">Returns whether it appears that side channel auth should be used when creating the SchedulerDriver.</div>
@@ -5626,7 +5620,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/DcosConstants.html#OVERLAY_DYNAMIC_PORT_RANGE_START">OVERLAY_DYNAMIC_PORT_RANGE_START</a></span> - Static variable in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/DcosConstants.html" title="class in com.mesosphere.sdk.dcos">DcosConstants</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html#override-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-">override(PodInstanceRequirement)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryPlanOverrider.html" title="interface in com.mesosphere.sdk.scheduler.recovery">RecoveryPlanOverrider</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">Returns a phase to be used when recovering the pod as described in the provided <code>PodLaunch</code>, or an empty
+ Optional if a default recovery phase should be used instead.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/Capabilities.html#overrideCapabilities-com.mesosphere.sdk.dcos.Capabilities-">overrideCapabilities(Capabilities)</a></span> - Static method in class com.mesosphere.sdk.dcos.<a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos">Capabilities</a></dt>
 <dd>
 <div class="block">Overrides the cluster capabilities object returned by <a href="com/mesosphere/sdk/dcos/Capabilities.html#getInstance--"><code>Capabilities.getInstance()</code></a>, for use in tests.</div>
