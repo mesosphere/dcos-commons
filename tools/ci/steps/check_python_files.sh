@@ -11,7 +11,7 @@ TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 BASE_BRANCH=${BASE_BRANCH:-$( ${TOOL_DIR}/get_base_branch.sh )}
 
 # Get the list of changed .py files relative to the base branch
-CHANGESET=$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" --from-git "${BASE_BRANCH}" )
+CHANGESET="$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" --from-git "${BASE_BRANCH}" )"
 
 if [[ -n ${CHANGESET} ]]; then
     echo "Changeset:"
@@ -19,7 +19,7 @@ if [[ -n ${CHANGESET} ]]; then
 
     echo
     echo "Running flake8 on $( echo \"${CHANGESET}\" | wc -w ) files:"
-    ${TOOL_DIR}/run_flake8_checks.sh "${CHANGESET}"
+    ${TOOL_DIR}/run_flake8_checks.sh ${CHANGESET}
     rc=$?
     if [ ${rc} -eq 0 ]; then
         echo "Success!"
@@ -28,7 +28,7 @@ if [[ -n ${CHANGESET} ]]; then
     fi
 
     echo "Running pylint on $( echo \"${CHANGESET}\" | wc -w ) files:"
-    ${TOOL_DIR}/run_pylint_checks.sh "${CHANGESET}"
+    ${TOOL_DIR}/run_pylint_checks.sh ${CHANGESET}
     rc=$?
     if [ ${rc} -eq 0 ]; then
         echo "Success!"
