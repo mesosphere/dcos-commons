@@ -190,6 +190,7 @@ public class SchedulerBuilderTest {
 
         Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), true);
 
+        // Update plan should have replaced the deploy plan:
         Assert.assertEquals(1, plans.size());
         Plan deployPlan = plans.stream()
                 .filter(plan -> plan.isDeployPlan())
@@ -205,7 +206,8 @@ public class SchedulerBuilderTest {
 
         Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), false);
 
-        Assert.assertEquals(2, plans.size());
+        // Should have omitted the update plan since it's not being used:
+        Assert.assertEquals(1, plans.size());
         Plan deployPlan = plans.stream()
                 .filter(plan -> plan.isDeployPlan())
                 .findFirst().get();
