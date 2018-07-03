@@ -386,9 +386,7 @@ public class SchedulerConfig {
     /**
      * Returns the Mesos API version.
      */
-    public String getMesosApiVersion() {
-        return envStore.getRequired(MESOS_API_VERSION_ENV);
-    }
+    public String getMesosApiVersion() { return envStore.getOptional(MESOS_API_VERSION_ENV, "V1"); }
 
     /**
      * Returns the command to be run when pausing a Task.
