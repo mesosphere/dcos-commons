@@ -17,7 +17,7 @@ def get_changed_files(git_reference: str) -> List[str]:
     """
     cmd = ["git", "diff", git_reference, "--name-only"]
 
-    file_list = subprocess.check_output(cmd).decode("utf-8").split()
+    file_list = subprocess.check_output(cmd).decode("utf-8").split("\n")
 
     return file_list
 
@@ -86,12 +86,14 @@ def main():
     else:
         files = flatten_file_list(args.files)
 
-    for f in filter_build_files_and_folders(
+    filtered_files = filter_build_files_and_folders(
         ignore_extensions(
             filter_extensions(files, args.extensions), args.ignore_extensions
         ),
         args.only_build_files,
-    ):
+    )
+
+    for f in filtered_files:
         print(f)
 
 
