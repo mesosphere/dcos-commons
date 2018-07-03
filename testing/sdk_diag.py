@@ -32,7 +32,8 @@ _testlogs_task_id_limit = 250
 # 1 Test suite test_sanity_py starts with 2 tasks to ignore: [test_placement-0, test_placement-1]
 # 2 test_sanity_py.health_check passes, with 3 tasks created: [test-scheduler, pod-0-task, pod-1-task]
 # 3 test_sanity_py.replace_0 fails, with 1 task created: [pod-0-task-NEWUUID]
-#   Upon failure, the following task logs should be collected: [test-scheduler, pod-0-task, pod-1-task, pod-0-task-NEWUUID]
+#   Upon failure, the following task logs should be collected:
+#                   [test-scheduler, pod-0-task, pod-1-task, pod-0-task-NEWUUID]
 # 4 test_sanity_py.replace_1 succeeds, with 1 task created: [pod-1-task-NEWUUID]
 # 5 test_sanity_py.restart_1 fails, with 1 new task: [pod-1-task-NEWUUID2]
 #   Upon failure, the following task logs should be collected: [pod-1-task-NEWUUID, pod-1-task-NEWUUID2]
@@ -61,7 +62,7 @@ def get_test_suite_name(item: pytest.Item):
     '''Returns the test suite name to use for a given test.'''
     # frameworks/template/tests/test_sanity.py => test_sanity_py
     # tests/test_sanity.py => test_sanity_py
-    return os.path.basename(item.parent.name).replace('.','_')
+    return os.path.basename(item.parent.name).replace('.', '_')
 
 
 def handle_test_setup(item: pytest.Item):
@@ -95,14 +96,14 @@ def handle_test_setup(item: pytest.Item):
     _testlogs_test_index += 1
 
 
-def handle_test_report(item: pytest.Item, result): # _pytest.runner.TestReport
+def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     '''Collects information from the cluster following a failed test.
 
     This should be called in a hookimpl fixture.
     See also handle_test_setup() which must be called in a pytest_runtest_setup() hook.'''
 
     if not result.failed:
-        return # passed, nothing to do
+        return  # passed, nothing to do
 
     # Fetch all state from all currently-installed services.
     # We do this retrieval first in order to be closer to the actual test failure.
@@ -114,7 +115,7 @@ def handle_test_report(item: pytest.Item, result): # _pytest.runner.TestReport
         for service_name in service_names:
             try:
                 _dump_scheduler(item, service_name)
-            except:
+            except Exception:
                 log.exception('Plan collection from service {} failed!'.format(service_name))
 
     # Fetch all logs from tasks created since the last failure, or since the start of the suite.
@@ -131,17 +132,17 @@ def handle_test_report(item: pytest.Item, result): # _pytest.runner.TestReport
         log.info('Fetching logs for {} tasks launched in this suite since last failure: {}'.format(
             len(new_task_ids), ', '.join(new_task_ids)))
         _dump_task_logs(item, new_task_ids)
-    except:
+    except Exception:
         log.exception('Task log collection failed!')
     try:
         log.info('Fetching mesos state:')
         _dump_mesos_state(item)
-    except:
+    except Exception:
         log.exception('Mesos state collection failed!')
     try:
         log.info('Creating/fetching cluster diagnostics bundle:')
         _dump_diagnostics_bundle(item)
-    except:
+    except Exception:
         log.exception('Diagnostics bundle creation failed')
     log.info('Post-failure collection complete')
 
@@ -164,16 +165,16 @@ def _dump_plans(item: pytest.Item, service_name: str):
         log.info('=> Writing {} ({} bytes)'.format(out_path, len(out_content)))
         with open(out_path, 'w') as f:
             f.write(out_content)
-            f.write('\n') # ... and a trailing newline
+            f.write('\n')  # ... and a trailing newline
 
 
 def _dump_threads(item: pytest.Item, service_name: str):
-    threads = sdk_cmd.service_request('GET', 'v1/debug/threads')
+    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads')
     out_path = _setup_artifact_path(item, 'threads_{}.out'.format(service_name.replace('/', '_')))
     log.info('=> Writing {} ({} bytes)'.format(out_path, len(threads)))
     with open(out_path, 'w') as f:
         f.write(threads)
-        f.write('\n') # ... and a trailing newline
+        f.write('\n')  # ... and a trailing newline
 
 
 def _dump_diagnostics_bundle(item: pytest.Item):
@@ -185,7 +186,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
 
     @retrying.retry(
         wait_fixed=5000,
-        stop_max_delay=10*60*1000,
+        stop_max_delay=10 * 60 * 1000,
         retry_on_result=lambda result: result is None)
     def wait_for_bundle_file():
         rc, stdout, stderr = sdk_cmd.run_raw_cli('node diagnostics --status --json')
@@ -214,13 +215,15 @@ def _dump_mesos_state(item: pytest.Item):
         r = sdk_cmd.cluster_request('GET', '/mesos/{}'.format(name), verify=False, raise_on_error=False)
         if r.ok:
             if name.endswith('.json'):
-                name = name[:-len('.json')] # avoid duplicate '.json'
+                name = name[:-len('.json')]  # avoid duplicate '.json'
             with open(_setup_artifact_path(item, 'mesos_{}.json'.format(name)), 'w') as f:
                 f.write(r.text)
 
 
 def _dump_task_logs(item: pytest.Item, task_ids: list):
-    '''For all of the provided tasks, downloads their task, executor, and agent logs to the artifact path for this test.'''
+    '''
+    For all of the provided tasks, downloads their task, executor, and agent logs to the artifact path for this test.
+    '''
     task_ids_set = set(task_ids)
     cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
     matching_tasks_by_agent = {}
@@ -234,7 +237,7 @@ def _dump_task_logs(item: pytest.Item, task_ids: list):
     for agent_id, agent_tasks in matching_tasks_by_agent.items():
         try:
             _dump_task_logs_for_agent(item, agent_id, agent_tasks)
-        except:
+        except Exception:
             log.exception('Failed to get logs for agent {}'.format(agent_id))
 
 
@@ -243,7 +246,6 @@ class _TaskEntry(object):
         self.task_id = cluster_task['id']
         self.executor_id = cluster_task['executor_id']
         self.agent_id = cluster_task['slave_id']
-
 
     def __repr__(self):
         return 'Task[task_id={} executor_id={} agent_id={}]'.format(
@@ -256,7 +258,7 @@ def _dump_task_logs_for_agent(item: pytest.Item, agent_id: str, agent_tasks: lis
     for task_entry in agent_tasks:
         try:
             task_byte_count += _dump_task_logs_for_task(item, agent_id, agent_executor_paths, task_entry)
-        except:
+        except Exception:
             log.exception('Failed to get logs for task {}'.format(task_entry))
     log.info('Downloaded {} bytes of logs from {} tasks on agent {}'.format(
         task_byte_count, len(agent_tasks), agent_id))
@@ -293,7 +295,7 @@ def _dump_task_logs_for_task(item: pytest.Item, agent_id: str, agent_executor_pa
                 try:
                     task_file_infos = sdk_cmd.cluster_request(
                         'GET', '/slave/{}/files/browse?path={}'.format(agent_id, task_browse_path)).json()
-                except:
+                except Exception:
                     log.exception('Failed to fetch task sandbox from presumed default executor')
 
     # Select all log files to be fetched from the above list.
@@ -325,7 +327,7 @@ def _dump_task_logs_for_task(item: pytest.Item, agent_id: str, agent_executor_pa
             with open(out_path, 'wb') as f:
                 for chunk in stream.iter_content(chunk_size=8192):
                     f.write(chunk)
-        except:
+        except Exception:
             log.exception('Failed to get file for task {}: {}'.format(task_entry, file_info))
     return byte_count
 
@@ -335,14 +337,17 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
 
     Mesos has changed its schema for executor directories with each DC/OS release:
     - 1.9: There are only '/var/lib/mesos/...' paths. There are no '/runs/latest' paths, only '/runs/<UUID>'.
-    - 1.10: There are only '/var/lib/mesos/...' paths, but '/runs/latest' paths are available in addition to '/runs/<UUID>'.
-    - 1.11: There are both '/frameworks/...' paths and '/var/lib/mesos/...' paths. Both have '/runs/latest' as well as '/runs/<UUID>'.
+    - 1.10: There are only '/var/lib/mesos/...' paths, but '/runs/latest' paths are available in addition to
+                           '/runs/<UUID>'.
+    - 1.11: There are both '/frameworks/...' paths and '/var/lib/mesos/...' paths. Both have '/runs/latest' as well as
+                           '/runs/<UUID>'.
     (and Mesos folks tell me that '/frameworks/...' is the way forward, so '/var/lib/mesos/...' may be going away)
     SEE ALSO: https://issues.apache.org/jira/browse/MESOS-7899
 
     Additionally, given the correct path, there are also differences depending on the task/executor type:
     - Marathon/Metronome: The task id is used as the 'executor id'. Logs are at the advertised directory.
-    - Custom executor: 'executor id' + 'task id' are both used. Executor+Task logs are all combined into the same file(s) at the advertised directory.
+    - Custom executor: 'executor id' + 'task id' are both used. Executor+Task logs are all combined into the same
+                       file(s) at the advertised directory.
     - Default executor: 'executor id' + 'task id' are both used. Executor logs are at the advertised directory,
                         while task logs are under 'tasks/<task_id>/' relative to the advertised directory.
     '''
@@ -379,7 +384,8 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
     return ''
 
 
-def _select_log_files(item: pytest.Item, task_id: str, file_infos: list, source: str, selected: collections.OrderedDict):
+def _select_log_files(item: pytest.Item, task_id: str, file_infos: list, source: str,
+                      selected: collections.OrderedDict):
     '''Finds and produces the 'stderr'/'stdout' file entries from the provided directory list returned by the agent.
 
     Results are placed in the 'selected' param.
