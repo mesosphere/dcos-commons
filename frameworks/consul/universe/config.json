@@ -104,6 +104,12 @@
           "type": "number",
           "default": 0.1
         },
+	"bootstrap_count": {
+	  "title": "Bootstrap node count",
+	  "description": "Number of expected nodes",
+	  "type": "number",
+	  "default": 3
+	},
         "mem": {
           "title": "Memory size (MB)",
           "description": "Template pod mem requirements (in MB)",

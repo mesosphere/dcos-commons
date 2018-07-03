@@ -3,34 +3,28 @@ scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
-  consul-server:
-    count: 3
-    placement: '{{{NODE_PLACEMENT}}}'
-    {{#ENABLE_VIRTUAL_NETWORK}}
-    networks:
-      {{VIRTUAL_NETWORK_NAME}}:
-        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
-    {{/ENABLE_VIRTUAL_NETWORK}}
+  consul:
+    count: 1
+    #    placement: {{NODE_PLACEMENT}}
     tasks:
       server:
         goal: RUNNING
-        cmd: "consul agent -server -bootstrap-expect={{BOOTSTRAP_NODE_COUNT}}"
+        cmd: ls -la
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         env:
-          CONSUL_LOCAL_CONFIG={{CONSUL_LOCAL_CONFIG}}
-  consul-agent:
-    count: 3
-    placement: '{{NODE_PLACEMENT}}'
-    networks:
-      {{VIRTUAL_NETWORK_NAME}}
-        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
-    {{/ENABLE_VIRTUAL_NETWORK}}
+          CONSUL_LOCAL_CONFIG: "test"
+  consulagent:
+    count: 3 
+    #    placement: {{NODE_PLACEMENT}}
+    #    image: consul
+    #    network:
+    #  dcos:
     tasks:
       server:
         goal: RUNNING
-        cmd: "consul agent -retry-join=consul-server-0-server.consul.autoip.dcos.thisdcos.directory
+        cmd: consul agent -retry-join=consul-server-0-server.consul.autoip.dcos.thisdcos.directory
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         env:
-          CONSUL_LOCAL_CONFIG={{CONSUL_LOCAL_CONFIG}}
+          CONSUL_LOCAL_CONFIG: "test"
