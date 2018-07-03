@@ -364,8 +364,6 @@ def test_shutdown_host():
                  'old={}\nnew={}'.format(replaced_task, new_task))
         assert replaced_task.agent != new_task.agent
 
-
-
 def install_options_helper(kill_grace_period=0):
     options = {
         "world": {
