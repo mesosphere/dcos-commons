@@ -1,22 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
 import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.TaskInfo;
-import org.slf4j.Logger;
-
 import java.util.*;
 
 /**
  * This class provides Utilities for commonly needed Placement rule scenarios.
  */
 public class PlacementUtils {
-
-    private static final Logger LOGGER = LoggingUtils.getLogger(PlacementUtils.class);
 
     private static final String HOSTNAME_FIELD_LEGACY = "hostname";
     private static final String HOSTNAME_FIELD = "@hostname";
@@ -58,19 +49,6 @@ public class PlacementUtils {
         }
 
         return placement;
-    }
-
-    /**
-     * Returns whether the provided {@link TaskInfo}, representing a previously-launched task,
-     * is in the same provided pod provided in the {@link PodInstance}.
-     */
-    public static boolean areEquivalent(TaskInfo taskInfo, PodInstance podInstance) {
-        try {
-            return TaskUtils.isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
-        } catch (TaskException e) {
-            LOGGER.warn("Unable to extract pod type or index from TaskInfo", e);
-            return false;
-        }
     }
 
     /**

@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 
 import java.util.Optional;
@@ -17,12 +16,10 @@ public class DeregisterStep extends UninstallStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         if (isPending()) {
             setStatus(Status.PREPARED);
         }
-
-        return getPodInstanceRequirement();
     }
 
     /**

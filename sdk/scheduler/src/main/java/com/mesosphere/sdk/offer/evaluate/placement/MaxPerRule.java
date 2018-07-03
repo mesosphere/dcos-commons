@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -53,7 +54,7 @@ public abstract class MaxPerRule implements PlacementRule {
 
         tasks = tasks.stream()
                 .filter(task -> getTaskFilter().matches(task.getName()))
-                .filter(task -> !PlacementUtils.areEquivalent(task, podInstance))
+                .filter(task -> !TaskUtils.areEquivalent(task, podInstance))
                 .collect(Collectors.toList());
 
         Map<String, Integer> counts = new HashMap<>();

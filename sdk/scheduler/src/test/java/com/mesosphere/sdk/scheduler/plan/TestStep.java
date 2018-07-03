@@ -30,9 +30,8 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         setStatus(Status.PREPARED);
-        return getPodInstanceRequirement();
     }
 
     @Override
