@@ -54,6 +54,7 @@ def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
     def fn():
         try:
             task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'].startswith(service_name)])
+            log.info('found the following task ids {}'.format(task_ids))
         except dcos.errors.DCOSHTTPException:
             log.info('Failed to get task ids. service_name=%s', service_name)
             task_ids = set([])
