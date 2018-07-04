@@ -37,10 +37,7 @@ def dcos_ca_bundle():
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
-    resp = sdk_cmd.cluster_request('GET', '/ca/dcos-ca.crt')
-    cert = resp.content.decode('ascii')
-    assert cert is not None
-    return cert
+    return transport_encryption.fetch_dcos_ca_bundle_contents().decode("ascii")
 
 
 @pytest.fixture(scope='module', autouse=True)
