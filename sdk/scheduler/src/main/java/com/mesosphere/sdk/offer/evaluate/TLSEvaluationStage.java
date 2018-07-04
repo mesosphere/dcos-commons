@@ -25,6 +25,7 @@ import java.util.*;
  */
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
+    private static final Logger LOGGER = LoggingUtils.getLogger(TLSEvaluationStage.class);
     private final Logger logger;
     private final String serviceName;
     private final String taskName;
@@ -99,7 +100,12 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                 namespace,
                 TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
                 certificateNamesGenerator.getSANsHash());
-        for (TransportEncryptionSpec transportEncryptionSpec : taskSpec.getTransportEncryption()) {
+
+        Collection<TransportEncryptionSpec> transportEncryptionSpecs = taskSpec.getTransportEncryption();
+        logger.info("Processing TLS info for %d elements of %s",
+                    transportEncryptionSpecs.size(),
+                    transportEncryptionSpecs.toString());
+        for (TransportEncryptionSpec transportEncryptionSpec : transportEncryptionSpecs) {
             try {
                 tlsArtifactsUpdater.update(
                         tlsArtifactPaths, certificateNamesGenerator, transportEncryptionSpec.getName());
@@ -124,7 +130,9 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(
             TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths) {
         Collection<Protos.Volume> volumes = new ArrayList<>();
-        for (TLSArtifactPaths.Entry entry : tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName())) {
+        Collection<TLSArtifactPaths.Entry> paths = tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName());
+        LOGGER.info("Got %d paths for %s-%s: ", paths.size(), spec.toString(), paths.toString());
+        for (TLSArtifactPaths.Entry entry : paths) {
             volumes.add(getSecretVolume(entry));
         }
         return volumes;
