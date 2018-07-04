@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * A {@link TLSEvaluationStage} is responsible for provisioning X.509 certificates, converting them to
@@ -102,9 +103,9 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                 certificateNamesGenerator.getSANsHash());
 
         Collection<TransportEncryptionSpec> transportEncryptionSpecs = taskSpec.getTransportEncryption();
-        logger.info("Processing TLS info for %d elements of %s",
+        logger.info("Processing TLS info for {} elements of {}",
                     transportEncryptionSpecs.size(),
-                    transportEncryptionSpecs.toString());
+                    transportEncryptionSpecs);
         for (TransportEncryptionSpec transportEncryptionSpec : transportEncryptionSpecs) {
             try {
                 tlsArtifactsUpdater.update(
@@ -116,26 +117,37 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                         .build();
             }
 
+            Set<Protos.Volume> existingVolumes = podInfoBuilder.getTaskBuilder(taskName)
+                    .getContainerBuilder()
+                    .getVolumesList()
+                    .stream()
+                    .collect(Collectors.toSet());
+            logger.info("Existing volumes for {}: {}", taskName, existingVolumes.stream().map(v -> v.getContainerPath()).toArray());
+
+            Set<Protos.Volume> additionalVolumes = getExecutorInfoSecretVolumes(transportEncryptionSpec, tlsArtifactPaths);
+            logger.info("Required volumes for {}: {}", taskName, additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
+
+            if (additionalVolumes.removeAll(existingVolumes)) {
+                logger.info("Duplicate volumes for {} removed. Remaining: {}", taskName, additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
+            }
+
             // Share keys to the task container
             podInfoBuilder
                     .getTaskBuilder(taskName)
                     .getContainerBuilder()
-                    .addAllVolumes(getExecutorInfoSecretVolumes(transportEncryptionSpec, tlsArtifactPaths));
-
+                    .addAllVolumes(additionalVolumes);
         }
 
         return EvaluationOutcome.pass(this, "TLS certificate created and added to the task").build();
     }
 
-    private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(
+    private static Set<Protos.Volume> getExecutorInfoSecretVolumes(
             TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths) {
-        Collection<Protos.Volume> volumes = new ArrayList<>();
+
         Collection<TLSArtifactPaths.Entry> paths = tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName());
-        LOGGER.info("Got %d paths for %s-%s: ", paths.size(), spec.toString(), paths.toString());
-        for (TLSArtifactPaths.Entry entry : paths) {
-            volumes.add(getSecretVolume(entry));
-        }
-        return volumes;
+        return paths.stream()
+                .map(TLSEvaluationStage::getSecretVolume)
+                .collect(Collectors.toSet());
     }
 
     private static Protos.Volume getSecretVolume(TLSArtifactPaths.Entry entry) {

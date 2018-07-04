@@ -30,6 +30,10 @@ import java.util.stream.Collectors;
 
 import static org.mockito.Mockito.*;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
+
 public class TLSEvaluationStageTest {
 
     @Mock private SchedulerConfig mockSchedulerConfig;
@@ -84,7 +88,13 @@ public class TLSEvaluationStageTest {
     }
 
     private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
-            Collection<TransportEncryptionSpec> transportEncryptionSpecs) throws InvalidRequirementException {
+            final Collection<TransportEncryptionSpec> transportEncryptionSpecs) throws InvalidRequirementException {
+        return getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs, UUID.randomUUID());
+    }
+
+    private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
+            final Collection<TransportEncryptionSpec> transportEncryptionSpecs,
+            final UUID targetConfig) throws InvalidRequirementException {
         PodInstanceRequirement podInstanceRequirement = getRequirementWithTransportEncryption(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 TestConstants.POD_TYPE,
@@ -94,7 +104,7 @@ public class TLSEvaluationStageTest {
         return new PodInfoBuilder(
                 podInstanceRequirement,
                 TestConstants.SERVICE_NAME,
-                UUID.randomUUID(),
+                targetConfig,
                 PodTestUtils.getTemplateUrlFactory(),
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Collections.emptyList(),
@@ -205,6 +215,41 @@ public class TLSEvaluationStageTest {
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
         Assert.assertFalse(outcome.isPassing());
+    }
+
+    @Test
+    public void testMultipleTLSEvaluationStageDoesNotAddVolumes() throws Exception {
+        ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
+        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
+                .Builder()
+                .name("test-tls")
+                .type(TransportEncryptionSpec.Type.TLS)
+                .build());
+        Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(2.0));
+
+        UUID targetConfig = UUID.randomUUID();
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs, targetConfig);
+        EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
+                new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+                podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        int initialNumberOfVolumes = podInfoBuilder
+                .getTaskBuilder(TestConstants.TASK_NAME)
+                .getContainerBuilder()
+                .getVolumesCount();
+
+        outcome = tlsEvaluationStage.evaluate(
+            new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
+            podInfoBuilder);
+        Assert.assertTrue(outcome.isPassing());
+
+        int finalNumberOfVolumes = podInfoBuilder
+                .getTaskBuilder(TestConstants.TASK_NAME)
+                .getContainerBuilder()
+                .getVolumesCount();
+
+        assertThat(finalNumberOfVolumes, is(initialNumberOfVolumes));
     }
 
     private void assertTLSArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
