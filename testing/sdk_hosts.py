@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 '''
 import json
 import logging
+import retrying
 import shakedown
 
 import sdk_cmd
@@ -55,6 +56,7 @@ def custom_host(service_name, task_name, custom_domain, port=-1):
         _safe_name(service_name),
         custom_domain,
         port)
+
 
 def vip_host(service_name, vip_name, port=-1):
     '''Returns the hostname of a specified service VIP, with handling of foldered services.'''
@@ -122,6 +124,9 @@ def get_foldered_dns_name(service_name):
     return sdk_utils.get_foldered_name(service_name).replace("/", "")
 
 
+@retrying.retry(
+    wait_fixed=2000,
+    stop_max_delay=5 * 60 * 1000)
 def get_crypto_id_domain():
     """
     Returns the cluster cryptographic ID equivalent of autoip.dcos.thisdcos.directory.

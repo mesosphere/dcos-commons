@@ -40,7 +40,7 @@ def _remove_job_by_name(job_name):
             'DELETE', 'metronome', '/v1/jobs/{}'.format(job_name),
             retry=False,
             params={'stopCurrentJobRuns': 'true'})
-    except:
+    except Exception:
         log.info('Failed to remove any existing job named {} (this is likely as expected):\n{}'.format(
             job_name, traceback.format_exc()))
 
@@ -73,7 +73,7 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     # Wait for run to succeed, throw if run fails:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def wait():
         # Note: We COULD directly query the run here via /v1/jobs/<job_name>/runs/<run_id>, but that

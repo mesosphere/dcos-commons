@@ -6,15 +6,10 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 
-import json
 import logging
-import os.path
-import traceback
-
 import retrying
 
 import sdk_cmd
-import sdk_utils
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
@@ -29,8 +24,10 @@ def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
 def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return get_plan(service_name, 'recovery', timeout_seconds)
 
+
 def get_decommission_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return get_plan(service_name, 'decommission', timeout_seconds)
+
 
 def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return sdk_cmd.service_request('GET', service_name, '/v1/plans', timeout_seconds=timeout_seconds).json()
@@ -40,14 +37,14 @@ def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS):
     # We need to DIY error handling/retry because the query will return 417 if the plan has errors.
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000)
+        stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan():
         response = sdk_cmd.service_request(
             'GET', service_name, '/v1/plans/{}'.format(plan),
             retry=False,
             raise_on_error=False)
         if response.status_code == 417:
-            return response # avoid throwing, return plan with errors
+            return response  # avoid throwing, return plan with errors
         response.raise_for_status()
         return response
 
@@ -113,7 +110,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
@@ -130,7 +127,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
@@ -148,7 +145,7 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
 def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
