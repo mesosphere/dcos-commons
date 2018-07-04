@@ -6,14 +6,14 @@ RUN apt-get update && \
 
 ARG JAVA_TAR_ARCHIVE="jre-8u152-linux-x64-jce-unlimited.tar.gz"
 RUN cd /opt && \
-    curl -O https://downloads.mesosphere.com/java/${JAVA_TAR_ARCHIVE} && \
+    curl -L -O https://downloads.mesosphere.com/java/${JAVA_TAR_ARCHIVE} && \
 	tar xzvf ${JAVA_TAR_ARCHIVE} && \
 	rm ${JAVA_TAR_ARCHIVE}
 
 ENV JAVA_HOME /opt/jre1.8.0_152
 
 RUN cd /opt && \
-    curl -O https://downloads.mesosphere.com/dcos-commons/artifacts/0.41.0/bootstrap.zip && \
+    curl -L -O https://downloads.mesosphere.com/dcos-commons/artifacts/0.41.0/bootstrap.zip && \
 	unzip bootstrap.zip && \
 	rm bootstrap.zip
 
