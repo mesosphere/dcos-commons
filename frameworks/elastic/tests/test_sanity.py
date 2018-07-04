@@ -81,17 +81,17 @@ def test_pod_replace_then_immediate_config_update():
     sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
-@pytest.mark.sanity
-@pytest.mark.smoke
-@pytest.mark.mesos_v0
-def test_mesos_v0_api():
-    prior_api_version = sdk_marathon.get_mesos_api_version(foldered_name)
-    if prior_api_version is not "V0":
-        sdk_marathon.set_mesos_api_version(foldered_name, "V0")
-        sdk_marathon.set_mesos_api_version(foldered_name, prior_api_version)
-
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
+# @pytest.mark.sanity
+# @pytest.mark.smoke
+# @pytest.mark.mesos_v0
+# def test_mesos_v0_api():
+#     prior_api_version = sdk_marathon.get_mesos_api_version(foldered_name)
+#     if prior_api_version is not "V0":
+#         sdk_marathon.set_mesos_api_version(foldered_name, "V0")
+#         sdk_marathon.set_mesos_api_version(foldered_name, prior_api_version)
+#
+#     sdk_plan.wait_for_completed_deployment(foldered_name)
+#     sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.sanity
