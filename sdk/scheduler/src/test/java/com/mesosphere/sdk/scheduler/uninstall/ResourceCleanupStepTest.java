@@ -25,7 +25,8 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testStart() throws Exception {
         Assert.assertEquals(Status.PENDING, resourceCleanupStep.getStatus());
-        Assert.assertFalse(resourceCleanupStep.start().isPresent());
+        resourceCleanupStep.start();
+        Assert.assertFalse(resourceCleanupStep.getPodInstanceRequirement().isPresent());
         Assert.assertEquals(Status.PREPARED, resourceCleanupStep.getStatus());
     }
 

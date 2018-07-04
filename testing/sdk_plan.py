@@ -46,11 +46,11 @@ def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_n
     # We need to DIY error handling/retry because the query will return 417 if the plan has errors.
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000)
+        stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan():
         response = sdk_cmd.service_request('GET', service_name, path, retry=False, raise_on_error=False)
         if response.status_code == 417:
-            return response # avoid throwing, return plan with errors
+            return response  # avoid throwing, return plan with errors
         response.raise_for_status()
         return response
 
@@ -116,7 +116,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, timeout_seconds=SHORT_TIMEOUT_SECONDS, multiservice_name=multiservice_name)
@@ -133,7 +133,7 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
 def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
@@ -151,7 +151,7 @@ def wait_for_phase_status(service_name, plan_name, phase_name, status, timeout_s
 def wait_for_step_status(service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)

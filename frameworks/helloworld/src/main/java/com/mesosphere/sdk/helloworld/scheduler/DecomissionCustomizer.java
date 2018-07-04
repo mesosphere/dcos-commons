@@ -46,12 +46,10 @@ public class DecomissionCustomizer implements PlanCustomizer {
             Object lock = new Object();
 
             @Override
-            public Optional<PodInstanceRequirement> start() {
+            public void start() {
                 synchronized (lock) {
                     status = Status.COMPLETE;
                 }
-
-                return Optional.empty();
             }
 
             @Override

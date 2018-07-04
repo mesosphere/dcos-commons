@@ -18,6 +18,7 @@ RUN apt-get update && \
     python3 \
     python3-dev \
     python3-pip \
+    rsync \
     tox \
     software-properties-common \
     upx-ucl \
@@ -34,7 +35,7 @@ ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
 # AWS CLI for uploading build artifacts
-RUN pip install awscli
+RUN pip3 install awscli
 # Install the testing dependencies
 COPY test_requirements.txt test_requirements.txt
 RUN pip3 install -r test_requirements.txt
@@ -50,7 +51,8 @@ RUN mkdir /build-tools
 ENV PATH=/build-tools:$PATH
 
 COPY tools/distribution/init /build-tools/
-COPY tools/ci/* /build-tools/
+COPY tools/ci/test_runner.sh /build-tools/
+COPY tools/ci/launch_cluster.sh /build-tools/
 
 # Create a folder to store the distributed artefacts
 RUN mkdir /dcos-commons-dist

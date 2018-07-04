@@ -20,9 +20,7 @@ log = logging.getLogger(__name__)
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
-
+        install_options_helper()
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -152,15 +150,7 @@ def test_pod_pause_resume():
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version('1.9')
 def test_pods_restart_graceful_shutdown():
-    options = {
-        "world": {
-            "kill_grace_period": 30
-        }
-    }
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT,
-                        additional_options=options)
+    install_options_helper(30)
 
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
@@ -373,3 +363,15 @@ def test_shutdown_host():
         log.info('Checking affected task has moved to a new agent:\n'
                  'old={}\nnew={}'.format(replaced_task, new_task))
         assert replaced_task.agent != new_task.agent
+
+def install_options_helper(kill_grace_period=0):
+    options = {
+        "world": {
+            "kill_grace_period": kill_grace_period,
+            "count": 3
+        }
+    }
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT + 1, additional_options=options)
+

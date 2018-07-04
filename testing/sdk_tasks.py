@@ -30,7 +30,7 @@ log = logging.getLogger(__name__)
 def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS, allow_more=True):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         try:
@@ -83,7 +83,6 @@ class Task(object):
             task_entry['framework_id'],
             agent_id)
 
-
     def __init__(self, name, host, state, task_id, framework_id, agent):
         self.name = name
         self.host = host
@@ -91,7 +90,6 @@ class Task(object):
         self.id = task_id
         self.framework_id = framework_id
         self.agent = agent
-
 
     def __repr__(self):
         return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent={}]'.format(
@@ -179,7 +177,7 @@ def get_completed_task_id(task_name):
 def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         try:
@@ -212,7 +210,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
     # atomic test, that the plan completed properly where properly includes that no old tasks remain.
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         try:

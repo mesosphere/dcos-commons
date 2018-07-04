@@ -1,0 +1,15 @@
+repos:
+-   repo: local
+    hooks:
+    - id: flake8
+      name: flake8
+      language: script
+      entry: tools/ci/checks/run_flake8_checks.sh
+      files: \.py$
+      pass_filenames: true
+    - id: pylint
+      name: pylint
+      language: script
+      entry: tools/ci/checks/run_pylint_checks.sh
+      files: \.py$
+      pass_filenames: true
