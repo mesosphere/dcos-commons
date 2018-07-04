@@ -161,4 +161,9 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                 .getReferenceBuilder().setName(entry.secretStorePath);
         return volumeBuilder.build();
     }
+
+    @VisibleForTesting
+    protected String getTaskName() {
+        return this.taskName;
+    }
 }
