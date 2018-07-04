@@ -6,11 +6,17 @@ import sdk_install
 import sdk_networks
 import sdk_plan
 import sdk_security
+import sdk_tasks
 import sdk_utils
 
 from security import transport_encryption, cipher_suites
 
 from tests import config
+
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10+")]
 
 log = logging.getLogger(__name__)
 
@@ -64,8 +70,6 @@ def kafka_service_tls(service_account):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
 def test_tls_endpoints(kafka_service_tls):
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     assert BROKER_TLS_ENDPOINT in endpoints
@@ -79,8 +83,6 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
 def test_producer_over_tls(kafka_service_tls):
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
 
@@ -105,8 +107,6 @@ def test_producer_over_tls(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
 def test_tls_ciphers(kafka_service_tls):
     task_name = 'kafka-0-broker'
     endpoint = sdk_cmd.svc_cli(
@@ -147,3 +147,25 @@ def test_tls_ciphers(kafka_service_tls):
     log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_tls_recovery(kafka_service_tls, service_account):
+    pod_name = "kafka-0"
+    inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+
+    cmd_list = [
+        "pod", "replace", pod_name,
+    ]
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    " ".join(cmd_list))
+
+    recovery_timeout_s = 25 * 60
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
+
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
+
+    # TODO: Add checks for non-updated tasks

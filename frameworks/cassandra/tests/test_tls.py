@@ -8,11 +8,17 @@ import sdk_cmd
 import sdk_install
 import sdk_jobs
 import sdk_plan
+import sdk_tasks
 import sdk_utils
 
 from security import transport_encryption
 
 from tests import config
+
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10+")]
 
 
 @pytest.fixture(scope='module')
@@ -74,8 +80,6 @@ def cassandra_service_tls(service_account):
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
-@pytest.mark.dcos_min_version('1.10')
-@sdk_utils.dcos_ee_only
 def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
@@ -117,3 +121,25 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
 
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
         sdk_jobs.run_job(config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_tls_recovery(kafka_service_tls, service_account):
+    pod_name = "node-0"
+    inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+
+    cmd_list = [
+        "pod", "replace", pod_name,
+    ]
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    " ".join(cmd_list))
+
+    recovery_timeout_s = 25 * 60
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
+
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
+
+    # TODO: Add checks for non-updated tasks

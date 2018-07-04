@@ -114,25 +114,22 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_tls_recovery(hdfs_service_tls, service_account):
-    try:
-        pod_name = "name-0"
-        inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+    pod_name = "name-0"
+    inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
 
-        cmd_list = [
-            "pod", "replace", pod_name,
-        ]
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                        " ".join(cmd_list))
+    cmd_list = [
+        "pod", "replace", pod_name,
+    ]
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    " ".join(cmd_list))
 
-        recovery_timeout_s = 25 * 60
-        sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
-        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
+    recovery_timeout_s = 25 * 60
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
 
-        sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
 
-        # TODO: Add checks for non-updated tasks
-    finally:
-        hdfs_service_tls(service_account)
+    # TODO: Add checks for non-updated tasks
 
 
 def _curl_https_get_code(host):
