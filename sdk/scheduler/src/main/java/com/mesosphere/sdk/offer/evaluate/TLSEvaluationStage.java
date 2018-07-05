@@ -122,13 +122,22 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
                     .getVolumesList()
                     .stream()
                     .collect(Collectors.toSet());
-            logger.info("Existing volumes for {}: {}", taskName, existingVolumes.stream().map(v -> v.getContainerPath()).toArray());
+            logger.debug("Existing volumes for {}: {}",
+                        taskName,
+                        existingVolumes.stream().map(v -> v.getContainerPath()).toArray());
 
-            Set<Protos.Volume> additionalVolumes = getExecutorInfoSecretVolumes(transportEncryptionSpec, tlsArtifactPaths);
-            logger.info("Required volumes for {}: {}", taskName, additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
+            Set<Protos.Volume> additionalVolumes = getExecutorInfoSecretVolumes(
+                    transportEncryptionSpec,
+                    tlsArtifactPaths
+            );
+            logger.debug("Required volumes for {}: {}",
+                        taskName,
+                        additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
 
             if (additionalVolumes.removeAll(existingVolumes)) {
-                logger.info("Duplicate volumes for {} removed. Remaining: {}", taskName, additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
+                logger.debug("Duplicate volumes for {} removed. Remaining: {}",
+                            taskName,
+                            additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
             }
 
             // Share keys to the task container
