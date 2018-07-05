@@ -8,7 +8,6 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-
 import org.slf4j.Logger;
 
 /**
