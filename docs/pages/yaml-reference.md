@@ -347,7 +347,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
             port: 80 # create a VIP
         debug:
           port: 9090
-          env-var: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
+          env-key: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
       ```
 
       All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on `eth0`, but your service is still connected fine over `eth1`. Or vice versa.
