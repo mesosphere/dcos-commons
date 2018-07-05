@@ -36,6 +36,7 @@ def service_account(configure_security):
 def elastic_service(service_account):
     service_options = {
         "service": {
+            "name": config.SERVICE_NAME,
             "service_account": service_account["name"],
             "service_account_secret": service_account["secret"],
             "security": {
