@@ -2,13 +2,12 @@ import os
 import uuid
 
 import pytest
-import shakedown
 
 import sdk_cmd
 import sdk_install
 import sdk_jobs
 import sdk_plan
-import sdk_tasks
+import sdk_recovery
 import sdk_utils
 
 from security import transport_encryption
@@ -48,39 +47,37 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def cassandra_service_tls(service_account):
-    sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={
-            "service": {
-                "service_account": service_account["name"],
-                "service_account_secret": service_account["secret"],
-                "security": {
-                    "transport_encryption": {
-                        "enabled": True
-                    }
+def cassandra_service(service_account):
+    service_options = {
+        "service": {
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
                 }
             }
         }
-    )
+    }
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    try:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            service_name=config.SERVICE_NAME,
+            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            additional_options=service_options,
+            timeout_seconds=30 * 60)
 
-    # Wait for service health check to pass
-    shakedown.service_healthy(config.SERVICE_NAME)
-
-    yield
-
-    sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
-def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
+def test_tls_connection(cassandra_service, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
     """
@@ -126,20 +123,14 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(kafka_service_tls, service_account):
-    pod_name = "node-0"
-    inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+def test_tls_recovery(cassandra_service, service_account):
+    pod_list = sdk_cmd.svc_cli(cassandra_service["package_name"],
+                               cassandra_service["service"]["name"],
+                               "pod",
+                               json=True)
 
-    cmd_list = [
-        "pod", "replace", pod_name,
-    ]
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                    " ".join(cmd_list))
-
-    recovery_timeout_s = 25 * 60
-    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
-    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
-
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
-
-    # TODO: Add checks for non-updated tasks
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(cassandra_service["package_name"],
+                                              cassandra_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60)

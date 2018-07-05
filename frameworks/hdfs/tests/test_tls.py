@@ -1,3 +1,4 @@
+import logging
 import pytest
 import retrying
 
@@ -5,8 +6,7 @@ import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
-import sdk_plan
-import sdk_tasks
+import sdk_recovery
 import sdk_utils
 
 
@@ -18,6 +18,10 @@ pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
                                  reason="Feature only supported in DC/OS EE"),
               pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
                                  reason="TLS tests require DC/OS 1.10+")]
+
+
+LOG = logging.getLogger(__name__)
+
 
 DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
 DEFAULT_NAME_NODE_TLS_PORT = 9003
@@ -40,7 +44,7 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def hdfs_service_tls(service_account):
+def hdfs_service(service_account):
     service_options = {
         "service": {
             "service_account": service_account["name"],
@@ -70,7 +74,7 @@ def hdfs_service_tls(service_account):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_healthy(hdfs_service_tls):
+def test_healthy(hdfs_service):
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
@@ -78,7 +82,7 @@ def test_healthy(hdfs_service_tls):
 @pytest.mark.sanity
 @pytest.mark.data_integrity
 @sdk_utils.dcos_ee_only
-def test_write_and_read_data_over_tls(hdfs_service_tls):
+def test_write_and_read_data_over_tls(hdfs_service):
     test_filename = "test_data_tls"  # must be unique among tests in this suite
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
@@ -92,7 +96,7 @@ def test_write_and_read_data_over_tls(hdfs_service_tls):
     ('name', DEFAULT_NAME_NODE_TLS_PORT),
     ('data', DEFAULT_DATA_NODE_TLS_PORT),
 ])
-def test_verify_https_ports(node_type, port, hdfs_service_tls):
+def test_verify_https_ports(node_type, port, hdfs_service):
     """
     Verify that HTTPS port is open name, journal and data node types.
     """
@@ -113,23 +117,17 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(hdfs_service_tls, service_account):
-    pod_name = "name-0"
-    inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+def test_tls_recovery(hdfs_service, service_account):
+    pod_list = sdk_cmd.svc_cli(hdfs_service["package_name"],
+                               hdfs_service["service"]["name"],
+                               "pod",
+                               json=True)
 
-    cmd_list = [
-        "pod", "replace", pod_name,
-    ]
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                    " ".join(cmd_list))
-
-    recovery_timeout_s = 25 * 60
-    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
-    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
-
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
-
-    # TODO: Add checks for non-updated tasks
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(hdfs_service["package_name"],
+                                              hdfs_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60)
 
 
 def _curl_https_get_code(host):

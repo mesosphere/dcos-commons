@@ -10,6 +10,7 @@ ZOOKEEPER_SERVICE_NAME = "kafka-zookeeper"
 ZOOKEEPER_TASK_COUNT = 6
 
 DEFAULT_BROKER_COUNT = 3
+DEFAULT_TASK_KOUNT = DEFAULT_BROKER_COUNT
 DEFAULT_PARTITION_COUNT = 1
 DEFAULT_REPLICATION_FACTOR = 1
 DEFAULT_POD_TYPE = "kafka"
@@ -26,7 +27,7 @@ def install(
         expected_running_tasks,
         additional_options={},
         package_version=None,
-        timeout_seconds=25*60,
+        timeout_seconds=25 * 60,
         wait_for_deployment=True):
 
     test_options = {

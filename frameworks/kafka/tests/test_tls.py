@@ -4,9 +4,8 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_networks
-import sdk_plan
+import sdk_recovery
 import sdk_security
-import sdk_tasks
 import sdk_utils
 
 from security import transport_encryption, cipher_suites
@@ -40,29 +39,29 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def kafka_service_tls(service_account):
-    try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        config.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options={
-                "service": {
-                    "service_account": service_account["name"],
-                    "service_account_secret": service_account["secret"],
-                    "security": {
-                        "transport_encryption": {
-                            "enabled": True
-                        }
-                    }
+def kafka_service(service_account):
+    service_options = {
+        "service": {
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
                 }
             }
-        )
+        }
+    }
 
-        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    try:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            service_name=config.SERVICE_NAME,
+            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            additional_options=service_options,
+            timeout_seconds=30 * 60)
 
-        yield service_account
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -70,7 +69,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_tls_endpoints(kafka_service_tls):
+def test_tls_endpoints(kafka_service):
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     assert BROKER_TLS_ENDPOINT in endpoints
 
@@ -83,7 +82,7 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_producer_over_tls(kafka_service_tls):
+def test_producer_over_tls(kafka_service):
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
 
     topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -107,7 +106,7 @@ def test_producer_over_tls(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_tls_ciphers(kafka_service_tls):
+def test_tls_ciphers(kafka_service):
     task_name = 'kafka-0-broker'
     endpoint = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
@@ -152,20 +151,14 @@ def test_tls_ciphers(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(kafka_service_tls, service_account):
-    pod_name = "kafka-0"
-    inital_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, pod_name)
+def test_tls_recovery(kafka_service, service_account):
+    pod_list = sdk_cmd.svc_cli(kafka_service["package_name"],
+                               kafka_service["service"]["name"],
+                               "pod",
+                               json=True)
 
-    cmd_list = [
-        "pod", "replace", pod_name,
-    ]
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                    " ".join(cmd_list))
-
-    recovery_timeout_s = 25 * 60
-    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME, recovery_timeout_s)
-    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, recovery_timeout_s)
-
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, pod_name, inital_task_id)
-
-    # TODO: Add checks for non-updated tasks
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(kafka_service["package_name"],
+                                              kafka_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60)
