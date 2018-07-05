@@ -41,17 +41,6 @@ def test_service_health():
     assert shakedown.service_healthy(config.get_foldered_service_name())
 
 
-# @pytest.mark.sanity
-# @pytest.mark.smoke
-# @pytest.mark.mesos_v0
-# def test_mesos_v0_api():
-#     service_name = config.get_foldered_service_name()
-#     prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
-#     if prior_api_version is not "V0":
-#         sdk_marathon.set_mesos_api_version(service_name, "V0")
-#         sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
-
-
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:

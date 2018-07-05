@@ -225,3 +225,16 @@ def bump_task_count_config(service_name, key_name, delta=1):
     updated_node_count = int(config['env'][key_name]) + delta
     config['env'][key_name] = str(updated_node_count)
     update_app(service_name, config)
+
+
+def get_mesos_api_version(service_name):
+    return get_config(service_name)['env']['MESOS_API_VERSION']
+
+
+def set_mesos_api_version(service_name, api_version, timeout=600):
+    '''Sets the mesos API version to the provided value, and then verifies that the scheduler comes back successfully'''
+    config = get_config(service_name)
+    config['env']['MESOS_API_VERSION'] = api_version
+    update_app(service_name, config, timeout=timeout)
+    # wait for scheduler to come back and successfully receive/process offers:
+    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 1, timeout_seconds=timeout)
