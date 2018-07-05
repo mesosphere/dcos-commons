@@ -395,10 +395,10 @@ def _select_log_files(item: pytest.Item, task_id: str, file_infos: list, source:
         if not logfile_pattern.match(file_info['path']):
             continue
         # Example output filename (sort by time):
-        # 180125_225944.world-1-server__4d534510-35d9-4f06-811e-e9a9ffa4d14f.task.stdout
-        # 180126_000225.hello-0-server__15174696-2d3d-48e9-b492-d9a0cc289786.executor.stderr
-        # 180126_002024.hello-world.662e7976-0224-11e8-b2f2-deead5f2b92b.stdout.1
-        out_filename = '{}.{}.{}{}'.format(
+        # 180125_225944.world-1-server__4d534510-35d9-4f06-811e-e9a9ffa4d14f.task.stdout.log
+        # 180126_000225.hello-0-server__15174696-2d3d-48e9-b492-d9a0cc289786.executor.stderr.log
+        # 180126_002024.hello-world.662e7976-0224-11e8-b2f2-deead5f2b92b.stdout.1.log
+        out_filename = '{}.{}.{}{}.log'.format(
             time.strftime('%y%m%d_%H%M%S', time.gmtime(file_info['mtime'])),
             task_id,
             source,
