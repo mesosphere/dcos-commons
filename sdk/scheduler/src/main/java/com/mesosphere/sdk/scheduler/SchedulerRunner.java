@@ -77,6 +77,10 @@ public class SchedulerRunner implements Runnable {
         SchedulerConfig schedulerConfig = schedulerBuilder.getSchedulerConfig();
         ServiceSpec serviceSpec = schedulerBuilder.getServiceSpec();
         Persister persister = schedulerBuilder.getPersister();
+        // Backup Zookeeper data before potential mono to multi migration
+
+
+
 
         // Check and/or initialize schema version before doing any other storage access:
         new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);

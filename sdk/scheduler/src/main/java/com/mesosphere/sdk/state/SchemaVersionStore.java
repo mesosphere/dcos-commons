@@ -8,6 +8,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+
 import org.slf4j.Logger;
 
 /**
@@ -24,6 +25,15 @@ public class SchemaVersionStore {
     private static final Charset CHARSET = StandardCharsets.UTF_8;
 
     private static final Logger LOGGER = LoggingUtils.getLogger(SchemaVersionStore.class);
+
+    /**
+     * Schema Version Constants for single service and multi service.
+     */
+    private static final int SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE = 2;
+
+    private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
+
+    private static final int UNSUPPORTED_SCHEMA_VERSION = -1;
 
     /**
      * This name/path must remain the same forever. It's the basis of all other migrations.
@@ -53,40 +63,27 @@ public class SchemaVersionStore {
      * @throws IllegalStateException if a value is present which doesn't match the expected value
      */
     public void check(int expectedVersion) throws StateStoreException {
-        try {
-            LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
-            byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
-            if (bytes.length == 0) {
-                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
-                        "Invalid data when fetching schema version in '%s'", SCHEMA_VERSION_NAME));
-            }
-            String rawString = new String(bytes, CHARSET);
-            LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
-            int currentVersion;
-            try {
-                currentVersion = Integer.parseInt(rawString);
-            } catch (NumberFormatException e) {
-                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
-                        "Unable to parse fetched schema version: '%s' from path: %s",
-                        rawString, SCHEMA_VERSION_NAME), e);
-            }
-            if (currentVersion != expectedVersion) {
-                throw new IllegalStateException(String.format(
-                        "Storage schema version %d is not supported by this software (expected: %d)",
-                        currentVersion, expectedVersion));
-            }
-        } catch (PersisterException e) {
-            if (e.getReason() == Reason.NOT_FOUND) {
-                // The schema version doesn't exist yet. Initialize to the current version.
-                LOGGER.debug("Schema version not found at path: {}. New service install? " +
-                        "Initializing path to schema version: {}.",
-                        SCHEMA_VERSION_NAME, expectedVersion);
-                store(expectedVersion);
-            } else {
-                throw new StateStoreException(
-                        Reason.STORAGE_ERROR, "Storage error when fetching schema storage", e);
-            }
-        }
+          int currentVersion = get();
+
+          if (currentVersion != expectedVersion) {
+              if (currentVersion  == UNSUPPORTED_SCHEMA_VERSION) {
+                  LOGGER.debug("Schema version not found at path: {}. New service install? " +
+                                  "Initializing path to schema version: {}.",
+                          SCHEMA_VERSION_NAME, expectedVersion);
+                  store(expectedVersion);
+              }
+              else if (currentVersion == SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE &&
+                      expectedVersion == SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
+                  //TODO: do zookeeper backup
+                  //TODO: trigger mono->multi upgrade
+                  store(expectedVersion);
+
+              } else {
+                  throw new IllegalStateException(String.format(
+                          "Storage schema version %d is not supported by this software (expected: %d)",
+                          currentVersion, expectedVersion));
+              }
+          }
     }
 
     /**
@@ -108,4 +105,41 @@ public class SchemaVersionStore {
                     "Storage error when storing schema version %d", version), e);
         }
     }
-}
+
+    /**
+     * Returns an Optional containing the current version of the Schema or empty if Schema not set
+     *
+     */
+    @VisibleForTesting
+    int get()  {
+        try {
+            LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
+            byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
+            if (bytes.length == 0) {
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
+                        "Invalid data when fetching schema version in '%s'", SCHEMA_VERSION_NAME));
+            }
+            String rawString = new String(bytes, CHARSET);
+            LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
+            int currentVersion;
+
+            try {
+                currentVersion = Integer.parseInt(rawString);
+                return currentVersion;
+
+            } catch (NumberFormatException e) {
+                throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
+                        "Unable to parse fetched schema version: '%s' from path: %s",
+                        rawString, SCHEMA_VERSION_NAME), e);
+            }
+        } catch (PersisterException e) {
+            if (e.getReason() == Reason.NOT_FOUND) {
+                return UNSUPPORTED_SCHEMA_VERSION;
+            } else {
+                throw new StateStoreException(
+                        Reason.STORAGE_ERROR, "Storage error when fetching schema storage", e);
+            }
+        }
+    }
+    }
+
