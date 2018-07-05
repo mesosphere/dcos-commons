@@ -208,6 +208,9 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
             assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
 
     finally:
+        # Ensure that we clean up the ZK state.
+        kafka_client.remove_acls("authorized", kafka_server, topic_name)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
@@ -300,4 +303,7 @@ def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_ser
             assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
 
     finally:
+        # Ensure that we clean up the ZK state.
+        kafka_client.remove_acls("authorized", kafka_server, topic_name)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
