@@ -81,12 +81,13 @@ They store the desired configuration of a service and all relevant information r
 
    Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
 
-1. Build a [package](#packaging). You must run the build.sh that is within `frameworks/myframework` directory that was just generated.
+1. Build a [package](#packaging). As a prerequisite you will need to create a S3 Bucket in AWS and edit the `tools/publish_aws.py` with the correct S3 bucket. Edit the line that's like this: `s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')` to the corrected S3 bucket that you just created `s3_bucket = os.environ.get('S3_BUCKET', 'myframework-test')`
+After that, you must run the build.sh that is within `frameworks/myframework` directory that was just generated. 
+ 
 
    ```bash
    $ ./build.sh aws
    ```
-
    You will deploy your framework to DC/OS as a
    [package](#packaging).  `build.sh` creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.
 
