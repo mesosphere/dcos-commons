@@ -10,10 +10,8 @@ import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.ResourceTestUtils;
-import com.mesosphere.sdk.testutils.TaskTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Protos.Offer.Operation;
@@ -22,6 +20,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -871,6 +870,70 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         OfferEvaluator.logOutcome(builder, parent, "");
         String log = builder.toString();
         Assert.assertEquals("  PASS(OfferEvaluatorTest): PARENT\n    PASS(OfferEvaluatorTest): CHILD\n", log);
+    }
+
+    @Test
+    public void testEvaluationPipelineGeneratesSingleTLSEvaluationPerTask() throws IOException {
+        Pair<PodInstanceRequirement, List<String>> podInfo = getRequirementWithTransportEncryption(
+                PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
+                TestConstants.POD_TYPE,
+                0,
+                2);
+
+        List<OfferEvaluationStage> evaluators = evaluator.getEvaluationPipeline(podInfo.getLeft(),
+                                        new ArrayList<>(),
+                                        new HashMap<>());
+
+        List<String> tlsEvaluationTasks = evaluators.stream()
+                .filter(e -> e instanceof TLSEvaluationStage)
+                .map(e -> ((TLSEvaluationStage) e))
+                .map(t -> t.getTaskName())
+                .sorted()
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(podInfo.getRight(), tlsEvaluationTasks);
+
+    }
+
+    private static Pair<PodInstanceRequirement, List<String>> getRequirementWithTransportEncryption(
+            ResourceSet resourceSet, String type, int index, int numberOfTasks) {
+
+        ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
+        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
+                .Builder()
+                .name("test-tls")
+                .type(TransportEncryptionSpec.Type.TLS)
+                .build());
+
+        List<TaskSpec> taskSpecs = new ArrayList<>();
+        for (int i = 0; i < numberOfTasks; ++i) {
+            taskSpecs.add(
+                    DefaultTaskSpec.newBuilder()
+                            .name(String.format("%s%d", TestConstants.TASK_NAME, i))
+                            .commandSpec(
+                                    DefaultCommandSpec.newBuilder(Collections.emptyMap())
+                                            .value(TestConstants.TASK_CMD)
+                                            .build())
+                            .goalState(GoalState.RUNNING)
+                            .resourceSet(resourceSet)
+                            .setTransportEncryption(transportEncryptionSpecs)
+                            .build()
+            );
+        }
+
+        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, taskSpecs)
+                .preReservedRole(Constants.ANY_ROLE)
+                .build();
+
+        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        List<String> taskNames = podInstance.getPod().getTasks().stream()
+                .map(ts -> ts.getName())
+                .sorted()
+                .collect(Collectors.toList());
+        return Pair.of(
+                PodInstanceRequirement.newBuilder(podInstance, taskNames).build(),
+                taskNames
+        );
     }
 
     private void recordOperations(List<OfferRecommendation> recommendations) throws Exception {

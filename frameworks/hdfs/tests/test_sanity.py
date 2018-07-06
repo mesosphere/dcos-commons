@@ -8,10 +8,12 @@ import sdk_install
 import sdk_marathon
 import sdk_metrics
 import sdk_plan
+import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 import shakedown
+
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -375,34 +377,26 @@ def test_metrics():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanently_replace_namenodes():
-    replace_node(0, "name")
-    replace_node(1, "name")
-    replace_node(0, "name")
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+
+    pod_list = ["name-0", "name-1", "name-0"]
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(config.PACKAGE_NAME,
+                                              foldered_name,
+                                              pod,
+                                              recovery_timeout_s=25 * 60
+                                              )
 
 
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_permanently_replace_journalnodes():
-    replace_node(0, "journal")
-    replace_node(1, "journal")
-    replace_node(2, "journal")
-
-
-def replace_node(index, type):
-    log.info("Starting to replace {}-{}".format(type, index))
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    config.check_healthy(service_name=foldered_name)
-    node_name = "{node_type}-{node_index}".format(node_type=type, node_index=index)
-    node_id = sdk_tasks.get_task_ids(foldered_name, node_name)
-    other_nodes = dict()
-    for pod_type in config.HDFS_POD_TYPES:
-        if pod_type != type:
-            other_nodes[pod_type] = sdk_tasks.get_task_ids(foldered_name, pod_type)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod replace {}'.format(node_name))
-    config.expect_recovery(service_name=foldered_name)
-
-    sdk_tasks.check_tasks_updated(foldered_name, node_name, node_id)
-    for pod_type in config.HDFS_POD_TYPES:
-        if pod_type != type:
-            sdk_tasks.check_tasks_not_updated(foldered_name, pod_type, other_nodes[pod_type])
+    pod_list = ["journal-0", "journal-1", "journal-2"]
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(config.PACKAGE_NAME,
+                                              foldered_name,
+                                              pod,
+                                              recovery_timeout_s=25 * 60
+                                              )
