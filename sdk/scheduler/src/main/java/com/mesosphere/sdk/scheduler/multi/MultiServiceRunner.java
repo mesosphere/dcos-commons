@@ -60,7 +60,7 @@ public class MultiServiceRunner implements Runnable {
             } else {
                 int curVer = schemaVersionStore.getOrSetVersion(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
                 if (curVer == SchedulerRunner.getSupportedSchemaVersionSingleService()) {
-                    LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema. Triggering backup and migrate..");
+                    LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema");
                     try {
                         PersisterUtils.backUpFrameworkZKData(persister);
                         PersisterUtils.migrateMonoToMultiZKData(persister);
@@ -72,7 +72,8 @@ public class MultiServiceRunner implements Runnable {
                 } else if (curVer == SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
                     LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
                 } else {
-                    throw new IllegalStateException(String.format("Storage schema version %d is not supported by this software (expected: %d)", curVer, SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE));
+                    throw new IllegalStateException(String.format("Storage schema version %d is not supported by " +
+                            "this software (expected: %d)", curVer, SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE));
                 }
             }
 

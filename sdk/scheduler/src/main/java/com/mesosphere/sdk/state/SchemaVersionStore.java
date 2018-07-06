@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -82,8 +81,7 @@ public class SchemaVersionStore {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // The schema version doesn't exist yet. Initialize to the current version.
                 LOGGER.debug("Schema version not found at path: {}. New service install? " +
-                                "Initializing path to schema version: {}.",
-                        SCHEMA_VERSION_NAME, expectedVersion);
+                                "Initializing path to schema version: {}.", SCHEMA_VERSION_NAME, expectedVersion);
                 store(expectedVersion);
                 return expectedVersion;
             } else {

@@ -19,8 +19,9 @@ public class PersisterUtils {
      * Service-namespaced data is stored under "Services/[namespace]/..."
      */
     private static final String SERVICE_NAMESPACE_ROOT_NAME = "Services";
+
     /**
-     * Path used to create a backup of entire framework zdata
+     * Path used to create a backup of entire framework zdata.
      */
     private static final String BACKUP_ROOT_NAME = "backup";
 
@@ -194,13 +195,9 @@ public class PersisterUtils {
         }
     }
 
-    private static void clearBackUp(Persister persister) throws PersisterException {
-        // TODO add revisions to backup
-        persister.recursiveDelete(BACKUP_ROOT_NAME);
-    }
-
     public static void backUpFrameworkZKData(Persister persister) throws PersisterException {
-        clearBackUp(persister);
+        // TODO (takirala): Create a versioned back up if/when necessary. Add recovery method as well.
+        persister.recursiveDelete(BACKUP_ROOT_NAME);
         // We create a znode named `backup` (drop previous if exists) and copy framework znodes in to the backup znode
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
@@ -229,8 +226,7 @@ public class PersisterUtils {
          *     top level nodes to be children of above child {dcos_service_name}
          * - Delete all the top level nodes : [ConfigTarget , Configurations , Properties, Tasks]
          */
-
-        String serviceName = new String(persister.get(CuratorUtils.getServiceNameNode()));
+        String serviceName = CuratorUtils.getServiceName(persister);
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
                 join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getConfigurationsPathName())

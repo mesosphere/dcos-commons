@@ -139,7 +139,8 @@ public class MemPersister implements Persister {
                 Map.Entry<String, Node> nextEntry = toBeWalked.poll();
                 String nodePath = nextEntry.getKey();
                 Node node = nextEntry.getValue();
-                assert nodePath.startsWith(srcPath) : String.format("Child [%s] src [%s] dest [%s]", nodePath, srcPath, destPath);
+                assert nodePath.startsWith(srcPath) :
+                        String.format("Child [%s] src [%s] dest [%s]", nodePath, srcPath, destPath);
                 getNode(root, nodePath.replace(srcPath, destPath), true).data = node.data;
                 node.children.forEach((childName, childNode) -> {
                     String childPath = PersisterUtils.join(nodePath, childName);
