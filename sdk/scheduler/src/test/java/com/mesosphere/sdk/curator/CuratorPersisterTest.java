@@ -537,7 +537,41 @@ public class CuratorPersisterTest {
         }
     }
 
-    private void setupCommon() throws Exception {
+    @Test
+    public void testRecursiveCopy() throws Exception {
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
+
+        persister.set("lock", DATA_1);
+        persister.set("x", DATA_2);
+        persister.set("x/1", DATA_1);
+        persister.set("x/lock", DATA_2);
+        persister.set("x/2/a", DATA_1);
+        persister.set("x/3", DATA_2);
+        persister.set("x/3/a/1", DATA_1);
+        persister.set("y", DATA_2);
+        persister.set("z", DATA_1);
+        persister.set("w/1/a/1", DATA_2);
+
+        persister.recursiveCopy("/x", "/p");
+
+        assertArrayEquals(new String[]{"1", "2", "3", "lock"}, persister.getChildren("/p").toArray());
+        assertTrue(persister.getChildren("/p/1").isEmpty());
+        assertTrue(persister.getChildren("/p/lock").isEmpty());
+        assertArrayEquals(new String[]{"a"}, persister.getChildren("/p/2").toArray());
+        assertArrayEquals(new String[]{"a"}, persister.getChildren("/p/3").toArray());
+        assertArrayEquals(new String[]{"1"}, persister.getChildren("/p/3/a").toArray());
+        assertArrayEquals(DATA_2, persister.get("p"));
+        assertArrayEquals(DATA_1, persister.get("p/1"));
+        assertArrayEquals(DATA_2, persister.get("p/lock"));
+        assertArrayEquals(DATA_1, persister.get("p/2/a"));
+        assertArrayEquals(DATA_2, persister.get("p/3"));
+        assertArrayEquals(DATA_1, persister.get("p/3/a/1"));
+        assertArrayEquals(DATA_1, persister.get("p/3/a"));
+    }
+
+    private void setupCommon() {
         when(mockClient.checkExists()).thenReturn(mockExistsBuilder);
         when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);
     }

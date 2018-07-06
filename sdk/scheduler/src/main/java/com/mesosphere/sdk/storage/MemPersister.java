@@ -1,13 +1,6 @@
 package com.mesosphere.sdk.storage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -124,6 +117,28 @@ public class MemPersister implements Persister {
         try {
             for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
                 getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
+            }
+        } finally {
+            unlockRW();
+        }
+    }
+
+    @Override
+    public void recursiveCopy(String srcPath, String destPath) throws PersisterException {
+        lockRW();
+        try {
+            if (getNode(root, srcPath, false) == null) {
+                throw new PersisterException(Reason.NOT_FOUND, "Source path not found");
+            }
+            if (getNode(root, destPath, false) != null) {
+                throw new PersisterException(Reason.LOGIC_ERROR, "Destination path already exists");
+            }
+            Node node = getNode(root, srcPath, false);
+            LinkedList<Node> toBeWalked = new LinkedList<>();
+            toBeWalked.add(node);
+            while (!toBeWalked.isEmpty()) {
+                Node nextNode = toBeWalked.pollFirst();
+
             }
         } finally {
             unlockRW();
