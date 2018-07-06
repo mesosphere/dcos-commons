@@ -240,11 +240,10 @@ pods:
           type: ROOT
           size: 100
         cmd: |
-            LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu apt-get install -y curl jq
-
             clusteruuid=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s http://portworx-0-install.$FRAMEWORK_HOST:9001/config | jq -r '.clusteruuid')
 
             if [ ! -f $MESOS_SANDBOX/lh-data/lh/config.yaml ]; then
+              mkdir -p $MESOS_SANDBOX/lh-data/lh
               echo "ADMIN_USER: {{LIGHTHOUSE_ADMIN_USER}}
             ADMIN_PASSWORD: \$2y\$10\$HeU6ErdL9KL0oLixfBSFausJ0P9FoYPYsRab7FxhJ.AcZGUzkRp3O
             servercert: '{{LIGHTHOUSE_SERVER_CERT}}'
