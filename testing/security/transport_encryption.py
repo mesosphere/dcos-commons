@@ -35,11 +35,11 @@ def setup_service_account(service_name: str,
         sdk_cmd.run_cli("security org groups add_user superusers {name}".format(name=name))
     else:
         acls = [
-                {"rid": "dcos:secrets:default:/{}/*".format(service_name), "action": "full"},
-                {"rid": "dcos:secrets:list:default:/{}".format(service_name), "action": "read"},
-                {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
-                {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
-                ]
+            {"rid": "dcos:secrets:default:/{}/*".format(service_name.strip("/")), "action": "full"},
+            {"rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")), "action": "read"},
+            {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
+            {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
+        ]
 
         for acl in acls:
             cmd_list = ["security", "org", "users", "grant",
@@ -81,6 +81,16 @@ def fetch_dcos_ca_bundle(task: str) -> str:
     sdk_cmd.task_exec(task, " ".join(cmd))
 
     return local_bundle_file
+
+
+def fetch_dcos_ca_bundle_contents() -> str:
+    resp = sdk_cmd.cluster_request("GET", "/ca/dcos-ca.crt")
+    cert = resp.content
+    if not cert:
+        log.error("Error fetching DC/OS CA bundle")
+        raise Exception("Errot fetching DC/OS CA bundle")
+
+    return cert
 
 
 def create_tls_artifacts(cn: str, task: str) -> str:

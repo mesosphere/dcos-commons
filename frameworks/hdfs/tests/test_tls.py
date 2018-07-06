@@ -1,15 +1,25 @@
+import logging
 import pytest
-
-import sdk_install
-import sdk_hosts
-import sdk_plan
-import sdk_utils
 import retrying
+
 import shakedown
+
+import sdk_hosts
+import sdk_install
+import sdk_recovery
+import sdk_utils
 
 from security import transport_encryption
 
 from tests import config
+
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10+")]
+
+
+LOG = logging.getLogger(__name__)
 
 
 DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
@@ -33,47 +43,46 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def hdfs_service_tls(service_account):
+def hdfs_service(service_account):
+    service_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
+                }
+            }
+        }
+    }
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
             expected_running_tasks=config.DEFAULT_TASK_COUNT,
-            additional_options={
-                "service": {
-                    "service_account": service_account["name"],
-                    "service_account_secret": service_account["secret"],
-                    "security": {
-                        "transport_encryption": {
-                            "enabled": True
-                        }
-                    }
-                }
-            },
+            additional_options=service_options,
             timeout_seconds=30 * 60)
 
-        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-        yield service_account
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
-def test_healthy(hdfs_service_tls):
+def test_healthy(hdfs_service):
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
-def test_write_and_read_data_over_tls(hdfs_service_tls):
+def test_write_and_read_data_over_tls(hdfs_service):
     test_filename = "test_data_tls"  # must be unique among tests in this suite
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
@@ -81,14 +90,13 @@ def test_write_and_read_data_over_tls(hdfs_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.parametrize("node_type,port", [
     ('journal', DEFAULT_JOURNAL_NODE_TLS_PORT),
     ('name', DEFAULT_NAME_NODE_TLS_PORT),
     ('data', DEFAULT_DATA_NODE_TLS_PORT),
 ])
-def test_verify_https_ports(node_type, port, hdfs_service_tls):
+def test_verify_https_ports(node_type, port, hdfs_service):
     """
     Verify that HTTPS port is open name, journal and data node types.
     """
@@ -97,7 +105,7 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
+        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         exit_status, output = shakedown.run_command_on_master(
@@ -105,6 +113,27 @@ def test_verify_https_ports(node_type, port, hdfs_service_tls):
         return exit_status and output == '200'
 
     assert fn()
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_tls_recovery(hdfs_service, service_account):
+    pod_list = [
+        "name-0",
+        "name-1",
+        "data-0",
+        "data-1",
+        "data-2",
+        "journal-0",
+        "journal-1",
+        "journal-2",
+    ]
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(hdfs_service["package_name"],
+                                              hdfs_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60)
 
 
 def _curl_https_get_code(host):

@@ -15,6 +15,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import ExtensionOID, NameOID
 from tests import config
 
+from security import transport_encryption
+
 DEFAULT_BACKEND = default_backend()
 
 # Names of VIP aliases defined in examples/tls.yml
@@ -35,6 +37,7 @@ KEYSTORE_APP_CONFIG_NAME = 'integration-test.yml'
 DISCOVERY_TASK_PREFIX = 'discovery-prefix'
 
 log = logging.getLogger(__name__)
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -145,7 +148,7 @@ def test_tls_basic_artifacts():
     assert len(sans) == 1
 
     cluster_root_ca_cert = x509.load_pem_x509_certificate(
-        sdk_cmd.cluster_request('GET', '/ca/dcos-ca.crt').content,
+        transport_encryption.fetch_dcos_ca_bundle_contents(),
         DEFAULT_BACKEND)
 
     assert root_ca_cert_in_truststore.signature == cluster_root_ca_cert.signature
@@ -165,12 +168,14 @@ def test_java_keystore():
 
     # Make a curl request from artifacts container to `keystore-app`
     # and make sure that mesos curl can verify certificate served by app
-    curl = (
-        'curl -v -i '
-        '--cacert secure-tls-pod.ca '
-        'https://' + sdk_hosts.vip_host(
-            config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME) + '/hello-world'
-        )
+    cmd_list = [
+        "curl", "-v", "-i",
+        "--cacert", "secure-tls-pod.ca",
+        "https://{}/hello-world".format(
+            sdk_hosts.vip_host(config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME)
+        ),
+    ]
+    curl = " ".join(cmd_list)
 
     _, output = sdk_cmd.task_exec(task_id, curl, return_stderr_in_stdout=True)
     # Check that HTTP request was successful with response 200 and make sure
@@ -247,7 +252,7 @@ def test_changing_discovery_replaces_certificate_sans():
         '{name}-0.{service_name}.autoip.dcos.thisdcos.directory'.format(
             name=DISCOVERY_TASK_PREFIX,
             service_name=config.SERVICE_NAME)
-        )
+    )
     assert expected_san in sans
 
     # Run task update with new discovery prefix
@@ -274,7 +279,7 @@ def test_changing_discovery_replaces_certificate_sans():
         '{name}-0.{service_name}.autoip.dcos.thisdcos.directory'.format(
             name=DISCOVERY_TASK_PREFIX + '-new',
             service_name=config.SERVICE_NAME)
-        )
+    )
     assert expected_san in sans
 
 
