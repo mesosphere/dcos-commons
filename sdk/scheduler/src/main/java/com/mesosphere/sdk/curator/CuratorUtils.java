@@ -36,6 +36,10 @@ public class CuratorUtils {
      */
     private static final Charset SERVICE_NAME_CHARSET = StandardCharsets.UTF_8;
 
+    public static String getServiceNameNode() {
+        return SERVICE_NAME_NODE;
+    }
+
     private CuratorUtils() {
         // do not instantiate
     }

@@ -61,6 +61,14 @@ public class StateStore {
     protected final Persister persister;
     protected final String namespace;
 
+    public static String getPropertiesRootName() {
+        return PROPERTIES_ROOT_NAME;
+    }
+
+    public static String getTasksRootName() {
+        return TASKS_ROOT_NAME;
+    }
+
     /**
      * Creates a new {@link StateStore} which uses the provided {@link Persister} to access state data.
      *

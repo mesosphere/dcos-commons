@@ -100,8 +100,7 @@ public class SchemaVersionStore {
      * @param version the new schema version to store
      * @throws StateStoreException if storing the schema version fails
      */
-    @VisibleForTesting
-    void store(int version) throws StateStoreException {
+    public void store(int version) throws StateStoreException {
         try {
             String versionStr = String.valueOf(version);
             LOGGER.debug("Storing schema version: '{}' into path: {}",

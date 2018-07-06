@@ -1,14 +1,10 @@
 package com.mesosphere.sdk.storage;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 
+import com.mesosphere.sdk.curator.CuratorUtils;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
+import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
@@ -23,6 +19,10 @@ public class PersisterUtils {
      * Service-namespaced data is stored under "Services/[namespace]/..."
      */
     private static final String SERVICE_NAMESPACE_ROOT_NAME = "Services";
+    /**
+     * Path used to create a backup of entire framework zdata
+     */
+    private static final String BACKUP_ROOT_NAME = "backup";
 
     private PersisterUtils() {
         // do not instantiate
@@ -87,21 +87,22 @@ public class PersisterUtils {
     /**
      * Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.
      *
-     * @param first The first element of the path
-     * @param second The second element of the path (within {@code first})
-     * @return {@code first/second}, with any duplicate slashes cleaned up
+     * @param paths Arbitrary number of paths to be combined
+     * @return All the paths combined, with any duplicate slashes cleaned up
      */
-    public static String join(final String first, final String second) {
-        if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {
-            // "hello/" + "/world" => "hello/world"
-            return new StringBuilder(first).deleteCharAt(first.length() - 1).append(second).toString();
-        } else if (first.endsWith(PATH_DELIM_STR) || second.startsWith(PATH_DELIM_STR)) {
-            // "hello/" + "world", OR "hello" + "/world" => "hello/world"
-            return new StringBuilder(first).append(second).toString();
-        } else {
-            // "hello" + "world" => "hello/world"
-            return new StringBuilder(first).append(PATH_DELIM).append(second).toString();
-        }
+    public static String join(final String... paths) {
+        return Arrays.stream(paths).reduce("", (first, second) -> {
+            if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {
+                // "hello/" + "/world" => "hello/world"
+                return new StringBuilder(first).deleteCharAt(first.length() - 1).append(second).toString();
+            } else if (first.endsWith(PATH_DELIM_STR) || second.startsWith(PATH_DELIM_STR)) {
+                // "hello/" + "world", OR "hello" + "/world" => "hello/world"
+                return first + second;
+            } else {
+                // "hello" + "world" => "hello/world"
+                return first + PATH_DELIM + second;
+            }
+        });
     }
 
     /**
@@ -189,5 +190,64 @@ public class PersisterUtils {
                 throw e;
             }
         }
+    }
+
+    private static void clearBackUp(Persister persister) throws PersisterException {
+        // TODO add revisions to backup
+        persister.recursiveDelete(BACKUP_ROOT_NAME);
+    }
+
+    public static void backUpFrameworkZKData(Persister persister) throws PersisterException {
+        clearBackUp(persister);
+        // We create a znode named `backup` (drop previous if exists) and copy framework znodes in to the backup znode
+        persister.recursiveCopy(
+                ConfigStore.getConfigurationsPathName(),
+                join(BACKUP_ROOT_NAME, ConfigStore.getConfigurationsPathName())
+        );
+        persister.recursiveCopy(
+                ConfigStore.getTargetIdPathName(),
+                join(BACKUP_ROOT_NAME, ConfigStore.getTargetIdPathName())
+        );
+        persister.recursiveCopy(
+                StateStore.getPropertiesRootName(),
+                join(BACKUP_ROOT_NAME, StateStore.getPropertiesRootName())
+        );
+        persister.recursiveCopy(
+                StateStore.getTasksRootName(),
+                join(BACKUP_ROOT_NAME, StateStore.getTasksRootName())
+        );
+    }
+
+    public static void migrateMonoToMultiZKData(Persister persister) throws PersisterException {
+        /*
+         * This is what we need to do to migrate to multi mode:
+         * - Create a znode named `Services`
+         *   - Create its child named {dcos_service_name}
+         *   - Move the [ConfigTarget , Configurations , Properties, Tasks] nodes from
+         *     top level nodes to be children of above child {dcos_service_name}
+         * - Delete all the top level nodes : [ConfigTarget , Configurations , Properties, Tasks]
+         */
+
+        String serviceName = new String(persister.get(CuratorUtils.getServiceNameNode()));
+        persister.recursiveCopy(
+                ConfigStore.getConfigurationsPathName(),
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getConfigurationsPathName())
+        );
+        persister.recursiveCopy(
+                ConfigStore.getTargetIdPathName(),
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getTargetIdPathName())
+        );
+        persister.recursiveCopy(
+                StateStore.getPropertiesRootName(),
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getPropertiesRootName())
+        );
+        persister.recursiveCopy(
+                StateStore.getTasksRootName(),
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getTasksRootName())
+        );
+        persister.recursiveDelete(ConfigStore.getConfigurationsPathName());
+        persister.recursiveDelete(ConfigStore.getTargetIdPathName());
+        persister.recursiveDelete(StateStore.getPropertiesRootName());
+        persister.recursiveDelete(StateStore.getTasksRootName());
     }
 }

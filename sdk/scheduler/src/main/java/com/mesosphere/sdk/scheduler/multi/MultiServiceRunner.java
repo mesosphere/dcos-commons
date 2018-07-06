@@ -9,6 +9,7 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import org.slf4j.Logger;
 
@@ -57,35 +58,24 @@ public class MultiServiceRunner implements Runnable {
             // Check and/or initialize schema version before doing any other storage access:
             SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
 
-            int curVer = schemaVersionStore.getOrSetVersion(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
-            if (curVer < SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
-                LOGGER.warn("Found old schema in ZK Storage. Triggering backup and migrate");
-                backUpFrameworkZKData(persister);
-                migrateMonoServiceToMultiService(persister, frameworkConfig, schedulerConfig);
+            if (schedulerConfig.isMonoToMultiMigrationDisabled()) {
+                schemaVersionStore.check(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+            } else {
+                int curVer = schemaVersionStore.getOrSetVersion(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+                if (curVer < SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
+                    LOGGER.warn("Found old schema in ZK Storage. Triggering backup and migrate");
+                    try {
+                        PersisterUtils.backUpFrameworkZKData(persister);
+                        PersisterUtils.migrateMonoToMultiZKData(persister);
+                        schemaVersionStore.store(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+                    } catch (PersisterException e) {
+                        LOGGER.error("Unable to migrate ZK data : ", e.getMessage(), e);
+                        throw new RuntimeException(e);
+                    }
+                }
             }
 
             return new MultiServiceRunner(schedulerConfig, frameworkConfig, persister, client, usingGpus);
-        }
-
-        private void backUpFrameworkZKData(Persister persister) {
-            persister.recursiveCopy();
-        }
-
-
-        private void migrateMonoServiceToMultiService(
-                Persister persister,
-                FrameworkConfig frameworkConfig,
-                SchedulerConfig schedulerConfig) {
-            /*
-             * This is what we need to do to migrate to multi mode:
-             * - Create a znode named `Services`
-             *   - Create its child named {dcos_service_name}
-             *   - Move the ConfigTarget , Configurations , Properties, Tasks Nodes from
-             *     Top Level Nodes to be children of above child {dcos_service_name}
-             */
-
-            //persister.recursiveCopy(PersisterUtils.SERVICE_NAMESPACE_ROOT_NAME);
-
         }
     }
 

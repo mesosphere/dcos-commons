@@ -271,24 +271,14 @@ public class CuratorPersister implements Persister {
                 throw new PersisterException(Reason.LOGIC_ERROR, String.format("Destination node already exists: %s", dest));
             }
 
-            LinkedList<String> toBeWalked = new LinkedList<>();
-            toBeWalked.add(src);
+            LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(src));
             Map<String, byte[]> toBeAdded = new HashMap<>();
             while (!toBeWalked.isEmpty()) {
                 String nextNode = toBeWalked.poll();
-                byte[] bytes = get(nextNode);
-                if (!nextNode.startsWith(src) || bytes == null) {
-                    // This should never happen.
-                    throw new Exception(String.format("Src [%s] Dest [%s] Child [%s]. Byte data : %B", src, dest, nextNode, bytes));
-                } else {
-                    toBeAdded.put(withFrameworkPrefix(nextNode.replace(src, dest)), bytes);
-                }
-
-                Collection<String> children = getChildren(nextNode);
-                for(String child: children) {
-                    LOGGER.debug("\tadd child " + child);
-                    toBeWalked.add(PersisterUtils.join(nextNode, child));
-                }
+                // This assertion should never fail acc. to the logic around it.
+                assert (nextNode.startsWith(src)) : String.format("Failed to match prefix. Src [%s] Dest [%s] Child [%s]", src, dest, nextNode);
+                toBeAdded.put(withFrameworkPrefix(nextNode.replace(src, dest)), get(nextNode));
+                getChildren(nextNode).forEach(child -> toBeWalked.add(PersisterUtils.join(nextNode, child)));
             }
             runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
         } catch (Exception e) {
