@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -184,6 +184,10 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
  deducting used resources from the pool, and creating the appropriate <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a>.</div>
 </td>
 </tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code>protected java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html#getTaskName--">getTaskName</a></span>()</code>&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -230,7 +234,7 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <a name="evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>evaluate</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a>&nbsp;evaluate(<a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a>&nbsp;mesosResourcePool,
@@ -247,6 +251,15 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>an <a href="../../../../../com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>EvaluationOutcome</code></a> describing whether this evaluation stage succeeded or failed, and why</dd>
 </dl>
+</li>
+</ul>
+<a name="getTaskName--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getTaskName</h4>
+<pre>protected&nbsp;java.lang.String&nbsp;getTaskName()</pre>
 </li>
 </ul>
 </li>
