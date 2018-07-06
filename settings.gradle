@@ -26,3 +26,6 @@ project(':frameworks/cassandra').name = 'cassandra'
 
 include 'frameworks/helloworld/tests/tls/keystore'
 project(':frameworks/helloworld/tests/tls/keystore').name = 'keystore-app'
+
+include 'frameworks/consul'
+project(":frameworks/consul").name = "consul"
