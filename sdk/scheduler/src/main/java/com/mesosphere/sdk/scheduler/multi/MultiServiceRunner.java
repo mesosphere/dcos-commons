@@ -3,10 +3,7 @@ package com.mesosphere.sdk.scheduler.multi;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.MesosEventClient;
-import com.mesosphere.sdk.scheduler.Metrics;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -62,8 +59,8 @@ public class MultiServiceRunner implements Runnable {
                 schemaVersionStore.check(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
             } else {
                 int curVer = schemaVersionStore.getOrSetVersion(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
-                if (curVer < SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
-                    LOGGER.warn("Found old schema in ZK Storage. Triggering backup and migrate");
+                if (curVer == SchedulerRunner.getSupportedSchemaVersionSingleService()) {
+                    LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema. Triggering backup and migrate..");
                     try {
                         PersisterUtils.backUpFrameworkZKData(persister);
                         PersisterUtils.migrateMonoToMultiZKData(persister);
@@ -72,6 +69,10 @@ public class MultiServiceRunner implements Runnable {
                         LOGGER.error("Unable to migrate ZK data : ", e.getMessage(), e);
                         throw new RuntimeException(e);
                     }
+                } else if (curVer == SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
+                    LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
+                } else {
+                    throw new IllegalStateException(String.format("Storage schema version %d is not supported by this software (expected: %d)", curVer, SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE));
                 }
             }
 

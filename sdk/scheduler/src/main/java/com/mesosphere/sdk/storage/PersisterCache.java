@@ -9,7 +9,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 /**
  * A transparent write-through cache for an underlying {@link Persister} instance. Each cache instance is thread-safe,
