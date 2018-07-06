@@ -181,6 +181,40 @@ public class MemPersisterTest {
         testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build(), "/");
     }
 
+    @Test
+    public void testRecursiveCopy() throws Exception {
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+
+        persister.set("lock", VAL);
+        persister.set("x", VAL2);
+        persister.set("x/1", VAL);
+        persister.set("x/lock", VAL2);
+        persister.set("x/2/a", VAL);
+        persister.set("x/3", VAL2);
+        persister.set("x/3/a/1", VAL);
+        persister.set("y", VAL2);
+        persister.set("z", VAL);
+        persister.set("w/1/a/1", VAL2);
+
+        persister.recursiveCopy("/x", "/p");
+
+        assertArrayEquals(new String[]{"1", "2", "3", "lock"}, persister.getChildren("/p").toArray());
+        assertTrue(persister.getChildren("/p/1").isEmpty());
+        assertTrue(persister.getChildren("/p/lock").isEmpty());
+        assertArrayEquals(new String[]{"a"}, persister.getChildren("/p/2").toArray());
+        assertArrayEquals(new String[]{"a"}, persister.getChildren("/p/3").toArray());
+        assertArrayEquals(new String[]{"1"}, persister.getChildren("/p/3/a").toArray());
+        assertArrayEquals(VAL2, persister.get("p"));
+        assertArrayEquals(VAL, persister.get("p/1"));
+        assertArrayEquals(VAL2, persister.get("p/lock"));
+        assertArrayEquals(VAL, persister.get("p/2/a"));
+        assertArrayEquals(VAL2, persister.get("p/3"));
+        assertArrayEquals(VAL, persister.get("p/3/a/1"));
+
+    }
+
     private static void testDeleteRootForPersister(Persister persister, String rootPathToDelete) throws Exception {
         persister.set("/a", VAL);
         persister.set("/a/1", VAL);

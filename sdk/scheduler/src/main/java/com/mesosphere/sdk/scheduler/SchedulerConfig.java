@@ -180,6 +180,11 @@ public class SchedulerConfig {
     private static final String LIBPROCESS_IP_ENVVAR = "LIBPROCESS_IP";
 
     /**
+     * Environment variable to enable or disable to zk data migration from mono service mode to multi service mode.
+     */
+    private static final String DISABLE_MONO_TO_MULTI_MIGRATION = "DISABLE_MONO_TO_MULTI_MIGRATION";
+
+    /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
      * multi-service situation, however, this code may be getting invoked multiple times, so only print if we haven't
      * printed before.
@@ -305,6 +310,10 @@ public class SchedulerConfig {
      */
     public boolean isSideChannelActive() {
         return envStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
+    }
+
+    public boolean isMonoToMultiMigrationDisabled() {
+        return envStore.isPresent(DISABLE_MONO_TO_MULTI_MIGRATION);
     }
 
     /**

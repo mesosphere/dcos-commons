@@ -133,12 +133,18 @@ public class MemPersister implements Persister {
             if (getNode(root, destPath, false) != null) {
                 throw new PersisterException(Reason.LOGIC_ERROR, "Destination path already exists");
             }
-            Node node = getNode(root, srcPath, false);
-            LinkedList<Node> toBeWalked = new LinkedList<>();
-            toBeWalked.add(node);
+            LinkedList<Map.Entry<String, Node>> toBeWalked = new LinkedList<>();
+            toBeWalked.add(new AbstractMap.SimpleEntry<>(srcPath, getNode(root, srcPath, false)));
             while (!toBeWalked.isEmpty()) {
-                Node nextNode = toBeWalked.pollFirst();
-
+                Map.Entry<String, Node> nextEntry = toBeWalked.poll();
+                String nodePath = nextEntry.getKey();
+                Node node = nextEntry.getValue();
+                assert nodePath.startsWith(srcPath) : String.format("Child [%s] src [%s] dest [%s]", nodePath, srcPath, destPath);
+                getNode(root, nodePath.replace(srcPath, destPath), true).data = node.data;
+                node.children.forEach((childName, childNode) -> {
+                    String childPath = PersisterUtils.join(nodePath, childName);
+                    toBeWalked.add(new AbstractMap.SimpleEntry<>(childPath, childNode));
+                });
             }
         } finally {
             unlockRW();
