@@ -21,6 +21,10 @@ public class SchedulerRunner implements Runnable {
      */
     private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
 
+    public static int getSupportedSchemaVersionSingleService() {
+        return SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
+    }
+
     private final SchedulerBuilder schedulerBuilder;
 
     /**

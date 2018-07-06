@@ -92,7 +92,9 @@ public class PersisterUtils {
      */
     public static String join(final String... paths) {
         return Arrays.stream(paths).reduce("", (first, second) -> {
-            if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {
+            if (first.isEmpty() || second.isEmpty()) {
+                return first + second;
+            } else if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {
                 // "hello/" + "/world" => "hello/world"
                 return new StringBuilder(first).deleteCharAt(first.length() - 1).append(second).toString();
             } else if (first.endsWith(PATH_DELIM_STR) || second.startsWith(PATH_DELIM_STR)) {
