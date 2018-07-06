@@ -19,7 +19,7 @@ import java.util.*;
 public class TLSCleanupStep extends AbstractStep {
 
     private final SecretsClient secretsClient;
-    private final String namespace;
+    private final String secretsNamespace;
 
     /**
      * Creates a new instance with initial {@code status}.
@@ -27,29 +27,29 @@ public class TLSCleanupStep extends AbstractStep {
     TLSCleanupStep(SecretsClient secretsClient, String secretsNamespace, Optional<String> namespace) {
         super("tls-cleanup", namespace);
         this.secretsClient = secretsClient;
-        this.namespace = secretsNamespace;
+        this.secretsNamespace = secretsNamespace;
     }
 
     @Override
     public void start() {
-        logger.info("Cleaning up TLS resources in namespace {}...", namespace);
+        logger.info("Cleaning up TLS resources in namespace {}...", secretsNamespace);
 
         try {
             Collection<String> secretPathsToClean =
-                    TLSArtifactPaths.getKnownTLSArtifacts(secretsClient.list(namespace));
+                    TLSArtifactPaths.getKnownTLSArtifacts(secretsClient.list(secretsNamespace));
             if (secretPathsToClean.isEmpty()) {
                 logger.info("No TLS resources to clean up.");
             } else {
-                logger.info("{} paths to clean in namespace {}:", secretPathsToClean.size(), namespace);
+                logger.info("{} paths to clean in namespace {}:", secretPathsToClean.size(), secretsNamespace);
                 for (String path : secretPathsToClean) {
                     logger.info("Removing secret: '{}'", path);
-                    secretsClient.delete(namespace + "/" + path);
+                    secretsClient.delete(secretsNamespace + "/" + path);
                 }
             }
 
             setStatus(Status.COMPLETE);
         } catch (IOException e) {
-            logger.error(String.format("Failed to clean up secrets in namespace %s", namespace), e);
+            logger.error(String.format("Failed to clean up secrets in namespace %s", secretsNamespace), e);
             setStatus(Status.ERROR);
         }
     }
