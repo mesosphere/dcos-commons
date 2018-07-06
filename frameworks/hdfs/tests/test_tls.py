@@ -119,11 +119,16 @@ def test_verify_https_ports(node_type, port, hdfs_service):
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_tls_recovery(hdfs_service, service_account):
-    pod_list = sdk_cmd.svc_cli(hdfs_service["package_name"],
-                               hdfs_service["service"]["name"],
-                               "pod list",
-                               json=True)
-
+    pod_list = [
+        "name-0",
+        "name-1",
+        "data-0",
+        "data-1",
+        "data-2",
+        "journal-0",
+        "journal-1",
+        "journal-2",
+    ]
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(hdfs_service["package_name"],
                                               hdfs_service["service"]["name"],
