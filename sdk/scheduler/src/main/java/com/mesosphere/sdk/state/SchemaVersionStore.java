@@ -53,6 +53,15 @@ public class SchemaVersionStore {
      * @throws IllegalStateException if a value is present which doesn't match the expected value
      */
     public void check(int expectedVersion) throws StateStoreException {
+        int currentVersion = getOrSetVersion(expectedVersion);
+        if (currentVersion != expectedVersion) {
+            throw new IllegalStateException(String.format(
+                    "Storage schema version %d is not supported by this software (expected: %d)",
+                    currentVersion, expectedVersion));
+        }
+    }
+
+    public Integer getOrSetVersion(int expectedVersion) throws StateStoreException {
         try {
             LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
             byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
@@ -62,26 +71,21 @@ public class SchemaVersionStore {
             }
             String rawString = new String(bytes, CHARSET);
             LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
-            int currentVersion;
             try {
-                currentVersion = Integer.parseInt(rawString);
+                return Integer.parseInt(rawString);
             } catch (NumberFormatException e) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Unable to parse fetched schema version: '%s' from path: %s",
                         rawString, SCHEMA_VERSION_NAME), e);
             }
-            if (currentVersion != expectedVersion) {
-                throw new IllegalStateException(String.format(
-                        "Storage schema version %d is not supported by this software (expected: %d)",
-                        currentVersion, expectedVersion));
-            }
         } catch (PersisterException e) {
             if (e.getReason() == Reason.NOT_FOUND) {
                 // The schema version doesn't exist yet. Initialize to the current version.
                 LOGGER.debug("Schema version not found at path: {}. New service install? " +
-                        "Initializing path to schema version: {}.",
+                                "Initializing path to schema version: {}.",
                         SCHEMA_VERSION_NAME, expectedVersion);
                 store(expectedVersion);
+                return expectedVersion;
             } else {
                 throw new StateStoreException(
                         Reason.STORAGE_ERROR, "Storage error when fetching schema storage", e);

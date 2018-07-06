@@ -61,6 +61,23 @@ public interface Persister {
     void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException;
 
     /**
+     * Atomically & Recursively copies the node from given sr
+     *
+     * <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.
+     *
+     * @throws PersisterException if the data at the requested path didn't exist, or for other access errors
+     */
+
+    /**
+     * Atomically & Recursively copies the node and its contents
+     *
+     * @param srcPath The source path of the node to copy from.
+     * @param destPath The destination path of the node to copy to.
+     * @throws PersisterException if the source node is not present or the destination node is already present
+     */
+    void recursiveCopy(String srcPath, String destPath) throws PersisterException;
+
+    /**
      * Atomically deletes many values from storage at once, with each path entry being treated as a call to
      * {@link #recursiveDelete(String)} for those paths.
      *
