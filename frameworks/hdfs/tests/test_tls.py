@@ -121,7 +121,7 @@ def test_verify_https_ports(node_type, port, hdfs_service):
 def test_tls_recovery(hdfs_service, service_account):
     pod_list = sdk_cmd.svc_cli(hdfs_service["package_name"],
                                hdfs_service["service"]["name"],
-                               "pod",
+                               "pod list",
                                json=True)
 
     for pod in pod_list:

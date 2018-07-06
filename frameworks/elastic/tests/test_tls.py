@@ -134,7 +134,7 @@ def test_kibana_tls(kibana_application):
 def test_tls_recovery(elastic_service, service_account):
     pod_list = sdk_cmd.svc_cli(elastic_service["package_name"],
                                elastic_service["service"]["name"],
-                               "pod",
+                               "pod list",
                                json=True)
 
     for pod in pod_list:

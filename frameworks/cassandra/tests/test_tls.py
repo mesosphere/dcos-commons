@@ -124,7 +124,7 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
 def test_tls_recovery(cassandra_service, service_account):
     pod_list = sdk_cmd.svc_cli(cassandra_service["package_name"],
                                cassandra_service["service"]["name"],
-                               "pod",
+                               "pod list",
                                json=True)
 
     for pod in pod_list:

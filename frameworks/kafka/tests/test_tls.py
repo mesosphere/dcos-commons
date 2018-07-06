@@ -155,7 +155,7 @@ def test_tls_ciphers(kafka_service):
 def test_tls_recovery(kafka_service, service_account):
     pod_list = sdk_cmd.svc_cli(kafka_service["package_name"],
                                kafka_service["service"]["name"],
-                               "pod",
+                               "pod list",
                                json=True)
 
     for pod in pod_list:
