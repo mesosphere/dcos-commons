@@ -257,18 +257,18 @@ public class CuratorPersister implements Persister {
 
     @Override
     public void recursiveCopy(String src, String dest) throws PersisterException {
-        if (!Collections.disjoint(Arrays.asList(serviceRootPath, CuratorLocker.LOCK_PATH_NAME), Arrays.asList(src, dest))) {
+        if (new HashSet<>(Arrays.asList(serviceRootPath, CuratorLocker.LOCK_PATH_NAME, src, dest)).size() != 4) {
             throw new IllegalArgumentException(String.format("Cannot copy from %s to %s", src, dest));
         }
 
         try {
             LOGGER.debug("Copying {} (and any children) to {}", src, dest);
-            if(client.checkExists().forPath(withFrameworkPrefix(src)) == null) {
+            if (client.checkExists().forPath(withFrameworkPrefix(src)) == null) {
                 throw new PersisterException(Reason.NOT_FOUND, String.format("Source node does not exist: %s", src));
             }
-            if(client.checkExists().forPath(withFrameworkPrefix(dest)) != null) {
+            if (client.checkExists().forPath(withFrameworkPrefix(dest)) != null) {
                 // We do not support overriding the data. The destination node should be deleted explicitly.
-                throw new PersisterException(Reason.LOGIC_ERROR, String.format("Destination node already exists: %s", dest));
+                throw new PersisterException(Reason.LOGIC_ERROR, String.format("Destination node exists: %s", dest));
             }
 
             LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(src));
@@ -276,13 +276,14 @@ public class CuratorPersister implements Persister {
             while (!toBeWalked.isEmpty()) {
                 String nextNode = toBeWalked.poll();
                 // This assertion should never fail acc. to the logic around it.
-                assert (nextNode.startsWith(src)) : String.format("Failed to match prefix. Src [%s] Dest [%s] Child [%s]", src, dest, nextNode);
+                assert (nextNode.startsWith(src)) : String.format("Failed to match prefix." +
+                        " Src [%s] Dest [%s] Child [%s]", src, dest, nextNode);
                 toBeAdded.put(withFrameworkPrefix(nextNode.replace(src, dest)), get(nextNode));
                 getChildren(nextNode).forEach(child -> toBeWalked.add(PersisterUtils.join(nextNode, child)));
             }
             runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
         } catch (Exception e) {
-            throw new PersisterException(Reason.STORAGE_ERROR, String.format("Unable to copy recursively from %s to %s", dest, src), e);
+            throw new PersisterException(Reason.STORAGE_ERROR, String.format("Failed to copy %s to %s", dest, src), e);
         }
     }
 

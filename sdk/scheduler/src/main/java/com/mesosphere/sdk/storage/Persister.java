@@ -61,15 +61,13 @@ public interface Persister {
     void setMany(Map<String, byte[]> pathBytesMap) throws PersisterException;
 
     /**
-     * Atomically & Recursively copies the node from given sr
-     *
-     * <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.
-     *
-     * @throws PersisterException if the data at the requested path didn't exist, or for other access errors
-     */
-
-    /**
-     * Atomically & Recursively copies the node and its contents
+     * Recursively copies the node and its contents. This operation has two steps:
+     *  1. Walk all the nodes gathering data.
+     *  2. Commit the transaction to write new nodes.
+     * After (1) is done and before the completion of (2) there may be updates to nodes.
+     * Currently, this is used only for migrating the data which occurs during bootstrap and there should not be any
+     * conflicts. Be cautious when using this method for other runtime operations.
+     * (E.g.: A simple hack would be to use a class level lock if/when needed)
      *
      * @param srcPath The source path of the node to copy from.
      * @param destPath The destination path of the node to copy to.
