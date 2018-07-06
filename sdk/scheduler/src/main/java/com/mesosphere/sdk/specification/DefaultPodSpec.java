@@ -9,6 +9,7 @@ import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -52,6 +53,8 @@ public class DefaultPodSpec implements PodSpec {
     private String preReservedRole;
     @NotNull
     private Boolean sharePidNamespace;
+    @NotNull
+    private final Collection<Protos.CapabilityInfo.Capability> capabilities;
 
     @JsonCreator
     public DefaultPodSpec(
@@ -68,9 +71,11 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
             @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-            @JsonProperty("allow-decommission") Boolean allowDecommission) {
-        this(
-                new Builder(type, count, tasks)
+
+            @JsonProperty("allow-decommission") Boolean allowDecommission,
+            @JsonProperty("capabilities") Collection<Protos.CapabilityInfo.Capability> capabilities) {
+
+            this(new Builder(type, count, tasks)
                         .type(type)
                         .user(user)
                         .count(count)
@@ -84,8 +89,9 @@ public class DefaultPodSpec implements PodSpec {
                         .preReservedRole(preReservedRole)
                         .secrets(secrets)
                         .sharePidNamespace(sharePidNamespace)
-                        .allowDecommission(allowDecommission));
-    }
+                        .allowDecommission(allowDecommission)
+                        .capabilities(capabilities));
+         }
 
     private DefaultPodSpec(Builder builder) {
         this.count = builder.count;
@@ -102,6 +108,7 @@ public class DefaultPodSpec implements PodSpec {
         this.user = builder.user;
         this.volumes = builder.volumes;
         this.sharePidNamespace = builder.sharePidNamespace;
+        this.capabilities = builder.capabilities;
         ValidationUtils.validate(this);
     }
 
@@ -125,6 +132,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         builder.sharePidNamespace = copy.getSharePidNamespace();
+        builder.capabilities = copy.getCapabilities();
         return builder;
     }
 
@@ -199,6 +207,10 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<Protos.CapabilityInfo.Capability> getCapabilities() {
+        return capabilities;
+    }
+
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -231,6 +243,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
+        private Collection<Protos.CapabilityInfo.Capability> capabilities = new ArrayList<>();
 
         private Builder(String type, int count, List<TaskSpec> tasks) {
             this.type = type;
@@ -454,6 +467,22 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder sharePidNamespace(Boolean sharePidNamespace) {
             this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
+            return this;
+        }
+
+        /**
+         * Sets the list of Linux Capabilities this Pod will have.
+         *
+         * @param capabilities List of capabilities to start pod with.
+         * @return a reference to this Builder
+         */
+        public Builder capabilities(Collection<Protos.CapabilityInfo.Capability> capabilities) {
+            if (capabilities == null){
+                this.capabilities = new ArrayList();
+            } else {
+                this.capabilities = capabilities;
+            }
+
             return this;
         }
 

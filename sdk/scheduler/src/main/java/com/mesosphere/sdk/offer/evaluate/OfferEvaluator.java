@@ -380,14 +380,16 @@ public class OfferEvaluator {
                 shouldAddExecutorResources = false;
             }
 
-
-
             // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
             // ExecutorInfo equality when launching new tasks
             for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
                 if (!taskSpec.getTransportEncryption().isEmpty()) {
                     evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
                 }
+            }
+
+            if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
+                evaluationStages.add(new LinuxCapabilitiesEvaluationStage(taskName, resourceNamespace));
             }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
@@ -452,6 +454,10 @@ public class OfferEvaluator {
         for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
             if (!taskSpec.getTransportEncryption().isEmpty()) {
                 evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+            }
+
+            if (!podInstanceRequirement.getPodInstance().getPod().getCapabilities().isEmpty()) {
+                evaluationStages.add(new LinuxCapabilitiesEvaluationStage(taskSpec.getName(), Optional.empty()));
             }
         }
 

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import org.apache.mesos.Protos;
 
 import java.net.URI;
 import java.util.Collection;
@@ -56,6 +57,9 @@ public interface PodSpec {
 
     @JsonProperty("share-pid-namespace")
     Boolean getSharePidNamespace();
+
+    @JsonProperty("capabilities")
+    Collection<Protos.CapabilityInfo.Capability> getCapabilities();
 
     @JsonIgnore
     static String getName(PodSpec podSpec, int index) {

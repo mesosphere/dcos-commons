@@ -102,6 +102,7 @@
             "tls",
             "uri",
             "web-url",
+            "capabilities",
             ""
           ],
           "default": "svc"
@@ -174,6 +175,11 @@
           "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `0`",
           "type": "integer",
           "default": 0
+        },
+        "capabilities": {
+          "description": "Set of linux capabilities to run task with",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
