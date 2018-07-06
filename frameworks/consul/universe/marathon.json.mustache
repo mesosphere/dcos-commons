@@ -33,6 +33,9 @@
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
 
+    "DEPLOY_STRATEGY": "{{node.deploy_strategy}}",
+    "UPDATE_STRATEGY": "{{node.update_strategy}}",
+
     "NODE_COUNT": "{{node.count}}",
     "NODE_PLACEMENT": "{{{node.placement_constraint}}}",
     {{#service.virtual_network_enabled}}

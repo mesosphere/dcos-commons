@@ -3,28 +3,68 @@ scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
   user: {{FRAMEWORK_USER}}
 pods:
-  consul:
+  bootstrap:
     count: 1
-    #    placement: {{NODE_PLACEMENT}}
+    image: consul
+    placement: {{NODE_PLACEMENT}}
     tasks:
       server:
         goal: RUNNING
-        cmd: ls -la
+        cmd: agent -server -bootstrap-expect 3 -ui -disbale-host-node-id
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
+        ports:
+          bootstrap-rpc:
+            port: 8300
+            env-key: PORT_RPC
+            advertise: true
+            vip:
+              prefix: consulserver
+              port: 8300
+          bootstrap-http:
+            port: 8500
+            env-key: PORT_HTTP
+            advertise: true
+            vip:
+              prefix: consulserver
+              port: 8500
+          bootstrap-dns:
+            port: 8600
+            env-key: PORT_DNS
+            advertise: true
+            vip:
+              prefix: consulserver
+              port: 8600
         env:
           CONSUL_LOCAL_CONFIG: "test"
   consulagent:
     count: 3 
-    #    placement: {{NODE_PLACEMENT}}
-    #    image: consul
-    #    network:
-    #  dcos:
+    placement: {{NODE_PLACEMENT}}
+    image: consul
     tasks:
       server:
         goal: RUNNING
-        cmd: consul agent -retry-join=consul-server-0-server.consul.autoip.dcos.thisdcos.directory
+        cmd: consul agent -retry-join=consul-server-0-server.consul.autoip.dcos.thisdcos.directory -disable-host-node-id
         cpus: {{NODE_CPUS}}
         memory: {{NODE_MEM}}
         env:
           CONSUL_LOCAL_CONFIG: "test"
+plans:
+  deploy:
+    strategy: {{DEPLOY_STRATEGY}}
+    phases:
+      bootstrap-deploy:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: bootstrap
+      agent-deploy:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: consulagent
+  update:
+    strategy: {{DEPLOY_STRATEGY}}
+    phases:
+      bootstrap-update:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: bootstrap
+      agent-update:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: consulagent

@@ -89,6 +89,24 @@
           "type": "integer",
           "default": 1
         },
+        "deploy_strategy": {
+          "description": "Elasticsearch deploy strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "parallel"
+        },
+        "update_strategy": {
+          "description": "Elasticsearch update strategy. [parallel, serial]",
+          "type": "string",
+          "enum": [
+            "parallel",
+            "serial"
+          ],
+          "default": "serial"
+        },
         "placement_constraint": {
           "title": "Placement constraint",
           "description": "Placement constraints for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
