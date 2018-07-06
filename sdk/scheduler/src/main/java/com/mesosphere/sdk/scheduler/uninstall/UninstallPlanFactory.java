@@ -3,9 +3,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -79,23 +76,28 @@ public class UninstallPlanFactory {
         // We filter to unique Resource Id's, because Executor level resources are tracked on multiple Tasks.
         // So in this scenario we should have 3 uninstall steps around resources A, B, and C.
 
-        // Group the tasks by agent hostname, which is then used as the phase name:
-        Map<String, Collection<ResourceCleanupStep>> resourceCleanupStepsByAgent =
-                getResourceCleanupStepsByAgent(namespace, stateStore);
+        this.allResourceCleanupSteps = new ArrayList<>();
 
-        this.allResourceCleanupSteps = resourceCleanupStepsByAgent.values().stream()
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-        LOGGER.info("{}/{} expected resources are already unreserved",
-                allResourceCleanupSteps.stream().filter(step -> step.isComplete()).count(),
-                allResourceCleanupSteps.size());
-        for (Map.Entry<String, Collection<ResourceCleanupStep>> agentSteps : resourceCleanupStepsByAgent.entrySet()) {
+        // Map entries should be sorted alphabetically by agent hostname.
+        // This sorting does not affect uninstall functionality and is just a nice-to-have for users.
+        for (Map.Entry<String, Set<String>> entry : getResourceIdsByAgentHost(stateStore).entrySet()) {
+            // Resource IDs should be sorted alhpabetically:
+            List<ResourceCleanupStep> agentSteps = entry.getValue().stream()
+                    .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
+                    .collect(Collectors.toList());
+
+            this.allResourceCleanupSteps.addAll(agentSteps);
+
             phases.add(new DefaultPhase(
-                    RESOURCE_PHASE_PREFIX + agentSteps.getKey(),
-                    agentSteps.getValue().stream().collect(Collectors.toList()), // hack to get around collection typing
+                    RESOURCE_PHASE_PREFIX + entry.getKey(),
+                    agentSteps.stream().collect(Collectors.toList()), // Generic type alignment: List<RCS> => List<Step>
                     new ParallelStrategy<>(),
                     Collections.emptyList()));
         }
+
+        LOGGER.info("{}/{} resources remain to be unreserved",
+                allResourceCleanupSteps.stream().filter(step -> !step.isComplete()).count(),
+                allResourceCleanupSteps.size());
 
         // If applicable, we also clean up any TLS secrets that we'd created before.
         // Note: This won't catch certificates where the user installed the service with TLS enabled, then disabled TLS
@@ -133,20 +135,22 @@ public class UninstallPlanFactory {
                 Collections.singletonList(deregisterStep),
                 new SerialStrategy<>(),
                 Collections.emptyList());
-        phases.add(deregisterPhase);
 
         // We need to construct a custom strategy in order to allow the resource phases to operate in parallel.
         // In other words, the dependencies should look like this:
         // 1. Kill all tasks, unreserve all resources, and delete any automatically created TLS certs as needed
         // 2. When all of the above is complete, deregister
         DependencyStrategyHelper<Phase> uninstallPhaseDependencies = new DependencyStrategyHelper<>(phases);
+        // Ensure the deregister phase is also added as an element before we start setting up dependencies:
+        uninstallPhaseDependencies.addElement(deregisterPhase);
+
+        // Mark all OTHER phases as dependencies of deregisterPhase:
         for (Phase phase : phases) {
-            if (phase == deregisterPhase) {
-                continue;
-            }
-            // Mark this phase as a dependency of deregisterPhase:
             uninstallPhaseDependencies.addDependency(deregisterPhase, phase);
         }
+
+        // AFTER we've configured all the dependencies, add the deregister phase to the full list of phases:
+        phases.add(deregisterPhase);
 
         plan = new DefaultPlan(
                 Constants.DEPLOY_PLAN_NAME,
@@ -174,29 +178,31 @@ public class UninstallPlanFactory {
     DeregisterStep getDeregisterStep() {
         return deregisterStep;
     }
-
     /**
-     * Determines what resources need to be unreserved and builds {@link ResourceCleanupStep}s for each of them.
-     * The returned mapping groups the steps according to the hostname of the agent where they are located.
+     * Returns a grouped mapping of agent hostname to resource ids present on that agent.
+     *
+     * The resulting map will be sorted alphabetically by agent hostname, and the resource ids within each agent entry
+     * will also be sorted alphabetically.
      */
-    private static Map<String, Collection<ResourceCleanupStep>> getResourceCleanupStepsByAgent(
-            Optional<String> namespace, StateStore stateStore) {
+    private static Map<String, Set<String>> getResourceIdsByAgentHost(StateStore stateStore) {
         Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
         Set<String> taskIdsInErrorState = stateStore.fetchStatuses().stream()
-                .filter(taskStatus -> taskStatus.getState() == Protos.TaskState.TASK_ERROR)
+                .filter(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_ERROR))
                 .map(taskStatus -> taskStatus.getTaskId().getValue())
                 .collect(Collectors.toSet());
 
         // Filter the tasks to those that have actually created resources. Tasks in an ERROR state which are also
         // flagged as permanently failed are assumed to not have resources reserved on Mesos' end, despite our State
         // Store still listing them with resources. This is because we log the planned reservation before it occurs.
-        Collection<Protos.TaskInfo> tasksNotFailedAndErrored = allTasks.stream()
+        Collection<Protos.TaskInfo> tasksWithExpectedReservations = allTasks.stream()
                 .filter(taskInfo -> !(FailureUtils.isPermanentlyFailed(taskInfo)
                         && taskIdsInErrorState.contains(taskInfo.getTaskId().getValue())))
                 .collect(Collectors.toList());
 
-        Map<String, Set<String>> dedupedResourceIdsByAgent = new HashMap<>();
-        for (Protos.TaskInfo taskInfo : tasksNotFailedAndErrored) {
+        // The agent hostname mapping is sorted alphabetically. This doesn't affect functionality and is just for user
+        // experience when viewing the uninstall plan.
+        Map<String, Set<String>> resourceIdsByAgentHost = new TreeMap<>();
+        for (Protos.TaskInfo taskInfo : tasksWithExpectedReservations) {
             String hostname;
             try {
                 hostname = new TaskLabelReader(taskInfo).getHostname();
@@ -205,36 +211,18 @@ public class UninstallPlanFactory {
                 hostname = "UNKNOWN_AGENT";
             }
 
-            Set<String> agentResourceIds = dedupedResourceIdsByAgent.get(hostname);
+            Set<String> agentResourceIds = resourceIdsByAgentHost.get(hostname);
             if (agentResourceIds == null) {
-                agentResourceIds = new HashSet<>();
-                dedupedResourceIdsByAgent.put(hostname, agentResourceIds);
+                // Sort the resource ids alphabetically within each agent. This doesn't affect functionality and is just
+                // for user experience when viewing the uninstall plan.
+                agentResourceIds = new TreeSet<>();
+                resourceIdsByAgentHost.put(hostname, agentResourceIds);
             }
-
             agentResourceIds.addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(taskInfo)));
         }
 
         LOGGER.info("Configuring resource cleanup of {}/{} tasks across {} agents",
-                tasksNotFailedAndErrored.size(), allTasks.size(), dedupedResourceIdsByAgent.size());
-
-        // Map the resource IDs into ResourceCleanupSteps
-        return dedupedResourceIdsByAgent.entrySet().stream().collect(Collectors.toMap(
-                entry -> entry.getKey(),
-                entry -> entry.getValue().stream()
-                        .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
-                        // Order the resulting resource steps by name. Not required, just nice to have.
-                        .collect(Collectors.toCollection(() -> new TreeSet<ResourceCleanupStep>(
-                                new Comparator<ResourceCleanupStep>() {
-                            @Override
-                            public int compare(ResourceCleanupStep s1, ResourceCleanupStep s2) {
-                                return s1.getName().compareTo(s2.getName());
-                            }
-                        }))),
-                (u, v) -> {
-                    throw new IllegalStateException(String.format("Duplicate key %s", u));
-                },
-                // Use a tree map so that the resulting phases are sorted by agent hostname.
-                // This isn't required, just a nice to have for users.
-                TreeMap::new));
+                tasksWithExpectedReservations.size(), allTasks.size(), resourceIdsByAgentHost.size());
+        return resourceIdsByAgentHost;
     }
 }

@@ -195,7 +195,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(plan.toString(), expected, getStepStatuses(plan));
 
         // Invoke getClientStatus so that plan status is correctly processed before offers are passed.
-        // Shouldn't see any new work since all the uninstall steps were considered candidates up-front. 
+        // Shouldn't see any new work since all the uninstall steps were considered candidates up-front.
         Assert.assertEquals(ClientStatusResponse.launching(false), uninstallScheduler.getClientStatus());
         offer = OfferTestUtils.getOffer(Collections.singletonList(RESERVED_RESOURCE_3));
         uninstallScheduler.offers(Collections.singletonList(offer));
@@ -407,7 +407,10 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static Plan getUninstallPlan(AbstractScheduler scheduler) {
-        return scheduler.getPlanCoordinator().getPlanManagers().stream().findFirst().get().getPlan();
+        return scheduler.getPlanCoordinator().getPlanManagers().stream()
+                .findFirst()
+                .get()
+                .getPlan();
     }
 
     private static ServiceSpec getServiceSpec() {
