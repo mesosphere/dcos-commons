@@ -387,7 +387,7 @@ public class SchedulerConfig {
      * Returns the Mesos API version.
      */
     public String getMesosApiVersion() {
-        return envStore.getRequired(MESOS_API_VERSION_ENV);
+        return envStore.getOptional(MESOS_API_VERSION_ENV, "V1");
     }
 
     /**
