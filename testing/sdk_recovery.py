@@ -14,7 +14,7 @@ def check_permanent_recovery(
     service_name: str,
     pod_name: str,
     recovery_timeout_s: int,
-    pods_whos_tasks_should_change: typing.List[str] = None,
+    pods_with_updated_tasks: typing.List[str] = None,
 ):
     """
     Perform a replace operation on a specified pod and check that it is replaced
@@ -28,7 +28,7 @@ def check_permanent_recovery(
 
     pod_list = set(sdk_cmd.svc_cli(package_name, service_name, "pod list", json=True))
 
-    pods_to_update = set(pods_whos_tasks_should_change + [pod_name, ])
+    pods_to_update = set(pods_with_updated_tasks + [pod_name])
 
     tasks_to_replace = {}
     for pod in pods_to_update:

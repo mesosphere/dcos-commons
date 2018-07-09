@@ -131,4 +131,4 @@ def test_tls_recovery(cassandra_service, service_account):
                                               cassandra_service["service"]["name"],
                                               pod,
                                               recovery_timeout_s=25 * 60,
-                                              pods_whos_tasks_should_change=pod_list)
+                                              pods_with_updated_tasks=pod_list)
