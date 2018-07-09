@@ -120,7 +120,6 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.recovery
 def test_tls_recovery(cassandra_service, service_account):
     pod_list = sdk_cmd.svc_cli(cassandra_service["package_name"],
                                cassandra_service["service"]["name"],
@@ -131,4 +130,5 @@ def test_tls_recovery(cassandra_service, service_account):
         sdk_recovery.check_permanent_recovery(cassandra_service["package_name"],
                                               cassandra_service["service"]["name"],
                                               pod,
-                                              recovery_timeout_s=25 * 60)
+                                              recovery_timeout_s=25 * 60,
+                                              pods_with_updated_tasks=pod_list)
