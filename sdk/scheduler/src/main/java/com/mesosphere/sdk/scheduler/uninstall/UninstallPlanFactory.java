@@ -178,6 +178,7 @@ public class UninstallPlanFactory {
     DeregisterStep getDeregisterStep() {
         return deregisterStep;
     }
+
     /**
      * Returns a grouped mapping of agent hostname to resource ids present on that agent.
      *
