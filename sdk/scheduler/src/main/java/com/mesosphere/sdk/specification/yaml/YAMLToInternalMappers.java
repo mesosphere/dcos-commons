@@ -241,7 +241,8 @@ public class YAMLToInternalMappers {
 
         builder.image(rawPod.getImage())
                 .networks(networks)
-                .rlimits(rlimits);
+                .rlimits(rlimits)
+                .forcePull(rawPod.getForcePull());
 
         // Collect the resourceSets (if given)
         final Collection<ResourceSet> resourceSets = new ArrayList<>();

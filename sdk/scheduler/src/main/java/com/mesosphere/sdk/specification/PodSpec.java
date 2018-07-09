@@ -27,6 +27,9 @@ public interface PodSpec {
     @JsonProperty("image")
     Optional<String> getImage();
 
+    @JsonProperty("force-pull")
+    Boolean getForcePull();
+
     @JsonProperty("networks")
     Collection<NetworkSpec> getNetworks();
 

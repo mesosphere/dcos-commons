@@ -18,6 +18,7 @@ public class RawPod {
     private final String placement;
     private final Integer count;
     private final String image;
+    private final Boolean forcePull;
     private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
     private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
     private final Collection<String> uris;
@@ -35,6 +36,7 @@ public class RawPod {
             @JsonProperty("placement") String placement,
             @JsonProperty("count") Integer count,
             @JsonProperty("image") String image,
+            @JsonProperty("force-pull") Boolean forcePull,
             @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
             @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
             @JsonProperty("uris") Collection<String> uris,
@@ -48,6 +50,7 @@ public class RawPod {
         this.placement = placement;
         this.count = count;
         this.image = image;
+        this.forcePull = forcePull != null && forcePull;
         this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
         this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
         this.uris = uris;
@@ -71,6 +74,10 @@ public class RawPod {
 
     public String getImage() {
         return image;
+    }
+
+    public Boolean getForcePull() {
+        return forcePull;
     }
 
     public WriteOnceLinkedHashMap<String, RawNetwork> getNetworks() {
