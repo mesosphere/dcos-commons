@@ -28,7 +28,9 @@ def check_permanent_recovery(
 
     pod_list = set(sdk_cmd.svc_cli(package_name, service_name, "pod list", json=True))
 
-    pods_to_update = set(pods_with_updated_tasks + [pod_name])
+    pods_to_update = set(
+        pods_with_updated_tasks if pods_with_updated_tasks else [] + [pod_name]
+    )
 
     tasks_to_replace = {}
     for pod in pods_to_update:
