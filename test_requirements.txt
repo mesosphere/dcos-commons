@@ -3,8 +3,8 @@ py==1.5.1
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc#egg=dcoscli&subdirectory=cli
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc
 dcos-shakedown==1.4.12
-git+https://github.com/dcos/dcos-test-utils.git@c9a4fc583a4a0bca18040ad4c7772e187e51aa74
-git+https://github.com/dcos/dcos-launch.git@da1f1af3c5943e08a4a40632f45d4e645e87405e
+git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7
+git+https://github.com/dcos/dcos-launch.git@471799cf615fdda160f2115de14fc2b6ea269dcb
 teamcity-messages
 flake8
 pylint
