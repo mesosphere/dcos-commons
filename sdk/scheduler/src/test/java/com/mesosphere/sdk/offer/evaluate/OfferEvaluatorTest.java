@@ -918,7 +918,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             );
         }
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, taskSpecs)
+        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
+                .type(type)
+                .count(1)
+                .tasks(taskSpecs)
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
