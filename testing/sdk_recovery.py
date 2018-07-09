@@ -17,9 +17,21 @@ def check_permanent_recovery(
     pods_with_updated_tasks: typing.List[str] = None,
 ):
     """
-    Perform a replace operation on a specified pod and check that it is replaced
+    Perform a replace (permanent recovery) operation on the specified pod.
 
-    All other pods are checked to see if they remain consistent.
+    The specified pod AND any additional pods in `pods_with_updated_tasks` are
+    checked to ensure that their tasks have been restarted.
+
+    Any remaining pods are checked to ensure that their tasks are not changed.
+
+    For example, performing a pod replace kafka-0 on a Kafka framework should
+    result in ONLY the kafa-0-broker task being restarted. In this case,
+    pods_with_updated_tasks is specified as None.
+
+    When performing a pod replace operation on a Cassandra seed node (node-0),
+    a rolling restart of other nodes is triggered, and
+    pods_with_updated_tasks = ["node-0", "node-1", "node-2"]
+    (assuming a three node Cassandra ring)
     """
     LOG.info("Testing pod replace operation for %s:%s", service_name, pod_name)
 
