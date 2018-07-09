@@ -1,4 +1,5 @@
 import logging
+import typing
 
 import sdk_cmd
 import sdk_plan
@@ -13,6 +14,7 @@ def check_permanent_recovery(
     service_name: str,
     pod_name: str,
     recovery_timeout_s: int,
+    pods_whos_tasks_should_change: typing.List[str] = None,
 ):
     """
     Perform a replace operation on a specified pod and check that it is replaced
@@ -24,15 +26,18 @@ def check_permanent_recovery(
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
 
-    pod_list = sdk_cmd.svc_cli(package_name, service_name, "pod list", json=True)
+    pod_list = set(sdk_cmd.svc_cli(package_name, service_name, "pod list", json=True))
 
-    tasks_to_replace = set(sdk_tasks.get_task_ids(service_name, pod_name))
+    pods_to_update = set(pods_whos_tasks_should_change + [pod_name, ])
+
+    tasks_to_replace = {}
+    for pod in pods_to_update:
+        tasks_to_replace[pod] = set(sdk_tasks.get_task_ids(service_name, pod_name))
+
     LOG.info("The following tasks will be replaced: %s", tasks_to_replace)
 
     tasks_in_other_pods = {}
-    for pod in pod_list:
-        if pod == pod_name:
-            continue
+    for pod in pod_list - pods_to_update:
         tasks_in_other_pods[pod] = set(sdk_tasks.get_task_ids(service_name, pod))
 
     LOG.info("Tasks in other pods should not be replaced: %s", tasks_in_other_pods)
@@ -43,7 +48,8 @@ def check_permanent_recovery(
     sdk_plan.wait_for_kicked_off_recovery(service_name, recovery_timeout_s)
     sdk_plan.wait_for_completed_recovery(service_name, recovery_timeout_s)
 
-    sdk_tasks.check_tasks_updated(service_name, pod_name, tasks_to_replace)
+    for pod, tasks in tasks_to_replace.items():
+        sdk_tasks.check_tasks_updated(service_name, pod, tasks)
 
     for pod, tasks in tasks_in_other_pods.items():
         sdk_tasks.check_tasks_not_updated(service_name, pod, tasks)
