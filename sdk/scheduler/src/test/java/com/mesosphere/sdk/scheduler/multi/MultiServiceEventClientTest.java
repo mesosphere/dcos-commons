@@ -505,7 +505,7 @@ public class MultiServiceEventClientTest {
         Assert.assertEquals(TaskStatusResponse.Result.UNKNOWN_TASK, client.taskStatus(status).result);
         verify(mockClient2, times(1)).taskStatus(status);
     }
-
+    
     @Test
     public void taskStatusProcessed() {
         // Client 3: status processed

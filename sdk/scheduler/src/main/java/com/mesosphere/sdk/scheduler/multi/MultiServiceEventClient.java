@@ -68,7 +68,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
     private final Collection<String> serviceNamesToGiveOffers;
 
-    private Optional<String> defaultServiceName;
+    private String defaultServiceName = "";
 
     public MultiServiceEventClient(
             String frameworkName,
@@ -91,7 +91,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 schedulerConfig.isUninstallEnabled()
                         ? Optional.of(new DeregisterStep(Optional.empty()))
                         : Optional.empty());
-    }
+        }
 
     @VisibleForTesting
     MultiServiceEventClient(
@@ -357,14 +357,14 @@ public class MultiServiceEventClient implements MesosEventClient {
                 if (serviceName.isPresent()) {
                     // Found service name: Store resource against serviceName+offerId to be evaluated below.
                     getEntry(offersByService, serviceName.get(), offer).add(resource);
-                } else if (ResourceUtils.getReservation(resource).isPresent() && !defaultServiceName.isPresent()) {
+                } else if (ResourceUtils.getReservation(resource).isPresent() && defaultServiceName.isEmpty()) {
                     // This reserved resource is malformed. Reservations created by this scheduler should always have a
                     // service name label. Make some noise but leave it alone. Out of caution, we DO NOT destroy it.
                     LOGGER.error("Ignoring malformed resource in offer {} (missing namespace label): {}",
                             offer.getId().getValue(), TextFormat.shortDebugString(resource));
-                } else if (defaultServiceName.isPresent()) {
+                } else if (!defaultServiceName.isEmpty()) {
                     //if default service name is specified then offer reservation to default service
-                    getEntry(offersByService, defaultServiceName.get(), offer).add(resource);
+                    getEntry(offersByService, defaultServiceName, offer).add(resource);
                 } else {
                     // Not a reserved resource. Ignore for cleanup purposes.
                 }
@@ -453,15 +453,15 @@ public class MultiServiceEventClient implements MesosEventClient {
     @Override
     public TaskStatusResponse taskStatus(Protos.TaskStatus status) {
         Optional<AbstractScheduler> service = multiServiceManager.getMatchingService(status);
-        if (!service.isPresent() && !defaultServiceName.isPresent()) {
+        if (!service.isPresent() && defaultServiceName.isEmpty()) {
             // Unrecognized service. Status for old task?
             LOGGER.info("Received status for unknown task {}: {}",
                     status.getTaskId().getValue(), TextFormat.shortDebugString(status));
             return TaskStatusResponse.unknownTask();
-        } else if (defaultServiceName.isPresent()) {
+        } else if (!defaultServiceName.isEmpty()) {
             LOGGER.info("forwarding task status to default svc: {}",
-                    defaultServiceName.get());
-            Optional<AbstractScheduler> defaultService = multiServiceManager.getService(defaultServiceName.get());
+                    defaultServiceName);
+            Optional<AbstractScheduler> defaultService = multiServiceManager.getService(defaultServiceName);
             return defaultService.get().taskStatus(status);
         }
         LOGGER.info("Received status for task {}: {}", status.getTaskId().getValue(), status.getState());
@@ -522,5 +522,19 @@ public class MultiServiceEventClient implements MesosEventClient {
             map.put(offer.getId(), currentValue);
         }
         return currentValue;
+    }
+
+    /**
+     * Sets the default service name
+     */
+    public void setDefaultServiceName(String defaultServiceName) {
+        this.defaultServiceName = defaultServiceName;
+    }
+
+    /**
+     * Get the default service name
+     */
+    public void getDefaultServiceName() {
+        return this.defaultServiceName;
     }
 }
