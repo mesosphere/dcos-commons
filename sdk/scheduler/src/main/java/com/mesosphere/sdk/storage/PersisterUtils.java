@@ -197,23 +197,31 @@ public class PersisterUtils {
 
     public static void backUpFrameworkZKData(Persister persister) throws PersisterException {
         // TODO (takirala): Create a versioned back up if/when necessary. Add recovery method as well.
-        persister.recursiveDelete(BACKUP_ROOT_NAME);
+        try {
+            persister.recursiveDelete(BACKUP_ROOT_NAME);
+        } catch (PersisterException e) {
+            if (!e.getReason().equals(Reason.NOT_FOUND)) throw e;
+        }
         // We create a znode named `backup` (drop previous if exists) and copy framework znodes in to the backup znode
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
-                join(BACKUP_ROOT_NAME, ConfigStore.getConfigurationsPathName())
+                join(BACKUP_ROOT_NAME, ConfigStore.getConfigurationsPathName()),
+                false
         );
         persister.recursiveCopy(
                 ConfigStore.getTargetIdPathName(),
-                join(BACKUP_ROOT_NAME, ConfigStore.getTargetIdPathName())
+                join(BACKUP_ROOT_NAME, ConfigStore.getTargetIdPathName()),
+                false
         );
         persister.recursiveCopy(
                 StateStore.getPropertiesRootName(),
-                join(BACKUP_ROOT_NAME, StateStore.getPropertiesRootName())
+                join(BACKUP_ROOT_NAME, StateStore.getPropertiesRootName()),
+                false
         );
         persister.recursiveCopy(
                 StateStore.getTasksRootName(),
-                join(BACKUP_ROOT_NAME, StateStore.getTasksRootName())
+                join(BACKUP_ROOT_NAME, StateStore.getTasksRootName()),
+                false
         );
     }
 
@@ -229,19 +237,23 @@ public class PersisterUtils {
         String serviceName = CuratorUtils.getServiceName(persister);
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getConfigurationsPathName())
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getConfigurationsPathName()),
+                true
         );
         persister.recursiveCopy(
                 ConfigStore.getTargetIdPathName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getTargetIdPathName())
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getTargetIdPathName()),
+                true
         );
         persister.recursiveCopy(
                 StateStore.getPropertiesRootName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getPropertiesRootName())
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getPropertiesRootName()),
+                false
         );
         persister.recursiveCopy(
                 StateStore.getTasksRootName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getTasksRootName())
+                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getTasksRootName()),
+                false
         );
         persister.recursiveDelete(ConfigStore.getConfigurationsPathName());
         persister.recursiveDelete(ConfigStore.getTargetIdPathName());

@@ -84,12 +84,12 @@ public class PersisterCache implements Persister {
     }
 
     @Override
-    public void recursiveCopy(String srcPath, String destPath) throws PersisterException {
+    public void recursiveCopy(String srcPath, String destPath, boolean override) throws PersisterException {
         rwlock.lock();
         try {
             MemPersister cache = getCache();
-            persister.recursiveCopy(srcPath, destPath);
-            cache.recursiveCopy(srcPath, destPath);
+            persister.recursiveCopy(srcPath, destPath, override);
+            cache.recursiveCopy(srcPath, destPath, override);
         } finally {
             rwlock.unlock();
         }

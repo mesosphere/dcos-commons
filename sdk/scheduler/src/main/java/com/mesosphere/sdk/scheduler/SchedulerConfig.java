@@ -180,7 +180,7 @@ public class SchedulerConfig {
     private static final String LIBPROCESS_IP_ENVVAR = "LIBPROCESS_IP";
 
     /**
-     * Environment variable to enable or disable to zk data migration from mono service mode to multi service mode.
+     * Environment variable to disable zk data migration from mono service schema to multi service schema.
      */
     private static final String DISABLE_MONO_TO_MULTI_MIGRATION = "DISABLE_MONO_TO_MULTI_MIGRATION";
 

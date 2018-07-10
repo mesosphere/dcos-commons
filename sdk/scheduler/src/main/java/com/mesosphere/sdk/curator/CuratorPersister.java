@@ -256,7 +256,7 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
-    public void recursiveCopy(String src, String dest) throws PersisterException {
+    public void recursiveCopy(String src, String dest, boolean override) throws PersisterException {
         if (new HashSet<>(Arrays.asList(serviceRootPath, CuratorLocker.LOCK_PATH_NAME, src, dest)).size() != 4) {
             throw new IllegalArgumentException(String.format("Cannot copy from %s to %s", src, dest));
         }
@@ -267,8 +267,9 @@ public class CuratorPersister implements Persister {
                 throw new PersisterException(Reason.NOT_FOUND, String.format("Source node does not exist: %s", src));
             }
             if (client.checkExists().forPath(withFrameworkPrefix(dest)) != null) {
-                // We do not support overriding the data. The destination node should be deleted explicitly.
-                throw new PersisterException(Reason.LOGIC_ERROR, String.format("Destination node exists: %s", dest));
+                if (override) {
+                    LOGGER.info("Overriding the data at destination {}", dest);
+                } else throw new PersisterException(Reason.LOGIC_ERROR, String.format("Destination exists: %s", dest));
             }
 
             LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(src));

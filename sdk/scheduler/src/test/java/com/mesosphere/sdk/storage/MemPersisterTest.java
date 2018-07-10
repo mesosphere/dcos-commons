@@ -198,7 +198,7 @@ public class MemPersisterTest {
         persister.set("z", VAL);
         persister.set("w/1/a/1", VAL2);
 
-        persister.recursiveCopy("/x", "/p");
+        persister.recursiveCopy("/x", "/p",false);
 
         assertArrayEquals(new String[]{"1", "2", "3", "lock"}, persister.getChildren("/p").toArray());
         assertTrue(persister.getChildren("/p/1").isEmpty());

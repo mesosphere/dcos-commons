@@ -15,7 +15,7 @@ import org.slf4j.Logger;
  */
 public class MultiServiceRunner implements Runnable {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(MultiServiceEventClient.class);
+    private static final Logger LOGGER = LoggingUtils.getLogger(MultiServiceRunner.class);
 
     /**
      * Builder for {@link MultiServiceRunner}.

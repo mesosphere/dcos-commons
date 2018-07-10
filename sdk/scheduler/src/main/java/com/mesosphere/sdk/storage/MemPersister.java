@@ -124,13 +124,13 @@ public class MemPersister implements Persister {
     }
 
     @Override
-    public void recursiveCopy(String srcPath, String destPath) throws PersisterException {
+    public void recursiveCopy(String srcPath, String destPath, boolean override) throws PersisterException {
         lockRW();
         try {
             if (getNode(root, srcPath, false) == null) {
                 throw new PersisterException(Reason.NOT_FOUND, "Source path not found");
             }
-            if (getNode(root, destPath, false) != null) {
+            if (!override && getNode(root, destPath, false) != null) {
                 throw new PersisterException(Reason.LOGIC_ERROR, "Destination path already exists");
             }
             LinkedList<Map.Entry<String, Node>> toBeWalked = new LinkedList<>();
