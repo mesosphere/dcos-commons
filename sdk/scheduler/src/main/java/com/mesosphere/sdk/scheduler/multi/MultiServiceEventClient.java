@@ -534,7 +534,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     /**
      * Get the default service name
      */
-    public void getDefaultServiceName() {
+    public String getDefaultServiceName() {
         return this.defaultServiceName;
     }
 }
