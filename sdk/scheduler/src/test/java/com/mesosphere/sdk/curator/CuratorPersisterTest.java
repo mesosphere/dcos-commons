@@ -556,7 +556,7 @@ public class CuratorPersisterTest {
         persister.set("w/1/a/1", DATA_2);
         persister.set("w/1/a/2", null);
 
-        persister.recursiveCopy("/x", "/p", false);
+        persister.recursiveCopy("/x", "/p");
 
         assertArrayEquals(new String[]{"1", "2", "3", "5", "lock"}, persister.getChildren("/p").toArray());
         assertTrue(persister.getChildren("/p/1").isEmpty());

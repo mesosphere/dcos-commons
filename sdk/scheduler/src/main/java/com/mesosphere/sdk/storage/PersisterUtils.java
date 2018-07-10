@@ -2,7 +2,7 @@ package com.mesosphere.sdk.storage;
 
 import java.util.*;
 
-import com.mesosphere.sdk.curator.CuratorUtils;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -196,36 +196,36 @@ public class PersisterUtils {
     }
 
     public static void backUpFrameworkZKData(Persister persister) throws PersisterException {
-        // TODO (takirala): Create a versioned back up if/when necessary. Add recovery method as well.
         try {
             persister.recursiveDelete(BACKUP_ROOT_NAME);
         } catch (PersisterException e) {
-            if (!e.getReason().equals(Reason.NOT_FOUND)) throw e;
+            if (!e.getReason().equals(Reason.NOT_FOUND)) {
+                throw e;
+            }
         }
         // We create a znode named `backup` (drop previous if exists) and copy framework znodes in to the backup znode
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
-                join(BACKUP_ROOT_NAME, ConfigStore.getConfigurationsPathName()),
-                false
+                join(BACKUP_ROOT_NAME, ConfigStore.getConfigurationsPathName())
         );
         persister.recursiveCopy(
                 ConfigStore.getTargetIdPathName(),
-                join(BACKUP_ROOT_NAME, ConfigStore.getTargetIdPathName()),
-                false
+                join(BACKUP_ROOT_NAME, ConfigStore.getTargetIdPathName())
         );
         persister.recursiveCopy(
                 StateStore.getPropertiesRootName(),
-                join(BACKUP_ROOT_NAME, StateStore.getPropertiesRootName()),
-                false
+                join(BACKUP_ROOT_NAME, StateStore.getPropertiesRootName())
         );
         persister.recursiveCopy(
                 StateStore.getTasksRootName(),
-                join(BACKUP_ROOT_NAME, StateStore.getTasksRootName()),
-                false
+                join(BACKUP_ROOT_NAME, StateStore.getTasksRootName())
         );
     }
 
-    public static void migrateMonoToMultiZKData(Persister persister) throws PersisterException {
+    public static void migrateMonoToMultiZKData(
+            Persister persister,
+            FrameworkConfig frameworkConfig
+    ) throws PersisterException {
         /*
          * This is what we need to do to migrate to multi mode:
          * - Create a znode named `Services`
@@ -234,26 +234,24 @@ public class PersisterUtils {
          *     top level nodes to be children of above child {dcos_service_name}
          * - Delete all the top level nodes : [ConfigTarget , Configurations , Properties, Tasks]
          */
-        String serviceName = CuratorUtils.getServiceName(persister);
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getConfigurationsPathName()),
-                true
+                getServiceNamespacedRootPath(
+                        frameworkConfig.getFrameworkName(),
+                        ConfigStore.getConfigurationsPathName()
+                )
         );
         persister.recursiveCopy(
                 ConfigStore.getTargetIdPathName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, ConfigStore.getTargetIdPathName()),
-                true
+                getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), ConfigStore.getTargetIdPathName())
         );
         persister.recursiveCopy(
                 StateStore.getPropertiesRootName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getPropertiesRootName()),
-                false
+                getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), StateStore.getPropertiesRootName())
         );
         persister.recursiveCopy(
                 StateStore.getTasksRootName(),
-                join(SERVICE_NAMESPACE_ROOT_NAME, serviceName, StateStore.getTasksRootName()),
-                false
+                getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), StateStore.getTasksRootName())
         );
         persister.recursiveDelete(ConfigStore.getConfigurationsPathName());
         persister.recursiveDelete(ConfigStore.getTargetIdPathName());

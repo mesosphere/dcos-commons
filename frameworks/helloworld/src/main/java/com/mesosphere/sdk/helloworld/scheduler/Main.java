@@ -14,11 +14,13 @@ import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceRunner;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.google.common.base.Splitter;
 
+import com.mesosphere.sdk.storage.PersisterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +30,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
+
+import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE;
+import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
 
 /**
  * Main entry point for the Scheduler.
@@ -58,14 +63,16 @@ public class Main {
             // One YAML file: Mono-Scheduler
             LOGGER.info("Starting mono-scheduler using: {}", yamlFiles.iterator().next());
             runSingleYamlService(schedulerConfig, yamlFiles.iterator().next(), scenarios);
-        } else if (yamlFiles.isEmpty()) {
-            // No YAML files (and not in JAVA scenario): Dynamic Multi-Scheduler (user adds/removes services)
-            LOGGER.info("Starting dynamic multi-scheduler");
-            runDynamicMultiService(schedulerConfig, envStore, scenarios);
         } else {
-            // Multiple YAML files: Static Multi-Scheduler (one service per provided yaml file)
-            LOGGER.info("Starting static multi-scheduler using: {}", yamlFiles);
-            runFixedMultiYamlService(schedulerConfig, envStore, yamlFiles, scenarios);
+            if (yamlFiles.isEmpty()) {
+                // No YAML files (and not in JAVA scenario): Dynamic Multi-Scheduler (user adds/removes services)
+                LOGGER.info("Starting dynamic multi-scheduler");
+                runDynamicMultiService(schedulerConfig, envStore, scenarios);
+            } else {
+                // Multiple YAML files: Static Multi-Scheduler (one service per provided yaml file)
+                LOGGER.info("Starting static multi-scheduler using: {}", yamlFiles);
+                runFixedMultiYamlService(schedulerConfig, envStore, yamlFiles, scenarios);
+            }
         }
     }
 
@@ -104,6 +111,7 @@ public class Main {
             Collection<Scenario.Type> scenarios) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
+        checkAndMigrate(frameworkConfig, schedulerConfig, persister);
         MultiServiceManager multiServiceManager = new MultiServiceManager();
 
         ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
@@ -137,9 +145,11 @@ public class Main {
             SchedulerConfig schedulerConfig,
             EnvStore envStore,
             Collection<File> yamlFiles,
-            Collection<Scenario.Type> scenarios) throws Exception {
+            Collection<Scenario.Type> scenarios
+    ) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
+        checkAndMigrate(frameworkConfig, schedulerConfig, persister);
         MultiServiceManager multiServiceManager = new MultiServiceManager();
 
         // Add services represented by YAML files to the service manager:
@@ -147,6 +157,8 @@ public class Main {
             RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
             ServiceSpec serviceSpec =
                     DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile())
+                    // Override any framework-level params in the servicespec (role, principal, ...) with ours:
+                    .setMultiServiceFrameworkConfig(frameworkConfig)
                     .build();
             SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                     .setPlansFrom(rawServiceSpec)
@@ -232,5 +244,35 @@ public class Main {
                                 .build()))
                         .build())
                 .build();
+    }
+
+    private static void checkAndMigrate(
+            FrameworkConfig frameworkConfig,
+            SchedulerConfig schedulerConfig,
+            Persister persister
+    ) {
+        // Migrate if needed.
+        if (!schedulerConfig.isMonoToMultiMigrationDisabled()) {
+            LOGGER.info("Migration is enabled. Analyzing now...");
+            SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
+            int curVer = schemaVersionStore.getOrSetVersion(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+            if (curVer == SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE) {
+                try {
+                    LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema");
+                    PersisterUtils.backUpFrameworkZKData(persister);
+                    PersisterUtils.migrateMonoToMultiZKData(persister, frameworkConfig);
+                    schemaVersionStore.store(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+                    LOGGER.warn("Successfully migrated from old schema to new schema!!");
+                } catch (PersisterException e) {
+                    LOGGER.error("Unable to migrate ZK data : ", e.getMessage(), e);
+                    throw new RuntimeException(e);
+                }
+            } else if (curVer == SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE) {
+                LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
+            } else {
+                throw new IllegalStateException(String.format("Storage schema version %d is not supported by " +
+                        "this software (expected: %d)", curVer, SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE));
+            }
+        }
     }
 }

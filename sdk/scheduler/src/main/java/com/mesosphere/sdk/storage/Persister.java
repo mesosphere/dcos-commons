@@ -71,11 +71,9 @@ public interface Persister {
      *
      * @param srcPath The source path of the node to copy from.
      * @param destPath The destination path of the node to copy to.
-     * @param override If true, the destination path will be overwritten. If false and the destination node is
-     *                 already present, this method should throw an error.
      * @throws PersisterException if the source node is not present or the destination node is already present
      */
-    void recursiveCopy(String srcPath, String destPath, boolean override) throws PersisterException;
+    void recursiveCopy(String srcPath, String destPath) throws PersisterException;
 
     /**
      * Atomically deletes many values from storage at once, with each path entry being treated as a call to

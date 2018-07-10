@@ -11,19 +11,12 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import java.io.File;
 
+import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
+
 /**
  * Sets up and executes the {@link AbstractScheduler} instance.
  */
 public class SchedulerRunner implements Runnable {
-
-    /**
-     * Schema version used by single-service schedulers, which is what {@link SchedulerRunner} runs.
-     */
-    private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
-
-    public static int getSupportedSchemaVersionSingleService() {
-        return SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
-    }
 
     private final SchedulerBuilder schedulerBuilder;
 

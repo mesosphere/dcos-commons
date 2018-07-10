@@ -18,6 +18,16 @@ import org.slf4j.Logger;
 public class SchemaVersionStore {
 
     /**
+     * Schema version used by single-service scheduler. {@link com.mesosphere.sdk.scheduler.SchedulerRunner}
+     */
+    public static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
+
+    /**
+     * Schema version used by multi-service scheduler. {@link com.mesosphere.sdk.scheduler.multi.MultiServiceRunner}
+     */
+    public static final int SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE = 2;
+
+    /**
      * This must never change, as it affects the serialization of the SchemaVersion node.
      */
     private static final Charset CHARSET = StandardCharsets.UTF_8;
