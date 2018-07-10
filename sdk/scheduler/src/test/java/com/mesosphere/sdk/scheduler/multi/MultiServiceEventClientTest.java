@@ -486,6 +486,18 @@ public class MultiServiceEventClientTest {
         Assert.assertEquals(ClientStatusResponse.footprint(true), client.getClientStatus());
     }
 
+    /*@Test
+    public void taskStatusDefaultServiceProcessed() {
+        when(mockMultiServiceManager.getMatchingService(status)).thenReturn(Optional.empty());
+        client.setDefaultServiceName("bar");
+        when(mockMultiServiceManager.getService("bar")).thenReturn(Optional.of(mockClient3));
+
+        Assert.assertEquals(TaskStatusResponse.Result.PROCESSED, client.taskStatus(status).result);
+        client.setDefaultServiceName("");
+    }*/
+
+
+
     @Test
     public void taskStatusClientNotFound() {
         Protos.TaskStatus status = buildStatus("2");
@@ -493,6 +505,18 @@ public class MultiServiceEventClientTest {
 
         Assert.assertEquals(TaskStatusResponse.Result.UNKNOWN_TASK, client.taskStatus(status).result);
         verify(mockMultiServiceManager, times(1)).getMatchingService(status);
+    }
+
+    @Test
+    public void taskStatusDefaultServiceProcessed() {
+        Protos.TaskStatus status = buildStatus("3");
+        when(mockClient3.taskStatus(any())).thenReturn(TaskStatusResponse.processed());
+        when(mockMultiServiceManager.getMatchingService(status)).thenReturn(Optional.empty());
+        client.setDefaultServiceName("bar");
+        when(mockMultiServiceManager.getService("bar")).thenReturn(Optional.of(mockClient3));
+
+        Assert.assertEquals(TaskStatusResponse.Result.PROCESSED, client.taskStatus(status).result);
+        client.setDefaultServiceName("");
     }
 
     @Test

@@ -68,7 +68,7 @@ public class MultiServiceEventClient implements MesosEventClient {
     // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
     private final Collection<String> serviceNamesToGiveOffers;
 
-    private String defaultServiceName = "";
+    private String defaultServiceName;
 
     public MultiServiceEventClient(
             String frameworkName,
@@ -110,6 +110,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         this.offerDiscipline = offerDiscipline;
         this.deregisterStep = deregisterStep;
         this.serviceNamesToGiveOffers = new ArrayList<>();
+        this.defaultServiceName = "";
     }
 
     @Override
@@ -363,7 +364,9 @@ public class MultiServiceEventClient implements MesosEventClient {
                     LOGGER.error("Ignoring malformed resource in offer {} (missing namespace label): {}",
                             offer.getId().getValue(), TextFormat.shortDebugString(resource));
                 } else if (!defaultServiceName.isEmpty()) {
-                    //if default service name is specified then offer reservation to default service
+                    // If default service name is specified then offer reservation to default service
+                    LOGGER.info("Forwarding reserved resource to default service: {}",
+                            defaultServiceName);
                     getEntry(offersByService, defaultServiceName, offer).add(resource);
                 } else {
                     // Not a reserved resource. Ignore for cleanup purposes.
@@ -459,7 +462,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                     status.getTaskId().getValue(), TextFormat.shortDebugString(status));
             return TaskStatusResponse.unknownTask();
         } else if (!defaultServiceName.isEmpty()) {
-            LOGGER.info("forwarding task status to default svc: {}",
+            LOGGER.info("Forwarding task status to default service: {}",
                     defaultServiceName);
             Optional<AbstractScheduler> defaultService = multiServiceManager.getService(defaultServiceName);
             return defaultService.get().taskStatus(status);
@@ -525,16 +528,11 @@ public class MultiServiceEventClient implements MesosEventClient {
     }
 
     /**
-     * Sets the default service name
+     * Sets the default service name. When specified unknown task statuses and reservations will be forwarded to
+     * the specified service.
      */
     public void setDefaultServiceName(String defaultServiceName) {
         this.defaultServiceName = defaultServiceName;
     }
 
-    /**
-     * Get the default service name
-     */
-    public String getDefaultServiceName() {
-        return this.defaultServiceName;
-    }
 }
