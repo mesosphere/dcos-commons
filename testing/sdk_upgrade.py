@@ -147,6 +147,23 @@ def get_config(package_name, service_name):
     return target_config
 
 
+def update_service(package_name, service_name, additional_options=None, to_package_version=None):
+    update_cmd = ['update', 'start']
+    if to_package_version:
+        update_cmd.append('--package-version={}'.format(to_package_version))
+    if additional_options:
+        with tempfile.NamedTemporaryFile() as opts_f:
+            opts_f.write(json.dumps(additional_options).encode('utf-8'))
+            opts_f.flush()  # ensure json content is available for the CLI to read below
+            sdk_cmd.svc_cli(
+                package_name,
+                service_name,
+                '{} --options={}'.format(' '.join(update_cmd), opts_f.name)
+            )
+    else:
+        sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd))
+
+
 def _upgrade_or_downgrade(
         package_name,
         to_package_version,
@@ -172,17 +189,7 @@ def _upgrade_or_downgrade(
             wait_for_deployment=wait_for_deployment)
     else:
         log.info('Using CLI upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
-        if additional_options:
-            with tempfile.NamedTemporaryFile() as opts_f:
-                opts_f.write(json.dumps(additional_options).encode('utf-8'))
-                opts_f.flush()  # ensure json content is available for the CLI to read below
-                sdk_cmd.svc_cli(
-                    package_name, service_name,
-                    'update start --package-version={} --options={}'.format(to_package_version, opts_f.name))
-        else:
-            sdk_cmd.svc_cli(
-                package_name, service_name,
-                'update start --package-version={}'.format(to_package_version))
+        update_service(additional_options, to_package_version)
         # we must manually upgrade the package CLI because it's not done automatically in this flow
         # (and why should it? that'd imply the package CLI replacing itself via a call to the main CLI...)
         sdk_cmd.run_cli(

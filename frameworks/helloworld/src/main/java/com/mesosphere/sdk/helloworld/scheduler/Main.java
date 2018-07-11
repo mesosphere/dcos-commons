@@ -63,16 +63,14 @@ public class Main {
             // One YAML file: Mono-Scheduler
             LOGGER.info("Starting mono-scheduler using: {}", yamlFiles.iterator().next());
             runSingleYamlService(schedulerConfig, yamlFiles.iterator().next(), scenarios);
+        } else if (yamlFiles.isEmpty()) {
+            // No YAML files (and not in JAVA scenario): Dynamic Multi-Scheduler (user adds/removes services)
+            LOGGER.info("Starting dynamic multi-scheduler");
+            runDynamicMultiService(schedulerConfig, envStore, scenarios);
         } else {
-            if (yamlFiles.isEmpty()) {
-                // No YAML files (and not in JAVA scenario): Dynamic Multi-Scheduler (user adds/removes services)
-                LOGGER.info("Starting dynamic multi-scheduler");
-                runDynamicMultiService(schedulerConfig, envStore, scenarios);
-            } else {
-                // Multiple YAML files: Static Multi-Scheduler (one service per provided yaml file)
-                LOGGER.info("Starting static multi-scheduler using: {}", yamlFiles);
-                runFixedMultiYamlService(schedulerConfig, envStore, yamlFiles, scenarios);
-            }
+            // Multiple YAML files: Static Multi-Scheduler (one service per provided yaml file)
+            LOGGER.info("Starting static multi-scheduler using: {}", yamlFiles);
+            runFixedMultiYamlService(schedulerConfig, envStore, yamlFiles, scenarios);
         }
     }
 

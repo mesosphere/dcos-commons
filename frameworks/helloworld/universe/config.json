@@ -73,6 +73,7 @@
             "enable-disable",
             "executor_volume",
             "finish_state",
+            "foobar_service_name",
             "gpu_resource",
             "graceful-shutdown",
             "marathon_constraint",
