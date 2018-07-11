@@ -106,6 +106,7 @@ case "$publish_method" in
         echo "Use one of the following additional arguments to get something that runs on a cluster:"
         echo "- 'local': Host the build in a local HTTP server for use by a DC/OS Vagrant cluster."
         echo "- 'aws':   Upload the build to S3."
+        echo "- '.dcos': Upload the build as a .dcos file to S3."
         ;;
 esac
 
