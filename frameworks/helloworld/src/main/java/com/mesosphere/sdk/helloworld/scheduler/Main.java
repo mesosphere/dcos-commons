@@ -31,9 +31,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE;
-import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
-
 /**
  * Main entry point for the Scheduler.
  */
