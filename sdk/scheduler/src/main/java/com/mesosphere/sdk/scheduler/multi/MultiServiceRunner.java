@@ -6,8 +6,6 @@ import com.mesosphere.sdk.scheduler.*;
 import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 
-import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE;
-
 /**
  * Sets up and executes a {@link FrameworkRunner} to which potentially multiple {@link AbstractScheduler}s may be added.
  */
@@ -49,7 +47,7 @@ public class MultiServiceRunner implements Runnable {
          */
         public MultiServiceRunner build() {
             // Check and/or initialize schema version before doing any other storage access:
-            new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+            new SchemaVersionStore(persister).check(SchemaVersionStore.getSupportedSchemaVersionMultiService());
 
             return new MultiServiceRunner(schedulerConfig, frameworkConfig, persister, client, usingGpus);
         }

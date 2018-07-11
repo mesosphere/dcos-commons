@@ -574,6 +574,25 @@ public class CuratorPersisterTest {
         assertArrayEquals(null, persister.get("p/5/1"));
     }
 
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfTargetExists() throws Exception{
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
+        persister.set("x", DATA_2);
+        persister.set("y", DATA_1);
+        persister.recursiveCopy("/x", "/y");
+    }
+
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfSourceDoesNotExist() throws Exception{
+        CuratorTestUtils.clear(testZk);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
+        persister.set("y", DATA_1);
+        persister.recursiveCopy("/x", "/y");
+    }
+
     private void setupCommon() {
         when(mockClient.checkExists()).thenReturn(mockExistsBuilder);
         when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);

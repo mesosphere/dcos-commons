@@ -20,12 +20,12 @@ public class SchemaVersionStore {
     /**
      * Schema version used by single-service scheduler. {@link com.mesosphere.sdk.scheduler.SchedulerRunner}
      */
-    public static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
+    private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
 
     /**
      * Schema version used by multi-service scheduler. {@link com.mesosphere.sdk.scheduler.multi.MultiServiceRunner}
      */
-    public static final int SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE = 2;
+    private static final int SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE = 2;
 
     /**
      * This must never change, as it affects the serialization of the SchemaVersion node.
@@ -43,6 +43,14 @@ public class SchemaVersionStore {
     private static final String SCHEMA_VERSION_NAME = "SchemaVersion";
 
     private final Persister persister;
+
+    public static int getSupportedSchemaVersionSingleService() {
+        return SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
+    }
+
+    public static int getSupportedSchemaVersionMultiService() {
+        return SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE;
+    }
 
     /**
      * Creates a new version store against the provided Framework Name, as would be provided to

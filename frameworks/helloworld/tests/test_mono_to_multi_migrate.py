@@ -20,6 +20,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.sanity
 def test_mono_to_multi_migration_simple():
     # Install hello-world with single yaml
     sdk_install.install(config.PACKAGE_NAME,
@@ -41,6 +42,7 @@ def test_mono_to_multi_migration_simple():
     assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) > 0
 
 
+@pytest.mark.sanity
 def test_mono_to_multi_migration():
     # Install hello-world with single yaml
     sdk_install.install(config.PACKAGE_NAME,

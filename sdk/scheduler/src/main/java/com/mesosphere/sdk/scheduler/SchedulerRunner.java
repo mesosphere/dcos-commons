@@ -11,8 +11,6 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import java.io.File;
 
-import static com.mesosphere.sdk.state.SchemaVersionStore.SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
-
 /**
  * Sets up and executes the {@link AbstractScheduler} instance.
  */
@@ -76,7 +74,7 @@ public class SchedulerRunner implements Runnable {
         Persister persister = schedulerBuilder.getPersister();
 
         // Check and/or initialize schema version before doing any other storage access:
-        new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);
+        new SchemaVersionStore(persister).check(SchemaVersionStore.getSupportedSchemaVersionSingleService());
 
         Metrics.configureStatsd(schedulerConfig);
 
