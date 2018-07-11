@@ -192,8 +192,8 @@ def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOU
 
 
 def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice_name=None):
-    sdk_plan.wait_for_completed_deployment(service_name)
-    sdk_plan.wait_for_completed_recovery(service_name)
+    sdk_plan.wait_for_completed_deployment(service_name, multiservice_name=multiservice_name)
+    sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 
     try:
         task_ids = set([t['id'] for t in shakedown.get_tasks() if t['name'] == task_name])
@@ -201,7 +201,8 @@ def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice
         log.info('Failed to get task ids for service {}'.format(service_name))
         task_ids = set([])
 
-    assert len(task_ids) == 1 and old_task_id in task_ids
+    assert old_task_id in task_ids, 'Old task id {} was not found in task_ids {}'.format(old_task_id, task_ids)
+    assert len(task_ids) == 1, 'Length != 1. Expected task id {} Task ids: {}'.format(old_task_id, task_ids)
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
