@@ -85,7 +85,7 @@ class UniverseReleaseBuilder(object):
             release_docker_image=os.environ.get('RELEASE_DOCKER_IMAGE'),
             release_dir_path=os.environ.get('RELEASE_DIR_PATH', ''),
             beta_release=os.environ.get('BETA', 'False'),
-            upgrades_from=os.environ.get('UPGRADES_FROM')):
+            upgrades_from=os.environ.get('UPGRADES_FROM', '')):
         self._dry_run = os.environ.get('DRY_RUN', '')
         self._force_upload = os.environ.get('FORCE_ARTIFACT_UPLOAD', '').lower() == 'true'
         self._beta_release = beta_release.lower() == 'true'
