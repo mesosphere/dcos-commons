@@ -112,7 +112,7 @@ class UniverseReleaseBuilder(object):
             http_release_server, release_dir_path, self._pkg_version)
 
         self._release_docker_image = release_docker_image or None
-        self._upgrades_from = list(map(str.strip, upgrades_from.split(',')))
+        self._upgrades_from = list(filter(None, map(str.strip, upgrades_from.split(','))))
 
         log.info('''###
 Source URL:      {}
@@ -210,7 +210,7 @@ Upgrades from:   {}
         # Update package's version to reflect the user's input
         package_json['version'] = self._pkg_version
 
-        if self._upgrades_from is not None:
+        if self._upgrades_from:
             package_json['upgradesFrom'] = [*self._upgrades_from]
             package_json['downgradesTo'] = [*self._upgrades_from]
         elif self._stub_universe_pkg_name != self._pkg_name and \
