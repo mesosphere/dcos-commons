@@ -416,7 +416,7 @@ Upgrades from:   {}
         pkgdir = self._unpack_stub_universe(stub_universe_json, scratchdir)
         try:
             return publisher.publish(scratchdir, pkgdir)
-        except:
+        except Exception:
             log.error(
                 'Failed to create PR. '
                 'Note that any release artifacts were already uploaded to {}, '
