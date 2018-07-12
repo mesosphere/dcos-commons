@@ -37,9 +37,11 @@ def test_mono_to_multi_migration_simple():
                                         'hello-0-server',
                                         hello_task_id.pop(),
                                         multiservice_name=config.SERVICE_NAME)
+    log.info('Old task was not relaunched!')
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name='foobar')
     # Ensure new tasks are launched.
     assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) > 0
+    log.info('Successfully migrated the service!!')
 
 
 @pytest.mark.sanity

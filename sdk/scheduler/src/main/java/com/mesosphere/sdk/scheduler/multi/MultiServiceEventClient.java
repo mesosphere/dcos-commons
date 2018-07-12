@@ -45,7 +45,8 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     public interface UninstallCallback {
         /**
-         * Invoked when a given service has completed its uninstall as triggered by {@link #uninstallService(String)}.
+         * Invoked when a given service has completed its uninstall as triggered by
+         * {@link MultiServiceManager#uninstallService(String)}.
          * After this has been called, re-adding the service to the {@link MultiServiceEventClient} will result in
          * launching a new instance from scratch.
          */
@@ -60,7 +61,6 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final Collection<Object> customEndpoints;
     private final UninstallCallback uninstallCallback;
     private final OfferDiscipline offerDiscipline;
-
 
     // Additional handling for when we're uninstalling the entire Scheduler.
     private final Optional<DeregisterStep> deregisterStep;
@@ -286,8 +286,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         boolean anyServicesNotReady = false;
         List<OfferRecommendation> recommendations = new ArrayList<>();
 
-        List<Protos.Offer> remainingOffers = new ArrayList<>();
-        remainingOffers.addAll(offers);
+        List<Protos.Offer> remainingOffers = new ArrayList<>(offers);
         for (String serviceName : serviceNamesToGiveOffers) {
             // Note: If we run out of remainingOffers we regardless keep going with an empty list of offers against all
             // eligible services. We do this to turn the crank on the services periodically.
@@ -365,11 +364,11 @@ public class MultiServiceEventClient implements MesosEventClient {
                             offer.getId().getValue(), TextFormat.shortDebugString(resource));
                 } else if (isDefaultServiceEnabled) {
                     // If default service name is specified then offer reservation to default service
-                    LOGGER.info("Forwarding reserved resource to default service: {}",
-                            frameworkName);
+                    LOGGER.info("Forwarding reserved resource to default service: {}", frameworkName);
                     getEntry(offersByService, frameworkName, offer).add(resource);
                 } else {
                     // Not a reserved resource. Ignore for cleanup purposes.
+                    LOGGER.warn("Unable to map the unused offer to any service.");
                 }
             }
         }
@@ -416,8 +415,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 LOGGER.info("  {} cleanup result: {} with {} unexpected resources in {} offer{}",
                         serviceName,
                         response.result,
-                        response.offerResources.stream()
-                                .collect(Collectors.summingInt(or -> or.getResources().size())),
+                        response.offerResources.stream().mapToInt(or -> or.getResources().size()).sum(),
                         response.offerResources.size(),
                         response.offerResources.size() == 1 ? "" : "s");
                 switch (response.result) {
@@ -462,8 +460,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                     status.getTaskId().getValue(), TextFormat.shortDebugString(status));
             return TaskStatusResponse.unknownTask();
         } else if (isDefaultServiceEnabled) {
-            LOGGER.info("Forwarding task status to default service: {}",
-                    frameworkName);
+            LOGGER.info("Forwarding task status to default service: {}", frameworkName);
             Optional<AbstractScheduler> defaultService = multiServiceManager.getService(frameworkName);
             return defaultService.get().taskStatus(status);
         }
@@ -505,26 +502,18 @@ public class MultiServiceEventClient implements MesosEventClient {
      * entry if needed.
      */
     private static OfferResources getEntry(
-            Map<String, Map<Protos.OfferID, OfferResources>> map, String serviceName, Protos.Offer offer) {
-        Map<Protos.OfferID, OfferResources> serviceOffers = map.get(serviceName);
-        if (serviceOffers == null) {
-            serviceOffers = new HashMap<>();
-            map.put(serviceName, serviceOffers);
-        }
-        return getEntry(serviceOffers, offer);
+            Map<String, Map<Protos.OfferID, OfferResources>> map,
+            String serviceName, Protos.Offer offer
+    ) {
+        return getEntry(map.computeIfAbsent(serviceName, k -> new HashMap<>()), offer);
     }
 
     /**
      * Finds the requested {@link OfferResources} value in the provided map[offerId], initializing the entry if needed.
      */
     private static OfferResources getEntry(Map<Protos.OfferID, OfferResources> map, Protos.Offer offer) {
-        OfferResources currentValue = map.get(offer.getId());
-        if (currentValue == null) {
-            // Initialize entry
-            currentValue = new OfferResources(offer);
-            map.put(offer.getId(), currentValue);
-        }
-        return currentValue;
+        // Initialize entry
+        return map.computeIfAbsent(offer.getId(), k -> new OfferResources(offer));
     }
 
     /**
