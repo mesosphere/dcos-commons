@@ -3,43 +3,40 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
-
-import javax.validation.constraints.Min;
 
 /**
  * Destructive Replacement Failure Policy configuration.
  */
 public class ReplacementFailurePolicy {
-    @Min(0)
-    private Integer permanentFailureTimoutMin;
-    @Min(0)
-    private Integer minReplaceDelayMin;
+
+    private final Integer permanentFailureTimeoutMins;
+    private final Integer minReplaceDelayMins;
 
     /**
      * Default time to wait between destructive task recoveries (avoid quickly making things worse).
      *
      * Default: 10 minutes
      */
-    public static final Integer DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN = 10;
+    public static final Integer DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN = 10;
 
     /**
      * Default time to wait before declaring a task as permanently failed.
      *
      * Default: 20 minutes
      */
-    public static final Integer PERMANENT_FAILURE_DELAY_MIN = 20;
+    private static final Integer DEFAULT_PERMANENT_FAILURE_DELAY_MINS = 20;
 
-    public ReplacementFailurePolicy(
-            @JsonProperty("permanent-failure-timeout-mins") Integer permanentFailureTimoutMin,
-            @JsonProperty("min-replace-delay-mins") Integer minReplaceDelayMin) {
-        this.permanentFailureTimoutMin = permanentFailureTimoutMin;
-        this.minReplaceDelayMin = minReplaceDelayMin;
+    private ReplacementFailurePolicy(
+            @JsonProperty("permanent-failure-timeout-mins") Integer permanentFailureTimeoutMins,
+            @JsonProperty("min-replace-delay-mins") Integer minReplaceDelayMins) {
+        this.permanentFailureTimeoutMins = permanentFailureTimeoutMins;
+        this.minReplaceDelayMins = minReplaceDelayMins;
     }
 
     private ReplacementFailurePolicy(Builder builder) {
-        setPermanentFailureTimoutMin(builder.permanentFailureTimoutMin);
-        setMinReplaceDelayMin(builder.minReplaceDelayMin);
+        this(builder.permanentFailureTimoutMin, builder.minReplaceDelayMin);
+        ValidationUtils.nonNegative(this, "permanentFailureTimeoutMins", permanentFailureTimeoutMins);
+        ValidationUtils.nonNegative(this, "minReplaceDelayMins", minReplaceDelayMins);
     }
 
     public static Builder newBuilder() {
@@ -48,25 +45,19 @@ public class ReplacementFailurePolicy {
 
     public static Builder newBuilder(ReplacementFailurePolicy copy) {
         Builder builder = new Builder();
-        builder.permanentFailureTimoutMin = copy.permanentFailureTimoutMin;
-        builder.minReplaceDelayMin = copy.minReplaceDelayMin;
+        builder.permanentFailureTimoutMin = copy.permanentFailureTimeoutMins;
+        builder.minReplaceDelayMin = copy.minReplaceDelayMins;
         return builder;
     }
 
-    public Integer getPermanentFailureTimoutMin() {
-        return permanentFailureTimoutMin;
+    @JsonProperty("permanent-failure-timeout-mins")
+    public Integer getPermanentFailureTimeoutMins() {
+        return permanentFailureTimeoutMins;
     }
 
-    public void setPermanentFailureTimoutMin(Integer permanentFailureTimoutMins) {
-        this.permanentFailureTimoutMin = permanentFailureTimoutMins;
-    }
-
-    public Integer getMinReplaceDelayMin() {
-        return minReplaceDelayMin;
-    }
-
-    public void setMinReplaceDelayMin(Integer minReplaceDelayMin) {
-        this.minReplaceDelayMin = minReplaceDelayMin;
+    @JsonProperty("min-replace-delay-mins")
+    public Integer getMinReplaceDelayMins() {
+        return minReplaceDelayMins;
     }
 
     @Override
@@ -87,8 +78,8 @@ public class ReplacementFailurePolicy {
         private Integer minReplaceDelayMin;
 
         private Builder() {
-            this.permanentFailureTimoutMin = PERMANENT_FAILURE_DELAY_MIN;
-            this.minReplaceDelayMin = DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN;
+            this.permanentFailureTimoutMin = DEFAULT_PERMANENT_FAILURE_DELAY_MINS;
+            this.minReplaceDelayMin = DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN;
         }
 
         /**
@@ -122,9 +113,7 @@ public class ReplacementFailurePolicy {
          * {@code ReplacementFailurePolicy.Builder}
          */
         public ReplacementFailurePolicy build() {
-            ReplacementFailurePolicy replacementFailurePolicy = new ReplacementFailurePolicy(this);
-            ValidationUtils.validate(replacementFailurePolicy);
-            return replacementFailurePolicy;
+            return new ReplacementFailurePolicy(this);
         }
     }
 }

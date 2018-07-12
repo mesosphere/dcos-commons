@@ -4,16 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
-import com.mesosphere.sdk.specification.validation.UniqueTaskName;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.net.URI;
 import java.util.*;
 
@@ -21,43 +16,28 @@ import java.util.*;
  * Default implementation of {@link PodSpec}.
  */
 public class DefaultPodSpec implements PodSpec {
-    @NotNull
-    @Size(min = 1)
+
     private final String type;
     private final String user;
-    @NotNull
-    @Min(0)
     private final Integer count;
-    @NotNull
-    private Boolean allowDecommission;
-    @Size(min = 1)
-    private String image;
-    @Valid
-    private Collection<NetworkSpec> networks;
-    @Valid
-    private Collection<RLimitSpec> rlimits;
-    @NotNull
-    @Valid
-    @Size(min = 1)
-    @UniqueTaskName(message = "Task names must be unique")
+    private final Boolean allowDecommission;
+    private final String image;
+    private final Collection<NetworkSpec> networks;
+    private final Collection<RLimitSpec> rlimits;
     private final List<TaskSpec> tasks;
-    @Valid
     private final PlacementRule placementRule;
-    @Valid
     private final Collection<URI> uris;
-    @Valid
-    private Collection<VolumeSpec> volumes;
-    @Valid
-    private Collection<SecretSpec> secrets;
-    private String preReservedRole;
-    @NotNull
-    private Boolean sharePidNamespace;
+    private final Collection<VolumeSpec> volumes;
+    private final Collection<SecretSpec> secrets;
+    private final String preReservedRole;
+    private final Boolean sharePidNamespace;
 
     @JsonCreator
-    public DefaultPodSpec(
+    private DefaultPodSpec(
             @JsonProperty("type") String type,
             @JsonProperty("user") String user,
             @JsonProperty("count") Integer count,
+            @JsonProperty("allow-decommission") Boolean allowDecommission,
             @JsonProperty("image") String image,
             @JsonProperty("networks") Collection<NetworkSpec> networks,
             @JsonProperty("rlimits") Collection<RLimitSpec> rlimits,
@@ -67,42 +47,60 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("volumes") Collection<VolumeSpec> volumes,
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
-            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-            @JsonProperty("allow-decommission") Boolean allowDecommission) {
-        this(
-                new Builder(type, count, tasks)
-                        .type(type)
-                        .user(user)
-                        .count(count)
-                        .image(image)
-                        .networks(networks)
-                        .rlimits(rlimits)
-                        .uris(uris)
-                        .tasks(tasks)
-                        .placementRule(placementRule)
-                        .volumes(volumes)
-                        .preReservedRole(preReservedRole)
-                        .secrets(secrets)
-                        .sharePidNamespace(sharePidNamespace)
-                        .allowDecommission(allowDecommission));
+            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace) {
+        this.type = type;
+        this.user = user;
+        this.count = count;
+        this.allowDecommission = allowDecommission;
+        this.image = image;
+        this.networks = networks;
+        this.rlimits = rlimits;
+        this.uris = uris;
+        this.tasks = tasks;
+        this.placementRule = placementRule;
+        this.volumes = volumes;
+        this.preReservedRole = preReservedRole;
+        this.secrets = secrets;
+        this.sharePidNamespace = sharePidNamespace;
     }
 
     private DefaultPodSpec(Builder builder) {
-        this.count = builder.count;
-        this.allowDecommission = builder.allowDecommission;
-        this.image = builder.image;
-        this.networks = builder.networks;
-        this.placementRule = builder.placementRule;
-        this.preReservedRole = builder.preReservedRole;
-        this.rlimits = builder.rlimits;
-        this.secrets = builder.secrets;
-        this.tasks = builder.tasks;
-        this.type = builder.type;
-        this.uris = builder.uris;
-        this.user = builder.user;
-        this.volumes = builder.volumes;
-        this.sharePidNamespace = builder.sharePidNamespace;
-        ValidationUtils.validate(this);
+        this(
+                builder.type,
+                builder.user,
+                builder.count,
+                builder.allowDecommission,
+                builder.image,
+                builder.networks,
+                builder.rlimits,
+                builder.uris,
+                builder.tasks,
+                builder.placementRule,
+                builder.volumes,
+                builder.preReservedRole,
+                builder.secrets,
+                builder.sharePidNamespace);
+
+        ValidationUtils.nonEmpty(this, "type", type);
+        ValidationUtils.nonNegative(this, "count", count);
+        ValidationUtils.nonNull(this, "allowDecommission", allowDecommission);
+        ValidationUtils.nonEmptyAllowNull(this, "image", image);
+        ValidationUtils.nonEmpty(this, "tasks", tasks);
+        ValidationUtils.nonNull(this, "sharePidNamespace", sharePidNamespace);
+
+        Set<String> taskNames = new HashSet<>();
+        for (TaskSpec taskSpec : tasks) {
+            String taskName = taskSpec.getName();
+            if (StringUtils.isEmpty(taskName)) {
+                throw new IllegalArgumentException(
+                        String.format("Empty name for TaskSpec in pod %s: %s", type, taskSpec));
+            } else if (taskNames.contains(taskName)) {
+                throw new IllegalArgumentException(
+                        String.format("Duplicate task name in pod %s: %s", type, taskName));
+            } else {
+                taskNames.add(taskName);
+            }
+        }
     }
 
     public static Builder newBuilder(String type, int count, List<TaskSpec> tasks) {

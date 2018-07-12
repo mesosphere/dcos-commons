@@ -2,38 +2,25 @@ package com.mesosphere.sdk.specification;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 /**
  * This class provides a default implementation of the ResourceSpec interface.
  */
 public class DefaultResourceSpec implements ResourceSpec {
-    @NotNull
-    @Size(min = 1)
+
     private final String name;
-    @NotNull
-    @PositiveScalarProtoValue
     private final Protos.Value value;
-    @NotNull
-    @Size(min = 1)
     private final String role;
-    @NotNull
-    @Size(min = 1)
     private final String principal;
     private final String preReservedRole;
 
     @JsonCreator
-    public DefaultResourceSpec(
+    protected DefaultResourceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
@@ -44,14 +31,20 @@ public class DefaultResourceSpec implements ResourceSpec {
         this.role = role;
         this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.principal = principal;
+
+        ValidationUtils.nonEmpty(this, "name", name);
+        ValidationUtils.nonNull(this, "value", value);
+        ValidationUtils.nonEmpty(this, "role", role);
+        ValidationUtils.nonEmpty(this, "principal", principal);
+
+        if (value.hasScalar() && value.getScalar().getValue() <= 0) {
+            throw new IllegalArgumentException(
+                    String.format("Scalar resource value must be greater than zero: %s", this));
+        }
     }
 
     private DefaultResourceSpec(Builder builder) {
-        name = builder.name;
-        value = builder.value;
-        role = builder.role;
-        preReservedRole = builder.preReservedRole;
-        principal = builder.principal;
+        this(builder.name, builder.value, builder.role, builder.preReservedRole, builder.principal);
     }
 
     public static Builder newBuilder() {
@@ -69,28 +62,33 @@ public class DefaultResourceSpec implements ResourceSpec {
     }
 
     @Override
+    @JsonProperty("name")
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    @JsonProperty("value")
     public Protos.Value getValue() {
         return value;
     }
 
     @Override
+    @JsonProperty("role")
     public String getRole() {
         return role;
     }
 
     @Override
+    @JsonProperty("pre-reserved-role")
     public String getPreReservedRole() {
         return preReservedRole;
     }
 
     @Override
+    @JsonProperty("principal")
     public String getPrincipal() {
         return principal;
-    }
-
-    @Override
-    public String getName() {
-        return name;
     }
 
     @Override
@@ -114,18 +112,17 @@ public class DefaultResourceSpec implements ResourceSpec {
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-
     /**
-     * {@code DefaultResourceSpec} builder static inner class.
+     * {@link DefaultResourceSpec} builder static inner class.
      */
-    public static final class Builder {
-        private String name;
-        private Protos.Value value;
-        private String role;
-        private String principal;
-        public String preReservedRole = Constants.ANY_ROLE;
+    public static class Builder {
+        protected String name;
+        protected Protos.Value value;
+        protected String role;
+        protected String principal;
+        protected String preReservedRole = Constants.ANY_ROLE;
 
-        private Builder() {
+        protected Builder() {
         }
 
         /**
@@ -185,9 +182,7 @@ public class DefaultResourceSpec implements ResourceSpec {
          * {@code DefaultResourceSpec.Builder}
          */
         public DefaultResourceSpec build() {
-            DefaultResourceSpec defaultResourceSpec = new DefaultResourceSpec(this);
-            ValidationUtils.validate(defaultResourceSpec);
-            return defaultResourceSpec;
+            return new DefaultResourceSpec(this);
         }
     }
 }

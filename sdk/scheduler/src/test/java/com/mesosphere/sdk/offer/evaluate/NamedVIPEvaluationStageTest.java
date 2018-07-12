@@ -187,18 +187,21 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .setBegin(taskPort)
                 .setEnd(taskPort);
 
-        return new NamedVIPSpec(
-                valueBuilder.build(),
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
-                TestConstants.VIP_NAME + "-" + taskPort,
-                "sctp",
-                DiscoveryInfo.Visibility.EXTERNAL,
-                "test-vip",
-                80,
-                networkNames);
+        NamedVIPSpec.Builder builder = NamedVIPSpec.newBuilder()
+                .protocol("sctp")
+                .vipName("test-vip")
+                .vipPort(80);
+        builder
+                .envKey(TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort)
+                .portName(TestConstants.VIP_NAME + "-" + taskPort)
+                .visibility(DiscoveryInfo.Visibility.EXTERNAL)
+                .networkNames(networkNames);
+        builder
+                .value(valueBuilder.build())
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL);
+        return builder.build();
     }
 
     private static PodInstanceRequirement getPodInstanceRequirement(int taskPort, Collection<String> networkNames) {

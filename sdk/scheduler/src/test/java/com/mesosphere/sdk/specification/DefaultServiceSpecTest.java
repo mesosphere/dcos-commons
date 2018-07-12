@@ -36,8 +36,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -273,17 +271,11 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT, taskKillGracePeriodSeconds);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidTaskKillGracePeriodSeconds() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-kill-grace-period-seconds.yml").getFile());
-        try {
-            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertTrue(constraintViolations.size() > 0);
-        }
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     private int getTaskKillGracePeriodSeconds(DefaultServiceSpec serviceSpec) {
@@ -360,7 +352,7 @@ public class DefaultServiceSpecTest {
                 .build();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidPodNamePojo() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
@@ -373,17 +365,11 @@ public class DefaultServiceSpecTest {
                 DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                         .setConfigTemplateReader(configTemplateReader)
                         .build();
-        try {
-            List<PodSpec> pods = defaultServiceSpec.getPods();
-            pods.add(pods.get(0));
-            DefaultServiceSpec.newBuilder(defaultServiceSpec)
-                    .pods(pods)
-                    .build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertTrue(constraintViolations.size() > 0);
-        }
+        List<PodSpec> pods = defaultServiceSpec.getPods();
+        pods.add(pods.get(0));
+        DefaultServiceSpec.newBuilder(defaultServiceSpec)
+                .pods(pods)
+                .build();
     }
 
     @Test
@@ -415,12 +401,11 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void invalidImageNull() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-image-null.yml").getFile());
-        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertEquals(null, defaultServiceSpec.getPods().get(0).getImage());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test
@@ -481,43 +466,25 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidScalarCpuResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        try {
-            File file = new File(classLoader.getResource("invalid-scalar-cpu-resource.yml").getFile());
-            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertEquals(1, constraintViolations.size());
-        }
+        File file = new File(classLoader.getResource("invalid-scalar-cpu-resource.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidScalarMemResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        try {
-            File file = new File(classLoader.getResource("invalid-scalar-mem-resource.yml").getFile());
-            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertEquals(1, constraintViolations.size());
-        }
+        File file = new File(classLoader.getResource("invalid-scalar-mem-resource.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidScalarDiskResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        try {
-            File file = new File(classLoader.getResource("invalid-scalar-disk-resource.yml").getFile());
-            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertEquals(1, constraintViolations.size());
-        }
+        File file = new File(classLoader.getResource("invalid-scalar-disk-resource.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test(expected = RLimitSpec.InvalidRLimitException.class)
@@ -527,7 +494,7 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidTaskNamePojo() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-exhaustive.yml").getFile());
@@ -540,19 +507,13 @@ public class DefaultServiceSpecTest {
                 DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
                         .setConfigTemplateReader(configTemplateReader)
                         .build();
-        try {
-            List<PodSpec> pods = defaultServiceSpec.getPods();
-            PodSpec aPod = pods.get(0);
-            List<TaskSpec> tasks = aPod.getTasks();
-            tasks.add(tasks.get(0));
-            DefaultPodSpec.newBuilder(aPod)
-                    .tasks(tasks)
-                    .build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertTrue(constraintViolations.size() > 0);
-        }
+        List<PodSpec> pods = defaultServiceSpec.getPods();
+        PodSpec aPod = pods.get(0);
+        List<TaskSpec> tasks = aPod.getTasks();
+        tasks.add(tasks.get(0));
+        DefaultPodSpec.newBuilder(aPod)
+                .tasks(tasks)
+                .build();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -562,17 +523,11 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void invalidTaskSpecNoResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-task-resources.yml").getFile());
-        try {
-            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-            Assert.fail("Expected exception");
-        } catch (ConstraintViolationException e) {
-            Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-            Assert.assertTrue(constraintViolations.size() > 0);
-        }
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test

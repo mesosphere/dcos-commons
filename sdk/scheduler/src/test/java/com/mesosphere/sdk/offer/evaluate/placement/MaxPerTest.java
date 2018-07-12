@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.MockitoAnnotations;
 
-import javax.validation.ConstraintViolationException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -41,7 +40,7 @@ public class MaxPerTest {
         offer = OfferTestUtils.getEmptyOfferBuilder().build();
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void limitZero() {
         new MaxPerHostnameRule(0);
     }

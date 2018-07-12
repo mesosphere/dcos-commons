@@ -197,7 +197,10 @@ public class YAMLToInternalMappers {
             }
         }
 
-        return new DefaultDiscoverySpec(rawDiscovery.getPrefix(), visibility);
+        return DefaultDiscoverySpec.newBuilder()
+                .prefix(rawDiscovery.getPrefix())
+                .visibility(visibility)
+                .build();
     }
 
     private static PodSpec convertPod(
@@ -336,10 +339,11 @@ public class YAMLToInternalMappers {
         List<ConfigFileSpec> configFiles = new ArrayList<>();
         if (rawTask.getConfigs() != null) {
             for (Map.Entry<String, RawConfig> configEntry : rawTask.getConfigs().entrySet()) {
-                configFiles.add(new DefaultConfigFileSpec(
-                        configEntry.getKey(),
-                        configEntry.getValue().getDest(),
-                        configTemplateReader.read(configEntry.getValue().getTemplate())));
+                configFiles.add(DefaultConfigFileSpec.newBuilder()
+                        .name(configEntry.getKey())
+                        .relativePath(configEntry.getValue().getDest())
+                        .templateContent(configTemplateReader.read(configEntry.getValue().getTemplate()))
+                        .build());
             }
         }
 
@@ -369,7 +373,7 @@ public class YAMLToInternalMappers {
         Collection<TransportEncryptionSpec> transportEncryption = rawTask
                 .getTransportEncryption()
                 .stream()
-                .map(task -> new DefaultTransportEncryptionSpec.Builder()
+                .map(task -> DefaultTransportEncryptionSpec.newBuilder()
                         .name(task.getName())
                         .type(TransportEncryptionSpec.Type.valueOf(task.getType()))
                         .build())
@@ -472,13 +476,15 @@ public class YAMLToInternalMappers {
 
     private static DefaultSecretSpec convertSecret(
             RawSecret rawSecret) {
-        String filePath =  (rawSecret.getFilePath() == null && rawSecret.getEnvKey() == null) ?
-                rawSecret.getSecretPath() : rawSecret.getFilePath();
+        String filePath = rawSecret.getFilePath() == null && rawSecret.getEnvKey() == null
+                ? rawSecret.getSecretPath()
+                : rawSecret.getFilePath();
 
-        return new DefaultSecretSpec(
-                rawSecret.getSecretPath(),
-                rawSecret.getEnvKey(),
-                filePath);
+        return DefaultSecretSpec.newBuilder()
+                .secretPath(rawSecret.getSecretPath())
+                .envKey(rawSecret.getEnvKey())
+                .filePath(filePath)
+                .build();
     }
 
     private static DefaultVolumeSpec convertVolume(
@@ -523,15 +529,11 @@ public class YAMLToInternalMappers {
                 }
             }
             builder.portMappings(portMap);
-        } else {
-            builder.portMappings(Collections.emptyMap());
         }
 
         if (!Strings.isNullOrEmpty(rawNetwork.getLabelsCsv())) {
             builder.networkLabels(rawNetwork.getValidatedLabels()
                     .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
-        } else {
-            builder.networkLabels(Collections.emptyMap());
         }
 
         return builder.build();
@@ -586,6 +588,7 @@ public class YAMLToInternalMappers {
             final Protos.DiscoveryInfo.Visibility visibility =
                     rawPort.isAdvertised() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
+            PortSpec.Builder portSpecBuilder;
             if (rawPort.getVip() != null) {
                 final RawVip rawVip = rawPort.getVip();
                 // Check that VIP names dont conflict with other port names. In practice this is only an issue when a
@@ -601,30 +604,26 @@ public class YAMLToInternalMappers {
                 // Note: Multiple VIPs may share prefixes with each other. For example if one wants the VIP hostnames,
                 // across multiple ports, to reflect the host that's serving the port.
 
-                NamedVIPSpec namedVIPSpec = new NamedVIPSpec(
-                        portValueBuilder.build(),
-                        role,
-                        preReservedRole,
-                        principal,
-                        rawPort.getEnvKey(),
-                        name,
-                        DcosConstants.DEFAULT_IP_PROTOCOL,
-                        visibility,
-                        StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix(),
-                        rawVip.getPort(),
-                        networkNames);
-                portSpecs.add(namedVIPSpec);
+                portSpecBuilder = NamedVIPSpec.newBuilder()
+                        // NamedVIPSpec settings:
+                        .protocol(DcosConstants.DEFAULT_IP_PROTOCOL)
+                        .vipName(StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix())
+                        .vipPort(rawVip.getPort());
             } else {
-                portSpecs.add(new PortSpec(
-                        portValueBuilder.build(),
-                        role,
-                        preReservedRole,
-                        principal,
-                        rawPort.getEnvKey(),
-                        name,
-                        visibility,
-                        networkNames));
+                portSpecBuilder = PortSpec.newBuilder();
             }
+            portSpecBuilder
+                    // PortSpec settings:
+                    .envKey(rawPort.getEnvKey())
+                    .portName(name)
+                    .visibility(visibility)
+                    .networkNames(networkNames)
+                    // ResourceSpec settings:
+                    .value(portValueBuilder.build())
+                    .role(role)
+                    .preReservedRole(preReservedRole)
+                    .principal(principal);
+            portSpecs.add(portSpecBuilder.build());
         }
         return portSpecs;
     }

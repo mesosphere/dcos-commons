@@ -11,7 +11,7 @@ public class RawRLimit {
     private final Long hard;
 
     @JsonCreator
-    public RawRLimit(@JsonProperty("soft") Long soft, @JsonProperty("hard") Long hard) {
+    private RawRLimit(@JsonProperty("soft") Long soft, @JsonProperty("hard") Long hard) {
         this.soft = soft;
         this.hard = hard;
     }

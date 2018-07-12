@@ -441,12 +441,12 @@ public class PodInfoBuilder {
 
     private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
         if (override.equals(GoalStateOverride.PAUSED)) {
-            return Optional.of(
-                    new DefaultReadinessCheckSpec(
-                            GoalStateOverride.PAUSE_READINESS_COMMAND,
-                            0,
-                            Constants.SHORT_DECLINE_SECONDS,
-                            Constants.SHORT_DECLINE_SECONDS));
+            return Optional.of(DefaultReadinessCheckSpec.newBuilder()
+                    .command(GoalStateOverride.PAUSE_READINESS_COMMAND)
+                    .delay(0)
+                    .interval(Constants.SHORT_DECLINE_SECONDS)
+                    .timeout(Constants.SHORT_DECLINE_SECONDS)
+                    .build());
         }
 
         return taskSpec.getReadinessCheck();

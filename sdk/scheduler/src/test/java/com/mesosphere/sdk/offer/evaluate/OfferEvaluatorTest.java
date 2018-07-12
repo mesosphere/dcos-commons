@@ -899,8 +899,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             ResourceSet resourceSet, String type, int index, int numberOfTasks) {
 
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
-        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
-                .Builder()
+        transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()
                 .name("test-tls")
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());

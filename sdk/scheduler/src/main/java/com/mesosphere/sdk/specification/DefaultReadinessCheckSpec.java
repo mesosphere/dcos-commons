@@ -1,33 +1,21 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 /**
  * Default implementation of {@link ReadinessCheckSpec}.
  */
 public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
-    @NotNull
-    private String command;
 
-    @Min(0)
-    private Integer delay;
+    private final String command;
+    private final Integer delay;
+    private final Integer interval;
+    private final Integer timeout;
 
-    @NotNull
-    @Min(0)
-    private Integer interval;
-
-    @NotNull
-    @Min(0)
-    private Integer timeout;
-
-    public DefaultReadinessCheckSpec(
+    private DefaultReadinessCheckSpec(
             @JsonProperty("command") String command,
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
@@ -39,11 +27,12 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     }
 
     private DefaultReadinessCheckSpec(Builder builder) {
-        super();
-        command = builder.command;
-        delay = builder.delay;
-        interval = builder.interval;
-        timeout = builder.timeout;
+        this(builder.command, builder.delay, builder.interval, builder.timeout);
+
+        ValidationUtils.nonNull(this, "command", command);
+        ValidationUtils.nonNegative(this, "delay", delay);
+        ValidationUtils.nonNegative(this, "interval", interval);
+        ValidationUtils.nonNegative(this, "timeout", timeout);
     }
 
     public static Builder newBuilder() {
@@ -60,21 +49,25 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
     }
 
     @Override
+    @JsonProperty("command")
     public String getCommand() {
         return command;
     }
 
     @Override
+    @JsonProperty("delay")
     public Integer getDelay() {
         return delay;
     }
 
     @Override
+    @JsonProperty("interval")
     public Integer getInterval() {
         return interval;
     }
 
     @Override
+    @JsonProperty("timeout")
     public Integer getTimeout() {
         return timeout;
     }
@@ -157,9 +150,7 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
          * @return a {@code DefaultHealthCheckSpec} built with parameters of this {@code DefaultHealthCheckSpec.Builder}
          */
         public DefaultReadinessCheckSpec build() {
-            DefaultReadinessCheckSpec defaultReadinessCheckSpec = new DefaultReadinessCheckSpec(this);
-            ValidationUtils.validate(defaultReadinessCheckSpec);
-            return defaultReadinessCheckSpec;
+            return new DefaultReadinessCheckSpec(this);
         }
     }
 }

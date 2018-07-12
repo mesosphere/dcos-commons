@@ -3,8 +3,6 @@ package com.mesosphere.sdk.specification;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.validation.ConstraintViolationException;
-
 public class ReplacementFailurePolicyTest {
     @Test
     public void valid() {
@@ -16,7 +14,7 @@ public class ReplacementFailurePolicyTest {
         Assert.assertNotNull(object);
     }
 
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void invalid() {
         ReplacementFailurePolicy.newBuilder()
                 .minReplaceDelayMs(-1)

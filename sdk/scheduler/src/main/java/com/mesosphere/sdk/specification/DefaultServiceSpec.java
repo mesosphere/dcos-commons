@@ -20,8 +20,6 @@ import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.*;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.specification.validation.UniquePodType;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -31,9 +29,6 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -48,8 +43,6 @@ public class DefaultServiceSpec implements ServiceSpec {
     private static final Comparator COMPARATOR = new Comparator();
     private static final Logger LOGGER = LoggingUtils.getLogger(DefaultServiceSpec.class);
 
-    @NotNull(message = "Service name cannot be empty")
-    @Size(min = 1, message = "Service name cannot be empty")
     private final String name;
     private final String role;
     private final String principal;
@@ -58,18 +51,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     private final String region;
     private final String webUrl;
     private final String zookeeperConnection;
-
-    @Valid
-    @NotNull
-    @Size(min = 1, message = "At least one pod must be configured.")
-    @UniquePodType(message = "Pod types must be unique")
     private final List<PodSpec> pods;
-
-    @Valid
     private final ReplacementFailurePolicy replacementFailurePolicy;
 
     @JsonCreator
-    public DefaultServiceSpec(
+    private DefaultServiceSpec(
             @JsonProperty("name") String name,
             @JsonProperty("role") String role,
             @JsonProperty("principal") String principal,
@@ -95,7 +81,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
         this.replacementFailurePolicy = replacementFailurePolicy;
         this.pods = pods;
-        ValidationUtils.validate(this);
     }
 
     @VisibleForTesting
@@ -130,6 +115,23 @@ public class DefaultServiceSpec implements ServiceSpec {
                 builder.zookeeperConnection,
                 builder.replacementFailurePolicy,
                 builder.pods);
+
+        ValidationUtils.nonEmpty(this, "name", name);
+        ValidationUtils.nonEmpty(this, "pods", pods);
+
+        Set<String> podTypes = new HashSet<>();
+        for (PodSpec podSpec : pods) {
+            String podType = podSpec.getType();
+            if (StringUtils.isEmpty(podType)) {
+                throw new IllegalArgumentException(
+                        String.format("Empty name for PodSpec in service %s: %s", name, podSpec));
+            } else if (podTypes.contains(podType)) {
+                throw new IllegalArgumentException(
+                        String.format("Duplicate pod type in service %s: %s", name, podType));
+            } else {
+                podTypes.add(podType);
+            }
+        }
     }
 
     /**

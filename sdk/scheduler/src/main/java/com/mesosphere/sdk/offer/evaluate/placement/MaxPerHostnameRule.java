@@ -7,13 +7,12 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import com.mesosphere.sdk.specification.ValidationUtils;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -43,8 +42,6 @@ public class MaxPerHostnameRule extends MaxPerRule {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(MaxPerHostnameRule.class);
 
-    @Valid
-    @Min(1)
     private final int maxTasksPerHostname;
     private final StringMatcher taskFilter;
 
@@ -79,7 +76,7 @@ public class MaxPerHostnameRule extends MaxPerRule {
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
-        ValidationUtils.validate(this);
+        ValidationUtils.atLeastOne(this, "maxTasksPerHostname", maxTasksPerHostname);
     }
 
     @Override

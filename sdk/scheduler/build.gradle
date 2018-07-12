@@ -136,7 +136,6 @@ dependencies {
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-multipart:${jerseyVer}"
     compile 'org.eclipse.jetty:jetty-servlet:9.4.9.v20180320'
-    compile 'org.hibernate:hibernate-validator:5.3.2.Final'
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
     compile 'com.mesosphere:mesos-http-adapter:0.4.1'
