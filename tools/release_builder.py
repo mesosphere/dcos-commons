@@ -112,7 +112,7 @@ class UniverseReleaseBuilder(object):
             http_release_server, release_dir_path, self._pkg_version)
 
         self._release_docker_image = release_docker_image or None
-        self._upgrades_from = upgrades_from
+        self._upgrades_from = list(map(str.strip, upgrades_from.split(',')))
 
         log.info('''###
 Source URL:      {}
@@ -211,8 +211,8 @@ Upgrades from:   {}
         package_json['version'] = self._pkg_version
 
         if self._upgrades_from is not None:
-            package_json['upgradesFrom'] = [self._upgrades_from]
-            package_json['downgradesTo'] = [self._upgrades_from]
+            package_json['upgradesFrom'] = [*self._upgrades_from]
+            package_json['downgradesTo'] = [*self._upgrades_from]
         elif self._stub_universe_pkg_name != self._pkg_name and \
             (package_json.get('upgradesFrom', ['*']) != ['*'] or
              package_json.get('downgradesTo', ['*']) != ['*']):
@@ -416,7 +416,7 @@ Upgrades from:   {}
         pkgdir = self._unpack_stub_universe(stub_universe_json, scratchdir)
         try:
             return publisher.publish(scratchdir, pkgdir)
-        except:
+        except Exception:
             log.error(
                 'Failed to create PR. '
                 'Note that any release artifacts were already uploaded to {}, '
