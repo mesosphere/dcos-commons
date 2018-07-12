@@ -56,7 +56,7 @@ class S3Uploader(object):
         self._reauth_attempted = True
 
         # check that maws is installed before trying anything else
-        if subprocess.run('maws -h'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
+        if subprocess.run('which maws'.split(), stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0:
             log.error('Unable to renew credentials: Missing "maws" command in PATH')
             return False
 

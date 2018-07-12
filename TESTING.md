@@ -57,8 +57,7 @@ frameworks
 ├── elastic
 ├── hdfs
 ├── helloworld
-├── kafka
-└── template
+└── kafka
 
 6 directories, 0 files
 ```
@@ -68,7 +67,6 @@ The detected frameworks would be:
 - `hdfs`
 - `helloworld`
 - `kafka`
-- `template`
 
 * If no `frameworks` folder exists
 
