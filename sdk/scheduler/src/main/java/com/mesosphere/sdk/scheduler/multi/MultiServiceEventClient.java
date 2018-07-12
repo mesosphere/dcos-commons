@@ -61,11 +61,14 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final UninstallCallback uninstallCallback;
     private final OfferDiscipline offerDiscipline;
 
+
     // Additional handling for when we're uninstalling the entire Scheduler.
     private final Optional<DeregisterStep> deregisterStep;
 
     // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
     private final Collection<String> serviceNamesToGiveOffers;
+
+    private boolean isDefaultServiceEnabled;
 
     public MultiServiceEventClient(
             String frameworkName,
@@ -107,6 +110,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         this.offerDiscipline = offerDiscipline;
         this.deregisterStep = deregisterStep;
         this.serviceNamesToGiveOffers = new ArrayList<>();
+        this.isDefaultServiceEnabled = false;
     }
 
     @Override
@@ -354,11 +358,16 @@ public class MultiServiceEventClient implements MesosEventClient {
                 if (serviceName.isPresent()) {
                     // Found service name: Store resource against serviceName+offerId to be evaluated below.
                     getEntry(offersByService, serviceName.get(), offer).add(resource);
-                } else if (ResourceUtils.getReservation(resource).isPresent()) {
+                } else if (ResourceUtils.getReservation(resource).isPresent() && !isDefaultServiceEnabled) {
                     // This reserved resource is malformed. Reservations created by this scheduler should always have a
                     // service name label. Make some noise but leave it alone. Out of caution, we DO NOT destroy it.
                     LOGGER.error("Ignoring malformed resource in offer {} (missing namespace label): {}",
                             offer.getId().getValue(), TextFormat.shortDebugString(resource));
+                } else if (isDefaultServiceEnabled) {
+                    // If default service name is specified then offer reservation to default service
+                    LOGGER.info("Forwarding reserved resource to default service: {}",
+                            frameworkName);
+                    getEntry(offersByService, frameworkName, offer).add(resource);
                 } else {
                     // Not a reserved resource. Ignore for cleanup purposes.
                 }
@@ -447,11 +456,16 @@ public class MultiServiceEventClient implements MesosEventClient {
     @Override
     public TaskStatusResponse taskStatus(Protos.TaskStatus status) {
         Optional<AbstractScheduler> service = multiServiceManager.getMatchingService(status);
-        if (!service.isPresent()) {
+        if (!service.isPresent() && !isDefaultServiceEnabled) {
             // Unrecognized service. Status for old task?
             LOGGER.info("Received status for unknown task {}: {}",
                     status.getTaskId().getValue(), TextFormat.shortDebugString(status));
             return TaskStatusResponse.unknownTask();
+        } else if (isDefaultServiceEnabled) {
+            LOGGER.info("Forwarding task status to default service: {}",
+                    frameworkName);
+            Optional<AbstractScheduler> defaultService = multiServiceManager.getService(frameworkName);
+            return defaultService.get().taskStatus(status);
         }
         LOGGER.info("Received status for task {}: {}", status.getTaskId().getValue(), status.getState());
         return service.get().taskStatus(status);
@@ -512,4 +526,28 @@ public class MultiServiceEventClient implements MesosEventClient {
         }
         return currentValue;
     }
+
+    /**
+     * Enables the default service routing. When enabled, unknown task statuses and reservations will be forwarded to
+     * the default service, denoted by framework name.
+     */
+    public void enableDefaultServiceRouting() {
+        this.isDefaultServiceEnabled = true;
+    }
+
+    /**
+     * Disables the default service routing. When enabled, unknown task statuses and reservations will be forwarded to
+     * the default service, denoted by framework name.
+     */
+    public void disableDefaultServiceRouting() {
+        this.isDefaultServiceEnabled = false;
+    }
+
+    /**
+     * returns the name of the default service, that unknown task statuses and reservations will be forwarded to.
+     */
+    public String getDefaultServiceName() {
+        return frameworkName;
+    }
+
 }
