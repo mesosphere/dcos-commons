@@ -192,6 +192,7 @@ def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOU
 
 
 def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice_name=None, with_completed=False):
+    log.debug('Checking that old task id {} is not relaunched'.format(old_task_id))
     sdk_plan.wait_for_completed_deployment(service_name, multiservice_name=multiservice_name)
     sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 

@@ -490,6 +490,7 @@ public class MultiServiceEventClientTest {
     public void taskStatusClientNotFound() {
         Protos.TaskStatus status = buildStatus("2");
         when(mockMultiServiceManager.getMatchingService(status)).thenReturn(Optional.empty());
+        when(mockMultiServiceManager.getServiceSanitized(any())).thenReturn(Optional.empty());
 
         Assert.assertEquals(TaskStatusResponse.Result.UNKNOWN_TASK, client.taskStatus(status).result);
         verify(mockMultiServiceManager, times(1)).getMatchingService(status);
@@ -500,11 +501,11 @@ public class MultiServiceEventClientTest {
         Protos.TaskStatus status = buildStatus("3");
         when(mockClient3.taskStatus(any())).thenReturn(TaskStatusResponse.processed());
         when(mockMultiServiceManager.getMatchingService(status)).thenReturn(Optional.empty());
-        client.enableDefaultServiceRouting();
-        when(mockMultiServiceManager.getService(client.getDefaultServiceName())).thenReturn(Optional.of(mockClient3));
+        when(mockMultiServiceManager.getServiceSanitized(any())).thenReturn(Optional.empty());
+        when(mockMultiServiceManager.getServiceSanitized(TestConstants.SERVICE_NAME))
+                .thenReturn(Optional.of(mockClient3));
 
         Assert.assertEquals(TaskStatusResponse.Result.PROCESSED, client.taskStatus(status).result);
-        client.disableDefaultServiceRouting();
     }
 
     @Test

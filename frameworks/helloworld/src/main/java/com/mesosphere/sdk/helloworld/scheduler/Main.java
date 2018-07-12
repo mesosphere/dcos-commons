@@ -143,7 +143,7 @@ public class Main {
     ) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        boolean migrated = checkAndMigrate(frameworkConfig, schedulerConfig, persister);
+        checkAndMigrate(frameworkConfig, schedulerConfig, persister);
         MultiServiceManager multiServiceManager = new MultiServiceManager();
 
         // Add services represented by YAML files to the service manager:
@@ -175,9 +175,6 @@ public class Main {
                 LOGGER.info("Service has completed uninstall: {}", name);
             }
         });
-        if (migrated) {
-            client.enableDefaultServiceRouting();
-        }
 
         MultiServiceRunner.Builder runnerBuilder =
                 MultiServiceRunner.newBuilder(schedulerConfig, frameworkConfig, persister, client);
@@ -243,7 +240,7 @@ public class Main {
                 .build();
     }
 
-    private static boolean checkAndMigrate(
+    private static void checkAndMigrate(
             FrameworkConfig frameworkConfig,
             SchedulerConfig schedulerConfig,
             Persister persister
@@ -273,19 +270,16 @@ public class Main {
                     PersisterUtils.migrateMonoToMultiZKData(persister, frameworkConfig);
                     schemaVersionStore.store(SchemaVersionStore.getSupportedSchemaVersionMultiService());
                     LOGGER.info("Successfully migrated from old schema to new schema!!");
-                    return true;
                 } catch (PersisterException e) {
                     LOGGER.error("Unable to migrate ZK data : ", e.getMessage(), e);
                     throw new RuntimeException(e);
                 }
             } else if (curVer == SchemaVersionStore.getSupportedSchemaVersionMultiService()) {
                 LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
-                return false;
             } else {
                 throw new IllegalStateException(String.format("Storage schema version %d is not supported by this " +
                         "software (expected: %d)", curVer, SchemaVersionStore.getSupportedSchemaVersionMultiService()));
             }
         }
-        return false;
     }
 }
