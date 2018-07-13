@@ -591,7 +591,9 @@ public class YAMLToInternalMappers {
                     rawPort.isAdvertised() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
             PortSpec.Builder portSpecBuilder;
-            if (rawPort.getVip() != null) {
+            if (rawPort.getVip() == null) {
+                portSpecBuilder = PortSpec.newBuilder();
+            } else {
                 final RawVip rawVip = rawPort.getVip();
                 // Check that VIP names dont conflict with other port names. In practice this is only an issue when a
                 // custom prefix/name is defined for the VIP as uniqueness is already enforced for port names.
@@ -611,8 +613,6 @@ public class YAMLToInternalMappers {
                         .protocol(DcosConstants.DEFAULT_IP_PROTOCOL)
                         .vipName(StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix())
                         .vipPort(rawVip.getPort());
-            } else {
-                portSpecBuilder = PortSpec.newBuilder();
             }
             portSpecBuilder
                     // PortSpec settings:
