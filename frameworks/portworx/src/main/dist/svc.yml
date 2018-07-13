@@ -51,7 +51,7 @@ pods:
 
                 coreos=$(uname -a | grep coreos)
 
-                if [ -z "$coreos" ];then
+                if [ -z "$coreos" ]; then
                     USR_SRC_MOUNT="-v /usr/src:/usr/src"
                 fi
 
@@ -97,6 +97,7 @@ pods:
                           {{/SECRETS_ENABLED}}
                           -name=%n \
                           -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
+                          -r {{PORTWORX_START_PORT}} \
                           -k $PORTWORX_KVDB
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
