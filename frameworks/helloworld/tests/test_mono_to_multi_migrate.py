@@ -11,7 +11,7 @@ import sdk_upgrade
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope='function', autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -21,7 +21,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_mono_to_multi_migration_simple():
+def test_old_tasks_not_relaunched():
     # Install hello-world with single yaml
     sdk_install.install(config.PACKAGE_NAME,
                         config.SERVICE_NAME,
@@ -44,7 +44,7 @@ def test_mono_to_multi_migration_simple():
 
 
 @pytest.mark.sanity
-def test_mono_to_multi_migration():
+def test_old_tasks_get_relaunched_with_new_config():
     # Install hello-world with single yaml
     sdk_install.install(config.PACKAGE_NAME,
                         config.SERVICE_NAME,

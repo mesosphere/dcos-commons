@@ -93,7 +93,7 @@ public class MultiServiceRunner implements Runnable {
     }
 
     /**
-     * Runs the queue. Don't forget to call this!
+     * Runs the Scheduler. Don't forget to call this!
      * This should never exit, instead the entire process will be terminated internally.
      */
     @Override
