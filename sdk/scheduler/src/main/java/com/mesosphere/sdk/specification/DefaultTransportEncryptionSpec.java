@@ -28,7 +28,7 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
     public DefaultTransportEncryptionSpec(Builder builder) {
         this(builder.name, builder.type);
-        ValidationUtils.nonEmpty(this, "name", name);
+        ValidationUtils.nonBlank(this, "name", name);
     }
 
     @Override

@@ -81,7 +81,7 @@ public class DefaultPodSpec implements PodSpec {
                 builder.secrets,
                 builder.sharePidNamespace);
 
-        ValidationUtils.nonEmpty(this, "type", type);
+        ValidationUtils.nonBlank(this, "type", type);
         ValidationUtils.nonNegative(this, "count", count);
         ValidationUtils.nonNull(this, "allowDecommission", allowDecommission);
         ValidationUtils.nonEmptyAllowNull(this, "image", image);

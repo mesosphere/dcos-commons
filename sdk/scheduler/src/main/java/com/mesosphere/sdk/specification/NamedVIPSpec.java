@@ -52,6 +52,7 @@ public class NamedVIPSpec extends PortSpec {
                 builder.vipName,
                 builder.vipPort);
 
+        validatePort();
         ValidationUtils.nonEmpty(this, "protocol", protocol);
         ValidationUtils.nonEmpty(this, "vipName", vipName);
         ValidationUtils.nonNull(this, "vipPort", vipPort);

@@ -27,6 +27,7 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -118,20 +119,7 @@ public class DefaultServiceSpec implements ServiceSpec {
 
         ValidationUtils.nonEmpty(this, "name", name);
         ValidationUtils.nonEmpty(this, "pods", pods);
-
-        Set<String> podTypes = new HashSet<>();
-        for (PodSpec podSpec : pods) {
-            String podType = podSpec.getType();
-            if (StringUtils.isEmpty(podType)) {
-                throw new IllegalArgumentException(
-                        String.format("Empty name for PodSpec in service %s: %s", name, podSpec));
-            } else if (podTypes.contains(podType)) {
-                throw new IllegalArgumentException(
-                        String.format("Duplicate pod type in service %s: %s", name, podType));
-            } else {
-                podTypes.add(podType);
-            }
-        }
+        ValidationUtils.isUnique(this, "pods", pods.stream().map(p -> p.getType()));
     }
 
     /**
@@ -250,6 +238,11 @@ public class DefaultServiceSpec implements ServiceSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 
     /**

@@ -88,22 +88,9 @@ public class DefaultTaskSpec implements TaskSpec {
         ValidationUtils.nonNull(this, "resourceSet", resourceSet);
 
         // Check for duplicate names and paths:
-        ValidationUtils.atLeast(
-                this,
-                "configFiles",
-                configFiles.stream()
-                        .map(config -> config.getName())
-                        .distinct()
-                        .count(),
-                configFiles.size());
-        ValidationUtils.atLeast(
-                this,
-                "configFiles",
-                configFiles.stream()
-                        .map(config -> config.getRelativePath())
-                        .distinct()
-                        .count(),
-                configFiles.size());
+        ValidationUtils.isUnique(this, "configFiles.name", configFiles.stream().map(config -> config.getName()));
+        ValidationUtils.isUnique(
+                this, "configFiles.relativePath", configFiles.stream().map(config -> config.getRelativePath()));
 
         ValidationUtils.nonNegative(this, "taskKillGracePeriodSeconds", taskKillGracePeriodSeconds);
         // No greater than two weeks (a product requirement):

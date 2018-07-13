@@ -35,17 +35,13 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
         ValidationUtils.nonNegative(this, "timeout", timeout);
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
+    public static Builder newBuilder(String command, int interval, int timeout) {
+        return new Builder(command, interval, timeout);
     }
 
     public static Builder newBuilder(DefaultReadinessCheckSpec copy) {
-        Builder builder = new Builder();
-        builder.command = copy.command;
-        builder.delay = copy.delay;
-        builder.interval = copy.interval;
-        builder.timeout = copy.timeout;
-        return builder;
+        return new Builder(copy.command, copy.interval, copy.timeout)
+                .delay(copy.delay);
     }
 
     @Override
@@ -92,22 +88,15 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
      */
     public static final class Builder {
         private String command;
-        private Integer delay;
-        private Integer interval;
-        private Integer timeout;
+        private int delay;
+        private int interval;
+        private int timeout;
 
-        private Builder() {
-        }
-
-        /**
-         * Sets the {@code command} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param command the {@code command} to set
-         * @return a reference to this Builder
-         */
-        public Builder command(String command) {
+        private Builder(String command, int interval, int timeout) {
             this.command = command;
-            return this;
+            this.delay = 0;
+            this.interval = interval;
+            this.timeout = timeout;
         }
 
         /**
@@ -116,31 +105,8 @@ public class DefaultReadinessCheckSpec implements ReadinessCheckSpec {
          * @param delay the {@code delay} to set
          * @return a reference to this Builder
          */
-        public Builder delay(Integer delay) {
+        public Builder delay(int delay) {
             this.delay = delay;
-            return this;
-        }
-
-        /**
-         * Sets the {@code interval} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param interval the {@code interval} to set
-         * @return a reference to this Builder
-         */
-        public Builder interval(Integer interval) {
-            this.interval = interval;
-            return this;
-        }
-
-        /**
-         * Sets the {@code timeout} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param timeout the {@code timeout} to set
-         * @return a reference to this Builder
-         */
-        public Builder timeout(Integer timeout) {
-            this.timeout = timeout;
             return this;
         }
 

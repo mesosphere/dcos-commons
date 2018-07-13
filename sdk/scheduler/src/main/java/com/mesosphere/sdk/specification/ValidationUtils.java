@@ -1,7 +1,13 @@
 package com.mesosphere.sdk.specification;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utilities for validating members in service specs.
@@ -31,7 +37,27 @@ public class ValidationUtils {
         }
     }
 
+    /**
+     * Throws an exception if there are any duplicate entries in the provided list.
+     */
+    public static <T> void isUnique(Object parent, String fieldName, Stream<T> field) {
+        Set<T> found = new HashSet<>();
+        Set<T> duplicates = field.filter(e -> !found.add(e)).collect(Collectors.toSet());
+        if (!duplicates.isEmpty()) {
+            throw new IllegalArgumentException(String.format(
+                    "%s cannot have any duplicates (%s): %s", fieldName, duplicates, parent));
+        }
+    }
+
     // String checks
+
+    /**
+     * Throws an exception if {@code field} is whitespace-only, empty, or {@code null}.
+     */
+    public static void nonBlank(Object parent, String fieldName, String field) {
+        nonNull(parent, fieldName, field);
+        nonBlankAllowNull(parent, fieldName, field);
+    }
 
     /**
      * Throws an exception if {@code field} is empty or {@code null}.
@@ -39,6 +65,15 @@ public class ValidationUtils {
     public static void nonEmpty(Object parent, String fieldName, String field) {
         nonNull(parent, fieldName, field);
         nonEmptyAllowNull(parent, fieldName, field);
+    }
+
+    /**
+     * Throws an exception if {@code field} is whitespace-only or empty, but not if it is {@code null}.
+     */
+    public static void nonBlankAllowNull(Object parent, String fieldName, String field) {
+        if (field != null && StringUtils.isBlank(field)) {
+            throw new IllegalArgumentException(String.format("%s cannot be blank or empty: %s", fieldName, parent));
+        }
     }
 
     /**

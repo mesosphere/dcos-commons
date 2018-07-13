@@ -50,6 +50,11 @@ public class PortSpec extends DefaultResourceSpec {
                 builder.visibility,
                 builder.networkNames);
 
+        validatePort();
+    }
+
+    protected void validatePort() {
+        validateResource();
         ValidationUtils.nonEmpty(this, "portName", portName);
         ValidationUtils.nonNull(this, "visibility", visibility);
     }

@@ -31,20 +31,29 @@ public class DefaultResourceSpec implements ResourceSpec {
         this.role = role;
         this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
         this.principal = principal;
+    }
 
+    private DefaultResourceSpec(Builder builder) {
+        this(builder.name, builder.value, builder.role, builder.preReservedRole, builder.principal);
+
+        validateResource();
+    }
+
+    protected void validateResource() {
         ValidationUtils.nonEmpty(this, "name", name);
         ValidationUtils.nonNull(this, "value", value);
         ValidationUtils.nonEmpty(this, "role", role);
         ValidationUtils.nonEmpty(this, "principal", principal);
 
-        if (value.hasScalar() && value.getScalar().getValue() <= 0) {
+        if (value.hasScalar()) {
+            if (value.getScalar().getValue() <= 0) {
+                throw new IllegalArgumentException(
+                        String.format("Scalar resource value must be greater than zero: %s", this));
+            }
+        } else if (!value.hasRanges()) {
             throw new IllegalArgumentException(
-                    String.format("Scalar resource value must be greater than zero: %s", this));
+                    String.format("Expected resource value to be a scalar or range: %s", this));
         }
-    }
-
-    private DefaultResourceSpec(Builder builder) {
-        this(builder.name, builder.value, builder.role, builder.preReservedRole, builder.principal);
     }
 
     public static Builder newBuilder() {

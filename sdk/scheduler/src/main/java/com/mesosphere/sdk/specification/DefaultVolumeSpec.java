@@ -20,6 +20,8 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
      * the persistent volume. See also:
      *       mesos:src/slave/containerizer/mesos/isolators/filesystem/linux.cpp#L628
      *       mesos:src/slave/containerizer/docker.cpp#L473
+     *
+     * To play it safe, we explicitly whitelist the valid characters here.
      */
     private static final Pattern VALID_CONTAINER_PATH_PATTERN = Pattern.compile("[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*");
 
@@ -42,6 +44,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 preReservedRole,
                 principal);
 
+        validateResource();
         ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
     }
 

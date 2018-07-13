@@ -179,12 +179,14 @@ public class YAMLToInternalMappers {
     }
 
     private static ReadinessCheckSpec convertReadinessCheck(RawReadinessCheck rawReadinessCheck) {
-        return DefaultReadinessCheckSpec.newBuilder()
-                .command(rawReadinessCheck.getCmd())
-                .delay(rawReadinessCheck.getDelay() == null ? Integer.valueOf(0) : rawReadinessCheck.getDelay())
-                .interval(rawReadinessCheck.getInterval())
-                .timeout(rawReadinessCheck.getTimeout())
-                .build();
+        DefaultReadinessCheckSpec.Builder checkBuilder = DefaultReadinessCheckSpec.newBuilder(
+                rawReadinessCheck.getCmd(),
+                rawReadinessCheck.getInterval(),
+                rawReadinessCheck.getTimeout());
+        if (rawReadinessCheck.getDelay() != null) {
+            checkBuilder.delay(rawReadinessCheck.getDelay());
+        }
+        return checkBuilder.build();
     }
 
     private static DiscoverySpec convertDiscovery(RawDiscovery rawDiscovery) {
