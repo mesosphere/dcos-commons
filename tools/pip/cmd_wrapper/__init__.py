@@ -8,6 +8,7 @@ import sys
 __PARENT_DIR_PATH = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
 __PARENT_DIR_NAME = os.path.basename(__PARENT_DIR_PATH)
 
+
 def __log(msg):
     sys.stderr.write(msg + '\n')
 

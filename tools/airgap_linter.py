@@ -26,7 +26,7 @@ def readlines_if_text_file(filename):
 def extract_uris(file_name):
     lines = readlines_if_text_file(file_name)
 
-    matcher = re.compile(".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
+    matcher = re.compile(r".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
     matches = []
     for line in lines:
         line = line.strip()
@@ -77,7 +77,7 @@ def is_bad_uri(uri, file_name):
             return False
 
     print("Found a bad URI:", uri, "in:", file_name,
-                "Export URIs to resource.json to allow packaging for airgapped clusters.")
+          "Export URIs to resource.json to allow packaging for airgapped clusters.")
 
     return True
 

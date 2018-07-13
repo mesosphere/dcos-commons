@@ -49,14 +49,12 @@ class HTTPPublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
-
     def _copy_artifact(self, http_url_root, filepath):
         filename = os.path.basename(filepath)
         destpath = os.path.join(self._http_dir, filename)
         logger.info('- {}'.format(destpath))
         shutil.copyfile(filepath, destpath)
         return '{}/{}'.format(http_url_root, filename)
-
 
     def _spam_universe_url(self, universe_url):
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
@@ -74,7 +72,6 @@ class HTTPPublisher(object):
             universe_url_file.write('{}\n'.format(universe_url))
             universe_url_file.flush()
             universe_url_file.close()
-
 
     def build(self, http_url_root):
         '''copies artifacts and a new stub universe into the http root directory'''
@@ -112,7 +109,7 @@ class HTTPPublisher(object):
         try:
             subprocess.check_call('killall -9 {}'.format(procname).split())
             logger.info("Killed previous HTTP process(es): {}".format(procname))
-        except:
+        except Exception:
             logger.info("No previous HTTP process found: {}".format(procname))
 
         if self._http_port == 0:
@@ -170,9 +167,9 @@ httpd.serve_forever()
 
     def add_repo_to_cli(self, repo_url):
         try:
-            devnull = open(os.devnull,'wb')
+            devnull = open(os.devnull, 'wb')
             subprocess.check_call('dcos -h'.split(), stdout=devnull, stderr=devnull)
-        except:
+        except Exception:
             logger.info('No "dcos" command in $PATH, skipping automatic repo configuration')
             return False
 
