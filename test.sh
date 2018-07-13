@@ -10,10 +10,11 @@
 # Exit immediately on errors
 set -e
 
+timestamp="$(date +%d%m%y%H%M%s)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-credsfile=$(mktemp /tmp/sdk-test-creds-XXXXX.tmp)
-envfile=$(mktemp /tmp/sdk-test-env-XXXXX.tmp)
+credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}.tmp)"
+envfile="$(mktemp /tmp/sdk-test-env-${timestamp}.tmp)"
 function cleanup {
     rm -f ${credsfile}
     rm -f ${envfile}
@@ -57,6 +58,8 @@ headless="false"
 interactive="false"
 package_registry="false"
 docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
+env_passthrough=
+envfile_input=
 
 function usage()
 {
@@ -72,6 +75,10 @@ function usage()
     echo "    Using an Open DC/OS cluster: skip Enterprise-only features."
     echo "  -p $ssh_path"
     echo "    Path to cluster SSH key."
+    echo "  -e $env_passthrough"
+    echo "    A comma-separated list of environment variables to pass through to the running docker container"
+    echo "  --envfile $envfile_input"
+    echo "    A path to an envfile to pass to the docker container in addition to those required by the test scripts"
     echo "  -i/--interactive"
     echo "    Open a shell prompt in the docker container, without actually running any tests. Equivalent to DOCKER_COMMAND=bash"
     echo "  --headless"
@@ -138,6 +145,15 @@ case $key in
     ssh_path="$2"
     shift
     ;;
+    -e)
+    env_passthrough="$2"
+    shift
+    ;;
+    --envfile)
+    if [[ ! -f "$2" ]]; then echo "File not found: $key $2"; exit 1; fi
+    envfile_input="$2"
+    shift
+    ;;
     -i|--interactive)
     if [[ x"$headless" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
     interactive="true"
@@ -182,7 +198,7 @@ esac
 shift # past argument or value
 done
 
-if [ -z "$framework" ]; then
+if [ -z "$framework" -a x"$interactive" != x"true" ]; then
     # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
     if [ $(echo $FRAMEWORK_LIST | wc -w) == 1 ]; then
         framework=$FRAMEWORK_LIST
@@ -333,6 +349,18 @@ while read line; do
         echo ${line#TEST_SH_} >> $envfile
     fi
 done < <(env)
+
+if [ -n "$env_passthrough" ]; then
+    # If the -e flag is specified, the ENVVAR=$ENVVAR lines for the
+    # comma-separated list of envvars
+    for envvar_name in ${env_passthrough//,/ }; do
+        echo "$envvar_name=$(printenv $envvar_name)" >> $envfile
+    done
+fi
+
+if [ -n "$envfile_input" ]; then
+    cat "${envfile_input}" >> $envfile
+fi
 
 CMD="docker run --rm \
 -t \
