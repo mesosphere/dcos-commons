@@ -2,7 +2,10 @@ package com.mesosphere.sdk.scheduler.multi;
 
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
-import com.mesosphere.sdk.scheduler.*;
+import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.MesosEventClient;
+import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 

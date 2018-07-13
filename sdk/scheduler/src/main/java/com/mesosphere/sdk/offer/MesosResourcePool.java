@@ -314,7 +314,7 @@ public class MesosResourcePool {
 
     private static Map<String, MesosResource> getDynamicallyReservedPool(
             Collection<MesosResource> mesosResources) {
-        Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
+        Map<String, MesosResource> reservedPool = new HashMap<>();
 
         for (MesosResource mesResource : mesosResources) {
             if (mesResource.hasResourceId()) {
