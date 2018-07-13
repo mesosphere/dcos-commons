@@ -273,7 +273,17 @@ pods:
           interval: 10
           delay: 0
           timeout: 60
-
+  # Dummy pod with GPU resource so that we also get offers from nodes with GPUs
+  dummy-pod:
+    user: {{SERVICE_USER}}
+    count: 1
+    tasks:
+      start:
+        goal: RUNNING
+        memory: 512
+        cpus: 0.3
+        gpus: 1
+        cmd: sleep 1
 plans:
   deploy:
     strategy: serial
