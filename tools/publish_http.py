@@ -62,7 +62,6 @@ class HTTPPublisher(object):
         if jenkins_workspace_path:
             properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
-            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
             properties_file.flush()
             properties_file.close()
         # write URL to provided text file path:
