@@ -521,5 +521,4 @@ public class MultiServiceEventClient implements MesosEventClient {
         // Initialize entry
         return map.computeIfAbsent(offer.getId(), k -> new OfferResources(offer));
     }
-
 }

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.google.common.base.Splitter;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.framework.EnvStore;
@@ -18,8 +19,6 @@ import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.google.common.base.Splitter;
-
 import com.mesosphere.sdk.storage.PersisterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -253,7 +252,7 @@ public class Main {
          * offers, it does not know what to do with them if we support migration. Hence we support migration only in
          * static service mode.
          * 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to default to `root`
-         * In the multi mode however, the framework config takes precedence and if a user is not mentioned. Caution must
+         * In the multi mode however, the framework config takes precedence if a user is not mentioned. Caution must
          * be taken to ensure the service user is same (mention it explicitly in both mono and multi for the sake of
          * consistency) during the migration.
          * 3. The migration MUST happen before the {@link SchedulerBuilder#build()} is called (i.e., before the

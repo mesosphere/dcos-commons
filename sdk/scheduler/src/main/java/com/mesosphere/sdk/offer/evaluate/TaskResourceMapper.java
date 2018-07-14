@@ -1,14 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.RangeUtils;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
