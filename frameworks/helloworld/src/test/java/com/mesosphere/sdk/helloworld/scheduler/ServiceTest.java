@@ -29,6 +29,9 @@ import java.util.stream.Collectors;
  */
 public class ServiceTest {
 
+    private static final String VALID_HOSTNAME_CONSTRAINT = "[[\"hostname\", \"UNIQUE\"]]";
+    private static final String INVALID_HOSTNAME_CONSTRAINT = "[[\\\"hostname\\\", \"UNIQUE\"]]";
+
     @After
     public void afterTest() {
         Mockito.validateMockitoUsage();
@@ -947,6 +950,36 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         return ticks;
+    }
+
+    @Test
+    public void testValidPlacementConstraint() throws Exception {
+        new ServiceTestRunner()
+                .setSchedulerEnv("HELLO_PLACEMENT", VALID_HOSTNAME_CONSTRAINT)
+                .run(getDefaultDeploymentTicks());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInvalidPlacementConstraint() throws Exception {
+        new ServiceTestRunner()
+                .setSchedulerEnv("HELLO_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT)
+                .run(getDefaultDeploymentTicks());
+    }
+
+    @Test
+    public void testSwitchToInvalidPlacementConstraint() throws Exception {
+        ServiceTestResult initial = new ServiceTestRunner()
+                .setSchedulerEnv("HELLO_PLACEMENT", VALID_HOSTNAME_CONSTRAINT)
+                .run(getDefaultDeploymentTicks());
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+        ticks.add(Send.register());
+        ticks.add(Expect.planStatus("deploy", Status.ERROR));
+
+        new ServiceTestRunner()
+                .setState(initial)
+                .setSchedulerEnv("HELLO_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT)
+                .run(ticks);
     }
 
     /**

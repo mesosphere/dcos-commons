@@ -16,6 +16,7 @@ ga_index_multiplier = 100
 # Don't bother with skipping indexes for beta releases, just go sequentially.
 beta_index_multiplier = 1
 
+
 class UniversePackagePublisher(object):
     '''Creates a PR for a release against the Universe repository at http://github.com/mesosphere/universe.
     '''
@@ -41,7 +42,6 @@ class UniversePackagePublisher(object):
         self._enc_github_token = base64.encodestring(self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
         self._release_universe_repo = os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
 
-
     def _find_release_index(self, repo_pkg_base):
         '''Returns the correct number/id for this release in the universe tree, and the prior release to diff against.
 
@@ -56,7 +56,7 @@ class UniversePackagePublisher(object):
             this_index = self._release_index
 
             # Search backwards from this_index to find a prior release to diff against:
-            for num in reversed(range(0, this_index)): # reversed([0, ..., this-1]) => [this-1, ..., 0]
+            for num in reversed(range(0, this_index)):  # reversed([0, ..., this-1]) => [this-1, ..., 0]
                 if os.path.isdir(os.path.join(repo_pkg_base, str(num))):
                     last_index = num
                     break
@@ -81,7 +81,6 @@ class UniversePackagePublisher(object):
                 this_index = index_multiplier * (int(last_index / index_multiplier) + 1)
 
         return (last_index, this_index)
-
 
     def _create_universe_branch(self, scratchdir, pkgdir):
         branch = 'automated/release_{}_{}_{}'.format(
@@ -139,7 +138,6 @@ class UniversePackagePublisher(object):
             raise Exception('Failed to push git branch {} to Universe.'.format(branch))
         return (branch, commitmsg_path)
 
-
     def _compute_changes(self, last_dir, this_dir, last_index, this_index):
         if os.path.exists(last_dir):
             last_dir_files = set(os.listdir(last_dir))
@@ -186,7 +184,6 @@ class UniversePackagePublisher(object):
 
         return result_lines
 
-
     def _create_universe_pr(self, branch, commitmsg_path):
         if self._dry_run:
             log.info('[DRY RUN] Skipping creation of PR against branch {}'.format(branch))
@@ -208,7 +205,6 @@ class UniversePackagePublisher(object):
             body=json.dumps(payload).encode('utf-8'),
             headers=headers)
         return conn.getresponse()
-
 
     def publish(self, scratchdir, pkgdir):
         branch, commitmsg_path = self._create_universe_branch(scratchdir, pkgdir)
