@@ -115,8 +115,7 @@ public class TLSEvaluationStageTest {
     @Test
     public void testSuccessTLS() throws Exception {
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
-        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
-                .Builder()
+        transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()
                 .name("test-tls")
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());
@@ -144,7 +143,7 @@ public class TLSEvaluationStageTest {
     @Test
     public void testSuccessKeystore() throws Exception {
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
-        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec.Builder()
+        transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()
                 .name("test-tls")
                 .type(TransportEncryptionSpec.Type.KEYSTORE)
                 .build());
@@ -171,8 +170,7 @@ public class TLSEvaluationStageTest {
     @Test
     public void testArtifactsExist() throws Exception {
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
-        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
-                .Builder()
+        transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()
                 .name("test-tls")
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());
@@ -202,8 +200,7 @@ public class TLSEvaluationStageTest {
                 .update(Matchers.any(), Matchers.any(), Matchers.any());
 
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
-        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
-                .Builder()
+        transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()
                 .name("test-tls")
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());
@@ -220,8 +217,7 @@ public class TLSEvaluationStageTest {
     @Test
     public void testMultipleTLSEvaluationStageDoesNotAddVolumes() throws Exception {
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
-        transportEncryptionSpecs.add(new DefaultTransportEncryptionSpec
-                .Builder()
+        transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()
                 .name("test-tls")
                 .type(TransportEncryptionSpec.Type.TLS)
                 .build());

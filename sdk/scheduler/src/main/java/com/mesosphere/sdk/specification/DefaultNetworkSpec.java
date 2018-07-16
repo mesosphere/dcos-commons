@@ -2,12 +2,10 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import javax.validation.Valid;
 import java.util.Collections;
 import java.util.Map;
 
@@ -16,17 +14,13 @@ import java.util.Map;
  * (CNI) implementation within the SDK.
  */
 public class DefaultNetworkSpec implements NetworkSpec {
-    @Valid
-    private String networkName;  // name of the network to join, checked against supported networks
 
-    @Valid
-    private Map<Integer, Integer> portMappings;  // key: host port, value: container port
-
-    @Valid
-    private Map<String, String> labels;  // user-defined K/V pairs passed to CNI plugin
+    private final String networkName;  // name of the network to join, checked against supported networks
+    private final Map<Integer, Integer> portMappings;  // key: host port, value: container port
+    private final Map<String, String> labels;  // user-defined K/V pairs passed to CNI plugin
 
     @JsonCreator
-    public DefaultNetworkSpec(
+    private DefaultNetworkSpec(
             @JsonProperty("network-name") String networkName,
             @JsonProperty("port-mappings") Map<Integer, Integer> portMappings,
             @JsonProperty("network-labels") Map<String, String> labels) {
@@ -37,7 +31,7 @@ public class DefaultNetworkSpec implements NetworkSpec {
 
     private DefaultNetworkSpec(Builder builder) {
         this(builder.networkName,  builder.portMap, builder.labels);
-        ValidationUtils.validate(this);
+        ValidationUtils.nonEmpty(this, "networkName", networkName);
     }
 
     public static Builder newBuilder() {
@@ -49,7 +43,6 @@ public class DefaultNetworkSpec implements NetworkSpec {
         builder.networkName = copy.getName();
         builder.portMap = copy.getPortMappings();
         builder.labels = copy.getLabels();
-
         return builder;
     }
 
@@ -88,8 +81,8 @@ public class DefaultNetworkSpec implements NetworkSpec {
      */
     public static final class Builder {
         private String networkName;
-        private Map<Integer, Integer> portMap;
-        private Map<String, String> labels;
+        private Map<Integer, Integer> portMap = Collections.emptyMap();
+        private Map<String, String> labels = Collections.emptyMap();
 
         private Builder() { }
 

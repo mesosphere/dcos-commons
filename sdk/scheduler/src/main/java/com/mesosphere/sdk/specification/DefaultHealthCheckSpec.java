@@ -5,41 +5,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
-
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 
 /**
  * Default implementation of {@link HealthCheckSpec}.
  */
 public class DefaultHealthCheckSpec implements HealthCheckSpec {
-    @NotNull
-    private String command;
 
-    @NotNull
-    @Min(1)
-    private Integer maxConsecutiveFailures;
-
-    @NotNull
-    @Min(0)
-    private Integer delay;
-
-    @NotNull
-    @Min(0)
-    private Integer interval;
-
-    @NotNull
-    @Min(0)
-    private Integer timeout;
-
-    @NotNull
-    @Min(0)
-    private Integer gracePeriod;
+    private final String command;
+    private final Integer maxConsecutiveFailures;
+    private final Integer delay;
+    private final Integer interval;
+    private final Integer timeout;
+    private final Integer gracePeriod;
 
     @JsonCreator
-    public DefaultHealthCheckSpec(
+    private DefaultHealthCheckSpec(
             @JsonProperty("command") String command,
             @JsonProperty("max-consecutive-failures") Integer maxConsecutiveFailures,
             @JsonProperty("delay") Integer delay,
@@ -55,12 +35,19 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     }
 
     private DefaultHealthCheckSpec(Builder builder) {
-        command = builder.command;
-        maxConsecutiveFailures = builder.maxConsecutiveFailures;
-        delay = builder.delay;
-        interval = builder.interval;
-        timeout = builder.timeout;
-        gracePeriod = builder.gracePeriod;
+        this(
+                builder.command,
+                builder.maxConsecutiveFailures,
+                builder.delay,
+                builder.interval,
+                builder.timeout,
+                builder.gracePeriod);
+        ValidationUtils.nonEmpty(this, "command", command);
+        ValidationUtils.atLeastOne(this, "maxConsecutiveFailures", maxConsecutiveFailures);
+        ValidationUtils.nonNegative(this, "delay", delay);
+        ValidationUtils.nonNegative(this, "interval", interval);
+        ValidationUtils.nonNegative(this, "timeout", timeout);
+        ValidationUtils.nonNegative(this, "gracePeriod", gracePeriod);
     }
 
     public static Builder newBuilder() {
@@ -79,39 +66,37 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     }
 
     @Override
-    @NotNull
-    @Size(min = 1)
+    @JsonProperty("command")
     public String getCommand() {
         return command;
     }
 
     @Override
     @JsonProperty("max-consecutive-failures")
-    @Min(0)
     public Integer getMaxConsecutiveFailures() {
         return maxConsecutiveFailures;
     }
 
     @Override
-    @Min(0)
+    @JsonProperty("delay")
     public Integer getDelay() {
         return delay;
     }
 
     @Override
-    @Min(0)
+    @JsonProperty("interval")
     public Integer getInterval() {
         return interval;
     }
 
     @Override
-    @Min(0)
+    @JsonProperty("timeout")
     public Integer getTimeout() {
         return timeout;
     }
 
     @Override
-    @Min(0)
+    @JsonProperty("grace-period")
     public Integer getGracePeriod() {
         return gracePeriod;
     }
@@ -220,9 +205,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
          * @return a {@code DefaultHealthCheckSpec} built with parameters of this {@code DefaultHealthCheckSpec.Builder}
          */
         public DefaultHealthCheckSpec build() {
-            DefaultHealthCheckSpec defaultHealthCheckSpec = new DefaultHealthCheckSpec(this);
-            ValidationUtils.validate(defaultHealthCheckSpec);
-            return defaultHealthCheckSpec;
+            return new DefaultHealthCheckSpec(this);
         }
     }
 }

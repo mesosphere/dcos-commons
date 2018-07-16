@@ -455,9 +455,9 @@ public class SchedulerBuilder {
         if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
             ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
             launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMins()));
             failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
                     stateStore,
                     configStore);
         } else {

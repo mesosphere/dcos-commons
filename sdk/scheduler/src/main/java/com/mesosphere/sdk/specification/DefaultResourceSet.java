@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -20,24 +16,14 @@ import java.util.Objects;
 public class DefaultResourceSet implements ResourceSet {
 
     private final String preReservedRole;
-    @NotNull
-    @Size(min = 1)
-    private String id;
-    @NotNull
-    @Size(min = 1)
-    @Valid
-    private Collection<ResourceSpec> resources;
-    @Valid
-    private Collection<VolumeSpec> volumes;
-    @NotNull
-    @Size(min = 1)
-    String role;
-    @NotNull
-    @Size(min = 1)
-    String principal;
+    private final String id;
+    private final Collection<ResourceSpec> resources;
+    private final Collection<VolumeSpec> volumes;
+    private final String role;
+    private final String principal;
 
     @JsonCreator
-    public DefaultResourceSet(
+    private DefaultResourceSet(
             @JsonProperty("id") String id,
             @JsonProperty("resource-specifications") Collection<ResourceSpec> resources,
             @JsonProperty("volume-specifications") Collection<VolumeSpec> volumes,
@@ -60,6 +46,11 @@ public class DefaultResourceSet implements ResourceSet {
                 builder.role,
                 builder.preReservedRole,
                 builder.principal);
+
+        ValidationUtils.nonEmpty(this, "id", id);
+        ValidationUtils.nonEmpty(this, "resources", resources);
+        ValidationUtils.nonEmpty(this, "role", role);
+        ValidationUtils.nonEmpty(this, "principal", principal);
     }
 
     public static Builder newBuilder(String role, String preReservedRole, String principal) {
@@ -211,7 +202,7 @@ public class DefaultResourceSet implements ResourceSet {
          * @param resourceSpecCollection the {@code resource} to add
          * @return a reference to this Builder
          */
-        public Builder addResource(Collection<ResourceSpec> resourceSpecCollection) {
+        public Builder addResources(Collection<ResourceSpec> resourceSpecCollection) {
             resources.addAll(resourceSpecCollection);
             return this;
         }
