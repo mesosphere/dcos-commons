@@ -14,6 +14,7 @@ import traceback
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_metrics
 import sdk_plan
 import sdk_tasks
 import sdk_utils
@@ -161,7 +162,10 @@ def update_service(package_name, service_name, additional_options=None, to_packa
                 '{} --options={}'.format(' '.join(update_cmd), opts_f.name)
             )
     else:
-        sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd))
+        sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+    health_and_build = sdk_metrics.get_service_health_info(service_name)
+    assert health_and_build['PACKAGE_VERSION'] == to_package_version, "Expected version [{}] of {}. Found [{}] instead"\
+        .format(to_package_version, service_name, health_and_build['PACKAGE_VERSION'])
 
 
 def _upgrade_or_downgrade(
@@ -189,7 +193,7 @@ def _upgrade_or_downgrade(
             wait_for_deployment=wait_for_deployment)
     else:
         log.info('Using CLI upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
-        update_service(additional_options, to_package_version)
+        update_service(package_name, service_name, additional_options, to_package_version)
         # we must manually upgrade the package CLI because it's not done automatically in this flow
         # (and why should it? that'd imply the package CLI replacing itself via a call to the main CLI...)
         sdk_cmd.run_cli(

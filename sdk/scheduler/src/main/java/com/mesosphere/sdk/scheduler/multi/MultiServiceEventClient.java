@@ -491,7 +491,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 : Collections.emptyList(); // ... any plans to show when running normally?
         List<Object> endpoints = new ArrayList<>();
         endpoints.addAll(Arrays.asList(
-                new HealthResource(planManagers),
+                new HealthResource(planManagers, schedulerConfig),
                 new PlansResource(planManagers),
                 new MultiArtifactResource(multiServiceManager),
                 new MultiConfigResource(multiServiceManager),

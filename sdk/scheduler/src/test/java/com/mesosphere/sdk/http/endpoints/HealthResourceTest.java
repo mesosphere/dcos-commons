@@ -5,6 +5,7 @@ import java.util.Collections;
 
 import javax.ws.rs.core.Response;
 
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +28,7 @@ public class HealthResourceTest {
         MockitoAnnotations.initMocks(this);
         resource = new HealthResource(Arrays.asList(
                 DefaultPlanManager.createProceeding(mockPlan1),
-                DefaultPlanManager.createProceeding(mockPlan2)));
+                DefaultPlanManager.createProceeding(mockPlan2)), SchedulerConfigTestUtils.getTestSchedulerConfig());
     }
 
     @Test
@@ -68,13 +69,12 @@ public class HealthResourceTest {
 
     @Test
     public void testNoPlans() {
-        resource = new HealthResource(Collections.emptyList());
+        resource = new HealthResource(Collections.emptyList(), SchedulerConfigTestUtils.getTestSchedulerConfig());
         checkHealthStatus(Response.Status.OK);
     }
 
     private void checkHealthStatus(Response.Status status) {
         Response response = resource.getHealth();
         Assert.assertEquals(status, response.getStatusInfo());
-        Assert.assertEquals(status.toString(), response.getEntity());
     }
 }

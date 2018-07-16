@@ -173,7 +173,7 @@ def _dump_plans(item: pytest.Item, service_name: str):
 
 
 def _dump_threads(item: pytest.Item, service_name: str):
-    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads')
+    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads', timeout_seconds=5)
     out_path = _setup_artifact_path(item, 'threads_{}.out'.format(service_name.replace('/', '_')))
     log.info('=> Writing {} ({} bytes)'.format(out_path, len(threads)))
     with open(out_path, 'w') as f:

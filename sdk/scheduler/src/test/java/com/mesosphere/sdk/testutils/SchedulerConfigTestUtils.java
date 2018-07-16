@@ -2,6 +2,7 @@ package com.mesosphere.sdk.testutils;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import org.json.JSONObject;
 
 import java.time.Duration;
 import java.util.Optional;
@@ -28,6 +29,7 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-region"));
         when(schedulerConfig.getMultiServiceRemovalTimeout()).thenReturn(Duration.ofSeconds(60));
         when(schedulerConfig.getSchedulerIP()).thenReturn("127.0.0.1");
+        when(schedulerConfig.getBuildInfo()).thenReturn(new JSONObject());
         return schedulerConfig;
     }
 }

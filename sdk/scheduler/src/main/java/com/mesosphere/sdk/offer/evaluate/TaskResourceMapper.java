@@ -81,19 +81,19 @@ class TaskResourceMapper extends AbstractResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            LOGGER.info("Unreserving orphaned task resources no longer in TaskSpec: {}",
+            logger.info("Unreserving orphaned task resources no longer in TaskSpec: {}",
                     orphanedResources.stream().map(TextFormat::shortDebugString).collect(Collectors.toList()));
         }
 
         if (!matchingResources.isEmpty()) {
-            LOGGER.info("Matching task/TaskSpec resources: {}", matchingResources);
+            logger.info("Matching task/TaskSpec resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(taskSpecName, resourceLabels));
             }
         }
 
         if (!remainingResourceSpecs.isEmpty()) {
-            LOGGER.info("Missing TaskSpec resources not found in task: {}", remainingResourceSpecs);
+            logger.info("Missing TaskSpec resources not found in task: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
                 stages.add(newCreateEvaluationStage(taskSpecName, missingResource));
             }
@@ -125,7 +125,7 @@ class TaskResourceMapper extends AbstractResourceMapper {
                     // The advertised port value is present in this resource. Resource must match!
                     Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                     if (!resourceId.isPresent()) {
-                        LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                        logger.error("Failed to find resource ID for resource: {}", taskResource);
                         continue;
                     }
 
@@ -139,7 +139,7 @@ class TaskResourceMapper extends AbstractResourceMapper {
                 if (RangeUtils.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
                     Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                     if (!resourceId.isPresent()) {
-                        LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                        logger.error("Failed to find resource ID for resource: {}", taskResource);
                         continue;
                     }
 

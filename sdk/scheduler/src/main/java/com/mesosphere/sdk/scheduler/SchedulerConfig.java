@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Field;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
@@ -211,14 +212,7 @@ public class SchedulerConfig {
         this.envStore = envStore;
 
         if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-            LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                    getPackageName(),
-                    getPackageVersion(),
-                    Instant.ofEpochMilli(getPackageBuildTimeMs()),
-
-                    SDKBuildInfo.VERSION,
-                    SDKBuildInfo.GIT_SHA,
-                    Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+            LOGGER.info("Build information:\n{} ", getBuildInfo().toString(Constants.JSON_INDENT_FACTOR));
         }
     }
 
@@ -246,8 +240,8 @@ public class SchedulerConfig {
     }
 
     /**
-     * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
-     * information.
+     * Returns the configured API port, or throws {@link EnvStore.ConfigException} if the environment lacked the
+     * required information.
      */
     public int getApiServerPort() {
         return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
@@ -441,5 +435,20 @@ public class SchedulerConfig {
      */
     public String getSchedulerIP() {
         return envStore.getRequired(LIBPROCESS_IP_ENVVAR);
+    }
+
+    public JSONObject getBuildInfo() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(PACKAGE_NAME_ENV, getPackageName());
+        jsonObject.put(PACKAGE_VERSION_ENV, getPackageVersion());
+        jsonObject.put(PACKAGE_BUILD_TIME_EPOCH_MS_ENV, Instant.ofEpochMilli(getPackageBuildTimeMs()));
+        for (Field f : SDKBuildInfo.class.getDeclaredFields()) {
+            try {
+                Object staticValue = f.get(null);
+                jsonObject.put("SDK_" + f.getName(),
+                        staticValue instanceof Long ? Instant.ofEpochMilli((Long) staticValue) : staticValue);
+            } catch (IllegalAccessException ignored) {}
+        }
+        return jsonObject;
     }
 }

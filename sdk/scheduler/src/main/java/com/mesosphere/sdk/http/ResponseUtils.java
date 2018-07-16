@@ -3,6 +3,7 @@ package com.mesosphere.sdk.http;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.mesosphere.sdk.offer.Constants;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -28,7 +29,7 @@ public class ResponseUtils {
      * Returns a response containing the provided {@link JSONArray}.
      */
     public static Response jsonResponse(JSONArray jsonArray, Response.Status status) {
-        return jsonResponseBean(jsonArray.toString(2), status);
+        return jsonResponseBean(jsonArray.toString(Constants.JSON_INDENT_FACTOR), status);
     }
 
     /**
@@ -42,7 +43,7 @@ public class ResponseUtils {
      * Returns a 200 OK response containing the provided {@link JSONObject}.
      */
     public static Response jsonResponse(JSONObject jsonObject, Response.Status status) {
-        return jsonResponseBean(jsonObject.toString(2), status);
+        return jsonResponseBean(jsonObject.toString(Constants.JSON_INDENT_FACTOR), status);
     }
 
     /**

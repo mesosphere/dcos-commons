@@ -10,6 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 
+import os
 import retrying
 import shakedown
 
@@ -165,3 +166,8 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
             return False
 
     check_for_service_metrics()
+
+
+def get_service_health_info(service_name):
+    return json.loads(sdk_cmd.cluster_request("GET",
+                                              os.path.normpath("/service/{}/v1/health".format(service_name))).text)

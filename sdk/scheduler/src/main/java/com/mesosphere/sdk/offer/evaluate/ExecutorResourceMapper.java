@@ -68,7 +68,7 @@ public class ExecutorResourceMapper extends AbstractResourceMapper {
                 }
                 matchingResources.add(matchingResource.get());
             } else {
-                LOGGER.warn("Failed to find match for resource: {}", TextFormat.shortDebugString(resource));
+                logger.warn("Failed to find match for resource: {}", TextFormat.shortDebugString(resource));
                 if (resource.hasDisk()) {
                     orphanedResources.add(resource);
                 }
@@ -78,19 +78,19 @@ public class ExecutorResourceMapper extends AbstractResourceMapper {
         List<OfferEvaluationStage> stages = new ArrayList<>();
 
         if (!orphanedResources.isEmpty()) {
-            LOGGER.info("Orphaned executor resources no longer in executor: {}",
+            logger.info("Orphaned executor resources no longer in executor: {}",
                     orphanedResources.stream().map(TextFormat::shortDebugString).collect(Collectors.toList()));
         }
 
         if (!matchingResources.isEmpty()) {
-            LOGGER.info("Matching executor resources: {}", matchingResources);
+            logger.info("Matching executor resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
                 stages.add(newUpdateEvaluationStage(resourceLabels));
             }
         }
 
         if (!remainingResourceSpecs.isEmpty()) {
-            LOGGER.info("Missing resources not found in executor: {}", remainingResourceSpecs);
+            logger.info("Missing resources not found in executor: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
                 stages.add(newCreateEvaluationStage(missingResource));
             }

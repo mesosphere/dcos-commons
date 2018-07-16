@@ -22,8 +22,15 @@ assert log_level in log_levels, \
 # write everything to stdout due to the following circumstances:
 # - shakedown uses print() aka stdout
 # - teamcity splits out stdout vs stderr into separate outputs, we'd want them combined
+# Erase all existing root handlers to ensure that the following basicConfig call isn't ignored as a default handler
+#  may have been configured automatically via ANY interaction with the logging lib
+# TODO(takirala): Replace this with `force=True` once we bump to python 3.7+
+rootlog = logging.getLogger()
+for h in rootlog.handlers[:]:
+    rootlog.removeHandler(h)
+    h.close()
 logging.basicConfig(
-    format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
+    format='[%(asctime)s|%(name)s|%(funcName)s|%(lineno)d|%(levelname)s]: %(message)s',
     level=log_level,
     stream=sys.stdout)
 

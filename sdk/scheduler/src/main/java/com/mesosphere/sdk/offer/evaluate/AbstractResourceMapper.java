@@ -11,11 +11,11 @@ import java.util.Collection;
 import java.util.Optional;
 
 abstract class AbstractResourceMapper {
-    final Logger LOGGER;
+    final Logger logger;
     final Optional<String> resourceNamespace;
 
     AbstractResourceMapper(Optional<String> resourceNamespace) {
-        LOGGER = LoggingUtils.getLogger(getClass(), resourceNamespace);
+        logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.resourceNamespace = resourceNamespace;
     }
 
@@ -31,7 +31,7 @@ abstract class AbstractResourceMapper {
                     ((VolumeSpec) resourceSpec).getContainerPath())) {
                 Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
-                    LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                    logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
                 }
                 return Optional.of(new ResourceLabels(
@@ -56,7 +56,7 @@ abstract class AbstractResourceMapper {
             if (resourceSpec.getName().equals(taskResource.getName())) {
                 Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
                 if (!resourceId.isPresent()) {
-                    LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+                    logger.error("Failed to find resource ID for resource: {}", taskResource);
                     continue;
                 }
                 return Optional.of(new ResourceLabels(
@@ -79,7 +79,7 @@ abstract class AbstractResourceMapper {
     ) {
         return taskResourceNamespace.flatMap(x -> {
             if (!resourceNamespace.isPresent() || !resourceNamespace.get().equals(x)) {
-                LOGGER.error("Resource has [{}] namespace label but scheduler is in [{}] namespace",
+                logger.error("Resource has [{}] namespace label but scheduler is in [{}] namespace",
                         x, this.resourceNamespace);
                 return Optional.empty();
             } else {
