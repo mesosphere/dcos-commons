@@ -20,6 +20,9 @@ import sys
 import time
 import uuid
 
+
+# Disable import errors for the fabric module
+# pylint: disable=import-error
 from fabric.api import run, env
 from fabric.tasks import execute
 
