@@ -63,14 +63,14 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testReregister() throws PersisterException {
         scheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, MASTER_INFO);
         verify(mockFrameworkStore).storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        Assert.assertEquals(mockSchedulerDriver, Driver.getDriver().get());
+        Assert.assertEquals(mockSchedulerDriver, Driver.getDriver());
         verifyDomainIsSet(MASTER_INFO.getDomain());
         verify(mockMesosEventClient).registered(false);
         verify(mockOfferProcessor).start();
 
         // Call should be treated as a re-registration:
         scheduler.registered(mockSchedulerDriver2, TestConstants.FRAMEWORK_ID, MASTER_INFO2);
-        Assert.assertEquals(mockSchedulerDriver2, Driver.getDriver().get());
+        Assert.assertEquals(mockSchedulerDriver2, Driver.getDriver());
         verifyDomainIsSet(MASTER_INFO2.getDomain());
         verify(mockMesosEventClient).registered(true);
 

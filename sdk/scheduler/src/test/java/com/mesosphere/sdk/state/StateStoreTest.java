@@ -38,7 +38,7 @@ public class StateStoreTest {
 
     @Before
     public void beforeEach() throws Exception {
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new StateStore(persister);
     }
 

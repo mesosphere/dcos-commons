@@ -15,7 +15,6 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -75,7 +74,7 @@ public class SchedulerBuilderTest {
                 .build();
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                serviceSpec, mockSchedulerConfig, new MemPersister())
+                serviceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .withSingleRegionConstraint()
                 .build()
                 .getServiceSpec();
@@ -92,7 +91,7 @@ public class SchedulerBuilderTest {
         when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of(TestConstants.REMOTE_REGION));
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .withSingleRegionConstraint()
                 .build()
                 .getServiceSpec();
@@ -112,7 +111,7 @@ public class SchedulerBuilderTest {
         when(mockSchedulerConfig.isRegionAwarenessEnabled()).thenReturn(true);
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
 
@@ -127,7 +126,7 @@ public class SchedulerBuilderTest {
     @Test
     public void testRegionAwarenessEnabledWithoutSchedulerRegion() throws PersisterException {
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .withSingleRegionConstraint()
                 .build()
                 .getServiceSpec();
@@ -143,7 +142,7 @@ public class SchedulerBuilderTest {
         when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of(TestConstants.REMOTE_REGION));
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
 
@@ -156,7 +155,7 @@ public class SchedulerBuilderTest {
     @Test
     public void testRegionAwarenessDisabledWithoutSchedulerRegion() throws PersisterException {
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
 
@@ -171,7 +170,7 @@ public class SchedulerBuilderTest {
         when(mockCapabilities.supportsDomains()).thenReturn(false);
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
         // No rule changes:
@@ -185,8 +184,8 @@ public class SchedulerBuilderTest {
 
     @Test
     public void testDeployPlanOverriddenDuringUpdate() throws Exception {
-        Persister persister = new MemPersister();
-        SchedulerBuilder builder = DefaultScheduler.newBuilder(minimalServiceSpec, mockSchedulerConfig, persister);
+        SchedulerBuilder builder = DefaultScheduler.newBuilder(
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build());
 
         Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), true);
 
@@ -201,8 +200,8 @@ public class SchedulerBuilderTest {
 
     @Test
     public void testDeployPlanPreservedDuringInstall() throws Exception {
-        Persister persister = new MemPersister();
-        SchedulerBuilder builder = DefaultScheduler.newBuilder(minimalServiceSpec, mockSchedulerConfig, persister);
+        SchedulerBuilder builder = DefaultScheduler.newBuilder(
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build());
 
         Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), false);
 

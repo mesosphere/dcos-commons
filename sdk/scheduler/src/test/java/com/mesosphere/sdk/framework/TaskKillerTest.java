@@ -46,19 +46,11 @@ public class TaskKillerTest {
         verify(driver, never()).killTask(TestConstants.TASK_ID);
     }
 
-    @Test
-    public void delayedDriverSet() throws InterruptedException {
-        // Enqueue a task to kill, but it shouldn't be killed since no driver exists
+    @Test(expected=IllegalStateException.class)
+    public void driverNotSet() {
+        // Task kill should fail because the driver doesn't exist
         Driver.setDriver(null);
         TaskKiller.killTask(TestConstants.TASK_ID);
-        verify(driver, never()).killTask(TestConstants.TASK_ID);
-
-        // Re-add driver and perform an iteration of task killing. Should happen now.
-        Driver.setDriver(driver);
-        TaskKiller.killAllTasks();
-        verify(driver, times(1)).killTask(TestConstants.TASK_ID);
-
-        completeKilling(1);
     }
 
     @Test

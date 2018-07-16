@@ -78,7 +78,7 @@ public class UninstallScheduler extends AbstractScheduler {
             Optional<String> namespace,
             Optional<SecretsClient> customSecretsClientForTests,
             TimeFetcher timeFetcher) {
-        super(serviceSpec, stateStore, null, planCustomizer, namespace);
+        super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer, namespace);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.configStore = configStore;
 

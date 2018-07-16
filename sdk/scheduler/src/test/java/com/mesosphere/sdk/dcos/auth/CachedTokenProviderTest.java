@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.dcos.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,9 +22,10 @@ public class CachedTokenProviderTest {
 
     @Mock private DecodedJWT mockToken;
     @Mock private TokenProvider mockProvider;
+    @Mock private SchedulerConfig mockSchedulerConfig;
 
     private CachedTokenProvider getProvider() {
-        return new CachedTokenProvider(mockProvider, Duration.ofSeconds(30));
+        return new CachedTokenProvider(mockProvider, Duration.ofSeconds(30), mockSchedulerConfig);
     }
 
     @Before

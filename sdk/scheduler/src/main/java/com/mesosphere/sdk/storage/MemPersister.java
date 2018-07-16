@@ -10,9 +10,9 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import com.google.common.base.Splitter;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 /**
@@ -34,7 +34,6 @@ public class MemPersister implements Persister {
     // We use a tree structure to simplify getChildren() and (recursive) delete():
     private final Node root;
 
-    private final Optional<ReadWriteLock> internalLock;
     private final Optional<Lock> rlock;
     private final Optional<Lock> rwlock;
 
@@ -48,32 +47,78 @@ public class MemPersister implements Persister {
     }
 
     /**
-     * Creates a new instance with locking enabled and without any initial data.
+     * Returns a new builder instance with a default configuration:
+     * <ul><li>Locking enabled</li>
+     * <li>Exit if there's a deadlock</li>
+     * <li>No initial data</li></ul>
      */
-    public MemPersister() {
-        this(LockMode.ENABLED, Collections.emptyMap());
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private LockMode lockMode = LockMode.ENABLED;
+        private boolean exitOnDeadlock = true;
+        private Map<String, byte[]> initialData = Collections.emptyMap();
+
+        private Builder() {
+        }
+
+        /**
+         * Configures whether any deadlocks should result in exiting the scheduler process. By default, if this is not
+         * called then exiting on deadlock is enabled.
+         *
+         * @return this
+         */
+        public Builder configureExitOnDeadlock(SchedulerConfig schedulerConfig) {
+            this.exitOnDeadlock = schedulerConfig.isDeadlockExitEnabled();
+            return this;
+        }
+
+        /**
+         * Disables thread locking. This should only be invoked by {@link PersisterCache} which has its own locking.
+         * Calling this also implies disabling the exit-on-deadlock feature.
+         *
+         * @return this
+         */
+        Builder disableLocking() {
+            this.lockMode = LockMode.DISABLED;
+            this.exitOnDeadlock = false;
+            return this;
+        }
+
+        /**
+         * Assigns some initial data to be stored in the created instance. This should only be invoked by
+         * {@link PersisterCache} which may have previous data to be reloaded.
+         *
+         * @param data a mapping of path to raw data
+         * @return this
+         */
+        Builder setData(Map<String, byte[]> data) {
+            this.initialData = data;
+            return this;
+        }
+
+        public MemPersister build() {
+            return new MemPersister(lockMode, exitOnDeadlock, initialData);
+        }
     }
 
     /**
-     * Creates a new instance with the provided options.
-     *
-     * @param mode Allows enabling or disabling internal thread-safe locking. Disable in cases where the caller is
-     *     already performing their own locking
-     * @param data The initial data to be stored in the instance, or an empty map if none is applicable
+     * Creates a new instance with the provided options. See {@link Builder}.
      */
-    public MemPersister(LockMode mode, Map<String, byte[]> data) {
+    private MemPersister(LockMode mode, boolean exitOnDeadlock, Map<String, byte[]> data) {
         this.root = new Node();
         for (Map.Entry<String, byte[]> entry : data.entrySet()) {
             getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
         }
         if (mode == LockMode.ENABLED) {
-            internalLock = Optional.of(new ReentrantReadWriteLock());
-            rlock = Optional.of(internalLock.get().readLock());
-            rwlock = Optional.of(internalLock.get().writeLock());
+            ReadWriteLock lock = CycleDetectingLockUtils.newLock(exitOnDeadlock, MemPersister.class);
+            this.rlock = Optional.of(lock.readLock());
+            this.rwlock = Optional.of(lock.writeLock());
         } else {
-            internalLock = Optional.empty();
-            rlock = Optional.empty();
-            rwlock = Optional.empty();
+            this.rlock = Optional.empty();
+            this.rwlock = Optional.empty();
         }
     }
 

@@ -1,12 +1,10 @@
 package com.mesosphere.sdk.framework;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -33,13 +31,8 @@ class ImplicitReconciler {
         @Override
         public void run() {
             try {
-                Optional<SchedulerDriver> driver = Driver.getDriver();
-                if (driver.isPresent()) {
-                    LOGGER.info("Triggering implicit reconciliation");
-                    driver.get().reconcileTasks(Collections.emptyList());
-                } else {
-                    LOGGER.error("Unable to trigger implicit reconciliation: No SchedulerDriver");
-                }
+                LOGGER.info("Triggering implicit reconciliation");
+                Driver.getDriver().reconcileTasks(Collections.emptyList());
             } catch (Exception e) {
                 LOGGER.error("Failed to trigger implicit reconciliation", e);
             }

@@ -6,16 +6,17 @@ import com.google.common.collect.ImmutableSet;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskStatus;
-import org.apache.mesos.SchedulerDriver;
-
 import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 import com.mesosphere.sdk.state.StateStore;
 import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * Synchronizes the service's task state with what Mesos reports, with Mesos as source of truth.
@@ -33,18 +34,30 @@ public class ExplicitReconciler {
     private static final long BASE_BACKOFF_MS = 4000;
     private static final long MAX_BACKOFF_MS = 30000;
 
-    private final AtomicBoolean isComplete = new AtomicBoolean(false);
+    private final AtomicBoolean isComplete;
     private final Logger logger;
     private final StateStore stateStore;
 
-    // NOTE: Access to 'unreconciled' and the '*Ms' values must be protected by a lock against 'unreconciled'.
-    private final Map<String, TaskStatus> unreconciled = new HashMap<>();
+    /**
+     * This lock must be obtained before using {@code unreconciled}, {@code lastRequestTimeMs}, or {@code backOffMs}.
+     */
+    private final Lock rlock;
+    private final Lock rwlock;
+
+    private final Map<String, TaskStatus> unreconciled;
     private long lastRequestTimeMs;
     private long backOffMs;
 
-    public ExplicitReconciler(StateStore stateStore, Optional<String> namespace) {
+    public ExplicitReconciler(StateStore stateStore, Optional<String> namespace, SchedulerConfig schedulerConfig) {
+        this.isComplete = new AtomicBoolean(false);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.stateStore = stateStore;
+
+        ReadWriteLock lock = CycleDetectingLockUtils.newLock(schedulerConfig, ExplicitReconciler.class);
+        this.rlock = lock.readLock();
+        this.rwlock = lock.writeLock();
+
+        this.unreconciled = new HashMap<>();
         resetTimerValues();
     }
 
@@ -62,7 +75,8 @@ public class ExplicitReconciler {
             throw new RuntimeException("Failed to fetch TaskStatuses for reconciliation with exception: ", e);
         }
 
-        synchronized (unreconciled) {
+        rwlock.lock();
+        try {
             for (TaskStatus status : taskStatuses) {
                 if (!TaskUtils.isTerminal(status)) {
                     unreconciled.put(status.getTaskId().getValue(), status);
@@ -77,6 +91,8 @@ public class ExplicitReconciler {
                     taskStatuses.size(), taskStatuses.size() == 1 ? "" : "s",
                     unreconciled.size(), unreconciled.size() == 1 ? "" : "s",
                     unreconciled.keySet());
+        } finally {
+            rwlock.unlock();
         }
     }
 
@@ -106,7 +122,8 @@ public class ExplicitReconciler {
          * this we unilaterally enforce that we do not hold any locks while making calls to {@link driver}.
          */
         Collection<TaskStatus> tasksToReconcile = Collections.emptyList();
-        synchronized (unreconciled) {
+        rwlock.lock();
+        try {
             if (!unreconciled.isEmpty()) {
                 final long nowMs = getCurrentTimeMillis();
                 // Unreconciled tasks remain: trigger explicit reconciliation against the remaining known tasks which
@@ -135,17 +152,15 @@ public class ExplicitReconciler {
                                 + "explicit reconciliation in {}ms or later",
                         unreconciled.size(), unreconciled.size() == 1 ? "" : "s", backOffMs);
             }
+        } finally {
+            rwlock.unlock();
         }
 
         if (tasksToReconcile.isEmpty()) {
             logger.info("Completed explicit reconciliation");
             isComplete.set(true);
         } else {
-            Optional<SchedulerDriver> driver = Driver.getDriver();
-            if (!driver.isPresent()) {
-                throw new IllegalStateException("Internal error: No driver present for reconciliation");
-            }
-            driver.get().reconcileTasks(tasksToReconcile);
+            Driver.getDriver().reconcileTasks(tasksToReconcile);
         }
     }
 
@@ -158,7 +173,8 @@ public class ExplicitReconciler {
      * @param status The TaskStatus used to update the Reconciler.
      */
     public void update(final Protos.TaskStatus status) {
-        synchronized (unreconciled) {
+        rwlock.lock();
+        try {
             if (unreconciled.isEmpty()) {
                 return;
             }
@@ -166,6 +182,8 @@ public class ExplicitReconciler {
             unreconciled.remove(status.getTaskId().getValue());
             logger.info("Reconciled task: {} ({} remaining tasks)",
                     status.getTaskId().getValue(), unreconciled.size());
+        } finally {
+            rwlock.unlock();
         }
     }
 
@@ -175,7 +193,12 @@ public class ExplicitReconciler {
      * NOTE: THIS CALL MUST BE THREAD-SAFE AGAINST OTHER RECONCILER CALLS
      */
     public boolean isReconciled() {
-        return unreconciled.isEmpty();
+        rlock.lock();
+        try {
+            return unreconciled.isEmpty();
+        } finally {
+            rlock.unlock();
+        }
     }
 
     /**
@@ -183,8 +206,11 @@ public class ExplicitReconciler {
      */
     @VisibleForTesting
     Set<String> remaining() {
-        synchronized (unreconciled) {
+        rlock.lock();
+        try {
             return ImmutableSet.copyOf(unreconciled.keySet());
+        } finally {
+            rlock.unlock();
         }
     }
 

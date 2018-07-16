@@ -84,7 +84,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         frameworkStore = new FrameworkStore(persister);
         stateStore = new StateStore(persister);
 

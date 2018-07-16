@@ -8,6 +8,7 @@ import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import java.nio.charset.StandardCharsets;
@@ -33,21 +34,22 @@ public class PersisterCacheTest {
     private static final Collection<String> KEY2_SET = new TreeSet<>(Arrays.asList("/" + KEY2));
     private static final Collection<String> BOTH_KEYS_SET = new TreeSet<>(Arrays.asList("/" + KEY, "/" + KEY2));
 
+    @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private Persister mockPersister;
     private Persister persister;
     private PersisterCache cache;
 
     @Before
     public void beforeEach() throws Exception {
-        persister = new MemPersister();
-        cache = new PersisterCache(persister);
-
         MockitoAnnotations.initMocks(this);
+        when(mockSchedulerConfig.isDeadlockExitEnabled()).thenReturn(true);
+
+        persister = MemPersister.newBuilder().build();
+        cache = new PersisterCache(persister, mockSchedulerConfig);
     }
 
     @Test
     public void testInitEmpty() throws PersisterException {
-        cache = new PersisterCache(persister);
         assertTrue(PersisterUtils.getAllKeys(cache).isEmpty());
     }
 
@@ -55,7 +57,7 @@ public class PersisterCacheTest {
     public void testInitBasic() throws PersisterException {
         persister.set(KEY, VAL);
         persister.set(KEY2, VAL2);
-        cache = new PersisterCache(persister); // recreate with non-empty persister
+        cache = new PersisterCache(persister, mockSchedulerConfig); // recreate with non-empty persister
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
     }
 
@@ -79,7 +81,7 @@ public class PersisterCacheTest {
             persister.set(entry.getKey(), entry.getValue());
             expectedData.put("/" + entry.getKey(), entry.getValue());
         }
-        cache = new PersisterCache(persister); // recreate with non-empty persister
+        cache = new PersisterCache(persister, mockSchedulerConfig); // recreate with non-empty persister
 
         assertEquals(expectedData, PersisterUtils.getAllData(cache));
 
@@ -179,7 +181,7 @@ public class PersisterCacheTest {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
                 .when(mockPersister).set(Mockito.eq(KEY2), Mockito.anyObject());
-        cache = new PersisterCache(mockPersister);
+        cache = new PersisterCache(mockPersister, mockSchedulerConfig);
 
         cache.set(KEY, VAL);
         try {
@@ -207,7 +209,7 @@ public class PersisterCacheTest {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
                 .when(mockPersister).setMany(Mockito.anyObject());
-        cache = new PersisterCache(mockPersister);
+        cache = new PersisterCache(mockPersister, mockSchedulerConfig);
 
         try {
             cache.setMany(map);
@@ -235,7 +237,7 @@ public class PersisterCacheTest {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
                 .when(mockPersister).recursiveDelete(KEY2);
-        cache = new PersisterCache(mockPersister);
+        cache = new PersisterCache(mockPersister, mockSchedulerConfig);
         cache.set(KEY, VAL);
         cache.set(KEY2, VAL2);
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));
@@ -260,7 +262,7 @@ public class PersisterCacheTest {
     @Test
     public void testDeleteDidntFailAsExpectedCacheDoesntThrow() throws PersisterException {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
-        cache = new PersisterCache(mockPersister);
+        cache = new PersisterCache(mockPersister, mockSchedulerConfig);
         cache.set(KEY, VAL);
         cache.set(KEY2, VAL2);
         assertEquals(BOTH_KEYS_SET, PersisterUtils.getAllKeys(cache));

@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.multi;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterUtils;
-
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -26,7 +25,7 @@ public class DisciplineSelectionStoreTest {
 
     @Before
     public void beforeEach() throws Exception {
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new DisciplineSelectionStore(persister);
     }
 

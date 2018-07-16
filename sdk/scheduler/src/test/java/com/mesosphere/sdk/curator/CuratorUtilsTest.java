@@ -6,6 +6,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 
@@ -26,6 +27,8 @@ import org.apache.zookeeper.KeeperException;
  * Tests for {@link CuratorUtils}.
  */
 public class CuratorUtilsTest {
+
+    @Mock private SchedulerConfig mockSchedulerConfig;
     @Mock private CuratorFramework mockClient;
     @Mock private GetDataBuilder mockGetDataBuilder;
     @Mock private CreateBuilder mockCreateBuilder;
@@ -106,7 +109,7 @@ public class CuratorUtilsTest {
 
     @Test
     public void testServiceNameCollision() {
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         CuratorUtils.initServiceName(persister, "/path/to/myservice");
         try {
             CuratorUtils.initServiceName(persister, "/path/to__myservice");

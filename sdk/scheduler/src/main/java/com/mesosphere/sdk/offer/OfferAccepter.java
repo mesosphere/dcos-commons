@@ -28,10 +28,7 @@ public class OfferAccepter {
             return;
         }
 
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("No driver present for accepting offers.  This should never happen.");
-        }
+        SchedulerDriver driver = Driver.getDriver();
 
         // Group recommendations by agent: Mesos requires that acceptOffers() only applies to a single agent at a time.
         // Note that ORDERING IS IMPORTANT:
@@ -46,7 +43,7 @@ public class OfferAccepter {
                     .map(rec -> rec.getOffer().getId())
                     .collect(Collectors.toSet());
             logOperations(agentRecs.getKey(), offerIds, operations);
-            driver.get().acceptOffers(offerIds, operations, FILTERS);
+            driver.acceptOffers(offerIds, operations, FILTERS);
         }
     }
 
