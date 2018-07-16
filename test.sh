@@ -351,10 +351,10 @@ while read line; do
 done < <(env)
 
 if [ -n "$env_passthrough" ]; then
-    # If the -e flag is specified, the ENVVAR=$ENVVAR lines for the
+    # If the -e flag is specified, add the ENVVAR lines for the
     # comma-separated list of envvars
     for envvar_name in ${env_passthrough//,/ }; do
-        echo "$envvar_name=$(printenv $envvar_name)" >> $envfile
+        echo "$envvar_name" >> $envfile
     done
 fi
 
