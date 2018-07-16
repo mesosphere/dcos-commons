@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -140,27 +140,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#command-java.lang.String-">command</a></span>(java.lang.String&nbsp;command)</code>
-<div class="block">Sets the <code>command</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#delay-java.lang.Integer-">delay</a></span>(java.lang.Integer&nbsp;delay)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#delay-int-">delay</a></span>(int&nbsp;delay)</code>
 <div class="block">Sets the <code>delay</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-</td>
-</tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#interval-java.lang.Integer-">interval</a></span>(java.lang.Integer&nbsp;interval)</code>
-<div class="block">Sets the <code>interval</code> and returns a reference to this Builder so that the methods can be chained
- together.</div>
-</td>
-</tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#timeout-java.lang.Integer-">timeout</a></span>(java.lang.Integer&nbsp;timeout)</code>
-<div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
 </table>
@@ -185,66 +166,17 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="command-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>command</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a>&nbsp;command(java.lang.String&nbsp;command)</pre>
-<div class="block">Sets the <code>command</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>command</code> - the <code>command</code> to set</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a reference to this Builder</dd>
-</dl>
-</li>
-</ul>
-<a name="delay-java.lang.Integer-">
+<a name="delay-int-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>delay</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a>&nbsp;delay(java.lang.Integer&nbsp;delay)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a>&nbsp;delay(int&nbsp;delay)</pre>
 <div class="block">Sets the <code>delay</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>delay</code> - the <code>delay</code> to set</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a reference to this Builder</dd>
-</dl>
-</li>
-</ul>
-<a name="interval-java.lang.Integer-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>interval</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a>&nbsp;interval(java.lang.Integer&nbsp;interval)</pre>
-<div class="block">Sets the <code>interval</code> and returns a reference to this Builder so that the methods can be chained
- together.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>interval</code> - the <code>interval</code> to set</dd>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>a reference to this Builder</dd>
-</dl>
-</li>
-</ul>
-<a name="timeout-java.lang.Integer-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>timeout</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a>&nbsp;timeout(java.lang.Integer&nbsp;timeout)</pre>
-<div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>timeout</code> - the <code>timeout</code> to set</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a reference to this Builder</dd>
 </dl>

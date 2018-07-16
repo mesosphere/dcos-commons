@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":9,"i8":9,"i9":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":9,"i8":9,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -140,7 +140,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <tr class="altColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></span></code>
-<div class="block"><code>DefaultResourceSpec</code> builder static inner class.</div>
+<div class="block"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultResourceSpec</code></a> builder static inner class.</div>
 </td>
 </tr>
 </table>
@@ -155,10 +155,12 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
 <caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
 <tr>
-<th class="colOne" scope="col">Constructor and Description</th>
+<th class="colFirst" scope="col">Modifier</th>
+<th class="colLast" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#DefaultResourceSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-">DefaultResourceSpec</a></span>(java.lang.String&nbsp;name,
+<td class="colFirst"><code>protected </code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#DefaultResourceSpec-java.lang.String-Protos.Value-java.lang.String-java.lang.String-java.lang.String-">DefaultResourceSpec</a></span>(java.lang.String&nbsp;name,
                    Protos.Value&nbsp;value,
                    java.lang.String&nbsp;role,
                    java.lang.String&nbsp;preReservedRole,
@@ -219,6 +221,10 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>protected void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html#validateResource--">validateResource</a></span>()</code>&nbsp;</td>
+</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -247,11 +253,11 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <ul class="blockListLast">
 <li class="blockList">
 <h4>DefaultResourceSpec</h4>
-<pre>public&nbsp;DefaultResourceSpec(java.lang.String&nbsp;name,
-                           Protos.Value&nbsp;value,
-                           java.lang.String&nbsp;role,
-                           java.lang.String&nbsp;preReservedRole,
-                           java.lang.String&nbsp;principal)</pre>
+<pre>protected&nbsp;DefaultResourceSpec(java.lang.String&nbsp;name,
+                              Protos.Value&nbsp;value,
+                              java.lang.String&nbsp;role,
+                              java.lang.String&nbsp;preReservedRole,
+                              java.lang.String&nbsp;principal)</pre>
 </li>
 </ul>
 </li>
@@ -262,6 +268,15 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="validateResource--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>validateResource</h4>
+<pre>protected&nbsp;void&nbsp;validateResource()</pre>
+</li>
+</ul>
 <a name="newBuilder--">
 <!--   -->
 </a>
@@ -278,6 +293,19 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <li class="blockList">
 <h4>newBuilder</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a>&nbsp;newBuilder(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;copy)</pre>
+</li>
+</ul>
+<a name="getName--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getName</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getName()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getName--">getName</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
+</dl>
 </li>
 </ul>
 <a name="getValue--">
@@ -329,19 +357,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.ht
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getPrincipal--">getPrincipal</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="getName--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getName</h4>
-<pre>public&nbsp;java.lang.String&nbsp;getName()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html#getName--">getName</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></dd>
 </dl>
 </li>
 </ul>

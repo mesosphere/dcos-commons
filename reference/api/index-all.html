@@ -150,7 +150,7 @@
 <dd>
 <div class="block">Adds <code>resource</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addResource-java.util.Collection-">addResource(Collection&lt;ResourceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addResources-java.util.Collection-">addResources(Collection&lt;ResourceSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></dt>
 <dd>
 <div class="block">Adds a collection of <code>resource</code>s and returns a reference to this Builder so that the methods can be
  chained together.</div>
@@ -263,6 +263,30 @@
 <dd>
 <div class="block">Determines whether the specified asset refers to the same pod instance and tasks other assets.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#atLeast-java.lang.Object-java.lang.String-java.lang.Integer-int-">atLeast(Object, String, Integer, int)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or less than <code>minValue</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#atLeast-java.lang.Object-java.lang.String-java.lang.Long-long-">atLeast(Object, String, Long, long)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or less than <code>minValue</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#atLeastOne-java.lang.Object-java.lang.String-java.lang.Integer-">atLeastOne(Object, String, Integer)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or less than <code>1</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#atLeastOne-java.lang.Object-java.lang.String-java.lang.Long-">atLeastOne(Object, String, Long)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or less than <code>1</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#atMost-java.lang.Object-java.lang.String-java.lang.Integer-int-">atMost(Object, String, Integer, int)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or greater than <code>maxValue</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#atMost-java.lang.Object-java.lang.String-java.lang.Long-long-">atMost(Object, String, Long, long)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or greater than <code>maxValue</code>.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/AttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">AttributeRule</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
 <div class="block">Requires that the Offer contain an attribute whose string representation matches the provided string.</div>
@@ -360,6 +384,10 @@
 <dd>
 <div class="block">Returns a <code>DefaultCommandSpec</code> built from the parameters previously set.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultDiscoverySpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></dt>
 <dd>
 <div class="block">Returns a <code>DefaultHealthCheckSpec</code> built from the parameters previously set.</div>
@@ -383,9 +411,7 @@
 <div class="block">Returns a <code>DefaultResourceSpec</code> built from the parameters previously set.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
-<dd>
-<div class="block">Returns a <code>DefaultSecretSpec</code> built from the parameters previously set.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
 <div class="block">Returns a <code>DefaultServiceSpec</code> built from the parameters previously set.</div>
@@ -402,6 +428,10 @@
 <dd>
 <div class="block">Returns a <code>DefaultVipSpec</code> built from the parameters previously set.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#build--">build()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></dt>
 <dd>
 <div class="block">Returns a <code>ReplacementFailurePolicy</code> built from the parameters previously set.</div>
@@ -423,7 +453,9 @@
 <dd>
 <div class="block">Creates a new builder instance.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#Builder--">Builder()</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/SendOffer.Builder.html#Builder-java.lang.String-">Builder(String)</a></span> - Constructor for class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/SendOffer.Builder.html" title="class in com.mesosphere.sdk.testing">SendOffer.Builder</a></dt>
 <dd>
@@ -618,8 +650,6 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a> - package com.mesosphere.sdk.specification</dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a> - package com.mesosphere.sdk.specification.validation</dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a> - package com.mesosphere.sdk.specification.yaml</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a> - package com.mesosphere.sdk.state</dt>
@@ -629,10 +659,6 @@
 <dt><a href="com/mesosphere/sdk/testing/package-summary.html">com.mesosphere.sdk.testing</a> - package com.mesosphere.sdk.testing</dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html#command-java.lang.String-">command(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></dt>
-<dd>
-<div class="block">Sets the <code>command</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#command-java.lang.String-">command(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>command</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
@@ -1005,6 +1031,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DecommissionPlanManager.html#DecommissionPlanManager-com.mesosphere.sdk.scheduler.plan.Plan-java.util.Collection-java.util.Collection-">DecommissionPlanManager(Plan, Collection&lt;ResourceCleanupStep&gt;, Collection&lt;Protos.TaskInfo&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DecommissionPlanManager.html" title="class in com.mesosphere.sdk.scheduler.plan">DecommissionPlanManager</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN">DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dd>
+<div class="block">Default time to wait between destructive task recoveries (avoid quickly making things worse).</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/Constants.html#DEFAULT_EXECUTOR_CPUS">DEFAULT_EXECUTOR_CPUS</a></span> - Static variable in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></dt>
 <dd>
 <div class="block">The amount of additional CPU to require for the default executor.</div>
@@ -1035,8 +1065,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification"><code>CommandSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html#DefaultCommandSpec-java.lang.String-java.util.Map-">DefaultCommandSpec(String, Map&lt;String, String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultCommandSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultCommandSpec</code></a> builder.</div>
@@ -1045,8 +1073,10 @@
 <dd>
 <div class="block">Basic implementation of <a href="com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ConfigFileSpec</code></a> which returns the provided values.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html#DefaultConfigFileSpec-java.lang.String-java.lang.String-java.lang.String-">DefaultConfigFileSpec(String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></dt>
-<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultConfigFileSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultConfigFileSpec</code></a> builder static inner class.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/config/DefaultConfigurationUpdater.html" title="class in com.mesosphere.sdk.config"><span class="typeNameLink">DefaultConfigurationUpdater</span></a> - Class in <a href="com/mesosphere/sdk/config/package-summary.html">com.mesosphere.sdk.config</a></dt>
 <dd>
 <div class="block">Handles the validation and update of a new configuration against a prior configuration, if any.</div>
@@ -1061,8 +1091,10 @@
 <dd>
 <div class="block">Default implementation of a <a href="com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification"><code>DiscoverySpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html#DefaultDiscoverySpec-java.lang.String-Protos.DiscoveryInfo.Visibility-">DefaultDiscoverySpec(String, Protos.DiscoveryInfo.Visibility)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html" title="class in com.mesosphere.sdk.specification">DefaultDiscoverySpec</a></dt>
-<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultDiscoverySpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block">Builder for <a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultDiscoverySpec</code></a>.</div>
+</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/monitor/DefaultFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor"><span class="typeNameLink">DefaultFailureMonitor</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/monitor/package-summary.html">com.mesosphere.sdk.scheduler.recovery.monitor</a></dt>
 <dd>
 <div class="block">The DefaultFailureMonitor reports that tasks have Failed permanently when they are so labeled.</div>
@@ -1073,8 +1105,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><code>HealthCheckSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#DefaultHealthCheckSpec-java.lang.String-java.lang.Integer-java.lang.Integer-java.lang.Integer-java.lang.Integer-java.lang.Integer-">DefaultHealthCheckSpec(String, Integer, Integer, Integer, Integer, Integer)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultHealthCheckSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultHealthCheckSpec</code> builder static inner class.</div>
@@ -1083,8 +1113,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/NetworkSpec.html" title="interface in com.mesosphere.sdk.specification"><code>NetworkSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.html#DefaultNetworkSpec-java.lang.String-java.util.Map-java.util.Map-">DefaultNetworkSpec(String, Map&lt;Integer, Integer&gt;, Map&lt;String, String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultNetworkSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultNetworkSpec</code> builder static inner class.</div>
@@ -1133,8 +1161,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/PodSpec.html" title="interface in com.mesosphere.sdk.specification"><code>PodSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#DefaultPodSpec-java.lang.String-java.lang.String-java.lang.Integer-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-java.util.List-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-java.util.Collection-java.lang.String-java.util.Collection-java.lang.Boolean-java.lang.Boolean-">DefaultPodSpec(String, String, Integer, String, Collection&lt;NetworkSpec&gt;, Collection&lt;RLimitSpec&gt;, Collection&lt;URI&gt;, List&lt;TaskSpec&gt;, PlacementRule, Collection&lt;VolumeSpec&gt;, String, Collection&lt;SecretSpec&gt;, Boolean, Boolean)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultPodSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultPodSpec</code> builder static inner class.</div>
@@ -1143,8 +1169,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ReadinessCheckSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html#DefaultReadinessCheckSpec-java.lang.String-java.lang.Integer-java.lang.Integer-java.lang.Integer-">DefaultReadinessCheckSpec(String, Integer, Integer, Integer)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultReadinessCheckSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultReadinessCheckSpec</code> builder static inner class.</div>
@@ -1161,8 +1185,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSet</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html#DefaultResourceSet-java.lang.String-java.util.Collection-java.util.Collection-java.lang.String-java.lang.String-java.lang.String-">DefaultResourceSet(String, Collection&lt;ResourceSpec&gt;, Collection&lt;VolumeSpec&gt;, String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSet.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultResourceSet</code> builder static inner class.</div>
@@ -1175,7 +1197,7 @@
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
-<div class="block"><code>DefaultResourceSpec</code> builder static inner class.</div>
+<div class="block"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultResourceSpec</code></a> builder static inner class.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/scheduler/DefaultScheduler.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">DefaultScheduler</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/package-summary.html">com.mesosphere.sdk.scheduler</a></dt>
 <dd>
@@ -1190,18 +1212,14 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification"><code>SecretSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html#DefaultSecretSpec-java.lang.String-java.lang.String-java.lang.String-">DefaultSecretSpec(String, String, String)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultSecretSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
-<div class="block"><code>DefaultSecretSpec</code> builder static inner class.</div>
+<div class="block"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultSecretSpec</code></a> builder static inner class.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultServiceSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html#DefaultServiceSpec-java.lang.String-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.specification.GoalState-java.lang.String-java.lang.String-java.lang.String-com.mesosphere.sdk.specification.ReplacementFailurePolicy-java.util.List-">DefaultServiceSpec(String, String, String, String, GoalState, String, String, String, ReplacementFailurePolicy, List&lt;PodSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultServiceSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a> builder static inner class.</div>
@@ -1232,8 +1250,6 @@
 <dd>
 <div class="block">Default implementation of a <a href="com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-java.lang.Boolean-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.lang.Integer-java.util.Collection-">DefaultTaskSpec(String, GoalState, Boolean, ResourceSet, CommandSpec, HealthCheckSpec, ReadinessCheckSpec, Collection&lt;ConfigFileSpec&gt;, DiscoverySpec, Integer, Collection&lt;TransportEncryptionSpec&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultTaskSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>DefaultTaskSpec</code> builder static inner class.</div>
@@ -1242,8 +1258,6 @@
 <dd>
 <div class="block">Default implementation of <a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TransportEncryptionSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#DefaultTransportEncryptionSpec-java.lang.String-com.mesosphere.sdk.specification.TransportEncryptionSpec.Type-">DefaultTransportEncryptionSpec(String, TransportEncryptionSpec.Type)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#DefaultTransportEncryptionSpec-com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec.Builder-">DefaultTransportEncryptionSpec(DefaultTransportEncryptionSpec.Builder)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultTransportEncryptionSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
@@ -1268,13 +1282,9 @@
 <dd>
 <div class="block">Sets the <code>delay</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#delay-java.lang.Integer-">delay(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#delay-int-">delay(int)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>delay</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN">DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
-<dd>
-<div class="block">Default time to wait between destructive task recoveries (avoid quickly making things worse).</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/SecretsClient.html#delete-java.lang.String-">delete(String)</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/SecretsClient.html" title="class in com.mesosphere.sdk.dcos.clients">SecretsClient</a></dt>
 <dd>
@@ -1517,9 +1527,11 @@
  together.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#envKey-java.lang.String-">envKey(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
-<dd>
-<div class="block">Sets the <code>envKey</code> and returns a reference to this Builder.</div>
-</dd>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#envKey">envKey</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#envKey-java.lang.String-">envKey(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">EnvStore</span></a> - Class in <a href="com/mesosphere/sdk/framework/package-summary.html">com.mesosphere.sdk.framework</a></dt>
 <dd>
 <div class="block">Utility class for grabbing values from a mapping of flag values (typically the process env).</div>
@@ -1873,9 +1885,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/StateQueries.html#FILE_SIZE_LIMIT">FILE_SIZE_LIMIT</a></span> - Static variable in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/StateQueries.html" title="class in com.mesosphere.sdk.http.queries">StateQueries</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#filePath-java.lang.String-">filePath(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
-<dd>
-<div class="block">Sets the <code>filePath</code> and returns a reference to this Builder.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter(Offer, PodInstance, Collection&lt;TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AbstractRoundRobinRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AbstractRoundRobinRule</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/AgentRule.html#filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">filter(Offer, PodInstance, Collection&lt;TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/AgentRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">AgentRule</a></dt>
@@ -2934,7 +2944,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html#getMessageTemplate--">getMessageTemplate()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation.html" title="class in com.mesosphere.sdk.specification.yaml">WriteOnceLinkedHashMap.DuplicateKeyConstraintViolation</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelayMin--">getMinReplaceDelayMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelayMins--">getMinReplaceDelayMins()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html#getMountPath-java.lang.String-">getMountPath(String)</a></span> - Method in enum com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a></dt>
 <dd>
@@ -3137,7 +3147,7 @@
 <dd>
 <div class="block">Returns the command to be run when pausing a Task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimoutMin--">getPermanentFailureTimoutMin()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimeoutMins--">getPermanentFailureTimeoutMins()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getPersistenceId--">getPersistenceId()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
 <dd>&nbsp;</dd>
@@ -4542,12 +4552,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/ProcessExit.html#INITIALIZATION_FAILURE">INITIALIZATION_FAILURE</a></span> - Static variable in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/ProcessExit.html" title="class in com.mesosphere.sdk.framework">ProcessExit</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html#initialize-com.mesosphere.sdk.specification.validation.PositiveScalarProtoValue-">initialize(PositiveScalarProtoValue)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValueValidator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html#initialize-com.mesosphere.sdk.specification.validation.UniquePodType-">initialize(UniquePodType)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniquePodTypeValidator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html#initialize-com.mesosphere.sdk.specification.validation.UniqueTaskName-">initialize(UniqueTaskName)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniqueTaskNameValidator</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/TokenBucket.Builder.html#initialTokenCount-int-">initialTokenCount(int)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/TokenBucket.Builder.html" title="class in com.mesosphere.sdk.framework">TokenBucket.Builder</a></dt>
 <dd>
 <div class="block">Set the initial number of tokens.</div>
@@ -4594,11 +4598,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html#InterruptibleStrategy--">InterruptibleStrategy()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.plan.strategy.<a href="com/mesosphere/sdk/scheduler/plan/strategy/InterruptibleStrategy.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">InterruptibleStrategy</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html#interval-java.lang.Integer-">interval(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></dt>
-<dd>
-<div class="block">Sets the <code>interval</code> and returns a reference to this Builder so that the methods can be chained
- together.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#interval-java.lang.Integer-">interval(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>interval</code> and returns a reference to this Builder so that the methods can be chained
  together.</div>
@@ -4775,12 +4774,10 @@
 <dd>
 <div class="block">Returns the current value of the 'uninstall' property in the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html#isValid-Protos.Value-ConstraintValidatorContext-">isValid(Protos.Value, ConstraintValidatorContext)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValueValidator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html#isValid-java.util.List-ConstraintValidatorContext-">isValid(List&lt;PodSpec&gt;, ConstraintValidatorContext)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniquePodTypeValidator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html#isValid-java.util.List-ConstraintValidatorContext-">isValid(List&lt;TaskSpec&gt;, ConstraintValidatorContext)</a></span> - Method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniqueTaskNameValidator</a></dt>
-<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#isUnique-java.lang.Object-java.lang.String-java.util.stream.Stream-">isUnique(Object, String, Stream&lt;T&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if there are any duplicate entries in the provided list.</div>
+</dd>
 </dl>
 <a name="I:J">
 <!--   -->
@@ -5029,6 +5026,15 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html#matches-java.lang.String-">matches(String)</a></span> - Method in interface com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/StringMatcher.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">StringMatcher</a></dt>
 <dd>
 <div class="block">Returns whether the provided string matches some internal criteria.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#matchesRegex-java.lang.Object-java.lang.String-java.lang.String-java.util.regex.Pattern-">matchesRegex(Object, String, String, Pattern)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or doesn't match the provided regular expression.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#matchesRegexAllowNull-java.lang.Object-java.lang.String-java.lang.String-java.util.regex.Pattern-">matchesRegexAllowNull(Object, String, String, Pattern)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is doesn't match the provided regular expression, but not if it's
+ <code>null</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html#max">max</a></span> - Variable in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerRule</a></dt>
 <dd>&nbsp;</dd>
@@ -5291,6 +5297,10 @@
 <dl>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html#name">name</a></span> - Variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html" title="class in com.mesosphere.sdk.offer.taskdata">AttributeStringUtils.NameValue</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html#name-java.lang.String-">name(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#name">name</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#name-java.lang.String-">name(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>name</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -5321,8 +5331,10 @@
 <dd>
 <div class="block">This class represents a port mapped to a DC/OS named VIP.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html#NamedVIPSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-DiscoveryInfo.Visibility-java.lang.String-java.lang.Integer-java.util.Collection-">NamedVIPSpec(Protos.Value, String, String, String, String, String, String, DiscoveryInfo.Visibility, String, Integer, Collection&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></dt>
-<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">NamedVIPSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
+<dd>
+<div class="block"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification"><code>NamedVIPSpec</code></a> builder static inner class.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#namespace">namespace</a></span> - Variable in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#NAMESPACE_RESERVATION_LABEL">NAMESPACE_RESERVATION_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
@@ -5339,6 +5351,10 @@
 <div class="block">Sets the network-labels, which are K/V pairs passed to the CNI plugin.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#networkName-java.lang.String-">networkName(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#networkNames">networkNames</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#networkNames-java.util.Collection-">networkNames(Collection&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#networks-java.util.Collection-">networks(Collection&lt;NetworkSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
@@ -5393,6 +5409,10 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html#newBuilder-com.mesosphere.sdk.specification.CommandSpec-">newBuilder(CommandSpec)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultCommandSpec.html" title="class in com.mesosphere.sdk.specification">DefaultCommandSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.html" title="class in com.mesosphere.sdk.specification">DefaultDiscoverySpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#newBuilder-com.mesosphere.sdk.specification.DefaultHealthCheckSpec-">newBuilder(DefaultHealthCheckSpec)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
@@ -5405,7 +5425,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#newBuilder-com.mesosphere.sdk.specification.PodSpec-">newBuilder(PodSpec)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html#newBuilder-java.lang.String-int-int-">newBuilder(String, int, int)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html#newBuilder-com.mesosphere.sdk.specification.DefaultReadinessCheckSpec-">newBuilder(DefaultReadinessCheckSpec)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec</a></dt>
 <dd>&nbsp;</dd>
@@ -5427,9 +5447,15 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#newBuilder-com.mesosphere.sdk.specification.TaskSpec-">newBuilder(TaskSpec)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.html#newBuilder-com.mesosphere.sdk.specification.DefaultVipSpec-">newBuilder(DefaultVipSpec)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#newBuilder--">newBuilder()</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
 <dd>&nbsp;</dd>
@@ -5453,6 +5479,42 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/StateQueries.html#NO_FILENAME_ERROR_MESSAGE">NO_FILENAME_ERROR_MESSAGE</a></span> - Static variable in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/StateQueries.html" title="class in com.mesosphere.sdk.http.queries">StateQueries</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonBlank-java.lang.Object-java.lang.String-java.lang.String-">nonBlank(Object, String, String)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is whitespace-only, empty, or <code>null</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonBlankAllowNull-java.lang.Object-java.lang.String-java.lang.String-">nonBlankAllowNull(Object, String, String)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is whitespace-only or empty, but not if it is <code>null</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonEmpty-java.lang.Object-java.lang.String-java.util.Collection-">nonEmpty(Object, String, Collection&lt;?&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is empty or <code>null</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonEmpty-java.lang.Object-java.lang.String-java.lang.String-">nonEmpty(Object, String, String)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is empty or <code>null</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonEmptyAllowNull-java.lang.Object-java.lang.String-java.util.Collection-">nonEmptyAllowNull(Object, String, Collection&lt;?&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is empty, but not if it is <code>null</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonEmptyAllowNull-java.lang.Object-java.lang.String-java.lang.String-">nonEmptyAllowNull(Object, String, String)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is empty, but not if it is <code>null</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonNegative-java.lang.Object-java.lang.String-java.lang.Integer-">nonNegative(Object, String, Integer)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or less than <code>0</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonNegative-java.lang.Object-java.lang.String-java.lang.Long-">nonNegative(Object, String, Long)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code> or less than <code>0</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ValidationUtils.html#nonNull-java.lang.Object-java.lang.String-java.lang.Object-">nonNull(Object, String, Object)</a></span> - Static method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></dt>
+<dd>
+<div class="block">Throws an exception if <code>field</code> is <code>null</code>.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#notFoundResponse-java.lang.String-">notFoundResponse(String)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
 <div class="block">Returns a "404 [itemType] not found" response.</div>
@@ -5720,10 +5782,6 @@
 <dt><a href="com/mesosphere/sdk/offer/evaluate/security/PEMUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><span class="typeNameLink">PEMUtils</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/security/package-summary.html">com.mesosphere.sdk.offer.evaluate.security</a></dt>
 <dd>
 <div class="block">A <a href="com/mesosphere/sdk/offer/evaluate/security/PEMUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.security"><code>PEMUtils</code></a> allows to convert X509 certificates from and to PEM format.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#PERMANENT_FAILURE_DELAY_MIN">PERMANENT_FAILURE_DELAY_MIN</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
-<dd>
-<div class="block">Default time to wait before declaring a task as permanently failed.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#permanentFailureTimoutMs-java.lang.Integer-">permanentFailureTimoutMs(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></dt>
 <dd>
@@ -5997,6 +6055,10 @@
 <dd>
 <div class="block">Sets the host-to-container port mappings.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#portName">portName</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#portName-java.lang.String-">portName(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/Constants.html#PORTS_RESOURCE_TYPE">PORTS_RESOURCE_TYPE</a></span> - Static variable in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/Constants.html" title="class in com.mesosphere.sdk.offer">Constants</a></dt>
 <dd>
 <div class="block">The name used for reserved network port resources.</div>
@@ -6007,15 +6069,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.html#PortSpec-Protos.Value-java.lang.String-java.lang.String-java.lang.String-java.lang.String-java.lang.String-DiscoveryInfo.Visibility-java.util.Collection-">PortSpec(Protos.Value, String, String, String, String, String, DiscoveryInfo.Visibility, Collection&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValue.html" title="annotation in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">PositiveScalarProtoValue</span></a> - Annotation Type in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.html#PortSpec-com.mesosphere.sdk.specification.PortSpec.Builder-">PortSpec(PortSpec.Builder)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">PortSpec.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
-<div class="block">Defines annotation for validating Scalar Protos for non-zero value.</div>
+<div class="block"><a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><code>PortSpec</code></a> builder static inner class.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">PositiveScalarProtoValueValidator</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
-<dd>
-<div class="block">Ensure that a scalar Proto's value is > 0.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html#PositiveScalarProtoValueValidator--">PositiveScalarProtoValueValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/PositiveScalarProtoValueValidator.html" title="class in com.mesosphere.sdk.specification.validation">PositiveScalarProtoValueValidator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html#prefix-java.lang.String-">prefix(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultDiscoverySpec.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/config/validate/PreReservationCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">PreReservationCannotChange</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
 <dd>
@@ -6040,7 +6100,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html#PrettyJsonResource--">PrettyJsonResource()</a></span> - Constructor for class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types">PrettyJsonResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html#principal">principal</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#principal">principal</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#principal-java.lang.String-">principal(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>
@@ -6119,6 +6179,8 @@
 <dd>
 <div class="block">Interface which handles deserializing StateStore Property data for viewing by users.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html#protocol-java.lang.String-">protocol(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelWriter.html#put-java.lang.String-java.lang.String-">put(String, String)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelWriter</a></dt>
 <dd>
 <div class="block">Sets the provided label value, overwriting any previous value.</div>
@@ -6216,8 +6278,6 @@
 <dd>
 <div class="block">Raw YAML individual rlimit specification.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html#RawRLimit-java.lang.Long-java.lang.Long-">RawRLimit(Long, Long)</a></span> - Constructor for class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html" title="class in com.mesosphere.sdk.specification.yaml">RawRLimit</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">RawScheduler</span></a> - Class in <a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a></dt>
 <dd>
 <div class="block">Raw Scheduler configuration.</div>
@@ -6425,11 +6485,11 @@
 <dd>
 <div class="block">This class generates <a href="com/mesosphere/sdk/offer/evaluate/placement/RegionRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>RegionRule</code></a>s.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/RegionValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">RegionValidator</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
+<dt><a href="com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">RegionValidator</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
 <dd>
 <div class="block">This class validates that referencing Regions in placement constraints can only support the following transitions.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/RegionValidator.html#RegionValidator--">RegionValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/RegionValidator.html" title="class in com.mesosphere.sdk.specification.validation">RegionValidator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/RegionValidator.html#RegionValidator--">RegionValidator()</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate">RegionValidator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Send.html#register--">register()</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Send.html" title="interface in com.mesosphere.sdk.testing">Send</a></dt>
 <dd>&nbsp;</dd>
@@ -6468,6 +6528,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html#rejectRackDisablement-com.mesosphere.sdk.config.validate.ConfigValidator-com.mesosphere.sdk.testing.ServiceTestRunner-java.lang.String-">rejectRackDisablement(ConfigValidator&lt;ServiceSpec&gt;, ServiceTestRunner, String)</a></span> - Static method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing">ConfigValidatorUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html#rejectRackEnablement-com.mesosphere.sdk.config.validate.ConfigValidator-com.mesosphere.sdk.testing.ServiceTestRunner-java.lang.String-">rejectRackEnablement(ConfigValidator&lt;ServiceSpec&gt;, ServiceTestRunner, String)</a></span> - Static method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/ConfigValidatorUtils.html" title="class in com.mesosphere.sdk.testing">ConfigValidatorUtils</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html#relativePath-java.lang.String-">relativePath(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/ExplicitReconciler.html#remaining--">remaining()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/ExplicitReconciler.html" title="class in com.mesosphere.sdk.scheduler">ExplicitReconciler</a></dt>
 <dd>
@@ -6524,8 +6586,6 @@
 <dd>
 <div class="block">Destructive Replacement Failure Policy configuration.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#ReplacementFailurePolicy-java.lang.Integer-java.lang.Integer-">ReplacementFailurePolicy(Integer, Integer)</a></span> - Constructor for class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">ReplacementFailurePolicy.Builder</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block"><code>ReplacementFailurePolicy</code> builder static inner class.</div>
@@ -6762,7 +6822,7 @@
 <dd>
 <div class="block">An exception for errors pertaining to <a href="com/mesosphere/sdk/specification/RLimitSpec.html" title="class in com.mesosphere.sdk.specification"><code>RLimitSpec</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html#role">role</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#role">role</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#role-java.lang.String-">role(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>
@@ -6884,9 +6944,7 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html#SECRET_STORE_NAME_DELIMITER">SECRET_STORE_NAME_DELIMITER</a></span> - Static variable in enum com.mesosphere.sdk.offer.evaluate.security.<a href="com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html#secretPath-java.lang.String-">secretPath(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></dt>
-<dd>
-<div class="block">Sets the <code>secretPath</code> and returns a reference to this Builder.</div>
-</dd>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#secrets-java.util.Collection-">secrets(Collection&lt;SecretSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>secrets</code> and returns a reference to this Builder so that the methods can be
@@ -7183,8 +7241,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#setMesosResource-com.mesosphere.sdk.offer.MesosResource-">setMesosResource(MesosResource)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#setMinReplaceDelayMin-java.lang.Integer-">setMinReplaceDelayMin(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#setMountVolume-java.lang.String-java.util.Optional-java.util.Optional-">setMountVolume(String, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>
 <div class="block">Assigns information relating to <code>MOUNT</code> disk volumes for this resource.</div>
@@ -7211,8 +7267,6 @@
 <dd>
 <div class="block">Configures the test with custom options as would be provided via an <code>options.json</code> file.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#setPermanentFailureTimoutMin-java.lang.Integer-">setPermanentFailureTimoutMin(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setPermanentlyFailed--">setPermanentlyFailed()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
 <dd>
 <div class="block">Ensures that the task is identified as permanently failed.</div>
@@ -7725,7 +7779,10 @@
 <div class="block">Label against which the Task/Pod index (starting at 0) is stored.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</a></span> - Static variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block">The default of 0s for task kill grace period is based on upgrade path,
+ matching the previous default for SDK services launched w/ DC/OS 10.9.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#TASK_NAME_TASKENV">TASK_NAME_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
 <div class="block">Provides the name of the pod/task within the service.</div>
@@ -7897,6 +7954,8 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html#TaskVolumesCannotChange--">TaskVolumesCannotChange()</a></span> - Constructor for class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html" title="class in com.mesosphere.sdk.config.validate">TaskVolumesCannotChange</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html#templateContent-java.lang.String-">templateContent(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultConfigFileSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultConfigFileSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html" title="class in com.mesosphere.sdk.specification.yaml"><span class="typeNameLink">TemplateUtils</span></a> - Class in <a href="com/mesosphere/sdk/specification/yaml/package-summary.html">com.mesosphere.sdk.specification.yaml</a></dt>
 <dd>
 <div class="block">Utility methods relating to rendering mustache templates.</div>
@@ -7939,10 +7998,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html#TimeFetcher--">TimeFetcher()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler.TimeFetcher</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html#timeout-java.lang.Integer-">timeout(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></dt>
-<dd>
-<div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html#timeout-java.lang.Integer-">timeout(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultReadinessCheckSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>timeout</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
@@ -8274,6 +8329,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></dt>
@@ -8428,26 +8485,6 @@
 <div class="block">Common parent for all uninstall steps.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#UninstallStep-java.lang.String-java.util.Optional-">UninstallStep(String, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/UniquePodType.html" title="annotation in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">UniquePodType</span></a> - Annotation Type in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
-<dd>
-<div class="block">Defines UniquePodType annotation.</div>
-</dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">UniquePodTypeValidator</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
-<dd>
-<div class="block">Defines validator for UniquePodType annotation.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html#UniquePodTypeValidator--">UniquePodTypeValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniquePodTypeValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniquePodTypeValidator</a></dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/UniqueTaskName.html" title="annotation in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">UniqueTaskName</span></a> - Annotation Type in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
-<dd>
-<div class="block">Defines UniqueTaskName annotation.</div>
-</dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">UniqueTaskNameValidator</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
-<dd>
-<div class="block">Defines validator for UniqueTaskName annotation.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html#UniqueTaskNameValidator--">UniqueTaskNameValidator()</a></span> - Constructor for class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/UniqueTaskNameValidator.html" title="class in com.mesosphere.sdk.specification.validation">UniqueTaskNameValidator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/types/GroupedTasks.html#unknownPod">unknownPod</a></span> - Variable in class com.mesosphere.sdk.http.types.<a href="com/mesosphere/sdk/http/types/GroupedTasks.html" title="class in com.mesosphere.sdk.http.types">GroupedTasks</a></dt>
 <dd>
@@ -8675,6 +8712,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/RegionCannotChange.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/RegionCannotChange.html" title="class in com.mesosphere.sdk.config.validate">RegionCannotChange</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/RegionValidator.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String...-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec, String...)</a></span> - Static method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate">RegionValidator</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ServiceNameCannotBreakDNS.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ServiceNameCannotBreakDNS.html" title="class in com.mesosphere.sdk.config.validate">ServiceNameCannotBreakDNS</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html" title="class in com.mesosphere.sdk.config.validate">ServiceNameCannotContainDoubleUnderscores</a></dt>
@@ -8687,19 +8726,19 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/UserCannotChange.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec)</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/UserCannotChange.html" title="class in com.mesosphere.sdk.config.validate">UserCannotChange</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/RegionValidator.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String...-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec, String...)</a></span> - Static method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/RegionValidator.html" title="class in com.mesosphere.sdk.specification.validation">RegionValidator</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html#validate-T-">validate(T)</a></span> - Static method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation">ValidationUtils</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String...-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec, String...)</a></span> - Static method in class com.mesosphere.sdk.specification.validation.<a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html" title="class in com.mesosphere.sdk.specification.validation">ZoneValidator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ZoneValidator.html#validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-java.lang.String...-">validate(Optional&lt;ServiceSpec&gt;, ServiceSpec, String...)</a></span> - Static method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ZoneValidator.html" title="class in com.mesosphere.sdk.config.validate">ZoneValidator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html#validateMissingValues-java.lang.String-java.util.Map-java.util.Collection-">validateMissingValues(String, Map&lt;String, String&gt;, Collection&lt;TemplateUtils.MissingValue&gt;)</a></span> - Static method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils</a></dt>
 <dd>
 <div class="block">Throws a descriptive exception if <code>missingValues</code> is non-empty.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/ValidationUtils.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">ValidationUtils</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.html#validatePort--">validatePort()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.html#validateResource--">validateResource()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">ValidationUtils</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
-<div class="block">Various utilities for spec validation.</div>
+<div class="block">Utilities for validating members in service specs.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html#value">value</a></span> - Variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.NameValue.html" title="class in com.mesosphere.sdk.offer.taskdata">AttributeStringUtils.NameValue</a></dt>
 <dd>&nbsp;</dd>
@@ -8707,6 +8746,8 @@
 <dd>
 <div class="block">Sets the <code>value</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#value">value</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html#value-Protos.Value-">value(Protos.Value)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>value</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -8924,14 +8965,24 @@ the order they are declared.</div>
 <dd>
 <div class="block">Sets the <code>vipName</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html#vipName-java.lang.String-">vipName(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html#vipPort-int-">vipPort(int)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>vipPort</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html#vipPort-java.lang.Integer-">vipPort(Integer)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/VipSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">VipSpec</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
 <div class="block">Specification object for software defined VIPs.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html#visibility-Protos.DiscoveryInfo.Visibility-">visibility(Protos.DiscoveryInfo.Visibility)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultDiscoverySpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultDiscoverySpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#visibility">visibility</a></span> - Variable in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html#visibility-DiscoveryInfo.Visibility-">visibility(DiscoveryInfo.Visibility)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">VolumeEvaluationStage</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
 <dd>
 <div class="block">This class evaluates an offer against a given <a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
@@ -9058,7 +9109,7 @@ the order they are declared.</div>
 <dd>
 <div class="block">This class generates <a href="com/mesosphere/sdk/offer/evaluate/placement/ZoneRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>ZoneRule</code></a>s.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/specification/validation/ZoneValidator.html" title="class in com.mesosphere.sdk.specification.validation"><span class="typeNameLink">ZoneValidator</span></a> - Class in <a href="com/mesosphere/sdk/specification/validation/package-summary.html">com.mesosphere.sdk.specification.validation</a></dt>
+<dt><a href="com/mesosphere/sdk/config/validate/ZoneValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">ZoneValidator</span></a> - Class in <a href="com/mesosphere/sdk/config/validate/package-summary.html">com.mesosphere.sdk.config.validate</a></dt>
 <dd>
 <div class="block">This class validates that referencing Zones in placement constraints can only support the following transitions.</div>
 </dd>

@@ -74,13 +74,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -157,35 +157,11 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <th class="colLast" scope="col">Field and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>static int</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</a></span></code>&nbsp;</td>
-</tr>
-</table>
-</li>
-</ul>
-<!-- ======== CONSTRUCTOR SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.summary">
-<!--   -->
-</a>
-<h3>Constructor Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
-<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colOne" scope="col">Constructor and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-java.lang.Boolean-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.lang.Integer-java.util.Collection-">DefaultTaskSpec</a></span>(java.lang.String&nbsp;name,
-               <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState,
-               java.lang.Boolean&nbsp;essential,
-               <a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>&nbsp;resourceSet,
-               <a href="../../../../com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification">CommandSpec</a>&nbsp;commandSpec,
-               <a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification">HealthCheckSpec</a>&nbsp;healthCheckSpec,
-               <a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a>&nbsp;readinessCheckSpec,
-               java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a>&gt;&nbsp;configFiles,
-               <a href="../../../../com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification">DiscoverySpec</a>&nbsp;discoverySpec,
-               java.lang.Integer&nbsp;taskKillGracePeriodSeconds,
-               java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;&nbsp;transportEncryption)</code>&nbsp;</td>
+<td class="colFirst"><code>(package private) static int</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</a></span></code>
+<div class="block">The default of 0s for task kill grace period is based on upgrade path,
+ matching the previous default for SDK services launched w/ DC/OS 10.9.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -301,38 +277,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <ul class="blockListLast">
 <li class="blockList">
 <h4>TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</h4>
-<pre>public static final&nbsp;int TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</pre>
+<pre>static final&nbsp;int TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT</pre>
+<div class="block">The default of 0s for task kill grace period is based on upgrade path,
+ matching the previous default for SDK services launched w/ DC/OS 10.9.</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#com.mesosphere.sdk.specification.DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT">Constant Field Values</a></dd>
 </dl>
-</li>
-</ul>
-</li>
-</ul>
-<!-- ========= CONSTRUCTOR DETAIL ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.detail">
-<!--   -->
-</a>
-<h3>Constructor Detail</h3>
-<a name="DefaultTaskSpec-java.lang.String-com.mesosphere.sdk.specification.GoalState-java.lang.Boolean-com.mesosphere.sdk.specification.ResourceSet-com.mesosphere.sdk.specification.CommandSpec-com.mesosphere.sdk.specification.HealthCheckSpec-com.mesosphere.sdk.specification.ReadinessCheckSpec-java.util.Collection-com.mesosphere.sdk.specification.DiscoverySpec-java.lang.Integer-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>DefaultTaskSpec</h4>
-<pre>public&nbsp;DefaultTaskSpec(java.lang.String&nbsp;name,
-                       <a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState,
-                       java.lang.Boolean&nbsp;essential,
-                       <a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a>&nbsp;resourceSet,
-                       <a href="../../../../com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification">CommandSpec</a>&nbsp;commandSpec,
-                       <a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification">HealthCheckSpec</a>&nbsp;healthCheckSpec,
-                       <a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a>&nbsp;readinessCheckSpec,
-                       java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a>&gt;&nbsp;configFiles,
-                       <a href="../../../../com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification">DiscoverySpec</a>&nbsp;discoverySpec,
-                       java.lang.Integer&nbsp;taskKillGracePeriodSeconds,
-                       java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;&nbsp;transportEncryption)</pre>
 </li>
 </ul>
 </li>
@@ -597,13 +548,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
