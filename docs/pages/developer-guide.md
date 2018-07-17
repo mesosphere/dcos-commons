@@ -43,23 +43,6 @@ Although all SDK services written today store metadata in ZooKeeper, this is an 
 
 They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
 
-# Pre-requisites
-
-1. `dcos-commmons` checked out locally on your machine.
-
-  ```bash
-  $ git clone git@github.com:mesosphere/dcos-commons.git
-  $ cd dcos-commons
-  ```
-
-1. Access to a DC/OS 1.8 (or newer) cluster.
-
-1. The DC/OS CLI [installed](https://docs.mesosphere.com/latest/cli/install/) and [configured](https://docs.mesosphere.com/latest/cli/configure/) to point to your cluster.
-
-1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
-
-1. The [AWS CLI](https://aws.amazon.com/cli/) and [Go (1.8 or newer)](https://golang.org/dl/) installed.
-
 # Introduction to DC/OS Service Definitions
 
 At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
