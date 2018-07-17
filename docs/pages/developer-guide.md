@@ -60,61 +60,6 @@ They store the desired configuration of a service and all relevant information r
 
 1. The [AWS CLI](https://aws.amazon.com/cli/) and [Go (1.8 or newer)](https://golang.org/dl/) installed.
 
-# Getting Started
-
-
-1. Create your framework.
-
-   ```bash
-   $ ./new-framework.sh frameworks/myframework
-   $ cd frameworks/myframework
-   ```
-
-   `new-framework.sh` creates a skeleton framework.  You will extend
-   this skeleton.
-
-1. View `svc.yml`.
-
-   Take a look at `src/main/dist/svc.yml`.  This is the YAML file that defines your framework.  You will be editing this file.
-
-1. View `Main.java`.
-
-   Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
-
-1. Build a [package](#packaging). You must run the build.sh that is within `frameworks/myframework` directory that was just generated.
-
-   ```bash
-   $ ./build.sh aws
-   ```
-
-   You will deploy your framework to DC/OS as a
-   [package](#packaging).  `build.sh` creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.
-
-1. Install your package.
-
-   `build.sh` prints instructions for installing the package that look something like this:
-
-   ```bash
-   $ dcos package repo remove myframework-aws
-   $ dcos package repo add --index=0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
-   $ dcos package install --yes myframework
-   ```
-
-   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/latest/gui/#services) to view the deployment.
-
-1. Uninstall your package.
-
-   ```
-   $ dcos package uninstall myframework
-   $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework"
-   ```
-
-   The second command above runs the **janitor** script.  The janitor
-   script runs inside the DC/OS cluster, cleaning up ZooKeeper state
-   and resource reservations made by a framework.  DC/OS will soon
-   support uninstall hooks so this can happen automatically, but for
-   now, you must manually run the janitor script as shown above.
-
 # Introduction to DC/OS Service Definitions
 
 At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
