@@ -326,6 +326,16 @@ public class OfferEvaluator {
             evaluationStages.add(VolumeEvaluationStage.getNew(volumeSpec, null, useDefaultExecutor));
         }
 
+        // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
+        // ExecutorInfo equality when launching new tasks
+        if (tlsStageBuilder.isPresent()) {
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                if (!taskSpec.getTransportEncryption().isEmpty()) {
+                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+                }
+            }
+        }
+
         String preReservedRole = null;
         String role = null;
         String principal = null;
@@ -363,13 +373,6 @@ public class OfferEvaluator {
                 shouldAddExecutorResources = false;
             }
 
-            // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
-            // ExecutorInfo equality when launching new tasks
-            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-                if (!taskSpec.getTransportEncryption().isEmpty()) {
-                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
-                }
-            }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
             evaluationStages.add(new LaunchEvaluationStage(taskName, shouldBeLaunched, useDefaultExecutor));
@@ -429,9 +432,11 @@ public class OfferEvaluator {
 
         // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
         // ExecutorInfo equality when launching new tasks
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+        if (tlsStageBuilder.isPresent()) {
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                if (!taskSpec.getTransportEncryption().isEmpty()) {
+                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+                }
             }
         }
 
