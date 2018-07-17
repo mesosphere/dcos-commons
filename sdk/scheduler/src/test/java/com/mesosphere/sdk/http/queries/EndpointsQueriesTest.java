@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.http.queries;
 
 import com.mesosphere.sdk.http.types.EndpointProducer;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -37,7 +36,7 @@ public class EndpointsQueriesTest {
     private static final TaskInfo TASK_WITH_HIDDEN_DISCOVERY;
     private static final TaskInfo TASK_WITH_VIPS_1;
     private static final TaskInfo TASK_WITH_VIPS_2;
-    private static final String EXPECTED_DNS_TLD = "." + Constants.DNS_TLD;
+    private static final String EXPECTED_DNS_TLD = ".autoip.tld";
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
         builder.setLabels(new TaskLabelWriter(builder)
@@ -180,7 +179,7 @@ public class EndpointsQueriesTest {
         assertEquals(200, response.getStatus());
         JSONObject json = new JSONObject((String) response.getEntity());
         assertEquals(json.toString(), 3, json.length());
-        assertEquals("vip1.svc-name.l4lb.thisdcos.directory:5432", json.get("vip"));
+        assertEquals("vip1.svc-name.vip.tld:5432", json.get("vip"));
         JSONArray dns = json.getJSONArray("dns");
         assertEquals(4, dns.length());
         assertEquals(String.format("ports-1.svc-name%s:1234", EXPECTED_DNS_TLD), dns.get(0));
@@ -238,7 +237,7 @@ public class EndpointsQueriesTest {
         JSONObject endpointPortA = new JSONObject(
                 (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "porta", mockSchedulerConfig).getEntity());
         assertEquals(3, endpointPortA.length());
-        assertEquals("vip1." + serviceNetworkName + ".l4lb.thisdcos.directory:5432", endpointPortA.get("vip"));
+        assertEquals("vip1." + serviceNetworkName + ".vip.tld:5432", endpointPortA.get("vip"));
         dns = endpointPortA.getJSONArray("dns");
         assertEquals(4, dns.length());
         assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1234", dns.get(0));
