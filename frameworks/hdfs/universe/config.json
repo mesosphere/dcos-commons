@@ -25,6 +25,12 @@
           "type": "string",
           "default": ""
         },
+        "skip_format":{
+          "title": "Skip format and bootstrap",
+          "description":"Check this flag if you want to skip formatting the name node volumes.",
+          "type":"boolean",
+          "default": false
+        },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
           "type": "boolean",
@@ -2218,6 +2224,12 @@
       "description":"Yarn configuration properties.",
       "type":"object",
       "properties":{
+        "enabled":{
+          "title": "Start yarn",
+          "description":"Start yarn nodes",
+          "type":"boolean",
+          "default": true
+        },
         "cpus":{
           "description":"Yarn node CPU requirement",
           "type":"number",

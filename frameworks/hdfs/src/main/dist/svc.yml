@@ -560,8 +560,13 @@ plans:
         strategy: serial
         pod: name
         steps:
+          {{#SKIP_FORMAT}}
+          - default: [[node]]
+          {{/SKIP_FORMAT}}
+          {{^SKIP_FORMAT}}
           - 0: [[format], [node]]
           - 1: [[bootstrap], [node]]
+          {{/SKIP_FORMAT}}
       zkfc:
         strategy: serial
         pod: name
@@ -571,9 +576,11 @@ plans:
       data:
         strategy: {{DEPLOY_STRATEGY}}
         pod: data
+      {{#YARN_ENABLED}}
       yarn-deploy:
         strategy: {{DEPLOY_STRATEGY}}
         pod: yarn
+      {{/YARN_ENABLED}}
   update:
     strategy: serial
     phases:

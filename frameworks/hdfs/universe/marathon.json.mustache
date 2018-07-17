@@ -51,6 +51,7 @@
     "DATA_DISK": "{{data_node.disk}}",
     "DATA_DISK_DOCKER_VOLUME_NAME": "{{{data_node.portworx_volume_name}}}",
     "DATA_DISK_DOCKER_DRIVER_OPTIONS": "{{{data_node.portworx_volume_options}}}",
+    "YARN_ENABLED": "{{yarn_node.enabled}}",
     "YARN_CPUS": "{{yarn_node.cpus}}",
     "YARN_MEM": "{{yarn_node.mem}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
@@ -63,6 +64,7 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "ZONE_RESOLVER": "{{resource.assets.uris.zone-resolver-sh}}",
 
+    "SKIP_FORMAT": "{{service.skip_format}}",
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
