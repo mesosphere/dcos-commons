@@ -30,7 +30,7 @@ for h in rootlog.handlers[:]:
     rootlog.removeHandler(h)
     h.close()
 logging.basicConfig(
-    format='[%(asctime)s|%(name)s|%(funcName)s|%(lineno)d|%(levelname)s]: %(message)s',
+    format='[%(asctime)s|%(name)s-%(funcName)s(%(lineno)d)|%(levelname)s]: %(message)s',
     level=log_level,
     stream=sys.stdout)
 

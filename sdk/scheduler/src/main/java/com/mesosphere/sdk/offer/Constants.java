@@ -100,7 +100,7 @@ public class Constants {
     public static final int SHORT_DECLINE_SECONDS = 5;
 
     /**
-     * Indent (number of spaces) to be used while printing the json objects as string.
+     * Indent (# of spaces) to be used to pretty print json objects.
      */
     public static final int JSON_INDENT_FACTOR = 2;
 }

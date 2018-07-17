@@ -66,8 +66,7 @@ public interface Persister {
      *  2. Commit the transaction to write new nodes.
      * After (1) is done and before the completion of (2) there may be updates to nodes.
      * Currently, this is used only for migrating the data which occurs during bootstrap and there should not be any
-     * conflicts. Be cautious when using this method for other runtime operations.
-     * (E.g.: A simple hack would be to use a class level lock if/when needed)
+     * conflicts. Be careful when using this method for other runtime operations.
      *
      * @param srcPath The source path of the node to copy from.
      * @param destPath The destination path of the node to copy to.

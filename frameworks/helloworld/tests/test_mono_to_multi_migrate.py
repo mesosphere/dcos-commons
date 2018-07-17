@@ -32,15 +32,13 @@ def test_old_tasks_not_relaunched():
     sdk_upgrade.update_service(config.PACKAGE_NAME,
                                config.SERVICE_NAME,
                                additional_options={"service": {"yamls": "svc,foobar_service_name"}})
-    # Ensure the old tasks do not relaunch
+    # Ensure the old tasks do not relaunch and new tasks are launched
     sdk_tasks.check_task_not_relaunched(config.SERVICE_NAME,
                                         'hello-0-server',
                                         hello_task_id.pop(),
                                         multiservice_name=config.SERVICE_NAME)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name='foobar')
-    # Ensure new tasks are launched.
-    assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) > 0
-    log.info('Successfully migrated the service!!')
+    assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) == 1
 
 
 @pytest.mark.sanity
@@ -51,7 +49,8 @@ def test_old_tasks_get_relaunched_with_new_config():
                         3,
                         additional_options={"service": {"yaml": "svc"}})
     hello_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
-    # Start update plan with options that have list of yaml files to make it launch in multi service mode
+    # Start update plan with options that have list of yaml files to make it
+    # launch in multi service mode with updated config
     sdk_upgrade.update_service(config.PACKAGE_NAME,
                                config.SERVICE_NAME,
                                additional_options={
@@ -65,5 +64,4 @@ def test_old_tasks_get_relaunched_with_new_config():
     # Ensure the old tasks DO relaunch
     sdk_tasks.check_task_relaunched(config.SERVICE_NAME, 'hello-0-server', hello_task_id.pop())
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name='foobar')
-    # Ensure new tasks are launched.
     assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) == 1

@@ -163,9 +163,6 @@ def update_service(package_name, service_name, additional_options=None, to_packa
             )
     else:
         sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
-    health_and_build = sdk_metrics.get_service_health_info(service_name)
-    assert health_and_build['PACKAGE_VERSION'] == to_package_version, "Expected version [{}] of {}. Found [{}] instead"\
-        .format(to_package_version, service_name, health_and_build['PACKAGE_VERSION'])
 
 
 def _upgrade_or_downgrade(
@@ -215,6 +212,14 @@ def _upgrade_or_downgrade(
         log.info("Waiting for package={} service={} to finish deployment plan...".format(
             package_name, service_name))
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+
+        if sdk_utils.dcos_version_at_least("1.10"):
+            health_and_build = sdk_metrics.get_service_health_info(service_name)
+            if to_package_version:
+                assert health_and_build['PACKAGE_VERSION'] == to_package_version, \
+                    "Expected version [{}] of {}. Found [{}] instead".format(to_package_version,
+                                                                             service_name,
+                                                                             health_and_build['PACKAGE_VERSION'])
 
 
 @retrying.retry(
