@@ -47,15 +47,21 @@ public class MemPersister implements Persister {
     }
 
     /**
-     * Returns a new builder instance with a default configuration:
+     * Returns a new {@link Builder} instance with the following default configuration:
+     *
      * <ul><li>Locking enabled</li>
      * <li>Exit if there's a deadlock</li>
      * <li>No initial data</li></ul>
+     *
+     * Any of these settings may be changed via the returned {@link Builder}.
      */
     public static Builder newBuilder() {
         return new Builder();
     }
 
+    /**
+     * Builder for {@link MemPersister}s.
+     */
     public static class Builder {
         private LockMode lockMode = LockMode.ENABLED;
         private boolean exitOnDeadlock = true;
