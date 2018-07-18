@@ -32,7 +32,7 @@ class ImplicitReconciler {
         public void run() {
             try {
                 LOGGER.info("Triggering implicit reconciliation");
-                Driver.getDriver().reconcileTasks(Collections.emptyList());
+                Driver.getInstance().reconcileTasks(Collections.emptyList());
             } catch (Exception e) {
                 LOGGER.error("Failed to trigger implicit reconciliation", e);
             }

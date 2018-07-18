@@ -6,7 +6,6 @@ import com.mesosphere.sdk.framework.Driver;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -28,8 +27,6 @@ public class OfferAccepter {
             return;
         }
 
-        SchedulerDriver driver = Driver.getDriver();
-
         // Group recommendations by agent: Mesos requires that acceptOffers() only applies to a single agent at a time.
         // Note that ORDERING IS IMPORTANT:
         //    The resource lifecycle is RESERVE -> CREATE -> DESTROY -> UNRESERVE
@@ -43,7 +40,7 @@ public class OfferAccepter {
                     .map(rec -> rec.getOffer().getId())
                     .collect(Collectors.toSet());
             logOperations(agentRecs.getKey(), offerIds, operations);
-            driver.acceptOffers(offerIds, operations, FILTERS);
+            Driver.getInstance().acceptOffers(offerIds, operations, FILTERS);
         }
     }
 

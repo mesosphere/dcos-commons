@@ -118,7 +118,7 @@ public class MemPersister implements Persister {
         for (Map.Entry<String, byte[]> entry : data.entrySet()) {
             getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
         }
-        if (mode == LockMode.ENABLED) {
+        if (mode.equals(LockMode.ENABLED)) {
             ReadWriteLock lock = CycleDetectingLockUtils.newLock(exitOnDeadlock, MemPersister.class);
             this.rlock = Optional.of(lock.readLock());
             this.rwlock = Optional.of(lock.writeLock());

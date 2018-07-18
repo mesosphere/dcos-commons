@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import com.codahale.metrics.Timer;
@@ -398,7 +397,7 @@ class OfferProcessor {
         // Stop the SchedulerDriver thread:[
         // - failover==false: Tells Mesos to teardown the framework.
         // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
-        Driver.getDriver().stop(false);
+        Driver.getInstance().stop(false);
 
         LOGGER.info("### UNINSTALL IS COMPLETE! ###");
         LOGGER.info("Scheduler should be cleaned up shortly...");
@@ -472,11 +471,10 @@ class OfferProcessor {
                 refuseSeconds,
                 offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
 
-        final SchedulerDriver driver = Driver.getDriver();
         final Protos.Filters filters = Protos.Filters.newBuilder()
                 .setRefuseSeconds(refuseSeconds)
                 .build();
 
-        offerIds.forEach(offerId -> driver.declineOffer(offerId, filters));
+        offerIds.forEach(offerId -> Driver.getInstance().declineOffer(offerId, filters));
     }
 }

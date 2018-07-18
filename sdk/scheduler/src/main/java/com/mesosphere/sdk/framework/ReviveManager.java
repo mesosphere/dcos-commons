@@ -81,7 +81,7 @@ class ReviveManager {
         // Service doesn't need offers, and offers are not suppressed. Suppress.
         if (suppressEnabled) {
             LOGGER.info("Suppressing offers");
-            Driver.getDriver().suppressOffers();
+            Driver.getInstance().suppressOffers();
             Metrics.incrementSuppresses();
         } else {
             LOGGER.info("Refraining from suppressing offers (disabled via DISABLE_SUPPRESS)");
@@ -129,7 +129,7 @@ class ReviveManager {
         }
 
         LOGGER.info("Reviving offers");
-        Driver.getDriver().reviveOffers();
+        Driver.getInstance().reviveOffers();
         reviveRequested = false;
 
         // NOTE: We intentionally do not clear isSuppressed here. Instead, we wait until we've actually received new

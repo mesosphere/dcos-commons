@@ -160,7 +160,7 @@ public class ExplicitReconciler {
             logger.info("Completed explicit reconciliation");
             isComplete.set(true);
         } else {
-            Driver.getDriver().reconcileTasks(tasksToReconcile);
+            Driver.getInstance().reconcileTasks(tasksToReconcile);
         }
     }
 

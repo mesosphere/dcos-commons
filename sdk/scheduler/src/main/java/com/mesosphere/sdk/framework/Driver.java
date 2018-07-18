@@ -18,7 +18,7 @@ public final class Driver {
      * driver object is available. The returned Driver object should not be retained by the caller, as it may be
      * replaced in the event of a re-registration.
      */
-    public static SchedulerDriver getDriver() {
+    public static SchedulerDriver getInstance() {
         if (driver == null) {
             throw new IllegalStateException("INTERNAL ERROR: No driver available");
         }
@@ -26,7 +26,7 @@ public final class Driver {
     }
 
     /**
-     * Assigns the driver object to be returned by calls to {@link #getDriver()}. In practice, this should be invoked
+     * Assigns the driver object to be returned by calls to {@link #getInstance()}. In practice, this should be invoked
      * when the scheduler first registers with Mesos, and/or following a re-registration.
      */
     public static void setDriver(SchedulerDriver driver) {

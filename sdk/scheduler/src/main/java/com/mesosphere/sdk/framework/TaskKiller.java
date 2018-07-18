@@ -188,7 +188,7 @@ public final class TaskKiller {
 
     private static void killTaskInternal(TaskID taskId) {
         LOGGER.info("Killing task: {}", taskId.getValue());
-        Driver.getDriver().killTask(taskId);
+        Driver.getInstance().killTask(taskId);
     }
 
     private static boolean isDead(Protos.TaskStatus taskStatus) {
