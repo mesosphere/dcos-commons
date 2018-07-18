@@ -58,6 +58,7 @@ headless="false"
 interactive="false"
 package_registry="false"
 docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
+docker_image=${DOCKER_IMAGE:-"mesosphere/dcos-commons:latest"}
 env_passthrough=
 envfile_input=
 
@@ -368,7 +369,7 @@ ${docker_interactive_arg} \
 --env-file $envfile \
 ${volume_args} \
 -w $WORK_DIR \
-mesosphere/dcos-commons:latest \
+${docker_image} \
 ${docker_command}"
 
 echo "==="
