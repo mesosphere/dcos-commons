@@ -214,12 +214,14 @@ def _upgrade_or_downgrade(
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
         if sdk_utils.dcos_version_at_least("1.10"):
+            log.info("Checking if the upgraded new version is {}".format(to_package_version))
             health_and_build = sdk_metrics.get_service_health_info(service_name)
             if to_package_version:
                 assert health_and_build['PACKAGE_VERSION'] == to_package_version, \
-                    "Expected version [{}] of {}. Found [{}] instead".format(to_package_version,
-                                                                             service_name,
-                                                                             health_and_build['PACKAGE_VERSION'])
+                    "Expected version [{}] of {}. Found [{}] instead".format(
+                        to_package_version,
+                        service_name,
+                        health_and_build['PACKAGE_VERSION'])
 
 
 @retrying.retry(

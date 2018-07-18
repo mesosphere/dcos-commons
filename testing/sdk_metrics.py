@@ -169,5 +169,6 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
 
 
 def get_service_health_info(service_name):
-    return json.loads(sdk_cmd.cluster_request("GET",
-                                              os.path.normpath("/service/{}/v1/health".format(service_name))).text)
+    return json.loads(sdk_cmd.cluster_request(
+        "GET",
+        os.path.normpath("/service/{}/v1/health".format(service_name))).text)
