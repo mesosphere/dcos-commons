@@ -50,10 +50,11 @@ def test_rack():
 
 @pytest.mark.sanity
 def test_custom_rack_upgrade():
-    service_options = {"service": {"rack": "not-rack1"}}
+    foldered_service_name = config.get_foldered_service_name()
+    service_options = {"service": {"name": foldered_service_name, "rack": "not-rack1"}}
     sdk_upgrade.test_upgrade(
         config.PACKAGE_NAME,
-        config.get_foldered_service_name(),
+        foldered_service_name,
         config.DEFAULT_TASK_COUNT,
         additional_options=service_options,
     )
