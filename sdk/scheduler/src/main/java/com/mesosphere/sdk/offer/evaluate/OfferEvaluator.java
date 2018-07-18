@@ -243,11 +243,15 @@ public class OfferEvaluator {
 
         // We set an empty ExecutorID to indicate that we are launching a new Executor, NOT reusing a currently running
         // one.
-        Protos.ExecutorInfo executorInfo = taskInfos.stream().findFirst().get()
-                .getExecutor().toBuilder()
+        Protos.TaskInfo taskInfo = taskInfos.stream().findFirst().get();
+        Protos.ExecutorInfo executorInfo = taskInfo
+                .getExecutor()
+                .toBuilder()
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
                 .build();
-        logger.info("Using new executor: {}", TextFormat.shortDebugString(executorInfo));
+        logger.info("Using new executor derived from task {}: {}",
+                taskInfo.getName(),
+                TextFormat.shortDebugString(executorInfo));
 
         return executorInfo;
     }

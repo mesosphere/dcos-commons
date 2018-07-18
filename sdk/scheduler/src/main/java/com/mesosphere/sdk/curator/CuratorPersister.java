@@ -256,33 +256,41 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
-    public void recursiveCopy(String src, String dest) throws PersisterException {
-        if (new HashSet<>(Arrays.asList(serviceRootPath, CuratorLocker.LOCK_PATH_NAME, src, dest)).size() != 4) {
-            throw new IllegalArgumentException(String.format("Cannot copy from %s to %s", src, dest));
+    public void recursiveCopy(String unprefixedSrc, String unprefixedDest) throws PersisterException {
+        if (new HashSet<>(Arrays.asList(
+                serviceRootPath,
+                CuratorLocker.LOCK_PATH_NAME,
+                unprefixedSrc,
+                unprefixedDest)).size() != 4) {
+            throw new IllegalArgumentException(String.format("Cannot copy from %s to %s",
+                    unprefixedSrc, unprefixedDest));
         }
 
         try {
-            LOGGER.debug("Copying {} (and any children) to {}", src, dest);
-            if (client.checkExists().forPath(withFrameworkPrefix(src)) == null) {
-                throw new PersisterException(Reason.NOT_FOUND, String.format("Source node does not exist: %s", src));
+            LOGGER.debug("Copying {} (and any children) to {}", unprefixedSrc, unprefixedDest);
+            if (client.checkExists().forPath(withFrameworkPrefix(unprefixedSrc)) == null) {
+                throw new PersisterException(Reason.NOT_FOUND,
+                        String.format("Source node does not exist: %s", unprefixedSrc));
             }
-            if (client.checkExists().forPath(withFrameworkPrefix(dest)) != null) {
-                throw new PersisterException(Reason.LOGIC_ERROR, String.format("Destination exists: %s", dest));
+            if (client.checkExists().forPath(withFrameworkPrefix(unprefixedDest)) != null) {
+                throw new PersisterException(Reason.LOGIC_ERROR,
+                        String.format("Destination exists: %s", unprefixedDest));
             }
 
-            LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(src));
+            LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(unprefixedSrc));
             Map<String, byte[]> toBeAdded = new HashMap<>();
             while (!toBeWalked.isEmpty()) {
                 String nextNode = toBeWalked.poll();
                 // This assertion should never fail acc. to the logic around it.
-                assert (nextNode.startsWith(src)) : String.format("Failed to match prefix." +
-                        " Src [%s] Dest [%s] Child [%s]", src, dest, nextNode);
-                toBeAdded.put(withFrameworkPrefix(nextNode.replace(src, dest)), get(nextNode));
+                assert (nextNode.startsWith(unprefixedSrc)) : String.format("Failed to match prefix." +
+                        " Src [%s] Dest [%s] Child [%s]", unprefixedSrc, unprefixedDest, nextNode);
+                toBeAdded.put(withFrameworkPrefix(nextNode.replace(unprefixedSrc, unprefixedDest)), get(nextNode));
                 getChildren(nextNode).forEach(child -> toBeWalked.add(PersisterUtils.join(nextNode, child)));
             }
             runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
         } catch (Exception e) {
-            throw new PersisterException(Reason.STORAGE_ERROR, String.format("Failed to copy %s to %s", dest, src), e);
+            throw new PersisterException(Reason.STORAGE_ERROR,
+                    String.format("Failed to copy %s to %s", unprefixedDest, unprefixedSrc), e);
         }
     }
 

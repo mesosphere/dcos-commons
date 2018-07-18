@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.storage;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -27,11 +29,6 @@ public class PersisterUtils {
      */
     private static final String SERVICE_NAMESPACE_ROOT_NAME = "Services";
 
-    /**
-     * Path used to create a backup of entire framework zdata.
-     */
-    private static final String BACKUP_ROOT_NAME = "backup";
-
     private PersisterUtils() {
         // do not instantiate
     }
@@ -46,6 +43,7 @@ public class PersisterUtils {
      */
     public static final String PATH_DELIM_STR = String.valueOf(PATH_DELIM);
 
+    private static final String ZNODE_TIME_STAMP_FORMAT = "yyyy-MM-dd-HHmmss";
 
     /**
      * Returns all {@link StateStore} namespaces listed in the provided {@link Persister}, or an empty collection if
@@ -203,29 +201,31 @@ public class PersisterUtils {
     }
 
     public static void backUpFrameworkZKData(Persister persister) throws PersisterException {
+        // We create a znode named `backup-<timestamp>` (drop previous if exists) and copy the framework znodes data
+        String backupRoot = getTimeStampedNodeName("backup");
         try {
-            persister.recursiveDelete(BACKUP_ROOT_NAME);
+            // Drop if exists
+            persister.recursiveDelete(backupRoot);
         } catch (PersisterException e) {
             if (!e.getReason().equals(Reason.NOT_FOUND)) {
                 throw e;
             }
         }
-        // We create a znode named `backup` (drop previous if exists) and copy framework znodes in to the backup znode
         persister.recursiveCopy(
                 ConfigStore.getConfigurationsPathName(),
-                join(BACKUP_ROOT_NAME, ConfigStore.getConfigurationsPathName())
+                join(backupRoot, ConfigStore.getConfigurationsPathName())
         );
         persister.recursiveCopy(
                 ConfigStore.getTargetIdPathName(),
-                join(BACKUP_ROOT_NAME, ConfigStore.getTargetIdPathName())
+                join(backupRoot, ConfigStore.getTargetIdPathName())
         );
         persister.recursiveCopy(
                 StateStore.getPropertiesRootName(),
-                join(BACKUP_ROOT_NAME, StateStore.getPropertiesRootName())
+                join(backupRoot, StateStore.getPropertiesRootName())
         );
         persister.recursiveCopy(
                 StateStore.getTasksRootName(),
-                join(BACKUP_ROOT_NAME, StateStore.getTasksRootName())
+                join(backupRoot, StateStore.getTasksRootName())
         );
     }
 
@@ -264,5 +264,9 @@ public class PersisterUtils {
         persister.recursiveDelete(ConfigStore.getTargetIdPathName());
         persister.recursiveDelete(StateStore.getPropertiesRootName());
         persister.recursiveDelete(StateStore.getTasksRootName());
+    }
+
+    private static String getTimeStampedNodeName(String nodeName) {
+        return String.format("%s-%s", nodeName, new SimpleDateFormat(ZNODE_TIME_STAMP_FORMAT).format(new Date()));
     }
 }

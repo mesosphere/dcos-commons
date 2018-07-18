@@ -509,7 +509,8 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     private static OfferResources getEntry(
             Map<String, Map<Protos.OfferID, OfferResources>> map,
-            String serviceName, Protos.Offer offer
+            String serviceName,
+            Protos.Offer offer
     ) {
         return getEntry(map.computeIfAbsent(serviceName, k -> new HashMap<>()), offer);
     }
@@ -518,7 +519,7 @@ public class MultiServiceEventClient implements MesosEventClient {
      * Finds the requested {@link OfferResources} value in the provided map[offerId], initializing the entry if needed.
      */
     private static OfferResources getEntry(Map<Protos.OfferID, OfferResources> map, Protos.Offer offer) {
-        // Initialize entry
+        // Initialize entry if absent
         return map.computeIfAbsent(offer.getId(), k -> new OfferResources(offer));
     }
 }

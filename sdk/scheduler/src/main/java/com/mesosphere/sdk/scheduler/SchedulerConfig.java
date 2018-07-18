@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.lang.reflect.Field;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
@@ -181,11 +180,6 @@ public class SchedulerConfig {
     private static final String LIBPROCESS_IP_ENVVAR = "LIBPROCESS_IP";
 
     /**
-     * Environment variable to disable zk data migration from mono service schema to multi service schema.
-     */
-    private static final String DISABLE_MONO_TO_MULTI_MIGRATION = "DISABLE_MONO_TO_MULTI_MIGRATION";
-
-    /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
      * multi-service situation, however, this code may be getting invoked multiple times, so only print if we haven't
      * printed before.
@@ -304,10 +298,6 @@ public class SchedulerConfig {
      */
     public boolean isSideChannelActive() {
         return envStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
-    }
-
-    public boolean isMonoToMultiMigrationDisabled() {
-        return envStore.isPresent(DISABLE_MONO_TO_MULTI_MIGRATION);
     }
 
     /**
@@ -441,14 +431,11 @@ public class SchedulerConfig {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put(PACKAGE_NAME_ENV, getPackageName());
         jsonObject.put(PACKAGE_VERSION_ENV, getPackageVersion());
-        jsonObject.put(PACKAGE_BUILD_TIME_EPOCH_MS_ENV, Instant.ofEpochMilli(getPackageBuildTimeMs()));
-        for (Field f : SDKBuildInfo.class.getDeclaredFields()) {
-            try {
-                Object staticValue = f.get(null);
-                jsonObject.put("SDK_" + f.getName(),
-                        staticValue instanceof Long ? Instant.ofEpochMilli((Long) staticValue) : staticValue);
-            } catch (IllegalAccessException ignored) {}
-        }
+        jsonObject.put("PACKAGE_BUILT_AT", Instant.ofEpochMilli(getPackageBuildTimeMs()));
+        jsonObject.put("SDK_NAME", SDKBuildInfo.NAME);
+        jsonObject.put("SDK_VERSION", SDKBuildInfo.VERSION);
+        jsonObject.put("SDK_GIT_SHA", SDKBuildInfo.GIT_SHA);
+        jsonObject.put("SDK_BUILT_AT", Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
         return jsonObject;
     }
 }

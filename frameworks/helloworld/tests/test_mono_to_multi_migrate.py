@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope='function', autouse=True)
-def configure_package(configure_security):
+def before_each_test(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         yield  # let the test session execute
@@ -32,12 +32,12 @@ def test_old_tasks_not_relaunched():
     sdk_upgrade.update_service(config.PACKAGE_NAME,
                                config.SERVICE_NAME,
                                additional_options={"service": {"yamls": "svc,foobar_service_name"}})
-    # Ensure the old tasks do not relaunch and new tasks are launched
+    # Ensure new tasks are launched but the old tasks do not relaunch
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name='foobar')
     sdk_tasks.check_task_not_relaunched(config.SERVICE_NAME,
                                         'hello-0-server',
                                         hello_task_id.pop(),
                                         multiservice_name=config.SERVICE_NAME)
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name='foobar')
     assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) == 1
 
 

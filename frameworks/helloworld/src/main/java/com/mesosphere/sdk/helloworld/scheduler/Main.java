@@ -142,7 +142,7 @@ public class Main {
     ) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        checkAndMigrate(frameworkConfig, schedulerConfig, persister);
+        checkAndMigrate(frameworkConfig, persister);
         MultiServiceManager multiServiceManager = new MultiServiceManager();
 
         // Add services represented by YAML files to the service manager:
@@ -239,46 +239,40 @@ public class Main {
                 .build();
     }
 
-    private static void checkAndMigrate(
-            FrameworkConfig frameworkConfig,
-            SchedulerConfig schedulerConfig,
-            Persister persister
-    ) {
-        /**
-         * Notes:
-         *
-         * 1. We do not migrate in Dynamic Service Mode because if we do so, there is a "gap" between the scheduler
-         * registering with mesos and it receiving inbound requests with ymls. During this "gap" if it receives any
-         * offers, it does not know what to do with them if we support migration. Hence we support migration only in
-         * static service mode.
-         * 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to default to `root`
-         * In the multi mode however, the framework config takes precedence if a user is not mentioned. Caution must
-         * be taken to ensure the service user is same (mention it explicitly in both mono and multi for the sake of
-         * consistency) during the migration.
-         * 3. The migration MUST happen before the {@link SchedulerBuilder#build()} is called (i.e., before the
-         * scheduler talks to {@link Persister}.
-         */
-        if (!schedulerConfig.isMonoToMultiMigrationDisabled()) {
-            LOGGER.info("Migration is enabled. Analyzing now...");
-            SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
-            int curVer = schemaVersionStore.getOrSetVersion(SchemaVersionStore.getSupportedSchemaVersionMultiService());
-            if (curVer == SchemaVersionStore.getSupportedSchemaVersionSingleService()) {
-                try {
-                    LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema");
-                    PersisterUtils.backUpFrameworkZKData(persister);
-                    PersisterUtils.migrateMonoToMultiZKData(persister, frameworkConfig);
-                    schemaVersionStore.store(SchemaVersionStore.getSupportedSchemaVersionMultiService());
-                    LOGGER.info("Successfully migrated from old schema to new schema!!");
-                } catch (PersisterException e) {
-                    LOGGER.error("Unable to migrate ZK data : ", e.getMessage(), e);
-                    throw new RuntimeException(e);
-                }
-            } else if (curVer == SchemaVersionStore.getSupportedSchemaVersionMultiService()) {
-                LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
-            } else {
-                throw new IllegalStateException(String.format("Storage schema version %d is not supported by this " +
-                        "software (expected: %d)", curVer, SchemaVersionStore.getSupportedSchemaVersionMultiService()));
+    /**
+     * Notes:
+     *
+     * 1. We do not migrate in Dynamic Service Mode because if we do so, there is a "gap" between the scheduler
+     * registering with mesos and it receiving inbound requests with ymls. During this "gap" if it receives any
+     * offers, it does not know what to do with them if we support migration. Hence we support migration only in
+     * static service mode.
+     * 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to default to `root`
+     * In the multi mode however, the framework config takes precedence if a user is not mentioned. Caution must
+     * be taken to ensure the service user is same (mention it explicitly in both mono and multi for the sake of
+     * consistency) during the migration.
+     * 3. The migration MUST happen before the {@link SchedulerBuilder#build()} is called (i.e., before the
+     * scheduler talks to {@link Persister}.
+     */
+    private static void checkAndMigrate(FrameworkConfig frameworkConfig, Persister persister) {
+        LOGGER.info("Checking if migration is needed...");
+        SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
+        int curVer = schemaVersionStore.getOrSetVersion(SchemaVersionStore.getSupportedSchemaVersionMultiService());
+        if (curVer == SchemaVersionStore.getSupportedSchemaVersionSingleService()) {
+            try {
+                LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema");
+                PersisterUtils.backUpFrameworkZKData(persister);
+                PersisterUtils.migrateMonoToMultiZKData(persister, frameworkConfig);
+                schemaVersionStore.store(SchemaVersionStore.getSupportedSchemaVersionMultiService());
+                LOGGER.info("Successfully migrated from old schema to new schema!!");
+            } catch (PersisterException e) {
+                LOGGER.error("Unable to migrate ZK data : ", e);
+                throw new RuntimeException(e);
             }
+        } else if (curVer == SchemaVersionStore.getSupportedSchemaVersionMultiService()) {
+            LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
+        } else {
+            throw new IllegalStateException(String.format("Storage schema version %d is not supported by this " +
+                    "software (expected: %d)", curVer, SchemaVersionStore.getSupportedSchemaVersionMultiService()));
         }
     }
 }
