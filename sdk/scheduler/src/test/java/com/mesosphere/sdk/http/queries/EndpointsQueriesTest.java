@@ -29,6 +29,7 @@ import static org.mockito.Mockito.when;
 public class EndpointsQueriesTest {
 
     private static final String CUSTOM_KEY = "custom";
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
     private static final TaskInfo TASK_EMPTY = TaskTestUtils.getTaskInfo(Collections.emptyList());
     private static final TaskInfo TASK_WITH_METADATA;
     private static final TaskInfo TASK_WITH_PORTS_1;
@@ -36,7 +37,6 @@ public class EndpointsQueriesTest {
     private static final TaskInfo TASK_WITH_HIDDEN_DISCOVERY;
     private static final TaskInfo TASK_WITH_VIPS_1;
     private static final TaskInfo TASK_WITH_VIPS_2;
-    private static final String EXPECTED_DNS_TLD = ".autoip.tld";
     static {
         TaskInfo.Builder builder = TASK_EMPTY.toBuilder();
         builder.setLabels(new TaskLabelWriter(builder)
@@ -171,29 +171,6 @@ public class EndpointsQueriesTest {
         }
     }
 
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
-    private void testEndpoint(String expectedHostname) throws ConfigStoreException {
-        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = EndpointsQueries.getEndpoint(
-                mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, "porta", SchedulerConfigTestUtils.getTestSchedulerConfig());
-        assertEquals(200, response.getStatus());
-        JSONObject json = new JSONObject((String) response.getEntity());
-        assertEquals(json.toString(), 3, json.length());
-        assertEquals("vip1.svc-name.vip.tld:5432", json.get("vip"));
-        JSONArray dns = json.getJSONArray("dns");
-        assertEquals(4, dns.length());
-        assertEquals(String.format("ports-1.svc-name%s:1234", EXPECTED_DNS_TLD), dns.get(0));
-        assertEquals(String.format("ports-2.svc-name%s:1243", EXPECTED_DNS_TLD), dns.get(1));
-        assertEquals(String.format("vips-1.svc-name%s:2345", EXPECTED_DNS_TLD), dns.get(2));
-        assertEquals(String.format("vips-2.svc-name%s:3456", EXPECTED_DNS_TLD), dns.get(3));
-        JSONArray address = json.getJSONArray("address");
-        assertEquals(4, address.length());
-        assertEquals(address.toString(), expectedHostname + ":1234", address.get(0));
-        assertEquals(expectedHostname + ":1243", address.get(1));
-        assertEquals(expectedHostname + ":2345", address.get(2));
-        assertEquals(expectedHostname + ":3456", address.get(3));
-    }
-
     @Test
     public void testGetAllEndpoints() throws ConfigStoreException {
         allEndpointsTest("svc-name", "svc-name");
@@ -206,9 +183,8 @@ public class EndpointsQueriesTest {
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     private void allEndpointsTest(String serviceName, String serviceNetworkName) {
-        SchedulerConfig mockSchedulerConfig = SchedulerConfigTestUtils.getTestSchedulerConfig();
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
-        Response response = EndpointsQueries.getEndpoints(mockStateStore, serviceName, CUSTOM_ENDPOINTS, mockSchedulerConfig);
+        Response response = EndpointsQueries.getEndpoints(mockStateStore, serviceName, CUSTOM_ENDPOINTS, SCHEDULER_CONFIG);
         assertEquals(200, response.getStatus());
         JSONArray json = new JSONArray((String) response.getEntity());
         assertEquals(json.toString(), 4, json.length());
@@ -218,16 +194,16 @@ public class EndpointsQueriesTest {
         assertEquals("porta", json.get(2));
         assertEquals("portb", json.get(3));
 
-        assertEquals(CUSTOM_VALUE, EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, CUSTOM_KEY, mockSchedulerConfig).getEntity());
+        assertEquals(CUSTOM_VALUE, EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, CUSTOM_KEY, SCHEDULER_CONFIG).getEntity());
 
         // 'novip' port is listed across the two 'vips-' tasks
         JSONObject endpointNoVip = new JSONObject(
-                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "novip", mockSchedulerConfig).getEntity());
+                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "novip", SCHEDULER_CONFIG).getEntity());
         assertEquals(2, endpointNoVip.length());
         JSONArray dns = endpointNoVip.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD +":2348", dns.get(0));
-        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3459", dns.get(1));
+        assertEquals(String.format("vips-1.%s.%s:2348", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(0));
+        assertEquals(String.format("vips-2.%s.%s:3459", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(1));
         JSONArray address = endpointNoVip.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":2348", address.get(0));
@@ -235,15 +211,15 @@ public class EndpointsQueriesTest {
 
         // 'porta' is listed across the two 'ports-' tasks and the two 'vips-' tasks
         JSONObject endpointPortA = new JSONObject(
-                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "porta", mockSchedulerConfig).getEntity());
+                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "porta", SCHEDULER_CONFIG).getEntity());
         assertEquals(3, endpointPortA.length());
-        assertEquals("vip1." + serviceNetworkName + ".vip.tld:5432", endpointPortA.get("vip"));
+        assertEquals(String.format("vip1.%s.%s:5432", serviceNetworkName, SCHEDULER_CONFIG.getVipTLD()), endpointPortA.get("vip"));
         dns = endpointPortA.getJSONArray("dns");
         assertEquals(4, dns.length());
-        assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1234", dns.get(0));
-        assertEquals("ports-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":1243", dns.get(1));
-        assertEquals("vips-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":2345", dns.get(2));
-        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3456", dns.get(3));
+        assertEquals(String.format("ports-1.%s.%s:1234", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(0));
+        assertEquals(String.format("ports-2.%s.%s:1243", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(1));
+        assertEquals(String.format("vips-1.%s.%s:2345", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(2));
+        assertEquals(String.format("vips-2.%s.%s:3456", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(3));
         address = endpointPortA.getJSONArray("address");
         assertEquals(4, address.length());
         assertEquals(TestConstants.HOSTNAME + ":1234", address.get(0));
@@ -253,25 +229,23 @@ public class EndpointsQueriesTest {
 
         // 'portb' is just listed in the 'ports-1' and 'vips-2' tasks
         JSONObject endpointPortB = new JSONObject(
-                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "portb", mockSchedulerConfig).getEntity());
+                (String) EndpointsQueries.getEndpoint(mockStateStore, serviceName, CUSTOM_ENDPOINTS, "portb", SCHEDULER_CONFIG).getEntity());
         assertEquals(3, endpointPortB.length());
         dns = endpointPortB.getJSONArray("dns");
         assertEquals(2, dns.length());
-        assertEquals("ports-1." + serviceNetworkName + EXPECTED_DNS_TLD + ":1235", dns.get(0));
-        assertEquals("vips-2." + serviceNetworkName + EXPECTED_DNS_TLD + ":3457", dns.get(1));
+        assertEquals(String.format("ports-1.%s.%s:1235", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(0));
+        assertEquals(String.format("vips-2.%s.%s:3457", serviceNetworkName, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(1));
         address = endpointPortB.getJSONArray("address");
         assertEquals(2, address.length());
         assertEquals(TestConstants.HOSTNAME + ":1235", address.get(0));
         assertEquals(TestConstants.HOSTNAME + ":3457", address.get(1));
     }
 
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testGetOneEndpoint() throws ConfigStoreException {
         testEndpoint(TestConstants.HOSTNAME);
     }
 
-    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     @Test
     public void testOneOverlayEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
@@ -302,6 +276,29 @@ public class EndpointsQueriesTest {
         testEndpoint("otherHost");
     }
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
+    private void testEndpoint(String expectedHostname) throws ConfigStoreException {
+        when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
+        Response response = EndpointsQueries.getEndpoint(
+                mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, "porta", SCHEDULER_CONFIG);
+        assertEquals(200, response.getStatus());
+        JSONObject json = new JSONObject((String) response.getEntity());
+        assertEquals(json.toString(), 3, json.length());
+        assertEquals(String.format("vip1.svc-name.%s:5432", SCHEDULER_CONFIG.getVipTLD()), json.get("vip"));
+        JSONArray dns = json.getJSONArray("dns");
+        assertEquals(4, dns.length());
+        assertEquals(String.format("ports-1.%s.%s:1234", SERVICE_NAME, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(0));
+        assertEquals(String.format("ports-2.%s.%s:1243", SERVICE_NAME, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(1));
+        assertEquals(String.format("vips-1.%s.%s:2345", SERVICE_NAME, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(2));
+        assertEquals(String.format("vips-2.%s.%s:3456", SERVICE_NAME, SCHEDULER_CONFIG.getAutoipTLD()), dns.get(3));
+        JSONArray address = json.getJSONArray("address");
+        assertEquals(4, address.length());
+        assertEquals(address.toString(), expectedHostname + ":1234", address.get(0));
+        assertEquals(expectedHostname + ":1243", address.get(1));
+        assertEquals(expectedHostname + ":2345", address.get(2));
+        assertEquals(expectedHostname + ":3456", address.get(3));
+    }
+
     private static Protos.TaskStatus createTaskStatus(String hostname) {
         Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
                 .setState(Protos.TaskState.TASK_RUNNING)
@@ -315,7 +312,7 @@ public class EndpointsQueriesTest {
     public void testGetOneCustomEndpoint() throws ConfigStoreException {
         when(mockStateStore.fetchTasks()).thenReturn(TASK_INFOS);
         Response response = EndpointsQueries.getEndpoint(
-                mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, CUSTOM_KEY, SchedulerConfigTestUtils.getTestSchedulerConfig());
+                mockStateStore, SERVICE_NAME, CUSTOM_ENDPOINTS, CUSTOM_KEY, SCHEDULER_CONFIG);
         assertEquals(200, response.getStatus());
         assertEquals(CUSTOM_VALUE, response.getEntity());
     }

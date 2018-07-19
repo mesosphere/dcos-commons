@@ -46,21 +46,6 @@ public class EndpointUtilsTest {
     }
 
     @Test
-    public void testToAutoIpEndpointCustomTLD() {
-        SchedulerConfig mockSchedulerConfig = SchedulerConfigTestUtils.getTestSchedulerConfig();
-        when(mockSchedulerConfig.getAutoipTLD()).thenReturn("what.a.fun.test.tld");
-
-        assertEquals("task.svc.what.a.fun.test.tld:5",
-                EndpointUtils.toAutoIpEndpoint("svc", "task", 5, mockSchedulerConfig));
-        assertEquals("task.pathtosvc.what.a.fun.test.tld:5",
-                EndpointUtils.toAutoIpEndpoint("/path/to/svc", "task", 5, mockSchedulerConfig));
-        assertEquals("task.pathtosvc.what.a.fun.test.tld:5",
-                EndpointUtils.toAutoIpEndpoint("path/to/svc", "task", 5, mockSchedulerConfig));
-        assertEquals("task.pathtosvc-with-dots.what.a.fun.test.tld:5",
-                EndpointUtils.toAutoIpEndpoint("path/to/svc.with.dots", "task", 5, mockSchedulerConfig));
-    }
-
-    @Test
     public void testToVipEndpoint() {
         assertEquals("vip.svc.vip.tld:5",
                 EndpointUtils.toVipEndpoint("svc", mockSchedulerConfig, new VipInfo("vip", 5)));
@@ -70,7 +55,10 @@ public class EndpointUtilsTest {
                 EndpointUtils.toVipEndpoint("path/to/svc", mockSchedulerConfig, new VipInfo("vip", 5)));
         assertEquals("vip.pathtosvc.with.dots.vip.tld:5",
                 EndpointUtils.toVipEndpoint("path/to/svc.with.dots", mockSchedulerConfig, new VipInfo("vip", 5)));
+    }
 
+    @Test
+    public void testToVipEndpointLeadingSlashDropped() {
         assertEquals("vip.svc.vip.tld:5",
                 EndpointUtils.toVipEndpoint("svc", mockSchedulerConfig, new VipInfo("/vip", 5)));
         assertEquals("vip.pathtosvc.vip.tld:5",
@@ -86,11 +74,19 @@ public class EndpointUtilsTest {
         assertEquals("svc.test-marathon.autoip.tld",
                 EndpointUtils.toSchedulerAutoIpHostname("svc", mockSchedulerConfig));
         assertEquals("svc-to-path.test-marathon.autoip.tld",
-                EndpointUtils.toSchedulerAutoIpHostname("/path/to/svc", mockSchedulerConfig));
-        assertEquals("svc-to-path.test-marathon.autoip.tld",
                 EndpointUtils.toSchedulerAutoIpHostname("path/to/svc", mockSchedulerConfig));
         assertEquals("svc-with-dots-to-path.test-marathon.autoip.tld",
                 EndpointUtils.toSchedulerAutoIpHostname("path/to/svc.with.dots", mockSchedulerConfig));
+    }
+
+    @Test
+    public void testToSchedulerAutoIpHostnameLeadingSlashesDropped() {
+        assertEquals("svc.test-marathon.autoip.tld",
+                EndpointUtils.toSchedulerAutoIpHostname("/svc", mockSchedulerConfig));
+        assertEquals("svc-to-path.test-marathon.autoip.tld",
+                EndpointUtils.toSchedulerAutoIpHostname("/path/to/svc", mockSchedulerConfig));
+        assertEquals("svc-with-dots-to-path.test-marathon.autoip.tld",
+                EndpointUtils.toSchedulerAutoIpHostname("/path/to/svc.with.dots", mockSchedulerConfig));
     }
 
     @Test

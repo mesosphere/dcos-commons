@@ -58,7 +58,7 @@ public enum TLSArtifact {
     public String getSecretStoreName(String sansHash, String taskInstanceName, String transportEncryptionName) {
         String fullName = Arrays.asList(sansHash, taskInstanceName, transportEncryptionName, name)
                 .stream()
-                .filter(item -> !StringUtils.isEmpty(item))
+                .filter(StringUtils::isNotBlank)
                 .collect(Collectors.joining(SECRET_STORE_NAME_DELIMITER));
         if (type.equals(TransportEncryptionSpec.Type.KEYSTORE)) {
             // Include a prefix so that the secret will be decoded by the mesos secrets module. See: DCOS-17621

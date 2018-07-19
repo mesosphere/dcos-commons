@@ -39,7 +39,8 @@ import static org.junit.Assert.assertThat;
 
 public class TLSEvaluationStageTest {
 
-    @Mock private SchedulerConfig mockSchedulerConfig;
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
+
     @Mock private TLSArtifactsUpdater mockTLSArtifactsUpdater;
 
     private TLSArtifactPaths tlsArtifactPaths;
@@ -49,23 +50,21 @@ public class TLSEvaluationStageTest {
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        when(mockSchedulerConfig.getAutoipTLD()).thenReturn("autoip.tld");
+        String taskName = TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME;
 
-        // Expected sha1sum of the hostname:
-        byte[] digest = MessageDigest.getInstance("SHA-1").digest(
-                "pod-type-0-test-task-name.service-name.autoip.tld".getBytes(StandardCharsets.UTF_8));
+        // Expected hex encoded sha1sum of the hostname:
+        String expectedHostname =
+                String.format("%s.%s.%s", taskName, TestConstants.SERVICE_NAME, SCHEDULER_CONFIG.getAutoipTLD());
+        byte[] digest = MessageDigest.getInstance("SHA-1").digest(expectedHostname.getBytes(StandardCharsets.UTF_8));
         String sanHash = new String(Hex.encode(digest), StandardCharsets.UTF_8);
 
-        tlsArtifactPaths = new TLSArtifactPaths(
-                "test-namespace",
-                TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME,
-                sanHash);
+        tlsArtifactPaths = new TLSArtifactPaths("test-namespace", taskName, sanHash);
         tlsEvaluationStage = new TLSEvaluationStage(
                 TestConstants.SERVICE_NAME,
                 TestConstants.TASK_NAME,
                 "test-namespace",
                 mockTLSArtifactsUpdater,
-                mockSchedulerConfig);
+                SchedulerConfigTestUtils.getTestSchedulerConfig());
     }
 
     @Test
