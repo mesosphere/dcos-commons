@@ -3,6 +3,7 @@ package com.mesosphere.sdk.metrics;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.Status;
@@ -11,6 +12,7 @@ import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,19 +20,15 @@ import org.apache.mesos.Protos;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
 /**
  * This class encapsulates the components necessary for tracking Scheduler metrics.
  */
 public class Metrics {
-    private static MetricRegistry metrics = new MetricRegistry();
+
+    private static final MetricRegistry METRICS = new MetricRegistry();
 
     public static MetricRegistry getRegistry() {
-        return metrics;
+        return METRICS;
     }
 
     /**
@@ -38,7 +36,7 @@ public class Metrics {
      * specified interval.
      */
     public static void configureStatsd(SchedulerConfig schedulerConfig) {
-        StatsDReporter.forRegistry(metrics)
+        StatsDReporter.forRegistry(METRICS)
                 .build(schedulerConfig.getStatsdHost(), schedulerConfig.getStatsdPort())
                 .start(schedulerConfig.getStatsDPollIntervalS(), TimeUnit.SECONDS);
     }
@@ -51,12 +49,12 @@ public class Metrics {
             ServletContextHandler context, String codahaleMetricsEndpoint, String prometheusEndpoint) {
         // Metrics
         ServletHolder codahaleMetricsServlet = new ServletHolder("default",
-                new com.codahale.metrics.servlets.MetricsServlet(metrics));
+                new com.codahale.metrics.servlets.MetricsServlet(METRICS));
         context.addServlet(codahaleMetricsServlet, codahaleMetricsEndpoint);
 
         // Prometheus
         CollectorRegistry collectorRegistry = new CollectorRegistry();
-        collectorRegistry.register(new DropwizardExports(metrics));
+        collectorRegistry.register(new DropwizardExports(METRICS));
         ServletHolder prometheusServlet = new ServletHolder("prometheus",
                 new io.prometheus.client.exporter.MetricsServlet(collectorRegistry));
         context.addServlet(prometheusServlet, prometheusEndpoint);
@@ -68,11 +66,11 @@ public class Metrics {
     static final String PROCESS_OFFERS = "offers.process";
 
     public static void incrementReceivedOffers(long amount) {
-        metrics.counter(RECEIVED_OFFERS).inc(amount);
+        METRICS.counter(RECEIVED_OFFERS).inc(amount);
     }
 
     public static void incrementProcessedOffers(long amount) {
-        metrics.counter(PROCESSED_OFFERS).inc(amount);
+        METRICS.counter(PROCESSED_OFFERS).inc(amount);
     }
 
     /**
@@ -80,7 +78,7 @@ public class Metrics {
      * be terminated by invoking {@link Timer.Context#stop()}.
      */
     public static Timer.Context getProcessOffersDurationTimer() {
-        return metrics.timer(PROCESS_OFFERS).time();
+        return METRICS.timer(PROCESS_OFFERS).time();
     }
 
     // Suppress
@@ -91,7 +89,7 @@ public class Metrics {
     // This may be accessed both by whatever thread metrics runs on, and the main offer processing thread:
     private static final AtomicBoolean isSuppressed = new AtomicBoolean(false);
     static {
-        metrics.register(IS_SUPPRESSED, new Gauge<Boolean>() {
+        METRICS.register(IS_SUPPRESSED, new Gauge<Boolean>() {
             @Override
             public Boolean getValue() {
                 return isSuppressed.get();
@@ -104,7 +102,7 @@ public class Metrics {
     }
 
     public static void incrementSuppresses() {
-        metrics.counter(SUPPRESSES).inc();
+        METRICS.counter(SUPPRESSES).inc();
         Metrics.isSuppressed.set(true);
     }
 
@@ -114,11 +112,11 @@ public class Metrics {
     static final String REVIVE_THROTTLES = "revives.throttles";
 
     public static void incrementRevives() {
-        metrics.counter(REVIVES).inc();
+        METRICS.counter(REVIVES).inc();
     }
 
     public static void incrementReviveThrottles() {
-        metrics.counter(REVIVE_THROTTLES).inc();
+        METRICS.counter(REVIVE_THROTTLES).inc();
     }
 
     // Decline
@@ -127,11 +125,11 @@ public class Metrics {
     static final String DECLINE_LONG = "declines.long";
 
     public static void incrementDeclinesShort(long amount) {
-        metrics.counter(DECLINE_SHORT).inc(amount);
+        METRICS.counter(DECLINE_SHORT).inc(amount);
     }
 
     public static void incrementDeclinesLong(long amount) {
-        metrics.counter(DECLINE_LONG).inc(amount);
+        METRICS.counter(DECLINE_LONG).inc(amount);
     }
 
     public static void incrementRecommendations(Collection<OfferRecommendation> recommendations) {
@@ -139,7 +137,7 @@ public class Metrics {
             // Metric name will be of the form "operation.launch"
             final String metricName =
                     String.format("operation.%s", recommendation.getOperation().getType().name().toLowerCase());
-            metrics.counter(metricName).inc();
+            METRICS.counter(metricName).inc();
         }
     }
 
@@ -149,24 +147,20 @@ public class Metrics {
     public static void record(Protos.TaskStatus taskStatus) {
         // Metric name will be of the form "task_status.running"
         final String metricName = String.format("task_status.%s", taskStatus.getState().name().toLowerCase());
-        metrics.counter(metricName).inc();
+        METRICS.counter(metricName).inc();
     }
 
-    public static void setPlanStatus(Optional<String> namespace, String planName, Status status) {
-        final String metricName = namespace.isPresent() ?
-                String.format("plan_status.%s.%s", namespace.get(), planName)
-                :
-                String.format("plan_status.%s", planName);
+    public static void updatePlanStatus(Optional<String> namespace, String planName, Status status) {
+        final String metricName = namespace.isPresent()
+                ? String.format("plan_status.%s.%s", namespace.get(), planName)
+                : String.format("plan_status.%s", planName);
 
-        Map<String, Gauge> gauges = metrics.getGauges((name, metric) -> name.equals(metricName));
-        if (gauges.size() > 0) {
-            ((PlanGauge) gauges.get(metricName)).setStatus(status);
-        } else {
-            PlanGauge gauge = new PlanGauge().setStatus(status);
-            metrics.gauge(metricName, () -> gauge);
-        }
+        // Returns the existing PlanGauge, or the provided new PlanGauge if none was configured yet:
+        PlanGauge newOrExistingGauge = (PlanGauge) METRICS.gauge(metricName, () -> new PlanGauge());
+        newOrExistingGauge.setStatus(status);
     }
 
+    @VisibleForTesting
     static class PlanGauge implements Gauge<Integer> {
         private Status status;
 
@@ -194,10 +188,8 @@ public class Metrics {
                 case STARTED:
                 case STARTING:
                     return 2;
-                default:
-                    throw new IllegalStateException(
-                            "PlanGauge.getValue() has no mapping for this status: " + status.toString());
             }
+            throw new IllegalStateException(String.format("Unsupported status: %s", status));
         }
     }
 }

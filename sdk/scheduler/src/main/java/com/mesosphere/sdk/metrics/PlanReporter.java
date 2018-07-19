@@ -2,10 +2,9 @@ package com.mesosphere.sdk.metrics;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,36 +17,41 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class PlanReporter {
 
-    private final List<PlanManager> managers;
-    private final ScheduledExecutorService executor;
+    private static final int PLAN_SCRAPE_PERIOD_MS = 5000;
+
     private final Optional<String> namespace;
-    @VisibleForTesting
-    final AtomicBoolean hasScraped;
+    private final Collection<PlanManager> managers;
+    private final AtomicBoolean hasScraped;
+    private final ScheduledExecutorService executor;
 
-    public PlanReporter(Optional<String> namespace, List<PlanManager> managers) {
-        this.managers = managers;
-        this.namespace = namespace;
-        this.executor = Executors.newSingleThreadScheduledExecutor(
-                new ThreadFactoryBuilder()
-                        .setDaemon(true)
-                        .setNameFormat("PlanReporterThread")
-                        .build()
-        );
-
-        this.hasScraped = new AtomicBoolean(false);
-        executor.scheduleAtFixedRate(() -> {
-            scrapeStatuses(managers);
-        }, 0, 5, TimeUnit.SECONDS);
+    public PlanReporter(Optional<String> namespace, Collection<PlanManager> managers) {
+        this(namespace, managers, PLAN_SCRAPE_PERIOD_MS);
     }
 
-    private void scrapeStatuses(List<PlanManager> managers) {
-        for (PlanManager manager : managers) {
-            Plan plan = manager.getPlan();
-            if (plan != null) {
-                Metrics.setPlanStatus(namespace, plan.getName(), plan.getStatus());
-            }
-        }
+    @VisibleForTesting
+    PlanReporter(Optional<String> namespace, Collection<PlanManager> managers, int periodMs) {
+        this.namespace = namespace;
+        this.managers = managers;
+        this.hasScraped = new AtomicBoolean(false);
+        this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder()
+                .setDaemon(true)
+                .setNameFormat("PlanReporterThread")
+                .build());
 
+        executor.scheduleAtFixedRate(() -> {
+            scrapeStatuses();
+        }, 0, periodMs, TimeUnit.MILLISECONDS);
+    }
+
+    private void scrapeStatuses() {
+        for (PlanManager manager : managers) {
+            Metrics.updatePlanStatus(namespace, manager.getPlan().getName(), manager.getPlan().getStatus());
+        }
         hasScraped.compareAndSet(false, true);
+    }
+
+    @VisibleForTesting
+    boolean getHasScraped() {
+        return hasScraped.get();
     }
 }

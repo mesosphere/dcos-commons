@@ -146,9 +146,7 @@ public class MetricsTest {
 
         for (GaugeTest test : tests) {
             gauge.setStatus(test.status);
-            Assert.assertEquals("For status "+test.status+" expected status is "+test.expected,
-                    test.expected,
-                    gauge.getValue());
+            Assert.assertEquals(test.expected, gauge.getValue());
         }
     }
 
@@ -159,13 +157,13 @@ public class MetricsTest {
         Assert.assertEquals(0, registry.getGauges((name, metric) -> name.equals(metricName)).size());
 
         // Call set status. This will create the gauge.
-        Metrics.setPlanStatus(Optional.empty(), "nonamespace", Status.ERROR);
+        Metrics.updatePlanStatus(Optional.empty(), "nonamespace", Status.ERROR);
         Assert.assertEquals(1, registry.getGauges((name, metric) -> name.equals(metricName)).size());
         Gauge gauge = registry.getGauges((name, metric) -> name.equals(metricName)).get(metricName);
         Assert.assertEquals(-1, gauge.getValue());
 
         // Verify that an update to status is applied to the same gauge.
-        Metrics.setPlanStatus(Optional.empty(), "nonamespace", Status.IN_PROGRESS);
+        Metrics.updatePlanStatus(Optional.empty(), "nonamespace", Status.IN_PROGRESS);
         Assert.assertEquals(2, gauge.getValue());
     }
 
@@ -176,13 +174,13 @@ public class MetricsTest {
         Assert.assertEquals(0, registry.getGauges((name, metric) -> name.equals(metricName)).size());
 
         // Call set status. This will create the gauge.
-        Metrics.setPlanStatus(Optional.of("namespace"), "namespaced", Status.ERROR);
+        Metrics.updatePlanStatus(Optional.of("namespace"), "namespaced", Status.ERROR);
         Assert.assertEquals(1, registry.getGauges((name, metric) -> name.equals(metricName)).size());
         Gauge gauge = registry.getGauges((name, metric) -> name.equals(metricName)).get(metricName);
         Assert.assertEquals(-1, gauge.getValue());
 
         // Verify that an update to status is applied to the same gauge.
-        Metrics.setPlanStatus(Optional.of("namespace"), "namespaced", Status.IN_PROGRESS);
+        Metrics.updatePlanStatus(Optional.of("namespace"), "namespaced", Status.IN_PROGRESS);
         Assert.assertEquals(2, gauge.getValue());
     }
 }

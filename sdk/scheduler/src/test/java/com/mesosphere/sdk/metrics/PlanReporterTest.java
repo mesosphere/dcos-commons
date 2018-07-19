@@ -8,11 +8,13 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
+/**
+ * Tests for {@link PlanReporter}.
+ */
 public class PlanReporterTest {
 
     @Test
@@ -29,15 +31,13 @@ public class PlanReporterTest {
         Mockito.when(plan2.getStatus()).thenReturn(Status.COMPLETE);
         Mockito.when(plan2.getName()).thenReturn("plan2");
 
-        PlanReporter reporter = new PlanReporter(Optional.empty(),
-                Stream.of(manager1, manager2).collect(Collectors.toList()));
-
-        while (!reporter.hasScraped.get()) {
-            Thread.sleep(100);
+        PlanReporter reporter = new PlanReporter(Optional.empty(), Arrays.asList(manager1, manager2), 10);
+        while (!reporter.getHasScraped()) {
+            Thread.sleep(5);
         }
 
-        Map<String, Gauge> gauges = Metrics.getRegistry()
-                .getGauges((name, metric) -> name.startsWith("plan_status.plan"));
+        Map<String, Gauge> gauges =
+                Metrics.getRegistry().getGauges((name, metric) -> name.startsWith("plan_status.plan"));
         Assert.assertEquals(2, gauges.size());
         Assert.assertEquals(-1, gauges.get("plan_status.plan1").getValue());
         Assert.assertEquals(0, gauges.get("plan_status.plan2").getValue());
