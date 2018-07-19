@@ -97,6 +97,12 @@ public class SchedulerConfig {
     private static final String DISABLE_STATE_CACHE_ENV = "DISABLE_STATE_CACHE";
 
     /**
+     * Controls whether deadlocks should lead to the scheduler process exiting (enabled by default).
+     * If this envvar is set (to anything at all), the scheduler will not exit if a deadlock is encountered.
+     */
+    private static final String DISABLE_DEADLOCK_EXIT_ENV = "DISABLE_DEADLOCK_EXIT";
+
+    /**
      * Controls whether the framework will request that offers be suppressed when the service(s) are idle (enabled by
      * default). If this envvar is set (to anything at all), then offer suppression is disabled.
      */
@@ -124,7 +130,7 @@ public class SchedulerConfig {
      * some form of sidechannel auth. When this environment variable is present, we should always
      * provide a {@link Credential} with (only) the principal set.
      */
-    private static final String SIDECHANNEL_AUTH_ENV_NAME = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
+    private static final String SIDECHANNEL_AUTH_ENV = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
 
     /**
      * Environment variables which advertise to the service what the DC/OS package name and package version are.
@@ -169,15 +175,15 @@ public class SchedulerConfig {
     private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
 
     /**
-     * Environment variable for setting a custom TLD for the service (replaces Constants.TLD_NET).
+     * Environment variable for setting a custom TLD for the service (replaces Constants.DNS_TLD).
      */
-    private static final String USER_SPECIFIED_TLD_ENVVAR = "SERVICE_TLD";
+    private static final String SERVICE_TLD_ENV = "SERVICE_TLD";
 
     /**
      * Environment variable for the IP address of the scheduler task. Note, this is dependent on the fact we are using
      * the command executor.
      */
-    private static final String LIBPROCESS_IP_ENVVAR = "LIBPROCESS_IP";
+    private static final String LIBPROCESS_IP_ENV = "LIBPROCESS_IP";
 
     /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
@@ -290,6 +296,10 @@ public class SchedulerConfig {
         return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
+    public boolean isDeadlockExitEnabled() {
+        return !envStore.isPresent(DISABLE_DEADLOCK_EXIT_ENV);
+    }
+
     public boolean isSuppressEnabled() {
         return !envStore.isPresent(DISABLE_SUPPRESS_ENV);
     }
@@ -304,7 +314,7 @@ public class SchedulerConfig {
      * Kerberos).
      */
     public boolean isSideChannelActive() {
-        return envStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
+        return envStore.isPresent(SIDECHANNEL_AUTH_ENV);
     }
 
     /**
@@ -312,7 +322,7 @@ public class SchedulerConfig {
      * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
      */
     public TokenProvider getDcosAuthTokenProvider() throws IOException {
-        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV));
         PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
         try {
             RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(
@@ -331,7 +341,7 @@ public class SchedulerConfig {
             Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
                     AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
 
-            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
+            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold, this);
         } catch (InvalidKeySpecException e) {
             throw new IllegalArgumentException(e);
         } catch (NoSuchAlgorithmException e) {
@@ -401,7 +411,7 @@ public class SchedulerConfig {
      * Returns the {@code autoip} service TLD to be used in advertised endpoints.
      */
     public String getServiceTLD() {
-        return envStore.getOptional(USER_SPECIFIED_TLD_ENVVAR, Constants.DNS_TLD);
+        return envStore.getOptional(SERVICE_TLD_ENV, Constants.DNS_TLD);
     }
 
     /**
@@ -431,6 +441,6 @@ public class SchedulerConfig {
      * executor.
      */
     public String getSchedulerIP() {
-        return envStore.getRequired(LIBPROCESS_IP_ENVVAR);
+        return envStore.getRequired(LIBPROCESS_IP_ENV);
     }
 }

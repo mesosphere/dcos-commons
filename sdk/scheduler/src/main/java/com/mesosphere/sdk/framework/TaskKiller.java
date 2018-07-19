@@ -2,19 +2,20 @@ package com.mesosphere.sdk.framework;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import java.time.Duration;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
@@ -24,9 +25,15 @@ import java.util.stream.Collectors;
 public final class TaskKiller {
     private static final Logger LOGGER = LoggingUtils.getLogger(TaskKiller.class);
 
+    /**
+     * This lock must be obtained before accessing {@code TASKS_TO_KILL}, {@code executor}, or {@code executorEnabled}.
+     */
+    private static final ReadWriteLock INTERNAL_LOCK = CycleDetectingLockUtils.newLock(true, TaskKiller.class);
+    private static final Lock RLOCK = INTERNAL_LOCK.readLock();
+    private static final Lock RWLOCK = INTERNAL_LOCK.writeLock();
+
     private static final Duration KILL_INTERVAL = Duration.ofSeconds(5);
     private static final Set<TaskID> TASKS_TO_KILL = new HashSet<>();
-    private static final Object LOCK = new Object();
 
     /**
      * After the first task kill, this executor will be created and will periodically reissue kill invocations for any
@@ -50,7 +57,8 @@ public final class TaskKiller {
      */
     @VisibleForTesting
     public static void reset(boolean executorEnabled) throws InterruptedException {
-        synchronized (LOCK) {
+        RWLOCK.lock();
+        try {
             if (executor != null) {
                 executor.shutdownNow();
                 executor.awaitTermination(KILL_INTERVAL.toMillis(), TimeUnit.MILLISECONDS);
@@ -60,6 +68,8 @@ public final class TaskKiller {
             TASKS_TO_KILL.clear();
 
             TaskKiller.executorEnabled = executorEnabled;
+        } finally {
+            RWLOCK.unlock();
         }
     }
 
@@ -82,7 +92,8 @@ public final class TaskKiller {
             return;
         }
 
-        synchronized (LOCK) {
+        RWLOCK.lock();
+        try {
             TASKS_TO_KILL.add(taskId);
             LOGGER.info("Enqueued kill of task: {}, {} tasks to kill: {}",
                     taskId.getValue(),
@@ -104,6 +115,8 @@ public final class TaskKiller {
                         KILL_INTERVAL.toMillis(),
                         TimeUnit.MILLISECONDS);
             }
+        } finally {
+            RWLOCK.unlock();
         }
 
         // Finally, try invoking the task kill (if driver is set).
@@ -138,7 +151,9 @@ public final class TaskKiller {
             // Task is not dead and can be killed.
             return true;
         }
-        synchronized (LOCK) {
+
+        RWLOCK.lock();
+        try {
             if (TASKS_TO_KILL.remove(taskStatus.getTaskId())) {
                 LOGGER.info("Completed killing: {}, {} remaining tasks to kill: {}",
                         taskStatus.getTaskId().getValue(),
@@ -151,14 +166,19 @@ public final class TaskKiller {
                 // Task is dead but wasn't scheduled for killing. Scheduling it for a kill shouldn't hurt anything.
                 return true;
             }
+        } finally {
+            RWLOCK.unlock();
         }
     }
 
     @VisibleForTesting
     static void killAllTasks() {
         Set<TaskID> copy;
-        synchronized (LOCK) {
+        RLOCK.lock();
+        try {
             copy = new HashSet<>(TASKS_TO_KILL);
+        } finally {
+            RLOCK.unlock();
         }
 
         for (TaskID taskId : copy) {
@@ -167,14 +187,8 @@ public final class TaskKiller {
     }
 
     private static void killTaskInternal(TaskID taskId) {
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-
-        if (driver.isPresent()) {
-            LOGGER.info("Killing task: {}", taskId.getValue());
-            driver.get().killTask(taskId);
-        } else {
-            LOGGER.warn("Can't kill '{}', driver not yet set.", taskId.getValue());
-        }
+        LOGGER.info("Killing task: {}", taskId.getValue());
+        Driver.getInstance().killTask(taskId);
     }
 
     private static boolean isDead(Protos.TaskStatus taskStatus) {

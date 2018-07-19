@@ -37,6 +37,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     private final Collection<Step> candidateSteps;
 
     protected final ServiceSpec serviceSpec;
+    protected final SchedulerConfig schedulerConfig;
     protected final StateStore stateStore;
     protected final PlanCoordinator planCoordinator;
 
@@ -52,6 +53,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
     protected AbstractScheduler(
             ServiceSpec serviceSpec,
+            SchedulerConfig schedulerConfig,
             StateStore stateStore,
             PlanCoordinator planCoordinator,
             Optional<PlanCustomizer> planCustomizer,
@@ -60,6 +62,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
         this.namespace = namespace;
         this.candidateSteps = new ArrayList<>();
         this.serviceSpec = serviceSpec;
+        this.schedulerConfig = schedulerConfig;
         this.stateStore = stateStore;
         this.planCustomizer = planCustomizer;
         this.planCoordinator = planCoordinator;
@@ -102,7 +105,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     public void registered(boolean reRegistered) {
         if (!reRegistered) {
             this.workSetTracker = new WorkSetTracker(namespace);
-            this.reconciler = new ExplicitReconciler(stateStore, namespace);
+            this.reconciler = new ExplicitReconciler(stateStore, namespace, schedulerConfig);
             registeredWithMesos();
         }
         // Explicit task reconciliation should be (re)started on all (re-)registrations.

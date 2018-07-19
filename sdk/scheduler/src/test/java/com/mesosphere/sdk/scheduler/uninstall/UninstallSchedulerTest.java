@@ -13,7 +13,6 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
@@ -95,8 +94,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
 
-        Persister persister = new MemPersister();
-        stateStore = new StateStore(persister);
+        stateStore = new StateStore(MemPersister.newBuilder().build());
         stateStore.storeTasks(Collections.singletonList(TASK_A));
 
         // Have the mock plan customizer default to returning the plan unchanged.
@@ -248,10 +246,9 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testAllButDeregisteredPlanCompletes() throws Exception {
         // New empty state store: No framework ID is set yet, and there are no tasks, and no SchedulerDriver
-        Persister persister = new MemPersister();
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
                 getServiceSpec(),
-                new StateStore(persister),
+                new StateStore(MemPersister.newBuilder().build()),
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.empty(),

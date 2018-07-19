@@ -38,7 +38,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private final Logger logger;
     private final Optional<String> namespace;
-    private final SchedulerConfig schedulerConfig;
     private final FrameworkStore frameworkStore;
     private final ConfigStore<ServiceSpec> configStore;
     private final GoalState goalState;
@@ -90,10 +89,9 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(serviceSpec, stateStore, planCoordinator, planCustomizer, namespace);
+        super(serviceSpec, schedulerConfig, stateStore, planCoordinator, planCustomizer, namespace);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.namespace = namespace;
-        this.schedulerConfig = schedulerConfig;
         this.frameworkStore = frameworkStore;
         this.configStore = configStore;
         this.goalState = serviceSpec.getGoal();
@@ -178,9 +176,9 @@ public class DefaultScheduler extends AbstractScheduler {
     protected void registeredWithMesos() {
         Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
 
-        Optional<DecommissionPlanManager> decomissionManager = getDecommissionManager(getPlanCoordinator());
-        if (decomissionManager.isPresent()) {
-            Collection<String> decommissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
+        Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(getPlanCoordinator());
+        if (decommissionManager.isPresent()) {
+            Collection<String> decommissionedTasks = decommissionManager.get().getTasksToDecommission().stream()
                     .map(taskInfo -> taskInfo.getName())
                     .collect(Collectors.toList());
             activeTasks.addAll(decommissionedTasks);

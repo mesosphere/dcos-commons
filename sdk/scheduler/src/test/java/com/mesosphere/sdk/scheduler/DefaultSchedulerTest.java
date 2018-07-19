@@ -208,7 +208,7 @@ public class DefaultSchedulerTest {
         when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         Capabilities.overrideCapabilities(getCapabilities());
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         // Emulate behavior of upstream FrameworkScheduler, which handled registering with Mesos:
         new FrameworkStore(persister).storeFrameworkId(TestConstants.FRAMEWORK_ID);
         defaultScheduler = getScheduler(serviceSpec);

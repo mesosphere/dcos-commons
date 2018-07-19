@@ -3,6 +3,7 @@ package com.mesosphere.sdk.helloworld.scheduler;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Optional;
 
 import com.google.common.base.Splitter;
 import com.mesosphere.sdk.framework.EnvStore;
@@ -46,7 +47,7 @@ public class Scenario {
         return scenarios;
     }
 
-    static SchedulerBuilder customize(SchedulerBuilder builder, Collection<Type> types) {
+    static SchedulerBuilder customize(SchedulerBuilder builder, Optional<String> namespace, Collection<Type> types) {
         for (Type type : types) {
             switch (type) {
                 case MULTI_REGION:
@@ -56,7 +57,7 @@ public class Scenario {
                     builder.setPlanCustomizer(new ReversePhasesCustomizer());
                     break;
                 case CUSTOM_DECOMMISSION:
-                    builder.setPlanCustomizer(new DecomissionCustomizer());
+                    builder.setPlanCustomizer(new DecommissionCustomizer(namespace));
                     break;
                 case JAVA:
                 case YAML:
