@@ -280,15 +280,17 @@ public class CuratorPersister implements Persister {
             LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(unprefixedSrc));
             Map<String, byte[]> toBeAdded = new HashMap<>();
             while (!toBeWalked.isEmpty()) {
-                String nextNode = toBeWalked.poll();
+                String curNode = toBeWalked.poll();
                 // This assertion should never fail acc. to the logic around it.
-                assert (nextNode.startsWith(unprefixedSrc)) : String.format("Failed to match prefix." +
-                        " Src [%s] Dest [%s] Child [%s]", unprefixedSrc, unprefixedDest, nextNode);
-                toBeAdded.put(withFrameworkPrefix(nextNode.replace(unprefixedSrc, unprefixedDest)), get(nextNode));
-                getChildren(nextNode).forEach(child -> toBeWalked.add(PersisterUtils.join(nextNode, child)));
+                assert (curNode.startsWith(unprefixedSrc)) : String.format("Failed to match prefix." +
+                        " Src [%s] Dest [%s] Child [%s]", unprefixedSrc, unprefixedDest, curNode);
+                toBeAdded.put(withFrameworkPrefix(curNode.replace(unprefixedSrc, unprefixedDest)), get(curNode));
+                getChildren(curNode).forEach(child -> toBeWalked.add(PersisterUtils.join(curNode, child)));
             }
             runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
-        } catch (Exception e) {
+        } catch (PersisterException e) {
+           throw e;
+        }  catch (Exception e) {
             throw new PersisterException(Reason.STORAGE_ERROR,
                     String.format("Failed to copy %s to %s", unprefixedDest, unprefixedSrc), e);
         }

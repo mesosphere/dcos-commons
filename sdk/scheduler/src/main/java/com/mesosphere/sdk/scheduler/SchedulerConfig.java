@@ -206,7 +206,7 @@ public class SchedulerConfig {
         this.envStore = envStore;
 
         if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-            LOGGER.info("Build information:\n{} ", getBuildInfo().toString(Constants.JSON_INDENT_FACTOR));
+            LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
         }
     }
 

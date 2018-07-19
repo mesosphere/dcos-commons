@@ -2,10 +2,12 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,8 +16,10 @@ import java.util.stream.Collectors;
  * Handles cross-referencing a preexisting {@link Protos.TaskInfo}'s current {@link Protos.Resource}s against a set
  * of expected {@link ResourceSpec}s for that task.
  */
-class TaskResourceMapper extends AbstractResourceMapper {
+class TaskResourceMapper {
 
+    final Logger logger;
+    private final Optional<String> resourceNamespace;
     private final String taskSpecName;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final Collection<ResourceSpec> resourceSpecs;
@@ -28,7 +32,8 @@ class TaskResourceMapper extends AbstractResourceMapper {
             TaskSpec taskSpec,
             Protos.TaskInfo taskInfo,
             Optional<String> resourceNamespace) {
-        super(resourceNamespace);
+        logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+        this.resourceNamespace = resourceNamespace;
         this.taskSpecName = taskSpec.getName();
         this.resourceSpecs = new ArrayList<>();
         this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
@@ -58,13 +63,19 @@ class TaskResourceMapper extends AbstractResourceMapper {
             Optional<ResourceLabels> matchingResource;
             switch (taskResource.getName()) {
                 case Constants.DISK_RESOURCE_TYPE:
-                    matchingResource = findMatchingDiskSpec(taskResource, remainingResourceSpecs);
+                    matchingResource = ResourceMapperUtils.findMatchingDiskSpec(
+                            taskResource,
+                            remainingResourceSpecs,
+                            resourceNamespace);
                     break;
                 case Constants.PORTS_RESOURCE_TYPE:
                     matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs);
                     break;
                 default:
-                    matchingResource = findMatchingResourceSpec(taskResource, remainingResourceSpecs);
+                    matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
+                            taskResource,
+                            remainingResourceSpecs,
+                            resourceNamespace);
                     break;
             }
             if (matchingResource.isPresent()) {
@@ -132,7 +143,9 @@ class TaskResourceMapper extends AbstractResourceMapper {
                     return Optional.of(new ResourceLabels(
                             resourceSpec,
                             resourceId.get(),
-                            getNamespaceLabel(ResourceUtils.getNamespace(taskResource))));
+                            ResourceMapperUtils.getNamespaceLabel(
+                                    ResourceUtils.getNamespace(taskResource),
+                                    resourceNamespace)));
                 }
             } else {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
@@ -146,7 +159,9 @@ class TaskResourceMapper extends AbstractResourceMapper {
                     return Optional.of(new ResourceLabels(
                             resourceSpec,
                             resourceId.get(),
-                            getNamespaceLabel(ResourceUtils.getNamespace(taskResource))));
+                            ResourceMapperUtils.getNamespaceLabel(
+                                    ResourceUtils.getNamespace(taskResource),
+                                    resourceNamespace)));
                 }
             }
         }

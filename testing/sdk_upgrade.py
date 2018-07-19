@@ -152,13 +152,13 @@ def update_service(package_name, service_name, additional_options=None, to_packa
     if to_package_version:
         update_cmd.append('--package-version={}'.format(to_package_version))
     if additional_options:
-        with tempfile.NamedTemporaryFile() as opts_f:
-            opts_f.write(json.dumps(additional_options).encode('utf-8'))
-            opts_f.flush()  # ensure json content is available for the CLI to read below
+        with tempfile.NamedTemporaryFile("w") as f:
+            json.dump(additional_options, f)
+            f.flush()  # ensure json content is available for the CLI to read below
             sdk_cmd.svc_cli(
                 package_name,
                 service_name,
-                '{} --options={}'.format(' '.join(update_cmd), opts_f.name)
+                '{} --options={}'.format(' '.join(update_cmd), f.name)
             )
     else:
         sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)

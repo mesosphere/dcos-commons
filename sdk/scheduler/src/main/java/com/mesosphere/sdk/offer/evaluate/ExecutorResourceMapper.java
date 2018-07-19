@@ -2,10 +2,12 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,8 +16,9 @@ import java.util.stream.Collectors;
  * Handles cross-referencing a preexisting {@link Protos.ExecutorInfo}'s current {@link Protos.Resource}s against a set
  * of expected {@link VolumeSpec}s for that Executor.
  */
-public class ExecutorResourceMapper extends AbstractResourceMapper {
+public class ExecutorResourceMapper {
 
+    final Logger logger;
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
     private final Collection<Protos.Resource> executorResources;
@@ -28,7 +31,7 @@ public class ExecutorResourceMapper extends AbstractResourceMapper {
             Collection<ResourceSpec> resourceSpecs,
             Collection<Protos.Resource> executorResources,
             Optional<String> resourceNamespace) {
-        super(resourceNamespace);
+        logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpecs = podSpec.getVolumes();
         this.resourceSpecs = resourceSpecs;
         this.executorResources = executorResources;
@@ -54,9 +57,15 @@ public class ExecutorResourceMapper extends AbstractResourceMapper {
         for (Protos.Resource resource : executorResources) {
             Optional<ResourceLabels> matchingResource;
             if (resource.getName().equals(Constants.DISK_RESOURCE_TYPE) && resource.hasDisk()) {
-                matchingResource = findMatchingDiskSpec(resource, remainingResourceSpecs);
+                matchingResource = ResourceMapperUtils.findMatchingDiskSpec(
+                        resource,
+                        remainingResourceSpecs,
+                        resourceNamespace);
             } else {
-                matchingResource = findMatchingResourceSpec(resource, remainingResourceSpecs);
+                matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
+                        resource,
+                        remainingResourceSpecs,
+                        resourceNamespace);
             }
 
             if (matchingResource.isPresent()) {

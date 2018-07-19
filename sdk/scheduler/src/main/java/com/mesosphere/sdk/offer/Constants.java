@@ -98,9 +98,4 @@ public class Constants {
      * The duration in seconds to decline offers the scheduler does not need for a short time.
      */
     public static final int SHORT_DECLINE_SECONDS = 5;
-
-    /**
-     * Indent (# of spaces) to be used to pretty print json objects.
-     */
-    public static final int JSON_INDENT_FACTOR = 2;
 }

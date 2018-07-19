@@ -259,11 +259,11 @@ public class Main {
         int curVer = schemaVersionStore.getOrSetVersion(SchemaVersionStore.getSupportedSchemaVersionMultiService());
         if (curVer == SchemaVersionStore.getSupportedSchemaVersionSingleService()) {
             try {
-                LOGGER.warn("Found old schema in ZK Storage that can be migrated to a new schema");
+                LOGGER.info("Found single-service schema in ZK Storage that can be migrated to multi-service schema");
                 PersisterUtils.backUpFrameworkZKData(persister);
                 PersisterUtils.migrateMonoToMultiZKData(persister, frameworkConfig);
                 schemaVersionStore.store(SchemaVersionStore.getSupportedSchemaVersionMultiService());
-                LOGGER.info("Successfully migrated from old schema to new schema!!");
+                LOGGER.info("Successfully migrated from single-service schema to multi-service schema");
             } catch (PersisterException e) {
                 LOGGER.error("Unable to migrate ZK data : ", e);
                 throw new RuntimeException(e);
