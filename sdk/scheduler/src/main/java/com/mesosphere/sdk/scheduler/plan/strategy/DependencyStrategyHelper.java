@@ -24,9 +24,11 @@ public class DependencyStrategyHelper<C extends Element> {
     }
 
     /**
-     * Marks a direct dependency between two nodes. NOTE: This helper does NOT handle any inferred/chained dependencies.
-     * It is the responsibility of the caller to explicitly add each dependency directly. For example, given c->b->a,
-     * the caller MUST explicitly specify c->b, b->a, AND c->a as dependencies.
+     * Marks a direct dependency between two nodes, where {@code child} depends on {@code parent}.
+     *
+     * <p>NOTE: This helper does NOT handle any inferred/chained dependencies. It is the responsibility of the caller to
+     * explicitly add each dependency directly. For example, given c->b->a, the caller MUST explicitly specify c->b,
+     * b->a, AND c->a as dependencies.
      */
     public void addDependency(C child, C parent) {
         // Ensure parent element is listed:
@@ -57,8 +59,8 @@ public class DependencyStrategyHelper<C extends Element> {
             return Collections.emptyList();
         }
         return dependencies.entrySet().stream()
-                .filter(entry -> PlanUtils.isEligible(entry.getKey(), dirtyAssets))
-                .filter(entry -> dependenciesFulfilled(entry.getValue()))
+                .filter(entry ->
+                        PlanUtils.isEligible(entry.getKey(), dirtyAssets) && dependenciesFulfilled(entry.getValue()))
                 .map(entry -> entry.getKey())
                 .collect(Collectors.toList());
     }

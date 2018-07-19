@@ -44,7 +44,7 @@ public class MultiServiceRunnerTest {
     @Test
     public void checkSchemaVersionFails() throws Exception {
         // Set up a schema version which shouldn't work, to verify that the schema version is being checked:
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         persister.set("SchemaVersion", "123".getBytes(StandardCharsets.UTF_8));
 
         MultiServiceRunner.Builder runnerBuilder =
@@ -61,7 +61,7 @@ public class MultiServiceRunnerTest {
     @Test
     public void checkSchemaVersionSucceeds() throws Exception {
         // Set up a schema version which shouldn't work, to verify that the schema version is being checked:
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         persister.set("SchemaVersion", "2".getBytes(StandardCharsets.UTF_8));
 
         MultiServiceRunner.newBuilder(mockSchedulerConfig, mockFrameworkConfig, persister, mockClient).build();

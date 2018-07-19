@@ -185,7 +185,7 @@ class KerberosEnvironment:
 
     def install(self) -> dict:
 
-        @retrying.retry(stop_max_delay=3*60*1000,
+        @retrying.retry(stop_max_delay=3 * 60 * 1000,
                         wait_exponential_multiplier=1000,
                         wait_exponential_max=120 * 1000,
                         retry_on_result=lambda result: not result)

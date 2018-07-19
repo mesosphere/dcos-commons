@@ -3,7 +3,6 @@ package com.mesosphere.sdk.testutils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
 
@@ -14,25 +13,24 @@ import java.util.*;
  */
 public class PodTestUtils {
     public static ResourceSet getResourceSet() {
-        Collection<ResourceSpec> resources = Arrays.asList(
-                new DefaultResourceSpec(
-                        Constants.CPUS_RESOURCE_TYPE,
-                        Protos.Value.newBuilder()
+        return DefaultResourceSet.newBuilder(
+                TestConstants.ROLE,
+                TestConstants.PRE_RESERVED_ROLE,
+                TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .addResource(DefaultResourceSpec.newBuilder()
+                        .name(Constants.CPUS_RESOURCE_TYPE)
+                        .value(Protos.Value.newBuilder()
                                 .setType(Protos.Value.Type.SCALAR)
                                 .setScalar(Protos.Value.Scalar.newBuilder()
                                         .setValue(1.0))
-                                .build(),
-                        TestConstants.ROLE,
-                        TestConstants.PRE_RESERVED_ROLE,
-                        TestConstants.PRINCIPAL));
-
-        return new DefaultResourceSet(
-                TestConstants.RESOURCE_SET_ID,
-                resources,
-                Collections.emptyList(),
-                TestConstants.ROLE,
-                TestConstants.PRE_RESERVED_ROLE,
-                TestConstants.PRINCIPAL);
+                                .build())
+                        .role(TestConstants.ROLE)
+                        .preReservedRole(TestConstants.PRE_RESERVED_ROLE)
+                        .principal(TestConstants.PRINCIPAL)
+                        .build())
+                .volumes(Collections.emptyList())
+                .build();
     }
 
     public static TaskSpec getTaskSpec() {
@@ -43,19 +41,12 @@ public class PodTestUtils {
                 .build();
     }
 
-    public static PodSpec getPodSpec() {
-        return DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(getTaskSpec()))
-                .preReservedRole(TestConstants.PRE_RESERVED_ROLE)
-                .build();
-    }
-
     public static PodInstance getPodInstance(int index) {
-        return new DefaultPodInstance(getPodSpec(), index);
-    }
-
-    public static PodInstanceRequirement getPodInstanceRequirement(int index) {
-        List<String> tasksToLaunch = Arrays.asList(getTaskSpec().getName());
-        return PodInstanceRequirement.newBuilder(getPodInstance(index), tasksToLaunch).build();
+        return new DefaultPodInstance(
+                DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Collections.singletonList(getTaskSpec()))
+                .preReservedRole(TestConstants.PRE_RESERVED_ROLE)
+                .build(),
+                index);
     }
 
     public static TemplateUrlFactory getTemplateUrlFactory() {

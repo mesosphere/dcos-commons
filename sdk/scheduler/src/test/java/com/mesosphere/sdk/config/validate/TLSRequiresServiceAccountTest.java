@@ -38,11 +38,11 @@ public class TLSRequiresServiceAccountTest {
     public void init() {
         MockitoAnnotations.initMocks(this);
 
-        when(taskWithTLS.getTransportEncryption()).thenReturn(
-                Arrays.asList(
-                        new DefaultTransportEncryptionSpec.Builder()
-                                .name("server")
-                                .type(TransportEncryptionSpec.Type.TLS).build())
+        when(taskWithTLS.getTransportEncryption()).thenReturn(Collections.singleton(
+                DefaultTransportEncryptionSpec.newBuilder()
+                        .name("server")
+                        .type(TransportEncryptionSpec.Type.TLS)
+                        .build())
         );
         when(podWithTLS.getTasks()).thenReturn(Arrays.asList(taskWithTLS));
         when(podWithTLS.getType()).thenReturn(TestConstants.POD_TYPE);

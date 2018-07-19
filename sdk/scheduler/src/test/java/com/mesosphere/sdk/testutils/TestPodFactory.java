@@ -120,7 +120,9 @@ public class TestPodFactory {
                         .environment(Collections.emptyMap())
                         .build())
                 .configFiles(configs)
-                .discoverySpec(new DefaultDiscoverySpec(dnsPrefix, null))
+                .discoverySpec(DefaultDiscoverySpec.newBuilder()
+                        .prefix(dnsPrefix)
+                        .build())
                 .build();
     }
 

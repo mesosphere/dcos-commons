@@ -4,11 +4,9 @@ A simple package manager for Universe packages.
 The PackageManager class can also be used to determine the latest version of a particular package
 in the Universe.
 """
-import logging
-import subprocess
+
 import json
-import os
-import tempfile
+import logging
 import urllib.parse
 import urllib.request
 
@@ -36,7 +34,6 @@ class PackageManager:
 
         self.__package_cache = {}
 
-
     def get_package_versions(self, package_name):
         """Get all versions for a specified package"""
         if self._dry_run:
@@ -55,7 +52,6 @@ class PackageManager:
                 LOGGER.error("Failed to fetch package information at %s: %s", url, e)
 
         return self.__package_cache.get(package_name, [])
-
 
     def get_latest(self, package_name):
         if isinstance(package_name, package.Package):

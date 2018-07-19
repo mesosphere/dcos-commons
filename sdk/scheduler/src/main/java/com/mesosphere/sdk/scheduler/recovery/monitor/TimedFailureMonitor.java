@@ -1,15 +1,16 @@
 package com.mesosphere.sdk.scheduler.recovery.monitor;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.mesos.Protos.TaskID;
-import org.apache.mesos.Protos.TaskInfo;
+
+import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 
 import java.time.Duration;
@@ -28,9 +29,10 @@ import java.util.HashMap;
  * machines.
  */
 public class TimedFailureMonitor extends DefaultFailureMonitor {
-    private static final Log log = LogFactory.getLog(TimedFailureMonitor.class);
+    private static final Logger logger = LoggingUtils.getLogger(TimedFailureMonitor.class);
+
     // This map stores the time when we first noticed the failure
-    private final HashMap<TaskID, Date> firstFailureDetected;
+    private final HashMap<Protos.TaskID, Date> firstFailureDetected;
     private final Duration durationUntilFailed;
     private final StateStore stateStore;
     private final ConfigStore<ServiceSpec> configStore;
@@ -63,33 +65,33 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
      * @return true if the task has been stopped for at least the configured interval
      */
     @Override
-    public boolean hasFailed(TaskInfo terminatedTask) {
+    public boolean hasFailed(Protos.TaskInfo terminatedTask) {
         if (super.hasFailed(terminatedTask)) {
             return true;
         }
 
         Date taskLaunchedTime;
         synchronized (firstFailureDetected) {
-            if (!firstFailureDetected.containsKey(terminatedTask.getTaskId())) {
-                firstFailureDetected.put(terminatedTask.getTaskId(), new Date());
-            }
             taskLaunchedTime = firstFailureDetected.get(terminatedTask.getTaskId());
+            if (taskLaunchedTime == null) {
+                taskLaunchedTime = new Date();
+                firstFailureDetected.put(terminatedTask.getTaskId(), taskLaunchedTime);
+            }
         }
 
         Date taskExpiredTime = new Date(taskLaunchedTime.getTime() + durationUntilFailed.toMillis());
-        Date now = new Date();
-        log.info("Looking at " + terminatedTask.getName() + " launchHappened at " + taskLaunchedTime + ", expires at "
-                + taskExpiredTime + " which is " + now.after(taskExpiredTime));
 
-        if (now.after(taskExpiredTime)) {
+        boolean isExpired = new Date().after(taskExpiredTime);
+        logger.info("Task {} launch happened at {}, expires at {}, expired={}",
+                terminatedTask.getName(), taskLaunchedTime, taskExpiredTime, isExpired);
+        if (isExpired) {
             try {
                 PodInstance podInstance = TaskUtils.getPodInstance(configStore, terminatedTask);
                 FailureUtils.setPermanentlyFailed(stateStore, podInstance);
             } catch (TaskException e) {
-                log.error("Failed to get pod instance to mark as failed.", e);
+                logger.error("Failed to get pod instance to mark as failed.", e);
             }
         }
-
-        return super.hasFailed(terminatedTask);
+        return isExpired;
     }
 }

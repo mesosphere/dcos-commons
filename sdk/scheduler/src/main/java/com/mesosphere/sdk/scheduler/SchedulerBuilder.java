@@ -76,7 +76,7 @@ public class SchedulerBuilder {
                 serviceSpec,
                 schedulerConfig,
                 schedulerConfig.isStateCacheEnabled() ?
-                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
+                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build(), schedulerConfig) :
                         CuratorPersister.newBuilder(serviceSpec).build());
     }
 
@@ -455,9 +455,9 @@ public class SchedulerBuilder {
         if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
             ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
             launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMins()));
             failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
                     stateStore,
                     configStore);
         } else {
@@ -602,20 +602,27 @@ public class SchedulerBuilder {
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
-
-        if (!hasCompletedDeployment || !updatePlanOptional.isPresent()) {
-            logger.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
-                    hasCompletedDeployment, updatePlanOptional.isPresent());
+        if (!updatePlanOptional.isPresent()) {
+            logger.info("Using regular deploy plan: No custom update plan is defined");
             return plans;
         }
 
-        logger.info("Overriding deploy plan with custom update plan. " +
-                "(Has completed deployment: {}, Custom update plan defined: {})",
-                hasCompletedDeployment, updatePlanOptional.isPresent());
+        if (!hasCompletedDeployment) {
+            logger.info("Using regular deploy plan and filtering custom update plan: Deployment hasn't completed");
+            // Filter out the custom update plan, as it isn't being used.
+            return plans.stream()
+                    .filter(plan -> !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                    .collect(Collectors.toList());
+        }
+
+        logger.info("Overriding deploy plan with custom update plan: "
+                + "Deployment has completed and custom update plan is defined");
         Collection<Plan> newPlans = new ArrayList<>();
+        // Remove the current deploy and update plans:
         newPlans.addAll(plans.stream()
                 .filter(plan -> !plan.isDeployPlan() && !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .collect(Collectors.toList()));
+        // Re-add the update plan as the "deploy" plan:
         newPlans.add(new DefaultPlan(
                 Constants.DEPLOY_PLAN_NAME,
                 updatePlanOptional.get().getChildren(),

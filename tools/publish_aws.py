@@ -111,6 +111,7 @@ class AWSPublisher(object):
 
         return universe_url
 
+
 def s3_urls_from_env(package_name):
     s3_bucket = os.environ.get('S3_BUCKET', 'infinity-artifacts')
     logger.info('Using artifact bucket: {}'.format(s3_bucket))
@@ -124,22 +125,23 @@ def s3_urls_from_env(package_name):
 
     # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
     s3_directory_url = os.environ.get(
-            'S3_URL',
-            's3://{}/{}/{}/{}'.format(
+        'S3_URL',
+        's3://{}/{}/{}/{}'.format(
             s3_bucket,
             s3_dir_path,
             package_name,
             s3_dir_name))
 
     http_directory_url = os.environ.get(
-            'ARTIFACT_DIR',
-            'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
+        'ARTIFACT_DIR',
+        'https://{}.s3.amazonaws.com/{}/{}/{}'.format(
             s3_bucket,
             s3_dir_path,
             package_name,
             s3_dir_name))
-    
+
     return s3_directory_url, http_directory_url
+
 
 def print_help(argv):
     logger.info('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))

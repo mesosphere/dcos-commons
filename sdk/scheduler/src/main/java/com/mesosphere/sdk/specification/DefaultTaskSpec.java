@@ -2,16 +2,11 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
-
-import javax.validation.Valid;
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
@@ -22,52 +17,30 @@ import java.util.Optional;
  * If you add or modify fields you must update the equals method. (technically TaskUtils.areDifferent()).
  */
 public class DefaultTaskSpec implements TaskSpec {
-    // TODO: paegun using a reflection-based generator test for difference (not equal) or a different method of
-    // determining difference should be explored.
 
-    @NotNull
-    @Size(min = 1)
+    /**
+     * The default of 0s for task kill grace period is based on upgrade path,
+     * matching the previous default for SDK services launched w/ DC/OS 10.9.
+     */
+    @VisibleForTesting
+    static final int TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT = 0;
+
     private final String name;
-
-    @NotNull
     private final GoalState goalState;
-
-    @NotNull
     private final Boolean essential;
-
-    @Valid
     private final CommandSpec commandSpec;
-
-    @Valid
     private final HealthCheckSpec healthCheckSpec;
-
-    @Valid
     private final ReadinessCheckSpec readinessCheckSpec;
-
-    @Valid
-    @NotNull
     private final ResourceSet resourceSet;
-
-    @Valid
     private final DiscoverySpec discoverySpec;
-
-    @Valid
     private final Collection<ConfigFileSpec> configFiles;
-
-    @DecimalMin("0")
-    @DecimalMax("1209600") //<< two weeks (product spec)
     private final int taskKillGracePeriodSeconds;
 
-    // The default of 0s for task kill grace period is based on upgrade path,
-    // matching the previous default for SDK services launched w/ DC/OS 10.9.
-    public static final int TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT = 0;
-
-    @Valid
     private Collection<TransportEncryptionSpec> transportEncryption;
 
     @SuppressWarnings("PMD.SimplifiedTernary")
     @JsonCreator
-    public DefaultTaskSpec(
+    private DefaultTaskSpec(
             @JsonProperty("name") String name,
             @JsonProperty("goal") GoalState goalState,
             @JsonProperty("essential") Boolean essential,
@@ -109,6 +82,19 @@ public class DefaultTaskSpec implements TaskSpec {
                 builder.discoverySpec,
                 builder.taskKillGracePeriodSeconds,
                 builder.transportEncryption);
+        ValidationUtils.nonEmpty(this, "name", name);
+        ValidationUtils.nonNull(this, "goalState", goalState);
+        ValidationUtils.nonNull(this, "essential", essential);
+        ValidationUtils.nonNull(this, "resourceSet", resourceSet);
+
+        // Check for duplicate names and paths:
+        ValidationUtils.isUnique(this, "configFiles.name", configFiles.stream().map(config -> config.getName()));
+        ValidationUtils.isUnique(
+                this, "configFiles.relativePath", configFiles.stream().map(config -> config.getRelativePath()));
+
+        ValidationUtils.nonNegative(this, "taskKillGracePeriodSeconds", taskKillGracePeriodSeconds);
+        // No greater than two weeks (a product requirement):
+        ValidationUtils.atMost(this, "taskKillGracePeriodSeconds", taskKillGracePeriodSeconds, 1209600);
     }
 
     public static Builder newBuilder() {
@@ -351,9 +337,7 @@ public class DefaultTaskSpec implements TaskSpec {
          * @return a {@code DefaultTaskSpec} built with parameters of this {@code DefaultTaskSpec.Builder}
          */
         public DefaultTaskSpec build() {
-            DefaultTaskSpec defaultTaskSpec = new DefaultTaskSpec(this);
-            ValidationUtils.validate(defaultTaskSpec);
-            return defaultTaskSpec;
+            return new DefaultTaskSpec(this);
         }
 
         /**

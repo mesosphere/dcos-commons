@@ -1,8 +1,5 @@
 package com.mesosphere.sdk.framework;
 
-import java.util.Optional;
-
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -84,11 +81,7 @@ class ReviveManager {
         // Service doesn't need offers, and offers are not suppressed. Suppress.
         if (suppressEnabled) {
             LOGGER.info("Suppressing offers");
-            Optional<SchedulerDriver> driver = Driver.getDriver();
-            if (!driver.isPresent()) {
-                throw new IllegalStateException("INTERNAL ERROR: No driver present for suppressing offers");
-            }
-            driver.get().suppressOffers();
+            Driver.getInstance().suppressOffers();
             Metrics.incrementSuppresses();
         } else {
             LOGGER.info("Refraining from suppressing offers (disabled via DISABLE_SUPPRESS)");
@@ -136,11 +129,7 @@ class ReviveManager {
         }
 
         LOGGER.info("Reviving offers");
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("INTERNAL ERROR: No driver present for reviving offers.");
-        }
-        driver.get().reviveOffers();
+        Driver.getInstance().reviveOffers();
         reviveRequested = false;
 
         // NOTE: We intentionally do not clear isSuppressed here. Instead, we wait until we've actually received new

@@ -220,7 +220,6 @@ $ GITHUB_USER=yourGithubUsername \
 GITHUB_TOKEN=yourGithubAuthToken \
 AWS_ACCESS_KEY_ID=yourAwsKeyId \
 AWS_SECRET_ACCESS_KEY=yourAwsKeySecret \
-MIN_DCOS_RELEASE_VERSION=1.7 \
 S3_RELEASE_BUCKET=your-release-bucket.example.com \
 HTTP_RELEASE_SERVER=https://your-release-web.example.com \
 RELEASE_DIR_PATH=dcos/release \
@@ -246,7 +245,6 @@ This tool requires the following environment variables in order to upload the re
 
 The following are optional:
 
-- `MIN_DCOS_RELEASE_VERSION` (default: 1.7): The value of `minDcosReleaseVersion` to use for the released package, or `0` to set no value. See [universe documentation](https://github.com/mesosphere/universe) for more details on this value.
 - `S3_RELEASE_BUCKET` (default: `downloads.mesosphere.io`): The S3 bucket to upload the release artifacts into.
 - `HTTP_RELEASE_SERVER` (default: `https://downloads.mesosphere.com`): The HTTP base URL for paths within the above bucket.
 - `RELEASE_DIR_PATH` (default: `<package-name>/assets`): The path prefix within `S3_RELEASE_BUCKET` and `HTTP_RELEASE_SERVER` to place the release artifacts. Artifacts will be stored in a `<package-version>` subdirectory within this path.

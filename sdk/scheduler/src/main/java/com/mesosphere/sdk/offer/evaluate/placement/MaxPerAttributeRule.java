@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -93,7 +92,6 @@ public class MaxPerAttributeRule extends MaxPerRule {
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
-        ValidationUtils.validate(this);
     }
 
     @Override

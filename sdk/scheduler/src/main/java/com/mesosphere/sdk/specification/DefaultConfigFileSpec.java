@@ -17,7 +17,7 @@ public class DefaultConfigFileSpec implements ConfigFileSpec {
     private final String templateContent;
 
     @JsonCreator
-    public DefaultConfigFileSpec(
+    private DefaultConfigFileSpec(
             @JsonProperty("name") String name,
             @JsonProperty("relative-path") String relativePath,
             @JsonProperty("template-content") String templateContent) {
@@ -26,17 +26,31 @@ public class DefaultConfigFileSpec implements ConfigFileSpec {
         this.templateContent = templateContent;
     }
 
+    private DefaultConfigFileSpec(Builder builder) {
+        this(builder.name, builder.relativePath, builder.templateContent);
+        ValidationUtils.nonEmpty(this, "name", name);
+        ValidationUtils.nonEmpty(this, "relativePath", relativePath);
+        ValidationUtils.nonEmpty(this, "templateContent", templateContent);
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
+
     @Override
+    @JsonProperty("name")
     public String getName() {
         return name;
     }
 
     @Override
+    @JsonProperty("relative-path")
     public String getRelativePath() {
         return relativePath;
     }
 
     @Override
+    @JsonProperty("template-content")
     public String getTemplateContent() {
         return templateContent;
     }
@@ -54,5 +68,36 @@ public class DefaultConfigFileSpec implements ConfigFileSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * {@link DefaultConfigFileSpec} builder static inner class.
+     */
+    public static class Builder {
+        private String name;
+        private String relativePath;
+        private String templateContent;
+
+        private Builder() {
+        }
+
+        public Builder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public Builder relativePath(String relativePath) {
+            this.relativePath = relativePath;
+            return this;
+        }
+
+        public Builder templateContent(String templateContent) {
+            this.templateContent = templateContent;
+            return this;
+        }
+
+        public DefaultConfigFileSpec build() {
+            return new DefaultConfigFileSpec(this);
+        }
     }
 }

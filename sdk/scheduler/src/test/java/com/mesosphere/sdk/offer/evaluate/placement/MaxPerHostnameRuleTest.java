@@ -5,10 +5,8 @@ import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TaskTestUtils;
-import org.apache.mesos.Protos.Attribute;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.TaskInfo;
-import org.apache.mesos.Protos.Value;
+
+import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,20 +19,20 @@ import java.util.Collections;
 public class MaxPerHostnameRuleTest {
     private static final String HOSTNAME_1 = "www.hostname.1";
 
-    private static final Offer OFFER_HOSTNAME;
+    private static final Protos.Offer OFFER_HOSTNAME;
     static {
-        Attribute.Builder a = Attribute.newBuilder()
-                .setType(Value.Type.TEXT)
+        Protos.Attribute.Builder a = Protos.Attribute.newBuilder()
+                .setType(Protos.Value.Type.TEXT)
                 .setName("footext");
         a.getTextBuilder().setValue("123");
-        OFFER_HOSTNAME = getOfferWithResources().toBuilder().setHostname(HOSTNAME_1).build();
+        OFFER_HOSTNAME = getOfferWithResources().setHostname(HOSTNAME_1).build();
     }
 
-    private static final TaskInfo TASK_NO_HOSTNAME = TaskTestUtils.getTaskInfo(Collections.emptyList());
-    private static final TaskInfo TASK_HOSTNAME = getTask("match-1__abc", OFFER_HOSTNAME);
+    private static final Protos.TaskInfo TASK_NO_HOSTNAME = TaskTestUtils.getTaskInfo(Collections.emptyList());
+    private static final Protos.TaskInfo TASK_HOSTNAME = getTask("match-1__abc", OFFER_HOSTNAME);
 
-    private static TaskInfo getTask(String id, Offer offer) {
-        TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
+    private static Protos.TaskInfo getTask(String id, Protos.Offer offer) {
+        Protos.TaskInfo.Builder taskBuilder = TaskTestUtils.getTaskInfo(Collections.emptyList()).toBuilder();
         taskBuilder.getTaskIdBuilder().setValue(id);
         try {
             taskBuilder.setName(CommonIdUtils.toTaskName(taskBuilder.getTaskId()));
@@ -45,11 +43,11 @@ public class MaxPerHostnameRuleTest {
         return taskBuilder.build();
     }
 
-    private static Offer getOfferWithResources() {
-        Offer.Builder o = OfferTestUtils.getEmptyOfferBuilder();
+    private static Protos.Offer.Builder getOfferWithResources() {
+        Protos.Offer.Builder o = OfferTestUtils.getEmptyOfferBuilder();
         OfferTestUtils.addResource(o, "a");
         OfferTestUtils.addResource(o, "b");
-        return o.build();
+        return o;
     }
 
     @Test

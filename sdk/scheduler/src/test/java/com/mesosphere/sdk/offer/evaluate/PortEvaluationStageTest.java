@@ -49,7 +49,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id("resourceSet")
                 .cpus(1.0)
-                .addResource(Arrays.asList(portSpecs))
+                .addResources(Arrays.asList(portSpecs))
                 .build();
         CommandSpec commandSpec = DefaultCommandSpec.newBuilder(Collections.emptyMap())
                 .value("./cmd")
@@ -116,15 +116,19 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Integer requestedPort = 80;  // request a port that's not available in the offer.
         String expectedPortEnvVar = "PORT_TEST_IGNORED";
         String expectedPortName = "overlay-port-name";
-        PortSpec portSpec = new PortSpec(
-                getPort(requestedPort),
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                expectedPortEnvVar,
-                expectedPortName,
-                TestConstants.PORT_VISIBILITY,
-                getOverlayNetworkNames());
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+                .envKey(expectedPortEnvVar)
+                .portName(expectedPortName)
+                .visibility(TestConstants.PORT_VISIBILITY)
+                .networkNames(getOverlayNetworkNames());
+        builder
+                .value(getPort(requestedPort))
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
@@ -156,15 +160,19 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         String expectedDynamicOverlayPortEnvvar = "PORT_TEST_DYNAMIC_OVERLAY";
         String expectedPortName = "dyn-port-name";
         long expectedDynamicallyAssignedPort = 1025;
-        PortSpec portSpec = new PortSpec(
-                getPort(0),
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                expectedDynamicOverlayPortEnvvar,
-                expectedPortName,
-                TestConstants.PORT_VISIBILITY,
-                getOverlayNetworkNames());
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+                .envKey(expectedDynamicOverlayPortEnvvar)
+                .portName(expectedPortName)
+                .visibility(TestConstants.PORT_VISIBILITY)
+                .networkNames(getOverlayNetworkNames());
+        builder
+                .value(getPort(0))
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
@@ -198,24 +206,25 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         String expextedDynamicOverlayPortEnvvar = "PORT_TEST_DYNAMIC";
         String expectedExplicitPortName = "explicit-port";
         String expectedDynamicPortName = "dynamic-port";
-        PortSpec portSpec = new PortSpec(
-                getPort(DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START),
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                expectedExplicitOverlayPortEnvvar,
-                expectedExplicitPortName,
-                TestConstants.PORT_VISIBILITY,
-                getOverlayNetworkNames());
-        PortSpec dynamPortSpec = new PortSpec(
-                getPort(0),
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                expextedDynamicOverlayPortEnvvar,
-                expectedDynamicPortName,
-                TestConstants.PORT_VISIBILITY,
-                getOverlayNetworkNames());
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+                .envKey(expectedExplicitOverlayPortEnvvar)
+                .portName(expectedExplicitPortName)
+                .visibility(TestConstants.PORT_VISIBILITY)
+                .networkNames(getOverlayNetworkNames());
+        builder
+                .value(getPort(DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START))
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
+        builder
+                .envKey(expextedDynamicOverlayPortEnvvar)
+                .portName(expectedDynamicPortName)
+                .value(getPort(0));
+        PortSpec dynamPortSpec = builder.build();
+
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec, dynamPortSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         Assert.assertTrue(String.format("podInfoBuilder has incorrect number of pre-assigned overlay ports " +
@@ -403,15 +412,17 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Protos.Resource offeredPorts = ResourceTestUtils.getUnreservedPorts(10000, 10050);
         Protos.Offer offer = OfferTestUtils.getOffer(offeredPorts);
 
-        PortSpec portSpec = new PortSpec(
-                getPort(0),
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL,
-                "PORT_TEST",
-                "TEST",
-                TestConstants.PORT_VISIBILITY,
-                Collections.emptyList());
+        PortSpec.Builder builder = PortSpec.newBuilder()
+                .envKey("PORT_TEST")
+                .portName("TEST")
+                .visibility(TestConstants.PORT_VISIBILITY)
+                .networkNames(Collections.emptyList());
+        builder
+                .value(getPort(0))
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
 
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = new PodInfoBuilder(

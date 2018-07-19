@@ -213,7 +213,12 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static ResourceSpec getResourceSpec(Protos.Value value) {
-        return new DefaultResourceSpec(RESOURCE_NAME, value, ROLE, null, PRINCIPAL);
+        return DefaultResourceSpec.newBuilder()
+                .name(RESOURCE_NAME)
+                .value(value)
+                .role(ROLE)
+                .principal(PRINCIPAL)
+                .build();
     }
 
     private static MesosResource getMesosResource(ResourceSpec resourceSpec, String resourceId, Optional<String> namespace) {

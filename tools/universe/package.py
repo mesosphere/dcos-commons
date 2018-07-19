@@ -1,6 +1,7 @@
 import json
 import functools
 
+
 @functools.total_ordering
 class Package:
     @staticmethod

@@ -14,7 +14,6 @@ import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-
 import static org.mockito.Mockito.*;
 
 /**
@@ -45,7 +44,7 @@ public class ServiceStoreTest {
         when(mockSpecFoo.getName()).thenReturn("foo");
         when(mockSpecBar.getName()).thenReturn("bar");
 
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new ServiceStore(persister, mockServiceFactory);
     }
 

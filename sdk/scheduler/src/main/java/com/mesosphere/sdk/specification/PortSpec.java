@@ -10,24 +10,20 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.Collection;
 
 /**
  * This class represents a single port, with associated environment name.
  */
 public class PortSpec extends DefaultResourceSpec {
+
     private final String envKey;
-    @NotNull
-    @Size(min = 1)
     private final String portName;
-    @NotNull
     private final DiscoveryInfo.Visibility visibility;
     private final Collection<String> networkNames;
 
     @JsonCreator
-    public PortSpec(
+    protected PortSpec(
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
             @JsonProperty("pre-reserved-role") String preReservedRole,
@@ -41,6 +37,30 @@ public class PortSpec extends DefaultResourceSpec {
         this.portName = portName;
         this.visibility = visibility;
         this.networkNames = networkNames;
+    }
+
+    public PortSpec(Builder builder) {
+        this(
+                builder.value,
+                builder.role,
+                builder.preReservedRole,
+                builder.principal,
+                builder.envKey,
+                builder.portName,
+                builder.visibility,
+                builder.networkNames);
+
+        validatePort();
+    }
+
+    protected void validatePort() {
+        validateResource();
+        ValidationUtils.nonEmpty(this, "portName", portName);
+        ValidationUtils.nonNull(this, "visibility", visibility);
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     /**
@@ -102,5 +122,43 @@ public class PortSpec extends DefaultResourceSpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * {@link PortSpec} builder static inner class.
+     */
+    public static class Builder extends DefaultResourceSpec.Builder {
+
+        protected String envKey;
+        protected String portName;
+        protected DiscoveryInfo.Visibility visibility;
+        protected Collection<String> networkNames;
+
+        protected Builder() {
+        }
+
+        public Builder envKey(String envKey) {
+            this.envKey = envKey;
+            return this;
+        }
+
+        public Builder portName(String portName) {
+            this.portName = portName;
+            return this;
+        }
+
+        public Builder visibility(DiscoveryInfo.Visibility visibility) {
+            this.visibility = visibility;
+            return this;
+        }
+
+        public Builder networkNames(Collection<String> networkNames) {
+            this.networkNames = networkNames;
+            return this;
+        }
+
+        public PortSpec build() {
+            return new PortSpec(this);
+        }
     }
 }

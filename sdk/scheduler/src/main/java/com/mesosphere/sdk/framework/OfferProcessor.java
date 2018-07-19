@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import com.codahale.metrics.Timer;
@@ -396,15 +394,10 @@ class OfferProcessor {
         }
 
         LOGGER.info("Tearing down framework...");
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (driver.isPresent()) {
-            // Stop the SchedulerDriver thread:
-            // - failover==false: Tells Mesos to teardown the framework.
-            // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
-            driver.get().stop(false);
-        } else {
-            LOGGER.error("No driver is present for deregistering the framework.");
-        }
+        // Stop the SchedulerDriver thread:[
+        // - failover==false: Tells Mesos to teardown the framework.
+        // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
+        Driver.getInstance().stop(false);
 
         LOGGER.info("### UNINSTALL IS COMPLETE! ###");
         LOGGER.info("Scheduler should be cleaned up shortly...");
@@ -469,11 +462,6 @@ class OfferProcessor {
      * @param refuseSeconds The number of seconds for which the offers should be refused
      */
     private static void declineOffers(Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("No driver present for declining offers.  This should never happen.");
-        }
-
         Collection<Protos.OfferID> offerIds = unusedOffers.stream()
                 .map(offer -> offer.getId())
                 .collect(Collectors.toList());
@@ -482,9 +470,11 @@ class OfferProcessor {
                 offerIds.size() == 1 ? "" : "s",
                 refuseSeconds,
                 offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+
         final Protos.Filters filters = Protos.Filters.newBuilder()
                 .setRefuseSeconds(refuseSeconds)
                 .build();
-        offerIds.forEach(offerId -> driver.get().declineOffer(offerId, filters));
+
+        offerIds.forEach(offerId -> Driver.getInstance().declineOffer(offerId, filters));
     }
 }

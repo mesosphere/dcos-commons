@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
+import com.mesosphere.sdk.config.validate.ZoneValidator;
 import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.HostnameRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -132,16 +133,14 @@ public class ZoneValidatorTest {
     }
 
     private static ServiceSpec getServiceSpec(PodSpec podSpec) {
-        return new DefaultServiceSpec(
-                TestConstants.SERVICE_NAME,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                TestConstants.SERVICE_USER,
-                null,
-                null,
-                "http://web-url",
-                "http://zookeeper",
-                null,
-                Arrays.asList(podSpec));
+        return DefaultServiceSpec.newBuilder()
+                .name(TestConstants.SERVICE_NAME)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .user(TestConstants.SERVICE_USER)
+                .webUrl("http://web-url")
+                .zookeeperConnection("http://zookeeper")
+                .pods(Collections.singletonList(podSpec))
+                .build();
     }
 }

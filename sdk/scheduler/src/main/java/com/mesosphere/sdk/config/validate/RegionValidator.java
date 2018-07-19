@@ -1,6 +1,5 @@
-package com.mesosphere.sdk.specification.validation;
+package com.mesosphere.sdk.config.validate;
 
-import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.specification.PodSpec;

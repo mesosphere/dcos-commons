@@ -49,11 +49,12 @@ def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
     """
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         try:
-            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'].startswith(service_name)])
+            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=False) if t['name'] == service_name])
+            log.info('found the following task ids {}'.format(task_ids))
         except dcos.errors.DCOSHTTPException:
             log.info('Failed to get task ids. service_name=%s', service_name)
             task_ids = set([])
@@ -110,7 +111,6 @@ def test_add_deploy_restart_remove():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_add_multiple_uninstall():
     # add two services:
     svc1 = 'test1'
@@ -171,7 +171,7 @@ def get_service_list():
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=5*60*1000)
+    stop_max_delay=5 * 60 * 1000)
 def wait_for_service_count(count):
     services = get_service_list()
     log.info('Waiting for scheduler to have {} services, got {}: {}'.format(
