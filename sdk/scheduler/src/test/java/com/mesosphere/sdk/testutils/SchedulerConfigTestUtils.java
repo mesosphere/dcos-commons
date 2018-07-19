@@ -18,6 +18,7 @@ public class SchedulerConfigTestUtils {
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static SchedulerConfig getTestSchedulerConfig() {
         SchedulerConfig schedulerConfig = mock(SchedulerConfig.class);
+        when(schedulerConfig.isDeadlockExitEnabled()).thenReturn(true);
         when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
         when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         when(schedulerConfig.getBootstrapURI()).thenReturn("test-bootstrap-uri");

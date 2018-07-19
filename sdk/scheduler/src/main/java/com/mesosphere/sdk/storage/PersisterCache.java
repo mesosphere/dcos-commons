@@ -4,11 +4,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.slf4j.Logger;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 
 /**
  * A transparent write-through cache for an underlying {@link Persister} instance. Each cache instance is thread-safe,
@@ -18,15 +18,17 @@ public class PersisterCache implements Persister {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(PersisterCache.class);
 
-    private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
-    private final Lock rlock = internalLock.readLock();
-    private final Lock rwlock = internalLock.writeLock();
-
     private final Persister persister;
+    private final Lock rlock;
+    private final Lock rwlock;
+
     private MemPersister cache;
 
-    public PersisterCache(Persister persister) throws PersisterException {
+    public PersisterCache(Persister persister, SchedulerConfig schedulerConfig) throws PersisterException {
         this.persister = persister;
+        ReadWriteLock lock = CycleDetectingLockUtils.newLock(schedulerConfig, PersisterCache.class);
+        this.rlock = lock.readLock();
+        this.rwlock = lock.writeLock();
     }
 
     @Override
@@ -158,7 +160,10 @@ public class PersisterCache implements Persister {
     private MemPersister getCache() throws PersisterException {
         if (cache == null) {
             // We already have our own locking, so we can disable locking in the underlying MemPersister:
-            cache = new MemPersister(MemPersister.LockMode.DISABLED, PersisterUtils.getAllData(persister));
+            cache = MemPersister.newBuilder()
+                    .disableLocking()
+                    .setData(PersisterUtils.getAllData(persister))
+                    .build();
             LOGGER.info("Loaded data from persister:\n{}", cache.getDebugString());
         }
         return cache;

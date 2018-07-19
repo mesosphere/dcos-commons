@@ -52,7 +52,7 @@ public class MemPersisterTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
     }
 
     @Test

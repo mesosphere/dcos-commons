@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluatorTestBase;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -32,7 +33,7 @@ public class PersistentLaunchRecorderTest extends OfferEvaluatorTestBase {
     public static void beforeAll() throws Exception {
         ClassLoader classLoader = PersistentLaunchRecorderTest.class.getClassLoader();
         File file = new File(classLoader.getResource("shared-resource-set.yml").getFile());
-        serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        serviceSpec = DefaultServiceSpec.newGenerator(file, SchedulerConfigTestUtils.getTestSchedulerConfig()).build();
     }
 
     @Before

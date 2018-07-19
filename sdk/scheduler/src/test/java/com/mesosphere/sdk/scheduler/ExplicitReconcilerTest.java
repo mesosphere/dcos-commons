@@ -8,6 +8,8 @@ import com.mesosphere.sdk.framework.Driver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -48,7 +50,8 @@ public class ExplicitReconcilerTest {
     public void beforeAll() {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockDriver);
-        reconciler = new TestReconciler(mockStateStore, DEFAULT_TIME_MS);
+        reconciler = new TestReconciler(
+                mockStateStore, SchedulerConfigTestUtils.getTestSchedulerConfig(), DEFAULT_TIME_MS);
     }
 
     @Test
@@ -217,8 +220,8 @@ public class ExplicitReconcilerTest {
     private static class TestReconciler extends ExplicitReconciler {
         private long nowMs;
 
-        private TestReconciler(StateStore store, long nowMs) {
-            super(store, Optional.empty());
+        private TestReconciler(StateStore store, SchedulerConfig schedulerConfig, long nowMs) {
+            super(store, Optional.empty(), schedulerConfig);
             setNowMs(nowMs);
         }
 
