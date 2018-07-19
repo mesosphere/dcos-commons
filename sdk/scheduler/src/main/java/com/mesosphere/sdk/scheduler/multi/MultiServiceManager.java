@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.multi;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,8 +9,6 @@ import java.util.Optional;
 import java.util.TreeSet;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -19,7 +18,9 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
+import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 
 /**
  * Handles adding/removing active services in a multi-service scheduler, and functions as the central source of truth
@@ -29,9 +30,19 @@ public class MultiServiceManager {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(MultiServiceManager.class);
 
-    private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
-    private final Lock rlock = internalLock.readLock();
-    private final Lock rwlock = internalLock.writeLock();
+    /**
+     * We use {@link CycleDetectingLockUtils} to throw immediately if a deadlock is detected.
+     *
+     * This is useful here because the Mesos client implementation that we currently use has "optimizations" that can
+     * lead to double locks if we aren't careful:
+     * <ul><li>Within a MultiServiceManager lock, we do something that requests more offers (Revive) or more task
+     * statuses (Reconcile)</li>
+     * <li>The Mesos client gets this request and decides to 'optimize' by immediately returning a cached value in the
+     * same thread, e.g. Offers or a TaskStatus</li>
+     * <li>That call from the Mesos client reaches back into MultiServiceManager and leads to a double lock</li></ul>
+     */
+    private final Lock rlock;
+    private final Lock rwlock;
 
     private final Map<String, AbstractScheduler> services = new HashMap<>();
     private final Map<String, String> sanitizedServiceNames = new HashMap<>();
@@ -40,7 +51,10 @@ public class MultiServiceManager {
     // When a client is added, if we're already registered then invoke 'registered()' manually against that client
     private boolean isRegistered;
 
-    public MultiServiceManager() {
+    public MultiServiceManager(SchedulerConfig schedulerConfig) {
+        ReadWriteLock lock = CycleDetectingLockUtils.newLock(schedulerConfig, MultiServiceManager.class);
+        this.rlock = lock.readLock();
+        this.rwlock = lock.writeLock();
         this.isRegistered = false;
     }
 
@@ -105,6 +119,7 @@ public class MultiServiceManager {
         String originalName = service.getServiceSpec().getName();
         String sanitizedName = CommonIdUtils.toSanitizedServiceName(originalName);
         rwlock.lock();
+        final boolean shouldCallRegistered;
         try {
             // NOTE: If the service is uninstalling, it should already be passed to us as an UninstallScheduler.
             // See SchedulerBuilder.
@@ -130,14 +145,20 @@ public class MultiServiceManager {
                         originalName, services.size(), services.size() == 1 ? "" : "s");
             }
 
-            if (isRegistered) {
-                // We are already registered. Manually call registered() against this client so that it can initialize.
-                service.registered(false);
-            }
-            return this;
+            // To keep things consistent, avoid accessing isRegistered outside of locked code.
+            shouldCallRegistered = isRegistered;
         } finally {
             rwlock.unlock();
         }
+
+        if (shouldCallRegistered) {
+            // We are already registered. Manually call registered() against this client so that it can initialize.
+            // NOTE: We avoid doing this while we are locked. Otherwise we risk a double lock if the registered() call
+            // triggers queries against Mesos.
+            service.registered(false);
+        }
+
+        return this;
     }
 
     /**
@@ -187,6 +208,10 @@ public class MultiServiceManager {
      *    bit in ZK will have been cleared.
      */
     public void uninstallServices(Collection<String> finishedServiceNames) {
+        // We specifically avoid invoking services while we are locked. The service may make queries against the
+        // Mesos client which can lead to a double lock if that then calls back into us.
+        Collection<AbstractScheduler> uninstallSchedulersToInitialize = new ArrayList<>();
+
         rwlock.lock();
         try {
             LOGGER.info("Marking services as uninstalling: {} (out of {} service{})",
@@ -212,14 +237,19 @@ public class MultiServiceManager {
                 // UninstallScheduler. See SchedulerBuilder.
                 AbstractScheduler uninstallScheduler = ((DefaultScheduler) currentService).toUninstallScheduler();
                 if (isRegistered) {
-                    // Don't forget to also initialize the new scheduler if relevant...
-                    uninstallScheduler.registered(false);
+                    // We are already registered, so we need to manually do that call for this new service object.
+                    // We avoid doing this here, while we are locked.
+                    uninstallSchedulersToInitialize.add(uninstallScheduler);
                 }
                 services.put(name, uninstallScheduler);
             }
         } finally {
             rwlock.unlock();
         }
+
+        // We were already registered, so we need to manually initialize the new UninstallSchedulers with a registered()
+        // call. We are careful to avoid calling into the services while we are locked:
+        uninstallSchedulersToInitialize.stream().forEach(c -> c.registered(false));
     }
 
     /**
@@ -267,7 +297,10 @@ public class MultiServiceManager {
      * receiving offers/statuses.
      */
     public void registered(boolean reRegistered) {
-        // Lock against clients being added/removed, ensuring our hasRegistered handling behaves consistently:
+        // We're accomplishing two things here:
+        // - Get a snapshot of the current services while within the lock, when we set the isRegistered bit.
+        // - Avoid calling into clients while we are locked. They may perform work which could lead to a double lock.
+        Collection<AbstractScheduler> currentServices = new ArrayList<>();
         rlock.lock();
         try {
             isRegistered = true;
@@ -275,9 +308,10 @@ public class MultiServiceManager {
                     services.size(),
                     services.size() == 1 ? "" : "s",
                     reRegistered ? "re-registration" : "initial registration");
-            services.values().stream().forEach(c -> c.registered(reRegistered));
+            currentServices.addAll(services.values());
         } finally {
             rlock.unlock();
         }
+        currentServices.stream().forEach(c -> c.registered(reRegistered));
     }
 }

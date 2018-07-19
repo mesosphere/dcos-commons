@@ -45,7 +45,7 @@ def test_custom_decommission():
     log.info("decommission plan: {}".format(decommission_plan))
 
     custom_step_name = decommission_plan['phases'][0]['steps'][0]['name']
-    assert "custom_decomission_step" == custom_step_name
+    assert "custom_decommission_step" == custom_step_name
 
     # scale back up
     marathon_config = sdk_marathon.get_config(foldered_name)
@@ -64,4 +64,4 @@ def test_custom_decommission():
     log.info("decommission plan: {}".format(decommission_plan))
 
     custom_step_name = decommission_plan['phases'][0]['steps'][0]['name']
-    assert "custom_decomission_step" == custom_step_name
+    assert "custom_decommission_step" == custom_step_name

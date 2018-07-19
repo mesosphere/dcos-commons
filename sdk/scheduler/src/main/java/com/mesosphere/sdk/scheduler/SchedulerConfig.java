@@ -96,6 +96,12 @@ public class SchedulerConfig {
     private static final String DISABLE_STATE_CACHE_ENV = "DISABLE_STATE_CACHE";
 
     /**
+     * Controls whether deadlocks should lead to the scheduler process exiting (enabled by default).
+     * If this envvar is set (to anything at all), the scheduler will not exit if a deadlock is encountered.
+     */
+    private static final String DISABLE_DEADLOCK_EXIT_ENV = "DISABLE_DEADLOCK_EXIT";
+
+    /**
      * Controls whether the framework will request that offers be suppressed when the service(s) are idle (enabled by
      * default). If this envvar is set (to anything at all), then offer suppression is disabled.
      */
@@ -299,6 +305,10 @@ public class SchedulerConfig {
         return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
+    public boolean isDeadlockExitEnabled() {
+        return !envStore.isPresent(DISABLE_DEADLOCK_EXIT_ENV);
+    }
+
     public boolean isSuppressEnabled() {
         return !envStore.isPresent(DISABLE_SUPPRESS_ENV);
     }
@@ -340,7 +350,7 @@ public class SchedulerConfig {
             Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
                     AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
 
-            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
+            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold, this);
         } catch (InvalidKeySpecException e) {
             throw new IllegalArgumentException(e);
         } catch (NoSuchAlgorithmException e) {

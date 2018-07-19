@@ -29,7 +29,8 @@ import static org.mockito.Mockito.when;
  * This class tests the TaskUtils class.
  */
 public class TaskUtilsTest {
-    private static final String testTaskName = "test-task-name";
+
+    private static final String TEST_TASK_NAME = "test-task-name";
 
     private static final ConfigStore<ServiceSpec> TWO_ESSENTIAL_TWO_NONESSENTIAL = buildPodLayout(2, 2);
     private static final Collection<Protos.TaskInfo> TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS = Arrays.asList(
@@ -66,13 +67,13 @@ public class TaskUtilsTest {
 
     @Test
     public void testValidToTaskName() throws Exception {
-        Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(testTaskName + "__id").build();
-        Assert.assertEquals(testTaskName, CommonIdUtils.toTaskName(validTaskId));
+        Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(TEST_TASK_NAME + "__id").build();
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
     }
 
     @Test(expected = TaskException.class)
     public void testInvalidToTaskName() throws Exception {
-        CommonIdUtils.toTaskName(Protos.TaskID.newBuilder().setValue(testTaskName + "_id").build());
+        CommonIdUtils.toTaskName(Protos.TaskID.newBuilder().setValue(TEST_TASK_NAME + "_id").build());
     }
 
     @Test
@@ -457,7 +458,7 @@ public class TaskUtilsTest {
     }
 
     private static StateStore buildStateStoreWithTasks(Collection<Protos.TaskInfo> taskInfos) {
-        StateStore stateStore = new StateStore(new MemPersister());
+        StateStore stateStore = new StateStore(MemPersister.newBuilder().build());
         stateStore.storeTasks(taskInfos);
         for (Protos.TaskInfo taskInfo : taskInfos) {
             Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
@@ -497,7 +498,7 @@ public class TaskUtilsTest {
                 .addPod(podBuilder.build())
                 .build();
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), MemPersister.newBuilder().build());
         try {
             configStore.setTargetConfig(configStore.store(serviceSpec));
         } catch (ConfigStoreException e) {

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -74,8 +75,7 @@ public class Main {
                     throws PersisterException {
         ServiceSpec javaServiceSpec = createSampleServiceSpec(schedulerConfig, envStore);
         SchedulerBuilder builder = DefaultScheduler.newBuilder(javaServiceSpec, schedulerConfig);
-        Scenario.customize(builder, scenarios);
-        SchedulerRunner.fromSchedulerBuilder(builder).run();
+        SchedulerRunner.fromSchedulerBuilder(Scenario.customize(builder, Optional.empty(), scenarios)).run();
     }
 
     /**
@@ -90,7 +90,7 @@ public class Main {
         Persister persister = getPersister(schedulerConfig, FrameworkConfig.fromServiceSpec(serviceSpec));
         SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                 .setPlansFrom(rawServiceSpec);
-        SchedulerRunner.fromSchedulerBuilder(Scenario.customize(builder, scenarios)).run();
+        SchedulerRunner.fromSchedulerBuilder(Scenario.customize(builder, Optional.empty(), scenarios)).run();
     }
 
     /**
@@ -104,7 +104,7 @@ public class Main {
             Collection<Scenario.Type> scenarios) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        MultiServiceManager multiServiceManager = new MultiServiceManager();
+        MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
 
         ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
                 schedulerConfig, frameworkConfig, persister, scenarios, multiServiceManager);
@@ -140,7 +140,7 @@ public class Main {
             Collection<Scenario.Type> scenarios) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        MultiServiceManager multiServiceManager = new MultiServiceManager();
+        MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
 
         // Add services represented by YAML files to the service manager:
         for (File yamlFile : yamlFiles) {
@@ -151,7 +151,8 @@ public class Main {
             SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                     .setPlansFrom(rawServiceSpec)
                     .enableMultiService(frameworkConfig.getFrameworkName());
-            multiServiceManager.putService(Scenario.customize(builder, scenarios).build());
+            multiServiceManager.putService(
+                    Scenario.customize(builder, Optional.of(frameworkConfig.getFrameworkName()), scenarios).build());
         }
 
         // Set up the client and run the framework:
@@ -183,7 +184,7 @@ public class Main {
         Persister persister = CuratorPersister.newBuilder(
                 frameworkConfig.getFrameworkName(), frameworkConfig.getZookeeperHostPort()).build();
         if (schedulerConfig.isStateCacheEnabled()) {
-            persister = new PersisterCache(persister);
+            persister = new PersisterCache(persister, schedulerConfig);
         }
         return persister;
     }

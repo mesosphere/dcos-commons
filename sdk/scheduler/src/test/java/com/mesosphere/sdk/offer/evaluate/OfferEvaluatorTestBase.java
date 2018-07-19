@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -24,7 +23,6 @@ import java.util.UUID;
  * A base class for use in writing offer evaluation tests.
  */
 public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
-    protected static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     protected FrameworkStore frameworkStore;
     protected StateStore stateStore;
@@ -34,7 +32,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         frameworkStore = new FrameworkStore(persister);
         frameworkStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         stateStore = new StateStore(persister);
@@ -46,7 +44,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 targetConfig,
                 PodTestUtils.getTemplateUrlFactory(),
-                SCHEDULER_CONFIG,
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.empty());
     }
 

@@ -20,7 +20,7 @@ public class ParallelFootprintDisciplineTest {
 
     @Before
     public void beforeEach() throws PersisterException {
-        store = new DisciplineSelectionStore(new MemPersister());
+        store = new DisciplineSelectionStore(MemPersister.newBuilder().build());
     }
 
     @Test(expected=IllegalArgumentException.class)

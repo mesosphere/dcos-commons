@@ -76,7 +76,7 @@ public class SchedulerBuilder {
                 serviceSpec,
                 schedulerConfig,
                 schedulerConfig.isStateCacheEnabled() ?
-                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
+                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build(), schedulerConfig) :
                         CuratorPersister.newBuilder(serviceSpec).build());
     }
 

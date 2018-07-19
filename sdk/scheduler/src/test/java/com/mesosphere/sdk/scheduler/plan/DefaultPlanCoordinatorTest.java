@@ -87,7 +87,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
 
         FrameworkStore frameworkStore = new FrameworkStore(persister);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);

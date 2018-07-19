@@ -347,7 +347,12 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("invalid-plan-steps.yml").getFile());
         RawServiceSpec rawSpec = RawServiceSpec.newBuilder(file).build();
         DefaultScheduler.newBuilder(
-                DefaultServiceSpec.newGenerator(rawSpec, SCHEDULER_CONFIG, file.getParentFile()).build(), SCHEDULER_CONFIG, new MemPersister())
+                DefaultServiceSpec.newGenerator(
+                        rawSpec,
+                        SCHEDULER_CONFIG,
+                        file.getParentFile()).build(),
+                SCHEDULER_CONFIG,
+                MemPersister.newBuilder().build())
                 .setPlansFrom(rawSpec)
                 .build();
     }
@@ -610,7 +615,7 @@ public class DefaultServiceSpecTest {
         when(capabilities.supportsDomains()).thenReturn(true);
 
         Capabilities.overrideCapabilities(capabilities);
-        DefaultScheduler.newBuilder(serviceSpec, SCHEDULER_CONFIG, new MemPersister()).build();
+        DefaultScheduler.newBuilder(serviceSpec, SCHEDULER_CONFIG, MemPersister.newBuilder().build()).build();
     }
 
     @Test

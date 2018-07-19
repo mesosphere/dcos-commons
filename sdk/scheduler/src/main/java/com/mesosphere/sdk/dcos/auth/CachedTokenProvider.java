@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.dcos.auth;
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -8,7 +10,6 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * CachedTokenProvider retrieves token from underlying provider and caches the value. It automatically triggers
@@ -17,17 +18,21 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class CachedTokenProvider implements TokenProvider {
 
     private final TokenProvider provider;
-    private Optional<DecodedJWT> token;
     private final Duration ttl;
 
-    private final ReadWriteLock internalLock = new ReentrantReadWriteLock();
-    private final Lock rlock = internalLock.readLock();
-    private final Lock rwlock = internalLock.writeLock();
+    private final Lock rlock;
+    private final Lock rwlock;
 
+    private Optional<DecodedJWT> token;
 
-    public CachedTokenProvider(TokenProvider provider, Duration ttl) {
+    public CachedTokenProvider(TokenProvider provider, Duration ttl, SchedulerConfig schedulerConfig) {
         this.provider = provider;
         this.ttl = ttl;
+
+        ReadWriteLock lock = CycleDetectingLockUtils.newLock(schedulerConfig, CachedTokenProvider.class);
+        this.rlock = lock.readLock();
+        this.rwlock = lock.writeLock();
+
         this.token = Optional.empty();
     }
 

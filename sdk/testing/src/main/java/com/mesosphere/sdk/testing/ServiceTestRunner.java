@@ -52,7 +52,7 @@ public class ServiceTestRunner {
 
     private final File specPath;
     private File configTemplateDir;
-    private Persister persister = new MemPersister();
+    private Persister persister = MemPersister.newBuilder().build();
     private ClusterState oldClusterState = null;
     private final Map<String, String> cosmosOptions = new HashMap<>();
     private final Map<String, String> buildTemplateParams = new HashMap<>();

@@ -36,7 +36,7 @@ public class PlanGeneratorTest {
         DefaultServiceSpec serviceSpec =
                 DefaultServiceSpec.newGenerator(rawServiceSpec, SCHEDULER_CONFIG, file.getParentFile()).build();
 
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         stateStore = new StateStore(persister);
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
