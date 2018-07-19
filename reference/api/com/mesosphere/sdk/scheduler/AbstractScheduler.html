@@ -161,14 +161,18 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#planCustomizer">planCustomizer</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#schedulerConfig">schedulerConfig</a></span></code>&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#serviceSpec">serviceSpec</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#stateStore">stateStore</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>protected <a href="../../../../com/mesosphere/sdk/scheduler/WorkSetTracker.html" title="class in com.mesosphere.sdk.scheduler">WorkSetTracker</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#workSetTracker">workSetTracker</a></span></code>&nbsp;</td>
 </tr>
@@ -189,7 +193,8 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>protected </code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#AbstractScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-java.util.Optional-">AbstractScheduler</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#AbstractScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-java.util.Optional-">AbstractScheduler</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                 <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                  <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                  <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
                  java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,
@@ -341,6 +346,15 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 <pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a> serviceSpec</pre>
 </li>
 </ul>
+<a name="schedulerConfig">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>schedulerConfig</h4>
+<pre>protected final&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a> schedulerConfig</pre>
+</li>
+</ul>
 <a name="stateStore">
 <!--   -->
 </a>
@@ -385,13 +399,14 @@ implements <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ht
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="AbstractScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-java.util.Optional-">
+<a name="AbstractScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>AbstractScheduler</h4>
 <pre>protected&nbsp;AbstractScheduler(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                            <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                             <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                             <a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
                             java.util.Optional&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/PlanCustomizer.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCustomizer</a>&gt;&nbsp;planCustomizer,

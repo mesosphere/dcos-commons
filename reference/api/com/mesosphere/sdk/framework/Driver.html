@@ -129,12 +129,17 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static java.util.Optional&lt;SchedulerDriver&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/Driver.html#getDriver--">getDriver</a></span>()</code>&nbsp;</td>
+<td class="colFirst"><code>static SchedulerDriver</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/Driver.html#getInstance--">getInstance</a></span>()</code>
+<div class="block">Returns the configured <code>SchedulerDriver</code> client object, or throws an <code>IllegalStateException</code> if no
+ driver object is available.</div>
+</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/Driver.html#setDriver-SchedulerDriver-">setDriver</a></span>(SchedulerDriver&nbsp;driver)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/Driver.html#setDriver-SchedulerDriver-">setDriver</a></span>(SchedulerDriver&nbsp;driver)</code>
+<div class="block">Assigns the driver object to be returned by calls to <a href="../../../../com/mesosphere/sdk/framework/Driver.html#getInstance--"><code>getInstance()</code></a>.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -158,13 +163,16 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getDriver--">
+<a name="getInstance--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getDriver</h4>
-<pre>public static&nbsp;java.util.Optional&lt;SchedulerDriver&gt;&nbsp;getDriver()</pre>
+<h4>getInstance</h4>
+<pre>public static&nbsp;SchedulerDriver&nbsp;getInstance()</pre>
+<div class="block">Returns the configured <code>SchedulerDriver</code> client object, or throws an <code>IllegalStateException</code> if no
+ driver object is available. The returned Driver object should not be retained by the caller, as it may be
+ replaced in the event of a re-registration.</div>
 </li>
 </ul>
 <a name="setDriver-SchedulerDriver-">
@@ -174,6 +182,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setDriver</h4>
 <pre>public static&nbsp;void&nbsp;setDriver(SchedulerDriver&nbsp;driver)</pre>
+<div class="block">Assigns the driver object to be returned by calls to <a href="../../../../com/mesosphere/sdk/framework/Driver.html#getInstance--"><code>getInstance()</code></a>. In practice, this should be invoked
+ when the scheduler first registers with Mesos, and/or following a re-registration.</div>
 </li>
 </ul>
 </li>

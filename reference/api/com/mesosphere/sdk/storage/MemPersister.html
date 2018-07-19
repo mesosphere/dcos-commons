@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":9,"i6":10,"i7":10,"i8":10,"i9":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li>Prev&nbsp;Class</li>
-<li><a href="../../../../com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/storage/MemPersister.html" target="_top">Frames</a></li>
@@ -74,13 +74,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -136,33 +136,14 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static class&nbsp;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage">MemPersister.LockMode</a></span></code>
-<div class="block">Whether to enable or disable thread-safe locking.</div>
-</td>
-</tr>
-</table>
-</li>
-</ul>
-<!-- ======== CONSTRUCTOR SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.summary">
-<!--   -->
-</a>
-<h3>Constructor Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
-<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colOne" scope="col">Constructor and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#MemPersister--">MemPersister</a></span>()</code>
-<div class="block">Creates a new instance with locking enabled and without any initial data.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage">MemPersister.Builder</a></span></code>
+<div class="block">Builder for <a href="../../../../com/mesosphere/sdk/storage/MemPersister.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister</code></a>s.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#MemPersister-com.mesosphere.sdk.storage.MemPersister.LockMode-java.util.Map-">MemPersister</a></span>(<a href="../../../../com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage">MemPersister.LockMode</a>&nbsp;mode,
-            java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;data)</code>
-<div class="block">Creates a new instance with the provided options.</div>
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage">MemPersister.LockMode</a></span></code>
+<div class="block">Whether to enable or disable thread-safe locking.</div>
 </td>
 </tr>
 </table>
@@ -175,7 +156,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -211,19 +192,31 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage">MemPersister.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#newBuilder--">newBuilder</a></span>()</code>
+<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a> instance with the following default configuration:
+
+ Locking enabled
+ Exit if there's a deadlock
+ No initial data
+
+ Any of these settings may be changed via the returned <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a>.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#recursiveDeleteMany-java.util.Collection-">recursiveDeleteMany</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)</code>
 <div class="block">Atomically deletes many values from storage at once, with each path entry being treated as a call to
  <a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a> for those paths.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;path,
    byte[]&nbsp;bytes)</code>
@@ -231,7 +224,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
@@ -253,47 +246,28 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ========= CONSTRUCTOR DETAIL ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.detail">
-<!--   -->
-</a>
-<h3>Constructor Detail</h3>
-<a name="MemPersister--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>MemPersister</h4>
-<pre>public&nbsp;MemPersister()</pre>
-<div class="block">Creates a new instance with locking enabled and without any initial data.</div>
-</li>
-</ul>
-<a name="MemPersister-com.mesosphere.sdk.storage.MemPersister.LockMode-java.util.Map-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>MemPersister</h4>
-<pre>public&nbsp;MemPersister(<a href="../../../../com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage">MemPersister.LockMode</a>&nbsp;mode,
-                    java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;data)</pre>
-<div class="block">Creates a new instance with the provided options.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>mode</code> - Allows enabling or disabling internal thread-safe locking. Disable in cases where the caller is
-     already performing their own locking</dd>
-<dd><code>data</code> - The initial data to be stored in the instance, or an empty map if none is applicable</dd>
-</dl>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ============ METHOD DETAIL ========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.detail">
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="newBuilder--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>newBuilder</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage">MemPersister.Builder</a>&nbsp;newBuilder()</pre>
+<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a> instance with the following default configuration:
+
+ <ul><li>Locking enabled</li>
+ <li>Exit if there's a deadlock</li>
+ <li>No initial data</li></ul>
+
+ Any of these settings may be changed via the returned <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a>.</div>
+</li>
+</ul>
 <a name="get-java.lang.String-">
 <!--   -->
 </a>
@@ -493,7 +467,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <div class="subNav">
 <ul class="navList">
 <li>Prev&nbsp;Class</li>
-<li><a href="../../../../com/mesosphere/sdk/storage/MemPersister.LockMode.html" title="enum in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/storage/MemPersister.html" target="_top">Frames</a></li>
@@ -519,13 +493,13 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
