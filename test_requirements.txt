@@ -8,3 +8,4 @@ git+https://github.com/dcos/dcos-launch.git@471799cf615fdda160f2115de14fc2b6ea26
 teamcity-messages
 flake8
 pylint
+black
