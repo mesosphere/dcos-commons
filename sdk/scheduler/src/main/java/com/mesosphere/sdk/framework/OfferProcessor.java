@@ -394,7 +394,7 @@ class OfferProcessor {
         }
 
         LOGGER.info("Tearing down framework...");
-        // Stop the SchedulerDriver thread:[
+        // Stop the SchedulerDriver thread:
         // - failover==false: Tells Mesos to teardown the framework.
         // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
         Driver.getInstance().stop(false);

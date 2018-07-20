@@ -6,7 +6,6 @@ import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkScheduler;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.framework.TokenBucket;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -289,7 +288,9 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
-        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
+        Mockito.when(mockSchedulerConfig.getAutoipTLD()).thenReturn("autoip.tld");
+        Mockito.when(mockSchedulerConfig.getVipTLD()).thenReturn("vip.tld");
+        Mockito.when(mockSchedulerConfig.getMarathonName()).thenReturn("test-marathon");
         Mockito.when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-scheduler-region"));
         Mockito.when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
 
