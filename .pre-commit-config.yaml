@@ -5,6 +5,10 @@ repos:
     - id: black
       args: [--check]
       language_version: python3
+    - id: black
+      name: black-format
+      language_version: python3
+      stages: [manual]
 -   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v1.3.0
     hooks:
