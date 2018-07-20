@@ -5,7 +5,12 @@
 # can be overridden by setting the BASE_BRANCH environment variable before invoking this
 # script
 
+set -x
+
 TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
+
+DOCKER_TAG=${DOCKER_TAG:-latest}
+DOCKER_IMAGE=${DOCKER_IMAGE:-mesosphere/dcos-commons:${DOCKER_TAG}}
 
 # Determine the target branch for the diff calculation
 BASE_BRANCH=${BASE_BRANCH:-$( ${TOOL_DIR}/get_base_branch.sh )}
@@ -15,34 +20,13 @@ CHANGESET="$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" --from-gi
 
 FAILURES=
 if [[ -n ${CHANGESET} ]]; then
+
     echo "Changeset:"
     echo "${CHANGESET}"
 
-    TOOLS=("black" "flake8" "pylint")
-    SEP=
-    for tool in ${TOOLS[@]}; do
-        echo
-        echo "Running ${tool} on $( echo \"${CHANGESET}\" | wc -w ) files:"
-        tool_script="${TOOL_DIR}/run_${tool}_checks.sh"
+    ${TOOL_DIR}/run_pre_commit.sh --files ${CHANGESET}
 
-        ${tool_script} ${CHANGESET}
-        rc=$?
-        if [ ${rc} -eq 0 ]; then
-            echo "Success!"
-        else
-            echo
-            echo "ERROR: ${tool} failed with rc=${rc}"
-            FAILURES="${FAILURES}${SEP}tool=${tool}:rc=${rc}"
-            SEP=", "
-        fi
-    done
-
-    if [ -z "$FAILURES" ]; then
-        exit 0
-    else
-        echo "The following tool(s) failed: ${FAILURES}"
-        exit 1
-    fi
+    exit $?
 else
     echo "No Python files in changeset."
 fi
