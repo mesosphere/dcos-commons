@@ -10,18 +10,6 @@ repos:
     - id: flake8
 -   repo: local
     hooks:
-    # - id: black
-    #   name: black
-    #   language: script
-    #   entry: tools/ci/checks/run_black_checks.sh
-    #   files: \.py$
-    #   pass_filenames: true
-    # - id: flake8
-    #   name: flake8
-    #   language: script
-    #   entry: tools/ci/checks/run_flake8_checks.sh
-    #   files: \.py$
-    #   pass_filenames: true
     - id: pylint
       name: pylint
       entry: pylint
