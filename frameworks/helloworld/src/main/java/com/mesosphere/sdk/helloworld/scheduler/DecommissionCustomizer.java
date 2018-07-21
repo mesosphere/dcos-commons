@@ -2,6 +2,8 @@ package com.mesosphere.sdk.helloworld.scheduler;
 
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.*;
+import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
+
 import org.apache.mesos.Protos.TaskStatus;
 
 import java.util.*;
@@ -32,9 +34,9 @@ public class DecommissionCustomizer implements PlanCustomizer {
             List<Step> steps = new ArrayList<>();
             steps.add(new CustomStep(namespace));
             steps.addAll(phase.getChildren());
-            updatedPhases.add(new DefaultPhase(phase.getName(), steps, phase.getStrategy(), phase.getErrors()));
+            updatedPhases.add(new DefaultPhase(phase.getName(), steps, new SerialStrategy<>(), phase.getErrors()));
         }
-        return new DefaultPlan(plan.getName(), updatedPhases, plan.getStrategy());
+        return new DefaultPlan(plan.getName(), updatedPhases);
     }
 
     /**

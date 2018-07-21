@@ -167,15 +167,7 @@ public class DecommissionPlanFactory {
                     entry.getKey().getPodName(), steps, new SerialStrategy<>(), Collections.emptyList()));
         }
 
-        return new PlanInfo(
-                Optional.of(
-                        new DefaultPlan(
-                                Constants.DECOMMISSION_PLAN_NAME,
-                                phases
-                        )
-                ),
-                resourceSteps
-        );
+        return new PlanInfo(Optional.of(new DefaultPlan(Constants.DECOMMISSION_PLAN_NAME, phases)), resourceSteps);
     }
 
     /**
