@@ -5,8 +5,6 @@
 # can be overridden by setting the BASE_BRANCH environment variable before invoking this
 # script
 
-set -x
-
 TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 
 DOCKER_TAG=${DOCKER_TAG:-latest}
