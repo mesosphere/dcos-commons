@@ -229,7 +229,7 @@ def merge_dictionaries(dict1, dict2):
     for k, v in dict1.items():
         ret[k] = v
     for k, v in dict2.items():
-        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
+        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.abc.Mapping)):
             ret[k] = merge_dictionaries(dict1[k], dict2[k])
         else:
             ret[k] = dict2[k]
