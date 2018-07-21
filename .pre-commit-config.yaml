@@ -18,6 +18,6 @@ repos:
     - id: pylint
       name: pylint
       entry: pylint
-      args: [-E -j 4]
+      args: [-E, -j4]
       language: system
       types: [python]
