@@ -75,6 +75,7 @@
             "finish_state",
             "gpu_resource",
             "graceful-shutdown",
+            "host-volume",
             "marathon_constraint",
             "multistep_plan",
             "nonessential_tasks",

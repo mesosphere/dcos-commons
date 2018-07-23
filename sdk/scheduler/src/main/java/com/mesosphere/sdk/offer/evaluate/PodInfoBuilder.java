@@ -524,6 +524,7 @@ public class PodInfoBuilder {
     private Protos.ContainerInfo getContainerInfo(
             PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
+        Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
@@ -573,6 +574,9 @@ public class PodInfoBuilder {
         if (addExtraParameters) {
             for (Protos.Volume secretVolume : secretVolumes) {
                 containerInfo.addVolumes(secretVolume);
+            }
+            for(Protos.Volume hostVolume: hostVolumes) {
+                containerInfo.addVolumes(hostVolume);
             }
         }
 
@@ -690,6 +694,18 @@ public class PodInfoBuilder {
                 .setType(Protos.Secret.Type.REFERENCE)
                 .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
                 .build();
+    }
+
+    private static Collection<Protos.Volume> getExecutorInfoHostVolumes(Collection<HostVolumeSpec> hostVolumeSpecs) {
+        Collection<Protos.Volume> volumes = new ArrayList<>();
+
+        for (HostVolumeSpec hostVolumeSpec: hostVolumeSpecs)
+                volumes.add(Protos.Volume.newBuilder()
+                        .setHostPath(hostVolumeSpec.getHostPath())
+                        .setContainerPath(hostVolumeSpec.getContainerPath())
+                        .setMode(Protos.Volume.Mode.RO)
+                        .build());
+        return volumes;
     }
 
     private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {

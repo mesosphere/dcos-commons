@@ -31,6 +31,7 @@ public class DefaultPodSpec implements PodSpec {
     private final Collection<SecretSpec> secrets;
     private final String preReservedRole;
     private final Boolean sharePidNamespace;
+    private final Collection<HostVolumeSpec> hostVolumes;
 
     @JsonCreator
     private DefaultPodSpec(
@@ -47,7 +48,8 @@ public class DefaultPodSpec implements PodSpec {
             @JsonProperty("volumes") Collection<VolumeSpec> volumes,
             @JsonProperty("pre-reserved-role") String preReservedRole,
             @JsonProperty("secrets") Collection<SecretSpec> secrets,
-            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace) {
+            @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
+            @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes) {
         this.type = type;
         this.user = user;
         this.count = count;
@@ -62,6 +64,7 @@ public class DefaultPodSpec implements PodSpec {
         this.preReservedRole = preReservedRole;
         this.secrets = secrets;
         this.sharePidNamespace = sharePidNamespace;
+        this.hostVolumes = hostVolumes;
     }
 
     private DefaultPodSpec(Builder builder) {
@@ -79,7 +82,8 @@ public class DefaultPodSpec implements PodSpec {
                 builder.volumes,
                 builder.preReservedRole,
                 builder.secrets,
-                builder.sharePidNamespace);
+                builder.sharePidNamespace,
+                builder.hostVolumes);
 
         ValidationUtils.nonBlank(this, "type", type);
         ValidationUtils.nonNegative(this, "count", count);
@@ -123,6 +127,7 @@ public class DefaultPodSpec implements PodSpec {
         builder.user = copy.getUser().isPresent() ? copy.getUser().get() : null;
         builder.volumes = copy.getVolumes();
         builder.sharePidNamespace = copy.getSharePidNamespace();
+        builder.hostVolumes = copy.getHostVolumes();
         return builder;
     }
 
@@ -197,6 +202,9 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
+    public Collection<HostVolumeSpec> getHostVolumes() { return hostVolumes; }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -229,6 +237,7 @@ public class DefaultPodSpec implements PodSpec {
         private Collection<VolumeSpec> volumes = new ArrayList<>();
         private Collection<SecretSpec> secrets = new ArrayList<>();
         private Boolean sharePidNamespace = false;
+        private Collection<HostVolumeSpec> hostVolumes = new ArrayList<>();
 
         private Builder(String type, int count, List<TaskSpec> tasks) {
             this.type = type;
@@ -452,6 +461,23 @@ public class DefaultPodSpec implements PodSpec {
          */
         public Builder sharePidNamespace(Boolean sharePidNamespace) {
             this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
+            return this;
+        }
+
+        /**
+         * Sets the {@code host volumes} and returns a reference to this Builder so that the methods can be
+         * chained together.
+         *
+         * @param hostVolumes the {@code hostVolumes} to set
+         * @return a reference to this Builder
+         */
+        public Builder hostVolumes(Collection<HostVolumeSpec> hostVolumes) {
+            if (hostVolumes == null) {
+                this.hostVolumes = new ArrayList<>();
+            } else {
+                this.hostVolumes = hostVolumes;
+            }
+
             return this;
         }
 

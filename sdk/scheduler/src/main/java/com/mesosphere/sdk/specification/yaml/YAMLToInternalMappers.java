@@ -281,6 +281,15 @@ public class YAMLToInternalMappers {
             builder.secrets(secretSpecs);
         }
 
+        if (!rawPod.getHostVolumes().isEmpty()) {
+            Collection<HostVolumeSpec> hostVolumeSpecs = new ArrayList<>();
+            hostVolumeSpecs.addAll(rawPod.getHostVolumes().values().stream()
+                    .map(v -> convertHostVolume(v))
+                    .collect(Collectors.toList()));
+
+            builder.hostVolumes(hostVolumeSpecs);
+        }
+
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
             Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
                     Collections.emptyList() :
@@ -486,6 +495,16 @@ public class YAMLToInternalMappers {
                 .secretPath(rawSecret.getSecretPath())
                 .envKey(rawSecret.getEnvKey())
                 .filePath(filePath)
+                .build();
+    }
+
+    private static DefaultHostVolumeSpec convertHostVolume(
+            RawHostVolume rawHostVolume) {
+
+        return DefaultHostVolumeSpec.newBuilder()
+                .hostPath(rawHostVolume.getHostPath())
+                .containerPath(rawHostVolume.getContainerPath())
+                .mode(rawHostVolume.getMode())
                 .build();
     }
 
