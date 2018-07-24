@@ -52,16 +52,6 @@ public class Constants {
     /** The "any role" wildcard resource role. */
     public static final String ANY_ROLE = "*";
 
-    /** TLD to be used for VIP-based hostnames. */
-    public static final String VIP_HOST_TLD = "l4lb.thisdcos.directory";
-
-    /**
-     * TLD for navstar-based DNS. Resolves to the IP of the host iff the container if on the host network and the IP of
-     * the container iff the container is on the overlay network. If the container is on multiple virtual networks or
-     * experimenting with different DNS providers this TLD may have unexpected behavior.
-     */
-    public static final String DNS_TLD = "autoip.dcos.thisdcos.directory";
-
     /**
      * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
      * default.

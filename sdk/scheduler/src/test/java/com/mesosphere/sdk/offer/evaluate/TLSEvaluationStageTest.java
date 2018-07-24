@@ -17,6 +17,7 @@ import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,6 +26,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,7 +39,8 @@ import static org.junit.Assert.assertThat;
 
 public class TLSEvaluationStageTest {
 
-    @Mock private SchedulerConfig mockSchedulerConfig;
+    private static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
+
     @Mock private TLSArtifactsUpdater mockTLSArtifactsUpdater;
 
     private TLSArtifactPaths tlsArtifactPaths;
@@ -46,70 +50,21 @@ public class TLSEvaluationStageTest {
     public void init() throws Exception {
         MockitoAnnotations.initMocks(this);
 
-        when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
+        String taskName = TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME;
 
-        // echo -n "pod-type-0-test-task-name.service-name.autoip.dcos.thisdcos.directory" | sha1sum
-        String sanHash = "8ffc618c478beb31a043d978652d7bc571fedfe2";
-        tlsArtifactPaths = new TLSArtifactPaths(
-                "test-namespace",
-                TestConstants.POD_TYPE + "-" + TestConstants.TASK_INDEX + "-" + TestConstants.TASK_NAME,
-                sanHash);
+        // Expected hex encoded sha1sum of the hostname:
+        String expectedHostname =
+                String.format("%s.%s.%s", taskName, TestConstants.SERVICE_NAME, SCHEDULER_CONFIG.getAutoipTLD());
+        byte[] digest = MessageDigest.getInstance("SHA-1").digest(expectedHostname.getBytes(StandardCharsets.UTF_8));
+        String sanHash = new String(Hex.encode(digest), StandardCharsets.UTF_8);
+
+        tlsArtifactPaths = new TLSArtifactPaths("test-namespace", taskName, sanHash);
         tlsEvaluationStage = new TLSEvaluationStage(
                 TestConstants.SERVICE_NAME,
                 TestConstants.TASK_NAME,
                 "test-namespace",
                 mockTLSArtifactsUpdater,
-                mockSchedulerConfig);
-    }
-
-    private static PodInstanceRequirement getRequirementWithTransportEncryption(
-            ResourceSet resourceSet, String type, int index,
-            Collection<TransportEncryptionSpec> transportEncryptionSpecs) {
-        TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
-                .name(TestConstants.TASK_NAME)
-                .commandSpec(
-                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
-                                .value(TestConstants.TASK_CMD)
-                                .build())
-                .goalState(GoalState.RUNNING)
-                .resourceSet(resourceSet)
-                .setTransportEncryption(transportEncryptionSpecs)
-                .build();
-
-        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))
-                .preReservedRole(Constants.ANY_ROLE)
-                .build();
-
-        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
-        List<String> taskNames = podInstance.getPod().getTasks().stream()
-                .map(ts -> ts.getName())
-                .collect(Collectors.toList());
-        return PodInstanceRequirement.newBuilder(podInstance, taskNames).build();
-    }
-
-    private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
-            final Collection<TransportEncryptionSpec> transportEncryptionSpecs) throws InvalidRequirementException {
-        return getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs, UUID.randomUUID());
-    }
-
-    private PodInfoBuilder getPodInfoBuilderForTransportEncryption(
-            final Collection<TransportEncryptionSpec> transportEncryptionSpecs,
-            final UUID targetConfig) throws InvalidRequirementException {
-        PodInstanceRequirement podInstanceRequirement = getRequirementWithTransportEncryption(
-                PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
-                TestConstants.POD_TYPE,
-                0,
-                transportEncryptionSpecs);
-
-        return new PodInfoBuilder(
-                podInstanceRequirement,
-                TestConstants.SERVICE_NAME,
-                targetConfig,
-                PodTestUtils.getTemplateUrlFactory(),
-                SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Collections.emptyList(),
-                TestConstants.FRAMEWORK_ID,
-                Collections.emptyMap());
+                SchedulerConfigTestUtils.getTestSchedulerConfig());
     }
 
     @Test
@@ -223,8 +178,7 @@ public class TLSEvaluationStageTest {
                 .build());
         Protos.Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedCpus(2.0));
 
-        UUID targetConfig = UUID.randomUUID();
-        PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs, targetConfig);
+        PodInfoBuilder podInfoBuilder = getPodInfoBuilderForTransportEncryption(transportEncryptionSpecs);
         EvaluationOutcome outcome = tlsEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
@@ -248,45 +202,89 @@ public class TLSEvaluationStageTest {
         assertThat(finalNumberOfVolumes, is(initialNumberOfVolumes));
     }
 
-    private void assertTLSArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
-        Protos.Volume volume = findVolumeWithContainerPath(container, TLSArtifact.CERTIFICATE.getMountPath(encryptionSpecName)).get();
+    private static PodInstanceRequirement getRequirementWithTransportEncryption(
+            ResourceSet resourceSet,
+            String type,
+            int index,
+            Collection<TransportEncryptionSpec> transportEncryptionSpecs) {
+        TaskSpec taskSpec = DefaultTaskSpec.newBuilder()
+                .name(TestConstants.TASK_NAME)
+                .commandSpec(
+                        DefaultCommandSpec.newBuilder(Collections.emptyMap())
+                                .value(TestConstants.TASK_CMD)
+                                .build())
+                .goalState(GoalState.RUNNING)
+                .resourceSet(resourceSet)
+                .setTransportEncryption(transportEncryptionSpecs)
+                .build();
+
+        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))
+                .preReservedRole(Constants.ANY_ROLE)
+                .build();
+
+        PodInstance podInstance = new DefaultPodInstance(podSpec, index);
+        List<String> taskNames = podInstance.getPod().getTasks().stream()
+                .map(ts -> ts.getName())
+                .collect(Collectors.toList());
+        return PodInstanceRequirement.newBuilder(podInstance, taskNames).build();
+    }
+
+    private static PodInfoBuilder getPodInfoBuilderForTransportEncryption(
+            final Collection<TransportEncryptionSpec> transportEncryptionSpecs) throws InvalidRequirementException {
+        PodInstanceRequirement podInstanceRequirement = getRequirementWithTransportEncryption(
+                PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
+                TestConstants.POD_TYPE,
+                0,
+                transportEncryptionSpecs);
+
+        return new PodInfoBuilder(
+                podInstanceRequirement,
+                TestConstants.SERVICE_NAME,
+                UUID.randomUUID(),
+                PodTestUtils.getTemplateUrlFactory(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                Collections.emptyList(),
+                TestConstants.FRAMEWORK_ID,
+                Collections.emptyMap());
+    }
+
+    private static void assertTLSArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
         Assert.assertEquals(
-                volume.getSource().getSecret().getReference().getName(),
+                findSecretStorePath(container, TLSArtifact.CERTIFICATE.getMountPath(encryptionSpecName)).get(),
                 secretPaths.getSecretStorePath(TLSArtifact.CERTIFICATE, encryptionSpecName));
 
-        volume = findVolumeWithContainerPath(container, TLSArtifact.CA_CERTIFICATE.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
-                volume.getSource().getSecret().getReference().getName(),
+                findSecretStorePath(container, TLSArtifact.CA_CERTIFICATE.getMountPath(encryptionSpecName)).get(),
                 secretPaths.getSecretStorePath(TLSArtifact.CA_CERTIFICATE, encryptionSpecName));
 
-        volume = findVolumeWithContainerPath(container, TLSArtifact.PRIVATE_KEY.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
-                volume.getSource().getSecret().getReference().getName(),
+                findSecretStorePath(container, TLSArtifact.PRIVATE_KEY.getMountPath(encryptionSpecName)).get(),
                 secretPaths.getSecretStorePath(TLSArtifact.PRIVATE_KEY, encryptionSpecName));
 
-        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.KEYSTORE.getMountPath(encryptionSpecName)).isPresent());
-        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.TRUSTSTORE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findSecretStorePath(container, TLSArtifact.KEYSTORE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findSecretStorePath(container, TLSArtifact.TRUSTSTORE.getMountPath(encryptionSpecName)).isPresent());
     }
 
-    private void assertKeystoreArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
-        Protos.Volume volume = findVolumeWithContainerPath(container, TLSArtifact.KEYSTORE.getMountPath(encryptionSpecName)).get();
+    private static void assertKeystoreArtifacts(Protos.ContainerInfo container, TLSArtifactPaths secretPaths, String encryptionSpecName) {
         Assert.assertEquals(
-                volume.getSource().getSecret().getReference().getName(),
+                findSecretStorePath(container, TLSArtifact.KEYSTORE.getMountPath(encryptionSpecName)).get(),
                 secretPaths.getSecretStorePath(TLSArtifact.KEYSTORE, encryptionSpecName));
 
-        volume = findVolumeWithContainerPath(container, TLSArtifact.TRUSTSTORE.getMountPath(encryptionSpecName)).get();
         Assert.assertEquals(
-                volume.getSource().getSecret().getReference().getName(),
+                findSecretStorePath(container, TLSArtifact.TRUSTSTORE.getMountPath(encryptionSpecName)).get(),
                 secretPaths.getSecretStorePath(TLSArtifact.TRUSTSTORE, encryptionSpecName));
 
-        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
-        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.CA_CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
-        Assert.assertFalse(findVolumeWithContainerPath(container, TLSArtifact.PRIVATE_KEY.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findSecretStorePath(container, TLSArtifact.CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findSecretStorePath(container, TLSArtifact.CA_CERTIFICATE.getMountPath(encryptionSpecName)).isPresent());
+        Assert.assertFalse(findSecretStorePath(container, TLSArtifact.PRIVATE_KEY.getMountPath(encryptionSpecName)).isPresent());
     }
 
-    private Optional<Protos.Volume> findVolumeWithContainerPath(Protos.ContainerInfo container, String path) {
-        return container.getVolumesList().stream()
-                .filter(volume -> volume.getContainerPath().equals(path))
+    private static Optional<String> findSecretStorePath(Protos.ContainerInfo container, String path) {
+        Optional<Protos.Volume> volume = container.getVolumesList().stream()
+                .filter(v -> v.getContainerPath().equals(path))
                 .findAny();
+        return volume.isPresent()
+                ? Optional.ofNullable(volume.get().getSource().getSecret().getReference().getName())
+                : Optional.empty();
     }
 }

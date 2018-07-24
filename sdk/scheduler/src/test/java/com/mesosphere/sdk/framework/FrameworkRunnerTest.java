@@ -37,6 +37,8 @@ public class FrameworkRunnerTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         Capabilities.overrideCapabilities(mockCapabilities);
+
+        when(mockSchedulerConfig.getMarathonName()).thenReturn("test-marathon");
     }
 
     @Test

@@ -8,7 +8,6 @@ import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.http.impl.client.LaxRedirectStrategy;
@@ -175,9 +174,19 @@ public class SchedulerConfig {
     private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
 
     /**
-     * Environment variable for setting a custom TLD for the service (replaces Constants.DNS_TLD).
+     * Environment variable for setting a custom TLD for autoip endpoints.
      */
     private static final String SERVICE_TLD_ENV = "SERVICE_TLD";
+
+    /**
+     * Environment variable for setting a custom TLD for VIP endpoints.
+     */
+    private static final String VIP_TLD_ENV = "VIP_TLD";
+
+    /**
+     * Environment variable for setting a custom name for the Marathon instance running the service.
+     */
+    private static final String MARATHON_NAME_ENV = "MARATHON_NAME";
 
     /**
      * Environment variable for the IP address of the scheduler task. Note, this is dependent on the fact we are using
@@ -401,10 +410,34 @@ public class SchedulerConfig {
     }
 
     /**
-     * Returns the {@code autoip} service TLD to be used in advertised endpoints.
+     * Returns the TLD to be used in advertised autoip endpoints. This may be overridden in cases where autoip support
+     * isn't available, or if some other TLD should be used instead.
+     *
+     * Resolves to the IP of the host iff the container if on the host network and the IP of the container iff the
+     * container is on the overlay network. If the container is on multiple virtual networks or experimenting with
+     * different DNS providers this TLD may have unexpected behavior.
      */
-    public String getServiceTLD() {
-        return envStore.getOptional(SERVICE_TLD_ENV, Constants.DNS_TLD);
+    public String getAutoipTLD() {
+        return envStore.getOptional(SERVICE_TLD_ENV, "autoip.dcos.thisdcos.directory");
+    }
+
+    /**
+     * Returns the TLD to be used in advertised VIP endpoints. This may be overridden in cases where VIPs aren't
+     * available, or if some other TLD should be used instead.
+     */
+    public String getVipTLD() {
+        return envStore.getOptional(VIP_TLD_ENV, "l4lb.thisdcos.directory");
+    }
+
+    /**
+     * Returns the name of the Marathon instance managing the service. This may be overridden in cases where a
+     * non-default Marathon instance (e.g. MoM) is running the scheduler.
+     *
+     * This is used for constructing an endpoint for reaching the Scheduler from tasks, specifically for config template
+     * distribution.
+     */
+    public String getMarathonName() {
+        return envStore.getOptional(MARATHON_NAME_ENV, "marathon");
     }
 
     /**

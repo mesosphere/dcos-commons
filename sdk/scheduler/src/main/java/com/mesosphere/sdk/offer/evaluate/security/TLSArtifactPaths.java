@@ -39,18 +39,18 @@ public class TLSArtifactPaths {
                 String.join("|", possibleSecretNames)));
     }
 
-    private final String namespace;
+    private final String secretsNamespace;
     private final String taskInstanceName;
     private final String sansHash;
 
-    public TLSArtifactPaths(String namespace, String taskInstanceName, String sansHash) {
-        this.namespace = namespace;
+    public TLSArtifactPaths(String secretsNamespace, String taskInstanceName, String sansHash) {
+        this.secretsNamespace = secretsNamespace;
         this.taskInstanceName = taskInstanceName;
         this.sansHash = sansHash;
     }
 
     public String getTaskSecretsNamespace() {
-        return namespace;
+        return secretsNamespace;
     }
 
     public String getTaskInstanceName() {
@@ -88,7 +88,7 @@ public class TLSArtifactPaths {
      * Returns the appropriate namespaced secret store path for the provided {@link TLSArtifact}.
      */
     public String getSecretStorePath(TLSArtifact tlsArtifact, String encryptionSpecName) {
-        return String.format("%s/%s", namespace, getSecretStoreName(tlsArtifact, encryptionSpecName));
+        return String.format("%s/%s", secretsNamespace, getSecretStoreName(tlsArtifact, encryptionSpecName));
     }
 
     /**
