@@ -44,11 +44,11 @@ public class SchemaVersionStore {
 
     private final Persister persister;
 
-    public static int getSupportedSchemaVersionSingleService() {
+    public static int getSingleServiceVersion() {
         return SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
     }
 
-    public static int getSupportedSchemaVersionMultiService() {
+    public static int getMultiServiceVersion() {
         return SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE;
     }
 

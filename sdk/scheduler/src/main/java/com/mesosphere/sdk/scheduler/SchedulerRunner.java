@@ -74,7 +74,7 @@ public class SchedulerRunner implements Runnable {
         Persister persister = schedulerBuilder.getPersister();
 
         // Check and/or initialize schema version before doing any other storage access:
-        new SchemaVersionStore(persister).check(SchemaVersionStore.getSupportedSchemaVersionSingleService());
+        new SchemaVersionStore(persister).check(SchemaVersionStore.getSingleServiceVersion());
 
         Metrics.configureStatsd(schedulerConfig);
 

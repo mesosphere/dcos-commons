@@ -12,10 +12,14 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+import org.slf4j.Logger;
 
 /**
  * Utilities relating to usage of {@link Persister}s.
@@ -28,6 +32,8 @@ public class PersisterUtils {
      * Service-namespaced data is stored under "Services/[namespace]/..."
      */
     private static final String SERVICE_NAMESPACE_ROOT_NAME = "Services";
+
+    private static final Logger LOGGER = LoggingUtils.getLogger(PersisterUtils.class);
 
     private PersisterUtils() {
         // do not instantiate
@@ -199,52 +205,82 @@ public class PersisterUtils {
         }
     }
 
-    public static void backupFrameworkZKData(Persister persister) throws PersisterException {
-        // We create a znode named `backup-<timestamp>` (drop previous if exists) and copy the framework znodes data
-        String backupRoot = getTimestampedNodeName("backup");
-        try {
-            // Drop if exists
-            persister.recursiveDelete(backupRoot);
-        } catch (PersisterException e) {
-            if (e.getReason() != Reason.NOT_FOUND) {
-                throw e;
+    /**
+     * Notes:
+     *
+     * 1. We do not migrate in Dynamic Service Mode because if we do so, there is a "gap" between the scheduler
+     * registering with mesos and it receiving inbound requests with ymls. During this "gap" if it receives any
+     * offers, it does not know what to do with them if we support migration. Hence we support migration only in
+     * static service mode.
+     * 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to default to `root`
+     * In the multi mode however, the framework config takes precedence if a user is not mentioned. Caution must
+     * be taken to ensure the service user is same (mention it explicitly in both mono and multi for the sake of
+     * consistency) during the migration.
+     * 3. The migration MUST happen before the {@link SchedulerBuilder#build()} is called (i.e., before the
+     * scheduler talks to {@link Persister}.
+     */
+    public static void checkAndMigrate(FrameworkConfig frameworkConfig, Persister persister) {
+        LOGGER.info("Checking if migration is needed...");
+        SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
+        int curVer = schemaVersionStore.getOrSetVersion(SchemaVersionStore.getMultiServiceVersion());
+        if (curVer == SchemaVersionStore.getSingleServiceVersion()) {
+            try {
+                LOGGER.info("Found single-service schema in ZK Storage that can be migrated to multi-service schema");
+                // We create a znode named `backup-<timestamp>` (drop if exists) and copy the framework znodes data
+                String backupRoot = getTimestampedNodeName("backup");
+                try {
+                    persister.recursiveDelete(backupRoot);
+                } catch (PersisterException e) {
+                    if (e.getReason() != Reason.NOT_FOUND) {
+                        throw e;
+                    }
+                }
+                List<String> zkDataPathsForMigration = Arrays.asList(
+                        ConfigStore.getConfigurationsPathName(),
+                        ConfigStore.getTargetIdPathName(),
+                        StateStore.getPropertiesRootName(),
+                        StateStore.getTasksRootName()
+                );
+                for (String path : zkDataPathsForMigration) {
+                    persister.recursiveCopy(path, joinPaths(backupRoot, path));
+                }
+                /*
+                 * This is what we need to do to migrate to multi mode:
+                 * - Create a znode named `Services`
+                 *   - Create its child named {dcos_service_name}
+                 *   - Move the [ConfigTarget , Configurations , Properties, Tasks] nodes from
+                 *     top level nodes to be children of above child {dcos_service_name}
+                 * - Delete all the top level nodes : [ConfigTarget , Configurations , Properties, Tasks]
+                 */
+                for (String path : zkDataPathsForMigration) {
+                    persister.recursiveCopy(path,
+                            getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), path));
+                }
+                try {
+                    for (String path : zkDataPathsForMigration) {
+                        persister.recursiveDelete(path);
+                    }
+                } catch (PersisterException e) {
+                    LOGGER.error("Delete the Mono Service Schema Manually. Ignoring the exception encountered " +
+                            "when trying to delete the mono service schema nodes afer a successful migration.", e);
+                }
+                schemaVersionStore.store(SchemaVersionStore.getMultiServiceVersion());
+                LOGGER.info("Successfully migrated from single-service schema to multi-service schema");
+            } catch (PersisterException e) {
+                LOGGER.error("Unable to migrate ZK data : ", e);
+                throw new RuntimeException(e);
             }
+        } else if (curVer == SchemaVersionStore.getMultiServiceVersion()) {
+            LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
+        } else {
+            throw new IllegalStateException(String.format("Storage schema version [%d] is not supported by this " +
+                            "software. Expected either single service schema version [%d] or multi service " +
+                            "schema version [%d].",
+                    curVer,
+                    SchemaVersionStore.getSingleServiceVersion(),
+                    SchemaVersionStore.getMultiServiceVersion()
+            ));
         }
-        for (String path : getZKDataPathsForMigration()) {
-            persister.recursiveCopy(path, joinPaths(backupRoot, path));
-        }
-    }
-
-    public static void copyMonoToMultiZKData(
-            Persister persister,
-            FrameworkConfig frameworkConfig
-    ) throws PersisterException {
-        /*
-         * This is what we need to do to migrate to multi mode:
-         * - Create a znode named `Services`
-         *   - Create its child named {dcos_service_name}
-         *   - Move the [ConfigTarget , Configurations , Properties, Tasks] nodes from
-         *     top level nodes to be children of above child {dcos_service_name}
-         * - Delete all the top level nodes : [ConfigTarget , Configurations , Properties, Tasks]
-         */
-        for (String path : getZKDataPathsForMigration()) {
-            persister.recursiveCopy(path, getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), path));
-        }
-    }
-
-    public static void deleteMonoServiceSchema(Persister persister) throws PersisterException {
-        for (String path : getZKDataPathsForMigration()) {
-            persister.recursiveDelete(path);
-        }
-    }
-
-    private static List<String> getZKDataPathsForMigration() {
-        return Arrays.asList(
-                ConfigStore.getConfigurationsPathName(),
-                ConfigStore.getTargetIdPathName(),
-                StateStore.getPropertiesRootName(),
-                StateStore.getTasksRootName()
-        );
     }
 
     private static String getTimestampedNodeName(String nodeName) {

@@ -15,7 +15,6 @@ import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceRunner;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -142,7 +141,7 @@ public class Main {
     ) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        checkAndMigrate(frameworkConfig, persister);
+        PersisterUtils.checkAndMigrate(frameworkConfig, persister);
         MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
 
         // Add services represented by YAML files to the service manager:
@@ -199,12 +198,12 @@ public class Main {
         // Support both space-separated or comma-separated files:
         //   ./hello-world foo.yml bar.yml baz.yml
         //   ./hello-world foo.yml,bar.yml,baz.yml
-        for (int i = 0; i < args.length; ++i) {
-            yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(args[i]));
+        for (String arg : args) {
+            yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(arg));
         }
         LOGGER.info("Using YAML examples: {}", yamlPaths);
         return yamlPaths.stream()
-                .map(name -> ExampleMultiServiceResource.getYamlFile(name))
+                .map(ExampleMultiServiceResource::getYamlFile)
                 .collect(Collectors.toList());
     }
 
@@ -238,48 +237,5 @@ public class Main {
                                 .build()))
                         .build())
                 .build();
-    }
-
-    /**
-     * Notes:
-     *
-     * 1. We do not migrate in Dynamic Service Mode because if we do so, there is a "gap" between the scheduler
-     * registering with mesos and it receiving inbound requests with ymls. During this "gap" if it receives any
-     * offers, it does not know what to do with them if we support migration. Hence we support migration only in
-     * static service mode.
-     * 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to default to `root`
-     * In the multi mode however, the framework config takes precedence if a user is not mentioned. Caution must
-     * be taken to ensure the service user is same (mention it explicitly in both mono and multi for the sake of
-     * consistency) during the migration.
-     * 3. The migration MUST happen before the {@link SchedulerBuilder#build()} is called (i.e., before the
-     * scheduler talks to {@link Persister}.
-     */
-    private static void checkAndMigrate(FrameworkConfig frameworkConfig, Persister persister) {
-        LOGGER.info("Checking if migration is needed...");
-        SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
-        int curVer = schemaVersionStore.getOrSetVersion(SchemaVersionStore.getSupportedSchemaVersionMultiService());
-        if (curVer == SchemaVersionStore.getSupportedSchemaVersionSingleService()) {
-            try {
-                LOGGER.info("Found single-service schema in ZK Storage that can be migrated to multi-service schema");
-                PersisterUtils.backupFrameworkZKData(persister);
-                PersisterUtils.copyMonoToMultiZKData(persister, frameworkConfig);
-                try {
-                    PersisterUtils.deleteMonoServiceSchema(persister);
-                } catch (PersisterException e) {
-                    LOGGER.error("Delete the Mono Service Schema Manually. Ignoring the exception encountered " +
-                            "when trying to delete the mono service schema nodes.", e);
-                }
-                schemaVersionStore.store(SchemaVersionStore.getSupportedSchemaVersionMultiService());
-                LOGGER.info("Successfully migrated from single-service schema to multi-service schema");
-            } catch (PersisterException e) {
-                LOGGER.error("Unable to migrate ZK data : ", e);
-                throw new RuntimeException(e);
-            }
-        } else if (curVer == SchemaVersionStore.getSupportedSchemaVersionMultiService()) {
-            LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
-        } else {
-            throw new IllegalStateException(String.format("Storage schema version %d is not supported by this " +
-                    "software (expected: %d)", curVer, SchemaVersionStore.getSupportedSchemaVersionMultiService()));
-        }
     }
 }
