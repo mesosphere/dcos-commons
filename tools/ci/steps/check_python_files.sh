@@ -7,9 +7,6 @@
 
 TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/../checks" && pwd )"
 
-DOCKER_TAG=${DOCKER_TAG:-latest}
-DOCKER_IMAGE=${DOCKER_IMAGE:-mesosphere/dcos-commons:${DOCKER_TAG}}
-
 # Determine the target branch for the diff calculation
 BASE_BRANCH=${BASE_BRANCH:-$( ${TOOL_DIR}/get_base_branch.sh )}
 
