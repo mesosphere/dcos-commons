@@ -535,14 +535,14 @@ public class StateStore {
      * @return Services/[namespace]/Tasks/[taskName]/TaskInfo, or Tasks/[taskName]/TaskInfo
      */
     protected static String getTaskInfoPath(String namespace, String taskName) {
-        return PersisterUtils.join(getTaskPath(namespace, taskName), TASK_INFO_PATH_NAME);
+        return PersisterUtils.joinPaths(getTaskPath(namespace, taskName), TASK_INFO_PATH_NAME);
     }
 
     /**
      * @return Services/[namespace]/Tasks/[taskName]/TaskStatus, or Tasks/[taskName]/TaskStatus
      */
     protected static String getTaskStatusPath(String namespace, String taskName) {
-        return PersisterUtils.join(getTaskPath(namespace, taskName), TASK_STATUS_PATH_NAME);
+        return PersisterUtils.joinPaths(getTaskPath(namespace, taskName), TASK_STATUS_PATH_NAME);
     }
 
     /**
@@ -550,8 +550,8 @@ public class StateStore {
      *         Tasks/[taskName]/Metadata/goal-state-override
      */
     protected static String getGoalOverridePath(String namespace, String taskName) {
-        return PersisterUtils.join(
-                PersisterUtils.join(getTaskPath(namespace, taskName), TASK_METADATA_PATH_NAME),
+        return PersisterUtils.joinPaths(
+                PersisterUtils.joinPaths(getTaskPath(namespace, taskName), TASK_METADATA_PATH_NAME),
                 TASK_GOAL_OVERRIDE_PATH_NAME);
     }
 
@@ -560,8 +560,8 @@ public class StateStore {
      *         Tasks/[taskName]/Metadata/override-status
      */
     protected static String getGoalOverrideStatusPath(String namespace, String taskName) {
-        return PersisterUtils.join(
-                PersisterUtils.join(getTaskPath(namespace, taskName), TASK_METADATA_PATH_NAME),
+        return PersisterUtils.joinPaths(
+                PersisterUtils.joinPaths(getTaskPath(namespace, taskName), TASK_METADATA_PATH_NAME),
                 TASK_GOAL_OVERRIDE_STATUS_PATH_NAME);
     }
 
@@ -569,14 +569,16 @@ public class StateStore {
      * @return Services/[namespace]/Tasks/[taskName], or Tasks/[taskName]
      */
     protected static String getTaskPath(String namespace, String taskName) {
-        return PersisterUtils.join(PersisterUtils.getServiceNamespacedRootPath(namespace, TASKS_ROOT_NAME), taskName);
+        return PersisterUtils.joinPaths(
+                PersisterUtils.getServiceNamespacedRootPath(namespace, TASKS_ROOT_NAME),
+                taskName);
     }
 
     /**
      * @return Services/[namespace]/Properties/[propertyName], or Properties/[propertyName]
      */
     protected static String getPropertyPath(String namespace, String propertyName) {
-        return PersisterUtils.join(
+        return PersisterUtils.joinPaths(
                 PersisterUtils.getServiceNamespacedRootPath(namespace, PROPERTIES_ROOT_NAME), propertyName);
     }
 

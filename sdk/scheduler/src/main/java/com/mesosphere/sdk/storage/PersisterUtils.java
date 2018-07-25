@@ -76,7 +76,7 @@ public class PersisterUtils {
         if (namespace.isEmpty()) {
             throw new IllegalArgumentException("Expected non-empty namespace");
         }
-        return join(SERVICE_NAMESPACE_ROOT_NAME, SchedulerUtils.withEscapedSlashes(namespace));
+        return joinPaths(SERVICE_NAMESPACE_ROOT_NAME, SchedulerUtils.withEscapedSlashes(namespace));
     }
 
     /**
@@ -87,7 +87,7 @@ public class PersisterUtils {
      * @return {@code Services/[namespace]/pathName}, or {@code pathName}
      */
     public static String getServiceNamespacedRootPath(String namespace, String pathName) {
-        return namespace.isEmpty() ? pathName : join(getServiceNamespacedRoot(namespace), pathName);
+        return namespace.isEmpty() ? pathName : joinPaths(getServiceNamespacedRoot(namespace), pathName);
     }
 
     /**
@@ -96,12 +96,13 @@ public class PersisterUtils {
      * @param paths Arbitrary number of paths to be combined
      * @return All the paths combined, with any duplicate slashes cleaned up
      */
-    public static String join(final String... paths) {
+    public static String joinPaths(final String... paths) {
         return Arrays.stream(paths).reduce("", (first, second) -> {
             if (first.isEmpty() || second.isEmpty()) {
                 return first + second;
             } else if (first.endsWith(PATH_DELIM_STR) && second.startsWith(PATH_DELIM_STR)) {
                 // "hello/" + "/world" => "hello/world"
+                // "hello/", "//world" => "hello//world"
                 return new StringBuilder(first).deleteCharAt(first.length() - 1).append(second).toString();
             } else if (first.endsWith(PATH_DELIM_STR) || second.startsWith(PATH_DELIM_STR)) {
                 // "hello/" + "world", OR "hello" + "/world" => "hello/world"
@@ -151,7 +152,7 @@ public class PersisterUtils {
     private static Map<String, byte[]> getAllDataUnder(Persister persister, String path) throws PersisterException {
         Map<String, byte[]> allData = new TreeMap<>(); // consistent ordering (mainly for tests)
         for (String child : persister.getChildren(path)) {
-            String childPath = join(path, child);
+            String childPath = joinPaths(path, child);
             byte[] data = persister.get(childPath);
             // omit empty parents which lack data of their own:
             if (data != null) {
@@ -178,7 +179,7 @@ public class PersisterUtils {
     private static Collection<String> getAllKeysUnder(Persister persister, String path) throws PersisterException {
         Collection<String> allKeys = new TreeSet<>(); // consistent ordering (mainly for tests)
         for (String child : persister.getChildren(path)) {
-            String childPath = join(path, child);
+            String childPath = joinPaths(path, child);
             allKeys.add(childPath);
             allKeys.addAll(getAllKeysUnder(persister, childPath)); // RECURSE
         }
@@ -192,44 +193,29 @@ public class PersisterUtils {
         try {
             persister.recursiveDelete(PersisterUtils.PATH_DELIM_STR);
         } catch (PersisterException e) {
-            if (e.getReason() == Reason.NOT_FOUND) {
-                // Nothing to delete, apparently. Treat as a no-op
-            } else {
+            if (e.getReason() != Reason.NOT_FOUND) {
                 throw e;
-            }
+            } // Else : Nothing to delete, apparently. Treat as a no-op
         }
     }
 
-    public static void backUpFrameworkZKData(Persister persister) throws PersisterException {
+    public static void backupFrameworkZKData(Persister persister) throws PersisterException {
         // We create a znode named `backup-<timestamp>` (drop previous if exists) and copy the framework znodes data
-        String backupRoot = getTimeStampedNodeName("backup");
+        String backupRoot = getTimestampedNodeName("backup");
         try {
             // Drop if exists
             persister.recursiveDelete(backupRoot);
         } catch (PersisterException e) {
-            if (!e.getReason().equals(Reason.NOT_FOUND)) {
+            if (e.getReason() != Reason.NOT_FOUND) {
                 throw e;
             }
         }
-        persister.recursiveCopy(
-                ConfigStore.getConfigurationsPathName(),
-                join(backupRoot, ConfigStore.getConfigurationsPathName())
-        );
-        persister.recursiveCopy(
-                ConfigStore.getTargetIdPathName(),
-                join(backupRoot, ConfigStore.getTargetIdPathName())
-        );
-        persister.recursiveCopy(
-                StateStore.getPropertiesRootName(),
-                join(backupRoot, StateStore.getPropertiesRootName())
-        );
-        persister.recursiveCopy(
-                StateStore.getTasksRootName(),
-                join(backupRoot, StateStore.getTasksRootName())
-        );
+        for (String path : getZKDataPathsForMigration()) {
+            persister.recursiveCopy(path, joinPaths(backupRoot, path));
+        }
     }
 
-    public static void migrateMonoToMultiZKData(
+    public static void copyMonoToMultiZKData(
             Persister persister,
             FrameworkConfig frameworkConfig
     ) throws PersisterException {
@@ -241,32 +227,27 @@ public class PersisterUtils {
          *     top level nodes to be children of above child {dcos_service_name}
          * - Delete all the top level nodes : [ConfigTarget , Configurations , Properties, Tasks]
          */
-        persister.recursiveCopy(
-                ConfigStore.getConfigurationsPathName(),
-                getServiceNamespacedRootPath(
-                        frameworkConfig.getFrameworkName(),
-                        ConfigStore.getConfigurationsPathName()
-                )
-        );
-        persister.recursiveCopy(
-                ConfigStore.getTargetIdPathName(),
-                getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), ConfigStore.getTargetIdPathName())
-        );
-        persister.recursiveCopy(
-                StateStore.getPropertiesRootName(),
-                getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), StateStore.getPropertiesRootName())
-        );
-        persister.recursiveCopy(
-                StateStore.getTasksRootName(),
-                getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), StateStore.getTasksRootName())
-        );
-        persister.recursiveDelete(ConfigStore.getConfigurationsPathName());
-        persister.recursiveDelete(ConfigStore.getTargetIdPathName());
-        persister.recursiveDelete(StateStore.getPropertiesRootName());
-        persister.recursiveDelete(StateStore.getTasksRootName());
+        for (String path : getZKDataPathsForMigration()) {
+            persister.recursiveCopy(path, getServiceNamespacedRootPath(frameworkConfig.getFrameworkName(), path));
+        }
     }
 
-    private static String getTimeStampedNodeName(String nodeName) {
+    public static void deleteMonoServiceSchema(Persister persister) throws PersisterException {
+        for (String path : getZKDataPathsForMigration()) {
+            persister.recursiveDelete(path);
+        }
+    }
+
+    private static List<String> getZKDataPathsForMigration() {
+        return Arrays.asList(
+                ConfigStore.getConfigurationsPathName(),
+                ConfigStore.getTargetIdPathName(),
+                StateStore.getPropertiesRootName(),
+                StateStore.getTasksRootName()
+        );
+    }
+
+    private static String getTimestampedNodeName(String nodeName) {
         return String.format("%s-%s", nodeName, new SimpleDateFormat(ZNODE_TIME_STAMP_FORMAT).format(new Date()));
     }
 }

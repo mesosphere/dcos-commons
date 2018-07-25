@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  */
 public class ExecutorResourceMapper {
 
-    final Logger logger;
+    private final Logger logger;
     private final Collection<ResourceSpec> resourceSpecs;
     private final Collection<VolumeSpec> volumeSpecs;
     private final Collection<Protos.Resource> executorResources;

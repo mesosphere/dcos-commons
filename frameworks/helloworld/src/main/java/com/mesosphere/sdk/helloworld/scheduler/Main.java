@@ -261,8 +261,14 @@ public class Main {
         if (curVer == SchemaVersionStore.getSupportedSchemaVersionSingleService()) {
             try {
                 LOGGER.info("Found single-service schema in ZK Storage that can be migrated to multi-service schema");
-                PersisterUtils.backUpFrameworkZKData(persister);
-                PersisterUtils.migrateMonoToMultiZKData(persister, frameworkConfig);
+                PersisterUtils.backupFrameworkZKData(persister);
+                PersisterUtils.copyMonoToMultiZKData(persister, frameworkConfig);
+                try {
+                    PersisterUtils.deleteMonoServiceSchema(persister);
+                } catch (PersisterException e) {
+                    LOGGER.error("Delete the Mono Service Schema Manually. Ignoring the exception encountered " +
+                            "when trying to delete the mono service schema nodes.", e);
+                }
                 schemaVersionStore.store(SchemaVersionStore.getSupportedSchemaVersionMultiService());
                 LOGGER.info("Successfully migrated from single-service schema to multi-service schema");
             } catch (PersisterException e) {

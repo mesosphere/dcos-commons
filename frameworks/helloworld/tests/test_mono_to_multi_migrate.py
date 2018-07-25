@@ -65,6 +65,6 @@ def test_old_tasks_get_relaunched_with_new_config():
                                    }
                                })
     # Ensure the old task DOES relaunch
-    sdk_tasks.check_task_relaunched(config.SERVICE_NAME, 'hello-0-server', hello_task_id.pop())
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name='foobar')
+    sdk_tasks.check_task_relaunched(config.SERVICE_NAME, 'hello-0-server', hello_task_id.pop())
     assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, 'foo')) == 1

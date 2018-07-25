@@ -593,6 +593,26 @@ public class CuratorPersisterTest {
         persister.recursiveCopy("/x", "/y");
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void recursiveCopyShouldFailOnIllegalSource() throws Exception{
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorPersister
+                .newBuilder(mockServiceSpec)
+                .disableLock()
+                .build()
+                .recursiveCopy(CuratorLocker.LOCK_PATH_NAME, "/does-not-matter");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void recursiveCopyShouldFailOnIllegalTarget() throws Exception{
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        CuratorPersister
+                .newBuilder(mockServiceSpec)
+                .disableLock()
+                .build()
+                .recursiveCopy("/does-not-matter", INTERNAL_PATH_SERVICE);
+    }
+
     private void setupCommon() {
         when(mockClient.checkExists()).thenReturn(mockExistsBuilder);
         when(mockClient.getChildren()).thenReturn(mockGetChildrenBuilder);

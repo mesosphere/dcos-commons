@@ -23,23 +23,18 @@ class ResourceMapperUtils {
             Collection<ResourceSpec> resourceSpecs,
             Optional<String> resourceNamespace
     ) {
+        if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
+            LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+            return Optional.empty();
+        }
         return resourceSpecs
                 .stream()
-                .filter(resourceSpec -> {
-                    if (!(resourceSpec instanceof VolumeSpec) ||
-                            !taskResource
-                                    .getDisk()
-                                    .getVolume()
-                                    .getContainerPath()
-                                    .equals(((VolumeSpec) resourceSpec).getContainerPath())) {
-                        return false;
-                    }
-                    if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
-                        LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
-                        return false;
-                    }
-                    return true;
-                })
+                .filter(resourceSpec -> resourceSpec instanceof VolumeSpec &&
+                        taskResource
+                                .getDisk()
+                                .getVolume()
+                                .getContainerPath()
+                                .equals(((VolumeSpec) resourceSpec).getContainerPath()))
                 .findFirst()
                 .map(resourceSpec -> new ResourceLabels(
                         resourceSpec,
@@ -58,18 +53,13 @@ class ResourceMapperUtils {
             Collection<ResourceSpec> resourceSpecs,
             Optional<String> resourceNamespace
     ) {
+        if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
+            LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+            return Optional.empty();
+        }
         return resourceSpecs
                 .stream()
-                .filter(resourceSpec -> {
-                    if (!resourceSpec.getName().equals(taskResource.getName())) {
-                        return false;
-                    }
-                    if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
-                        LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
-                        return false;
-                    }
-                    return true;
-                })
+                .filter(resourceSpec -> resourceSpec.getName().equals(taskResource.getName()))
                 .findFirst()
                 .map(resourceSpec -> new ResourceLabels(
                         resourceSpec,

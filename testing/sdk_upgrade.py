@@ -152,16 +152,11 @@ def update_service(package_name, service_name, additional_options=None, to_packa
     if to_package_version:
         update_cmd.append('--package-version={}'.format(to_package_version))
     if additional_options:
-        with tempfile.NamedTemporaryFile("w") as f:
-            json.dump(additional_options, f)
-            f.flush()  # ensure json content is available for the CLI to read below
-            sdk_cmd.svc_cli(
-                package_name,
-                service_name,
-                '{} --options={}'.format(' '.join(update_cmd), f.name)
-            )
-    else:
-        sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+        options_file = tempfile.NamedTemporaryFile("w")
+        json.dump(additional_options, options_file)
+        options_file.flush()  # ensure json content is available for the CLI to read below
+        update_cmd.append("--options={}".format(options_file.name))
+    sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
 
 
 def _upgrade_or_downgrade(

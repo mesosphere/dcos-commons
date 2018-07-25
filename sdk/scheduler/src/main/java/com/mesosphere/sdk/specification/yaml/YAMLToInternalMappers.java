@@ -127,15 +127,15 @@ public class YAMLToInternalMappers {
     private static void verifyDistinctDiscoveryPrefixes(Collection<RawPod> rawPods) {
         Map<String, Long> dnsPrefixCounts = rawPods.stream()
                 .flatMap(p -> p.getTasks().values().stream()
-                        .map(t -> t.getDiscovery())
-                        .filter(d -> d != null)
-                        .map(d -> d.getPrefix())
-                        .filter(prefix -> prefix != null)
+                        .map(RawTask::getDiscovery)
+                        .filter(Objects::nonNull)
+                        .map(RawDiscovery::getPrefix)
+                        .filter(Objects::nonNull)
                         .distinct())
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         List<String> dnsNameDuplicates = dnsPrefixCounts.entrySet().stream()
                 .filter(e -> e.getValue() > 1)
-                .map(e -> e.getKey())
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         if (!dnsNameDuplicates.isEmpty()) {
             throw new IllegalArgumentException(String.format(

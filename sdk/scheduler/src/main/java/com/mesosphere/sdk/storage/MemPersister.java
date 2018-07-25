@@ -203,7 +203,7 @@ public class MemPersister implements Persister {
                         String.format("Child [%s] src [%s] dest [%s]", nodePath, srcPath, destPath);
                 getNode(root, nodePath.replace(srcPath, destPath), true).data = node.data;
                 node.children.forEach((childName, childNode) -> {
-                    String childPath = PersisterUtils.join(nodePath, childName);
+                    String childPath = PersisterUtils.joinPaths(nodePath, childName);
                     toBeWalked.add(new AbstractMap.SimpleEntry<>(childPath, childNode));
                 });
             }

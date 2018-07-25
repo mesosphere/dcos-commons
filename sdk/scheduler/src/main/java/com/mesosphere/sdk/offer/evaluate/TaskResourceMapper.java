@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  */
 class TaskResourceMapper {
 
-    final Logger logger;
+    private final Logger logger;
     private final Optional<String> resourceNamespace;
     private final String taskSpecName;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
@@ -54,10 +54,10 @@ class TaskResourceMapper {
     }
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
-        // these are taskinfo resources which weren't found in the resourcespecs. likely need dereservations
+        // These are taskinfo resources which weren't found in the resourcespecs. Likely need dereservations.
         List<ResourceSpec> remainingResourceSpecs = new ArrayList<>(resourceSpecs);
 
-        // these are resourcespecs which were matched with taskinfo resources. may need updates
+        // These are resourcespecs which were matched with taskinfo resources. May need updates.
         List<ResourceLabels> matchingResources = new ArrayList<>();
         for (Protos.Resource taskResource : resources) {
             Optional<ResourceLabels> matchingResource;
@@ -122,6 +122,12 @@ class TaskResourceMapper {
             return Optional.empty();
         }
 
+        Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
+        if (!resourceId.isPresent()) {
+            logger.error("Failed to find resource ID for resource: {}", taskResource);
+            return Optional.empty();
+        }
+
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (!(resourceSpec instanceof PortSpec)) {
                 continue;
@@ -129,40 +135,27 @@ class TaskResourceMapper {
             PortSpec portSpec = (PortSpec) resourceSpec;
             if (portSpec.getPort() == 0) {
                 // For dynamic ports, we need to detect the port value that we had selected.
-                Optional<Long> priorTaskPort = taskPortFinder.getPriorPort(portSpec);
-                if (priorTaskPort.isPresent()
-                        && RangeUtils.isInAny(taskResource.getRanges().getRangeList(), priorTaskPort.get())) {
-
-                    // The advertised port value is present in this resource. Resource must match!
-                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
-                    if (!resourceId.isPresent()) {
-                        logger.error("Failed to find resource ID for resource: {}", taskResource);
-                        continue;
-                    }
-
-                    return Optional.of(new ResourceLabels(
-                            resourceSpec,
-                            resourceId.get(),
-                            ResourceMapperUtils.getNamespaceLabel(
-                                    ResourceUtils.getNamespace(taskResource),
-                                    resourceNamespace)));
-                }
-            } else {
+                return taskPortFinder
+                        .getPriorPort(portSpec)
+                        .filter(priorTaskPort -> RangeUtils.isInAny(ranges.getRangeList(), priorTaskPort))
+                        .map(ignored -> new ResourceLabels(
+                                resourceSpec,
+                                resourceId.get(),
+                                ResourceMapperUtils.getNamespaceLabel(
+                                        ResourceUtils.getNamespace(taskResource),
+                                        resourceNamespace
+                                )
+                        ));
+            } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
-                if (RangeUtils.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
-                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
-                    if (!resourceId.isPresent()) {
-                        logger.error("Failed to find resource ID for resource: {}", taskResource);
-                        continue;
-                    }
-
-                    return Optional.of(new ResourceLabels(
-                            resourceSpec,
-                            resourceId.get(),
-                            ResourceMapperUtils.getNamespaceLabel(
-                                    ResourceUtils.getNamespace(taskResource),
-                                    resourceNamespace)));
-                }
+                return Optional.of(new ResourceLabels(
+                        resourceSpec,
+                        resourceId.get(),
+                        ResourceMapperUtils.getNamespaceLabel(
+                                ResourceUtils.getNamespace(taskResource),
+                                resourceNamespace)
+                        )
+                );
             }
         }
         return Optional.empty();

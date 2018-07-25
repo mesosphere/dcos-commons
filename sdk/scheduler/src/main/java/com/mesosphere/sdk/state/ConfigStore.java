@@ -251,7 +251,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      * @return {@code Services/[namespace]/Configurations/[id]}, or {@code Configurations/[id]}
      */
     private static String getConfigPath(String namespace, UUID id) {
-        return PersisterUtils.join(getConfigsPath(namespace), id.toString());
+        return PersisterUtils.joinPaths(getConfigsPath(namespace), id.toString());
     }
 
     /**

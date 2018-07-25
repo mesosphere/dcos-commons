@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Curator implementation of the {@link Persister} interface provides for persistence and retrieval of data from
@@ -257,15 +258,12 @@ public class CuratorPersister implements Persister {
 
     @Override
     public void recursiveCopy(String unprefixedSrc, String unprefixedDest) throws PersisterException {
-        if (new HashSet<>(Arrays.asList(
-                serviceRootPath,
-                CuratorLocker.LOCK_PATH_NAME,
-                unprefixedSrc,
-                unprefixedDest)).size() != 4) {
+        if (Stream
+                .of(serviceRootPath, CuratorLocker.LOCK_PATH_NAME)
+                .anyMatch(x -> x.equals(unprefixedSrc) || x.equals(unprefixedDest))) {
             throw new IllegalArgumentException(String.format("Cannot copy from %s to %s",
                     unprefixedSrc, unprefixedDest));
         }
-
         try {
             LOGGER.debug("Copying {} (and any children) to {}", unprefixedSrc, unprefixedDest);
             if (client.checkExists().forPath(withFrameworkPrefix(unprefixedSrc)) == null) {
@@ -276,24 +274,21 @@ public class CuratorPersister implements Persister {
                 throw new PersisterException(Reason.LOGIC_ERROR,
                         String.format("Destination exists: %s", unprefixedDest));
             }
-
-            LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(unprefixedSrc));
-            Map<String, byte[]> toBeAdded = new HashMap<>();
-            while (!toBeWalked.isEmpty()) {
-                String curNode = toBeWalked.poll();
-                // This assertion should never fail acc. to the logic around it.
-                assert (curNode.startsWith(unprefixedSrc)) : String.format("Failed to match prefix." +
-                        " Src [%s] Dest [%s] Child [%s]", unprefixedSrc, unprefixedDest, curNode);
-                toBeAdded.put(withFrameworkPrefix(curNode.replace(unprefixedSrc, unprefixedDest)), get(curNode));
-                getChildren(curNode).forEach(child -> toBeWalked.add(PersisterUtils.join(curNode, child)));
-            }
-            runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
-        } catch (PersisterException e) {
-           throw e;
-        }  catch (Exception e) {
+        } catch (Exception e) {
             throw new PersisterException(Reason.STORAGE_ERROR,
                     String.format("Failed to copy %s to %s", unprefixedDest, unprefixedSrc), e);
         }
+        LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(unprefixedSrc));
+        Map<String, byte[]> toBeAdded = new HashMap<>();
+        while (!toBeWalked.isEmpty()) {
+            String curNode = toBeWalked.poll();
+            // This assertion should never fail acc. to the logic around it.
+            assert (curNode.startsWith(unprefixedSrc)) : String.format("Failed to match prefix." +
+                    " Src [%s] Dest [%s] Child [%s]", unprefixedSrc, unprefixedDest, curNode);
+            toBeAdded.put(withFrameworkPrefix(curNode.replace(unprefixedSrc, unprefixedDest)), get(curNode));
+            getChildren(curNode).forEach(child -> toBeWalked.add(PersisterUtils.joinPaths(curNode, child)));
+        }
+        runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
     }
 
     @Override
@@ -330,7 +325,7 @@ public class CuratorPersister implements Persister {
                     if (child.equals(CuratorLocker.LOCK_PATH_NAME)) {
                         continue;
                     }
-                    String childPath = PersisterUtils.join(serviceRootPath, child);
+                    String childPath = PersisterUtils.joinPaths(serviceRootPath, child);
                     transaction = deleteChildrenOf(client, childPath, transaction, pendingDeletePaths)
                             .delete().forPath(childPath).and();
                 }
@@ -496,7 +491,7 @@ public class CuratorPersister implements Persister {
         }
         // For each child: recurse into child (to delete any grandchildren, etc..), THEN delete child itself
         for (String child : client.getChildren().forPath(path)) {
-            String childPath = PersisterUtils.join(path, child);
+            String childPath = PersisterUtils.joinPaths(path, child);
             curatorTransactionFinal =
                     deleteChildrenOf(client, childPath, curatorTransactionFinal, pendingDeletePaths); // RECURSE
             if (!pendingDeletePaths.contains(childPath)) {
@@ -519,7 +514,7 @@ public class CuratorPersister implements Persister {
      * <li>"" => "/dcos-service-svcname"</li></ul>
      */
     private String withFrameworkPrefix(String path) {
-        path = PersisterUtils.join(serviceRootPath, path);
+        path = PersisterUtils.joinPaths(serviceRootPath, path);
         // Avoid any trailing slashes, which lead to STORAGE_ERRORs:
         while (path.endsWith(PersisterUtils.PATH_DELIM_STR)) {
             path = path.substring(0, path.length() - 1);
