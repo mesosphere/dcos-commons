@@ -18,14 +18,36 @@ import org.slf4j.Logger;
 public class SchemaVersionStore {
 
     /**
-     * Schema version used by single-service scheduler. {@link com.mesosphere.sdk.scheduler.SchedulerRunner}
+     * Schema versions to be used by single-service scheduler {@link com.mesosphere.sdk.scheduler.SchedulerRunner}
+     * and multi-service scheduler {@link com.mesosphere.sdk.scheduler.multi.MultiServiceRunner}.
      */
-    private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
+    public enum SchemaVersion {
+        SINGLE_SERVICE,
+        MULTI_SERVICE,
+        UNKNOWN;
 
-    /**
-     * Schema version used by multi-service scheduler. {@link com.mesosphere.sdk.scheduler.multi.MultiServiceRunner}
-     */
-    private static final int SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE = 2;
+        public static SchemaVersion parseInt(int rawVersion) {
+            switch (rawVersion) {
+                case 1:
+                    return SINGLE_SERVICE;
+                case 2:
+                    return MULTI_SERVICE;
+                default:
+                    return UNKNOWN;
+            }
+        }
+
+        public int toInt() {
+            switch (this) {
+                case SINGLE_SERVICE:
+                    return 1;
+                case MULTI_SERVICE:
+                    return 2;
+                default:
+                    throw new IllegalArgumentException(String.format("Unable to convert %s to int", this));
+            }
+        }
+    }
 
     /**
      * This must never change, as it affects the serialization of the SchemaVersion node.
@@ -43,14 +65,6 @@ public class SchemaVersionStore {
     private static final String SCHEMA_VERSION_NAME = "SchemaVersion";
 
     private final Persister persister;
-
-    public static int getSingleServiceVersion() {
-        return SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE;
-    }
-
-    public static int getMultiServiceVersion() {
-        return SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE;
-    }
 
     /**
      * Creates a new version store against the provided Framework Name, as would be provided to

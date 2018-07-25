@@ -50,7 +50,7 @@ public class MultiServiceRunner implements Runnable {
          */
         public MultiServiceRunner build() {
             // Check and/or initialize schema version before doing any other storage access:
-            new SchemaVersionStore(persister).check(SchemaVersionStore.getMultiServiceVersion());
+            new SchemaVersionStore(persister).check(SchemaVersionStore.SchemaVersion.MULTI_SERVICE.toInt());
 
             return new MultiServiceRunner(schedulerConfig, frameworkConfig, persister, client, usingGpus);
         }
