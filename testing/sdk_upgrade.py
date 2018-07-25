@@ -171,6 +171,7 @@ def _upgrade_or_downgrade(
             timeout_seconds=timeout_seconds,
             wait_for_deployment=wait_for_deployment)
     else:
+        sdk_cmd.run_cli(' '.join(['package', 'search', package_name]))
         log.info('Using CLI upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
         if additional_options:
             with tempfile.NamedTemporaryFile() as opts_f:
