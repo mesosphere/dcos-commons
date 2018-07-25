@@ -5,8 +5,8 @@
   "instances": 1,
   "user": "{{service.user}}",
   "cmd": "echo -e \"elasticsearch.url: $ELASTICSEARCH_URL\nelasticsearch.username: $KIBANA_USER\nelasticsearch.password: $KIBANA_PASSWORD\nserver.host: 0.0.0.0\nserver.port: $PORT_KIBANA\nserver.basePath: /service/$FRAMEWORK_NAME\" > $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml && if [ \"$KIBANA_ELASTICSEARCH_TLS\" = true ]; then echo -e \"\nelasticsearch.ssl.certificateAuthorities: $MESOS_SANDBOX/.ssl/ca-bundle.crt\n\" >> $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml; fi && env && $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana",
-
-  "labels": {
+ 
+ "labels": {
     "DCOS_SERVICE_NAME": "{{service.name}}",
     "DCOS_SERVICE_PORT_INDEX": "0",
     "DCOS_SERVICE_SCHEME": "http"

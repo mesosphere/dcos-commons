@@ -366,7 +366,7 @@
         "xpack_enabled": {
           "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
           "type": "boolean",
-          "default": false
+          "default": true
         },
         "plugins": {
           "description": "Comma-separated list of plugins to install",
