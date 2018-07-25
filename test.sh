@@ -309,7 +309,7 @@ if [ x"$package_registry" == x"true" ]; then
 fi
 
 if [ -n "$dcos_files_path" ]; then
-    volume_args="$volume_args -v \"${dcos_files_path}\":\"${dcos_files_path}\""
+    volume_args="$volume_args -v ${dcos_files_path}:${dcos_files_path}"
 fi
 
 if [ -n "$TEAMCITY_VERSION" ]; then

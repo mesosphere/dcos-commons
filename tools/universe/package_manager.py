@@ -59,8 +59,8 @@ class PackageManager:
 
         all_package_versions = self.get_package_versions(package_name)
         if all_package_versions:
-            # Releases should be in order of oldest to latest:
-            return all_package_versions[-1]
+            # Do not rely on the order of packages from upstream. Sort by releaseVersion field to get the latest.
+            return sorted(all_package_versions)[-1]
 
         return None
 

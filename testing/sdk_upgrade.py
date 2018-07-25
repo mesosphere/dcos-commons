@@ -148,6 +148,7 @@ def get_config(package_name, service_name):
 
 
 def update_service(package_name, service_name, additional_options=None, to_package_version=None):
+    sdk_cmd.run_cli(' '.join(['package', 'search', package_name]))
     update_cmd = ['update', 'start']
     if to_package_version:
         update_cmd.append('--package-version={}'.format(to_package_version))
@@ -156,7 +157,7 @@ def update_service(package_name, service_name, additional_options=None, to_packa
         json.dump(additional_options, options_file)
         options_file.flush()  # ensure json content is available for the CLI to read below
         update_cmd.append("--options={}".format(options_file.name))
-    sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+    sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd))
 
 
 def _upgrade_or_downgrade(
