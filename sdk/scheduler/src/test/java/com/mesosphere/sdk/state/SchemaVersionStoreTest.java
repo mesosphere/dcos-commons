@@ -4,7 +4,6 @@ import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -32,7 +31,7 @@ public class SchemaVersionStoreTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new SchemaVersionStore(persister);
         store2 = new SchemaVersionStore(persister);
         storeWithMock = new SchemaVersionStore(mockPersister);

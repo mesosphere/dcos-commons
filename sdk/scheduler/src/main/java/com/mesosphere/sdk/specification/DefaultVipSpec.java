@@ -1,29 +1,30 @@
 package com.mesosphere.sdk.specification;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Default implementation of {@link VipSpec}.
  */
 public class DefaultVipSpec implements VipSpec {
-    @NotNull
-    @Min(0)
-    private Integer applicationPort;
-    @NotNull
-    @Size(min = 1, message = "prefix cannot be empty.")
-    private String vipName;
-    @NotNull
-    @Min(0)
-    private Integer vipPort;
+
+    private final Integer applicationPort;
+    private final String vipName;
+    private final Integer vipPort;
+
+    private DefaultVipSpec(
+            @JsonProperty("application-port") Integer applicationPort,
+            @JsonProperty("vip-name") String vipName,
+            @JsonProperty("vip-port") Integer vipPort) {
+        this.applicationPort = applicationPort;
+        this.vipName = vipName;
+        this.vipPort = vipPort;
+    }
 
     private DefaultVipSpec(Builder builder) {
-        applicationPort = builder.applicationPort;
-        vipName = builder.vipName;
-        vipPort = builder.vipPort;
+        this(builder.applicationPort, builder.vipName, builder.vipPort);
+        ValidationUtils.nonNegative(this, "applicationPort", applicationPort);
+        ValidationUtils.nonEmpty(this, "vipName", vipName);
+        ValidationUtils.nonNegative(this, "vipPort", vipPort);
     }
 
     public static Builder newBuilder() {
@@ -39,16 +40,19 @@ public class DefaultVipSpec implements VipSpec {
     }
 
     @Override
+    @JsonProperty("application-port")
     public int getApplicationPort() {
         return applicationPort;
     }
 
     @Override
+    @JsonProperty("vip-name")
     public String getVipName() {
         return vipName;
     }
 
     @Override
+    @JsonProperty("vip-port")
     public int getVipPort() {
         return vipPort;
     }
@@ -105,9 +109,7 @@ public class DefaultVipSpec implements VipSpec {
          * @return a {@code DefaultVipSpec} built with parameters of this {@code DefaultVipSpec.Builder}
          */
         public DefaultVipSpec build() {
-            DefaultVipSpec defaultVipSpec = new DefaultVipSpec(this);
-            ValidationUtils.validate(defaultVipSpec);
-            return defaultVipSpec;
+            return new DefaultVipSpec(this);
         }
     }
 }

@@ -3,32 +3,29 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
+
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
-
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
 
 /**
  * This class provides a default implementation of the VolumeSpec interface.
  */
 public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
 
-    private final Type type;
-
-    /** Regexp in @Pattern will detect blank string. No need to use @NotEmpty or @NotBlank. */
-    @NotNull
-    /*  No Slash character is allowed in container-path if using Persistent Volume
-         Mesos isolator/containerizer silently ignores mount operation:
-            mesos: src/slave/containerizer/mesos/isolators/filesystem/linux.cpp#L628
-            mesos:/src/slave/containerizer/docker.cpp#L473
-      Previous pattern:
-           @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*[/\\\\]*)*")
-                someDir/anotherDir in SandBox is not a valid path
+    /**
+     * Disallow slashes in the container path. If a slash is used, Mesos will silently ignore the mount operation for
+     * the persistent volume. See also:
+     *       mesos:src/slave/containerizer/mesos/isolators/filesystem/linux.cpp#L628
+     *       mesos:src/slave/containerizer/docker.cpp#L473
+     *
+     * To play it safe, we explicitly whitelist the valid characters here.
      */
-    @Pattern(regexp = "[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*")
+    private static final Pattern VALID_CONTAINER_PATH_PATTERN = Pattern.compile("[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*");
+
+    private final Type type;
     private final String containerPath;
 
     public DefaultVolumeSpec(
@@ -46,6 +43,9 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 role,
                 preReservedRole,
                 principal);
+
+        validateResource();
+        ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
     }
 
     @JsonCreator
@@ -60,16 +60,16 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         super(name, value, role, preReservedRole, principal);
         this.type = type;
         this.containerPath = containerPath;
-
-        ValidationUtils.validate(this);
     }
 
     @Override
+    @JsonProperty("type")
     public Type getType() {
         return type;
     }
 
     @Override
+    @JsonProperty("container-path")
     public String getContainerPath() {
         return containerPath;
     }
@@ -84,17 +84,17 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    private static Protos.Value scalarValue(double value) {
-        Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
-        builder.getScalarBuilder().setValue(value);
-        return builder.build();
-    }
-
     @Override
     public String toString() {
         return String.format("%s, type: '%s', container-path: '%s'",
                 super.toString(),
                 getType(),
                 getContainerPath());
+    }
+
+    private static Protos.Value scalarValue(double value) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
+        builder.getScalarBuilder().setValue(value);
+        return builder.build();
     }
 }

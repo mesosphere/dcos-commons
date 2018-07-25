@@ -5,7 +5,6 @@ import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,7 +28,7 @@ public class ConfigStoreTest {
 
     @Before
     public void beforeEach() throws Exception {
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new ConfigStore<StringConfiguration>(new StringConfiguration.Factory(), persister);
 
         testConfig = new StringConfiguration("test-config");

@@ -286,10 +286,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
         List<PodInstanceRequirement> incompleteRecoveries = getPlan().getChildren().stream()
                 .flatMap(phase -> phase.getChildren().stream())
-                .filter(step -> !step.isComplete())
-                .map(step -> step.getPodInstanceRequirement())
-                .filter(requirement -> requirement.isPresent())
-                .map(requirement -> requirement.get())
+                .filter(step -> !step.isComplete() && step.getPodInstanceRequirement().isPresent())
+                .map(step -> step.getPodInstanceRequirement().get())
                 .collect(Collectors.toList());
         if (!incompleteRecoveries.isEmpty()) {
             logger.info("Pods with incomplete recoveries: {}", getPodNames(incompleteRecoveries));

@@ -13,7 +13,6 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.validation.ValidationException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -30,7 +29,8 @@ import static org.mockito.Mockito.when;
  * This class tests the TaskUtils class.
  */
 public class TaskUtilsTest {
-    private static final String testTaskName = "test-task-name";
+
+    private static final String TEST_TASK_NAME = "test-task-name";
 
     private static final ConfigStore<ServiceSpec> TWO_ESSENTIAL_TWO_NONESSENTIAL = buildPodLayout(2, 2);
     private static final Collection<Protos.TaskInfo> TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS = Arrays.asList(
@@ -67,13 +67,13 @@ public class TaskUtilsTest {
 
     @Test
     public void testValidToTaskName() throws Exception {
-        Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(testTaskName + "__id").build();
-        Assert.assertEquals(testTaskName, CommonIdUtils.toTaskName(validTaskId));
+        Protos.TaskID validTaskId = Protos.TaskID.newBuilder().setValue(TEST_TASK_NAME + "__id").build();
+        Assert.assertEquals(TEST_TASK_NAME, CommonIdUtils.toTaskName(validTaskId));
     }
 
     @Test(expected = TaskException.class)
     public void testInvalidToTaskName() throws Exception {
-        CommonIdUtils.toTaskName(Protos.TaskID.newBuilder().setValue(testTaskName + "_id").build());
+        CommonIdUtils.toTaskName(Protos.TaskID.newBuilder().setValue(TEST_TASK_NAME + "_id").build());
     }
 
     @Test
@@ -181,8 +181,11 @@ public class TaskUtilsTest {
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
-                Arrays.asList(new DefaultConfigFileSpec(
-                        "config", "../relative/path/to/config", "this is a config template")));
+                Arrays.asList(DefaultConfigFileSpec.newBuilder()
+                        .name("config")
+                        .relativePath("../relative/path/to/config")
+                        .templateContent("this is a config template")
+                        .build()));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -194,16 +197,32 @@ public class TaskUtilsTest {
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpec("config", "../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpec("config2", "../relative/path/to/config2", "second config")));
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("this is a config template")
+                                .build(),
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config2")
+                                .relativePath("../relative/path/to/config2")
+                                .templateContent("second config")
+                                .build()));
 
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpec("config", "../diff/path/to/config", "this is a diff config template"),
-                        new DefaultConfigFileSpec("config2", "../diff/path/to/config2", "diff second config")));
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("this is a diff config template")
+                                .build(),
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config2")
+                                .relativePath("../relative/path/to/config2")
+                                .templateContent("diff second config")
+                                .build()));
 
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -215,16 +234,32 @@ public class TaskUtilsTest {
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpec("config", "../relative/path/to/config", "a config template"),
-                        new DefaultConfigFileSpec("config2", "../relative/path/to/config2", "second config")));
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("a config template")
+                                .build(),
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config2")
+                                .relativePath("../relative/path/to/config2")
+                                .templateContent("second config")
+                                .build()));
 
         TaskSpec newTaskSpecification = TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpec("config2", "../relative/path/to/config2", "second config"),
-                        new DefaultConfigFileSpec("config", "../relative/path/to/config", "a config template")));
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config2")
+                                .relativePath("../relative/path/to/config2")
+                                .templateContent("second config")
+                                .build(),
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("a config template")
+                                .build()));
 
         Assert.assertFalse(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
@@ -240,31 +275,27 @@ public class TaskUtilsTest {
         ResourceSet oldResourceSet = mock(ResourceSet.class);
         ResourceSet newResourceSet = mock(ResourceSet.class);
 
-        ResourceSpec oldVip = new NamedVIPSpec(
-                portValueBuilder.build(),
-                TestConstants.ROLE,
-                TestConstants.PRE_RESERVED_ROLE,
-                TestConstants.PRINCIPAL,
-                "env-key",
-                "port-name",
-                "protocol",
-                TestConstants.PORT_VISIBILITY,
-                TestConstants.VIP_NAME,
-                TestConstants.VIP_PORT,
-                Arrays.asList("network-name"));
+        NamedVIPSpec.Builder builder = NamedVIPSpec.newBuilder()
+                .protocol("protocol")
+                .vipName(TestConstants.VIP_NAME)
+                .vipPort(TestConstants.VIP_PORT);
+        builder
+                .envKey("env-key")
+                .portName("port-name")
+                .visibility(TestConstants.PORT_VISIBILITY)
+                .networkNames(Collections.singleton("network-name"));
+        builder
+                .value(portValueBuilder.build())
+                .role(TestConstants.ROLE)
+                .preReservedRole(TestConstants.PRE_RESERVED_ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .build();
 
-        ResourceSpec newVip = new NamedVIPSpec(
-                portValueBuilder.build(),
-                TestConstants.ROLE,
-                TestConstants.PRE_RESERVED_ROLE,
-                TestConstants.PRINCIPAL,
-                "env-key",
-                "port-name",
-                "protocol",
-                TestConstants.PORT_VISIBILITY,
-                TestConstants.VIP_NAME + "-different", // Different vip name
-                TestConstants.VIP_PORT,
-                Arrays.asList("network-name"));
+        ResourceSpec oldVip = builder.build();
+
+        ResourceSpec newVip = builder
+                .vipName(TestConstants.VIP_NAME + "-different") // Different vip name
+                .build();
 
         when(oldResourceSet.getId()).thenReturn(TestConstants.RESOURCE_SET_ID);
         when(oldResourceSet.getResources()).thenReturn(Arrays.asList(oldVip)); // Old VIP
@@ -285,26 +316,42 @@ public class TaskUtilsTest {
         Assert.assertTrue(TaskUtils.areDifferent(oldTaskSpecification, newTaskSpecification));
     }
 
-    @Test(expected=ValidationException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testConfigsSamePathFailsValidation() {
         TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpec("config", "../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpec("config2", "../relative/path/to/config", "same path should fail")));
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("this is a config template")
+                                .build(),
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config2")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("same path should fail")
+                                .build()));
     }
 
-    @Test(expected=ValidationException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testConfigsSameNameFailsValidation() {
         TestPodFactory.getTaskSpec(
                 TestConstants.TASK_NAME,
                 TestPodFactory.CMD.getValue(),
                 TestPodFactory.getResourceSet(TestConstants.RESOURCE_SET_ID, 1, 2, 3),
                 Arrays.asList(
-                        new DefaultConfigFileSpec("config", "../relative/path/to/config", "this is a config template"),
-                        new DefaultConfigFileSpec("config", "../relative/path/to/config2", "same name should fail")));
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config")
+                                .templateContent("this is a config template")
+                                .build(),
+                        DefaultConfigFileSpec.newBuilder()
+                                .name("config")
+                                .relativePath("../relative/path/to/config2")
+                                .templateContent("same name should fail")
+                                .build()));
     }
 
     @Test
@@ -411,7 +458,7 @@ public class TaskUtilsTest {
     }
 
     private static StateStore buildStateStoreWithTasks(Collection<Protos.TaskInfo> taskInfos) {
-        StateStore stateStore = new StateStore(new MemPersister());
+        StateStore stateStore = new StateStore(MemPersister.newBuilder().build());
         stateStore.storeTasks(taskInfos);
         for (Protos.TaskInfo taskInfo : taskInfos) {
             Protos.TaskStatus.Builder taskStatusBuilder = Protos.TaskStatus.newBuilder()
@@ -451,7 +498,7 @@ public class TaskUtilsTest {
                 .addPod(podBuilder.build())
                 .build();
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), new MemPersister());
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), MemPersister.newBuilder().build());
         try {
             configStore.setTargetConfig(configStore.store(serviceSpec));
         } catch (ConfigStoreException e) {

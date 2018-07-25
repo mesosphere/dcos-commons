@@ -7,8 +7,10 @@ import shutil
 import subprocess
 import sys
 
+
 def syntax():
     print('Syntax: OUTPUT_NAME=foo INPUT_DIR=path/to/foo VERSION=0.123.0 {} -q bdist_wheel'.format(sys.argv[0]))
+
 
 def main():
     output_name = os.getenv('OUTPUT_NAME')
@@ -67,9 +69,9 @@ def main():
         version=version,
         url='http://github.com/mesosphere/dcos-commons',
         packages=[output_name],
-        entry_points={ 'console_scripts': [
-            '{} = {}.{}:main'.format(output_name, output_name, entrypoint_package) ] },
-        package_data={ output_name: input_relative_file_paths })
+        entry_points={'console_scripts': [
+            '{} = {}.{}:main'.format(output_name, output_name, entrypoint_package)]},
+        package_data={output_name: input_relative_file_paths})
 
     # clean up build detritus:
     shutil.rmtree(build_dir_path)
@@ -83,6 +85,7 @@ def main():
 
     print('''Built {}-{}: {}'''.format(output_name, version, output_path))
     return 0
+
 
 if __name__ == '__main__':
     sys.exit(main())

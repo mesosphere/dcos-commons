@@ -14,24 +14,25 @@ import static org.mockito.Mockito.when;
 
 public class ArtifactResourceTest {
 
-    @Mock SchedulerConfig mockSchedulerConfig;
+    @Mock private SchedulerConfig mockSchedulerConfig;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         when(mockSchedulerConfig.getApiServerPort()).thenReturn(1234);
-        when(mockSchedulerConfig.getServiceTLD()).thenReturn("some.tld");
+        when(mockSchedulerConfig.getAutoipTLD()).thenReturn("some.tld");
+        when(mockSchedulerConfig.getMarathonName()).thenReturn("test-marathon");
     }
 
     @Test
     public void testGetStandaloneTemplateUrl() {
         UUID uuid = UUID.randomUUID();
         assertEquals(
-                "http://svc-name.marathon.some.tld:1234/v1/artifacts/template/"
+                "http://svc-name.test-marathon.some.tld:1234/v1/artifacts/template/"
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 ArtifactResource.getUrlFactory("svc-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
         assertEquals(
-                "http://svc-name-to-path.marathon.some.tld:1234/v1/artifacts/template/"
+                "http://svc-name-to-path.test-marathon.some.tld:1234/v1/artifacts/template/"
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 ArtifactResource.getUrlFactory("/path/to/svc-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
     }

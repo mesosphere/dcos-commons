@@ -12,6 +12,7 @@ import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -93,32 +94,23 @@ public class TaskUtils {
      */
     public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
         return stateStore.fetchTasks().stream()
-                .filter(taskInfo -> {
-                    try {
-                        return isSamePodInstance(taskInfo, podInstance);
-                    } catch (TaskException e) {
-                        LOGGER.error("Failed to find pod tasks with exception: ", e);
-                        return false;
-                    }
-                })
+                .filter(taskInfo -> areEquivalent(taskInfo, podInstance))
                 .collect(Collectors.toList());
     }
 
     /**
-     * Returns whether the provided {@link TaskInfo} (representing a launched task) and {@link PodInstance} (from the
-     * {@link ServiceSpec}) are both effectively for the same pod instance.
+     * Returns whether the provided {@link TaskInfo}, representing a previously-launched task,
+     * is in the same provided pod provided in the {@link PodInstance}.
      */
-    public static boolean isSamePodInstance(Protos.TaskInfo taskInfo, PodInstance podInstance) throws TaskException {
-        return isSamePodInstance(taskInfo, podInstance.getPod().getType(), podInstance.getIndex());
-    }
-
-    /**
-     * Returns whether the provided {@link TaskInfo} is in the provided pod type and index.
-     */
-    public static boolean isSamePodInstance(Protos.TaskInfo taskInfo, String type, int index) throws TaskException {
-        TaskLabelReader labels = new TaskLabelReader(taskInfo);
-        return labels.getType().equals(type)
-                && labels.getIndex() == index;
+    public static boolean areEquivalent(TaskInfo taskInfo, PodInstance podInstance) {
+        try {
+            TaskLabelReader reader = new TaskLabelReader(taskInfo);
+            return reader.getIndex() == podInstance.getIndex()
+                    && reader.getType().equals(podInstance.getPod().getType());
+        } catch (TaskException e) {
+            LOGGER.warn("Unable to extract pod type or index from TaskInfo", e);
+            return false;
+        }
     }
 
     /**

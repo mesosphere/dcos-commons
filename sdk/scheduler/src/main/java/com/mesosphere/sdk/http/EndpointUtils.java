@@ -3,8 +3,6 @@ package com.mesosphere.sdk.http;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 /**
@@ -51,7 +49,7 @@ public class EndpointUtils {
         // Unlike with VIPs and mesos-dns hostnames, dots are converted to dashes with autoip hostnames. See DCOS-16086.
         return String.format("%s.%s",
                 removeSlashes(replaceDotsWithDashes(serviceName)),
-                schedulerConfig.getServiceTLD());
+                schedulerConfig.getAutoipTLD());
     }
 
     /**
@@ -75,35 +73,36 @@ public class EndpointUtils {
      * Returns the correct DNS hostname for accessing the Scheduler API given the provided service name.
      */
     public static String toSchedulerAutoIpHostname(String serviceName, SchedulerConfig schedulerConfig) {
-        return toAutoIpHostname("marathon", serviceName, schedulerConfig);
+        return toAutoIpHostname(schedulerConfig.getMarathonName(), serviceName, schedulerConfig);
     }
 
     /**
      * Returns the correct DNS hostname:port endpoint for accessing the Scheduler API given the provided service name.
      */
     public static String toSchedulerAutoIpEndpoint(String serviceName, SchedulerConfig schedulerConfig) {
-        return toAutoIpEndpoint("marathon", serviceName, schedulerConfig.getApiServerPort(), schedulerConfig);
+        return toAutoIpEndpoint(
+                schedulerConfig.getMarathonName(), serviceName, schedulerConfig.getApiServerPort(), schedulerConfig);
     }
 
     /**
      * Returns the correct DNS domain for VIPs within the service.
      */
-    public static String toVipDomain(String serviceName) {
-        return String.format("%s.%s", removeSlashes(serviceName), Constants.VIP_HOST_TLD);
+    public static String toVipDomain(String serviceName, SchedulerConfig schedulerConfig) {
+        return String.format("%s.%s", removeSlashes(serviceName), schedulerConfig.getVipTLD());
     }
 
     /**
      * Returns the correct L4LB VIP hostname for the provided task running within the provided service.
      */
-    public static String toVipHostname(String serviceName, VipInfo vipInfo) {
-        return String.format("%s.%s", removeSlashes(vipInfo.getVipName()), toVipDomain(serviceName));
+    public static String toVipHostname(String serviceName, SchedulerConfig schedulerConfig, VipInfo vipInfo) {
+        return String.format("%s.%s", removeSlashes(vipInfo.getVipName()), toVipDomain(serviceName, schedulerConfig));
     }
 
     /**
      * Returns the correct L4LB VIP endpoint for the provided task and port running within the provided service.
      */
-    public static String toVipEndpoint(String serviceName, VipInfo vipInfo) {
-        return toEndpoint(toVipHostname(serviceName, vipInfo), vipInfo.getVipPort());
+    public static String toVipEndpoint(String serviceName, SchedulerConfig schedulerConfig, VipInfo vipInfo) {
+        return toEndpoint(toVipHostname(serviceName, schedulerConfig, vipInfo), vipInfo.getVipPort());
     }
 
     /**

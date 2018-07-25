@@ -10,6 +10,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.*;
 import org.apache.mesos.Protos;
@@ -28,6 +29,9 @@ import java.util.stream.Collectors;
  */
 public class ServiceTest {
 
+    private static final String VALID_HOSTNAME_CONSTRAINT = "[[\"hostname\", \"UNIQUE\"]]";
+    private static final String INVALID_HOSTNAME_CONSTRAINT = "[[\\\"hostname\\\", \"UNIQUE\"]]";
+
     @After
     public void afterTest() {
         Mockito.validateMockitoUsage();
@@ -38,7 +42,9 @@ public class ServiceTest {
      */
     @Test
     public void testDefaultDeployment() throws Exception {
-        new ServiceTestRunner().run(getDefaultDeploymentTicks());
+        ServiceTestResult result = new ServiceTestRunner().run(getDefaultDeploymentTicks());
+        // After deployment completed, service should have stored that fact to ZK:
+        Assert.assertTrue(StateStoreUtils.getDeploymentWasCompleted(new StateStore(result.getPersister())));
     }
 
     /**
@@ -122,6 +128,90 @@ public class ServiceTest {
                 }
             }
         }
+    }
+
+    /**
+     * Validates that the update plan is correctly used (only) after a deployment had completed.
+     */
+    @Test
+    public void testUpdatePlan() throws Exception {
+
+        // First session: Launch one task, then restart scheduler before it's RUNNING:
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Verify that service launches 1 hello pod (and nothing else):
+        ticks.add(Expect.deployStepStatus("hello-deploy", "hello-0:[server]", Status.PENDING));
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+        ticks.add(Expect.deployStepStatus("hello-deploy", "hello-0:[server]", Status.STARTING));
+
+        // Offers revived due to changed work set (NULL => hello-0):
+        ticks.add(Expect.revivedOffers(1));
+        ticks.add(Expect.suppressedOffers(0));
+
+        // Pretend that the scheduler was restarted before the task started RUNNING:
+        ServiceTestResult result = new ServiceTestRunner("update_plan.yml").run(ticks);
+        // Deployment didn't complete:
+        Assert.assertFalse(StateStoreUtils.getDeploymentWasCompleted(new StateStore(result.getPersister())));
+
+        // Second session: Scheduler restarts before task starts running.
+        // The task gets launched again, and succeeds this time, finishing the deploy plan.
+
+        ticks = new ArrayList<>();
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+        // The task is now running, but we still restart it below (shouldn't need to relaunch, could revisit this behavior):
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Expect.reconciledImplicitly());
+
+        // Send an offer to turn the crank. The task gets restarted since it hadn't completed in the last run:
+        ticks.add(Expect.deployStepStatus("hello-deploy", "hello-0:[server]", Status.PENDING));
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.taskNameKilled("hello-0-server", 1));
+
+        // Now send the resources from hello-0. The task should get relaunched:
+        ticks.add(Send.offerBuilder("hello").setPodIndexToReoffer(0).build());
+        ticks.add(Expect.launchedTasks("hello-0-server"));
+        ticks.add(Expect.deployStepStatus("hello-deploy", "hello-0:[server]", Status.STARTING));
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+
+        // Now all tasks are done (and note use of 'hello-deploy' phase name):
+        ticks.add(Expect.deployStepStatus("hello-deploy", "hello-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.allPlansComplete());
+
+        // Suppress offers after the next offer has turned the crank:
+        ticks.add(Expect.suppressedOffers(0));
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.declinedLastOffer());
+        ticks.add(Expect.suppressedOffers(1));
+
+        result = new ServiceTestRunner("update_plan.yml").setState(result).run(ticks);
+        // After deployment completed, service should have stored that fact to ZK:
+        Assert.assertTrue(StateStoreUtils.getDeploymentWasCompleted(new StateStore(result.getPersister())));
+
+        // Third session: Scheduler restarts again. This time it's using the update plan as the 'deploy' plan:
+
+        ticks = new ArrayList<>();
+        ticks.add(Send.register());
+        ticks.add(Expect.reconciledExplicitly(result.getPersister()));
+        ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
+        ticks.add(Expect.reconciledImplicitly());
+
+        // No config changes, nothing left to do:
+        ticks.add(Send.offerBuilder("hello").build());
+        ticks.add(Expect.declinedLastOffer());
+
+        // "deploy" plan should match our expected update plan (note 'hello-update' phase name):
+        ticks.add(Expect.deployStepStatus("hello-update", "hello-0:[server]", Status.COMPLETE));
+        ticks.add(Expect.suppressedOffers(1));
+        ticks.add(Expect.allPlansComplete());
+
+        new ServiceTestRunner("update_plan.yml").setState(result).run(ticks);
+        // Deployment bit still set in ZK:
+        Assert.assertTrue(StateStoreUtils.getDeploymentWasCompleted(new StateStore(result.getPersister())));
     }
 
     /**
@@ -860,6 +950,36 @@ public class ServiceTest {
         ticks.add(Expect.allPlansComplete());
 
         return ticks;
+    }
+
+    @Test
+    public void testValidPlacementConstraint() throws Exception {
+        new ServiceTestRunner()
+                .setSchedulerEnv("HELLO_PLACEMENT", VALID_HOSTNAME_CONSTRAINT)
+                .run(getDefaultDeploymentTicks());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInvalidPlacementConstraint() throws Exception {
+        new ServiceTestRunner()
+                .setSchedulerEnv("HELLO_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT)
+                .run(getDefaultDeploymentTicks());
+    }
+
+    @Test
+    public void testSwitchToInvalidPlacementConstraint() throws Exception {
+        ServiceTestResult initial = new ServiceTestRunner()
+                .setSchedulerEnv("HELLO_PLACEMENT", VALID_HOSTNAME_CONSTRAINT)
+                .run(getDefaultDeploymentTicks());
+
+        Collection<SimulationTick> ticks = new ArrayList<>();
+        ticks.add(Send.register());
+        ticks.add(Expect.planStatus("deploy", Status.ERROR));
+
+        new ServiceTestRunner()
+                .setState(initial)
+                .setSchedulerEnv("HELLO_PLACEMENT", INVALID_HOSTNAME_CONSTRAINT)
+                .run(ticks);
     }
 
     /**

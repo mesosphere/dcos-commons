@@ -2,8 +2,8 @@ package com.mesosphere.sdk.hdfs.scheduler;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
+import com.mesosphere.sdk.config.validate.ZoneValidator;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.validation.ZoneValidator;
 
 import java.util.Collection;
 import java.util.Optional;

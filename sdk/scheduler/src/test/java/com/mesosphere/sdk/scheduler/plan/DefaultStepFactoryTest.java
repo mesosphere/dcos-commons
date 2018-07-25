@@ -271,7 +271,7 @@ public class DefaultStepFactoryTest {
                         .pods(Arrays.asList(podSpec))
                         .build();
 
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         stateStore = new StateStore(persister);
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
@@ -305,7 +305,7 @@ public class DefaultStepFactoryTest {
                         .pods(Arrays.asList(podSpec))
                         .build();
 
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         stateStore = new StateStore(persister);
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
@@ -336,7 +336,7 @@ public class DefaultStepFactoryTest {
                         .pods(Arrays.asList(podSpec))
                         .build();
 
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         stateStore = new StateStore(persister);
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 
@@ -371,7 +371,7 @@ public class DefaultStepFactoryTest {
                         .pods(Arrays.asList(podSpec))
                         .build();
 
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         stateStore = new StateStore(persister);
         configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
 

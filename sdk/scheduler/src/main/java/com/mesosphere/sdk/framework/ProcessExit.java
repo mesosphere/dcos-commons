@@ -1,5 +1,9 @@
 package com.mesosphere.sdk.framework;
 
+import com.codahale.metrics.jvm.ThreadDump;
+
+import java.lang.management.ManagementFactory;
+
 /**
  * This class handles exiting the Scheduler process, after completed teardown or after a fatal error.
  */
@@ -13,7 +17,7 @@ public class ProcessExit {
     //public static final Code OFFER_RESCINDED = new Code(4);
     public static final Code DISCONNECTED = new Code(5, "DISCONNECTED");
     public static final Code ERROR = new Code(6, "ERROR");
-    //public static final Code PLAN_CREATE_FAILURE = new Code(7);
+    public static final Code DEADLOCK_ENCOUNTERED = new Code(7, "DEADLOCK_ENCOUNTERED");
     public static final Code LOCK_UNAVAILABLE = new Code(8, "LOCK_UNAVAILABLE");
     public static final Code API_SERVER_ERROR = new Code(9, "API_SERVER_ERROR");
     //public static final Code SCHEDULER_BUILD_FAILED = new Code(10);
@@ -29,6 +33,8 @@ public class ProcessExit {
         String message = String.format("Process exiting immediately with code: %s[%d]", code, code.getValue());
         System.err.println(message);
         System.out.println(message);
+        System.err.println("Printing final thread state...");
+        new ThreadDump(ManagementFactory.getThreadMXBean()).dump(System.err);
         System.exit(code.getValue());
     }
 

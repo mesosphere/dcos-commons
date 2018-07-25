@@ -132,7 +132,7 @@ public class ExampleMultiServiceResource {
                 SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                         .setPlansFrom(rawServiceSpec)
                         .enableMultiService(frameworkConfig.getFrameworkName());
-                return Scenario.customize(builder, scenarios).build();
+                return Scenario.customize(builder, Optional.of(frameworkConfig.getFrameworkName()), scenarios).build();
             }
         };
         this.serviceStore = new ServiceStore(persister, serviceFactory);

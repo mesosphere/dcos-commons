@@ -19,9 +19,9 @@ import static org.mockito.Mockito.*;
 
 public class SchedulerRunnerTest {
 
-    @Mock SchedulerBuilder mockSchedulerBuilder;
-    @Mock SchedulerConfig mockSchedulerConfig;
-    @Mock ServiceSpec mockServiceSpec;
+    @Mock private SchedulerBuilder mockSchedulerBuilder;
+    @Mock private SchedulerConfig mockSchedulerConfig;
+    @Mock private ServiceSpec mockServiceSpec;
 
     @BeforeClass
     public static void beforeAll() {
@@ -41,7 +41,7 @@ public class SchedulerRunnerTest {
     @Test
     public void checkSchemaVersion() throws Exception {
         // Set up a schema version which shouldn't work, to verify that the schema version is being checked:
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         persister.set("SchemaVersion", "123".getBytes(StandardCharsets.UTF_8));
 
         when(mockSchedulerBuilder.getPersister()).thenReturn(persister);

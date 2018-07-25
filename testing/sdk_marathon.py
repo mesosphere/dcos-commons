@@ -62,7 +62,7 @@ def app_exists(app_name):
     try:
         _get_config_once(app_name)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -70,7 +70,7 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout*1000)
+        stop_max_delay=timeout * 1000)
     def wait_for_response():
         return _get_config_once(app_name).json()['app']
 
@@ -89,9 +89,7 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
 
 
 def is_app_running(app: dict) -> bool:
-    return (app.get('tasksStaged', 0) == 0
-            and app.get('tasksUnhealthy', 0) == 0
-            and app.get('tasksRunning', 0) > 0)
+    return (app.get('tasksStaged', 0) == 0 and app.get('tasksUnhealthy', 0) == 0 and app.get('tasksRunning', 0) > 0)
 
 
 def wait_for_app_running(app_name: str, timeout: int) -> None:

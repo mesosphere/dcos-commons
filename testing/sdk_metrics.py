@@ -18,18 +18,18 @@ import sdk_cmd
 log = logging.getLogger(__name__)
 
 
-def get_scheduler_metrics(service_name, timeout_seconds=15*60):
+def get_scheduler_metrics(service_name, timeout_seconds=15 * 60):
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
     return sdk_cmd.service_request('GET', service_name, '/v1/metrics').json()
 
 
-def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
+def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
     """Waits for and returns the specified counter value from the scheduler"""
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def check_for_value():
         try:
@@ -53,12 +53,12 @@ def get_scheduler_counter(service_name, counter_name, timeout_seconds=15*60):
     return check_for_value()
 
 
-def wait_for_scheduler_counter_value(service_name, counter_name, min_value, timeout_seconds=15*60):
+def wait_for_scheduler_counter_value(service_name, counter_name, min_value, timeout_seconds=15 * 60):
     """Waits for the specified counter value to be reached by the scheduler
     For example, check that `offers.processed` is equal or greater to 1."""
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def check_for_value():
         value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
@@ -151,7 +151,7 @@ def wait_for_service_metrics(package_name, service_name, task_name, timeout, exp
     """
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout*1000,
+        stop_max_delay=timeout * 1000,
         retry_on_result=lambda res: not res)
     def check_for_service_metrics():
         try:

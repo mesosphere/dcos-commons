@@ -7,24 +7,26 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
-import javax.validation.Valid;
 import java.util.Optional;
 
 /**
  * Default implementation of a {@link DiscoverySpec}.
  */
 public class DefaultDiscoverySpec implements DiscoverySpec {
-    @Valid
+
     private final String prefix;
-    @Valid
     private final Protos.DiscoveryInfo.Visibility visibility;
 
     @JsonCreator
-    public DefaultDiscoverySpec(
+    private DefaultDiscoverySpec(
             @JsonProperty("prefix") String prefix,
             @JsonProperty("visibility") Protos.DiscoveryInfo.Visibility visibility) {
         this.prefix = prefix;
         this.visibility = visibility;
+    }
+
+    public static Builder newBuilder() {
+        return new Builder();
     }
 
     @Override
@@ -50,5 +52,31 @@ public class DefaultDiscoverySpec implements DiscoverySpec {
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
+    }
+
+    /**
+     * Builder for {@link DefaultDiscoverySpec}.
+     */
+    public static class Builder {
+
+        private String prefix;
+        private Protos.DiscoveryInfo.Visibility visibility;
+
+        private Builder() {
+        }
+
+        public Builder prefix(String prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        public Builder visibility(Protos.DiscoveryInfo.Visibility visibility) {
+            this.visibility = visibility;
+            return this;
+        }
+
+        public DefaultDiscoverySpec build() {
+            return new DefaultDiscoverySpec(prefix, visibility);
+        }
     }
 }

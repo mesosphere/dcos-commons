@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.testutils;
 
-import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 import java.time.Duration;
@@ -14,8 +13,10 @@ import static org.mockito.Mockito.when;
  */
 public class SchedulerConfigTestUtils {
 
+    @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
     public static SchedulerConfig getTestSchedulerConfig() {
         SchedulerConfig schedulerConfig = mock(SchedulerConfig.class);
+        when(schedulerConfig.isDeadlockExitEnabled()).thenReturn(true);
         when(schedulerConfig.getApiServerPort()).thenReturn(TestConstants.PORT_API_VALUE);
         when(schedulerConfig.getJavaURI()).thenReturn("test-java-uri");
         when(schedulerConfig.getBootstrapURI()).thenReturn("test-bootstrap-uri");
@@ -23,9 +24,12 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getDcosSpace()).thenReturn("/");
         when(schedulerConfig.getSecretsNamespace(TestConstants.SERVICE_NAME)).thenReturn(TestConstants.SERVICE_NAME);
         when(schedulerConfig.getApiServerInitTimeout()).thenReturn(Duration.ofSeconds(10));
-        when(schedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
+        when(schedulerConfig.getAutoipTLD()).thenReturn("autoip.tld");
+        when(schedulerConfig.getVipTLD()).thenReturn("vip.tld");
+        when(schedulerConfig.getMarathonName()).thenReturn("test-marathon");
         when(schedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-region"));
         when(schedulerConfig.getMultiServiceRemovalTimeout()).thenReturn(Duration.ofSeconds(60));
+        when(schedulerConfig.getSchedulerIP()).thenReturn("127.0.0.1");
         return schedulerConfig;
     }
 }

@@ -5,8 +5,8 @@ import org.junit.Test;
 
 public class VerifySecretFilePathTest {
 
-    private static final String secretPath = "test/secret";
-    private static final String envKey = "TEST_ENV";
+    private static final String SECRET_PATH = "test/secret";
+    private static final String ENV_KEY = "TEST_ENV";
 
     /* Exception.class is generic (in case we add/change fields)
            If Pattern is used in DefaultVolumeSpec,  exception is ValidationException
@@ -14,64 +14,109 @@ public class VerifySecretFilePathTest {
     */
     @Test
     public void testFilePathEmpty() {
-        new DefaultSecretSpec( secretPath, envKey, "");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("")
+                .build();
     }
 
     @Test(expected = Exception.class)
     public void testFilePathBlank()  {
-        new DefaultSecretSpec( secretPath, envKey, " ");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath(" ")
+                .build();
     }
 
     @Test(expected = Exception.class)
     public void testFilePathSlash()  {
-        new DefaultSecretSpec( secretPath, envKey, "/path/to/file");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("/path/to/file")
+                .build();
     }
 
     @Test(expected = Exception.class)
     public void testFilePathChar() {
-        new DefaultSecretSpec( secretPath, envKey, "@?test");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("@?test")
+                .build();
     }
 
     @Test(expected = Exception.class)
     public void testFilePathBeg() {
-        new DefaultSecretSpec( secretPath, envKey, "-test");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("-test")
+                .build();
     }
 
     @Test
     public void testFilePathBegDot() {
-        new DefaultSecretSpec( secretPath, envKey, ".test");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath(".test")
+                .build();
     }
-
 
     @Test
     public void testFilePathDot() {
-        new DefaultSecretSpec( secretPath, envKey, "somePath/someFile.test");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("somePath/someFile.test")
+                .build();
     }
 
     @Test
     public void testFilePathString() {
-        new DefaultSecretSpec( secretPath, envKey, "file");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("file")
+                .build();
     }
 
     @Test
     public void testFilePathLong() {
-        new DefaultSecretSpec( secretPath, envKey, "file-0/file1/file-2/file3/file_4");
+        DefaultSecretSpec.newBuilder()
+                .secretPath(SECRET_PATH)
+                .envKey(ENV_KEY)
+                .filePath("file-0/file1/file-2/file3/file_4")
+                .build();
     }
 
     @Test
     public void testSecretPathLong() {
-        new DefaultSecretSpec( "file-0/file1/file-2/file3/file_4", envKey, "file" );
+        DefaultSecretSpec.newBuilder()
+                .secretPath("file-0/file1/file-2/file3/file_4")
+                .envKey(ENV_KEY)
+                .filePath("file")
+                .build();
     }
 
     @Test
     public void testSecretPathString() {
-        new DefaultSecretSpec( "file", envKey, "file" );
+        DefaultSecretSpec.newBuilder()
+                .secretPath("file")
+                .envKey(ENV_KEY)
+                .filePath("file")
+                .build();
     }
 
     @Test
     public void testEnvKeyEmpty() {
-        new DefaultSecretSpec( "file", "", "file" );
+        DefaultSecretSpec.newBuilder()
+                .secretPath("file")
+                .envKey("")
+                .filePath("file")
+                .build();
     }
-
-
 }

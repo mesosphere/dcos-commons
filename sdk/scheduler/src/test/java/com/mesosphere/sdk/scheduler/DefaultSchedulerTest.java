@@ -208,7 +208,7 @@ public class DefaultSchedulerTest {
         when(mockSchedulerConfig.isStateCacheEnabled()).thenReturn(true);
         ServiceSpec serviceSpec = getServiceSpec(podA, podB);
         Capabilities.overrideCapabilities(getCapabilities());
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         // Emulate behavior of upstream FrameworkScheduler, which handled registering with Mesos:
         new FrameworkStore(persister).storeFrameworkId(TestConstants.FRAMEWORK_ID);
         defaultScheduler = getScheduler(serviceSpec);
@@ -895,10 +895,17 @@ public class DefaultSchedulerTest {
         taskIds.add(installStep(1, 0, getSufficientOfferForTaskB(), Status.PENDING, true));
         taskIds.add(installStep(1, 1, getSufficientOfferForTaskB(), Status.PENDING, true));
 
+        // Deployment should be complete:
         Assert.assertTrue(getDeploymentPlan().isComplete());
         Assert.assertEquals(Arrays.asList(Status.COMPLETE, Status.COMPLETE, Status.COMPLETE),
                 getStepStatuses(getDeploymentPlan()));
         Assert.assertTrue(defaultScheduler.getPlanCoordinator().getCandidates().isEmpty());
+
+        // After we call getClientStatus() once more with the completed deploy plan, completion should be persisted to ZK:
+        StateStore stateStore = new StateStore(persister);
+        Assert.assertFalse(StateStoreUtils.getDeploymentWasCompleted(stateStore));
+        Assert.assertEquals(ClientStatusResponse.idle(), defaultScheduler.getClientStatus());
+        Assert.assertTrue(StateStoreUtils.getDeploymentWasCompleted(stateStore));
 
         return taskIds;
     }
