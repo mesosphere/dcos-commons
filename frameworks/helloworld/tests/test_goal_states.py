@@ -59,5 +59,5 @@ def test_finish_task_restarts_on_config_update():
     log.info('world_finish_id: ' + str(world_finish_id))
     config.bump_world_cpus(foldered_name)
 
-    sdk_tasks.check_task_relaunched(task_name, world_finish_id)
+    sdk_tasks.check_task_relaunched(task_name, world_finish_id, ensure_new_task_not_completed=False)
     config.check_running(foldered_name)
