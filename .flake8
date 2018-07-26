@@ -1,5 +1,9 @@
 [flake8]
-ignore = E203, E266, E501, W503
+# The following are ignored:
+#   E203 whitespace before ':' (https://github.com/ambv/black#line-breaks--binary-operators)
+#   E501 line too long         (https://github.com/ambv/black#line-length)
+#   W503 line break before binary operator
+ignore = E203, E501, W503
 max-line-length = 88
 max-complexity = 18
 select = B,C,E,F,W,T4,B9
