@@ -10,11 +10,11 @@
 # Exit immediately on errors
 set -e
 
-timestamp="$(date +%d%m%y%H%M%s)"
+timestamp="$(date +%y%m%d-%H%M%S)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}.tmp)"
-envfile="$(mktemp /tmp/sdk-test-env-${timestamp}.tmp)"
+credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXX.tmp)"
+envfile="$(mktemp /tmp/sdk-test-env-${timestamp}-XXXX.tmp)"
 function cleanup {
     rm -f ${credsfile}
     rm -f ${envfile}

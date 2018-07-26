@@ -336,7 +336,7 @@ def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
     return run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
 
 
-def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bootstrap') -> bool:
+def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = './bootstrap') -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """

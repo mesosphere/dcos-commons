@@ -16,7 +16,6 @@ import dcos.packagemanager
 import dcos.subcommand
 import retrying
 import shakedown
-import traceback
 
 import sdk_cmd
 import sdk_marathon
@@ -176,41 +175,29 @@ def uninstall(
         zk=None):
     start = time.time()
 
-    global _installed_service_names
-    try:
-        _installed_service_names.remove(service_name)
-    except KeyError:
-        pass  # allow tests to 'uninstall' up-front
-
     log.info('Uninstalling {}'.format(service_name))
 
     try:
         retried_uninstall_package_and_wait(package_name, service_name=service_name)
     except Exception:
-        log.info('Got exception when uninstalling {}'.format(service_name))
-        log.info(traceback.format_exc())
+        log.exception('Got exception when uninstalling {}'.format(service_name))
         raise
-    finally:
-        log.info('Reserved resources post uninstall:')
-        sdk_utils.list_reserved_resources()
 
     cleanup_start = time.time()
 
     try:
         if sdk_utils.dcos_version_less_than('1.10'):
+            # 1.9 and earlier: Run janitor to unreserve resources
             log.info('Janitoring {}'.format(service_name))
             retried_run_janitor(service_name, role, service_account, zk)
         else:
+            # 1.10 and later: Wait for uninstall scheduler to finish and be removed by Cosmos
             log.info('Waiting for Marathon app to be removed {}'.format(service_name))
             sdk_marathon.retried_wait_for_deployment_and_app_removal(
                 sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS)
     except Exception:
-        log.info('Got exception when cleaning up {}'.format(service_name))
-        log.info(traceback.format_exc())
+        log.exception('Got exception when cleaning up {}'.format(service_name))
         raise
-    finally:
-        log.info('Reserved resources post cleanup:')
-        sdk_utils.list_reserved_resources()
 
     finish = time.time()
 
@@ -220,6 +207,37 @@ def uninstall(
             shakedown.pretty_duration(cleanup_start - start),
             shakedown.pretty_duration(finish - cleanup_start),
             shakedown.pretty_duration(finish - start)))
+
+    state_summary = sdk_cmd.cluster_request('GET', '/mesos/state-summary').json()
+
+    # Sanity check: There should be no dangling resources in the state summary (DCOS-30314)
+    found_dangling_resources = False
+    service_role = '{}-role'.format(service_name)
+    for agent in state_summary['slaves']:
+        # resources should be grouped by role. check for any resources in our expected role:
+        matching_reserved_resources = agent['reserved_resources'].get(service_role, {})
+        if len(matching_reserved_resources) > 0:
+            log.error('Dangling resources on agent {}/{}: {}'.format(
+                agent['id'], agent['hostname'], matching_reserved_resources))
+            found_dangling_resources = True
+    if found_dangling_resources:
+        log.error(state_summary)
+        raise dcos.errors.DCOSException('Found dangling resources after uninstall of {}'.format(service_name))
+    log.info('No dangling resources for role {} were found'.format(service_role))
+
+    # Sanity check: There should be no framework entry for this service in the state summary (DCOS-29474)
+    dangling_frameworks = [fwk for fwk in state_summary['frameworks'] if fwk['name'] == service_name]
+    if len(dangling_frameworks) > 0:
+        log.error(state_summary)
+        raise dcos.errors.DCOSException('Found dangling frameworks after uninstall of {}'.format(service_name))
+    log.info('No dangling frameworks for service {} were found'.format(service_name))
+
+    # Finally, remove the service from the installed list (used by sdk_diag)
+    global _installed_service_names
+    try:
+        _installed_service_names.remove(service_name)
+    except KeyError:
+        pass  # Expected when tests preemptively uninstall at start of test
 
 
 def merge_dictionaries(dict1, dict2):
