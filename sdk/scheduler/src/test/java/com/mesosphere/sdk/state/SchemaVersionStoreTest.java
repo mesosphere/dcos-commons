@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
@@ -23,7 +24,8 @@ public class SchemaVersionStoreTest {
     private static final String NODE_PATH = "SchemaVersion";
 
     private Persister persister;
-    @Mock Persister mockPersister;
+    @Mock
+    private Persister mockPersister;
     private SchemaVersionStore store;
     private SchemaVersionStore store2;
     private SchemaVersionStore storeWithMock;
@@ -40,62 +42,62 @@ public class SchemaVersionStoreTest {
     @Test
     public void testFetchAutoInitialize() throws Exception {
         assertFalse(directHasVersion());
-        store.check(3);
+        store.check(SchemaVersion.SINGLE_SERVICE);
         assertNotEquals(0, persister.get(NODE_PATH).length);
-        assertEquals(3, getDirectVersion());
+        assertEquals(SchemaVersion.SINGLE_SERVICE.toInt(), getDirectVersion());
     }
 
     @Test
     public void testStoreFetchStoreFetch() throws Exception {
         assertFalse(directHasVersion());
-        final int val = 5;
+        final SchemaVersion val = SchemaVersion.SINGLE_SERVICE;
 
         store.store(val);
-        assertEquals(val, getDirectVersion());
+        assertEquals(val.toInt(), getDirectVersion());
         store.check(val);
 
-        store.store(val + 1);
-        assertEquals(val + 1, getDirectVersion());
-        store.check(val + 1);
+        store.store(SchemaVersion.MULTI_SERVICE);
+        assertEquals(SchemaVersion.MULTI_SERVICE.toInt(), getDirectVersion());
+        store.check(SchemaVersion.MULTI_SERVICE);
     }
 
     @Test
     public void testStoreFetchStoreFetch_acrossInstances() throws Exception {
         assertFalse(directHasVersion());
-        final int val = 5;
+        final SchemaVersion val = SchemaVersion.SINGLE_SERVICE;
 
         store.store(val);
-        assertEquals(val, getDirectVersion());
+        assertEquals(val.toInt(), getDirectVersion());
         store2.check(val);
 
-        store2.store(val + 1);
-        assertEquals(val + 1, getDirectVersion());
-        store.check(val + 1);
+        store2.store(SchemaVersion.MULTI_SERVICE);
+        assertEquals(SchemaVersion.MULTI_SERVICE.toInt(), getDirectVersion());
+        store.check(SchemaVersion.MULTI_SERVICE);
     }
 
     @Test(expected=StateStoreException.class)
     public void testCheckCorruptData() throws Exception {
         storeDirectVersion("hello");
-        store.check(5);
+        store.check(SchemaVersion.UNKNOWN);
     }
 
     @Test(expected=StateStoreException.class)
     public void testCheckEmptyData() throws Exception {
         storeDirectVersion("");
-        store.check(3);
+        store.check(SchemaVersion.UNKNOWN);
     }
 
     @Test(expected=StateStoreException.class)
     public void testCheckOtherFailure() throws Exception {
         when(mockPersister.get(NODE_PATH)).thenThrow(new PersisterException(Reason.LOGIC_ERROR, "hey"));
-        storeWithMock.check(3);
+        storeWithMock.check(SchemaVersion.UNKNOWN);
     }
 
-    @Test(expected=StateStoreException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testStoreOtherFailure() throws Exception {
         final int val = 3;
         doThrow(Exception.class).when(mockPersister).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
-        storeWithMock.store(3);
+        storeWithMock.store(SchemaVersion.UNKNOWN);
     }
 
     private boolean directHasVersion() throws Exception {

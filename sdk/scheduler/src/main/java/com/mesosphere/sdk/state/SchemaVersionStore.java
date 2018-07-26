@@ -83,16 +83,16 @@ public class SchemaVersionStore {
      * @throws StateStoreException if retrieving the schema version fails
      * @throws IllegalStateException if a value is present which doesn't match the expected value
      */
-    public void check(int expectedVersion) throws StateStoreException {
-        int currentVersion = getOrSetVersion(expectedVersion);
+    public void check(SchemaVersion expectedVersion) throws StateStoreException {
+        SchemaVersion currentVersion = getOrSetVersion(expectedVersion);
         if (currentVersion != expectedVersion) {
             throw new IllegalStateException(String.format(
                     "Storage schema version %d is not supported by this software (expected: %d)",
-                    currentVersion, expectedVersion));
+                    currentVersion.toInt(), expectedVersion.toInt()));
         }
     }
 
-    public Integer getOrSetVersion(int expectedVersion) throws StateStoreException {
+    public SchemaVersion getOrSetVersion(SchemaVersion expectedVersion) throws StateStoreException {
         try {
             LOGGER.debug("Fetching schema version from '{}'", SCHEMA_VERSION_NAME);
             byte[] bytes = persister.get(SCHEMA_VERSION_NAME);
@@ -103,7 +103,7 @@ public class SchemaVersionStore {
             String rawString = new String(bytes, CHARSET);
             LOGGER.debug("Schema version retrieved from '{}': {}", SCHEMA_VERSION_NAME, rawString);
             try {
-                return Integer.parseInt(rawString);
+                return SchemaVersion.parseInt(Integer.parseInt(rawString));
             } catch (NumberFormatException e) {
                 throw new StateStoreException(Reason.SERIALIZATION_ERROR, String.format(
                         "Unable to parse fetched schema version: '%s' from path: %s",
@@ -130,15 +130,14 @@ public class SchemaVersionStore {
      * @param version the new schema version to store
      * @throws StateStoreException if storing the schema version fails
      */
-    public void store(int version) throws StateStoreException {
+    public void store(SchemaVersion version) throws StateStoreException {
         try {
-            String versionStr = String.valueOf(version);
-            LOGGER.debug("Storing schema version: '{}' into path: {}",
-                    versionStr, SCHEMA_VERSION_NAME);
+            String versionStr = String.valueOf(version.toInt());
+            LOGGER.debug("Storing schema version: '{}' into path: {}", versionStr, SCHEMA_VERSION_NAME);
             persister.set(SCHEMA_VERSION_NAME, versionStr.getBytes(CHARSET));
         } catch (Exception e) {
             throw new StateStoreException(Reason.STORAGE_ERROR, String.format(
-                    "Storage error when storing schema version %d", version), e);
+                    "Storage error when storing schema version %d", version.toInt()), e);
         }
     }
 }

@@ -7,6 +7,7 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import java.io.File;
@@ -74,7 +75,7 @@ public class SchedulerRunner implements Runnable {
         Persister persister = schedulerBuilder.getPersister();
 
         // Check and/or initialize schema version before doing any other storage access:
-        new SchemaVersionStore(persister).check(SchemaVersionStore.SchemaVersion.SINGLE_SERVICE.toInt());
+        new SchemaVersionStore(persister).check(SchemaVersion.SINGLE_SERVICE);
 
         Metrics.configureStatsd(schedulerConfig);
 

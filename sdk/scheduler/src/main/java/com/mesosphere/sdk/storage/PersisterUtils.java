@@ -17,6 +17,7 @@ import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.slf4j.Logger;
@@ -222,8 +223,8 @@ public class PersisterUtils {
     public static void checkAndMigrate(FrameworkConfig frameworkConfig, Persister persister) {
         LOGGER.info("Checking if migration is needed...");
         SchemaVersionStore schemaVersionStore = new SchemaVersionStore(persister);
-        int curVer = schemaVersionStore.getOrSetVersion(SchemaVersionStore.SchemaVersion.MULTI_SERVICE.toInt());
-        if (curVer == SchemaVersionStore.SchemaVersion.SINGLE_SERVICE.toInt()) {
+        SchemaVersion curVer = schemaVersionStore.getOrSetVersion(SchemaVersion.MULTI_SERVICE);
+        if (curVer == SchemaVersion.SINGLE_SERVICE) {
             try {
                 LOGGER.info("Found single-service schema in ZK Storage that can be migrated to multi-service schema");
                 // We create a znode named `backup-<timestamp>` (drop if exists) and copy the framework znodes data
@@ -264,21 +265,21 @@ public class PersisterUtils {
                     LOGGER.error("Delete the Mono Service Schema Manually. Ignoring the exception encountered " +
                             "when trying to delete the mono service schema nodes afer a successful migration.", e);
                 }
-                schemaVersionStore.store(SchemaVersionStore.SchemaVersion.MULTI_SERVICE.toInt());
+                schemaVersionStore.store(SchemaVersion.MULTI_SERVICE);
                 LOGGER.info("Successfully migrated from single-service schema to multi-service schema");
             } catch (PersisterException e) {
                 LOGGER.error("Unable to migrate ZK data : ", e);
                 throw new RuntimeException(e);
             }
-        } else if (curVer == SchemaVersionStore.SchemaVersion.MULTI_SERVICE.toInt()) {
+        } else if (curVer == SchemaVersion.MULTI_SERVICE) {
             LOGGER.info("Schema version matches that of multi service mode. Nothing to migrate.");
         } else {
             throw new IllegalStateException(String.format("Storage schema version [%d] is not supported by this " +
                             "software. Expected either single service schema version [%d] or multi service " +
                             "schema version [%d].",
-                    curVer,
-                    SchemaVersionStore.SchemaVersion.SINGLE_SERVICE.toInt(),
-                    SchemaVersionStore.SchemaVersion.MULTI_SERVICE.toInt()
+                    curVer.toInt(),
+                    SchemaVersion.SINGLE_SERVICE.toInt(),
+                    SchemaVersion.MULTI_SERVICE.toInt()
             ));
         }
     }

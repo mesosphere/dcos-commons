@@ -7,6 +7,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.Metrics;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.storage.Persister;
 
 /**
@@ -50,7 +51,7 @@ public class MultiServiceRunner implements Runnable {
          */
         public MultiServiceRunner build() {
             // Check and/or initialize schema version before doing any other storage access:
-            new SchemaVersionStore(persister).check(SchemaVersionStore.SchemaVersion.MULTI_SERVICE.toInt());
+            new SchemaVersionStore(persister).check(SchemaVersion.MULTI_SERVICE);
 
             return new MultiServiceRunner(schedulerConfig, frameworkConfig, persister, client, usingGpus);
         }
