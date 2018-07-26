@@ -9,6 +9,7 @@ com.mesosphere.sdk.http
 com.mesosphere.sdk.http.endpoints
 com.mesosphere.sdk.http.queries
 com.mesosphere.sdk.http.types
+com.mesosphere.sdk.metrics
 com.mesosphere.sdk.offer
 com.mesosphere.sdk.offer.evaluate
 com.mesosphere.sdk.offer.evaluate.placement

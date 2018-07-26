@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -47,11 +47,11 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li>Prev&nbsp;Class</li>
+<li><a href="../../../../com/mesosphere/sdk/metrics/Metrics.PlanGauge.html" title="class in com.mesosphere.sdk.metrics"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/Metrics.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/metrics/Metrics.html" target="_top">Frames</a></li>
 <li><a href="Metrics.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_top">
@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -90,7 +90,7 @@ var activeTableTab = "activeTableTab";
 <!-- ========= END OF TOP NAVBAR ========= -->
 <!-- ======== START OF CLASS DATA ======== -->
 <div class="header">
-<div class="subTitle">com.mesosphere.sdk.scheduler</div>
+<div class="subTitle">com.mesosphere.sdk.metrics</div>
 <h2 title="Class Metrics" class="title">Class Metrics</h2>
 </div>
 <div class="contentContainer">
@@ -98,7 +98,7 @@ var activeTableTab = "activeTableTab";
 <li>java.lang.Object</li>
 <li>
 <ul class="inheritance">
-<li>com.mesosphere.sdk.scheduler.Metrics</li>
+<li>com.mesosphere.sdk.metrics.Metrics</li>
 </ul>
 </li>
 </ul>
@@ -116,6 +116,25 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!--   -->
+</a>
+<h3>Nested Class Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>(package private) static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.PlanGauge.html" title="class in com.mesosphere.sdk.metrics">Metrics.PlanGauge</a></span></code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- =========== FIELD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="field.summary">
@@ -130,39 +149,39 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#DECLINE_LONG">DECLINE_LONG</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#DECLINE_LONG">DECLINE_LONG</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#DECLINE_SHORT">DECLINE_SHORT</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#DECLINE_SHORT">DECLINE_SHORT</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#IS_SUPPRESSED">IS_SUPPRESSED</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#IS_SUPPRESSED">IS_SUPPRESSED</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESS_OFFERS">PROCESS_OFFERS</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#PROCESS_OFFERS">PROCESS_OFFERS</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#PROCESSED_OFFERS">PROCESSED_OFFERS</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#PROCESSED_OFFERS">PROCESSED_OFFERS</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#RECEIVED_OFFERS">RECEIVED_OFFERS</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#RECEIVED_OFFERS">RECEIVED_OFFERS</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#REVIVE_THROTTLES">REVIVE_THROTTLES</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#REVIVE_THROTTLES">REVIVE_THROTTLES</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#REVIVES">REVIVES</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#REVIVES">REVIVES</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#SUPPRESSES">SUPPRESSES</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#SUPPRESSES">SUPPRESSES</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -179,7 +198,7 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#Metrics--">Metrics</a></span>()</code>&nbsp;</td>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#Metrics--">Metrics</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -198,7 +217,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#configureMetricsEndpoints-ServletContextHandler-java.lang.String-java.lang.String-">configureMetricsEndpoints</a></span>(ServletContextHandler&nbsp;context,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#configureMetricsEndpoints-ServletContextHandler-java.lang.String-java.lang.String-">configureMetricsEndpoints</a></span>(ServletContextHandler&nbsp;context,
                          java.lang.String&nbsp;codahaleMetricsEndpoint,
                          java.lang.String&nbsp;prometheusEndpoint)</code>
 <div class="block">Appends endpoint servlets to the provided <code>context</code> which will serve codahale-style and prometheus-style
@@ -207,62 +226,68 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#configureStatsd-com.mesosphere.sdk.scheduler.SchedulerConfig-">configureStatsd</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#configureStatsd-com.mesosphere.sdk.scheduler.SchedulerConfig-">configureStatsd</a></span>(<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Configures the metrics service to emit StatsD-formatted metrics to the configured UDP host/port with the
  specified interval.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static Timer.Context</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getProcessOffersDurationTimer--">getProcessOffersDurationTimer</a></span>()</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#getProcessOffersDurationTimer--">getProcessOffersDurationTimer</a></span>()</code>
 <div class="block">Returns a timer context which may be used to measure the time spent processing offers.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static MetricRegistry</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#getRegistry--">getRegistry</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#getRegistry--">getRegistry</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementDeclinesLong-long-">incrementDeclinesLong</a></span>(long&nbsp;amount)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementDeclinesLong-long-">incrementDeclinesLong</a></span>(long&nbsp;amount)</code>&nbsp;</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementDeclinesShort-long-">incrementDeclinesShort</a></span>(long&nbsp;amount)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementDeclinesShort-long-">incrementDeclinesShort</a></span>(long&nbsp;amount)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementProcessedOffers-long-">incrementProcessedOffers</a></span>(long&nbsp;amount)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementProcessedOffers-long-">incrementProcessedOffers</a></span>(long&nbsp;amount)</code>&nbsp;</td>
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementReceivedOffers-long-">incrementReceivedOffers</a></span>(long&nbsp;amount)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementReceivedOffers-long-">incrementReceivedOffers</a></span>(long&nbsp;amount)</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementRecommendations-java.util.Collection-">incrementRecommendations</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementRecommendations-java.util.Collection-">incrementRecommendations</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementRevives--">incrementRevives</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementRevives--">incrementRevives</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementReviveThrottles--">incrementReviveThrottles</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementReviveThrottles--">incrementReviveThrottles</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#incrementSuppresses--">incrementSuppresses</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#incrementSuppresses--">incrementSuppresses</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i12" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#notSuppressed--">notSuppressed</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#notSuppressed--">notSuppressed</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i13" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/Metrics.html#record-Protos.TaskStatus-">record</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#record-Protos.TaskStatus-">record</a></span>(Protos.TaskStatus&nbsp;taskStatus)</code>
 <div class="block">Records the provided <code>taskStatus</code> received from Mesos.</div>
 </td>
+</tr>
+<tr id="i14" class="altColor">
+<td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/metrics/Metrics.html#updatePlanStatus-java.util.Optional-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">updatePlanStatus</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace,
+                java.lang.String&nbsp;planName,
+                <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</code>&nbsp;</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -295,7 +320,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String RECEIVED_OFFERS</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.RECEIVED_OFFERS">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.RECEIVED_OFFERS">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -308,7 +333,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String PROCESSED_OFFERS</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.PROCESSED_OFFERS">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.PROCESSED_OFFERS">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -321,7 +346,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String PROCESS_OFFERS</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.PROCESS_OFFERS">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.PROCESS_OFFERS">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -334,7 +359,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String SUPPRESSES</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.SUPPRESSES">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.SUPPRESSES">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -347,7 +372,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String IS_SUPPRESSED</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.IS_SUPPRESSED">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.IS_SUPPRESSED">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -360,7 +385,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String REVIVES</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.REVIVES">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.REVIVES">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -373,7 +398,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String REVIVE_THROTTLES</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.REVIVE_THROTTLES">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.REVIVE_THROTTLES">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -386,7 +411,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String DECLINE_SHORT</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.DECLINE_SHORT">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.DECLINE_SHORT">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -399,7 +424,7 @@ extends java.lang.Object</pre>
 <pre>static final&nbsp;java.lang.String DECLINE_LONG</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.scheduler.Metrics.DECLINE_LONG">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.metrics.Metrics.DECLINE_LONG">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -556,11 +581,22 @@ extends java.lang.Object</pre>
 <a name="record-Protos.TaskStatus-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>record</h4>
 <pre>public static&nbsp;void&nbsp;record(Protos.TaskStatus&nbsp;taskStatus)</pre>
 <div class="block">Records the provided <code>taskStatus</code> received from Mesos.</div>
+</li>
+</ul>
+<a name="updatePlanStatus-java.util.Optional-java.lang.String-com.mesosphere.sdk.scheduler.plan.Status-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>updatePlanStatus</h4>
+<pre>public static&nbsp;void&nbsp;updatePlanStatus(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace,
+                                    java.lang.String&nbsp;planName,
+                                    <a href="../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;status)</pre>
 </li>
 </ul>
 </li>
@@ -590,11 +626,11 @@ extends java.lang.Object</pre>
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.Result.html" title="enum in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li>Prev&nbsp;Class</li>
+<li><a href="../../../../com/mesosphere/sdk/metrics/Metrics.PlanGauge.html" title="class in com.mesosphere.sdk.metrics"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
-<li><a href="../../../../index.html?com/mesosphere/sdk/scheduler/Metrics.html" target="_top">Frames</a></li>
+<li><a href="../../../../index.html?com/mesosphere/sdk/metrics/Metrics.html" target="_top">Frames</a></li>
 <li><a href="Metrics.html" target="_top">No&nbsp;Frames</a></li>
 </ul>
 <ul class="navList" id="allclasses_navbar_bottom">
@@ -615,7 +651,7 @@ extends java.lang.Object</pre>
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
