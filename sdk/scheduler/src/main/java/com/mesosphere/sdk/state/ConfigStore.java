@@ -32,6 +32,14 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
     private static final String TARGET_ID_PATH_NAME = "ConfigTarget";
     private static final String CONFIGURATIONS_PATH_NAME = "Configurations";
 
+    public static String getTargetIdPathName() {
+        return TARGET_ID_PATH_NAME;
+    }
+
+    public static String getConfigurationsPathName() {
+        return CONFIGURATIONS_PATH_NAME;
+    }
+
     private final Persister persister;
     private final String namespace;
     private final Map<UUID, T> cache = new HashMap<>();
@@ -243,7 +251,7 @@ public class ConfigStore<T extends Configuration> implements ConfigTargetStore {
      * @return {@code Services/[namespace]/Configurations/[id]}, or {@code Configurations/[id]}
      */
     private static String getConfigPath(String namespace, UUID id) {
-        return PersisterUtils.join(getConfigsPath(namespace), id.toString());
+        return PersisterUtils.joinPaths(getConfigsPath(namespace), id.toString());
     }
 
     /**

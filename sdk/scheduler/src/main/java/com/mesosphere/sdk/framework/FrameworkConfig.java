@@ -14,6 +14,7 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 /**
  * This class encapsulates global Framework settings retrieved from the environment, or from a ServiceSpec in the case
@@ -235,5 +236,10 @@ public class FrameworkConfig {
                 .filter(r -> !r.equals(Constants.ANY_ROLE))
                 .map(r -> r + "/" + frameworkRole)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return ReflectionToStringBuilder.toString(this);
     }
 }

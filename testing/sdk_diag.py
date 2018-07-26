@@ -18,6 +18,7 @@ import retrying
 
 import sdk_cmd
 import sdk_install
+import sdk_package_registry
 import sdk_plan
 import sdk_tasks
 
@@ -108,7 +109,10 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     # Fetch all state from all currently-installed services.
     # We do this retrieval first in order to be closer to the actual test failure.
     # Services may still be installed when e.g. we're still in the middle of a test suite.
-    service_names = sdk_install.get_installed_service_names()
+    service_names = list(filter(
+        lambda name: name != sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME,
+        sdk_install.get_installed_service_names())
+    )
     if len(service_names) > 0:
         log.info('Fetching plans for {} services that are currently installed: {}'.format(
             len(service_names), ', '.join(service_names)))
@@ -169,7 +173,7 @@ def _dump_plans(item: pytest.Item, service_name: str):
 
 
 def _dump_threads(item: pytest.Item, service_name: str):
-    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads')
+    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads', timeout_seconds=5)
     out_path = _setup_artifact_path(item, 'threads_{}.out'.format(service_name.replace('/', '_')))
     log.info('=> Writing {} ({} bytes)'.format(out_path, len(threads)))
     with open(out_path, 'w') as f:

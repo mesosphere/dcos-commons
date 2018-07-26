@@ -115,18 +115,28 @@ def cluster_request(
         return fn()
 
 
-def svc_cli(package_name, service_name, service_cmd, json=False, print_output=True, return_stderr_in_stdout=False):
+def svc_cli(
+        package_name,
+        service_name,
+        service_cmd,
+        json=False,
+        print_output=True,
+        return_stderr_in_stdout=False,
+        check=False):
     full_cmd = '{} --name={} {}'.format(package_name, service_name, service_cmd)
 
     if not json:
-        return run_cli(full_cmd, print_output=print_output, return_stderr_in_stdout=return_stderr_in_stdout)
+        return run_cli(full_cmd,
+                       print_output=print_output,
+                       return_stderr_in_stdout=return_stderr_in_stdout,
+                       check=check)
     else:
         # TODO(elezar): We shouldn't use json=True and return_stderr_in_stdout=True together
         # assert not return_stderr_in_stdout, json=True and return_stderr_in_stdout=True should not be used together
-        return get_json_output(full_cmd, print_output=print_output)
+        return get_json_output(full_cmd, print_output=print_output, check=False)
 
 
-def run_raw_cli(cmd, print_output=True):
+def run_raw_cli(cmd, print_output=True, check=False):
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing return code, stdout, and stderr.
 
@@ -135,7 +145,7 @@ def run_raw_cli(cmd, print_output=True):
     """
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
-    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
     stdout = ""
     stderr = ""
 
@@ -154,9 +164,9 @@ def run_raw_cli(cmd, print_output=True):
     return result.returncode, stdout, stderr
 
 
-def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
+def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
 
-    _, stdout, stderr = run_raw_cli(cmd, print_output)
+    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
 
     if return_stderr_in_stdout:
         return stdout + "\n" + stderr
@@ -362,8 +372,8 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bo
     return resolved
 
 
-def get_json_output(cmd, print_output=True):
-    _, stdout, stderr = run_raw_cli(cmd, print_output)
+def get_json_output(cmd, print_output=True, check=False):
+    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
 
     if stderr:
         log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)

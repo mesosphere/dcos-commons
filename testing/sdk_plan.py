@@ -63,8 +63,8 @@ def start_plan(service_name, plan, parameters=None):
         json=parameters if parameters is not None else {})
 
 
-def wait_for_completed_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return wait_for_completed_plan(service_name, 'recovery', timeout_seconds)
+def wait_for_completed_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+    return wait_for_completed_plan(service_name, 'recovery', timeout_seconds, multiservice_name)
 
 
 def wait_for_in_progress_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
@@ -79,12 +79,12 @@ def wait_for_kicked_off_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
     return wait_for_kicked_off_plan(service_name, 'recovery', timeout_seconds)
 
 
-def wait_for_completed_deployment(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return wait_for_completed_plan(service_name, 'deploy', timeout_seconds)
+def wait_for_completed_deployment(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+    return wait_for_completed_plan(service_name, 'deploy', timeout_seconds, multiservice_name)
 
 
-def wait_for_completed_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS):
-    return wait_for_plan_status(service_name, plan_name, 'COMPLETE', timeout_seconds)
+def wait_for_completed_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+    return wait_for_plan_status(service_name, plan_name, 'COMPLETE', timeout_seconds, multiservice_name)
 
 
 def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=TIMEOUT_SECONDS):

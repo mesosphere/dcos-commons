@@ -1,15 +1,11 @@
 import logging
-import re
 
-import dcos.marathon
 import pytest
-import sdk_cmd
 import sdk_install
-import sdk_marathon
 import sdk_plan
 import sdk_tasks
 import sdk_utils
-import shakedown
+
 from tests import config
 
 
@@ -47,10 +43,9 @@ def test_once_task_does_not_restart_on_config_update():
     hello_once_id = sdk_tasks.get_completed_task_id(task_name)
     assert hello_once_id is not None
     log.info('hello_once_id: ' + str(hello_once_id))
+    config.bump_hello_cpus(foldered_name)
 
-    updated_cpus = config.bump_hello_cpus(foldered_name)
-
-    sdk_tasks.check_task_not_relaunched(foldered_name, task_name, hello_once_id)
+    sdk_tasks.check_task_not_relaunched(foldered_name, task_name, hello_once_id, with_completed=True)
     config.check_running(foldered_name)
 
 
@@ -62,8 +57,7 @@ def test_finish_task_restarts_on_config_update():
     world_finish_id = sdk_tasks.get_completed_task_id(task_name)
     assert world_finish_id is not None
     log.info('world_finish_id: ' + str(world_finish_id))
+    config.bump_world_cpus(foldered_name)
 
-    updated_cpus = config.bump_world_cpus(foldered_name)
-
-    sdk_tasks.check_task_relaunched(task_name, world_finish_id)
+    sdk_tasks.check_task_relaunched(task_name, world_finish_id, ensure_new_task_not_completed=False)
     config.check_running(foldered_name)

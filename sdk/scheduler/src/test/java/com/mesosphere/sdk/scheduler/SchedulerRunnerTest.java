@@ -38,7 +38,7 @@ public class SchedulerRunnerTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void checkSchemaVersion() throws Exception {
         // Set up a schema version which shouldn't work, to verify that the schema version is being checked:
         Persister persister = MemPersister.newBuilder().build();
@@ -47,13 +47,7 @@ public class SchedulerRunnerTest {
         when(mockSchedulerBuilder.getPersister()).thenReturn(persister);
         when(mockSchedulerBuilder.getSchedulerConfig()).thenReturn(mockSchedulerConfig);
         when(mockSchedulerBuilder.getServiceSpec()).thenReturn(mockServiceSpec);
-        SchedulerRunner runner = SchedulerRunner.fromSchedulerBuilder(mockSchedulerBuilder);
-        try {
-            runner.run();
-            Assert.fail("Expected exception due to bad schema version");
-        } catch (IllegalStateException e) {
-            Assert.assertEquals(
-                    "Storage schema version 123 is not supported by this software (expected: 1)", e.getMessage());
-        }
+        SchedulerRunner.fromSchedulerBuilder(mockSchedulerBuilder).run();
+        Assert.fail("Expected exception due to bad schema version");
     }
 }

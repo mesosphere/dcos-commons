@@ -82,12 +82,7 @@ public class CuratorUtils {
      */
     static void initServiceName(Persister persister, String serviceName) {
         try {
-            byte[] bytes = persister.get(SERVICE_NAME_NODE);
-            if (bytes.length == 0) {
-                throw new IllegalArgumentException(String.format(
-                        "Invalid data when fetching service name in '%s'", SERVICE_NAME_NODE));
-            }
-            String currentServiceName = new String(bytes, SERVICE_NAME_CHARSET);
+            String currentServiceName = getServiceName(persister);
             if (!currentServiceName.equals(serviceName)) {
                 throw new IllegalArgumentException(String.format(
                         "Collision between similar service names: Expected name '%s', but stored name is '%s'.",
@@ -106,5 +101,14 @@ public class CuratorUtils {
                 throw new IllegalStateException("Failed to fetch prior service name for validation", e);
             }
         }
+    }
+
+    public static String getServiceName(Persister persister) throws PersisterException {
+        byte[] bytes = persister.get(SERVICE_NAME_NODE);
+        if (bytes.length == 0) {
+            throw new IllegalArgumentException(String.format(
+                    "Invalid data when fetching service name in '%s'", SERVICE_NAME_NODE));
+        }
+        return new String(bytes, SERVICE_NAME_CHARSET);
     }
 }
