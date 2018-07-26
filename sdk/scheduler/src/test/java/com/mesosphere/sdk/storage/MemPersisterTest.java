@@ -234,6 +234,12 @@ public class MemPersisterTest {
         persister.recursiveCopy("/x", "/y");
     }
 
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfSourceEqualsDestination() throws Exception{
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        persister.recursiveCopy("/x", "/x");
+    }
+
     private static void testDeleteRootForPersister(Persister persister, String rootPathToDelete) throws Exception {
         persister.set("/a", VAL);
         persister.set("/a/1", VAL);

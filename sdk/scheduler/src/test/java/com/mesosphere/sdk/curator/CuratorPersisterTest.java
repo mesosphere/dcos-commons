@@ -593,6 +593,13 @@ public class CuratorPersisterTest {
         persister.recursiveCopy("/x", "/y");
     }
 
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfSourceEqualsDestination() throws Exception{
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        Persister persister = CuratorPersister.newBuilder(mockServiceSpec).disableLock().build();
+        persister.recursiveCopy("/x", "/x");
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void recursiveCopyShouldFailOnIllegalSource() throws Exception{
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
