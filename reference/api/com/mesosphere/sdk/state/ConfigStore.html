@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
-var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":10,"i2":9,"i3":10,"i4":9,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
+var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -169,7 +169,7 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
@@ -189,44 +189,52 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#getConfigurationsPathName--">getConfigurationsPathName</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#getTargetConfig--">getTargetConfig</a></span>()</code>
 <div class="block">Returns the current ID of the active target configuration, or throws an exception if none is
  set.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#getTargetIdPathName--">getTargetIdPathName</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#hasKey-java.util.UUID-">hasKey</a></span>(java.util.UUID&nbsp;id)</code>
 <div class="block">Indicates whether the provided key is present in the store.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;java.util.UUID&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#list--">list</a></span>()</code>
 <div class="block">Returns a list of all stored configuration UUIDs, or an empty list if none are found.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setConfigurationFactory-com.mesosphere.sdk.config.ConfigurationFactory-">setConfigurationFactory</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory)</code>
 <div class="block">Overrides the configuration factory which was provided in the constructor.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></span>(java.util.UUID&nbsp;id)</code>
 <div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.util.UUID</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#store-T-">store</a></span>(<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&nbsp;config)</code>
 <div class="block">Serializes the provided <a href="../../../../com/mesosphere/sdk/config/Configuration.html" title="interface in com.mesosphere.sdk.config"><code>Configuration</code></a> using its <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>
  function, writes it to storage, and returns the UUID which it was stored against.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#store-java.util.UUID-T-">store</a></span>(java.util.UUID&nbsp;id,
      <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&nbsp;config)</code>
@@ -300,6 +308,24 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getTargetIdPathName--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTargetIdPathName</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;getTargetIdPathName()</pre>
+</li>
+</ul>
+<a name="getConfigurationsPathName--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getConfigurationsPathName</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;getConfigurationsPathName()</pre>
+</li>
+</ul>
 <a name="setConfigurationFactory-com.mesosphere.sdk.config.ConfigurationFactory-">
 <!--   -->
 </a>

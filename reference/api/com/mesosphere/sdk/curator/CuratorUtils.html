@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -136,11 +136,15 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#getServiceName-com.mesosphere.sdk.storage.Persister-">getServiceName</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#getServiceRootPath-java.lang.String-">getServiceRootPath</a></span>(java.lang.String&nbsp;frameworkName)</code>
 <div class="block">Returns the root node to store all scheduler ZK data inside.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>(package private) static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#initServiceName-com.mesosphere.sdk.storage.Persister-java.lang.String-">initServiceName</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                java.lang.String&nbsp;serviceName)</code>
@@ -198,7 +202,7 @@ extends java.lang.Object</pre>
 <a name="initServiceName-com.mesosphere.sdk.storage.Persister-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>initServiceName</h4>
 <pre>static&nbsp;void&nbsp;initServiceName(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
@@ -222,6 +226,20 @@ extends java.lang.Object</pre>
 <dd><code>serviceName</code> - the service name to check for equality, or to write if no service name node exists</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#getServiceRootPath-java.lang.String-"><code>getServiceRootPath(String)</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="getServiceName-com.mesosphere.sdk.storage.Persister-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getServiceName</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;getServiceName(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
+                                       throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code></dd>
 </dl>
 </li>
 </ul>

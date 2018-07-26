@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/state/Serializer.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/state/SchemaVersionStore.html" target="_top">Frames</a></li>
@@ -72,7 +72,7 @@ var activeTableTab = "activeTableTab";
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
@@ -119,6 +119,28 @@ extends java.lang.Object</pre>
 <div class="summary">
 <ul class="blockList">
 <li class="blockList">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="nested.class.summary">
+<!--   -->
+</a>
+<h3>Nested Class Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Nested Class Summary table, listing nested classes, and an explanation">
+<caption><span>Nested Classes</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Modifier and Type</th>
+<th class="colLast" scope="col">Class and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><code>static class&nbsp;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a></span></code>
+<div class="block">Schema versions to be used by single-service scheduler <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerRunner.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerRunner</code></a>
+ and multi-service scheduler <a href="../../../../com/mesosphere/sdk/scheduler/multi/MultiServiceRunner.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>MultiServiceRunner</code></a>.</div>
+</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.summary">
@@ -153,13 +175,17 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html#check-int-">check</a></span>(int&nbsp;expectedVersion)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html#check-com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion-">check</a></span>(<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;expectedVersion)</code>
 <div class="block">Checks if the current stored version matches the <code>expectedVersion</code>.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>(package private) void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html#store-int-">store</a></span>(int&nbsp;version)</code>
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html#getOrSetVersion-com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion-">getOrSetVersion</a></span>(<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;expectedVersion)</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.html#store-com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion-">store</a></span>(<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;version)</code>
 <div class="block">Sets the schema version to the provided value.</div>
 </td>
 </tr>
@@ -204,13 +230,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="check-int-">
+<a name="check-com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>check</h4>
-<pre>public&nbsp;void&nbsp;check(int&nbsp;expectedVersion)
+<pre>public&nbsp;void&nbsp;check(<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;expectedVersion)
            throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Checks if the current stored version matches the <code>expectedVersion</code>. If no schema version is present, then
  the <code>expectedVersion</code> is written to the store automatically for future checks.</div>
@@ -224,14 +250,28 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="store-int-">
+<a name="getOrSetVersion-com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getOrSetVersion</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;getOrSetVersion(<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;expectedVersion)
+                                                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="store-com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>store</h4>
-<pre>void&nbsp;store(int&nbsp;version)
-    throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
+<pre>public&nbsp;void&nbsp;store(<a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a>&nbsp;version)
+           throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Sets the schema version to the provided value. In practice this should only be called if no existing schema
  version is present, or if a migration to a new schema version just finished.</div>
 <dl>
@@ -270,7 +310,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/state/Serializer.html" title="interface in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/state/SchemaVersionStore.html" target="_top">Frames</a></li>
@@ -294,7 +334,7 @@ extends java.lang.Object</pre>
 <div>
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>

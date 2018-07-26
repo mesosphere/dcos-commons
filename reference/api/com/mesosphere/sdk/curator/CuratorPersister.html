@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":9,"i6":10,"i7":10,"i8":10,"i9":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":9,"i5":9,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -213,18 +213,25 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#recursiveCopy-java.lang.String-java.lang.String-">recursiveCopy</a></span>(java.lang.String&nbsp;unprefixedSrc,
+             java.lang.String&nbsp;unprefixedDest)</code>
+<div class="block">Recursively copies the node and its contents.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></span>(java.lang.String&nbsp;unprefixedPath)</code>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#recursiveDeleteMany-java.util.Collection-">recursiveDeleteMany</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;unprefixedPaths)</code>
 <div class="block">Atomically deletes many values from storage at once, with each path entry being treated as a call to
  <a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a> for those paths.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;unprefixedPath,
    byte[]&nbsp;bytes)</code>
@@ -232,7 +239,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;unprefixedPathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
@@ -340,7 +347,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a>, indicating that these are stub parent entries to other nodes.
 
  <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
- input using <a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#join-java.lang.String-java.lang.String-"><code>PersisterUtils.join(String, String)</code></a>.
+ input using <code>PersisterUtils#join(String, String)</code>.
 
  <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
 <dl>
@@ -348,26 +355,6 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">getChildren</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the requested path doesn't exist, or for other access errors</dd>
-</dl>
-</li>
-</ul>
-<a name="recursiveDelete-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>recursiveDelete</h4>
-<pre>public&nbsp;void&nbsp;recursiveDelete(java.lang.String&nbsp;unprefixedPath)
-                     throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">Persister</a></code></span></div>
-<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
-
- <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the data at the requested path didn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
@@ -391,6 +378,27 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 </dl>
 </li>
 </ul>
+<a name="getMany-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getMany</h4>
+<pre>public&nbsp;java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;getMany(java.util.Collection&lt;java.lang.String&gt;&nbsp;unprefixedPaths)
+                                               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getMany-java.util.Collection-">Persister</a></code></span></div>
+<div class="block">Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
+ missing will be set to <code>null</code> in the returned <code>Map</code>.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getMany-java.util.Collection-">getMany</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a></dd>
+</dl>
+</li>
+</ul>
 <a name="setMany-java.util.Map-">
 <!--   -->
 </a>
@@ -408,6 +416,53 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error, in which case no changes should have been made</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-"><code>Persister.set(String, byte[])</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="recursiveCopy-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recursiveCopy</h4>
+<pre>public&nbsp;void&nbsp;recursiveCopy(java.lang.String&nbsp;unprefixedSrc,
+                          java.lang.String&nbsp;unprefixedDest)
+                   throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveCopy-java.lang.String-java.lang.String-">Persister</a></code></span></div>
+<div class="block">Recursively copies the node and its contents. This operation has two steps:
+  1. Walk all the nodes gathering data.
+  2. Commit the transaction to write new nodes.
+ After (1) is done and before the completion of (2) there may be updates to nodes.
+ Currently, this is used only for migrating the data which occurs during bootstrap and there should not be any
+ conflicts. Be careful when using this method for other runtime operations.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveCopy-java.lang.String-java.lang.String-">recursiveCopy</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>unprefixedSrc</code> - The source path of the node to copy from.</dd>
+<dd><code>unprefixedDest</code> - The destination path of the node to copy to.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the source node is not present or the destination node is already present</dd>
+</dl>
+</li>
+</ul>
+<a name="recursiveDelete-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recursiveDelete</h4>
+<pre>public&nbsp;void&nbsp;recursiveDelete(java.lang.String&nbsp;unprefixedPath)
+                     throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">Persister</a></code></span></div>
+<div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
+
+ <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the data at the requested path didn't exist, or for other access errors</dd>
 </dl>
 </li>
 </ul>
@@ -429,27 +484,6 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error, in which case no changes should have been made</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>Persister.recursiveDelete(String)</code></a></dd>
-</dl>
-</li>
-</ul>
-<a name="getMany-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getMany</h4>
-<pre>public&nbsp;java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;getMany(java.util.Collection&lt;java.lang.String&gt;&nbsp;unprefixedPaths)
-                                               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getMany-java.util.Collection-">Persister</a></code></span></div>
-<div class="block">Atomically reads many values from storage at once, returning a mapping of paths to values. Values which are
- missing will be set to <code>null</code> in the returned <code>Map</code>.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getMany-java.util.Collection-">getMany</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a></dd>
 </dl>
 </li>
 </ul>

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6};
+var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -155,18 +155,25 @@ var activeTableTab = "activeTableTab";
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveCopy-java.lang.String-java.lang.String-">recursiveCopy</a></span>(java.lang.String&nbsp;srcPath,
+             java.lang.String&nbsp;destPath)</code>
+<div class="block">Recursively copies the node and its contents.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">recursiveDelete</a></span>(java.lang.String&nbsp;path)</code>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDeleteMany-java.util.Collection-">recursiveDeleteMany</a></span>(java.util.Collection&lt;java.lang.String&gt;&nbsp;paths)</code>
 <div class="block">Atomically deletes many values from storage at once, with each path entry being treated as a call to
  <a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-"><code>recursiveDelete(String)</code></a> for those paths.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-">set</a></span>(java.lang.String&nbsp;path,
    byte[]&nbsp;bytes)</code>
@@ -174,7 +181,7 @@ var activeTableTab = "activeTableTab";
  path if it doesn't exist yet.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/Persister.html#setMany-java.util.Map-">setMany</a></span>(java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;pathBytesMap)</code>
 <div class="block">Atomically writes many values to storage at once.</div>
@@ -223,7 +230,7 @@ var activeTableTab = "activeTableTab";
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>get(String)</code></a>, indicating that these are stub parent entries to other nodes.
 
  <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
- input using <a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#join-java.lang.String-java.lang.String-"><code>PersisterUtils.join(String, String)</code></a>.
+ input using <code>PersisterUtils#join(String, String)</code>.
 
  <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
 <dl>
@@ -281,6 +288,30 @@ var activeTableTab = "activeTableTab";
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - in the event of an access error, in which case no changes should have been made</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/storage/Persister.html#set-java.lang.String-byte:A-"><code>set(String, byte[])</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="recursiveCopy-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>recursiveCopy</h4>
+<pre>void&nbsp;recursiveCopy(java.lang.String&nbsp;srcPath,
+                   java.lang.String&nbsp;destPath)
+            throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
+<div class="block">Recursively copies the node and its contents. This operation has two steps:
+  1. Walk all the nodes gathering data.
+  2. Commit the transaction to write new nodes.
+ After (1) is done and before the completion of (2) there may be updates to nodes.
+ Currently, this is used only for migrating the data which occurs during bootstrap and there should not be any
+ conflicts. Be careful when using this method for other runtime operations.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>srcPath</code> - The source path of the node to copy from.</dd>
+<dd><code>destPath</code> - The destination path of the node to copy to.</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the source node is not present or the destination node is already present</dd>
 </dl>
 </li>
 </ul>

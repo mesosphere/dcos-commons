@@ -128,12 +128,14 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-java.util.Collection-">HealthResource</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-java.util.Collection-com.mesosphere.sdk.scheduler.SchedulerConfig-">HealthResource</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers,
+              <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Creates a new instance which determines health based on the provided plans.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">HealthResource</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator)</code>
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-com.mesosphere.sdk.scheduler.SchedulerConfig-">HealthResource</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
+              <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</code>
 <div class="block">Creates a new instance which determines health based on the deploy and recovery plans in the provided plan
  coordinator.</div>
 </td>
@@ -187,24 +189,26 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="HealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">
+<a name="HealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>HealthResource</h4>
-<pre>public&nbsp;HealthResource(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator)</pre>
+<pre>public&nbsp;HealthResource(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator,
+                      <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Creates a new instance which determines health based on the deploy and recovery plans in the provided plan
  coordinator.</div>
 </li>
 </ul>
-<a name="HealthResource-java.util.Collection-">
+<a name="HealthResource-java.util.Collection-com.mesosphere.sdk.scheduler.SchedulerConfig-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>HealthResource</h4>
-<pre>public&nbsp;HealthResource(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers)</pre>
+<pre>public&nbsp;HealthResource(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;planManagers,
+                      <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 <div class="block">Creates a new instance which determines health based on the provided plans.</div>
 </li>
 </ul>
