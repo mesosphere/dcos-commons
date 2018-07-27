@@ -4,6 +4,7 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import collections
 import functools
 import logging
 import operator
@@ -57,6 +58,10 @@ def get_task_id_prefix(service_name, task_name):
 def get_deslashed_service_name(service_name):
     # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'.
     return service_name.lstrip('/').replace('/', '__')
+
+
+def get_role(service_name):
+    return '{}-role'.format(get_deslashed_service_name(service_name))
 
 
 def get_zk_path(service_name):
@@ -149,3 +154,17 @@ def get_in(keys, coll, default=None):
         return functools.reduce(operator.getitem, keys, coll)
     except (KeyError, IndexError, TypeError):
         return default
+
+
+def merge_dictionaries(dict1, dict2):
+    if (not isinstance(dict2, dict)):
+        return dict1
+    ret = {}
+    for k, v in dict1.items():
+        ret[k] = v
+    for k, v in dict2.items():
+        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
+            ret[k] = merge_dictionaries(dict1[k], dict2[k])
+        else:
+            ret[k] = dict2[k]
+    return ret

@@ -5,7 +5,6 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
-import collections
 import logging
 import time
 
@@ -91,12 +90,12 @@ def install(
 
     # If the package is already installed at this point, fail immediately.
     if sdk_marathon.app_exists(service_name):
-        raise dcos.errors.DCOSException('Service is already installed: {}'.format(service_name))
+        raise Exception('Service is already installed: {}'.format(service_name))
 
     if insert_strict_options and sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
         # see also: sdk_security.py
-        options = merge_dictionaries({
+        options = sdk_utils.merge_dictionaries({
             'service': {
                 'service_account': 'service-acct',
                 'principal': 'service-acct',
@@ -133,52 +132,68 @@ def install(
     _installed_service_names.add(service_name)
 
 
-def run_janitor(service_name, role, service_account, znode):
-    if role is None:
-        role = sdk_utils.get_deslashed_service_name(service_name) + '-role'
-    if service_account is None:
-        service_account = service_name + '-principal'
-    if znode is None:
-        znode = sdk_utils.get_zk_path(service_name)
-
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=5000,
+                retry_on_exception=lambda e: isinstance(e, Exception))
+def _retried_run_janitor(service_name):
     auth_token = sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()
 
     cmd_list = ["docker", "run", "mesosphere/janitor", "/janitor.py",
-                "-r", role,
-                "-p", service_account,
-                "-z", znode,
+                "-r", sdk_utils.get_role(service_name),
+                "-p", service_name + '-principal',
+                "-z", sdk_utils.get_zk_path(service_name),
                 "--auth_token={}".format(auth_token)]
-    cmd = " ".join(cmd_list)
 
-    sdk_cmd.master_ssh(cmd)
-
-
-@retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=5000,
-                retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_run_janitor(*args, **kwargs):
-    run_janitor(*args, **kwargs)
+    sdk_cmd.master_ssh(" ".join(cmd_list))
 
 
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_uninstall_package_and_wait(*args, **kwargs):
+def _retried_uninstall_package_and_wait(*args, **kwargs):
     shakedown.uninstall_package_and_wait(*args, **kwargs)
+
+
+def _verify_completed_uninstall(service_name):
+    state_summary = sdk_cmd.cluster_request('GET', '/mesos/state-summary').json()
+
+    # There should be no orphaned resources in the state summary (DCOS-30314)
+    orphaned_resources = 0
+    service_role = sdk_utils.get_role(service_name)
+    for agent in state_summary['slaves']:
+        # resources should be grouped by role. check for any resources in our expected role:
+        matching_reserved_resources = agent['reserved_resources'].get(service_role)
+        if matching_reserved_resources:
+            log.error('Orphaned resources on agent {}/{}: {}'.format(
+                agent['id'], agent['hostname'], matching_reserved_resources))
+            orphaned_resources += len(matching_reserved_resources)
+    if orphaned_resources:
+        log.error('{} orphaned resources after uninstall of {}'.format(orphaned_resources, service_name))
+        log.error(state_summary)
+        raise Exception('Found {} orphaned resources after uninstall of {}'.format(
+            orphaned_resources, service_name))
+    log.info('No orphaned resources for role {} were found'.format(service_role))
+
+    # There should be no framework entry for this service in the state summary (DCOS-29474)
+    orphaned_frameworks = [fwk for fwk in state_summary['frameworks'] if fwk['name'] == service_name]
+    if orphaned_frameworks:
+        log.error('{} orphaned frameworks named {} after uninstall of {}: {}'.format(
+            len(orphaned_frameworks), service_name, service_name, orphaned_frameworks))
+        log.error(state_summary)
+        raise Exception('Found {} orphaned frameworks named {} after uninstall of {}: {}'.format(
+            len(orphaned_frameworks), service_name, service_name, orphaned_frameworks))
+    log.info('No orphaned frameworks for service {} were found'.format(service_name))
 
 
 def uninstall(
         package_name,
-        service_name,
-        role=None,
-        service_account=None,
-        zk=None):
+        service_name):
     start = time.time()
 
     log.info('Uninstalling {}'.format(service_name))
 
     try:
-        retried_uninstall_package_and_wait(package_name, service_name=service_name)
+        _retried_uninstall_package_and_wait(package_name, service_name=service_name)
     except Exception:
         log.exception('Got exception when uninstalling {}'.format(service_name))
         raise
@@ -189,7 +204,7 @@ def uninstall(
         if sdk_utils.dcos_version_less_than('1.10'):
             # 1.9 and earlier: Run janitor to unreserve resources
             log.info('Janitoring {}'.format(service_name))
-            retried_run_janitor(service_name, role, service_account, zk)
+            _retried_run_janitor(service_name)
         else:
             # 1.10 and later: Wait for uninstall scheduler to finish and be removed by Cosmos
             log.info('Waiting for Marathon app to be removed {}'.format(service_name))
@@ -208,29 +223,9 @@ def uninstall(
             shakedown.pretty_duration(finish - cleanup_start),
             shakedown.pretty_duration(finish - start)))
 
-    state_summary = sdk_cmd.cluster_request('GET', '/mesos/state-summary').json()
-
-    # Sanity check: There should be no dangling resources in the state summary (DCOS-30314)
-    found_dangling_resources = False
-    service_role = '{}-role'.format(service_name)
-    for agent in state_summary['slaves']:
-        # resources should be grouped by role. check for any resources in our expected role:
-        matching_reserved_resources = agent['reserved_resources'].get(service_role, {})
-        if len(matching_reserved_resources) > 0:
-            log.error('Dangling resources on agent {}/{}: {}'.format(
-                agent['id'], agent['hostname'], matching_reserved_resources))
-            found_dangling_resources = True
-    if found_dangling_resources:
-        log.error(state_summary)
-        raise dcos.errors.DCOSException('Found dangling resources after uninstall of {}'.format(service_name))
-    log.info('No dangling resources for role {} were found'.format(service_role))
-
-    # Sanity check: There should be no framework entry for this service in the state summary (DCOS-29474)
-    dangling_frameworks = [fwk for fwk in state_summary['frameworks'] if fwk['name'] == service_name]
-    if len(dangling_frameworks) > 0:
-        log.error(state_summary)
-        raise dcos.errors.DCOSException('Found dangling frameworks after uninstall of {}'.format(service_name))
-    log.info('No dangling frameworks for service {} were found'.format(service_name))
+    # Sanity check: Verify that all resources and the framework have been successfully cleaned up,
+    # and throw an exception if anything is left over (uninstall bug?)
+    _verify_completed_uninstall(service_name)
 
     # Finally, remove the service from the installed list (used by sdk_diag)
     global _installed_service_names
@@ -238,17 +233,3 @@ def uninstall(
         _installed_service_names.remove(service_name)
     except KeyError:
         pass  # Expected when tests preemptively uninstall at start of test
-
-
-def merge_dictionaries(dict1, dict2):
-    if (not isinstance(dict2, dict)):
-        return dict1
-    ret = {}
-    for k, v in dict1.items():
-        ret[k] = v
-    for k, v in dict2.items():
-        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
-            ret[k] = merge_dictionaries(dict1[k], dict2[k])
-        else:
-            ret[k] = dict2[k]
-    return ret
