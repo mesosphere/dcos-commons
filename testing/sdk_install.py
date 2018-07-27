@@ -38,8 +38,7 @@ def get_installed_service_names() -> set:
 
 
 @retrying.retry(
-    stop_max_attempt_number=3,
-    retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException),
+    stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException)
 )
 def _retried_install_impl(
     package_name,
@@ -66,9 +65,7 @@ def _retried_install_impl(
     # Trigger package install, but only if it's not already installed.
     # We expect upstream to have confirmed that it wasn't already installed beforehand.
     if sdk_marathon.app_exists(service_name):
-        log.info(
-            "Marathon app={} exists, skipping package install call".format(service_name)
-        )
+        log.info("Marathon app={} exists, skipping package install call".format(service_name))
     else:
         package_manager.install_app(pkg, options)
 
@@ -102,9 +99,7 @@ def install(
 
     # If the package is already installed at this point, fail immediately.
     if sdk_marathon.app_exists(service_name):
-        raise dcos.errors.DCOSException(
-            "Service is already installed: {}".format(service_name)
-        )
+        raise dcos.errors.DCOSException("Service is already installed: {}".format(service_name))
 
     if insert_strict_options and sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
@@ -164,9 +159,7 @@ def run_janitor(service_name, role, service_account, znode):
     if znode is None:
         znode = sdk_utils.get_zk_path(service_name)
 
-    auth_token = sdk_cmd.run_cli(
-        "config show core.dcos_acs_token", print_output=False
-    ).strip()
+    auth_token = sdk_cmd.run_cli("config show core.dcos_acs_token", print_output=False).strip()
 
     cmd_list = [
         "docker",
