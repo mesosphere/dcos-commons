@@ -193,23 +193,15 @@ public class DefaultSchedulerTest {
     private DefaultScheduler defaultScheduler;
 
     @BeforeClass
-    public static void beforeAll() {
+    public static void beforeAll() throws InterruptedException {
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
-        try {
-            TaskKiller.reset(false);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        TaskKiller.reset(false);
     }
 
     @AfterClass
-    public static void afterAll() {
+    public static void afterAll() throws InterruptedException {
         // Re-enable TaskKiller thread
-        try {
-            TaskKiller.reset(false);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        TaskKiller.reset(true);
     }
 
     @Before
