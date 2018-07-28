@@ -3,12 +3,11 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
-import sdk_marathon
 import sdk_metrics
 import sdk_plan
 import sdk_upgrade
-import shakedown
 from tests import config
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -24,7 +23,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name()} })
+            additional_options={"service": {"name": config.get_foldered_service_name()}})
 
         yield  # let the test session execute
     finally:
@@ -36,12 +35,6 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
-def test_service_health():
-    assert shakedown.service_healthy(config.get_foldered_service_name())
-
-
-@pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = sdk_cmd.svc_cli(
@@ -49,7 +42,7 @@ def test_endpoints():
         'endpoints native-client', json=True)
     assert endpoints['dns'][0] == sdk_hosts.autoip_host(
         config.get_foldered_service_name(), 'node-0-server', 9042)
-    assert not 'vip' in endpoints
+    assert 'vip' not in endpoints
 
 
 @pytest.mark.sanity
@@ -93,13 +86,14 @@ def test_metrics():
         "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory"
     ]
 
-    def expected_metrics_exist(emitted_metrics):
+    def expected_metrics_callback(emitted_metrics):
         return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
+        "node-0",
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT,
-        expected_metrics_exist
+        expected_metrics_callback
     )

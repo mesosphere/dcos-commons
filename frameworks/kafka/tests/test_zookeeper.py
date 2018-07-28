@@ -3,6 +3,7 @@ import retrying
 
 import sdk_cmd
 import sdk_install
+import sdk_networks
 import sdk_plan
 import sdk_security
 import sdk_utils
@@ -15,12 +16,10 @@ pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is b
 
 @pytest.fixture(scope='module', autouse=True)
 def zookeeper_server(configure_security):
-    service_options = {
-        "service": {
-            "name": config.ZOOKEEPER_SERVICE_NAME,
-            "virtual_network_enabled": True
-        }
-    }
+    service_options = sdk_install.merge_dictionaries(
+        sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
+        {'service': {'name': config.ZOOKEEPER_SERVICE_NAME}}
+    )
 
     zk_account = "test-zookeeper-service-account"
     zk_secret = "test-zookeeper-secret"

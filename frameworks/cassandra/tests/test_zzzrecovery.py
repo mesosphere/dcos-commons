@@ -4,6 +4,7 @@ import logging
 import pytest
 import re
 
+import sdk_agents
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -87,7 +88,7 @@ def test_shutdown_host():
     replace_pod_name = replace_task.name[:-len('-server')]
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
-    sdk_cmd.shutdown_agent(replace_task.host)
+    sdk_agents.shutdown_agent(replace_task.host)
 
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
@@ -105,4 +106,4 @@ def test_shutdown_host():
         if task.name == replace_task.name and task.id != replace_task.id][0]
     log.info('Checking that the original pod has moved to a new agent:\n'
              'old={}\nnew={}'.format(replace_task, new_task))
-    assert replace_task.agent != new_task.agent
+    assert replace_task.agent_id != new_task.agent_id

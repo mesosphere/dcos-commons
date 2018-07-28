@@ -20,7 +20,7 @@ log_levels = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL', 'EXCEPTION')
 assert log_level in log_levels, \
     '{} is not a valid log level. Use one of: {}'.format(log_level, ', '.join(log_levels))
 # write everything to stdout due to the following circumstances:
-# - shakedown uses print() aka stdout
+# - other libraries may use print()/stdout directly
 # - teamcity splits out stdout vs stderr into separate outputs, we'd want them combined
 # Erase all existing root handlers to ensure that the following basicConfig call isn't ignored as a default handler
 #  may have been configured automatically via ANY interaction with the logging lib

@@ -10,12 +10,13 @@ import os
 import logging
 import retrying
 import subprocess
-import traceback
 import urllib.parse
 
 import dcos.errors
 import dcos.http
-import shakedown
+import dcos.mesos
+
+import sdk_ssh
 import sdk_utils
 
 
@@ -70,7 +71,7 @@ def cluster_request(
     :rtype: requests.Response
     """
 
-    url = shakedown.dcos_url_path(cluster_path)
+    url = urllib.parse.urljoin(sdk_utils.dcos_url(), cluster_path)
     cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
     log.info('(HTTP {}) {}'.format(method.upper(), cluster_path))
 
@@ -230,58 +231,13 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
     return True
 
 
-def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res)
-    def fn():
-        ok, stdout = agent_ssh(agent_ip, 'sudo shutdown -h +1')
-        log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(agent_ip, ok, stdout))
-        return ok
-    # Might not be able to connect to the agent on first try so we repeat until we can
-    fn()
-
-    # We use a manual check to detect that the host is down. Mesos takes ~5-20 minutes to detect a
-    # dead agent, so relying on Mesos to tell us this isn't really feasible for a test.
-
-    log.info('Waiting for agent {} to appear inactive in /mesos/slaves'.format(agent_ip))
-
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=5 * 60 * 1000,
-        retry_on_result=lambda res: res)
-    def wait_for_unresponsive_agent():
-        try:
-            response = cluster_request('GET', '/mesos/slaves', retry=False).json()
-            agent_statuses = {}
-            for agent in response['slaves']:
-                agent_statuses[agent['hostname']] = agent['active']
-            log.info('Wait for {}=False: {}'.format(agent_ip, agent_statuses))
-            # If no agents were found, try again
-            if len(agent_statuses) == 0:
-                return True
-            # If other agents are listed, but not OUR agent, assume that OUR agent is now inactive.
-            # (Shouldn't happen, but just in case...)
-            return agent_statuses.get(agent_ip, False)
-        except Exception as e:
-            log.info(e)
-            log.info(traceback.format_exc())
-            # Try again. Wait for the ip to be definitively inactive.
-            return True
-
-    wait_for_unresponsive_agent()
-
-    log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
-
-
 def master_ssh(cmd: str) -> tuple:
     '''
     Runs the provided command on the cluster master, using ssh.
     Returns a boolean (==success) and a string (output)
     '''
     log.info('(SSH:master) {}'.format(cmd))
-    success, output = shakedown.run_command_on_master(cmd)
+    success, output = sdk_ssh._run_command(dcos.mesos.DCOSClient().metadata().get('PUBLIC_IPV4'), cmd)
     log.info('Output (success={}):\n{}'.format(success, output))
     return success, output
 
@@ -292,7 +248,7 @@ def agent_ssh(agent_host: str, cmd: str) -> tuple:
     Returns a boolean (==success) and a string (output)
     '''
     log.info('(SSH:agent={}) {}'.format(agent_host, cmd))
-    success, output = shakedown.run_command_on_agent(agent_host, cmd)
+    success, output = sdk_ssh._run_command(agent_host, cmd)
     log.info('Output (success={}):\n{}'.format(success, output))
     return success, output
 
@@ -346,7 +302,7 @@ def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
     return run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
 
 
-def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bootstrap') -> bool:
+def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = './bootstrap') -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """

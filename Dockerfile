@@ -39,7 +39,7 @@ RUN pip3 install awscli
 # Install the testing dependencies
 COPY test_requirements.txt test_requirements.txt
 RUN pip3 install --upgrade -r test_requirements.txt
-# shakedown and dcos-cli require this to output cleanly
+# dcos-cli requires this to output cleanly
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 # use an arbitrary path for temporary build artifacts
 ENV GOPATH=/go-tmp

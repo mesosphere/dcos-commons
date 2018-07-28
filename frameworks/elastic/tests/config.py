@@ -2,13 +2,13 @@ import json
 import logging
 
 import retrying
-import shakedown
 
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -61,18 +61,18 @@ DEFAULT_SETTINGS_MAPPINGS = {
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=KIBANA_DEFAULT_TIMEOUT*1000,
+    stop_max_delay=KIBANA_DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def check_kibana_adminrouter_integration(path):
     curl_cmd = "curl -I -k -H \"Authorization: token={}\" -s {}/{}".format(
-        shakedown.dcos_acs_token(), shakedown.dcos_url().rstrip('/'), path.lstrip('/'))
+        sdk_utils.dcos_acs_token(), sdk_utils.dcos_url().rstrip('/'), path.lstrip('/'))
     exit_ok, output = sdk_cmd.master_ssh(curl_cmd)
     return exit_ok and output and "HTTP/1.1 200" in output
 
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
@@ -81,7 +81,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
@@ -95,11 +95,11 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     result = _curl_query(service_name, "GET", "_cluster/health")
-    if not result or not "number_of_nodes" in result:
+    if not result or "number_of_nodes" not in result:
         log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
         return False
     node_count = result["number_of_nodes"]
@@ -109,7 +109,7 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
@@ -126,7 +126,7 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
@@ -135,7 +135,7 @@ def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME)
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
@@ -151,7 +151,7 @@ def _get_hosts_with_plugin(service_name, plugin_name):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=120*1000,
+    stop_max_delay=120 * 1000,
     retry_on_result=lambda res: not res)
 def get_elasticsearch_master(service_name=SERVICE_NAME):
     output = _curl_query(service_name, "GET", "_cat/master", return_json=False)
@@ -162,13 +162,13 @@ def get_elasticsearch_master(service_name=SERVICE_NAME):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=120*1000,
+    stop_max_delay=120 * 1000,
     retry_on_result=lambda res: not res)
 def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     query = {
-        "query": { "match": { "name": "*" } },
-        "vertices": [ { "field": "name" } ],
-        "connections": { "vertices": [ { "field": "role" } ] }
+        "query": {"match": {"name": "*"}},
+        "vertices": [{"field": "name"}],
+        "connections": {"vertices": [{"field": "role"}]}
     }
 
     # The graph endpoint doesn't exist without X-Pack installed.
@@ -213,15 +213,15 @@ def update_app(service_name, options, expected_task_count):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=120*1000,
+    stop_max_delay=120 * 1000,
     retry_on_result=lambda res: not res)
 def verify_xpack_license(service_name=SERVICE_NAME):
     xpack_license = _curl_query(service_name, "GET", '_xpack/license')
-    if not "license" in xpack_license:
+    if "license" not in xpack_license:
         log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
-        return False # retry
+        return False  # retry
     assert xpack_license["license"]["status"] == "active"
-    return True # done
+    return True  # done
 
 
 def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
@@ -257,7 +257,7 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
 # Upstream callers may want to have their own retry loop against the content of the returned data (e.g. expected field is missing).
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=120*1000,
+    stop_max_delay=120 * 1000,
     retry_on_result=lambda res: res is None)
 def _curl_query(service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True):
     protocol = 'https' if https else 'http'
@@ -280,7 +280,7 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
 
     try:
         return json.loads(stdout)
-    except:
+    except Exception:
         log.warning(build_errmsg("Failed to parse stdout as JSON, retrying or giving up."))
         return None
 

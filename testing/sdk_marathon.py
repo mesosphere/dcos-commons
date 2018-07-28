@@ -89,7 +89,13 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
 
 
 def is_app_running(app: dict) -> bool:
-    return (app.get('tasksStaged', 0) == 0 and app.get('tasksUnhealthy', 0) == 0 and app.get('tasksRunning', 0) > 0)
+    return app.get('tasksStaged', 0) == 0 \
+        and app.get('tasksUnhealthy', 0) == 0 \
+        and app.get('tasksRunning', 0) > 0
+
+
+def is_app_healthy(app: dict) -> bool:
+    return is_app_running(app) and app.get('tasksHealthy', 0) > 0
 
 
 def wait_for_app_running(app_name: str, timeout: int) -> None:
@@ -97,12 +103,19 @@ def wait_for_app_running(app_name: str, timeout: int) -> None:
                     wait_fixed=5000,
                     retry_on_result=lambda result: not result)
     def _wait_for_app_running(app_name: str) -> bool:
-        cmd = 'marathon app show {}'.format(app_name)
-        log.info('Running %s', cmd)
-        app = sdk_cmd.get_json_output(cmd)
-        return is_app_running(app)
+        return is_app_running(sdk_cmd.get_json_output('marathon app show {}'.format(app_name)))
 
     _wait_for_app_running(app_name)
+
+
+def wait_for_app_healthy(app_name: str, timeout: int) -> None:
+    @retrying.retry(stop_max_delay=timeout,
+                    wait_fixed=5000,
+                    retry_on_result=lambda result: not result)
+    def _wait_for_app_healthy(app_name: str) -> bool:
+        return is_app_healthy(sdk_cmd.get_json_output('marathon app show {}'.format(app_name)))
+
+    _wait_for_app_healthy(app_name)
 
 
 def wait_for_deployment_and_app_running(app_name: str, timeout: int) -> None:

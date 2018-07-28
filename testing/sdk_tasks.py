@@ -1,4 +1,4 @@
-'''Utilities relating to running commands and HTTP requests
+'''Utilities relating to lookup and manipulation of mesos tasks in a service or across the cluster.
 
 ************************************************************************
 FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
@@ -8,8 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 import logging
 import retrying
 
-import shakedown
-import dcos.errors
+import sdk_agents
 import sdk_cmd
 import sdk_package_registry
 import sdk_plan
@@ -33,18 +32,14 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
         stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        try:
-            tasks = shakedown.get_service_tasks(service_name)
-        except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get tasks for service {}'.format(service_name))
-            tasks = []
+        tasks = get_service_tasks(service_name)
         running_task_names = []
         other_tasks = []
         for t in tasks:
-            if t['state'] == 'TASK_RUNNING':
-                running_task_names.append(t['name'])
+            if t.state == 'TASK_RUNNING':
+                running_task_names.append(t.name)
             else:
-                other_tasks.append('{}={}'.format(t['name'], t['state']))
+                other_tasks.append('{}={}'.format(t.name, t.state))
         log.info('Waiting for {} running tasks, got {} running/{} total:\n- running: {}\n- other: {}'.format(
             expected_task_count,
             len(running_task_names), len(tasks),
@@ -58,77 +53,113 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
     fn()
 
 
-def get_task_ids(service_name, task_prefix):
-    tasks = shakedown.get_service_tasks(service_name)
-    matching_tasks = [t for t in tasks if t['name'].startswith(task_prefix)]
-    return [t['id'] for t in matching_tasks]
-
-
 class Task(object):
     '''Entry value returned by get_summary()'''
 
     @staticmethod
-    def parse(task_entry, agents):
+    def parse(task_entry, agentid_to_hostname):
         agent_id = task_entry['slave_id']
-        matching_agent_hosts = [agent['hostname'] for agent in agents['slaves'] if agent['id'] == agent_id]
-        if len(matching_agent_hosts) != 1:
-            host = "UNKNOWN:" + agent_id
+        matching_hostname = agentid_to_hostname.get(agent_id)
+        if matching_hostname:
+            host = matching_hostname
         else:
-            host = matching_agent_hosts[0]
+            host = "UNKNOWN:" + agent_id
         return Task(
             task_entry['name'],
             host,
             task_entry['state'],
             task_entry['id'],
+            task_entry['executor_id'],
             task_entry['framework_id'],
-            agent_id)
+            agent_id,
+            task_entry['resources'])
 
-    def __init__(self, name, host, state, task_id, framework_id, agent):
+    def __init__(self, name, host, state, task_id, executor_id, framework_id, agent_id, resources):
         self.name = name
         self.host = host
-        self.state = state
+        self.state = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
+        self.is_completed = state in COMPLETED_TASK_STATES
         self.id = task_id
+        self.executor_id = executor_id
         self.framework_id = framework_id
-        self.agent = agent
+        self.agent_id = agent_id
+        self.resources = resources  # 'cpus', 'disk', 'mem', 'gpus' => int
 
     def __repr__(self):
-        return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent={}]'.format(
-            self.name, self.state, self.id, self.host, self.framework_id, self.agent)
+        return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent_id={}]'.format(
+            self.name, self.state, self.id, self.host, self.framework_id, self.agent_id)
 
 
-def get_status_history(task_name: str) -> list:
-    '''Returns a list of task status values (of the form 'TASK_STARTING', 'TASK_KILLED', etc) for a given task.
-    The returned values are ordered chronologically from first to last.
+def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
+    '''Returns a list of task status values (of the form 'TASK_STARTING', 'TASK_KILLED', etc) for
+    all instances of a given task. The returned values are ordered chronologically from first to
+    last.
+
+    If with_completed_tasks is set to False, then the statuses will only be for tasks which are
+    currently running. Any statuses from any completed/failed tasks (e.g. from prior tests) will be
+    omitted from the returned history.
     '''
     cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
     statuses = []
     for cluster_task in cluster_tasks['tasks']:
         if cluster_task['name'] != task_name:
+            # Skip task: wrong name
+            continue
+        if not with_completed_tasks and cluster_task['state'] in COMPLETED_TASK_STATES:
+            # Skip task: task instance is completed and we don't want completed tasks
             continue
         statuses += cluster_task['statuses']
     history = [entry['state'] for entry in sorted(statuses, key=lambda x: x['timestamp'])]
-    log.info('Status history for task {}: {}'.format(task_name, ', '.join(history)))
+    log.info('Status history for task {} (with_completed={}): {}'.format(
+        task_name, with_completed_tasks, ', '.join(history)))
     return history
 
 
+def get_task_ids(service_name, task_prefix=''):
+    return [t.id for t in get_service_tasks(service_name, task_prefix=task_prefix)]
+
+
+def get_service_tasks(service_name, task_prefix='', with_completed_tasks=False):
+    '''Returns a summary of all tasks in the specified Mesos framework.
+
+    Returns a list of Task objects.
+    '''
+    cluster_frameworks = sdk_cmd.cluster_request('GET', '/mesos/frameworks').json()
+    agentid_to_hostname = _get_agentid_to_hostname()
+    service_tasks = []
+    for fwk in cluster_frameworks:
+        if fwk['name'] != service_name or not fwk['active']:
+            continue
+        service_tasks += [Task.parse(entry, agentid_to_hostname) for entry in fwk['tasks']]
+        if with_completed_tasks:
+            service_tasks += [Task.parse(entry, agentid_to_hostname) for entry in fwk['completed_tasks']]
+    if task_prefix:
+        service_tasks = [t for t in service_tasks if t.name.startswith(task_prefix)]
+    return service_tasks
+
+
 def get_summary(with_completed=False, task_name=None):
-    '''Returns a summary of task information as returned by the DC/OS CLI.
+    '''Returns a summary of all cluster tasks in the cluster, or just a specified task.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
     Returns a list of Task objects.
     '''
     cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
-    cluster_agents = sdk_cmd.cluster_request('GET', '/mesos/slaves').json()
-    all_tasks = [Task.parse(entry, cluster_agents) for entry in cluster_tasks['tasks']]
+    agentid_to_hostname = _get_agentid_to_hostname()
+    all_tasks = [Task.parse(entry, agentid_to_hostname) for entry in cluster_tasks['tasks']]
     if with_completed:
         output = all_tasks
     else:
-        output = list(filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks))
+        output = list(filter(lambda t: not t.is_completed, all_tasks))
     if task_name:
         output = list(filter(lambda t: t.name == task_name, all_tasks))
     log.info('Task summary (with_completed={}) (task_name=[{}]):\n- {}'.format(
         with_completed, task_name, '\n- '.join([str(e) for e in output])))
     return output
+
+
+def _get_agentid_to_hostname():
+    return {agent['id']: agent['hostname'] for agent in sdk_agents.get_agents()}
 
 
 def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
@@ -146,20 +177,19 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
         task.name not in skip_tasks and task_name_pattern.match(task.name)
     ]
 
-    scheduler_ip = shakedown.get_service_ips('marathon', service_name).pop()
-    log.info('Scheduler IP: {}'.format(scheduler_ip))
+    scheduler_ips = [t.host for t in get_service_tasks('marathon', service_name)]
+    log.info('Scheduler [{}] IPs: {}'.format(service_name, scheduler_ips))
 
     # Always avoid package registry (if present)
-    registry_ips = shakedown.get_service_ips(
-        'marathon',
-        sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME
-    )
-    log.info('Package Registry [{}] IP(s): {}'.format(
+    registry_ips = [t.host for t in get_service_tasks('marathon', sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME)]
+    log.info('Package Registry [{}] IPs: {}'.format(
         sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME, registry_ips
     ))
-    skip_ips = {scheduler_ip} | set(registry_ips)
+
+    skip_ips = set(scheduler_ips) | set(registry_ips)
     avoid_tasks = [task for task in server_tasks if task.host not in skip_ips]
-    log.info('Found tasks avoiding scheduler and {} at {}: {}'.format(
+    log.info('Found tasks avoiding {} scheduler and {} at {}: {}'.format(
+        service_name,
         sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME,
         skip_ips,
         avoid_tasks
@@ -167,20 +197,11 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
     return avoid_tasks
 
 
-def get_completed_task_id(task_name):
-    try:
-        tasks = [t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == task_name]
-    except dcos.errors.DCOSHTTPException:
-        tasks = []
-
-    return tasks[0] if tasks else None
-
-
 def check_task_relaunched(task_name,
                           old_task_id,
                           ensure_new_task_not_completed=True,
                           timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    log.info('Checking (task_name:{}) (old_task_id:{}) with (ensure_new_task_not_completed:{}) is relaunched'.format(
+    log.info('Checking task "{}" is relaunched: old_task_id={}, ensure_new_task_not_completed={}'.format(
         task_name, old_task_id, ensure_new_task_not_completed))
 
     @retrying.retry(
@@ -190,17 +211,17 @@ def check_task_relaunched(task_name,
     def fn():
         tasks = get_summary(with_completed=True, task_name=task_name)
         assert len(tasks) > 0, 'No tasks were found with the given task name {}'.format(task_name)
-        assert len(list(filter(lambda t: t.state in COMPLETED_TASK_STATES and t.id == old_task_id, tasks))) > 0,\
+        assert len(list(filter(lambda t: t.is_completed and t.id == old_task_id, tasks))) > 0,\
             'Unable to find any completed tasks with id {}'.format(old_task_id)
         assert len(list(filter(lambda t: t.id != old_task_id and (
-            t.state not in COMPLETED_TASK_STATES if ensure_new_task_not_completed else True
+            not t.is_completed if ensure_new_task_not_completed else True
         ), tasks))) > 0, 'Unable to find any new tasks with name {} with (ensure_new_task_not_completed:{})'.format(
             task_name, ensure_new_task_not_completed)
     fn()
 
 
 def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice_name=None, with_completed=False):
-    log.debug('Checking that old task id {} is not relaunched'.format(old_task_id))
+    log.info('Checking that task "{}" with current task id {} is not relaunched'.format(task_name, old_task_id))
     sdk_plan.wait_for_completed_deployment(service_name, multiservice_name=multiservice_name)
     sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 
@@ -218,11 +239,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        try:
-            task_ids = get_task_ids(service_name, prefix)
-        except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids for service {}'.format(service_name))
-            task_ids = []
+        task_ids = get_task_ids(service_name, prefix)
 
         prefix_clause = ''
         if prefix:

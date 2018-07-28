@@ -7,8 +7,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -16,6 +14,7 @@ log = logging.getLogger(__name__)
 
 # global pytest variable applicable to whole module
 pytestmark = pytest.mark.dcos_min_version('1.9')
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -33,7 +32,7 @@ def configure_package(configure_security):
             },
             wait_for_deployment=False)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -42,7 +41,7 @@ def configure_package(configure_security):
 def test_canary_init():
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=600*1000,
+        stop_max_delay=600 * 1000,
         retry_on_result=lambda res: not res)
     def wait_for_empty():
         # check for empty list internally rather than returning empty list.
@@ -124,8 +123,8 @@ def test_canary_plan_continue_noop():
         assert False, "Shouldn't have deployed a second task"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected
+    except Exception:
+        pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
@@ -144,8 +143,8 @@ def test_canary_second():
         assert False, "Shouldn't have deployed a second task"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected
+    except Exception:
+        pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
@@ -260,8 +259,8 @@ def test_increase_count():
         assert False, "Should not start task now"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected to fail
+    except Exception:
+        pass  # expected to fail
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
 

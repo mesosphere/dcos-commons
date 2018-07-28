@@ -1,5 +1,4 @@
 import pytest
-import shakedown
 
 import sdk_cmd
 import sdk_install
@@ -11,8 +10,7 @@ from security import transport_encryption
 
 from tests import config
 
-pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                                 reason="Feature only supported in DC/OS EE"),
+pytestmark = [sdk_utils.dcos_ee_only,
               pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
                                  reason="TLS tests require DC/OS 1.10+")]
 
@@ -87,12 +85,6 @@ def kibana_application(elastic_service):
         yield
     finally:
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_SERVICE_NAME)
-
-
-@pytest.mark.tls
-@pytest.mark.smoke
-def test_healthy(elastic_service):
-    assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.tls

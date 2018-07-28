@@ -1,7 +1,6 @@
 import json
 import logging
 import pytest
-import shakedown
 import tempfile
 
 import sdk_cmd
@@ -65,9 +64,6 @@ def cassandra_service(service_account):
             config.DEFAULT_TASK_COUNT,
             additional_options=options,
             wait_for_deployment=True)
-
-        # Wait for service health check to pass
-        shakedown.service_healthy(config.SERVICE_NAME)
 
         yield {**options, **{"package_name": config.PACKAGE_NAME}}
     finally:

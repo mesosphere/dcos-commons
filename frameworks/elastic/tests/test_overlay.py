@@ -3,8 +3,6 @@ import retrying
 import sdk_install
 import sdk_networks
 import sdk_tasks
-import sdk_utils
-import shakedown
 from tests import config
 
 
@@ -18,10 +16,9 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
 
 
 @pytest.fixture(autouse=True)
@@ -39,19 +36,11 @@ def default_populated_index():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
-@pytest.mark.overlay
-@pytest.mark.dcos_min_version('1.9')
-def test_service_health():
-    assert shakedown.service_healthy(config.SERVICE_NAME)
-
-
-@pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version('1.9')
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=config.DEFAULT_TIMEOUT*1000,
+    stop_max_delay=config.DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def test_indexing(default_populated_index):
     indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
@@ -66,7 +55,7 @@ def test_indexing(default_populated_index):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version('1.9')
 def test_tasks_on_overlay():
-    elastic_tasks = shakedown.get_service_task_ids(config.SERVICE_NAME)
+    elastic_tasks = [t.id for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
     assert len(elastic_tasks) == config.DEFAULT_TASK_COUNT, \
         "Incorrect number of tasks should be {} got {}".format(config.DEFAULT_TASK_COUNT, len(elastic_tasks))
     for task in elastic_tasks:

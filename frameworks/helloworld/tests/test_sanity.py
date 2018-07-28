@@ -1,7 +1,6 @@
 import logging
 import re
 
-import dcos.marathon
 import pytest
 import retrying
 import sdk_cmd
@@ -11,7 +10,6 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
 from tests import config
 
 
@@ -38,6 +36,7 @@ def configure_package(configure_security):
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
+
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_cpus():
@@ -51,11 +50,11 @@ def test_bump_hello_cpus():
     sdk_tasks.check_tasks_updated(foldered_name, 'hello', hello_ids)
     config.check_running(foldered_name)
 
-    all_tasks = shakedown.get_service_tasks(foldered_name)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
+    all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix='hello')
+    running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
     assert len(running_tasks) == config.hello_task_count(foldered_name)
     for t in running_tasks:
-        assert config.close_enough(t['resources']['cpus'], updated_cpus)
+        assert config.close_enough(t.resources['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -72,11 +71,11 @@ def test_bump_world_cpus():
     sdk_tasks.check_tasks_updated(foldered_name, 'world', original_world_ids)
     config.check_running(foldered_name)
 
-    all_tasks = shakedown.get_service_tasks(foldered_name)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix='world')
+    running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
     assert len(running_tasks) == config.world_task_count(foldered_name)
     for t in running_tasks:
-        assert config.close_enough(t['resources']['cpus'], updated_cpus)
+        assert config.close_enough(t.resources['cpus'], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -172,7 +171,7 @@ def test_pod_status_one():
 @pytest.mark.sanity
 def test_pod_info():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
@@ -196,10 +195,11 @@ def test_state_properties_get():
         "hello-0-server:task-status",
         "last-completed-update-type",
         "world-0-server:task-status",
-        "world-1-server:task-status"]:
+        "world-1-server:task-status"
+    ]:
         assert required in jsonobj
     # also check that the returned list was in alphabetical order:
-    list_sorted = list(jsonobj) # copy
+    list_sorted = list(jsonobj)  # copy
     list_sorted.sort()
     assert list_sorted == jsonobj
 
@@ -216,13 +216,13 @@ def test_config_cli():
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'debug config show {}'.format(configs[0]), print_output=False) # noisy output
+                           'debug config show {}'.format(configs[0]), print_output=False)  # noisy output
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config target', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config target_id', json=True)
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke # include in smoke: verify that cluster is healthy after earlier service config changes
+@pytest.mark.smoke  # include in smoke: verify that cluster is healthy after earlier service config changes
 def test_plan_cli():
     plan_name = 'deploy'
     phase_name = 'world'
@@ -230,18 +230,18 @@ def test_plan_cli():
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan list', json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan show {}'.format(plan_name))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan show --json {}'.format(plan_name), json=True)
+                           'plan show --json {}'.format(plan_name), json=True)
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan show {} --json'.format(plan_name), json=True)
+                           'plan show {} --json'.format(plan_name), json=True)
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan force-restart {}'.format(plan_name))
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan interrupt {} {}'.format(plan_name, phase_name))
+                           'plan interrupt {} {}'.format(plan_name, phase_name))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-        'plan continue {} {}'.format(plan_name, phase_name))
+                           'plan continue {} {}'.format(plan_name, phase_name))
 
     # now wait for plan to finish before continuing to other tests:
     assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
@@ -275,7 +275,7 @@ def test_state_refresh_disable_cache():
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
         output = sdk_cmd.svc_cli(
@@ -293,12 +293,11 @@ def test_state_refresh_disable_cache():
 
     sdk_tasks.check_tasks_not_updated(foldered_name, '', task_ids)
     config.check_running(foldered_name)
-    shakedown.deployment_wait()  # ensure marathon thinks the deployment is complete too
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug state refresh_cache')
@@ -316,44 +315,47 @@ def test_lock():
     that the ZK config state is unmodified.'''
 
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    marathon_client = dcos.marathon.create_client()
+
+    def get_zk_node_data(node_name):
+        return sdk_cmd.cluster_request("GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)).json()
 
     # Get ZK state from running framework
     zk_path = "dcos-service-{}/ConfigTarget".format(foldered_name)
-    zk_config_old = shakedown.get_zk_node_data(zk_path)
+    zk_config_old = get_zk_node_data(zk_path)
 
     # Get marathon app
-    app = marathon_client.get_app(foldered_name)
-    old_timestamp = app.get("lastTaskFailure", {}).get("timestamp", None)
+    marathon_config = sdk_marathon.get_config(foldered_name)
+    old_timestamp = marathon_config.get("lastTaskFailure", {}).get("timestamp", None)
 
     # Scale to 2 instances
-    labels = app["labels"]
+    labels = marathon_config["labels"]
     original_labels = labels.copy()
     labels.pop("MARATHON_SINGLE_INSTANCE_APP")
-    marathon_client.update_app(foldered_name, {"labels": labels})
-    shakedown.deployment_wait()
-    marathon_client.update_app(foldered_name, {"instances": 2})
+    sdk_marathon.update_app(foldered_name, marathon_config)
+    marathon_config["instances"] = 2
+    sdk_marathon.update_app(foldered_name, marathon_config)
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def wait_for_second_scheduler_to_fail():
-        timestamp = marathon_client.get_app(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
+        timestamp = sdk_marathon.get_config(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
 
     wait_for_second_scheduler_to_fail()
 
     # Verify ZK is unchanged
-    zk_config_new = shakedown.get_zk_node_data(zk_path)
+    zk_config_new = get_zk_node_data(zk_path)
     assert zk_config_old == zk_config_new
 
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
-    marathon_client.update_app(foldered_name, {"labels": original_labels, "instances": 1}, force=True)
-    shakedown.deployment_wait()
+    marathon_config["instances"] = 1
+    marathon_config["labels"] = original_labels
+    sdk_marathon.update_app(foldered_name, marathon_config, force=True)
 
 
 @pytest.mark.sanity
 def test_tmp_directory_created():
-   code, stdout, stderr  = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar |  grep bar")
-   assert code > 0
+    code, stdout, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar |  grep bar")
+    assert code > 0

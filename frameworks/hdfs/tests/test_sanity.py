@@ -12,7 +12,6 @@ import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
 
 from tests import config
 
@@ -135,7 +134,9 @@ def test_kill_data_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
-    sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
+    scheduler_tasks = sdk_tasks.get_service_tasks('marathon', task_prefix=config.SERVICE_NAME)
+    assert len(scheduler_tasks) != 1
+    sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', scheduler_tasks[0].host)
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
@@ -346,7 +347,7 @@ def test_metrics():
         "null.metricssystem.MetricsSystem.PublishAvgTime"
     ]
 
-    def expected_metrics_exist(emitted_metrics):
+    def expected_metrics_callback(emitted_metrics):
         # HDFS metric names need sanitation as they're dynamic.
         # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
         # This is consistent across all HDFS metric names.
@@ -356,9 +357,10 @@ def test_metrics():
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "journal-0",
         "journal-0-node",
         config.DEFAULT_HDFS_TIMEOUT,
-        expected_metrics_exist
+        expected_metrics_callback
     )
 
 

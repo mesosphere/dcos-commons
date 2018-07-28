@@ -7,14 +7,16 @@ SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 import functools
 import logging
 import operator
+import os
+import os.path
+import pytest
 import random
 import string
 
 import dcos
-import shakedown
-import pytest
-import os
-import os.path
+import sdk_cmd
+
+from distutils.version import LooseVersion
 
 log = logging.getLogger(__name__)
 
@@ -78,13 +80,27 @@ def get_zk_path(service_name):
 
 
 @functools.lru_cache()
+def dcos_url():
+    return sdk_cmd.run_cli('config show core.dcos_url').strip()
+
+
+@functools.lru_cache()
+def dcos_token():
+    return sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()
+
+
+@functools.lru_cache()
 def dcos_version():
-    return shakedown.dcos_version()
+    return sdk_cmd.cluster_request('GET', '/dcos-metadata/dcos-version.json').json()['version']
 
 
 @functools.lru_cache()
 def dcos_version_less_than(version):
-    return shakedown.dcos_version_less_than(version)
+    cluster_version = dcos_version()
+    index = version.rfind("-dev")
+    if index != -1:
+        cluster_version = version[:index]
+    return LooseVersion(cluster_version) < LooseVersion(version)
 
 
 def dcos_version_at_least(version):
@@ -122,16 +138,44 @@ def is_strict_mode():
 
 def random_string(length=8):
     return ''.join(
-        random.choice(
-            string.ascii_lowercase +
-            string.digits
-        ) for _ in range(length)
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(length)
     )
 
 
+'''Annotation which may be used to mark test suites or test cases as EE-only.
+
+Suite:
+> pytestmark = sdk_utils.dcos_ee_only
+or
+> pytestmark = [othercheck, sdk_utils.dcos_ee_only]
+
+Test:
+> @sdk_utils.dcos_ee_only  # at top of test
+'''
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
+
+
+def pretty_duration(seconds):
+    """ Returns a user-friendly representation of the provided duration in seconds.
+    For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
+    """
+    if seconds is None:
+        return ''
+    ret = ''
+    if seconds >= 86400:
+        ret += '{:.0f}d'.format(int(seconds / 86400))
+        seconds = seconds % 86400
+    if seconds >= 3600:
+        ret += '{:.0f}h'.format(int(seconds / 3600))
+        seconds = seconds % 3600
+    if seconds >= 60:
+        ret += '{:.0f}m'.format(int(seconds / 60))
+        seconds = seconds % 60
+    if seconds > 0:
+        ret += '{:.1f}s'.format(seconds)
+    return ret
 
 
 # Pretty much https://github.com/pytoolz/toolz/blob/a8cd0adb5f12ec5b9541d6c2ef5a23072e1b11a3/toolz/dicttoolz.py#L279

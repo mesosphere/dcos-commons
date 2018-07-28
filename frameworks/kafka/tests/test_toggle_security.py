@@ -23,8 +23,7 @@ log = logging.getLogger(__name__)
 
 pytestmark = [
     pytest.mark.skip(reason="INFINTY-INFINITY-3367: Address issues in Kafka security toggle"),
-    pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                       reason="Security tests require DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
                        reason="Security tests require DC/OS 1.10+"),
 ]
@@ -544,7 +543,7 @@ def service_get_brokers(kafka_server: dict, endpoint_name: str) -> list:
     return brokers
 
 
-def service_has_brokers(kafka_server: dict, endpoint_name: str, number_of_brokers: int=None) -> bool:
+def service_has_brokers(kafka_server: dict, endpoint_name: str, number_of_brokers: int = None) -> bool:
     endpoints = sdk_cmd.svc_cli(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
@@ -560,7 +559,7 @@ def service_has_brokers(kafka_server: dict, endpoint_name: str, number_of_broker
 
 def client_can_read_and_write(test_id: str,
                               kafka_client: dict, kafka_server: dict,
-                              endpoint_name: str, krb5: object=None) -> tuple:
+                              endpoint_name: str, krb5: object = None) -> tuple:
     client_id = kafka_client["id"]
 
     brokers_list = service_get_brokers(kafka_server, endpoint_name)

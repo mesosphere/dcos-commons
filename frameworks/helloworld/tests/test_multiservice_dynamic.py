@@ -2,9 +2,6 @@ import logging
 import pytest
 import retrying
 
-import dcos.errors
-import shakedown
-
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -52,13 +49,8 @@ def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
         stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        try:
-            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=False) if t['name'] == service_name])
-            log.info('found the following task ids {}'.format(task_ids))
-        except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids. service_name=%s', service_name)
-            task_ids = set([])
-
+        task_ids = set([t.id for t in sdk_tasks.get_service_tasks('marathon', task_prefix=service_name)])
+        log.info('Found {} scheduler task ids {}'.format(service_name, task_ids))
         return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
 
     fn()

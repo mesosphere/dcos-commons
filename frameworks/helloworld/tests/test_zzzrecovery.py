@@ -4,6 +4,7 @@ import logging
 import pytest
 import re
 
+import sdk_agents
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -11,7 +12,6 @@ import sdk_plan
 import sdk_tasks
 import sdk_utils
 import sdk_hosts
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -184,8 +184,8 @@ def test_scheduler_died():
 
 @pytest.mark.recovery
 def test_all_executors_killed():
-    for host in shakedown.get_service_ips(config.SERVICE_NAME):
-        sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', host)
+    for task in sdk_tasks.get_service_tasks(config.SERVICE_NAME):
+        sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', task.host)
     config.check_running()
 
 
@@ -218,11 +218,10 @@ def test_config_update_then_kill_task_in_node():
                     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
 def test_config_update_then_kill_all_task_in_node():
     #  kill both world tasks
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    hosts = shakedown.get_service_ips(config.SERVICE_NAME)
+    world_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix='world')
     config.bump_world_cpus()
-    [sdk_cmd.kill_task_with_pattern('world', h) for h in hosts]
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
+    [sdk_cmd.kill_task_with_pattern('world', task.host) for task in world_tasks]
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', [task.id for task in world_tasks])
     config.check_running()
 
 
@@ -254,7 +253,7 @@ def test_config_update_then_executor_killed():
                     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
 def test_config_updates_then_all_executors_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    hosts = shakedown.get_service_ips(config.SERVICE_NAME)
+    hosts = [t.host for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
     config.bump_world_cpus()
     [sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
@@ -299,18 +298,18 @@ def test_pod_replace():
 def test_config_update_while_partitioned():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
-    shakedown.partition_agent(host)
+    sdk_agents.partition_agent(host)
 
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
     updated_cpus = float(service_config['env']['WORLD_CPUS']) + 0.1
     service_config['env']['WORLD_CPUS'] = str(updated_cpus)
     sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
 
-    shakedown.reconnect_agent(host)
+    sdk_agents.reconnect_agent(host)
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
-    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    all_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
+    running_tasks = [t for t in all_tasks if t.name.startswith('world') and t.state == "TASK_RUNNING"]
     assert len(running_tasks) == config.world_task_count(config.SERVICE_NAME)
     for t in running_tasks:
         assert config.close_enough(t['resources']['cpus'], updated_cpus)
@@ -336,7 +335,7 @@ def test_shutdown_host():
     log.info('Tasks on host {} to be replaced after shutdown: {}'.format(replace_hostname, replace_tasks))
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
-    sdk_cmd.shutdown_agent(replace_hostname)
+    sdk_agents.shutdown_agent(replace_hostname)
 
     # Get pod name from task name: "hello-0-server" => "hello-0"
     replace_pods = set([task.name[:-len('-server')] for task in replace_tasks])
@@ -362,7 +361,8 @@ def test_shutdown_host():
             if task.name == replaced_task.name and task.id != replaced_task.id][0]
         log.info('Checking affected task has moved to a new agent:\n'
                  'old={}\nnew={}'.format(replaced_task, new_task))
-        assert replaced_task.agent != new_task.agent
+        assert replaced_task.agent_id != new_task.agent_id
+
 
 def install_options_helper(kill_grace_period=0):
     options = {
@@ -374,4 +374,3 @@ def install_options_helper(kill_grace_period=0):
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT + 1, additional_options=options)
-

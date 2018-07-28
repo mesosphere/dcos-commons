@@ -9,7 +9,6 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
 from tests import config, test_utils
 
 
@@ -34,12 +33,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
-@pytest.mark.sanity
-@pytest.mark.smoke
-def test_service_health():
-    assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
-
-
 # --------- Endpoints -------------
 
 
@@ -50,7 +43,7 @@ def test_endpoints_address():
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def wait():
         ret = sdk_cmd.svc_cli(
@@ -165,13 +158,14 @@ def test_metrics():
         "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95"
     ]
 
-    def expected_metrics_exist(emitted_metrics):
+    def expected_metrics_callback(emitted_metrics):
         return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "kafka-0",
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,
-        expected_metrics_exist
+        expected_metrics_callback
     )

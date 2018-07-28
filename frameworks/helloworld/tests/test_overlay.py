@@ -9,7 +9,8 @@ import sdk_hosts
 import sdk_install
 import sdk_networks
 import sdk_plan
-import shakedown
+import sdk_tasks
+
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -23,9 +24,9 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             4,
-            additional_options={ "service": { "yaml": "overlay" } })
+            additional_options={"service": {"yaml": "overlay"}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -40,6 +41,7 @@ EXPECTED_NETWORK_LABELS = {
     "key0": "val0",
     "key1": "val1"
 }
+
 
 @pytest.mark.sanity
 @pytest.mark.overlay
@@ -73,21 +75,20 @@ def test_overlay_network():
         pass
 
     # test that the tasks are all up, which tests the overlay DNS
-    framework_tasks = [task for task in shakedown.get_service_tasks(config.SERVICE_NAME, completed=False)]
-    framework_task_names = [t["name"] for t in framework_tasks]
+    framework_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
 
+    framework_task_names = set([t.name for t in framework_tasks])
     for expected_task in EXPECTED_TASKS:
         assert(expected_task in framework_task_names), "Missing {expected}".format(expected=expected_task)
 
     for task in framework_tasks:
-        name = task["name"]
+        name = task.name
         if "getter" in name:  # don't check the "getter" tasks because they don't use ports
             continue
-        resources = task["resources"]
         if "host" in name:
-            assert "ports" in resources.keys(), "Task {} should have port resources".format(name)
+            assert "ports" in task.resources.keys(), "Task {} should have port resources".format(name)
         if "overlay" in name:
-            assert "ports" not in resources.keys(), "Task {} should NOT have port resources".format(name)
+            assert "ports" not in task.resources.keys(), "Task {} should NOT have port resources".format(name)
 
     sdk_networks.check_task_network("hello-overlay-0-server")
     sdk_networks.check_task_network("hello-overlay-vip-0-server")
@@ -167,10 +168,10 @@ def test_srv_records():
 
     log.info("Getting framework srv records for %s", config.SERVICE_NAME)
 
-    @retrying.retry(stop_max_delay=5*60*1000,
+    @retrying.retry(stop_max_delay=5 * 60 * 1000,
                     wait_exponential_multiplier=1000,
                     wait_exponential_max=120 * 1000)
-    def call_shakedown():
+    def get_srv_records():
         cmd = "curl localhost:8123/v1/enumerate"
         is_ok, out = sdk_cmd.master_ssh(cmd)
         assert is_ok, "Failed to get srv records from master SSH: {}".format(cmd)
@@ -183,7 +184,7 @@ def test_srv_records():
 
         return srvs
 
-    srvs = call_shakedown()
+    srvs = get_srv_records()
     framework_srvs = [f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME]
     assert len(framework_srvs) == 1, "Got too many srv records matching service {}, got {}"\
         .format(config.SERVICE_NAME, framework_srvs)

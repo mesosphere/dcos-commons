@@ -15,12 +15,12 @@ import dcos.marathon
 import dcos.packagemanager
 import dcos.subcommand
 import retrying
-import shakedown
 import traceback
 
 import sdk_cmd
 import sdk_marathon
 import sdk_plan
+import sdk_tasks
 import sdk_utils
 
 log = logging.getLogger(__name__)
@@ -46,7 +46,6 @@ def _retried_install_impl(
         options={},
         package_version=None,
         timeout_seconds=TIMEOUT_SECONDS):
-    '''Cleaned up version of shakedown's package_install().'''
     package_manager = dcos.packagemanager.PackageManager(dcos.cosmos.get_cosmos_url())
     pkg = package_manager.get_package_version(package_name, package_version)
 
@@ -71,8 +70,7 @@ def _retried_install_impl(
 
     # Wait for expected tasks to come up
     if expected_running_tasks > 0:
-        shakedown.wait_for_service_tasks_running(
-            service_name, expected_running_tasks, timeout_seconds)
+        sdk_tasks.check_running(service_name, expected_running_tasks, timeout_seconds)
 
     # Wait for completed marathon deployment
     app_id = pkg.marathon_json(options).get('id')
@@ -128,7 +126,7 @@ def install(
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
     log.info('Installed package={} service={} after {}'.format(
-        package_name, service_name, shakedown.pretty_duration(time.time() - start)))
+        package_name, service_name, sdk_utils.pretty_duration(time.time() - start)))
 
     global _installed_service_names
     _installed_service_names.add(service_name)
@@ -142,13 +140,11 @@ def run_janitor(service_name, role, service_account, znode):
     if znode is None:
         znode = sdk_utils.get_zk_path(service_name)
 
-    auth_token = sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()
-
     cmd_list = ["docker", "run", "mesosphere/janitor", "/janitor.py",
                 "-r", role,
                 "-p", service_account,
                 "-z", znode,
-                "--auth_token={}".format(auth_token)]
+                "--auth_token={}".format(sdk_utils.dcos_acs_token())]
     cmd = " ".join(cmd_list)
 
     sdk_cmd.master_ssh(cmd)
@@ -157,15 +153,19 @@ def run_janitor(service_name, role, service_account, znode):
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_run_janitor(*args, **kwargs):
-    run_janitor(*args, **kwargs)
+def retried_uninstall_package_and_wait(package_name, service_name):
+    package_manager = dcos.packagemanager.PackageManager(dcos.cosmos.get_cosmos_url())
+    pkg = package_manager.get_package_version(package_name, None)
 
+    log.info('Uninstalling package {} with service name {}'.format(package_name, service_name))
+    package_manager.uninstall_app(package_name, all_instances=False, service_name=service_name)
 
-@retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=5000,
-                retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_uninstall_package_and_wait(*args, **kwargs):
-    shakedown.uninstall_package_and_wait(*args, **kwargs)
+    wait_for_mesos_task_removal(service_name, timeout_sec=600)
+
+    # Uninstall subcommands (if defined)
+    if pkg.cli_definition():
+        log.info('Uninstalling CLI for package {}'.format(package_name))
+        subcommand.uninstall(package_name)
 
 
 def uninstall(
@@ -185,7 +185,7 @@ def uninstall(
     log.info('Uninstalling {}'.format(service_name))
 
     try:
-        retried_uninstall_package_and_wait(package_name, service_name=service_name)
+        retried_uninstall_package_and_wait(package_name, service_name)
     except Exception:
         log.info('Got exception when uninstalling {}'.format(service_name))
         log.info(traceback.format_exc())
@@ -198,6 +198,12 @@ def uninstall(
 
     try:
         if sdk_utils.dcos_version_less_than('1.10'):
+            @retrying.retry(stop_max_attempt_number=5,
+                            wait_fixed=5000,
+                            retry_on_exception=lambda e: isinstance(e, Exception))
+            def retried_run_janitor(*args, **kwargs):
+                run_janitor(*args, **kwargs)
+
             log.info('Janitoring {}'.format(service_name))
             retried_run_janitor(service_name, role, service_account, zk)
         else:
@@ -217,9 +223,9 @@ def uninstall(
     log.info(
         'Uninstalled {} after pkg({}) + cleanup({}) = total({})'.format(
             service_name,
-            shakedown.pretty_duration(cleanup_start - start),
-            shakedown.pretty_duration(finish - cleanup_start),
-            shakedown.pretty_duration(finish - start)))
+            sdk_utils.pretty_duration(cleanup_start - start),
+            sdk_utils.pretty_duration(finish - cleanup_start),
+            sdk_utils.pretty_duration(finish - start)))
 
 
 def merge_dictionaries(dict1, dict2):

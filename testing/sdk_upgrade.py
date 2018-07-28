@@ -171,7 +171,7 @@ def _upgrade_or_downgrade(
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, '')
 
-    if sdk_utils.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
+    if sdk_utils.dcos_version_less_than("1.10") or sdk_utils.is_open_dcos():
         log.info('Using marathon upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(

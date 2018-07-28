@@ -3,7 +3,6 @@ import sdk_install
 import sdk_jobs
 import sdk_networks
 import sdk_plan
-import shakedown
 from tests import config
 
 
@@ -23,7 +22,7 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -36,7 +35,6 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version('1.9')
 def test_service_overlay_health():
-    shakedown.service_healthy(config.SERVICE_NAME)
     node_tasks = (
         "node-0-server",
         "node-1-server",

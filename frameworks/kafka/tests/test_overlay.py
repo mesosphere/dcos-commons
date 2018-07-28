@@ -4,7 +4,6 @@ import sdk_install as install
 import sdk_networks
 import sdk_tasks
 import sdk_utils
-import shakedown
 from tests import config, test_utils
 
 
@@ -31,7 +30,6 @@ def test_service_overlay_health():
     """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
     and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
     """
-    shakedown.service_healthy(config.SERVICE_NAME)
     broker_tasks = (
         "kafka-0-broker",
         "kafka-1-broker",

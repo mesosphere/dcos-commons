@@ -8,12 +8,12 @@ import sdk_marathon
 import sdk_plan
 import sdk_security
 import sdk_utils
-import shakedown
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import ExtensionOID, NameOID
-from tests import config
 
+from tests import config
 from security import transport_encryption
 
 DEFAULT_BACKEND = default_backend()
@@ -69,9 +69,6 @@ def configure_package(configure_security):
         )
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-        # Wait for service health check to pass
-        shakedown.service_healthy(config.SERVICE_NAME)
 
         yield  # let the test session execute
 

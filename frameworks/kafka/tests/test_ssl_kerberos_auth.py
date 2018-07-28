@@ -6,9 +6,7 @@ import sdk_cmd
 import sdk_install
 import sdk_utils
 
-
 from security import transport_encryption
-
 
 from tests import auth
 from tests import client
@@ -18,8 +16,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                                reason='Feature only supported in DC/OS EE')
+pytestmark = sdk_utils.dcos_ee_only
 
 
 @pytest.fixture(scope='module', autouse=True)

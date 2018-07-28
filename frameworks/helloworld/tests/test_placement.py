@@ -1,14 +1,15 @@
+import functools
 import json
 import logging
 
 import pytest
+import sdk_agents
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
 import sdk_utils
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -82,14 +83,14 @@ def test_rack_not_found():
 
     # scheduler should fail to deploy, don't wait for it to complete:
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
-        additional_options=options, wait_for_deployment=False)
+                        additional_options=options, wait_for_deployment=False)
     try:
         sdk_tasks.check_running(config.SERVICE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected to fail
+    except Exception:
+        pass  # expected to fail
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
 
@@ -102,7 +103,7 @@ def test_rack_not_found():
     assert phase1['status'] == 'IN_PROGRESS'
     steps1 = phase1['steps']
     assert len(steps1) == 1
-    assert steps1[0]['status'] in ('PREPARED', 'PENDING') # first step may be PREPARED
+    assert steps1[0]['status'] in ('PREPARED', 'PENDING')  # first step may be PREPARED
 
     phase2 = pl['phases'][1]
     assert phase2['status'] == 'PENDING'
@@ -249,8 +250,8 @@ def fail_placement(options):
         assert False, "Should have failed to deploy world-1"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected to fail
+    except Exception:
+        pass  # expected to fail
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -263,17 +264,17 @@ def test_hostname_unique():
             "yaml": "marathon_constraint"
         },
         "hello": {
-            "count": config.get_num_private_agents(),
+            "count": get_num_private_agents(),
             "placement": "[[\"hostname\", \"UNIQUE\"]]"
         },
         "world": {
-            "count": config.get_num_private_agents(),
+            "count": get_num_private_agents(),
             "placement": "[[\"hostname\", \"UNIQUE\"]]"
         }
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents() * 2, additional_options=options)
+                        get_num_private_agents() * 2, additional_options=options)
 
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
@@ -282,8 +283,8 @@ def test_hostname_unique():
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
-    sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
-    sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2)
+    sdk_tasks.check_running(config.SERVICE_NAME, get_num_private_agents() * 2 - 1, timeout_seconds=10)
+    sdk_tasks.check_running(config.SERVICE_NAME, get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
 
@@ -295,17 +296,17 @@ def test_max_per_hostname():
             "yaml": "marathon_constraint"
         },
         "hello": {
-            "count": config.get_num_private_agents() * 2,
+            "count": get_num_private_agents() * 2,
             "placement": "[[\"hostname\", \"MAX_PER\", \"2\"]]"
         },
         "world": {
-            "count": config.get_num_private_agents() * 3,
+            "count": get_num_private_agents() * 3,
             "placement": "[[\"hostname\", \"MAX_PER\", \"3\"]]"
         }
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents() * 5, additional_options=options)
+                        get_num_private_agents() * 5, additional_options=options)
     ensure_max_count_per_agent(hello_count=2, world_count=3)
 
 
@@ -317,30 +318,30 @@ def test_rr_by_hostname():
             "yaml": "marathon_constraint"
         },
         "hello": {
-            "count": config.get_num_private_agents() * 2,
-            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(config.get_num_private_agents())
+            "count": get_num_private_agents() * 2,
+            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(get_num_private_agents())
         },
         "world": {
-            "count": config.get_num_private_agents() * 2,
-            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(config.get_num_private_agents())
+            "count": get_num_private_agents() * 2,
+            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(get_num_private_agents())
         }
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents() * 4, additional_options=options)
+                        get_num_private_agents() * 4, additional_options=options)
     ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
 @pytest.mark.sanity
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    some_agent = shakedown.get_private_agents().pop()
+    some_agent = sdk_agents.get_private_agents().pop()['hostname']
     options = _escape_placement_for_1_9({
         "service": {
             "yaml": "marathon_constraint"
         },
         "hello": {
-            "count": config.get_num_private_agents(),
+            "count": get_num_private_agents(),
             "placement": "[[\"hostname\", \"CLUSTER\", \"{}\"]]".format(some_agent)
         },
         "world": {
@@ -349,21 +350,20 @@ def test_cluster():
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents(), additional_options=options)
-    ensure_count_per_agent(hello_count=config.get_num_private_agents(), world_count=0)
+                        get_num_private_agents(), additional_options=options)
+    ensure_count_per_agent(hello_count=get_num_private_agents(), world_count=0)
 
 
 def get_hello_world_agent_sets():
-    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
     hello_agents = []
     world_agents = []
-    for task in all_tasks:
-        if task['name'].startswith('hello-'):
-            hello_agents.append(task['slave_id'])
-        elif task['name'].startswith('world-'):
-            world_agents.append(task['slave_id'])
+    for task in sdk_tasks.get_service_tasks(config.SERVICE_NAME):
+        if task.name.startswith('hello-'):
+            hello_agents.append(task.agent)
+        elif task.name.startswith('world-'):
+            world_agents.append(task.agent)
         else:
-            assert False, "Unknown task: " + task['name']
+            assert False, "Unknown task: " + task.name
     return hello_agents, world_agents
 
 
@@ -393,6 +393,7 @@ def ensure_max_count_per_agent(hello_count, world_count):
     world_agent_counts = groupby_count(world_agents)
     assert_max_count(hello_agent_counts, hello_count)
     assert_max_count(world_agent_counts, world_count)
+
 
 @pytest.mark.sanity
 def test_updated_placement_constraints_not_applied_with_other_changes():
@@ -448,9 +449,9 @@ def test_updated_placement_constraints_replaced_tasks_do_move():
 def setup_constraint_switch():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-    agents = shakedown.get_private_agents()
-    some_agent = agents[0]
-    other_agent = agents[1]
+    agents = sdk_agents.get_private_agents()
+    some_agent = agents[0]['hostname']
+    other_agent = agents[1]['hostname']
     log.info('Agents: %s %s', some_agent, other_agent)
     assert some_agent != other_agent
     options = _escape_placement_for_1_9({
@@ -505,3 +506,8 @@ def get_task_host(task_name):
 
     # Unable to find desired task in CLI!
     raise Exception("Unable to find task named {} in CLI".format(task_name))
+
+
+@functools.lru_cache()
+def get_num_private_agents():
+    return len(sdk_agents.get_private_agents())
