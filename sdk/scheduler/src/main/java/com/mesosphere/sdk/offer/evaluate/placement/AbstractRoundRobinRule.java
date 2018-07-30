@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -50,7 +51,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
         final String offerKey = getKey(offer);
         if (offerKey == null) {
             // offer doesn't have the required attribute at all. denied.
-            return EvaluationOutcome.fail(this, "Offer lacks required round robin key").build();
+            return EvaluationOutcome.fail(this, "Offer lacks needed information for round robin placement").build();
         }
 
         // search across tasks, keeping key counts on a per-key basis.
@@ -61,7 +62,7 @@ abstract class AbstractRoundRobinRule implements PlacementRule {
             if (!taskFilter.matches(task.getName())) {
                 continue;
             }
-            if (PlacementUtils.areEquivalent(task, podInstance)) {
+            if (TaskUtils.areEquivalent(task, podInstance)) {
                 // This is stale data for the same task that we're currently evaluating for
                 // placement. Don't worry about counting its usage. This occurs when we're
                 // redeploying a given task with a new configuration (old data not deleted yet).

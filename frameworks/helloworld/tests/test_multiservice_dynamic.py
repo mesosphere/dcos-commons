@@ -2,10 +2,16 @@ import logging
 import pytest
 import retrying
 
+import dcos.errors
+import shakedown
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_tasks
+
+
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -29,13 +35,36 @@ def configure_package(configure_security):
         yamls = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/multi/yaml').json()
         assert 'svc' in yamls
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+# TODO: Move this to sdk_tasks
+def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
+                               timeout_seconds=sdk_tasks.DEFAULT_TIMEOUT_SECONDS):
+    """
+    This function checks for the relaunch of a task using the same matching as is
+    used in sdk_task.get_task_id()
+    """
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res)
+    def fn():
+        try:
+            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=False) if t['name'] == service_name])
+            log.info('found the following task ids {}'.format(task_ids))
+        except dcos.errors.DCOSHTTPException:
+            log.info('Failed to get task ids. service_name=%s', service_name)
+            task_ids = set([])
+
+        return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
+
+    fn()
+
+
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_add_deploy_restart_remove():
     svc1 = 'test1'
 
@@ -49,8 +78,16 @@ def test_add_deploy_restart_remove():
 
     sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
 
+    task_ids = sdk_tasks.get_task_ids('marathon', config.SERVICE_NAME)
+    log.info('list of task ids {}'.format(task_ids))
+    old_task_id = task_ids[0]
+
     # restart and check that service is recovered:
     sdk_marathon.restart_app(config.SERVICE_NAME)
+    sdk_marathon.wait_for_app_running(config.SERVICE_NAME, sdk_marathon.TIMEOUT_SECONDS)
+
+    # check that scheduler task was relaunched
+    check_scheduler_relaunched(config.SERVICE_NAME, old_task_id)
 
     service = wait_for_service_count(1)[0]
     assert service['service'] == svc1
@@ -74,7 +111,6 @@ def test_add_deploy_restart_remove():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
 def test_add_multiple_uninstall():
     # add two services:
     svc1 = 'test1'
@@ -119,6 +155,7 @@ def test_add_multiple_uninstall():
 
     # restart app and wait for removal to succeed after restart:
     sdk_marathon.restart_app(config.SERVICE_NAME)
+    sdk_marathon.wait_for_app_running(config.SERVICE_NAME, sdk_marathon.TIMEOUT_SECONDS)
     wait_for_service_count(1)
 
     plan = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
@@ -134,7 +171,7 @@ def get_service_list():
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=5*60*1000)
+    stop_max_delay=5 * 60 * 1000)
 def wait_for_service_count(count):
     services = get_service_list()
     log.info('Waiting for scheduler to have {} services, got {}: {}'.format(

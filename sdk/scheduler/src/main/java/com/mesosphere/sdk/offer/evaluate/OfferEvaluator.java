@@ -68,8 +68,8 @@ public class OfferEvaluator {
         // Preexisting tasks for this pod (if any):
         Map<String, Protos.TaskInfo> thisPodTasks =
                 TaskUtils.getTaskNames(podInstanceRequirement.getPodInstance()).stream()
-                .map(taskName -> allTasks.get(taskName))
-                .filter(taskInfo -> taskInfo != null)
+                .map(allTasks::get)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
         for (int i = 0; i < offers.size(); ++i) {
@@ -163,17 +163,17 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Map<String, Protos.TaskInfo> thisPodTasks) throws IOException {
 
-        boolean noLaunchedTasksExist = thisPodTasks.values().stream()
+        boolean noLaunchedTasksExist = thisPodTasks
+                .values()
+                .stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
-                .map(resource -> ResourceUtils.getResourceId(resource))
-                .filter(resourceId -> resourceId.isPresent())
+                .map(ResourceUtils::getResourceId)
+                .filter(Optional::isPresent)
                 .map(Optional::get)
-                .filter(resourceId -> !resourceId.isEmpty())
-                .count() == 0;
+                .allMatch(String::isEmpty);
 
-        boolean allTasksFailed =
-                thisPodTasks.size() > 0 &&
-                thisPodTasks.values().stream().allMatch(taskInfo -> FailureUtils.isPermanentlyFailed(taskInfo));
+        boolean allTasksFailed = thisPodTasks.size() > 0 &&
+                thisPodTasks.values().stream().allMatch(FailureUtils::isPermanentlyFailed);
 
         final String description;
         final boolean shouldGetNewRequirement;
@@ -225,7 +225,8 @@ public class OfferEvaluator {
     private Protos.ExecutorInfo getExecutorInfo(
             PodInstanceRequirement podInstanceRequirement,
             Collection<Protos.TaskInfo> taskInfos) {
-        // Filter which tasks are candidates for executor reuse.  Don't try to reuse your own executor.
+        // Filter which tasks are candidates for executor reuse.  Don't try to reuse your own executor as it may
+        // not be the latest one alive. Look for active executors that belong to the same Pod.
         List<String> taskNames = TaskUtils.getTaskNames(
                 podInstanceRequirement.getPodInstance(),
                 podInstanceRequirement.getTasksToLaunch());
@@ -242,11 +243,15 @@ public class OfferEvaluator {
 
         // We set an empty ExecutorID to indicate that we are launching a new Executor, NOT reusing a currently running
         // one.
-        Protos.ExecutorInfo executorInfo = taskInfos.stream().findFirst().get()
-                .getExecutor().toBuilder()
+        Protos.TaskInfo taskInfo = taskInfos.stream().findFirst().get();
+        Protos.ExecutorInfo executorInfo = taskInfo
+                .getExecutor()
+                .toBuilder()
                 .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
                 .build();
-        logger.info("Using old executor: {}", TextFormat.shortDebugString(executorInfo));
+        logger.info("Using new executor derived from task {}: {}",
+                taskInfo.getName(),
+                TextFormat.shortDebugString(executorInfo));
 
         return executorInfo;
     }
@@ -338,6 +343,16 @@ public class OfferEvaluator {
                     volumeSpec, Optional.empty(), resourceNamespace));
         }
 
+        // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
+        // ExecutorInfo equality when launching new tasks
+        if (tlsStageBuilder.isPresent()) {
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                if (!taskSpec.getTransportEncryption().isEmpty()) {
+                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+                }
+            }
+        }
+
         String preReservedRole = null;
         String role = null;
         String principal = null;
@@ -380,15 +395,6 @@ public class OfferEvaluator {
                 shouldAddExecutorResources = false;
             }
 
-
-
-            // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
-            // ExecutorInfo equality when launching new tasks
-            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-                if (!taskSpec.getTransportEncryption().isEmpty()) {
-                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
-                }
-            }
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
             evaluationStages.add(
@@ -449,9 +455,11 @@ public class OfferEvaluator {
 
         // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
         // ExecutorInfo equality when launching new tasks
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (!taskSpec.getTransportEncryption().isEmpty()) {
-                evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+        if (tlsStageBuilder.isPresent()) {
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                if (!taskSpec.getTransportEncryption().isEmpty()) {
+                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
+                }
             }
         }
 

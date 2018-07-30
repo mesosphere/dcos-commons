@@ -14,15 +14,13 @@ import java.util.Optional;
  */
 public interface Step extends Element, Interruptible {
     /**
-     * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. Returns an
-     * {@link PodInstanceRequirement}, or an empty Optional if obtaining/updating resource requirements are not
-     * applicable to the Step. This will continue to be called for as long as {@link Element#isPending()} returns
-     * true.
+     * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. This will continue to be called for as
+     * long as {@link Element#isPending()} returns {@code true}.
      *
      * @see {@link #updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
      *      the {@link PodInstanceRequirement}
      */
-    Optional<PodInstanceRequirement> start();
+    void start();
 
     /**
      * Return the pod instance that this Step intends to work on.

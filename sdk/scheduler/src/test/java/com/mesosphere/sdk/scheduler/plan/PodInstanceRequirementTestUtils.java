@@ -4,7 +4,6 @@ import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
-
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -104,15 +103,18 @@ public class PodInstanceRequirementTestUtils {
             valueBuilder.getRangesBuilder().addRangeBuilder()
                     .setBegin(envPort.getValue())
                     .setEnd(envPort.getValue());
-            builder.addResource(new PortSpec(
-                    valueBuilder.build(),
-                    TestConstants.ROLE,
-                    Constants.ANY_ROLE,
-                    TestConstants.PRINCIPAL,
-                    envPort.getKey(),
-                    String.format("test-port-%s", envPort.getKey()),
-                    TestConstants.PORT_VISIBILITY,
-                    Collections.emptyList()));
+
+            PortSpec.Builder portBuilder = PortSpec.newBuilder()
+                    .envKey(envPort.getKey())
+                    .portName(String.format("test-port-%s", envPort.getKey()))
+                    .visibility(TestConstants.PORT_VISIBILITY)
+                    .networkNames(Collections.emptyList());
+            portBuilder
+                    .value(valueBuilder.build())
+                    .role(TestConstants.ROLE)
+                    .preReservedRole(Constants.ANY_ROLE)
+                    .principal(TestConstants.PRINCIPAL);
+            builder.addResource(portBuilder.build());
         }
         return builder.build();
     }
@@ -128,18 +130,22 @@ public class PodInstanceRequirementTestUtils {
             valueBuilder.getRangesBuilder().addRangeBuilder()
                     .setBegin(taskPort)
                     .setEnd(taskPort);
-            builder.addResource(new NamedVIPSpec(
-                    valueBuilder.build(),
-                    TestConstants.ROLE,
-                    Constants.ANY_ROLE,
-                    TestConstants.PRINCIPAL,
-                    TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
-                    TestConstants.VIP_NAME + "-" + taskPort,
-                    "tcp",
-                    TestConstants.PORT_VISIBILITY,
-                    TestConstants.VIP_NAME + "-" + taskPort,
-                    entry.getKey(),
-                    Collections.emptyList()));
+
+            NamedVIPSpec.Builder vipBuilder = NamedVIPSpec.newBuilder()
+                    .protocol("tcp")
+                    .vipName(TestConstants.VIP_NAME + "-" + taskPort)
+                    .vipPort(entry.getKey());
+            vipBuilder
+                    .envKey(TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort)
+                    .portName(TestConstants.VIP_NAME + "-" + taskPort)
+                    .visibility(TestConstants.PORT_VISIBILITY)
+                    .networkNames(Collections.emptyList());
+            vipBuilder
+                    .value(valueBuilder.build())
+                    .role(TestConstants.ROLE)
+                    .preReservedRole(Constants.ANY_ROLE)
+                    .principal(TestConstants.PRINCIPAL);
+            builder.addResource(vipBuilder.build());
         }
         return builder.build();
 

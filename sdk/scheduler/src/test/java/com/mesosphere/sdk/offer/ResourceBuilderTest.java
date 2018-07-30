@@ -80,12 +80,13 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testNewFromResourceSpec(Optional<String> namespace) {
-        ResourceSpec resourceSpec = new DefaultResourceSpec(
-                "cpus",
-                VALUE,
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL);
+        ResourceSpec resourceSpec = DefaultResourceSpec.newBuilder()
+                .name("cpus")
+                .value(VALUE)
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .build();
         ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty(), namespace);
 
         Protos.Resource resource = resourceBuilder.build();
@@ -123,12 +124,13 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     private static void testRefineStaticResource(Optional<String> namespace) {
         ResourceRefinementCapabilityContext context = new ResourceRefinementCapabilityContext(Capabilities.getInstance());
         try {
-            ResourceSpec resourceSpec = new DefaultResourceSpec(
-                    "cpus",
-                    VALUE,
-                    TestConstants.ROLE,
-                    TestConstants.PRE_RESERVED_ROLE,
-                    TestConstants.PRINCIPAL);
+            ResourceSpec resourceSpec = DefaultResourceSpec.newBuilder()
+                    .name("cpus")
+                    .value(VALUE)
+                    .role(TestConstants.ROLE)
+                    .preReservedRole(TestConstants.PRE_RESERVED_ROLE)
+                    .principal(TestConstants.PRINCIPAL)
+                    .build();
             ResourceBuilder resourceBuilder = ResourceBuilder.fromSpec(resourceSpec, Optional.empty(), namespace);
 
             Protos.Resource resource = resourceBuilder.build();
@@ -157,12 +159,13 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
 
     private static void testExistingFromResourceSpec(Optional<String> namespace) {
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
-        ResourceSpec resourceSpec = new DefaultResourceSpec(
-                "cpus",
-                VALUE,
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL);
+        ResourceSpec resourceSpec = DefaultResourceSpec.newBuilder()
+                .name("cpus")
+                .value(VALUE)
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .build();
         validateScalarResource(
                 ResourceBuilder.fromSpec(resourceSpec, resourceId, namespace).build(), resourceId, namespace);
     }
@@ -397,12 +400,13 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testFromExistingScalarResource(Optional<String> namespace) {
-        ResourceSpec resourceSpec = new DefaultResourceSpec(
-                "cpus",
-                VALUE,
-                TestConstants.ROLE,
-                Constants.ANY_ROLE,
-                TestConstants.PRINCIPAL);
+        ResourceSpec resourceSpec = DefaultResourceSpec.newBuilder()
+                .name("cpus")
+                .value(VALUE)
+                .role(TestConstants.ROLE)
+                .preReservedRole(Constants.ANY_ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .build();
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
         Protos.Resource originalResource = ResourceBuilder.fromSpec(resourceSpec, resourceId, namespace).build();
         Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();

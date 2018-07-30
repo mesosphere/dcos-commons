@@ -62,7 +62,7 @@ def app_exists(app_name):
     try:
         _get_config_once(app_name)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -70,7 +70,7 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout*1000)
+        stop_max_delay=timeout * 1000)
     def wait_for_response():
         return _get_config_once(app_name).json()['app']
 
@@ -86,6 +86,28 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
         del config['version']
 
     return config
+
+
+def is_app_running(app: dict) -> bool:
+    return (app.get('tasksStaged', 0) == 0 and app.get('tasksUnhealthy', 0) == 0 and app.get('tasksRunning', 0) > 0)
+
+
+def wait_for_app_running(app_name: str, timeout: int) -> None:
+    @retrying.retry(stop_max_delay=timeout,
+                    wait_fixed=5000,
+                    retry_on_result=lambda result: not result)
+    def _wait_for_app_running(app_name: str) -> bool:
+        cmd = 'marathon app show {}'.format(app_name)
+        log.info('Running %s', cmd)
+        app = sdk_cmd.get_json_output(cmd)
+        return is_app_running(app)
+
+    _wait_for_app_running(app_name)
+
+
+def wait_for_deployment_and_app_running(app_name: str, timeout: int) -> None:
+    shakedown.deployment_wait(timeout, app_name)
+    wait_for_app_running(app_name, timeout)
 
 
 def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
@@ -113,9 +135,10 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         log.error(stderr)
         return False, stderr
 
-    log.info("Waiting for app %s to be running...", app_name)
-    shakedown.wait_for_task("marathon", app_name, TIMEOUT_SECONDS)
-    return True, ""
+    log.info('Waiting for app %s to be deployed and running...', app_name)
+    wait_for_deployment_and_app_running(app_name, TIMEOUT_SECONDS)
+
+    return True, ''
 
 
 def install_app(app_definition: dict) -> (bool, str):
@@ -132,7 +155,7 @@ def install_app(app_definition: dict) -> (bool, str):
     app_name = app_definition["id"]
 
     with tempfile.TemporaryDirectory() as d:
-        app_def_file = "{}.json".format(app_name)
+        app_def_file = "{}.json".format(app_name.replace('/', '__'))
         log.info("Launching {} marathon app".format(app_name))
 
         app_def_path = os.path.join(d, app_def_file)

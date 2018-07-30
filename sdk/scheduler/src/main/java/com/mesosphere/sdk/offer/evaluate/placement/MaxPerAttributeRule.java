@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -16,7 +15,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 /**
- * Ensures that the given Offer’s attributes each have no more than N instances of tasks of a given task type
+ * Ensures that the given Offer's attributes each have no more than N instances of tasks of a given task type
  * running on them.
  *
  * For example, this can ensure that no more than N tasks are running against the 'rack:foo'
@@ -93,7 +92,6 @@ public class MaxPerAttributeRule extends MaxPerRule {
             taskFilter = AnyMatcher.create();
         }
         this.taskFilter = taskFilter;
-        ValidationUtils.validate(this);
     }
 
     @Override

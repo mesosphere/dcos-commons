@@ -2,17 +2,22 @@ import os
 import uuid
 
 import pytest
-import shakedown
 
 import sdk_cmd
 import sdk_install
 import sdk_jobs
 import sdk_plan
+import sdk_recovery
 import sdk_utils
 
 from security import transport_encryption
 
 from tests import config
+
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10+")]
 
 
 @pytest.fixture(scope='module')
@@ -20,10 +25,7 @@ def dcos_ca_bundle():
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
-    resp = sdk_cmd.cluster_request('GET', '/ca/dcos-ca.crt')
-    cert = resp.content.decode('ascii')
-    assert cert is not None
-    return cert
+    return transport_encryption.fetch_dcos_ca_bundle_contents().decode("ascii")
 
 
 @pytest.fixture(scope='module')
@@ -42,41 +44,38 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def cassandra_service_tls(service_account):
-    sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={
-            "service": {
-                "service_account": service_account["name"],
-                "service_account_secret": service_account["secret"],
-                "security": {
-                    "transport_encryption": {
-                        "enabled": True
-                    }
+def cassandra_service(service_account):
+    service_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
                 }
             }
         }
-    )
+    }
 
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    try:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            service_name=config.SERVICE_NAME,
+            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            additional_options=service_options,
+            timeout_seconds=30 * 60)
 
-    # Wait for service health check to pass
-    shakedown.service_healthy(config.SERVICE_NAME)
-
-    yield
-
-    sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
-@pytest.mark.dcos_min_version('1.10')
-@sdk_utils.dcos_ee_only
-def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
+def test_tls_connection(cassandra_service, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a secure TLS connection.
     """
@@ -117,3 +116,19 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
 
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
         sdk_jobs.run_job(config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+def test_tls_recovery(cassandra_service, service_account):
+    pod_list = sdk_cmd.svc_cli(cassandra_service["package_name"],
+                               cassandra_service["service"]["name"],
+                               "pod list",
+                               json=True)
+
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(cassandra_service["package_name"],
+                                              cassandra_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60,
+                                              pods_with_updated_tasks=pod_list)

@@ -13,6 +13,8 @@ import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
+import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallRecorder;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.GoalState;
@@ -36,12 +38,12 @@ public class DefaultScheduler extends AbstractScheduler {
 
     private final Logger logger;
     private final Optional<String> namespace;
-    private final SchedulerConfig schedulerConfig;
     private final FrameworkStore frameworkStore;
     private final ConfigStore<ServiceSpec> configStore;
-    private final PlanCoordinator planCoordinator;
-    private final Collection<PlanManager> plansToCheckFinished;
-    private final PlanManager planToCheckDeployed;
+    private final GoalState goalState;
+    private final PlanManager deploymentPlanManager;
+    private boolean deploymentCompletionWasStored;
+    private final PlanManager recoveryPlanManager;
     private final Collection<Object> customResources;
     private final Map<String, EndpointProducer> customEndpointProducers;
     private final PersistentLaunchRecorder launchRecorder;
@@ -87,25 +89,12 @@ public class DefaultScheduler extends AbstractScheduler {
             ConfigStore<ServiceSpec> configStore,
             ArtifactQueries.TemplateUrlFactory templateUrlFactory,
             Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException {
-        super(serviceSpec, stateStore, planCustomizer, namespace);
+        super(serviceSpec, schedulerConfig, stateStore, planCoordinator, planCustomizer, namespace);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.namespace = namespace;
-        this.schedulerConfig = schedulerConfig;
         this.frameworkStore = frameworkStore;
         this.configStore = configStore;
-        this.planCoordinator = planCoordinator;
-        if (serviceSpec.getGoal() == GoalState.FINISH) {
-            // Get the recovery and deploy plans. If they are COMPLETED, then the service can be uninstalled. We store
-            // the PlanManagers, not the underlying Plans, because PlanManagers can change their plans at any time.
-            this.plansToCheckFinished = HealthResource.getDeploymentAndRecoveryManagers(planCoordinator);
-        } else {
-            // Disable this check
-            this.plansToCheckFinished = Collections.emptyList();
-        }
-        this.planToCheckDeployed = planCoordinator.getPlanManagers().stream()
-                .filter(pm -> pm.getPlan().isDeployPlan())
-                .findAny()
-                .get();
+        this.goalState = serviceSpec.getGoal();
         this.customResources = customResources;
         this.customEndpointProducers = customEndpointProducers;
 
@@ -117,6 +106,18 @@ public class DefaultScheduler extends AbstractScheduler {
         } else {
             this.decommissionRecorder = Optional.empty();
         }
+
+        // Get the recovery and deploy plan managers. We store the PlanManagers, not the underlying Plans, because
+        // PlanManagers can change their plans at any time.
+        this.deploymentPlanManager = planCoordinator.getPlanManagers().stream()
+                .filter(pm -> pm.getPlan().isDeployPlan())
+                .findAny()
+                .get();
+        this.deploymentCompletionWasStored = false;
+        this.recoveryPlanManager = planCoordinator.getPlanManagers().stream()
+                .filter(pm -> pm.getPlan().isRecoveryPlan())
+                .findAny()
+                .get();
 
         // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
         // reduce memory consumption.
@@ -134,6 +135,8 @@ public class DefaultScheduler extends AbstractScheduler {
                         namespace),
                 stateStore,
                 namespace);
+
+        customizePlans();
     }
 
     @Override
@@ -141,7 +144,7 @@ public class DefaultScheduler extends AbstractScheduler {
         Collection<Object> resources = new ArrayList<>();
         resources.addAll(customResources);
         resources.add(new ArtifactResource(configStore));
-        resources.add(new ConfigResource<>(configStore));
+        resources.add(new ConfigResource(configStore));
         EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName(), schedulerConfig);
         for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
             endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
@@ -150,18 +153,11 @@ public class DefaultScheduler extends AbstractScheduler {
         PlansResource plansResource = new PlansResource(planCoordinator);
         resources.add(plansResource);
         resources.add(new DeprecatedPlanResource(plansResource));
-        resources.add(new HealthResource(planCoordinator));
+        resources.add(new HealthResource(planCoordinator, schedulerConfig));
         resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
         resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
-        if (offerOutcomeTracker.isPresent()) {
-            resources.add(new OfferOutcomeResource(offerOutcomeTracker.get()));
-        }
+        offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
         return resources;
-    }
-
-    @Override
-    public PlanCoordinator getPlanCoordinator() {
-        return planCoordinator;
     }
 
     @Override
@@ -178,9 +174,9 @@ public class DefaultScheduler extends AbstractScheduler {
     protected void registeredWithMesos() {
         Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
 
-        Optional<DecommissionPlanManager> decomissionManager = getDecommissionManager(getPlanCoordinator());
-        if (decomissionManager.isPresent()) {
-            Collection<String> decommissionedTasks = decomissionManager.get().getTasksToDecommission().stream()
+        Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(getPlanCoordinator());
+        if (decommissionManager.isPresent()) {
+            Collection<String> decommissionedTasks = decommissionManager.get().getTasksToDecommission().stream()
                     .map(taskInfo -> taskInfo.getName())
                     .collect(Collectors.toList());
             activeTasks.addAll(decommissionedTasks);
@@ -196,19 +192,42 @@ public class DefaultScheduler extends AbstractScheduler {
     }
 
     @Override
-    public ClientStatusResponse getClientStatus() {
-        if (!plansToCheckFinished.isEmpty() &&
-                plansToCheckFinished.stream().allMatch(pm -> pm.getPlan().isComplete())) {
-            // We have finished our work. Tell upstream to uninstall us.
-            return ClientStatusResponse.finished();
-        } else if (!planToCheckDeployed.getPlan().isComplete()) {
-            // The service is still deploying.
-            // TODO(nickbp, INFINITY-3476): This should only be the case when we're getting a footprint.
-            //     Once we're actually rolling out the tasks, this should instead be RUNNING.
-            return ClientStatusResponse.reserving();
-        } else {
-            return ClientStatusResponse.running();
+    protected ClientStatusResponse getStatus() {
+        // Take this opportunity to store whether we've completed our deploy plan.
+        // This ensures that we correctly select the custom update plan if one is provided during an update.
+        boolean deployCompleted = deploymentPlanManager.getPlan().isComplete();
+        if (deployCompleted && !deploymentCompletionWasStored) {
+            logger.info("Marking deployment as completed");
+            StateStoreUtils.setDeploymentWasCompleted(stateStore);
+            // Avoid hitting StateStore too much...:
+            deploymentCompletionWasStored = true;
         }
+
+        if (goalState == GoalState.FINISH && deployCompleted && recoveryPlanManager.getPlan().isComplete()) {
+            // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
+            return ClientStatusResponse.readyToUninstall();
+        } else if (!deployCompleted // TODO(nickbp): use footprint plan once available
+                || isReplacing(recoveryPlanManager)) { // TODO(nickbp): footprint plan should have replacing tasks?
+            // Service is acquiring footprint, either via initial deployment or via replacing a task
+            return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
+        } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> !pm.getPlan().isComplete())) {
+            // One or more plans (including e.g. sidecar plans) is incomplete: Not idle
+            return ClientStatusResponse.launching(workSetTracker.hasNewWork());
+        } else {
+            // All plans are complete: Idle
+            return ClientStatusResponse.idle();
+        }
+    }
+
+    private static boolean isReplacing(PlanManager recoveryPlanManager) {
+        return !recoveryPlanManager.getPlan().isComplete()
+                && recoveryPlanManager.getPlan().getChildren().stream()
+                .filter(phase -> !phase.isComplete())
+                .flatMap(phase -> phase.getChildren().stream())
+                .anyMatch(step ->
+                        !step.isComplete()
+                        && step instanceof RecoveryStep
+                        && ((RecoveryStep) step).getRecoveryType() == RecoveryType.PERMANENT);
     }
 
     private static Optional<DecommissionPlanManager> getDecommissionManager(PlanCoordinator planCoordinator) {

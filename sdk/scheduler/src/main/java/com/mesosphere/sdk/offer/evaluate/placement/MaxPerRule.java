@@ -1,13 +1,14 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.ValidationUtils;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,8 +19,6 @@ import java.util.stream.Collectors;
  * maximum per some key (e.g. attribute, hostname, region, zone ...).
  */
 public abstract class MaxPerRule implements PlacementRule {
-    @Valid
-    @Min(1)
     protected final Integer max;
     private final StringMatcher taskFilter;
 
@@ -44,6 +43,7 @@ public abstract class MaxPerRule implements PlacementRule {
     protected MaxPerRule(Integer max, StringMatcher taskFilter) {
         this.max = max;
         this.taskFilter = taskFilter;
+        ValidationUtils.atLeastOne(this, "max", max);
     }
 
     protected boolean isAcceptable(
@@ -53,7 +53,7 @@ public abstract class MaxPerRule implements PlacementRule {
 
         tasks = tasks.stream()
                 .filter(task -> getTaskFilter().matches(task.getName()))
-                .filter(task -> !PlacementUtils.areEquivalent(task, podInstance))
+                .filter(task -> !TaskUtils.areEquivalent(task, podInstance))
                 .collect(Collectors.toList());
 
         Map<String, Integer> counts = new HashMap<>();

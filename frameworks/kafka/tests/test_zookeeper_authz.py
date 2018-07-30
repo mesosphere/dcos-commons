@@ -92,7 +92,10 @@ def zookeeper_server(kerberos):
 
     try:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
-        sdk_security.setup_security(config.ZOOKEEPER_SERVICE_NAME, zk_account, zk_secret)
+        service_account_info = sdk_security.setup_security(config.ZOOKEEPER_SERVICE_NAME,
+                                                           linux_user="nobody",
+                                                           service_account=zk_account,
+                                                           service_account_secret=zk_secret)
         sdk_install.install(
             config.ZOOKEEPER_PACKAGE_NAME,
             config.ZOOKEEPER_SERVICE_NAME,
@@ -105,6 +108,7 @@ def zookeeper_server(kerberos):
 
     finally:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -208,6 +212,9 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
             assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
 
     finally:
+        # Ensure that we clean up the ZK state.
+        kafka_client.remove_acls("authorized", kafka_server, topic_name)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
@@ -300,4 +307,7 @@ def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_ser
             assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
 
     finally:
+        # Ensure that we clean up the ZK state.
+        kafka_client.remove_acls("authorized", kafka_server, topic_name)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

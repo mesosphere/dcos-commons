@@ -47,7 +47,7 @@ pods:
           max-consecutive-failures: 3
 plans:
   deploy:
-    strategy: serial-canary
+    strategy: serial
     phases:
       hello-deploy:
         strategy: parallel-canary

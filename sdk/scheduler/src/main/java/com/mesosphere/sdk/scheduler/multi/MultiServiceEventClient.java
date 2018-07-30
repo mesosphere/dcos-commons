@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,6 +13,7 @@ import java.util.stream.Collectors;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -29,10 +29,10 @@ import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
-import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
+import com.mesosphere.sdk.storage.Persister;
 
 /**
  * An implementation of {@link MesosEventClient} which wraps multiple running services, routing Mesos events to each
@@ -45,7 +45,8 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     public interface UninstallCallback {
         /**
-         * Invoked when a given service has completed its uninstall as triggered by {@link #uninstallService(String)}.
+         * Invoked when a given service has completed its uninstall as triggered by
+         * {@link MultiServiceManager#uninstallService(String)}.
          * After this has been called, re-adding the service to the {@link MultiServiceEventClient} will result in
          * launching a new instance from scratch.
          */
@@ -59,36 +60,54 @@ public class MultiServiceEventClient implements MesosEventClient {
     private final MultiServiceManager multiServiceManager;
     private final Collection<Object> customEndpoints;
     private final UninstallCallback uninstallCallback;
+    private final OfferDiscipline offerDiscipline;
 
     // Additional handling for when we're uninstalling the entire Scheduler.
-    private final DeregisterStep deregisterStep;
-    private final Optional<Plan> uninstallPlan;
+    private final Optional<DeregisterStep> deregisterStep;
+
+    // Calculated during a call to offers(), to be returned in the following call to getClientStatus().
+    private final Collection<String> serviceNamesToGiveOffers;
 
     public MultiServiceEventClient(
             String frameworkName,
             SchedulerConfig schedulerConfig,
             MultiServiceManager multiServiceManager,
+            Persister persister,
             Collection<Object> customEndpoints,
             UninstallCallback uninstallCallback) {
+        this(
+                frameworkName,
+                schedulerConfig,
+                multiServiceManager,
+                (schedulerConfig.getMultiServiceReserveDiscipline() > 0)
+                        ? new ParallelFootprintDiscipline(
+                                schedulerConfig.getMultiServiceReserveDiscipline(),
+                                new DisciplineSelectionStore(persister))
+                        : new AllDiscipline(),
+                customEndpoints,
+                uninstallCallback,
+                schedulerConfig.isUninstallEnabled()
+                        ? Optional.of(new DeregisterStep(Optional.empty()))
+                        : Optional.empty());
+    }
+
+    @VisibleForTesting
+    MultiServiceEventClient(
+            String frameworkName,
+            SchedulerConfig schedulerConfig,
+            MultiServiceManager multiServiceManager,
+            OfferDiscipline offerDiscipline,
+            Collection<Object> customEndpoints,
+            UninstallCallback uninstallCallback,
+            Optional<DeregisterStep> deregisterStep) {
         this.frameworkName = frameworkName;
         this.schedulerConfig = schedulerConfig;
         this.multiServiceManager = multiServiceManager;
         this.customEndpoints = customEndpoints;
         this.uninstallCallback = uninstallCallback;
-
-        if (schedulerConfig.isUninstallEnabled()) {
-            this.deregisterStep = new DeregisterStep(Optional.empty());
-            this.uninstallPlan = Optional.of(
-                    new DefaultPlan(Constants.DEPLOY_PLAN_NAME, Collections.singletonList(
-                            new DefaultPhase(
-                                    "deregister-framework",
-                                    Collections.singletonList(deregisterStep),
-                                    new SerialStrategy<>(),
-                                    Collections.emptyList()))));
-        } else {
-            this.deregisterStep = null;
-            this.uninstallPlan = Optional.empty();
-        }
+        this.offerDiscipline = offerDiscipline;
+        this.deregisterStep = deregisterStep;
+        this.serviceNamesToGiveOffers = new ArrayList<>();
     }
 
     @Override
@@ -98,131 +117,118 @@ public class MultiServiceEventClient implements MesosEventClient {
 
     @Override
     public void unregistered() {
-        if (!uninstallPlan.isPresent()) {
+        if (!deregisterStep.isPresent()) {
             // This should have only happened after we returned OfferResponse.finished() below
             throw new IllegalStateException("unregistered() called, but the we are not uninstalling");
         }
-        deregisterStep.setComplete();
+        deregisterStep.get().setComplete();
     }
 
     /**
-     * Returns our status to the upstream {@code OfferProcessor}. In practice, we only return either {@code RUNNING}, or
-     * {@code UNINSTALLED} if we're ready to be torn down during a scheduler uninstall.
+     * Returns our status to the upstream {@code OfferProcessor}. The logic is as follows:
+     *
+     * <ol>
+     * <li>If no services are present: uninstall mode: {@code IDLE/REMOVE_CLIENT}, otherwise: {@code IDLE/NONE}</li>
+     * <li>If all services are idle: {@code IDLE/NONE}</li>
+     * <li>If any service is collecting footprint: {@code WORKING/FOOTPRINT}, with {@code newWork=true} if any service
+     * had {@code newWork=true}</li>
+     * <li>Else (mix of zero or more {@code IDLE/*} and zero or more {@code WORKING/*}):
+     * {@code WORKING/LAUNCH}, with {@code newWork=true} if any service had {@code newWork=true}</li>
+     * </ol>
      */
     @Override
     public ClientStatusResponse getClientStatus() {
-        // If the entire scheduler is uninstalling and there are no services left to uninstall, then tell upstream that
-        // we're uninstalled.
-        boolean noServices = false;
+        serviceNamesToGiveOffers.clear();
+        Collection<String> servicesToUninstall = new ArrayList<>();
+        Collection<AbstractScheduler> servicesToRemove = new ArrayList<>();
 
-        Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
-        try {
-            noServices = services.isEmpty();
-        } finally {
-            multiServiceManager.sharedUnlock();
-        }
-
-        if (noServices) {
-            // There are no active services to process offers. Should the rest of the framework be torn down?
-            if (uninstallPlan.isPresent()) {
-                // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that they
-                // can finish with final framework cleanup. After they've finished, they will invoke unregistered(), at
-                // which point we can set our deploy plan to complete.
-                return ClientStatusResponse.uninstalled();
-            } else {
-                // No: We're just not actively running anything. Behave normally until we have work to do.
-                return ClientStatusResponse.running();
-            }
-        } else {
-            // Services are still present, behave normally.
-            return ClientStatusResponse.running();
-        }
-    }
-
-    /**
-     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them.
-     *
-     * TODO(data-agility): Lots of opportunities to optimize this. Needs benchmarks. For example:
-     * <ul>
-     * <li>- Hide reserved resources from services that they don't belong to</li>
-     * <li>- Forward the offers to a random ordering of services to avoid some services starving others</li>
-     * <li>- Distribute the offers across all services in parallel (optimistic offers)</li>
-     * <li>- ... Pretty much anything that you could see Mesos itself doing.</li>
-     * </ul>
-     */
-    @Override
-    public OfferResponse offers(Collection<Protos.Offer> offers) {
-        // Decline short if any service isn't ready.
-        boolean anyServicesNotReady = false;
-
-        List<OfferRecommendation> recommendations = new ArrayList<>();
-        List<Protos.Offer> remainingOffers = new ArrayList<>();
-        remainingOffers.addAll(offers);
-
-        Collection<String> servicesToUninstall = new HashSet<>();
-        Collection<AbstractScheduler> servicesToRemove = new HashSet<>();
-
+        final ClientStatusResponse clientStatusToReturn;
         Collection<AbstractScheduler> services = multiServiceManager.sharedLockAndGetServices();
         try {
             if (services.isEmpty()) {
-                // Nothing to do, short-circuit.
-                return OfferResponse.processed(Collections.emptyList());
+                // There are no active services to process offers. Should the rest of the framework be torn down?
+                if (deregisterStep.isPresent()) {
+                    // Yes: We're uninstalling everything and all services have been cleaned up. Tell the caller that
+                    // they can finish with final framework cleanup. After they've finished, they will invoke our
+                    // unregistered() call, at which point we can set the deregisterStep (and therefore our deploy plan)
+                    // to complete.
+                    return ClientStatusResponse.readyToRemove();
+                } else {
+                    // No: We're just not actively running anything. Idle until we have work to do.
+                    return ClientStatusResponse.idle();
+                }
             }
 
-            // Before we handle offers, check for any finished services that should be switched to uninstall, or any
-            // uninstalled services that should be removed.
-            LOGGER.info("Sending {} offer{} to {} service{}:",
-                    offers.size(), offers.size() == 1 ? "" : "s",
-                    services.size(), services.size() == 1 ? "" : "s");
+            // Update the offer discipline with the current list of services, so that any removed services can be
+            // updated.
+            try {
+                offerDiscipline.updateServices(services.stream()
+                        .map(s -> s.getServiceSpec().getName())
+                        .collect(Collectors.toSet()));
+            } catch (Exception e) {
+                LOGGER.error("Failed to update selected services in offer discipline, continuing anyway", e);
+                // The offer discipline failed to flush state to ZK. Its in-memory state should be fine though, so just
+                // continue as-is for now.
+            }
+
+            // Check for any finished services that should be switched to uninstall, or any uninstalled services that
+            // should be removed.
+            boolean allServicesIdle = true;
+            boolean anyServicesFootprint = false;
+            boolean anyServicesHaveNewWork = false;
             for (AbstractScheduler service : services) {
                 String serviceName = service.getServiceSpec().getName();
                 ClientStatusResponse statusResponse = service.getClientStatus();
-                if (statusResponse.result != ClientStatusResponse.Result.RUNNING) {
-                    // Only log status when it's special/unusual
-                    LOGGER.info("{} status: {}", serviceName, statusResponse.result);
+                if (!statusResponse.equals(ClientStatusResponse.idle())) {
+                    // Only log status when it's active
+                    LOGGER.info("{} status: {}", serviceName, statusResponse);
                 }
+
+                // Update the offer discipline with the status response we got, and use it's response to decide whether
+                // this service should be allowed offers. Note: We ALWAYS invoke this regardless of the status of the
+                // service. This allows the offer discipline to update internal state based on that status.
+                boolean offersAllowedByDiscipline = offerDiscipline.updateServiceStatus(serviceName, statusResponse);
 
                 switch (statusResponse.result) {
-                case RESERVING:
-                    // TODO(nickbp): When implementing reservation discipline, use this to determine that a given
-                    // service is reserving resources.
-                    //$FALL-THROUGH$
-                case RUNNING: {
-                    OfferResponse offerResponse = service.offers(remainingOffers);
-                    recommendations.addAll(offerResponse.recommendations);
-                    if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
-                        // Some offers were consumed. Update what remains to offer to the next service.
-                        remainingOffers =
-                                OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+                case WORKING:
+                    allServicesIdle = false;
+                    if (offersAllowedByDiscipline) {
+                        serviceNamesToGiveOffers.add(serviceName);
                     }
-                    boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
-                    if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
-                        // Only log result when it's non-empty/unusual
-                        LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
-                                service.getServiceSpec().getName(),
-                                offerResponse.result,
-                                offerResponse.recommendations.size(),
-                                offerResponse.recommendations.size() == 1 ? "" : "s",
-                                remainingOffers.size(),
-                                remainingOffers.size() == 1 ? "" : "s");
+                    if (statusResponse.workingStatus.state == ClientStatusResponse.WorkingStatus.State.FOOTPRINT) {
+                        anyServicesFootprint = true;
                     }
-                    if (!readyForOffers) {
-                        anyServicesNotReady = true;
+                    if (statusResponse.workingStatus.hasNewWork) {
+                        anyServicesHaveNewWork = true;
                     }
-                }
                     break;
-                case FINISHED:
-                    // This service has completed running and can be switched to uninstall.
-                    servicesToUninstall.add(serviceName);
-                    break;
-                case UNINSTALLED:
-                    // This service has completed uninstall and can be torn down.
-                    servicesToRemove.add(service);
+                case IDLE:
+                    switch (statusResponse.idleRequest) {
+                    case NONE:
+                        // Nothing to do: Don't send offers, don't mark as having new work.
+                        break;
+                    case REMOVE_CLIENT:
+                        // This service has completed uninstall and can be torn down.
+                        servicesToRemove.add(service);
+                        break;
+                    case START_UNINSTALL:
+                        // This service has completed running and can be switched to uninstall.
+                        servicesToUninstall.add(serviceName);
+                        break;
+                    }
                     break;
                 }
+            }
 
-                // If we run out of unusedOffers we still keep going with an empty list of offers.
-                // This is done in case any of the services depends on us to turn the crank periodically.
+            if (allServicesIdle) {
+                // ALL services are idle, so we can tell upstream that we're idle overall.
+                clientStatusToReturn = ClientStatusResponse.idle();
+            } else if (anyServicesFootprint) {
+                // One or more of the services is getting footprint, so tell upstream that we're getting footprint.
+                clientStatusToReturn = ClientStatusResponse.footprint(anyServicesHaveNewWork);
+            } else {
+                // Otherwise, one or more services isn't idle, and none of them are getting footprint.
+                clientStatusToReturn = ClientStatusResponse.launching(anyServicesHaveNewWork);
             }
         } finally {
             multiServiceManager.sharedUnlock();
@@ -239,11 +245,11 @@ public class MultiServiceEventClient implements MesosEventClient {
             LOGGER.info("Removing {} uninstalled service{}: {}",
                     servicesToRemove.size(), servicesToRemove.size() == 1 ? "" : "s", servicesToRemove);
 
-            // Note: It's possible that we can have a race where we attempt to remove the same service twice. This is ok
+            // Note: It's possible that we can have a race where we attempt to remove a service twice. This is fine.
             //       (Picture two near-simultaneous calls to offers(): Both send offers, both get FINISHED back, ...)
             multiServiceManager.removeServices(servicesToRemove.stream()
                     .map(service -> service.getServiceSpec().getName())
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toList()));
 
             for (AbstractScheduler service : servicesToRemove) {
                 service.getStateStore().deleteAllDataIfNamespaced();
@@ -252,6 +258,61 @@ public class MultiServiceEventClient implements MesosEventClient {
                 // deadlock if the callback itself calls back into us for any reason. This also ensures that we aren't
                 // blocking other operations (e.g. offer/status handling) while these callbacks are running.
                 uninstallCallback.uninstalled(service.getServiceSpec().getName());
+            }
+        }
+
+        return clientStatusToReturn;
+    }
+
+    /**
+     * Forwards the provided offer(s) to all enclosed services, seeing which services are interested in them. The
+     * services which actually receive offers is decided by their status response to {@link #getClientStatus()}, as well
+     * as the configured {@link OfferDiscipline}.
+     */
+    @Override
+    public OfferResponse offers(Collection<Protos.Offer> offers) {
+        if (serviceNamesToGiveOffers.isEmpty()) {
+            return OfferResponse.processed(Collections.emptyList());
+        }
+
+        LOGGER.info("Sending {} offer{} to {} service{}:",
+                offers.size(), offers.size() == 1 ? "" : "s",
+                serviceNamesToGiveOffers.size(), serviceNamesToGiveOffers.size() == 1 ? "" : "s");
+
+        // Decline short if any service isn't ready.
+        boolean anyServicesNotReady = false;
+        List<OfferRecommendation> recommendations = new ArrayList<>();
+
+        List<Protos.Offer> remainingOffers = new ArrayList<>(offers);
+        for (String serviceName : serviceNamesToGiveOffers) {
+            // Note: If we run out of remainingOffers we regardless keep going with an empty list of offers against all
+            // eligible services. We do this to turn the crank on the services periodically.
+            Optional<AbstractScheduler> service = multiServiceManager.getService(serviceName);
+            if (!service.isPresent()) {
+                // In practice this shouldn't happen, unless perhaps the developer removed the service directly.
+                LOGGER.warn("Service '{}' was scheduled to receive offers, then later removed: continuing without it",
+                        serviceName);
+                continue;
+            }
+            OfferResponse offerResponse = service.get().offers(remainingOffers);
+            recommendations.addAll(offerResponse.recommendations);
+            if (!remainingOffers.isEmpty() && !offerResponse.recommendations.isEmpty()) {
+                // Some offers were consumed. Update what remains to offer to the next service.
+                remainingOffers = OfferUtils.filterOutAcceptedOffers(remainingOffers, offerResponse.recommendations);
+            }
+            boolean readyForOffers = offerResponse.result == OfferResponse.Result.PROCESSED;
+            if (!offerResponse.recommendations.isEmpty() || !readyForOffers) {
+                // Only log result when it's non-empty/unusual
+                LOGGER.info("{} offer result: {}[{} recommendation{}], {} offer{} remaining",
+                        serviceName,
+                        offerResponse.result,
+                        offerResponse.recommendations.size(),
+                        offerResponse.recommendations.size() == 1 ? "" : "s",
+                        remainingOffers.size(),
+                        remainingOffers.size() == 1 ? "" : "s");
+            }
+            if (!readyForOffers) {
+                anyServicesNotReady = true;
             }
         }
 
@@ -294,12 +355,23 @@ public class MultiServiceEventClient implements MesosEventClient {
                     // Found service name: Store resource against serviceName+offerId to be evaluated below.
                     getEntry(offersByService, serviceName.get(), offer).add(resource);
                 } else if (ResourceUtils.getReservation(resource).isPresent()) {
-                    // This reserved resource is malformed. Reservations created by this scheduler should always have a
-                    // service name label. Make some noise but leave it alone. Out of caution, we DO NOT destroy it.
-                    LOGGER.error("Ignoring malformed resource in offer {} (missing namespace label): {}",
-                            offer.getId().getValue(), TextFormat.shortDebugString(resource));
+                    // The resource has reservation information attached, but it lacks the namespace. See if we can send
+                    // it to a default service, whose name matches the frameworkName, else drop the offer.
+                    if (multiServiceManager.getServiceSanitized(frameworkName).isPresent()) {
+                        LOGGER.info("Forwarding resource to default service: {}", frameworkName);
+                        getEntry(offersByService, frameworkName, offer).add(resource);
+                    } else {
+                        // This reserved resource is malformed. Reservations created by this scheduler should always
+                        // have a service name label. Make some noise but leave it alone. Out of caution, we DO NOT
+                        // destroy it.
+                        LOGGER.error(
+                                "Ignoring malformed resource in offer {} as neither namespace label nor default" +
+                                        " service is found): {}",
+                                offer.getId().getValue(), TextFormat.shortDebugString(resource));
+                    }
                 } else {
-                    // Not a reserved resource. Ignore for cleanup purposes.
+                    // Common case, not a reserved resource. Ignore for cleanup purposes.
+                    LOGGER.debug("Unable to map the unused offer to any service.");
                 }
             }
         }
@@ -346,8 +418,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 LOGGER.info("  {} cleanup result: {} with {} unexpected resources in {} offer{}",
                         serviceName,
                         response.result,
-                        response.offerResources.stream()
-                                .collect(Collectors.summingInt(or -> or.getResources().size())),
+                        response.offerResources.stream().mapToInt(or -> or.getResources().size()).sum(),
                         response.offerResources.size(),
                         response.offerResources.size() == 1 ? "" : "s");
                 switch (response.result) {
@@ -385,15 +456,22 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public TaskStatusResponse taskStatus(Protos.TaskStatus status) {
-        Optional<AbstractScheduler> service = multiServiceManager.getMatchingService(status);
-        if (!service.isPresent()) {
-            // Unrecognized service. Status for old task?
-            LOGGER.info("Received status for unknown task {}: {}",
-                    status.getTaskId().getValue(), TextFormat.shortDebugString(status));
-            return TaskStatusResponse.unknownTask();
-        }
-        LOGGER.info("Received status for task {}: {}", status.getTaskId().getValue(), status.getState());
-        return service.get().taskStatus(status);
+        return multiServiceManager
+                .getMatchingService(status)
+                .map(x -> x.taskStatus(status))
+                .orElseGet(() -> multiServiceManager
+                        .getServiceSanitized(frameworkName)
+                        .map(x -> {
+                            LOGGER.info("Forwarding task status to default service: {}", frameworkName);
+                            return x.taskStatus(status);
+                        })
+                        .orElseGet(() -> {
+                            // Unrecognized service. Status for old task ?
+                            LOGGER.info("Received status for unknown task {}: {}",
+                                    status.getTaskId().getValue(), TextFormat.shortDebugString(status));
+                            return TaskStatusResponse.unknownTask();
+                        })
+                );
     }
 
     /**
@@ -402,12 +480,18 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public Collection<Object> getHTTPEndpoints() {
-        Collection<PlanManager> planManagers = uninstallPlan.isPresent()
-                ? Collections.singletonList(DefaultPlanManager.createProceeding(uninstallPlan.get()))
+        Collection<PlanManager> planManagers = deregisterStep.isPresent()
+                ? Collections.singletonList(DefaultPlanManager.createProceeding(new DefaultPlan(
+                        Constants.DEPLOY_PLAN_NAME,
+                        Collections.singletonList(new DefaultPhase(
+                                "deregister-framework",
+                                Collections.singletonList(deregisterStep.get()),
+                                new SerialStrategy<>(),
+                                Collections.emptyList())))))
                 : Collections.emptyList(); // ... any plans to show when running normally?
         List<Object> endpoints = new ArrayList<>();
         endpoints.addAll(Arrays.asList(
-                new HealthResource(planManagers),
+                new HealthResource(planManagers, schedulerConfig),
                 new PlansResource(planManagers),
                 new MultiArtifactResource(multiServiceManager),
                 new MultiConfigResource(multiServiceManager),
@@ -424,25 +508,18 @@ public class MultiServiceEventClient implements MesosEventClient {
      * entry if needed.
      */
     private static OfferResources getEntry(
-            Map<String, Map<Protos.OfferID, OfferResources>> map, String serviceName, Protos.Offer offer) {
-        Map<Protos.OfferID, OfferResources> serviceOffers = map.get(serviceName);
-        if (serviceOffers == null) {
-            serviceOffers = new HashMap<>();
-            map.put(serviceName, serviceOffers);
-        }
-        return getEntry(serviceOffers, offer);
+            Map<String, Map<Protos.OfferID, OfferResources>> map,
+            String serviceName,
+            Protos.Offer offer
+    ) {
+        return getEntry(map.computeIfAbsent(serviceName, k -> new HashMap<>()), offer);
     }
 
     /**
      * Finds the requested {@link OfferResources} value in the provided map[offerId], initializing the entry if needed.
      */
     private static OfferResources getEntry(Map<Protos.OfferID, OfferResources> map, Protos.Offer offer) {
-        OfferResources currentValue = map.get(offer.getId());
-        if (currentValue == null) {
-            // Initialize entry
-            currentValue = new OfferResources(offer);
-            map.put(offer.getId(), currentValue);
-        }
-        return currentValue;
+        // Initialize entry if absent
+        return map.computeIfAbsent(offer.getId(), k -> new OfferResources(offer));
     }
 }

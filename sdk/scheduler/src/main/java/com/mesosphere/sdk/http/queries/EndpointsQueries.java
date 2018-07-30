@@ -142,6 +142,7 @@ public class EndpointsQueries {
                 }
                 addPortToEndpoints(
                         endpointsByName,
+                        schedulerConfig,
                         frameworkName,
                         taskInfo.getName(),
                         port,
@@ -194,6 +195,7 @@ public class EndpointsQueries {
      */
     private static void addPortToEndpoints(
             Map<String, JSONObject> endpointsByName,
+            SchedulerConfig schedulerConfig,
             String frameworkName,
             String taskName,
             Port taskInfoPort,
@@ -216,7 +218,7 @@ public class EndpointsQueries {
                     taskInfoPort.getName(),
                     autoipHostPort,
                     ipHostPort,
-                    EndpointUtils.toVipEndpoint(frameworkName, vip));
+                    EndpointUtils.toVipEndpoint(frameworkName, schedulerConfig, vip));
         }
 
         // If no VIPs were found, list the port against the port name:

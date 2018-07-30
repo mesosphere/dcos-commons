@@ -1,15 +1,23 @@
+import logging
 import pytest
 
 import sdk_cmd
 import sdk_install
 import sdk_networks
-import sdk_plan
+import sdk_recovery
 import sdk_security
 import sdk_utils
 
 from security import transport_encryption, cipher_suites
 
 from tests import config
+
+pytestmark = [pytest.mark.skipif(sdk_utils.is_open_dcos(),
+                                 reason="Feature only supported in DC/OS EE"),
+              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
+                                 reason="TLS tests require DC/OS 1.10+")]
+
+log = logging.getLogger(__name__)
 
 # Name of the broker TLS vip
 BROKER_TLS_ENDPOINT = 'broker-tls'
@@ -31,29 +39,30 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def kafka_service_tls(service_account):
-    try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        config.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options={
-                "service": {
-                    "service_account": service_account["name"],
-                    "service_account_secret": service_account["secret"],
-                    "security": {
-                        "transport_encryption": {
-                            "enabled": True
-                        }
-                    }
+def kafka_service(service_account):
+    service_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
                 }
             }
-        )
+        }
+    }
 
-        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    try:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            service_name=config.SERVICE_NAME,
+            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            additional_options=service_options,
+            timeout_seconds=30 * 60)
 
-        yield service_account
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -61,9 +70,7 @@ def kafka_service_tls(service_account):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
-def test_tls_endpoints(kafka_service_tls):
+def test_tls_endpoints(kafka_service):
     endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     assert BROKER_TLS_ENDPOINT in endpoints
 
@@ -76,9 +83,7 @@ def test_tls_endpoints(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
-def test_producer_over_tls(kafka_service_tls):
+def test_producer_over_tls(kafka_service):
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
 
     topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -102,9 +107,7 @@ def test_producer_over_tls(kafka_service_tls):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
-def test_tls_ciphers(kafka_service_tls):
+def test_tls_ciphers(kafka_service):
     task_name = 'kafka-0-broker'
     endpoint = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
@@ -117,24 +120,46 @@ def test_tls_ciphers(kafka_service_tls):
         config.SERVICE_NAME,
         'describe',
         json=True), '').rstrip().split(','))
-    possible_ciphers = set(map(cipher_suites.rfc_name, sdk_security.openssl_ciphers()))
+
+    openssl_ciphers = sdk_security.openssl_ciphers()
+    missing_openssl_ciphers = cipher_suites.missing_openssl_ciphers(openssl_ciphers)
+    possible_openssl_ciphers = openssl_ciphers - missing_openssl_ciphers
     enabled_ciphers = set()
 
+    assert openssl_ciphers, 'OpenSSL ciphers should be non-empty'
     assert expected_ciphers, 'Expected ciphers should be non-empty'
-    assert possible_ciphers, 'Possible ciphers should be non-empty'
+    assert possible_openssl_ciphers, 'Possible OpenSSL ciphers should be non-empty'
 
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
-    print("\nExpected ciphers:")
-    print("\n".join(sdk_utils.sort(list(expected_ciphers))))
-    print("\n{} ciphers will be checked:".format(len(possible_ciphers)))
-    print("\n".join(sdk_utils.sort(list(possible_ciphers))))
+    log.warning("\n%s OpenSSL ciphers missing from the cipher_suites module:", len(missing_openssl_ciphers))
+    log.warning("\n".join(sdk_utils.sort(list(missing_openssl_ciphers))))
+    log.info("\n%s expected ciphers:", len(expected_ciphers))
+    log.info("\n".join(sdk_utils.sort(list(expected_ciphers))))
+    log.info("\n%s ciphers will be checked:", len(possible_openssl_ciphers))
+    for openssl_cipher in sdk_utils.sort(list(possible_openssl_ciphers)):
+        log.info("%s (%s)", cipher_suites.rfc_name(openssl_cipher), openssl_cipher)
 
-    for cipher in possible_ciphers:
-        openssl_cipher = cipher_suites.openssl_name(cipher)
+    for openssl_cipher in possible_openssl_ciphers:
         if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
-            enabled_ciphers.add(cipher)
+            enabled_ciphers.add(cipher_suites.rfc_name(openssl_cipher))
 
-    print('{} ciphers enabled out of {}:'.format(len(enabled_ciphers), len(possible_ciphers)))
-    print("\n".join(sdk_utils.sort(list(enabled_ciphers))))
+    log.info('%s ciphers enabled out of %s:', len(enabled_ciphers), len(possible_openssl_ciphers))
+    log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_tls_recovery(kafka_service, service_account):
+    pod_list = sdk_cmd.svc_cli(kafka_service["package_name"],
+                               kafka_service["service"]["name"],
+                               "pod list",
+                               json=True)
+
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(kafka_service["package_name"],
+                                              kafka_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60)

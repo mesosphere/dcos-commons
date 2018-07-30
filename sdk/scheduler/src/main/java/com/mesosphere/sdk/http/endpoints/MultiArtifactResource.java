@@ -5,6 +5,7 @@ import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -34,15 +35,16 @@ public class MultiArtifactResource {
      * @param frameworkName the name of the scheduler framework
      * @param serviceName the name of a service being managed by the scheduler
      */
-    public static ArtifactQueries.TemplateUrlFactory getUrlFactory(String frameworkName, String serviceName) {
-        String hostname = EndpointUtils.toSchedulerApiVipHostname(frameworkName);
+    public static ArtifactQueries.TemplateUrlFactory getUrlFactory(
+            String frameworkName, String serviceName, SchedulerConfig schedulerConfig) {
+        String hostnameAndPort = EndpointUtils.toSchedulerAutoIpEndpoint(frameworkName, schedulerConfig);
         // Replace slashes with periods:
         String sanitizedServiceName = CommonIdUtils.toSanitizedServiceName(serviceName);
         return new ArtifactQueries.TemplateUrlFactory() {
             @Override
             public String get(UUID configId, String podType, String taskName, String configName) {
                 return String.format(RUN_ARTIFACT_URI_FORMAT,
-                        hostname, sanitizedServiceName, configId, podType, taskName, configName);
+                        hostnameAndPort, sanitizedServiceName, configId, podType, taskName, configName);
             }
         };
     }

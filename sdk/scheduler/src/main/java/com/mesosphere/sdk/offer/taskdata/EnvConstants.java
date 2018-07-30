@@ -25,9 +25,10 @@ public class EnvConstants {
      *  under this domain. For example, <VIP_NAME>.<FRAMEWORK_VIP_HOST> => vip hostname. */
     public static final String FRAMEWORK_VIP_HOST_TASKENV = "FRAMEWORK_VIP_HOST";
 
-    /** Provides the hostname of the Scheduler's own API. Pods within the service may access scheduler-hosted APIs under
-     *  this hostname. For example, <SCHEDULER_API_HOSTNAME>/v1/state/files/notavirus.exe.txt */
+    /** Provides the hostname/port of the Scheduler's own API. Pods within the service may access scheduler-hosted APIs
+     *  under this hostname. For example, &lt;hostname>:&lt;port>/v1/state/files/notavirus.exe.txt */
     public static final String SCHEDULER_API_HOSTNAME_TASKENV = "SCHEDULER_API_HOSTNAME";
+    public static final String SCHEDULER_API_PORT_TASKENV = "SCHEDULER_API_PORT";
 
     /** Provides the zone in which the task has been launched. */
     public static final String ZONE_TASKENV = "ZONE";

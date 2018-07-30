@@ -13,11 +13,20 @@ import sys
 import os
 
 
-def extract_uris(file_name):
-    with open(file_name, "r") as file:
-        lines = file.readlines()
+def readlines_if_text_file(filename):
+    try:
+        with open(filename, "r", encoding="utf8",) as fh:
+            return fh.readlines()
+    except UnicodeDecodeError as e:
+        msg = "Skipping extracting uris from file `{}`, looks like binary one: {}"
+        print(msg.format(filename, e))
+        return []
 
-    matcher = re.compile(".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
+
+def extract_uris(file_name):
+    lines = readlines_if_text_file(file_name)
+
+    matcher = re.compile(r".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
     matches = []
     for line in lines:
         line = line.strip()
@@ -57,6 +66,9 @@ def is_bad_uri(uri, file_name):
         "{{FRAMEWORK_HOST}}",
         "$FRAMEWORK_HOST",
         "${FRAMEWORK_HOST}",
+        "{{SCHEDULER_API_HOSTNAME}}",
+        "${SCHEDULER_API_HOSTNAME}",
+        "$SCHEDULER_API_HOSTNAME",
     ]
 
     # Are any of the exceptions present?
@@ -65,9 +77,10 @@ def is_bad_uri(uri, file_name):
             return False
 
     print("Found a bad URI:", uri, "in:", file_name,
-                "Export URIs to resource.json to allow packaging for airgapped clusters.")
+          "Export URIs to resource.json to allow packaging for airgapped clusters.")
 
     return True
+
 
 def get_files_to_check_for_uris(framework_directory):
     # There's a set of files that will always be present.
@@ -97,9 +110,8 @@ def validate_all_uris(framework_directory):
 def validate_images(framework_directory):
     files = get_files_to_check_for_uris(framework_directory)
 
-    for file in files:
-        with open(file, "r") as file:
-            lines = file.readlines()
+    for file_name in files:
+        lines = readlines_if_text_file(file_name)
 
         bad_image = False
         for line in lines:
@@ -111,7 +123,7 @@ def validate_images(framework_directory):
                 env_var_matcher = re.compile("\{\{[A-Z0-9_]*\}\}")
                 if not env_var_matcher.match(image_path):
                     print("""Bad image found in {}. It is a direct reference instead of a templated reference: {}
-                    Export images to resource.json to allow packaging for airgapped clusters.""".format(file, image_path))
+                    Export images to resource.json to allow packaging for airgapped clusters.""".format(file_name, image_path))
                     bad_image = True
 
     return not bad_image

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.google.common.base.Splitter;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.framework.EnvStore;
@@ -17,8 +18,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.google.common.base.Splitter;
-
+import com.mesosphere.sdk.storage.PersisterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -74,8 +75,7 @@ public class Main {
                     throws PersisterException {
         ServiceSpec javaServiceSpec = createSampleServiceSpec(schedulerConfig, envStore);
         SchedulerBuilder builder = DefaultScheduler.newBuilder(javaServiceSpec, schedulerConfig);
-        Scenario.customize(builder, scenarios);
-        SchedulerRunner.fromSchedulerBuilder(builder).run();
+        SchedulerRunner.fromSchedulerBuilder(Scenario.customize(builder, Optional.empty(), scenarios)).run();
     }
 
     /**
@@ -90,7 +90,7 @@ public class Main {
         Persister persister = getPersister(schedulerConfig, FrameworkConfig.fromServiceSpec(serviceSpec));
         SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                 .setPlansFrom(rawServiceSpec);
-        SchedulerRunner.fromSchedulerBuilder(Scenario.customize(builder, scenarios)).run();
+        SchedulerRunner.fromSchedulerBuilder(Scenario.customize(builder, Optional.empty(), scenarios)).run();
     }
 
     /**
@@ -104,7 +104,7 @@ public class Main {
             Collection<Scenario.Type> scenarios) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        MultiServiceManager multiServiceManager = new MultiServiceManager();
+        MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
 
         ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
                 schedulerConfig, frameworkConfig, persister, scenarios, multiServiceManager);
@@ -118,6 +118,7 @@ public class Main {
                 frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 multiServiceManager,
+                persister,
                 Collections.singleton(httpResource),
                 httpResource.getUninstallCallback());
 
@@ -136,21 +137,26 @@ public class Main {
             SchedulerConfig schedulerConfig,
             EnvStore envStore,
             Collection<File> yamlFiles,
-            Collection<Scenario.Type> scenarios) throws Exception {
+            Collection<Scenario.Type> scenarios
+    ) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
-        MultiServiceManager multiServiceManager = new MultiServiceManager();
+        PersisterUtils.checkAndMigrate(frameworkConfig, persister);
+        MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
 
         // Add services represented by YAML files to the service manager:
         for (File yamlFile : yamlFiles) {
             RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
             ServiceSpec serviceSpec =
                     DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile())
+                    // Override any framework-level params in the servicespec (role, principal, ...) with ours:
+                    .setMultiServiceFrameworkConfig(frameworkConfig)
                     .build();
             SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                     .setPlansFrom(rawServiceSpec)
                     .enableMultiService(frameworkConfig.getFrameworkName());
-            multiServiceManager.putService(Scenario.customize(builder, scenarios).build());
+            multiServiceManager.putService(
+                    Scenario.customize(builder, Optional.of(frameworkConfig.getFrameworkName()), scenarios).build());
         }
 
         // Set up the client and run the framework:
@@ -158,6 +164,7 @@ public class Main {
                 frameworkConfig.getFrameworkName(),
                 schedulerConfig,
                 multiServiceManager,
+                persister,
                 Collections.emptyList(),
                 new MultiServiceEventClient.UninstallCallback() {
             @Override
@@ -181,7 +188,7 @@ public class Main {
         Persister persister = CuratorPersister.newBuilder(
                 frameworkConfig.getFrameworkName(), frameworkConfig.getZookeeperHostPort()).build();
         if (schedulerConfig.isStateCacheEnabled()) {
-            persister = new PersisterCache(persister);
+            persister = new PersisterCache(persister, schedulerConfig);
         }
         return persister;
     }
@@ -191,12 +198,12 @@ public class Main {
         // Support both space-separated or comma-separated files:
         //   ./hello-world foo.yml bar.yml baz.yml
         //   ./hello-world foo.yml,bar.yml,baz.yml
-        for (int i = 0; i < args.length; ++i) {
-            yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(args[i]));
+        for (String arg : args) {
+            yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(arg));
         }
         LOGGER.info("Using YAML examples: {}", yamlPaths);
         return yamlPaths.stream()
-                .map(name -> ExampleMultiServiceResource.getYamlFile(name))
+                .map(ExampleMultiServiceResource::getYamlFile)
                 .collect(Collectors.toList());
     }
 

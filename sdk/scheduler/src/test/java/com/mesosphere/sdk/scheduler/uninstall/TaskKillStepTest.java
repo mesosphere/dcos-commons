@@ -28,7 +28,8 @@ public class TaskKillStepTest {
     @Test
     public void testStart() {
         TaskKillStep step = createStep();
-        Assert.assertEquals(Optional.empty(), step.start());
+        step.start();
+        Assert.assertEquals(Optional.empty(), step.getPodInstanceRequirement());
         Assert.assertEquals(Status.COMPLETE, step.getStatus());
         Mockito.verify(driver).killTask(taskID);
     }

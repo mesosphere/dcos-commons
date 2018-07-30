@@ -17,13 +17,20 @@ import sdk_plan
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
+# From dcos-cli:
+COMPLETED_TASK_STATES = set([
+    "TASK_FINISHED", "TASK_KILLED", "TASK_FAILED", "TASK_LOST", "TASK_ERROR",
+    "TASK_GONE", "TASK_GONE_BY_OPERATOR", "TASK_DROPPED", "TASK_UNREACHABLE",
+    "TASK_UNKNOWN"
+])
+
 log = logging.getLogger(__name__)
 
 
 def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS, allow_more=True):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         try:
@@ -61,35 +68,32 @@ class Task(object):
     '''Entry value returned by get_summary()'''
 
     @staticmethod
-    def parse(cli_task_line):
-        # Example:
-        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4
-        # FYI: the state value is just the first character of the task state (e.g. STAGING => S)
-        cli_task_tokens = cli_task_line.split()
-        if len(cli_task_tokens) < 6:
-            log.warning('Invalid task line from CLI: {}'.format(cli_task_tokens))
-            return None
+    def parse(task_entry, agents):
+        agent_id = task_entry['slave_id']
+        matching_agent_hosts = [agent['hostname'] for agent in agents['slaves'] if agent['id'] == agent_id]
+        if len(matching_agent_hosts) != 1:
+            host = "UNKNOWN:" + agent_id
+        else:
+            host = matching_agent_hosts[0]
         return Task(
-            cli_task_tokens[0],
-            cli_task_tokens[1],
-            cli_task_tokens[2],
-            cli_task_tokens[3],
-            cli_task_tokens[4],
-            cli_task_tokens[5])
+            task_entry['name'],
+            host,
+            task_entry['state'],
+            task_entry['id'],
+            task_entry['framework_id'],
+            agent_id)
 
-
-    def __init__(self, name, host, user, state_char, id, agent):
+    def __init__(self, name, host, state, task_id, framework_id, agent):
         self.name = name
         self.host = host
-        self.user = user
-        self.state_char = state_char
-        self.id = id
+        self.state = state
+        self.id = task_id
+        self.framework_id = framework_id
         self.agent = agent
 
-
     def __repr__(self):
-        return 'Task[name={} host={} user={} state_char={} id={} agent={}]'.format(
-            self.name, self.host, self.user, self.state_char, self.id, self.agent)
+        return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent={}]'.format(
+            self.name, self.state, self.id, self.host, self.framework_id, self.agent)
 
 
 def get_status_history(task_name: str) -> list:
@@ -107,23 +111,23 @@ def get_status_history(task_name: str) -> list:
     return history
 
 
-def get_summary(with_completed=False):
+def get_summary(with_completed=False, task_name=None):
     '''Returns a summary of task information as returned by the DC/OS CLI.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
     Returns a list of Task objects.
     '''
-
-    # Note: We COULD use --json, but there appears to be some fancy handling done in the CLI for the
-    # non-json version, particularly around the running user. Just grab the non-"--json" version of things.
-    task_lines = sdk_cmd.run_cli('task --all' if with_completed else 'task', print_output=False).split('\n')
-    output = []
-    for task_line in task_lines[1:]:  # First line is the header line
-        task = Task.parse(task_line)
-        if task is not None:
-            output.append(task)
-    log.info('Task summary (with_completed={}):\n- {}'.format(
-        with_completed, '\n- '.join([str(e) for e in output])))
+    cluster_tasks = sdk_cmd.cluster_request('GET', '/mesos/tasks').json()
+    cluster_agents = sdk_cmd.cluster_request('GET', '/mesos/slaves').json()
+    all_tasks = [Task.parse(entry, cluster_agents) for entry in cluster_tasks['tasks']]
+    if with_completed:
+        output = all_tasks
+    else:
+        output = list(filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks))
+    if task_name:
+        output = list(filter(lambda t: t.name == task_name, all_tasks))
+    log.info('Task summary (with_completed={}) (task_name=[{}]):\n- {}'.format(
+        with_completed, task_name, '\n- '.join([str(e) for e in output])))
     return output
 
 
@@ -172,34 +176,37 @@ def get_completed_task_id(task_name):
     return tasks[0] if tasks else None
 
 
-def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+def check_task_relaunched(task_name,
+                          old_task_id,
+                          ensure_new_task_not_completed=True,
+                          timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    log.info('Checking (task_name:{}) (old_task_id:{}) with (ensure_new_task_not_completed:{}) is relaunched'.format(
+        task_name, old_task_id, ensure_new_task_not_completed))
+
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
-        retry_on_result=lambda res: not res)
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_exception=lambda e: isinstance(e, Exception))
     def fn():
-        try:
-            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == task_name])
-        except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids. task_name=%s', task_name)
-            task_ids = set([])
-
-        return len(task_ids) > 0 and (old_task_id not in task_ids or len(task_ids) > 1)
-
+        tasks = get_summary(with_completed=True, task_name=task_name)
+        assert len(tasks) > 0, 'No tasks were found with the given task name {}'.format(task_name)
+        assert len(list(filter(lambda t: t.state in COMPLETED_TASK_STATES and t.id == old_task_id, tasks))) > 0,\
+            'Unable to find any completed tasks with id {}'.format(old_task_id)
+        assert len(list(filter(lambda t: t.id != old_task_id and (
+            t.state not in COMPLETED_TASK_STATES if ensure_new_task_not_completed else True
+        ), tasks))) > 0, 'Unable to find any new tasks with name {} with (ensure_new_task_not_completed:{})'.format(
+            task_name, ensure_new_task_not_completed)
     fn()
 
 
-def check_task_not_relaunched(service_name, task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    sdk_plan.wait_for_completed_deployment(service_name)
-    sdk_plan.wait_for_completed_recovery(service_name)
+def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice_name=None, with_completed=False):
+    log.debug('Checking that old task id {} is not relaunched'.format(old_task_id))
+    sdk_plan.wait_for_completed_deployment(service_name, multiservice_name=multiservice_name)
+    sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 
-    try:
-        task_ids = set([t['id'] for t in shakedown.get_tasks() if t['name'] == task_name])
-    except dcos.errors.DCOSHTTPException:
-        log.info('Failed to get task ids for service {}'.format(service_name))
-        task_ids = set([])
-
-    assert len(task_ids) == 1 and old_task_id in task_ids
+    task_ids = set([t.id for t in get_summary(with_completed) if t.name == task_name])
+    assert old_task_id in task_ids, 'Old task id {} was not found in task_ids {}'.format(old_task_id, task_ids)
+    assert len(task_ids) == 1, 'Length != 1. Expected task id {} Task ids: {}'.format(old_task_id, task_ids)
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
@@ -208,7 +215,7 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
     # atomic test, that the plan completed properly where properly includes that no old tasks remain.
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         try:

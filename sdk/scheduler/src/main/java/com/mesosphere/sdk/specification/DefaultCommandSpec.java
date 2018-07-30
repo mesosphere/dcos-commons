@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
-
-import javax.validation.constraints.NotNull;
-
 import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
@@ -17,12 +13,12 @@ import java.util.TreeMap;
  * Default implementation of {@link CommandSpec}.
  */
 public class DefaultCommandSpec implements CommandSpec {
-    @NotNull
+
     private String value;
     private Map<String, String> environment;
 
     @JsonCreator
-    public DefaultCommandSpec(
+    private DefaultCommandSpec(
             @JsonProperty("value") String value,
             @JsonProperty("environment") Map<String, String> environment) {
         this.value = value;
@@ -31,6 +27,8 @@ public class DefaultCommandSpec implements CommandSpec {
 
     private DefaultCommandSpec(Builder builder) {
         this(builder.value, builder.getEnvironment());
+
+        ValidationUtils.nonNull(this, "value", value);
     }
 
     /**
@@ -49,6 +47,7 @@ public class DefaultCommandSpec implements CommandSpec {
     }
 
     @Override
+    @JsonProperty("value")
     public String getValue() {
         return value;
     }
@@ -57,6 +56,7 @@ public class DefaultCommandSpec implements CommandSpec {
      * Returns the merged {@link ServiceSpec} environment plus any environment variable overrides.
      */
     @Override
+    @JsonProperty("environment")
     public Map<String, String> getEnvironment() {
         return environment;
     }
@@ -131,9 +131,7 @@ public class DefaultCommandSpec implements CommandSpec {
          * @return a {@code DefaultCommandSpec} built with parameters of this {@code DefaultCommandSpec.Builder}
          */
         public DefaultCommandSpec build() {
-            DefaultCommandSpec defaultCommandSpec = new DefaultCommandSpec(this);
-            ValidationUtils.validate(defaultCommandSpec);
-            return defaultCommandSpec;
+            return new DefaultCommandSpec(this);
         }
     }
 }

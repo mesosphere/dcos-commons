@@ -4,9 +4,8 @@ import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkScheduler;
-import com.mesosphere.sdk.framework.ReviveManager;
 import com.mesosphere.sdk.framework.TaskKiller;
-import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.framework.TokenBucket;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -26,6 +25,7 @@ import org.mockito.Mockito;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -52,7 +52,7 @@ public class ServiceTestRunner {
 
     private final File specPath;
     private File configTemplateDir;
-    private Persister persister = new MemPersister();
+    private Persister persister = MemPersister.newBuilder().build();
     private ClusterState oldClusterState = null;
     private final Map<String, String> cosmosOptions = new HashMap<>();
     private final Map<String, String> buildTemplateParams = new HashMap<>();
@@ -288,8 +288,11 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getBootstrapURI()).thenReturn("bootstrap-uri");
         Mockito.when(mockSchedulerConfig.getApiServerPort()).thenReturn(8080);
         Mockito.when(mockSchedulerConfig.getDcosSpace()).thenReturn("test-space");
-        Mockito.when(mockSchedulerConfig.getServiceTLD()).thenReturn(Constants.DNS_TLD);
+        Mockito.when(mockSchedulerConfig.getAutoipTLD()).thenReturn("autoip.tld");
+        Mockito.when(mockSchedulerConfig.getVipTLD()).thenReturn("vip.tld");
+        Mockito.when(mockSchedulerConfig.getMarathonName()).thenReturn("test-marathon");
         Mockito.when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-scheduler-region"));
+        Mockito.when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -305,8 +308,6 @@ public class ServiceTestRunner {
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
         TaskKiller.reset(false);
-        // Reset revive manager token bucket, to ensure semi-consistent timer state and avoid unnecessary waiting.
-        ReviveManager.resetTimers();
 
         Map<String, String> schedulerEnvironment =
                 CosmosRenderer.renderSchedulerEnvironment(cosmosOptions, buildTemplateParams);
@@ -315,6 +316,7 @@ public class ServiceTestRunner {
         // Test 1: Does RawServiceSpec render?
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(specPath)
                 .setEnv(schedulerEnvironment)
+                .enableStrictRendering()
                 .build();
 
         // Test 2: Does ServiceSpec render?
@@ -338,6 +340,7 @@ public class ServiceTestRunner {
                         new FrameworkStore(persister),
                         abstractScheduler)
                 .setApiServerStarted()
+                .setReviveTokenBucket(TokenBucket.newBuilder().acquireInterval(Duration.ZERO).build())
                 .disableThreading();
 
         // Test 4: Can we render the per-task config templates without any missing values?
@@ -363,7 +366,11 @@ public class ServiceTestRunner {
                 }
             } else if (tick instanceof Send) {
                 LOGGER.info("SEND:   {}", tick.getDescription());
-                ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
+                try {
+                    ((Send) tick).send(clusterState, mockDriver, frameworkScheduler);
+                } catch (Throwable e) {
+                    throw buildSimulationError(ticks, tick, e);
+                }
             } else {
                 throw new IllegalArgumentException(String.format("Unrecognized tick type: %s", tick));
             }
@@ -372,7 +379,7 @@ public class ServiceTestRunner {
         // Reset Capabilities API to default behavior:
         Capabilities.overrideCapabilities(null);
 
-        // Re-enable background TaskKiller thread for other tests
+        // Re-enable background TaskKiller thread for other tests:
         TaskKiller.reset(true);
 
         return new ServiceTestResult(

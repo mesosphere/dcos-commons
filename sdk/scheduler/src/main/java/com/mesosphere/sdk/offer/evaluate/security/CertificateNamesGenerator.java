@@ -33,6 +33,7 @@ public class CertificateNamesGenerator {
         }
     }
 
+    private final SchedulerConfig schedulerConfig;
     private final String serviceName;
     private final String taskInstanceName;
     private final String autoIpHostname;
@@ -46,6 +47,7 @@ public class CertificateNamesGenerator {
                                      TaskSpec taskSpec,
                                      PodInstance podInstance,
                                      SchedulerConfig schedulerConfig) {
+        this.schedulerConfig = schedulerConfig;
         this.serviceName = serviceName;
         this.taskInstanceName = TaskSpec.getInstanceName(podInstance, taskSpec);
         // Task can specify its own service discovery name
@@ -97,6 +99,7 @@ public class CertificateNamesGenerator {
                         GeneralName.dNSName,
                         EndpointUtils.toVipHostname(
                                 serviceName,
+                                schedulerConfig,
                                 new EndpointUtils.VipInfo(vipSpec.getVipName(), (int) vipSpec.getPort()))))
                 .forEach(vipGeneralName -> generalNames.add(vipGeneralName));
 

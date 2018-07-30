@@ -43,9 +43,8 @@ public class PodSpecsCannotChangeNetworkRegimeTest {
         MockitoAnnotations.initMocks(this);
 
         DefaultNetworkSpec overlayNetworkSpec, bridgeOverlayNetworkSpec;
-        overlayNetworkSpec = new DefaultNetworkSpec("dcos", Collections.emptyMap(), Collections.emptyMap());
-        bridgeOverlayNetworkSpec = new DefaultNetworkSpec("mesos-bridge", Collections.emptyMap(), Collections.emptyMap());
-
+        overlayNetworkSpec = DefaultNetworkSpec.newBuilder().networkName("dcos").build();
+        bridgeOverlayNetworkSpec = DefaultNetworkSpec.newBuilder().networkName("mesos-bridge").build();
         List<NetworkSpec> overlayNetworkSpecs = new ArrayList<>(Collections.singletonList(overlayNetworkSpec));
         List<NetworkSpec> bridgeNetworkSpecs = new ArrayList<>(Collections.singletonList(bridgeOverlayNetworkSpec));
         List<NetworkSpec> onHostNetwork = new ArrayList<>();

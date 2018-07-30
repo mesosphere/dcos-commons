@@ -38,18 +38,6 @@ def configure_package(configure_security):
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
-
-@pytest.mark.sanity
-@pytest.mark.smoke
-@pytest.mark.mesos_v0
-def test_mesos_v0_api():
-    service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
-    if prior_api_version is not "V0":
-        sdk_marathon.set_mesos_api_version(service_name, "V0")
-        sdk_marathon.set_mesos_api_version(service_name, prior_api_version)
-
-
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_hello_cpus():
@@ -234,6 +222,7 @@ def test_config_cli():
 
 
 @pytest.mark.sanity
+@pytest.mark.smoke # include in smoke: verify that cluster is healthy after earlier service config changes
 def test_plan_cli():
     plan_name = 'deploy'
     phase_name = 'world'
@@ -362,6 +351,7 @@ def test_lock():
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
     marathon_client.update_app(foldered_name, {"labels": original_labels, "instances": 1}, force=True)
     shakedown.deployment_wait()
+
 
 @pytest.mark.sanity
 def test_tmp_directory_created():

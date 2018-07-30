@@ -6,7 +6,6 @@ import com.mesosphere.sdk.framework.Driver;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -28,11 +27,6 @@ public class OfferAccepter {
             return;
         }
 
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("No driver present for accepting offers.  This should never happen.");
-        }
-
         // Group recommendations by agent: Mesos requires that acceptOffers() only applies to a single agent at a time.
         // Note that ORDERING IS IMPORTANT:
         //    The resource lifecycle is RESERVE -> CREATE -> DESTROY -> UNRESERVE
@@ -42,13 +36,11 @@ public class OfferAccepter {
             List<Protos.Offer.Operation> operations = agentRecs.getValue().stream()
                     .map(rec -> rec.getOperation())
                     .collect(Collectors.toList());
-            logOperations(agentRecs.getKey(), operations);
-            driver.get().acceptOffers(
-                    agentRecs.getValue().stream()
-                            .map(rec -> rec.getOffer().getId())
-                            .collect(Collectors.toSet()),
-                    operations,
-                    FILTERS);
+            Collection<Protos.OfferID> offerIds = agentRecs.getValue().stream()
+                    .map(rec -> rec.getOffer().getId())
+                    .collect(Collectors.toSet());
+            logOperations(agentRecs.getKey(), offerIds, operations);
+            Driver.getInstance().acceptOffers(offerIds, operations, FILTERS);
         }
     }
 
@@ -71,9 +63,15 @@ public class OfferAccepter {
         return recommendationsByAgent;
     }
 
-    private static void logOperations(String agentId, List<Protos.Offer.Operation> operations) {
-        LOGGER.info("Sending {} operation{} for agent {}:",
-                operations.size(), operations.size() == 1 ? "" : "s", agentId);
+    private static void logOperations(
+            String agentId, Collection<Protos.OfferID> offerIds, List<Protos.Offer.Operation> operations) {
+        LOGGER.info("Accepting {} offer{} for agent {} with {} operation{}: {}",
+                offerIds.size(),
+                offerIds.size() == 1 ? "" : "s",
+                agentId,
+                operations.size(),
+                operations.size() == 1 ? "" : "s",
+                offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toSet()));
         for (Protos.Offer.Operation op : operations) {
             LOGGER.info("  {}", TextFormat.shortDebugString(op));
         }

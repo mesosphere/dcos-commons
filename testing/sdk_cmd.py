@@ -106,7 +106,7 @@ def cluster_request(
         # Use wrapper to implement retry:
         @retrying.retry(
             wait_fixed=1000,
-            stop_max_delay=timeout_seconds*1000)
+            stop_max_delay=timeout_seconds * 1000)
         def retry_fn():
             return fn()
         return retry_fn()
@@ -115,18 +115,28 @@ def cluster_request(
         return fn()
 
 
-def svc_cli(package_name, service_name, service_cmd, json=False, print_output=True, return_stderr_in_stdout=False):
+def svc_cli(
+        package_name,
+        service_name,
+        service_cmd,
+        json=False,
+        print_output=True,
+        return_stderr_in_stdout=False,
+        check=False):
     full_cmd = '{} --name={} {}'.format(package_name, service_name, service_cmd)
 
     if not json:
-        return run_cli(full_cmd, print_output=print_output, return_stderr_in_stdout=return_stderr_in_stdout)
+        return run_cli(full_cmd,
+                       print_output=print_output,
+                       return_stderr_in_stdout=return_stderr_in_stdout,
+                       check=check)
     else:
         # TODO(elezar): We shouldn't use json=True and return_stderr_in_stdout=True together
         # assert not return_stderr_in_stdout, json=True and return_stderr_in_stdout=True should not be used together
-        return get_json_output(full_cmd, print_output=print_output)
+        return get_json_output(full_cmd, print_output=print_output, check=False)
 
 
-def run_raw_cli(cmd, print_output=True):
+def run_raw_cli(cmd, print_output=True, check=False):
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing return code, stdout, and stderr.
 
@@ -135,7 +145,7 @@ def run_raw_cli(cmd, print_output=True):
     """
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
-    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
     stdout = ""
     stderr = ""
 
@@ -154,9 +164,9 @@ def run_raw_cli(cmd, print_output=True):
     return result.returncode, stdout, stderr
 
 
-def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
+def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
 
-    _, stdout, stderr = run_raw_cli(cmd, print_output)
+    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
 
     if return_stderr_in_stdout:
         return stdout + "\n" + stderr
@@ -167,7 +177,7 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         command = (
@@ -223,7 +233,7 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
 def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         ok, stdout = agent_ssh(agent_ip, 'sudo shutdown -h +1')
@@ -239,7 +249,7 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=5*60*1000,
+        stop_max_delay=5 * 60 * 1000,
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
         try:
@@ -287,7 +297,7 @@ def agent_ssh(agent_host: str, cmd: str) -> tuple:
     return success, output
 
 
-def marathon_task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+def marathon_task_exec(task_name: str, cmd: str) -> tuple:
     """
     Invokes the given command on the named Marathon task via `dcos task exec`.
     :param task_name: Name of task to run 'cmd' on.
@@ -295,10 +305,10 @@ def marathon_task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool =
     :return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
     # Marathon TaskIDs are of the form "<name>.<uuid>"
-    return _task_exec(task_name, cmd, return_stderr_in_stdout)
+    return _task_exec(task_name, cmd)
 
 
-def service_task_exec(service_name: str, task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     """
     Invokes the given command on the named SDK service task via `dcos task exec`.
     :param service_name: Name of the service running the task.
@@ -312,11 +322,17 @@ def service_task_exec(service_name: str, task_name: str, cmd: str, return_stderr
     # - Regexes don't work at all.
     # Therefore, we need to provide a full TaskID prefix, including "servicename__taskname":
     task_id_prefix = '{}__{}__'.format(sdk_utils.get_task_id_service_name(service_name), task_name)
+    rc, stdout, stderr = _task_exec(task_id_prefix, cmd)
 
-    return _task_exec(task_id_prefix, cmd, return_stderr_in_stdout)
+    if 'Cannot find a task with ID containing' in stderr:
+        # If the service is doing an upgrade test, the old version may not use prefixed task ids.
+        # Get around this by trying again without the service name prefix in the task id.
+        rc, stdout, stderr = _task_exec(task_name, cmd)
+
+    return rc, stdout, stderr
 
 
-def _task_exec(task_id_prefix: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
+def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
         # On 1.9 task exec is run relative to the host filesystem, not the container filesystem
         full_cmd = os.path.join(get_task_sandbox_path(task_id_prefix), cmd)
@@ -327,19 +343,14 @@ def _task_exec(task_id_prefix: str, cmd: str, return_stderr_in_stdout: bool = Fa
     else:
         full_cmd = cmd
 
-    rc, stdout, stderr = run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
-
-    if return_stderr_in_stdout:
-        return rc, stdout + "\n" + stderr
-
-    return rc, stdout, stderr
+    return run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
 
 
 def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bootstrap') -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
-    bootstrap_cmd = [
+    bootstrap_cmd_list = [
         bootstrap_cmd,
         '-print-env=false',
         '-template=false',
@@ -347,7 +358,7 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bo
         '-self-resolve=false',
         '-resolve-hosts', ','.join(hosts)]
     log.info("Running bootstrap to wait for DNS resolution of: %s", ', '.join(hosts))
-    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
+    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd_list))
 
     # Note that bootstrap returns its output in STDERR
     resolved = 'SDK Bootstrap successful.' in bootstrap_stderr
@@ -361,8 +372,8 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bo
     return resolved
 
 
-def get_json_output(cmd, print_output=True):
-    _, stdout, stderr = run_raw_cli(cmd, print_output)
+def get_json_output(cmd, print_output=True, check=False):
+    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
 
     if stderr:
         log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)

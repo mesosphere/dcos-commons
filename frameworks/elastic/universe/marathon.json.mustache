@@ -37,7 +37,6 @@
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
@@ -350,8 +349,7 @@
     {
       "port": 0,
       "protocol": "tcp",
-      "name": "api",
-      "labels": { "VIP_0": "/api.{{service.name}}:80" }
+      "name": "api"
     }
   ]
 }

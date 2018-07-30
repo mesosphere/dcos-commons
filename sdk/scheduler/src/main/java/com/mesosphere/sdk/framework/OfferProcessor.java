@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.framework;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.apache.mesos.Protos;
-import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
 
 import com.codahale.metrics.Timer;
@@ -27,8 +26,9 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OfferUtils;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
-import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.scheduler.OfferResources;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse;
@@ -43,6 +43,7 @@ import com.mesosphere.sdk.storage.PersisterUtils;
 class OfferProcessor {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(OfferProcessor.class);
+    private static final Duration DEFAULT_OFFER_WAIT = Duration.ofSeconds(5);
 
     // Avoid attempting to process offers until initialization has completed via the first call to registered().
     private final AtomicBoolean isInitialized = new AtomicBoolean(false);
@@ -58,17 +59,22 @@ class OfferProcessor {
 
     private final MesosEventClient mesosEventClient;
     private final Persister persister;
+    private final SchedulerConfig schedulerConfig;
     private final OfferAccepter offerAccepter;
 
+    // Internal TokenBucket may be overridden in tests:
+    private ReviveManager reviveManager;
     // May be overridden in tests:
     private OfferQueue offerQueue;
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded;
 
-    public OfferProcessor(MesosEventClient mesosEventClient, Persister persister) {
+    public OfferProcessor(MesosEventClient mesosEventClient, Persister persister, SchedulerConfig schedulerConfig) {
         this.mesosEventClient = mesosEventClient;
         this.persister = persister;
+        this.schedulerConfig = schedulerConfig;
         this.offerAccepter = new OfferAccepter();
+        this.reviveManager = new ReviveManager(TokenBucket.newBuilder().build(), schedulerConfig);
         this.offerQueue = new OfferQueue();
         this.multithreaded = true;
     }
@@ -77,8 +83,9 @@ class OfferProcessor {
      * Forces the instance to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
      * called before calling {@link #start()}.
      *
-     * @return this
+     * @return {@code this}
      */
+    @VisibleForTesting
     OfferProcessor disableThreading() {
         multithreaded = false;
         return this;
@@ -88,11 +95,23 @@ class OfferProcessor {
      * Overrides the offer queue size. Must only be called before the scheduler has {@link #start()}ed.
      *
      * @param queueSize the queue size to use, zero for infinite
-     * @return this
+     * @return {@code this}
      */
     @VisibleForTesting
     OfferProcessor setOfferQueueSize(int queueSize) {
         offerQueue = new OfferQueue(queueSize);
+        return this;
+    }
+
+    /**
+     * Overrides the token bucket used to handle rate limiting of revive calls.
+     *
+     * @param reviveTokenBucket the replacement {@link TokenBucket}
+     * @return {@code this}
+     */
+    @VisibleForTesting
+    OfferProcessor setReviveTokenBucket(TokenBucket reviveTokenBucket) {
+        this.reviveManager = new ReviveManager(reviveTokenBucket, schedulerConfig);
         return this;
     }
 
@@ -102,8 +121,8 @@ class OfferProcessor {
             offerExecutor.execute(() -> {
                 while (true) {
                     try {
-                        processQueuedOffers();
-                    } catch (Exception e) {
+                        processQueuedOffers(DEFAULT_OFFER_WAIT);
+                    } catch (Throwable e) {
                         LOGGER.error("Error encountered when processing offers, exiting to avoid zombie state", e);
                         ProcessExit.exit(ProcessExit.ERROR, e);
                     }
@@ -143,8 +162,9 @@ class OfferProcessor {
         }
 
         if (!multithreaded) {
-            // Process on this thread, rather than depending on offerExecutor to do it.
-            processQueuedOffers();
+            // Immediately process on this thread, rather than depending on offerExecutor to do it.
+            // In the single-threaded case, we also disable waiting for offers to come in.
+            processQueuedOffers(Duration.ZERO);
         }
     }
 
@@ -180,13 +200,25 @@ class OfferProcessor {
     }
 
     /**
-     * Dequeues and processes any elements which are present on the offer queue, potentially blocking for offers to
-     * appear.
+     * Dequeues and processes any elements which are present on the offer queue, potentially blocking up to
+     * {@code queueWait} for offers to appear.
      */
-    private void processQueuedOffers() {
-        LOGGER.info("Idling for offers...");
-        List<Protos.Offer> offers = offerQueue.takeAll();
+    private void processQueuedOffers(Duration queueWait) {
+        LOGGER.info("Waiting up to {}s for offers...", queueWait.getSeconds());
+        List<Protos.Offer> offers = offerQueue.takeAll(queueWait);
         try {
+            if (!offers.isEmpty()) {
+                LOGGER.info("Received {} offers.", offers.size());
+                // We've gotten some offers, so we're not suppressed anymore. NOTE: We explicitly avoid calling
+                // ReviveManager the offers are first queued because of the following potential for a deadlock:
+                // 1. We call SchedulerDriver.reviveOffers(), which blocks.
+                // 2. The Mesos client immediately passes us an offer, during the reviveOffers() call.
+                // 3. If we directly invoked reviveManager with a lock, we'd hit a deadlock here.
+                // By only notifying reviveManager in this separate thread after taking things off the queue, we avoid
+                // this cycle, and also remove the need to worry about multithreading within ReviveManager itself.
+                reviveManager.notifyOffersReceived();
+            }
+
             if (offers.isEmpty() && !isInitialized.get()) {
                 // The scheduler hasn't finished registration yet, so many members haven't been initialized either.
                 // Avoid hitting NPE for planCoordinator, driver, etc.
@@ -204,12 +236,18 @@ class OfferProcessor {
             // Match offers with work (call into implementation)
             final Timer.Context context = Metrics.getProcessOffersDurationTimer();
             try {
-                if (isActive()) {
+                if (checkStatus()) {
                     evaluateOffers(offers);
+                } else if (!offers.isEmpty()) {
+                    // The offers are not needed by the service, at least for the moment. Decline long.
+                    declineLong(offers);
                 }
             } finally {
                 context.stop();
             }
+
+            // After the status check, see if a revive is now needed:
+            reviveManager.reviveIfRequested();
         } finally {
             Metrics.incrementProcessedOffers(offers.size());
 
@@ -231,35 +269,50 @@ class OfferProcessor {
     }
 
     /**
-     * Checks the statuses of the underlying client and returns whether it makes sense to pass it offers.
+     * Checks the status of the client and returns whether it should be provided with offers.
      */
-    private boolean isActive() {
+    private boolean checkStatus() {
         ClientStatusResponse response = mesosEventClient.getClientStatus();
-        LOGGER.info("Status result: {}", response.result);
+        LOGGER.info("Status result: {}", response);
 
         switch (response.result) {
-        case RESERVING:
-            // Proceed as-is.
+        case WORKING:
+            // Two reasons to revive:
+            // - New work: Issue revive so that any previously declined offers get sent again
+            // - Suppressed: Issue revive so that the offer stream resumes
+
+            if (response.workingStatus.hasNewWork) {
+                // Service has new work. Revive any previously declined offers, regardless of whether we're suppressed.
+                reviveManager.requestRevive();
+            } else {
+                // Service is not idle (multi-service: any not idle). Revive offers if suppressed.
+                reviveManager.requestReviveIfSuppressed();
+            }
             return true;
-        case RUNNING:
-            // Proceed as-is.
-            return true;
-        case FINISHED:
-            // We do not directly support the FINISHED result at this level. It should only be emitted by services which
-            // have a FINISH GoalState. In practice that should only be the case in a multi-service configuration, where
-            // the FINISHED result code would be handled internally by a MultiServiceEventClient.
-            LOGGER.error("Got unsupported {} from service", response.result);
-            throw new IllegalStateException(String.format(
-                    "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
-                    response.result));
-        case UNINSTALLED:
-            // The service has finished uninstalling. Unregister and delete the framework.
-            isDeregistered.set(true);
-            destroyFramework();
+        case IDLE:
+            // Service is idle (multi-service: all idle). Suppress offers.
+            switch (response.idleRequest) {
+            case NONE:
+                reviveManager.suppressIfActive();
+                break;
+            case REMOVE_CLIENT:
+                // The managed service(s) have finished uninstalling and there's nothing left to do.
+                // Unregister and delete the framework.
+                isDeregistered.set(true);
+                destroyFramework();
+                break;
+            case START_UNINSTALL:
+                // We do not directly support this result at this level. It should only occur in multi-service
+                // deployments, where it would have been handled upstream in the MultiServiceEventClient.
+                LOGGER.error("Got unsupported {} from service", response.result);
+                throw new IllegalStateException(String.format(
+                        "Got unsupported %s response. This should have been handled by a MultiServiceEventClient",
+                        response.result));
+            }
             return false;
         }
 
-        throw new IllegalStateException("Unsupported ClientStatusResponse type: " + response.result);
+        throw new IllegalStateException("Unsupported ClientStatusResponse result: " + response.result);
     }
 
     private void evaluateOffers(List<Protos.Offer> offers) {
@@ -341,15 +394,10 @@ class OfferProcessor {
         }
 
         LOGGER.info("Tearing down framework...");
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (driver.isPresent()) {
-            // Stop the SchedulerDriver thread:
-            // - failover==false: Tells Mesos to teardown the framework.
-            // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
-            driver.get().stop(false);
-        } else {
-            LOGGER.error("No driver is present for deregistering the framework.");
-        }
+        // Stop the SchedulerDriver thread:
+        // - failover==false: Tells Mesos to teardown the framework.
+        // - This call will cause FrameworkRunner's SchedulerDriver.run() call to return DRIVER_STOPPED.
+        Driver.getInstance().stop(false);
 
         LOGGER.info("### UNINSTALL IS COMPLETE! ###");
         LOGGER.info("Scheduler should be cleaned up shortly...");
@@ -414,11 +462,6 @@ class OfferProcessor {
      * @param refuseSeconds The number of seconds for which the offers should be refused
      */
     private static void declineOffers(Collection<Protos.Offer> unusedOffers, int refuseSeconds) {
-        Optional<SchedulerDriver> driver = Driver.getDriver();
-        if (!driver.isPresent()) {
-            throw new IllegalStateException("No driver present for declining offers.  This should never happen.");
-        }
-
         Collection<Protos.OfferID> offerIds = unusedOffers.stream()
                 .map(offer -> offer.getId())
                 .collect(Collectors.toList());
@@ -427,9 +470,11 @@ class OfferProcessor {
                 offerIds.size() == 1 ? "" : "s",
                 refuseSeconds,
                 offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toList()));
+
         final Protos.Filters filters = Protos.Filters.newBuilder()
                 .setRefuseSeconds(refuseSeconds)
                 .build();
-        offerIds.forEach(offerId -> driver.get().declineOffer(offerId, filters));
+
+        offerIds.forEach(offerId -> Driver.getInstance().declineOffer(offerId, filters));
     }
 }

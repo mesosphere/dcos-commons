@@ -343,10 +343,12 @@ public class PodInfoBuilder {
         environmentMap.put(EnvConstants.FRAMEWORK_HOST_TASKENV,
                 EndpointUtils.toAutoIpDomain(serviceName, schedulerConfig));
         // Inject Framework VIP domain (with hostname-safe framework name)
-        environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV, EndpointUtils.toVipDomain(serviceName));
+        environmentMap.put(EnvConstants.FRAMEWORK_VIP_HOST_TASKENV,
+                EndpointUtils.toVipDomain(serviceName, schedulerConfig));
         // Inject Scheduler API hostname (with hostname-safe scheduler name)
         environmentMap.put(EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV,
-                EndpointUtils.toSchedulerApiVipHostname(serviceName));
+                EndpointUtils.toSchedulerAutoIpHostname(serviceName, schedulerConfig));
+        environmentMap.put(EnvConstants.SCHEDULER_API_PORT_TASKENV, String.valueOf(schedulerConfig.getApiServerPort()));
 
         // Inject TASK_NAME as KEY:VALUE
         environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
@@ -440,12 +442,12 @@ public class PodInfoBuilder {
 
     private Optional<ReadinessCheckSpec> getReadinessCheck(TaskSpec taskSpec, GoalStateOverride override) {
         if (override.equals(GoalStateOverride.PAUSED)) {
-            return Optional.of(
-                    new DefaultReadinessCheckSpec(
-                            GoalStateOverride.PAUSE_READINESS_COMMAND,
-                            0,
-                            Constants.SHORT_DECLINE_SECONDS,
-                            Constants.SHORT_DECLINE_SECONDS));
+            // Go with an arbitrary interval/timeout of 5s. Leave delay at the default 0s:
+            return Optional.of(DefaultReadinessCheckSpec.newBuilder(
+                    GoalStateOverride.PAUSE_READINESS_COMMAND,
+                    Constants.SHORT_DECLINE_SECONDS,
+                    Constants.SHORT_DECLINE_SECONDS)
+                    .build());
         }
 
         return taskSpec.getReadinessCheck();

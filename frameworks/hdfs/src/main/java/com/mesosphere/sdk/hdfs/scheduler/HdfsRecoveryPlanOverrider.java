@@ -80,8 +80,8 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Step inputBootstrapStep = inputPhase.getChildren().get(offset + 0);
         PodInstanceRequirement bootstrapPodInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                        inputBootstrapStep.start().get().getPodInstance(),
-                        inputBootstrapStep.start().get().getTasksToLaunch())
+                        inputBootstrapStep.getPodInstanceRequirement().get().getPodInstance(),
+                        inputBootstrapStep.getPodInstanceRequirement().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.PERMANENT)
                 .build();
         Step bootstrapStep =
@@ -95,8 +95,8 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         Step inputNodeStep = inputPhase.getChildren().get(offset + 1);
         PodInstanceRequirement nameNodePodInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                        inputNodeStep.start().get().getPodInstance(),
-                        inputNodeStep.start().get().getTasksToLaunch())
+                        inputNodeStep.getPodInstanceRequirement().get().getPodInstance(),
+                        inputNodeStep.getPodInstanceRequirement().get().getTasksToLaunch())
                 .recoveryType(RecoveryType.TRANSIENT)
                 .build();
         Step nodeStep =
@@ -113,7 +113,7 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
                 Collections.emptyList());
     }
 
-    private Phase getPhaseForNodeType(Plan inputPlan, String phaseName) {
+    private static Phase getPhaseForNodeType(Plan inputPlan, String phaseName) {
         Optional<Phase> phaseOptional = inputPlan.getChildren().stream()
                 .filter(phase -> phase.getName().equals(phaseName))
                 .findFirst();

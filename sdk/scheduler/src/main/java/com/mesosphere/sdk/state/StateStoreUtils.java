@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -95,18 +94,8 @@ public class StateStoreUtils {
             boolean isPermanentlyFailed = markedFailed && taskSpec.get().getGoal() == GoalState.RUNNING;
 
             if (TaskUtils.needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
-
-                LOGGER.info(
-                        "Task: '{}' needs recovery " +
-                                "with status: {}, " +
-                                "marked failed: {}, " +
-                                "goal state: {}, " +
-                                "permanently failed: {}.",
-                        taskSpec.get().getName(),
-                        TextFormat.shortDebugString(status),
-                        markedFailed,
-                        taskSpec.get().getGoal().name(),
-                        isPermanentlyFailed);
+                LOGGER.info("{} needs recovery with state: {}, goal state: {}, marked permanently failed: {}",
+                        info.getName(), status.getState(), taskSpec.get().getGoal().name(), isPermanentlyFailed);
                 results.add(info);
             }
         }
@@ -281,7 +270,10 @@ public class StateStoreUtils {
      * Sets whether the service has previously completed deployment.
      */
     public static void setDeploymentWasCompleted(StateStore stateStore) {
-        stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
+        // Optimization: Avoid writing through to curator if possible. We cache reads but not writes.
+        if (!getDeploymentWasCompleted(stateStore)) {
+            stateStore.storeProperty(LAST_COMPLETED_UPDATE_TYPE_KEY, DEPLOYMENT_TYPE);
+        }
     }
 
     /**

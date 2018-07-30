@@ -23,28 +23,30 @@ def setup_service_account(service_name: str,
         log.error("The setup of a service account requires DC/OS EE. service_name=%s", service_name)
         raise Exception("The setup of a service account requires DC/OS EE")
 
-    name = service_name
-    secret = name if service_account_secret is None else service_account_secret
+    secret = service_name if service_account_secret is None else service_account_secret
+
+    service_account = "{}-service-account".format(service_name.replace("/", ""))
 
     service_account_info = sdk_security.setup_security(service_name,
-                                                       service_account=name,
+                                                       linux_user="nobody",
+                                                       service_account=service_account,
                                                        service_account_secret=secret)
 
     log.info("Adding permissions required for TLS.")
     if sdk_utils.dcos_version_less_than("1.11"):
-        sdk_cmd.run_cli("security org groups add_user superusers {name}".format(name=name))
+        sdk_cmd.run_cli("security org groups add_user superusers {sa}".format(sa=service_account))
     else:
         acls = [
-                {"rid": "dcos:secrets:default:/{}/*".format(service_name), "action": "full"},
-                {"rid": "dcos:secrets:list:default:/{}".format(service_name), "action": "read"},
-                {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
-                {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
-                ]
+            {"rid": "dcos:secrets:default:/{}/*".format(service_name.strip("/")), "action": "full"},
+            {"rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")), "action": "read"},
+            {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
+            {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
+        ]
 
         for acl in acls:
             cmd_list = ["security", "org", "users", "grant",
                         "--description", "\"Allow provisioning TLS certificates\"",
-                        name, acl["rid"], acl["action"]
+                        service_account, acl["rid"], acl["action"]
                         ]
 
             sdk_cmd.run_cli(" ".join(cmd_list))
@@ -61,12 +63,7 @@ def cleanup_service_account(service_name: str, service_account_info: dict):
     if isinstance(service_account_info, str):
         service_account_info = {"name": service_account_info}
 
-    name = service_account_info["name"]
-    secret = service_account_info["secret"] if "secret" in service_account_info else name
-
-    sdk_security.cleanup_security(service_name,
-                                  service_account=name,
-                                  service_account_secret=secret)
+    sdk_security.cleanup_security(service_name, service_account_info)
 
 
 def fetch_dcos_ca_bundle(marathon_task: str) -> str:
@@ -80,6 +77,16 @@ def fetch_dcos_ca_bundle(marathon_task: str) -> str:
     sdk_cmd.marathon_task_exec(marathon_task, " ".join(cmd))
 
     return local_bundle_file
+
+
+def fetch_dcos_ca_bundle_contents() -> str:
+    resp = sdk_cmd.cluster_request("GET", "/ca/dcos-ca.crt")
+    cert = resp.content
+    if not cert:
+        log.error("Error fetching DC/OS CA bundle")
+        raise Exception("Errot fetching DC/OS CA bundle")
+
+    return cert
 
 
 def create_tls_artifacts(cn: str, marathon_task: str) -> str:

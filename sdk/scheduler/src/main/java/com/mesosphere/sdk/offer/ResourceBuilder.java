@@ -33,12 +33,8 @@ public class ResourceBuilder {
         ResourceBuilder builder = new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
                 .setRole(Optional.of(spec.getRole()))
                 .setPrincipal(Optional.of(spec.getPrincipal()));
-        if (resourceId.isPresent()) {
-            builder.setResourceId(resourceId.get());
-        }
-        if (resourceNamespace.isPresent()) {
-            builder.setResourceNamespace(resourceNamespace.get());
-        }
+        resourceId.ifPresent(builder::setResourceId);
+        resourceNamespace.ifPresent(builder::setResourceNamespace);
         return builder;
     }
 
@@ -89,12 +85,13 @@ public class ResourceBuilder {
                     "Cannot generate resource spec from resource which has not been reserved by the SDK.");
         }
 
-        return new DefaultResourceSpec(
-                resource.getName(),
-                ValueUtils.getValue(resource),
-                ResourceUtils.getRole(resource),
-                resource.getRole(),
-                ResourceUtils.getPrincipal(resource).get());
+        return DefaultResourceSpec.newBuilder()
+                .name(resource.getName())
+                .value(ValueUtils.getValue(resource))
+                .role(ResourceUtils.getRole(resource))
+                .preReservedRole(resource.getRole())
+                .principal(ResourceUtils.getPrincipal(resource).get())
+                .build();
     }
 
     @SuppressWarnings("deprecation")

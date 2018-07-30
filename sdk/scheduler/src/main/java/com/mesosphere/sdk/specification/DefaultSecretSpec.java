@@ -2,48 +2,46 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.specification.validation.ValidationUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Default implementation of {@link SecretSpec}.
  */
 public class DefaultSecretSpec implements SecretSpec {
-    @NotNull
-    @Size(min = 1)
-    private final String secretPath;
 
-    private final String envKey;
-
-    /** Regexp in @Pattern:
+    /**
+     * Regexp for valid filePath:
      *      sub-pattern = [.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*
      *      (sub-pattern)?  = either NULL, or sub-pattern.  So It can be Null.
      *      No leading slash character is allowed!
      */
-    @Pattern(regexp = "([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)?")
+    private static final Pattern VALID_FILE_PATH_PATTERN =
+            Pattern.compile("([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)?");
+
+    private final String secretPath;
+    private final String envKey;
     private final String filePath;
 
     @JsonCreator
-    public DefaultSecretSpec(
+    private DefaultSecretSpec(
             @JsonProperty("secret") String secretPath,
             @JsonProperty("env-key") String envKey,
             @JsonProperty("file") String filePath) {
         this.secretPath = secretPath;
         this.envKey = envKey;
         this.filePath = filePath;
-        ValidationUtils.validate(this);
     }
 
     private DefaultSecretSpec(Builder builder) {
         this(builder.secretPath, builder.envKey, builder.filePath);
-        ValidationUtils.validate(this);
+
+        ValidationUtils.nonEmpty(this, "secretPath", secretPath);
+        ValidationUtils.matchesRegexAllowNull(this, "filePath", filePath, VALID_FILE_PATH_PATTERN);
     }
 
     public static Builder newBuilder() {
@@ -84,9 +82,9 @@ public class DefaultSecretSpec implements SecretSpec {
     }
 
     /**
-     * {@code DefaultSecretSpec} builder static inner class.
+     * {@link DefaultSecretSpec} builder static inner class.
      */
-    public static final class Builder {
+    public static class Builder {
 
         private String secretPath;
         private String envKey;
@@ -95,47 +93,23 @@ public class DefaultSecretSpec implements SecretSpec {
         private Builder() {
         }
 
-        /**
-         * Sets the {@code secretPath} and returns a reference to this Builder.
-         *
-         * @param secretPath the {@code secretPath} to set
-         * @return a reference to this Builder
-         */
         public Builder secretPath(String secretPath) {
             this.secretPath = secretPath;
             return this;
         }
 
-        /**
-         * Sets the {@code envKey} and returns a reference to this Builder.
-         *
-         * @param envKey the {@code envKey} to set
-         * @return a reference to this Builder
-         */
         public Builder envKey(String envKey) {
             this.envKey = envKey;
             return this;
         }
 
-        /**
-         * Sets the {@code filePath} and returns a reference to this Builder.
-         *
-         * @param filePath the {@code filePath} to set
-         * @return a reference to this Builder
-         */
         public Builder filePath(String filePath) {
             this.filePath = filePath;
             return this;
         }
 
-        /**
-         * Returns a {@code DefaultSecretSpec} built from the parameters previously set.
-         *
-         * @return a {@code DefaultSecretSpec} built with parameters of this {@code DefaultSecretSpec.Builder}
-         */
         public DefaultSecretSpec build() {
-            DefaultSecretSpec defaultSecretSpec = new DefaultSecretSpec(this);
-            return defaultSecretSpec;
+            return new DefaultSecretSpec(this);
         }
     }
 }

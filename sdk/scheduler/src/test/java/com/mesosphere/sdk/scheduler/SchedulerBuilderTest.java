@@ -2,7 +2,11 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.evaluate.placement.*;
+import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -11,7 +15,6 @@ import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -23,12 +26,12 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Mockito.*;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Optional;
+
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the {@link SchedulerBuilder}.
@@ -71,7 +74,7 @@ public class SchedulerBuilderTest {
                 .build();
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                serviceSpec, mockSchedulerConfig, new MemPersister())
+                serviceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .withSingleRegionConstraint()
                 .build()
                 .getServiceSpec();
@@ -88,7 +91,7 @@ public class SchedulerBuilderTest {
         when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of(TestConstants.REMOTE_REGION));
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .withSingleRegionConstraint()
                 .build()
                 .getServiceSpec();
@@ -108,7 +111,7 @@ public class SchedulerBuilderTest {
         when(mockSchedulerConfig.isRegionAwarenessEnabled()).thenReturn(true);
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
 
@@ -123,7 +126,7 @@ public class SchedulerBuilderTest {
     @Test
     public void testRegionAwarenessEnabledWithoutSchedulerRegion() throws PersisterException {
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .withSingleRegionConstraint()
                 .build()
                 .getServiceSpec();
@@ -139,7 +142,7 @@ public class SchedulerBuilderTest {
         when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of(TestConstants.REMOTE_REGION));
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
 
@@ -152,7 +155,7 @@ public class SchedulerBuilderTest {
     @Test
     public void testRegionAwarenessDisabledWithoutSchedulerRegion() throws PersisterException {
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
 
@@ -167,7 +170,7 @@ public class SchedulerBuilderTest {
         when(mockCapabilities.supportsDomains()).thenReturn(false);
 
         ServiceSpec updatedServiceSpec = DefaultScheduler.newBuilder(
-                minimalServiceSpec, mockSchedulerConfig, new MemPersister())
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build())
                 .build()
                 .getServiceSpec();
         // No rule changes:
@@ -181,11 +184,12 @@ public class SchedulerBuilderTest {
 
     @Test
     public void testDeployPlanOverriddenDuringUpdate() throws Exception {
-        Persister persister = new MemPersister();
-        SchedulerBuilder builder = DefaultScheduler.newBuilder(minimalServiceSpec, mockSchedulerConfig, persister);
+        SchedulerBuilder builder = DefaultScheduler.newBuilder(
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build());
 
         Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), true);
 
+        // Update plan should have replaced the deploy plan:
         Assert.assertEquals(1, plans.size());
         Plan deployPlan = plans.stream()
                 .filter(plan -> plan.isDeployPlan())
@@ -196,12 +200,13 @@ public class SchedulerBuilderTest {
 
     @Test
     public void testDeployPlanPreservedDuringInstall() throws Exception {
-        Persister persister = new MemPersister();
-        SchedulerBuilder builder = DefaultScheduler.newBuilder(minimalServiceSpec, mockSchedulerConfig, persister);
+        SchedulerBuilder builder = DefaultScheduler.newBuilder(
+                minimalServiceSpec, mockSchedulerConfig, MemPersister.newBuilder().build());
 
         Collection<Plan> plans = builder.selectDeployPlan(getDeployUpdatePlans(), false);
 
-        Assert.assertEquals(2, plans.size());
+        // Should have omitted the update plan since it's not being used:
+        Assert.assertEquals(1, plans.size());
         Plan deployPlan = plans.stream()
                 .filter(plan -> plan.isDeployPlan())
                 .findFirst().get();

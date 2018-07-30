@@ -1,13 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.state.GoalStateOverride;
-import org.apache.http.impl.client.LaxRedirectStrategy;
-import org.apache.mesos.Protos.Credential;
-import org.bouncycastle.util.io.pem.PemReader;
-import org.json.JSONObject;
-import org.slf4j.Logger;
-
 import com.auth0.jwt.algorithms.Algorithm;
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
@@ -17,6 +9,12 @@ import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.state.GoalStateOverride;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.mesos.Protos.Credential;
+import org.bouncycastle.util.io.pem.PemReader;
+import org.json.JSONObject;
+import org.slf4j.Logger;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -56,6 +54,21 @@ public class SchedulerConfig {
     private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
 
     /**
+     * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
+     * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
+     * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
+     * quotas.</li>
+     * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
+     * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
+     */
+    public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
+    /**
+     * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
+     * number of parallel deployments via the above envvar.
+     */
+    private static final int DEFAULT_RESERVE_DISCIPLINE = 0; // No limit
+
+    /**
      * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
      * token refresh.
      */
@@ -83,6 +96,18 @@ public class SchedulerConfig {
     private static final String DISABLE_STATE_CACHE_ENV = "DISABLE_STATE_CACHE";
 
     /**
+     * Controls whether deadlocks should lead to the scheduler process exiting (enabled by default).
+     * If this envvar is set (to anything at all), the scheduler will not exit if a deadlock is encountered.
+     */
+    private static final String DISABLE_DEADLOCK_EXIT_ENV = "DISABLE_DEADLOCK_EXIT";
+
+    /**
+     * Controls whether the framework will request that offers be suppressed when the service(s) are idle (enabled by
+     * default). If this envvar is set (to anything at all), then offer suppression is disabled.
+     */
+    private static final String DISABLE_SUPPRESS_ENV = "DISABLE_SUPPRESS";
+
+    /**
      * When a port named {@code api} is added to the Marathon app definition for the scheduler, marathon should create
      * an envvar with this name in the scheduler env. This is preferred over using e.g. the {@code PORT0} envvar which
      * is against the index of the port in the list.
@@ -104,7 +129,7 @@ public class SchedulerConfig {
      * some form of sidechannel auth. When this environment variable is present, we should always
      * provide a {@link Credential} with (only) the principal set.
      */
-    private static final String SIDECHANNEL_AUTH_ENV_NAME = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
+    private static final String SIDECHANNEL_AUTH_ENV = "DCOS_SERVICE_ACCOUNT_CREDENTIAL";
 
     /**
      * Environment variables which advertise to the service what the DC/OS package name and package version are.
@@ -149,9 +174,25 @@ public class SchedulerConfig {
     private static final String ALLOW_REGION_AWARENESS_ENV = "ALLOW_REGION_AWARENESS";
 
     /**
-     * Environment variable for setting a custom TLD for the service (replaces Constants.TLD_NET).
+     * Environment variable for setting a custom TLD for autoip endpoints.
      */
-    private static final String USER_SPECIFIED_TLD_ENVVAR = "SERVICE_TLD";
+    private static final String SERVICE_TLD_ENV = "SERVICE_TLD";
+
+    /**
+     * Environment variable for setting a custom TLD for VIP endpoints.
+     */
+    private static final String VIP_TLD_ENV = "VIP_TLD";
+
+    /**
+     * Environment variable for setting a custom name for the Marathon instance running the service.
+     */
+    private static final String MARATHON_NAME_ENV = "MARATHON_NAME";
+
+    /**
+     * Environment variable for the IP address of the scheduler task. Note, this is dependent on the fact we are using
+     * the command executor.
+     */
+    private static final String LIBPROCESS_IP_ENV = "LIBPROCESS_IP";
 
     /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
@@ -180,14 +221,7 @@ public class SchedulerConfig {
         this.envStore = envStore;
 
         if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-            LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                    getPackageName(),
-                    getPackageVersion(),
-                    Instant.ofEpochMilli(getPackageBuildTimeMs()),
-
-                    SDKBuildInfo.VERSION,
-                    SDKBuildInfo.GIT_SHA,
-                    Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+            LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
         }
     }
 
@@ -207,8 +241,16 @@ public class SchedulerConfig {
     }
 
     /**
-     * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
-     * information.
+     * Returns the number of services that can be simultaneously reserving in a multi-service scheduler, or {@code <=0}
+     * for no limit.
+     */
+    public int getMultiServiceReserveDiscipline() {
+        return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
+    }
+
+    /**
+     * Returns the configured API port, or throws {@link EnvStore.ConfigException} if the environment lacked the
+     * required information.
      */
     public int getApiServerPort() {
         return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
@@ -256,6 +298,14 @@ public class SchedulerConfig {
         return !envStore.isPresent(DISABLE_STATE_CACHE_ENV);
     }
 
+    public boolean isDeadlockExitEnabled() {
+        return !envStore.isPresent(DISABLE_DEADLOCK_EXIT_ENV);
+    }
+
+    public boolean isSuppressEnabled() {
+        return !envStore.isPresent(DISABLE_SUPPRESS_ENV);
+    }
+
     public boolean isUninstallEnabled() {
         return envStore.isPresent(SDK_UNINSTALL);
     }
@@ -266,7 +316,7 @@ public class SchedulerConfig {
      * Kerberos).
      */
     public boolean isSideChannelActive() {
-        return envStore.isPresent(SIDECHANNEL_AUTH_ENV_NAME);
+        return envStore.isPresent(SIDECHANNEL_AUTH_ENV);
     }
 
     /**
@@ -274,7 +324,7 @@ public class SchedulerConfig {
      * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
      */
     public TokenProvider getDcosAuthTokenProvider() throws IOException {
-        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV));
         PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
         try {
             RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(
@@ -293,7 +343,7 @@ public class SchedulerConfig {
             Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
                     AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
 
-            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold);
+            return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold, this);
         } catch (InvalidKeySpecException e) {
             throw new IllegalArgumentException(e);
         } catch (NoSuchAlgorithmException e) {
@@ -349,7 +399,7 @@ public class SchedulerConfig {
      * Returns the Mesos API version.
      */
     public String getMesosApiVersion() {
-        return envStore.getRequired(MESOS_API_VERSION_ENV);
+        return envStore.getOptional(MESOS_API_VERSION_ENV, "V1");
     }
 
     /**
@@ -360,10 +410,34 @@ public class SchedulerConfig {
     }
 
     /**
-     * Returns the {@code autoip} service TLD to be used in advertised endpoints.
+     * Returns the TLD to be used in advertised autoip endpoints. This may be overridden in cases where autoip support
+     * isn't available, or if some other TLD should be used instead.
+     *
+     * Resolves to the IP of the host iff the container if on the host network and the IP of the container iff the
+     * container is on the overlay network. If the container is on multiple virtual networks or experimenting with
+     * different DNS providers this TLD may have unexpected behavior.
      */
-    public String getServiceTLD() {
-        return envStore.getOptional(USER_SPECIFIED_TLD_ENVVAR, Constants.DNS_TLD);
+    public String getAutoipTLD() {
+        return envStore.getOptional(SERVICE_TLD_ENV, "autoip.dcos.thisdcos.directory");
+    }
+
+    /**
+     * Returns the TLD to be used in advertised VIP endpoints. This may be overridden in cases where VIPs aren't
+     * available, or if some other TLD should be used instead.
+     */
+    public String getVipTLD() {
+        return envStore.getOptional(VIP_TLD_ENV, "l4lb.thisdcos.directory");
+    }
+
+    /**
+     * Returns the name of the Marathon instance managing the service. This may be overridden in cases where a
+     * non-default Marathon instance (e.g. MoM) is running the scheduler.
+     *
+     * This is used for constructing an endpoint for reaching the Scheduler from tasks, specifically for config template
+     * distribution.
+     */
+    public String getMarathonName() {
+        return envStore.getOptional(MARATHON_NAME_ENV, "marathon");
     }
 
     /**
@@ -386,5 +460,25 @@ public class SchedulerConfig {
      */
     public boolean isRegionAwarenessEnabled() {
         return envStore.getOptionalBoolean(ALLOW_REGION_AWARENESS_ENV, false);
+    }
+
+    /**
+     * Returns the IP of the scheduler task's container. Note, this is dependent on the fact we are using the command
+     * executor.
+     */
+    public String getSchedulerIP() {
+        return envStore.getRequired(LIBPROCESS_IP_ENV);
+    }
+
+    public JSONObject getBuildInfo() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(PACKAGE_NAME_ENV, getPackageName());
+        jsonObject.put(PACKAGE_VERSION_ENV, getPackageVersion());
+        jsonObject.put("PACKAGE_BUILT_AT", Instant.ofEpochMilli(getPackageBuildTimeMs()));
+        jsonObject.put("SDK_NAME", SDKBuildInfo.NAME);
+        jsonObject.put("SDK_VERSION", SDKBuildInfo.VERSION);
+        jsonObject.put("SDK_GIT_SHA", SDKBuildInfo.GIT_SHA);
+        jsonObject.put("SDK_BUILT_AT", Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+        return jsonObject;
     }
 }

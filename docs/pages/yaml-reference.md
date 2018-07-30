@@ -144,7 +144,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
     * `goal`
 
       The goal state of the task. Must be either `RUNNING`, `FINISH` or `ONCE`:
-      * `RUNNING`: The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically. To demonstrate, let's assume a running instance the `hello-world` service on your DC/OS cluster. We'll be updating the configuration of the `hello-0` pod and verifying that the `hello-0-server` task with goal state `RUNNING` is restarted and stays running. First, we verify that the deploy plan has completed:
+
+      * `RUNNING`
+
+        The task should launch and continue running indefinitely. If the task exits, the entire pod (including any other active tasks) is restarted automatically. To demonstrate, let's assume a running instance the `hello-world` service on your DC/OS cluster. We'll be updating the configuration of the `hello-0` pod and verifying that the `hello-0-server` task with goal state `RUNNING` is restarted and stays running. First, we verify that the deploy plan has completed:
         ```
         $ dcos hello-world plan show deploy
         deploy (COMPLETE)
@@ -175,7 +178,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         NAME            HOST         USER   STATE  ID                                                    MESOS ID                                   REGION      ZONE
         hello-0-server  10.0.3.117  nobody    R    hello-0-server__3007283c-837d-48e1-aa0b-d60baead6f4e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
         ```
-      * `FINISH`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it is rerun. To demonstrate, let's assume that we've now launched hello-world with the `finish_state.yml` specfile, like so:
+
+      * `FINISH`
+
+        The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it is rerun. To demonstrate, let's assume that we've now launched hello-world with the `finish_state.yml` specfile, like so:
         ```
         $ echo '{"service": {"yaml": "finish_state"}}' > options.json
         $ dcos package install --yes hello-world --options=options.json
@@ -202,7 +208,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         world-0-finish  10.0.3.117  nobody    F    world-0-finish__bd03efc2-26a0-4e36-a332-38159492557e  61eee73c-b6a5-473c-990d-4bc8051cbd82-S4  us-west-2  us-west-2c
         ...
         ```
-      * `ONCE`: The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it will not be rerun. To demonstrate, let's assume that this time we've launched hello-world with the `discovery.yml` specfile, like so:</li>
+
+      * `ONCE`
+
+        The task should launch and exit successfully (zero exit code). If the task fails (nonzero exit code) then it is retried without relaunching the entire pod. If that task's configuration is updated, it will not be rerun. To demonstrate, let's assume that this time we've launched hello-world with the `discovery.yml` specfile, like so:
         ```
         $ echo '{"service": {"yaml": "discovery"}}' > options.json
         $ dcos package install --yes hello-world --options=options.json
@@ -299,7 +308,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       env:
         SSL_ENABLED: {{WEB_SSL_ENABLED}}
         CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
-        CUSTOM_404_MESSAGE: {{WEB_CUSTOM_404_MESSAGE}}
+        CUSTOM_403_MESSAGE: {{WEB_CUSTOM_403_MESSAGE}}
         HTTP_ROOT: {{WEB_ROOT_DIR}}
       ```
 
@@ -338,7 +347,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
             port: 80 # create a VIP
         debug:
           port: 9090
-          env-var: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
+          env-key: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
       ```
 
       All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on `eth0`, but your service is still connected fine over `eth1`. Or vice versa.

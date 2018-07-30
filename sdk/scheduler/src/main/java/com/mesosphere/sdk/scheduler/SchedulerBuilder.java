@@ -69,13 +69,14 @@ public class SchedulerBuilder {
     private PlanCustomizer planCustomizer;
     private Optional<String> multiServiceFrameworkName = Optional.empty();
     private boolean regionAwarenessEnabled = false;
+    private Collection<Class<?>> additionalDeserializableSubtypes = new ArrayList<>();
 
     SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) throws PersisterException {
         this(
                 serviceSpec,
                 schedulerConfig,
                 schedulerConfig.isStateCacheEnabled() ?
-                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
+                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build(), schedulerConfig) :
                         CuratorPersister.newBuilder(serviceSpec).build());
     }
 
@@ -149,7 +150,7 @@ public class SchedulerBuilder {
 
     /**
      * Sets the {@link Plan}s from the provided {@link RawServiceSpec} to this instance, using a
-     * {@link DefaultPlanGenerator} to handle conversion.
+     * {@link PlanGenerator} to handle conversion.
      */
     public SchedulerBuilder setPlansFrom(RawServiceSpec rawServiceSpec) throws ConfigStoreException {
         if (rawServiceSpec.getPlans() != null) {
@@ -195,6 +196,15 @@ public class SchedulerBuilder {
      */
     public SchedulerBuilder enableMultiService(String frameworkName) {
         this.multiServiceFrameworkName = Optional.of(frameworkName);
+        return this;
+    }
+
+    /**
+     * Specifies additional class subtypes which should be registered with Jackson for deserialization, in addition
+     * to the defaults. This includes custom {@see PlacementRule}s.
+     */
+    public SchedulerBuilder setAdditionalDeserializableSubtypes(Collection<Class<?>> additionalDeserializableSubtypes) {
+        this.additionalDeserializableSubtypes = additionalDeserializableSubtypes;
         return this;
     }
 
@@ -269,7 +279,9 @@ public class SchedulerBuilder {
         // Otherwise use an empty namespace, which indicates single-service mode.
         StateStore stateStore = new StateStore(persister, namespace);
         ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister, namespace);
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec, additionalDeserializableSubtypes),
+                persister,
+                namespace);
 
         if (schedulerConfig.isUninstallEnabled()) {
             // FRAMEWORK UNINSTALL: The scheduler and all its service(s) are being uninstalled. Launch this service in
@@ -332,16 +344,26 @@ public class SchedulerBuilder {
         // Plans may be generated from the config content.
         boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
         if (!hasCompletedDeployment) {
+            // TODO(nickbp): Remove this check after we have reached 0.60.x, expected by Oct 2018 or so. See DCOS-38586.
+            // As of SDK 0.51.0+, the deployment-completed bit is immediately set when deployment completes, rather than
+            // here at startup, but we still need to check it here when upgrading from services using SDK 0.40.x.
             try {
                 // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
                 // nodes, then we want to check that the prior n nodes had successfully deployed.
                 ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
                 Optional<Plan> deployPlan = getDeployPlan(
                         getPlans(stateStore, configStore, lastServiceSpec, namespace, yamlPlans));
-                if (deployPlan.isPresent() && deployPlan.get().isComplete()) {
-                    logger.info("Marking deployment as having been previously completed");
-                    StateStoreUtils.setDeploymentWasCompleted(stateStore);
-                    hasCompletedDeployment = true;
+                if (deployPlan.isPresent()) {
+                    logger.info("Previous deploy plan state: {}", deployPlan.get().toString());
+                    if (deployPlan.get().isComplete()) {
+                        logger.info("Marking deployment as having been previously completed");
+                        StateStoreUtils.setDeploymentWasCompleted(stateStore);
+                        hasCompletedDeployment = true;
+                    } else {
+                        logger.info("Deployment has not previously completed");
+                    }
+                } else {
+                    logger.warn("No previous deploy plan was found");
                 }
             } catch (ConfigStoreException e) {
                 // This is expected during initial deployment, when there is no prior configuration.
@@ -381,10 +403,12 @@ public class SchedulerBuilder {
 
         if (!errors.isEmpty()) {
             plans = setDeployPlanErrors(plans, deployPlan.get(), errors);
+            // Update deployPlan reference to reflect added errors:
+            deployPlan = getDeployPlan(plans);
         }
+        logger.info(deployPlan.get().toString());
 
-        PlanManager deploymentPlanManager =
-                DefaultPlanManager.createProceeding(getDeployPlan(plans).get());
+        PlanManager deploymentPlanManager = DefaultPlanManager.createProceeding(deployPlan.get());
         PlanManager recoveryPlanManager = getRecoveryPlanManager(
                 serviceSpec,
                 Optional.ofNullable(recoveryPlanOverriderFactory),
@@ -407,8 +431,9 @@ public class SchedulerBuilder {
                 stateStore,
                 configStore,
                 multiServiceFrameworkName.isPresent()
-                    ? MultiArtifactResource.getUrlFactory(multiServiceFrameworkName.get(), serviceSpec.getName())
-                    : ArtifactResource.getUrlFactory(serviceSpec.getName()),
+                    ? MultiArtifactResource.getUrlFactory(
+                            multiServiceFrameworkName.get(), serviceSpec.getName(), schedulerConfig)
+                    : ArtifactResource.getUrlFactory(serviceSpec.getName(), schedulerConfig),
                 endpointProducers);
     }
 
@@ -430,9 +455,9 @@ public class SchedulerBuilder {
         if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
             ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
             launchConstrainer = new TimedLaunchConstrainer(
-                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMin()));
+                    Duration.ofMinutes(failurePolicy.getMinReplaceDelayMins()));
             failureMonitor = new TimedFailureMonitor(
-                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimoutMin()),
+                    Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
                     stateStore,
                     configStore);
         } else {
@@ -508,7 +533,7 @@ public class SchedulerBuilder {
             plansType = "YAML";
             // Note: Any internal Plan generation must only be AFTER updating/validating the config. Otherwise plans
             // may look at the old config and mistakenly think they're COMPLETE.
-            DefaultPlanGenerator planGenerator = new DefaultPlanGenerator(configStore, stateStore, namespace);
+            PlanGenerator planGenerator = new PlanGenerator(configStore, stateStore, namespace);
             plans = yamlPlans.entrySet().stream()
                     .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
                     .collect(Collectors.toList());
@@ -577,20 +602,27 @@ public class SchedulerBuilder {
         Optional<Plan> updatePlanOptional = plans.stream()
                 .filter(plan -> plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .findFirst();
-
-        if (!hasCompletedDeployment || !updatePlanOptional.isPresent()) {
-            logger.info("Using regular deploy plan. (Has completed deployment: {}, Custom update plan defined: {})",
-                    hasCompletedDeployment, updatePlanOptional.isPresent());
+        if (!updatePlanOptional.isPresent()) {
+            logger.info("Using regular deploy plan: No custom update plan is defined");
             return plans;
         }
 
-        logger.info("Overriding deploy plan with custom update plan. " +
-                "(Has completed deployment: {}, Custom update plan defined: {})",
-                hasCompletedDeployment, updatePlanOptional.isPresent());
+        if (!hasCompletedDeployment) {
+            logger.info("Using regular deploy plan and filtering custom update plan: Deployment hasn't completed");
+            // Filter out the custom update plan, as it isn't being used.
+            return plans.stream()
+                    .filter(plan -> !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
+                    .collect(Collectors.toList());
+        }
+
+        logger.info("Overriding deploy plan with custom update plan: "
+                + "Deployment has completed and custom update plan is defined");
         Collection<Plan> newPlans = new ArrayList<>();
+        // Remove the current deploy and update plans:
         newPlans.addAll(plans.stream()
                 .filter(plan -> !plan.isDeployPlan() && !plan.getName().equals(Constants.UPDATE_PLAN_NAME))
                 .collect(Collectors.toList()));
+        // Re-add the update plan as the "deploy" plan:
         newPlans.add(new DefaultPlan(
                 Constants.DEPLOY_PLAN_NAME,
                 updatePlanOptional.get().getChildren(),

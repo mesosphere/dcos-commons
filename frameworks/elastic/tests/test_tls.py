@@ -1,9 +1,10 @@
 import pytest
 import shakedown
 
+import sdk_cmd
 import sdk_install
 import sdk_hosts
-import sdk_plan
+import sdk_recovery
 import sdk_utils
 
 from security import transport_encryption
@@ -32,35 +33,39 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope='module')
-def elastic_service_tls(service_account):
+def elastic_service(service_account):
+    service_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "service_account": service_account["name"],
+            "service_account_secret": service_account["secret"],
+            "security": {
+                "transport_encryption": {
+                    "enabled": True
+                }
+            }
+        },
+        "elasticsearch": {
+            "xpack_enabled": True,
+        }
+    }
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
             config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
             expected_running_tasks=config.DEFAULT_TASK_COUNT,
-            additional_options={
-                "service": {
-                    "service_account": service_account["name"],
-                    "service_account_secret": service_account["secret"],
-                    "security": {
-                        "transport_encryption": {
-                            "enabled": True
-                        }
-                    }
-                },
-                "elasticsearch": {
-                    "xpack_enabled": True,
-                }
-            })
+            additional_options=service_options,
+            timeout_seconds=30 * 60)
 
-        yield
+        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.fixture(scope='module')
-def kibana_application_tls(elastic_service_tls):
+def kibana_application(elastic_service):
     try:
         elasticsearch_url = "https://" + sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
 
@@ -86,13 +91,13 @@ def kibana_application_tls(elastic_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.smoke
-def test_healthy(elastic_service_tls):
+def test_healthy(elastic_service):
     assert shakedown.service_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.tls
 @pytest.mark.sanity
-def test_crud_over_tls(elastic_service_tls):
+def test_crud_over_tls(elastic_service):
     config.create_index(
         config.DEFAULT_INDEX_NAME,
         config.DEFAULT_SETTINGS_MAPPINGS,
@@ -117,5 +122,23 @@ def test_crud_over_tls(elastic_service_tls):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-def test_kibana_tls(kibana_application_tls):
+@pytest.mark.skipif(sdk_utils.dcos_version_at_least('1.12'),
+                    reason='MESOS-9008: Mesos Fetcher fails to extract Kibana archive')
+def test_kibana_tls(kibana_application):
     config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_SERVICE_NAME))
+
+
+@pytest.mark.tls
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_tls_recovery(elastic_service, service_account):
+    pod_list = sdk_cmd.svc_cli(elastic_service["package_name"],
+                               elastic_service["service"]["name"],
+                               "pod list",
+                               json=True)
+
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(elastic_service["package_name"],
+                                              elastic_service["service"]["name"],
+                                              pod,
+                                              recovery_timeout_s=25 * 60)

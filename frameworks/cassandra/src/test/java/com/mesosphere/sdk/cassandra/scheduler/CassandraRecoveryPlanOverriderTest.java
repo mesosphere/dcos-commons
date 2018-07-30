@@ -11,6 +11,7 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testing.ServiceTestRunner;
 import com.mesosphere.sdk.testing.ServiceTestResult;
 
@@ -43,10 +44,10 @@ public class CassandraRecoveryPlanOverriderTest {
 
     @Before
     public void beforeEach() throws Exception {
-        stateStore = new StateStore(new MemPersister());
-        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
-                DefaultServiceSpec.getConfigurationFactory(serviceSpec),
-                new MemPersister());
+        Persister persister = MemPersister.newBuilder().build();
+        stateStore = new StateStore(persister);
+        ConfigStore<ServiceSpec> configStore =
+                new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
         UUID targetConfig = configStore.store(serviceSpec);
         configStore.setTargetConfig(targetConfig);
         planOverrider = new CassandraRecoveryPlanOverrider(stateStore, getReplacePlan(configStore));
@@ -129,7 +130,7 @@ public class CassandraRecoveryPlanOverriderTest {
     }
 
     private Plan getReplacePlan(ConfigStore<ServiceSpec> configStore) throws Exception {
-        return new DefaultPlanGenerator(configStore, stateStore, Optional.empty())
+        return new PlanGenerator(configStore, stateStore, Optional.empty())
                 .generate(rawSpec.getPlans().get("replace"), "replace", serviceSpec.getPods());
     }
 }

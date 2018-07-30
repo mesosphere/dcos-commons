@@ -3,7 +3,6 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskPackingUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
@@ -45,8 +44,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
 
-        Protos.CommandInfo command = TaskPackingUtils.unpack(taskInfo).getCommand();
-        Map<String, String> envvars = EnvUtils.toMap(command.getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME + "_555"));
     }
 
@@ -130,8 +128,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
 
-        Map<String, String> envvars = EnvUtils.toMap(
-                TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(),
                 String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_0"));
     }
@@ -164,8 +161,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
 
-        Map<String, String> envvars = EnvUtils.toMap(
-                TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
     }
 
@@ -198,8 +194,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Operation launchOperation = recommendations.get(2).getOperation();
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
 
-        Map<String, String> envvars = EnvUtils.toMap(
-                TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
     }
 
@@ -265,8 +260,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(getResourceId(taskInfo.getResources(0)), getResourceId(fulfilledPortResource1));
         Assert.assertEquals(getResourceId(taskInfo.getResources(1)), getResourceId(fulfilledPortResource2));
 
-        Map<String, String> envvars = EnvUtils.toMap(
-                TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(10000), envvars.get(portenv0));
         Assert.assertEquals(String.valueOf(10001), envvars.get(portenv1));
 
@@ -303,8 +297,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + "-10000:80");
 
-        Map<String, String> envvars = EnvUtils.toMap(
-                TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_VIP_10000"));
     }
 
@@ -335,8 +328,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + "-0:80");
 
-        Map<String, String> envvars = EnvUtils.toMap(
-                TaskPackingUtils.unpack(taskInfo).getCommand().getEnvironment());
+        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_VIP_0"));
     }
 

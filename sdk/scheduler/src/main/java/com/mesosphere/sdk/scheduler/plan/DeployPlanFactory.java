@@ -37,15 +37,9 @@ public class DeployPlanFactory implements PlanFactory {
 
     @Override
     public Plan getPlan(ServiceSpec serviceSpec) {
-        return new DefaultPlan(
-                DEPLOY_PLAN_NAME,
-                getPhases(serviceSpec),
-                strategyGenerator.generate());
-    }
-
-    private List<Phase> getPhases(ServiceSpec serviceSpec) {
-        return serviceSpec.getPods().stream()
+        List<Phase> phases = serviceSpec.getPods().stream()
                 .map(phaseFactory::getPhase)
                 .collect(Collectors.toList());
+        return new DefaultPlan(DEPLOY_PLAN_NAME, phases, strategyGenerator.generate(phases));
     }
 }

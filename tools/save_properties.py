@@ -11,7 +11,7 @@ import sys
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-PROPERTIES_FILE_NAME='stub-universe.properties'
+PROPERTIES_FILE_NAME = 'stub-universe.properties'
 
 
 def upload_to_s3(s3_dir_uri):

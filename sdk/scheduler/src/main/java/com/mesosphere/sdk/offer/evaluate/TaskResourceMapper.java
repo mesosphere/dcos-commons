@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 class TaskResourceMapper {
 
     private final Logger logger;
-
     private final Optional<String> resourceNamespace;
     private final String taskSpecName;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
@@ -29,11 +28,11 @@ class TaskResourceMapper {
 
     private final List<OfferEvaluationStage> evaluationStages;
 
-    public TaskResourceMapper(
+    TaskResourceMapper(
             TaskSpec taskSpec,
             Protos.TaskInfo taskInfo,
             Optional<String> resourceNamespace) {
-        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+        logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.resourceNamespace = resourceNamespace;
         this.taskSpecName = taskSpec.getName();
         this.resourceSpecs = new ArrayList<>();
@@ -55,23 +54,28 @@ class TaskResourceMapper {
     }
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
-        List<ResourceSpec> remainingResourceSpecs = new ArrayList<>();
-        remainingResourceSpecs.addAll(resourceSpecs);
+        // These are taskinfo resources which weren't found in the resourcespecs. Likely need dereservations.
+        List<ResourceSpec> remainingResourceSpecs = new ArrayList<>(resourceSpecs);
 
-        // these are resourcespecs which were matched with taskinfo resources. may need updates
+        // These are resourcespecs which were matched with taskinfo resources. May need updates.
         List<ResourceLabels> matchingResources = new ArrayList<>();
-        // these are taskinfo resources which weren't found in the resourcespecs. likely need dereservations
         for (Protos.Resource taskResource : resources) {
             Optional<ResourceLabels> matchingResource;
             switch (taskResource.getName()) {
                 case Constants.DISK_RESOURCE_TYPE:
-                    matchingResource = findMatchingDiskSpec(taskResource, remainingResourceSpecs);
+                    matchingResource = ResourceMapperUtils.findMatchingDiskSpec(
+                            taskResource,
+                            remainingResourceSpecs,
+                            resourceNamespace);
                     break;
                 case Constants.PORTS_RESOURCE_TYPE:
                     matchingResource = findMatchingPortSpec(taskResource, remainingResourceSpecs);
                     break;
                 default:
-                    matchingResource = findMatchingResourceSpec(taskResource, remainingResourceSpecs);
+                    matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
+                            taskResource,
+                            remainingResourceSpecs,
+                            resourceNamespace);
                     break;
             }
             if (matchingResource.isPresent()) {
@@ -89,7 +93,7 @@ class TaskResourceMapper {
 
         if (!orphanedResources.isEmpty()) {
             logger.info("Unreserving orphaned task resources no longer in TaskSpec: {}",
-                    orphanedResources.stream().map(r -> TextFormat.shortDebugString(r)).collect(Collectors.toList()));
+                    orphanedResources.stream().map(TextFormat::shortDebugString).collect(Collectors.toList()));
         }
 
         if (!matchingResources.isEmpty()) {
@@ -99,7 +103,6 @@ class TaskResourceMapper {
             }
         }
 
-        // these are resourcespecs which weren't found in the taskinfo resources. likely need new reservations
         if (!remainingResourceSpecs.isEmpty()) {
             logger.info("Missing TaskSpec resources not found in task: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
@@ -107,37 +110,6 @@ class TaskResourceMapper {
             }
         }
         return stages;
-    }
-
-    private Optional<ResourceLabels> findMatchingDiskSpec(
-            Protos.Resource taskResource,
-            Collection<ResourceSpec> resourceSpecs) {
-        for (ResourceSpec resourceSpec : resourceSpecs) {
-            if (!(resourceSpec instanceof VolumeSpec)) {
-                continue;
-            }
-
-            if (taskResource.getDisk().getVolume().getContainerPath().equals(
-                    ((VolumeSpec) resourceSpec).getContainerPath())) {
-                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
-                if (!resourceId.isPresent()) {
-                    logger.error("Failed to find resource ID for resource: {}", taskResource);
-                    continue;
-                }
-
-                double diskSize = taskResource.getScalar().getValue();
-                VolumeSpec updatedSpec = OfferEvaluationUtils.updateVolumeSpec((VolumeSpec) resourceSpec, diskSize);
-
-                return Optional.of(new ResourceLabels(
-                        resourceSpec,
-                        updatedSpec,
-                        resourceId.get(),
-                        Optional.of(taskResource.getDisk().getPersistence().getId()),
-                        ResourceUtils.getSourceRoot(taskResource)));
-            }
-        }
-
-        return Optional.empty();
     }
 
     private Optional<ResourceLabels> findMatchingPortSpec(
@@ -150,6 +122,12 @@ class TaskResourceMapper {
             return Optional.empty();
         }
 
+        Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
+        if (!resourceId.isPresent()) {
+            logger.error("Failed to find resource ID for resource: {}", taskResource);
+            return Optional.empty();
+        }
+
         for (ResourceSpec resourceSpec : resourceSpecs) {
             if (!(resourceSpec instanceof PortSpec)) {
                 continue;
@@ -157,46 +135,27 @@ class TaskResourceMapper {
             PortSpec portSpec = (PortSpec) resourceSpec;
             if (portSpec.getPort() == 0) {
                 // For dynamic ports, we need to detect the port value that we had selected.
-                Optional<Long> priorTaskPort = taskPortFinder.getPriorPort(portSpec);
-                if (priorTaskPort.isPresent()
-                        && RangeUtils.isInAny(taskResource.getRanges().getRangeList(), priorTaskPort.get())) {
-
-                    // The advertised port value is present in this resource. Resource must match!
-                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
-                    if (!resourceId.isPresent()) {
-                        logger.error("Failed to find resource ID for resource: {}", taskResource);
-                        continue;
-                    }
-
-                    return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
-                }
-            } else {
+                return taskPortFinder
+                        .getPriorPort(portSpec)
+                        .filter(priorTaskPort -> RangeUtils.isInAny(ranges.getRangeList(), priorTaskPort))
+                        .map(ignored -> new ResourceLabels(
+                                resourceSpec,
+                                resourceId.get(),
+                                ResourceMapperUtils.getNamespaceLabel(
+                                        ResourceUtils.getNamespace(taskResource),
+                                        resourceNamespace
+                                )
+                        ));
+            } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
-                if (RangeUtils.isInAny(taskResource.getRanges().getRangeList(), portSpec.getPort())) {
-                    Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
-                    if (!resourceId.isPresent()) {
-                        logger.error("Failed to find resource ID for resource: {}", taskResource);
-                        continue;
-                    }
-
-                    return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    private Optional<ResourceLabels> findMatchingResourceSpec(
-            Protos.Resource taskResource, Collection<ResourceSpec> resourceSpecs) {
-        for (ResourceSpec resourceSpec : resourceSpecs) {
-            if (resourceSpec.getName().equals(taskResource.getName())) {
-                Optional<String> resourceId = ResourceUtils.getResourceId(taskResource);
-                if (!resourceId.isPresent()) {
-                    logger.error("Failed to find resource ID for resource: {}", taskResource);
-                    continue;
-                }
-
-                return Optional.of(new ResourceLabels(resourceSpec, resourceId.get()));
+                return Optional.of(new ResourceLabels(
+                        resourceSpec,
+                        resourceId.get(),
+                        ResourceMapperUtils.getNamespaceLabel(
+                                ResourceUtils.getNamespace(taskResource),
+                                resourceNamespace)
+                        )
+                );
             }
         }
         return Optional.empty();
@@ -207,18 +166,26 @@ class TaskResourceMapper {
                 taskSpecName,
                 resourceLabels.getUpdated(),
                 Optional.of(resourceLabels.getResourceId()),
+                resourceLabels.getResourceNamespace(),
                 resourceLabels.getPersistenceId(),
                 resourceLabels.getSourceRoot());
     }
 
     private OfferEvaluationStage newCreateEvaluationStage(String taskSpecName, ResourceSpec resourceSpec) {
-        return toEvaluationStage(taskSpecName, resourceSpec, Optional.empty(), Optional.empty(), Optional.empty());
+        return toEvaluationStage(
+                taskSpecName,
+                resourceSpec,
+                Optional.empty(),
+                resourceNamespace,
+                Optional.empty(),
+                Optional.empty());
     }
 
     private OfferEvaluationStage toEvaluationStage(
             String taskSpecName,
             ResourceSpec resourceSpec,
             Optional<String> resourceId,
+            Optional<String> resourceNamespace,
             Optional<String> persistenceId,
             Optional<String> sourceRoot) {
         if (resourceSpec instanceof NamedVIPSpec) {
