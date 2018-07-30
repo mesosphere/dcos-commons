@@ -4,6 +4,7 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import collections
 import functools
 import logging
 import operator
@@ -169,3 +170,47 @@ def sort(coll):
 def invert_dict(d: dict) -> dict:
     """ Returns a dictionary with its values being its keys and vice-versa. """
     return dict((v, k) for k, v in d.items())
+
+
+# https://github.com/pytoolz/toolz/blob/2bd9139d0d0e17d3426cb467b5f58b1fb6d8a439/toolz/itertoolz.py#L791
+def getter(index):
+    if isinstance(index, list):
+        if len(index) == 1:
+            index = index[0]
+            return lambda x: (x[index],)
+        elif index:
+            return operator.itemgetter(*index)
+        else:
+            return lambda x: ()
+    else:
+        return operator.itemgetter(index)
+
+
+# https://github.com/pytoolz/toolz/blob/2bd9139d0d0e17d3426cb467b5f58b1fb6d8a439/toolz/itertoolz.py#L66
+def groupby(key, seq):
+    """ Group a collection by a key function
+    >>> names = ['Alice', 'Bob', 'Charlie', 'Dan', 'Edith', 'Frank']
+    >>> groupby(len, names)  # doctest: +SKIP
+    {3: ['Bob', 'Dan'], 5: ['Alice', 'Edith', 'Frank'], 7: ['Charlie']}
+    >>> iseven = lambda x: x % 2 == 0
+    >>> groupby(iseven, [1, 2, 3, 4, 5, 6, 7, 8])  # doctest: +SKIP
+    {False: [1, 3, 5, 7], True: [2, 4, 6, 8]}
+    Non-callable keys imply grouping on a member.
+    >>> groupby('gender', [{'name': 'Alice', 'gender': 'F'},
+    ...                    {'name': 'Bob', 'gender': 'M'},
+    ...                    {'name': 'Charlie', 'gender': 'M'}]) # doctest:+SKIP
+    {'F': [{'gender': 'F', 'name': 'Alice'}],
+     'M': [{'gender': 'M', 'name': 'Bob'},
+           {'gender': 'M', 'name': 'Charlie'}]}
+    See Also:
+        countby
+    """
+    if not callable(key):
+        key = getter(key)
+    d = collections.defaultdict(lambda: [].append)
+    for item in seq:
+        d[key(item)](item)
+    rv = {}
+    for k, v in d.items():
+        rv[k] = v.__self__
+    return rv
