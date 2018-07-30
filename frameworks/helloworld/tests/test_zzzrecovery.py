@@ -202,8 +202,7 @@ def test_zk_killed():
 
 
 @pytest.mark.recovery
-@pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                    reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
+@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_config_update_then_kill_task_in_node():
     # kill 1 of 2 world tasks
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
@@ -214,8 +213,7 @@ def test_config_update_then_kill_task_in_node():
 
 
 @pytest.mark.recovery
-@pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                    reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
+@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_config_update_then_kill_all_task_in_node():
     #  kill both world tasks
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
@@ -227,8 +225,7 @@ def test_config_update_then_kill_all_task_in_node():
 
 
 @pytest.mark.recovery
-@pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                    reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
+@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_config_update_then_scheduler_died():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     host = sdk_marathon.get_scheduler_host(config.SERVICE_NAME)
@@ -239,8 +236,7 @@ def test_config_update_then_scheduler_died():
 
 
 @pytest.mark.recovery
-@pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                    reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
+@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_config_update_then_executor_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     config.bump_world_cpus()
@@ -251,8 +247,6 @@ def test_config_update_then_executor_killed():
 
 @pytest.mark.recovery
 @pytest.mark.skip(reason="disabled due to DCOS-39848")
-# @pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-#                     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
 def test_config_updates_then_all_executors_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     hosts = shakedown.get_service_ips(config.SERVICE_NAME)
@@ -321,9 +315,7 @@ def test_config_update_while_partitioned():
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
 @pytest.mark.sanity
-@pytest.mark.skip(reason="disabled until there is a fix for Paramiko see DCOS-39848")
-# @pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-#                     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
+@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_shutdown_host():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile('^(hello|world)-[0-9]+-server$'))
