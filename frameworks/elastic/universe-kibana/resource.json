@@ -1,8 +1,7 @@
 {
   "assets": {
     "uris": {
-      "kibana-tar-gz": "https://downloads.mesosphere.com/elastic/assets/kibana-{{elastic-version}}-linux-x86_64.tar.gz",
-      "xpack-zip": "https://downloads.mesosphere.com/elastic/assets/x-pack-{{elastic-version}}.zip"
+      "kibana-tar-gz": "https://downloads.mesosphere.com/elastic/assets/kibana-{{elastic-version}}-linux-x86_64.tar.gz"
     }
   },
   "images": {

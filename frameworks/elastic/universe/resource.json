@@ -8,7 +8,6 @@
       "statsd-plugin-zip": "https://downloads.mesosphere.com/elastic/assets/elasticsearch-statsd-{{elastic-statsd-version}}.zip",
       "elasticsearch-jre-tar-gz": "{{jre-url}}",
       "elasticsearch-tar-gz": "https://downloads.mesosphere.com/elastic/assets/elasticsearch-{{elastic-version}}.tar.gz",
-      "xpack-zip": "https://downloads.mesosphere.com/elastic/assets/x-pack-{{elastic-version}}.zip",
       "diagnostics-zip": "https://downloads.mesosphere.com/elastic/assets/support-diagnostics-{{support-diagnostics-version}}-dist.zip"
     }
   },
