@@ -5,7 +5,7 @@
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/elastic-scheduler.zip",
-      "statsd-plugin-zip": "https://s3.ap-south-1.amazonaws.com/lcmdev/elasticsearch-statsd-6.3.1.0.zip",
+      "statsd-plugin-zip": "https://github.com/mesosphere/elasticsearch-statsd-plugin/releases/download/{{elastic-statsd-version}}/elasticsearch-statsd-{{elastic-statsd-version}}.zip",
       "elasticsearch-jre-tar-gz": "{{jre-url}}",
       "elasticsearch-tar-gz": "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{elastic-version}}.tar.gz",
       "diagnostics-zip": "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{support-diagnostics-version}}/support-diagnostics-{{support-diagnostics-version}}-dist.zip"
