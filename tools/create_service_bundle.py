@@ -508,7 +508,7 @@ class ServiceBundle(Bundle):
                 agent_id,
                 task_executor_sandbox_path,
                 task_id,
-                self.directory_name,
+                os.path.join(self.directory_name, "tasks"),
                 self.DOWNLOAD_FILES_WITH_PATTERNS,
             )
 
