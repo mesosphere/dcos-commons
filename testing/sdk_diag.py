@@ -277,13 +277,18 @@ def _dump_task_logs_for_agent(item: pytest.Item, agent_id: str, agent_tasks: lis
                 f.write(chunk)
 
 
-def _dump_task_logs_for_task(item: pytest.Item, agent_id: str, agent_executor_paths: dict, task_entry: _TaskEntry):
+def _dump_task_logs_for_task(
+    item: pytest.Item,
+    agent_id: str,
+    agent_executor_paths: dict,
+    task_entry: _TaskEntry
+) -> int:
     executor_browse_path = _find_matching_executor_path(agent_executor_paths, task_entry)
     if not executor_browse_path:
         # Expected executor path was not found on this agent. Did Mesos move their files around again?
         log.warning('Unable to find any paths matching task {} in agent {}:\n  {}'.format(
             task_entry, agent_id, '\n  '.join(sorted(agent_executor_paths.keys()))))
-        return
+        return 0
 
     # Fetch paths under the executor.
     executor_file_infos = sdk_cmd.cluster_request(
@@ -313,7 +318,7 @@ def _dump_task_logs_for_task(item: pytest.Item, agent_id: str, agent_executor_pa
         _select_log_files(item, task_entry.task_id, executor_file_infos, '', selected_file_infos)
     if not selected_file_infos:
         log.warning('Unable to find any stdout/stderr files in above paths for task {}'.format(task_entry))
-        return
+        return 0
 
     byte_count = sum([f['size'] for f in selected_file_infos.values()])
     log.info('Downloading {} files ({} bytes) for task {}:{}'.format(
