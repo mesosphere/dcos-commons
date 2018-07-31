@@ -33,8 +33,10 @@ import org.apache.mesos.SchedulerDriver;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
@@ -189,6 +191,18 @@ public class DefaultSchedulerTest {
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private DefaultScheduler defaultScheduler;
+
+    @BeforeClass
+    public static void beforeAll() throws InterruptedException {
+        // Disable background TaskKiller thread, to avoid erroneous kill invocations
+        TaskKiller.reset(false);
+    }
+
+    @AfterClass
+    public static void afterAll() throws InterruptedException {
+        // Re-enable TaskKiller thread
+        TaskKiller.reset(true);
+    }
 
     @Before
     public void beforeEach() throws Exception {
