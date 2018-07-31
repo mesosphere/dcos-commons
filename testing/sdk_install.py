@@ -29,6 +29,10 @@ TIMEOUT_SECONDS = 15 * 60
 Used by post-test diagnostics to retrieve stuff from currently running services.'''
 _installed_service_names = set([])
 
+'''List of dead agents which should be ignored when checking for orphaned resources.
+Used by uninstall when validating that an uninstall completed successfully.'''
+_dead_agent_hosts = set([])
+
 
 def get_installed_service_names() -> set:
     '''Returns the a set of service names which had been installed via sdk_install in this session.'''
@@ -159,20 +163,33 @@ def _verify_completed_uninstall(service_name):
 
     # There should be no orphaned resources in the state summary (DCOS-30314)
     orphaned_resources = 0
+    ignored_orphaned_resources = 0
     service_role = sdk_utils.get_role(service_name)
     for agent in state_summary['slaves']:
         # resources should be grouped by role. check for any resources in our expected role:
         matching_reserved_resources = agent['reserved_resources'].get(service_role)
         if matching_reserved_resources:
-            log.error('Orphaned resources on agent {}/{}: {}'.format(
-                agent['id'], agent['hostname'], matching_reserved_resources))
-            orphaned_resources += len(matching_reserved_resources)
+            if agent['hostname'] in _dead_agent_hosts:
+                # The test told us ahead of time to expect orphaned resources on this host.
+                log.info('Ignoring orphaned resources on agent {}/{}: {}'.format(
+                    agent['id'], agent['hostname'], matching_reserved_resources))
+                ignored_orphaned_resources += len(matching_reserved_resources)
+            else:
+                log.error('Orphaned resources on agent {}/{}: {}'.format(
+                    agent['id'], agent['hostname'], matching_reserved_resources))
+                orphaned_resources += len(matching_reserved_resources)
     if orphaned_resources:
-        log.error('{} orphaned resources after uninstall of {}'.format(orphaned_resources, service_name))
+        log.error('{} orphaned resources (plus {} ignored) after uninstall of {}'.format(
+            orphaned_resources, ignored_orphaned_resources, service_name))
         log.error(state_summary)
-        raise Exception('Found {} orphaned resources after uninstall of {}'.format(
-            orphaned_resources, service_name))
-    log.info('No orphaned resources for role {} were found'.format(service_role))
+        raise Exception('Found {} orphaned resources (plus {} ignored) after uninstall of {}'.format(
+            orphaned_resources, ignored_orphaned_resources, service_name))
+    elif ignored_orphaned_resources:
+        log.info('Ignoring {} orphaned resources after uninstall of {}'.format(
+            ignored_orphaned_resources, service_name))
+        log.info(state_summary)
+    else:
+        log.info('No orphaned resources for role {} were found'.format(service_role))
 
     # There should be no framework entry for this service in the state summary (DCOS-29474)
     orphaned_frameworks = [fwk for fwk in state_summary['frameworks'] if fwk['name'] == service_name]
@@ -185,9 +202,21 @@ def _verify_completed_uninstall(service_name):
     log.info('No orphaned frameworks for service {} were found'.format(service_name))
 
 
-def uninstall(
-        package_name,
-        service_name):
+def ignore_dead_agent(agent_host):
+    '''Marks the specified agent as destroyed. When uninstall() is next called, any orphaned
+    resources against this agent will be logged but will not result in a thrown exception.
+    '''
+    _dead_agent_hosts.add(agent_host)
+    log.info('Added {} to expected dead agents for resource validation purposes: {}'.format(
+        agent_host, _dead_agent_hosts))
+
+
+def uninstall(package_name, service_name):
+    '''Uninstalls the specified service from the cluster, and verifies that its resources and
+    framework were correctly cleaned up after the uninstall has completed. Any agents which are
+    expected to have orphaned resources (e.g. due to being shut down) should be passed to
+    ignore_dead_agent() before triggering the uninstall.
+    '''
     start = time.time()
 
     log.info('Uninstalling {}'.format(service_name))
