@@ -56,12 +56,6 @@
             "type": "string",
             "default": "portworx/px-enterprise:1.4.0-rc2"
           },
-          "portworx_port_range_start": {
-            "title": "Portworx port range start",
-            "description": "Port number from which Portworx will start consuming ports. Cannot be updated once deployed.",
-            "type": "integer",
-            "default": 9001
-          },
           "portworx_options": {
             "title": "Portworx Options",
             "type": "string",
@@ -96,7 +90,6 @@
           "count",
           "portworx_cluster",
           "portworx_image",
-          "portworx_port_range_start",
           "portworx_options"
         ]
       },
