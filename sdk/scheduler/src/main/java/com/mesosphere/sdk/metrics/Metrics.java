@@ -89,10 +89,10 @@ public class Metrics {
     // This may be accessed both by whatever thread metrics runs on, and the main offer processing thread:
     private static final AtomicBoolean isSuppressed = new AtomicBoolean(false);
     static {
-        METRICS.register(IS_SUPPRESSED, new Gauge<Boolean>() {
+        METRICS.register(IS_SUPPRESSED, new Gauge<Integer>() {
             @Override
-            public Boolean getValue() {
-                return isSuppressed.get();
+            public Integer getValue() {
+                return isSuppressed.get() ? 1 : 0;
             }
         });
     }

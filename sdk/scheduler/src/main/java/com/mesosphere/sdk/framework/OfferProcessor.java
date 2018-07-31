@@ -69,13 +69,13 @@ class OfferProcessor {
     // Whether we should run in multithreaded mode. Should only be disabled for tests.
     private boolean multithreaded;
 
-    public OfferProcessor(MesosEventClient mesosEventClient, Persister persister, SchedulerConfig schedulerConfig) {
+    OfferProcessor(MesosEventClient mesosEventClient, Persister persister, SchedulerConfig schedulerConfig) {
         this.mesosEventClient = mesosEventClient;
         this.persister = persister;
         this.schedulerConfig = schedulerConfig;
         this.offerAccepter = new OfferAccepter();
         this.reviveManager = new ReviveManager(TokenBucket.newBuilder().build(), schedulerConfig);
-        this.offerQueue = new OfferQueue();
+        this.offerQueue = new OfferQueue(schedulerConfig.getOfferQueueSize());
         this.multithreaded = true;
     }
 

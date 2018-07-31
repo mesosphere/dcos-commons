@@ -17,7 +17,7 @@ public class OfferQueueTest {
 
     @Test
     public void testEmptyQueue() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         Assert.assertTrue(offerQueue.isEmpty());
     }
 
@@ -31,7 +31,7 @@ public class OfferQueueTest {
 
     @Test
     public void testExceedCapacity() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         int capacity = offerQueue.getRemainingCapacity();
         for (int i = 0; i < capacity; i++) {
             Assert.assertTrue(offerQueue.offer(getOffer()));
@@ -78,7 +78,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveFromEmptyQueue() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         Assert.assertTrue(offerQueue.isEmpty());
         offerQueue.remove(TestConstants.OFFER_ID);
         Assert.assertTrue(offerQueue.isEmpty());
@@ -86,7 +86,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveFromSingleOfferQueue() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         offerQueue.offer(getOffer());
         Assert.assertEquals(1, offerQueue.getSize());
         offerQueue.remove(TestConstants.OFFER_ID);
@@ -95,7 +95,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveUnknownOffer() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         offerQueue.offer(getOffer(UUID.randomUUID().toString()));
         Assert.assertEquals(1, offerQueue.getSize());
         offerQueue.remove(TestConstants.OFFER_ID);
@@ -104,7 +104,7 @@ public class OfferQueueTest {
 
     @Test
     public void testRemoveOneLeaveOthers() {
-        OfferQueue offerQueue = new OfferQueue();
+        OfferQueue offerQueue = new OfferQueue(TEST_CAPACITY);
         int halfCapacity = offerQueue.getRemainingCapacity() / 2;
         // Add many offers with random ids
         for (int i = 0; i < halfCapacity; i++) {

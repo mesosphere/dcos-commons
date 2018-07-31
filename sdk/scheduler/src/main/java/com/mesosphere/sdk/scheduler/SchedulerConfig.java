@@ -194,6 +194,12 @@ public class SchedulerConfig {
      */
     private static final String LIBPROCESS_IP_ENV = "LIBPROCESS_IP";
 
+
+    /**
+     * Environment variable for setting the Offer Queue Size.
+     */
+    private static final String OFFER_QUEUE_SIZE = "OFFER_QUEUE_SIZE";
+
     /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
      * multi-service situation, however, this code may be getting invoked multiple times, so only print if we haven't
@@ -217,8 +223,17 @@ public class SchedulerConfig {
 
     private final EnvStore envStore;
 
+
+    // Delete this variable
+    public static double cpus_DEFAULT_EXECUTOR_CPUS = 0.1;
+
     private SchedulerConfig(EnvStore envStore) {
         this.envStore = envStore;
+
+        cpus_DEFAULT_EXECUTOR_CPUS = envStore.getOptionalDouble(
+                "cpus_DEFAULT_EXECUTOR_CPUS",
+                cpus_DEFAULT_EXECUTOR_CPUS
+        );
 
         if (!PRINTED_BUILD_INFO.getAndSet(true)) {
             LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
@@ -480,5 +495,12 @@ public class SchedulerConfig {
         jsonObject.put("SDK_GIT_SHA", SDKBuildInfo.GIT_SHA);
         jsonObject.put("SDK_BUILT_AT", Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
         return jsonObject;
+    }
+
+    /**
+     * Returns the offer queue size.
+     */
+    public Integer getOfferQueueSize() {
+        return envStore.getOptionalInt(OFFER_QUEUE_SIZE, 100);
     }
 }

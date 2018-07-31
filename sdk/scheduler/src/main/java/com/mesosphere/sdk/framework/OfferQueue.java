@@ -1,8 +1,11 @@
 package com.mesosphere.sdk.framework;
 
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
+import com.mesosphere.sdk.scheduler.Metrics;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -19,21 +22,22 @@ import java.util.stream.Collectors;
  * This class acts as a buffer of Offers from Mesos.  By default it holds a maximum of 100 Offers.
  */
 public class OfferQueue {
-    private static final int DEFAULT_CAPACITY = 100;
     private final Logger logger = LoggingUtils.getLogger(getClass());
     private final BlockingQueue<Protos.Offer> queue;
-
-    public OfferQueue() {
-        this(DEFAULT_CAPACITY);
-    }
+    private static final MetricRegistry metricRegistry = Metrics.getRegistry();
 
     /**
      * Creates a new queue with the provided capacity.
      *
      * @param capacity the maximum size of the queue, or zero for unlimited queue size
      */
-    public OfferQueue(int capacity) {
+    OfferQueue(int capacity) {
         this.queue = capacity == 0 ? new LinkedBlockingQueue<>() : new LinkedBlockingQueue<>(capacity);
+        String metricName  = MetricRegistry.name(OfferQueue.class, "queue", "size");
+        if (!metricRegistry.getGauges().keySet().contains(metricName)) {
+            // This check is needed. Our unit tests would fail otherwise.
+            metricRegistry.register(metricName, (Gauge<Integer>) queue::size);
+        }
     }
 
     /**

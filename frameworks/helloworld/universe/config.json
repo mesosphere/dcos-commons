@@ -96,6 +96,7 @@
             "tls",
             "uri",
             "web-url",
+            "bench",
             ""
           ],
           "default": "svc"
@@ -116,6 +117,57 @@
           "default": ""
         }
       }
+    },
+    "testbed": {
+      "description": "Filebeat configuration properties",
+      "type": "object",
+      "properties": {
+        "scenario": {
+          "description": "Testbed scenario",
+          "type": "string",
+          "default": "normal"
+        },
+        "count": {
+          "description": "Number of testbed tasks to run",
+          "type": "integer",
+          "default": 1
+        },
+        "sleep": {
+          "description": "Sleep duration (in seconds)",
+          "type": "integer",
+          "default": 86400
+        },
+        "cpus": {
+          "description": "Filebeat pod CPU requirements",
+          "type": "number",
+          "default": 0.1
+        },
+        "mem": {
+          "description": "Filebeat pod mem requirements (in MB)",
+          "type": "integer",
+          "default": 256
+        },
+        "default_executor_cpus": {
+          "description": "Default executor CPU",
+          "type": "number",
+          "default": 0.1
+        },
+        "disable_suppress": {
+          "description": "If set, suppress would be disabled.",
+          "type": "string",
+          "default": ""
+        },
+        "strategy": {
+          "description": "One of serial or parallel",
+          "type": "string",
+          "default": "parallel"
+        }
+      },
+      "required": [
+        "count",
+        "cpus",
+        "mem"
+      ]
     },
     "hello": {
       "description": "Hello pod configuration properties",

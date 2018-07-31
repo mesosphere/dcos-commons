@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
@@ -27,7 +28,7 @@ public class SendOffer implements Send {
      * Default executors have an additional overhead of 0.1 CPU, 32MB RAM, and 256MB disk.
      */
     private static final List<Protos.Resource> DEFAULT_EXECUTOR_RESOURCES = Arrays.asList(
-            toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_CPUS), false),
+            toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, scalar(SchedulerConfig.cpus_DEFAULT_EXECUTOR_CPUS), false),
             toUnreservedResource(Constants.MEMORY_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_MEMORY), false),
             toUnreservedResource(Constants.DISK_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_DISK), false));
 
