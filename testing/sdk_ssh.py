@@ -9,7 +9,9 @@ SHOULD ALSO BE APPLIED TO sdk_ssh IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
 
+import itertools
 import logging
+import os.path
 import time
 from _thread import RLock
 from functools import wraps
@@ -17,7 +19,7 @@ from select import select
 
 import paramiko
 
-from .helpers import validate_key, try_close, get_transport, start_transport
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -41,7 +43,10 @@ def _connection_cache(func: callable):
                 # try to close a bad connection and remove it from
                 # the cache.
                 if conn:
-                    try_close(conn)
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
                 del cache[key]
 
         # key is not in the cache, so try to recreate it
@@ -68,7 +73,10 @@ def _connection_cache(func: callable):
                 conns = list()
 
             for k, v in conns:
-                try_close(v)
+                try:
+                    v.close()
+                except Exception:
+                    pass
                 del cache[k]
 
     func_wrapper.get_cache = get_cache
@@ -87,11 +95,11 @@ def _get_connection(host) -> paramiko.Transport or None:
     """
     username = 'core'
     key_path = '~/.ssh/id_rsa'
-    key = validate_key(key_path)
-    transport = get_transport(host, username, key)
+    key = _validate_key(key_path)
+    transport = _get_transport(host, username, key)
 
     if transport:
-        transport = start_transport(transport, username, key)
+        transport = _start_transport(transport, username, key)
         if transport.is_authenticated():
             return transport
         else:
@@ -131,6 +139,92 @@ def _run_command(host, command):
             recv = str(session.recv(1024), "utf-8")
             print(recv, end='', flush=True)
             output += recv
-    try_close(session)
+    try:
+        session.close()
+    except Exception:
+        pass
 
     return exit_code == 0, output
+
+
+def _get_transport(host, username, key):
+    """ Create a transport object
+
+        :param host: the hostname to connect to
+        :type host: str
+        :param username: SSH username
+        :type username: str
+        :param key: key object used for authentication
+        :type key: paramiko.RSAKey
+
+        :return: a transport object
+        :rtype: paramiko.Transport
+    """
+
+    if host == sdk_utils.dcos_ip():
+        transport = paramiko.Transport(host)
+    else:
+        transport_master = paramiko.Transport(sdk_utils.dcos_ip())
+        transport_master = _start_transport(transport_master, username, key)
+
+        if not transport_master.is_authenticated():
+            print("error: unable to authenticate {}@{} with key {}".format(username, sdk_utils.dcos_ip(), key))
+            return False
+
+        try:
+            channel = transport_master.open_channel('direct-tcpip', (host, 22), ('127.0.0.1', 0))
+        except paramiko.SSHException:
+            print("error: unable to connect to {}".format(host))
+            return False
+
+        transport = paramiko.Transport(channel)
+
+    return transport
+
+
+def _start_transport(transport, username, key):
+    """ Begin a transport client and authenticate it
+
+        :param transport: the transport object to start
+        :type transport: paramiko.Transport
+        :param username: SSH username
+        :type username: str
+        :param key: key object used for authentication
+        :type key: paramiko.RSAKey
+
+        :return: the transport object passed
+        :rtype: paramiko.Transport
+    """
+
+    transport.start_client()
+
+    agent = paramiko.agent.Agent()
+    keys = itertools.chain((key,) if key else (), agent.get_keys())
+    for test_key in keys:
+        try:
+            transport.auth_publickey(username, test_key)
+            break
+        except paramiko.AuthenticationException:
+            pass
+    else:
+        raise ValueError('No valid key supplied')
+
+    return transport
+
+
+def _validate_key(key_path):
+    """ Validate a key
+
+        :param key_path: path to a key to use for authentication
+        :type key_path: str
+
+        :return: key object used for authentication
+        :rtype: paramiko.RSAKey
+    """
+
+    key_path = os.path.expanduser(key_path)
+
+    if not os.path.isfile(key_path):
+        return False
+
+    return paramiko.RSAKey.from_private_key_file(key_path)

@@ -8,13 +8,11 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 import json as jsonlib
 import os
 import logging
+import requests
 import retrying
 import subprocess
+import time
 import urllib.parse
-
-import dcos.errors
-import dcos.http
-import dcos.mesos
 
 import sdk_ssh
 import sdk_utils
@@ -73,20 +71,32 @@ def cluster_request(
 
     url = urllib.parse.urljoin(sdk_utils.dcos_url(), cluster_path)
     cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
-    log.info('(HTTP {}) {}'.format(method.upper(), cluster_path))
 
-    def fn():
-        # Underlying dcos.http.request will wrap responses in custom exceptions. This messes with
-        # our ability to handle the situation when an error occurs, so unwrap those exceptions.
-        try:
-            response = dcos.http.request(method, url, verify=verify, **kwargs)
-        except dcos.errors.DCOSHTTPException as e:
-            # DCOSAuthenticationException, DCOSAuthorizationException, DCOSBadRequest, DCOSHTTPException
-            response = e.response
-        except dcos.errors.DCOSUnprocessableException as e:
-            # unlike the the above, this directly extends DCOSHTTPException
-            response = e.response
-        log_msg = 'Got {} for {} {}'.format(response.status_code, method.upper(), cluster_path)
+    # Wrap token in callback for requests library to invoke:
+    class AuthHeader(requests.auth.AuthBase):
+        def __init__(self, token):
+            self._token = token
+
+        def __call__(self, r):
+            r.headers['Authorization'] = 'token={}'.format(self._token)
+            return r
+    auth = AuthHeader(sdk_utils.dcos_token())
+
+    def _cluster_request():
+        start = time.time()
+        response = requests.request(
+            method,
+            url,
+            auth=auth,
+            verify=verify,
+            timeout=timeout_seconds,
+            **kwargs)
+        log_msg = '(HTTP {}) {} => {} ({})'.format(
+            method.upper(),
+            cluster_path,
+            response.status_code,
+            sdk_utils.pretty_duration(time.time() - start)
+        )
         if kwargs:
             # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
             log_msg += ' (args: {})'.format(kwargs if log_args else [e for e in kwargs.keys()])
@@ -109,11 +119,11 @@ def cluster_request(
             wait_fixed=1000,
             stop_max_delay=timeout_seconds * 1000)
         def retry_fn():
-            return fn()
+            return _cluster_request()
         return retry_fn()
     else:
         # No retry, invoke directly:
-        return fn()
+        return _cluster_request()
 
 
 def svc_cli(
@@ -237,7 +247,7 @@ def master_ssh(cmd: str) -> tuple:
     Returns a boolean (==success) and a string (output)
     '''
     log.info('(SSH:master) {}'.format(cmd))
-    success, output = sdk_ssh._run_command(dcos.mesos.DCOSClient().metadata().get('PUBLIC_IPV4'), cmd)
+    success, output = sdk_ssh._run_command(sdk_utils.dcos_ip(), cmd)
     log.info('Output (success={}):\n{}'.format(success, output))
     return success, output
 

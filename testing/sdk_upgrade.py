@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
-import shakedown
 import tempfile
 import traceback
 
@@ -48,8 +47,8 @@ def test_upgrade(
     universe_version = None
     try:
         # Move the Universe repo to the top of the repo list so that we can first install the release version.
-        shakedown.remove_package_repo('Universe')
-        assert shakedown.add_package_repo('Universe', universe_url, 0)
+        _remove_package_repo('Universe')
+        assert _add_package_repo('Universe', universe_url, 0)
         log.info('Waiting for Universe release version of {} to appear: version != {}'.format(
             package_name, test_version))
         universe_version = _wait_for_new_package_version(package_name, test_version)
@@ -65,8 +64,8 @@ def test_upgrade(
     finally:
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
-            shakedown.remove_package_repo('Universe')
-            assert shakedown.add_package_repo('Universe', universe_url)
+            _remove_package_repo('Universe')
+            assert _add_package_repo('Universe', universe_url)
             log.info('Waiting for test build version of {} to appear: version != {}'.format(
                 package_name, universe_version))
             _wait_for_new_package_version(package_name, universe_version)
@@ -152,11 +151,13 @@ def update_service(package_name, service_name, additional_options=None, to_packa
     if to_package_version:
         update_cmd.append('--package-version={}'.format(to_package_version))
     if additional_options:
-        options_file = tempfile.NamedTemporaryFile("w")
-        json.dump(additional_options, options_file)
-        options_file.flush()  # ensure json content is available for the CLI to read below
-        update_cmd.append("--options={}".format(options_file.name))
-    sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+        with tempfile.NamedTemporaryFile('w') as options_file:
+            json.dump(additional_options, options_file)
+            options_file.flush()  # ensure json content is available for the CLI to read below
+            update_cmd.append('--options={}'.format(options_file.name))
+            sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+    else:
+        sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
 
 
 def _upgrade_or_downgrade(
@@ -231,6 +232,17 @@ def _get_pkg_version(package_name):
         log.warning('Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         log.warning(traceback.format_exc())
         return None
+
+
+def _remove_package_repo(repo_name):
+    sdk_cmd.run_cli('package repo remove {}'.format(repo_name))
+
+
+def _add_package_repo(repo_name, repo_url, index=None):
+    if index is None:
+        sdk_cmd.run_cli('package repo add {} {}'.format(repo_name, repo_url))
+    else:
+        sdk_cmd.run_cli('package repo add --index={} {} {}'.format(index, repo_name, repo_url))
 
 
 @retrying.retry(

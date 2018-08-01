@@ -86,6 +86,11 @@ def dcos_token():
 
 
 @functools.lru_cache()
+def dcos_ip():
+    return sdk_cmd.cluster_request('GET', '/metadata').json()['PUBLIC_IPV4']
+
+
+@functools.lru_cache()
 def dcos_version():
     return sdk_cmd.cluster_request('GET', '/dcos-metadata/dcos-version.json').json()['version']
 
@@ -169,7 +174,11 @@ def pretty_duration(seconds):
         ret += '{:.0f}m'.format(int(seconds / 60))
         seconds = seconds % 60
     if seconds > 0:
-        ret += '{:.1f}s'.format(seconds)
+        if len(ret) == 0:
+            # nothing in duration string yet: be more accurate
+            ret += '{:.3f}s'.format(seconds)
+        else:
+            ret += '{:.1f}s'.format(seconds)
     return ret
 
 

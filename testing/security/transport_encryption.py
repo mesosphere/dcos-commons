@@ -111,7 +111,7 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "curl --insecure -L -X POST "
         "-H 'Authorization: token={}' "
         "leader.mesos/ca/api/v2/sign "
-        "-d '{}'".format(sdk_utils.dcos_acs_token(), json.dumps(request)))
+        "-d '{}'".format(sdk_utils.dcos_token(), json.dumps(request)))
     assert output[0] is 0
 
     # Write the public cert to the client

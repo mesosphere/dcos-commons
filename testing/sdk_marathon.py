@@ -8,73 +8,34 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 import logging
 import json
 import os
+import retrying
 import tempfile
 
-import retrying
-import shakedown
-
 import sdk_cmd
-import sdk_metrics
+import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
 
 log = logging.getLogger(__name__)
 
 
-def _get_config_once(app_name):
-    return sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name)), retry=False)
-
-
-def get_app_id(service_name):
-    # service_name may already contain a leading slash.
-    return '/' + service_name.lstrip('/')
-
-
-def wait_for_deployment_and_app_removal(app_id, timeout=TIMEOUT_SECONDS):
-    """
-    Waits for application to be gone, according to Marathon.
-    """
-    log.info('Waiting for no deployments for {}'.format(app_id))
-    shakedown.deployment_wait(timeout, app_id)
-
-    client = shakedown.marathon.create_client()
-
-    def marathon_dropped_app():
-        app_ids = [app['id'] for app in client.get_apps()]
-        log.info('Marathon app IDs: {}'.format(app_ids))
-        matching_app_ids = list(filter(lambda x: x == app_id, app_ids))
-        if len(matching_app_ids) > 1:
-            log.warning('Found multiple apps with id {}'.format(app_id))
-        return len(matching_app_ids) == 0
-
-    log.info('Waiting for no {} Marathon app'.format(app_id))
-    shakedown.time_wait(marathon_dropped_app, timeout_seconds=timeout)
-
-
-@retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=5000,
-                retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_wait_for_deployment_and_app_removal(*args, **kwargs):
-    wait_for_deployment_and_app_removal(*args, **kwargs)
-
-
-def app_exists(app_name):
-    try:
-        _get_config_once(app_name)
-        return True
-    except Exception:
-        return False
+def app_exists(app_name, timeout=TIMEOUT_SECONDS):
+    # Custom config fetch: Allow 404 as signal that app doesn't exist. Retry on other errors.
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout * 1000,
+        retry_on_exception=lambda e: isinstance(e, Exception))
+    def _app_exists():
+        response = sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name)), raise_on_error=False)
+        if response.status_code == 404:
+            return False  # app doesn't exist
+        response.raise_for_status()  # throw exception for (non-404) errors
+        return True  # didn't get 404, and no other error code was returned, so app must exist.
+    return _app_exists()
 
 
 def get_config(app_name, timeout=TIMEOUT_SECONDS):
-    # Be permissive of flakes when fetching the app content:
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout * 1000)
-    def wait_for_response():
-        return _get_config_once(app_name).json()['app']
-
-    config = wait_for_response()
+    config = _get_config(app_name)
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
@@ -88,39 +49,74 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     return config
 
 
-def is_app_running(app: dict) -> bool:
-    return app.get('tasksStaged', 0) == 0 \
-        and app.get('tasksUnhealthy', 0) == 0 \
-        and app.get('tasksRunning', 0) > 0
+def _is_app_running(app: dict, add_log: str) -> bool:
+    staged = app.get('tasksStaged', 0)
+    unhealthy = app.get('tasksUnhealthy', 0)
+    running = app.get('tasksRunning', 0)
+    log.info('{}: staged={}, unhealthy={}, running={}{}'.format(
+        app.get('id', '???'), staged, unhealthy, running, add_log))
+    return staged == 0 and unhealthy == 0 and running > 0
 
 
-def is_app_healthy(app: dict) -> bool:
-    return is_app_running(app) and app.get('tasksHealthy', 0) > 0
+def _is_app_healthy(app: dict) -> bool:
+    healthy = app.get('tasksHealthy', 0)
+    return _is_app_running(app, ', healthy={}'.format(healthy)) and healthy > 0
 
 
 def wait_for_app_running(app_name: str, timeout: int) -> None:
-    @retrying.retry(stop_max_delay=timeout,
+    @retrying.retry(stop_max_delay=timeout * 1000,
                     wait_fixed=5000,
                     retry_on_result=lambda result: not result)
     def _wait_for_app_running(app_name: str) -> bool:
-        return is_app_running(sdk_cmd.get_json_output('marathon app show {}'.format(app_name)))
+        return _is_app_running(_get_config(app_name), "")
 
+    log.info('Waiting for {} to be running'.format(app_name))
     _wait_for_app_running(app_name)
 
 
 def wait_for_app_healthy(app_name: str, timeout: int) -> None:
-    @retrying.retry(stop_max_delay=timeout,
+    @retrying.retry(stop_max_delay=timeout * 1000,
                     wait_fixed=5000,
                     retry_on_result=lambda result: not result)
     def _wait_for_app_healthy(app_name: str) -> bool:
-        return is_app_healthy(sdk_cmd.get_json_output('marathon app show {}'.format(app_name)))
+        return _is_app_healthy(_get_config(app_name))
 
+    log.info('Waiting for {} to be healthy'.format(app_name))
     _wait_for_app_healthy(app_name)
 
 
+def wait_for_deployment(app_name: str, timeout: int) -> None:
+    @retrying.retry(stop_max_delay=timeout * 1000,
+                    wait_fixed=5000,
+                    retry_on_result=lambda result: not result)
+    def _wait_for_deployment(app_name):
+        deployments = sdk_cmd.cluster_request('GET', _api_url('deployments')).json()
+        filtered_deployments = [d for d in deployments if app_name in d['affectedApps']]
+        log.info('Found {} deployments for {}'.format(len(filtered_deployments), app_name))
+        return len(filtered_deployments) == 0
+
+    log.info('Waiting for {} to have no pending deployments'.format(app_name))
+    _wait_for_deployment(app_name)
+
+
 def wait_for_deployment_and_app_running(app_name: str, timeout: int) -> None:
-    shakedown.deployment_wait(timeout, app_name)
+    wait_for_deployment(app_name, timeout)
     wait_for_app_running(app_name, timeout)
+
+
+def wait_for_deployment_and_app_removal(app_name: str, timeout: int) -> None:
+    """
+    Waits for application to be gone, according to Marathon.
+    """
+    wait_for_deployment(app_name, timeout)
+
+    @retrying.retry(stop_max_delay=timeout * 1000,
+                    wait_fixed=5000,
+                    retry_on_result=lambda result: not result)
+    def wait_for_removal():
+        return not app_exists(app_name)
+    log.info('Waiting for {} to be removed'.format(app_name))
+    wait_for_removal()
 
 
 def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
@@ -135,9 +131,8 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         error message if install attempt failed.
     """
 
-    cmd = "marathon app add {}".format(app_def_path)
-    log.info("Running %s", cmd)
-    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd)
+    log.info("Launching app {} with definition in {}".format(app_name, app_def_path))
+    rc, stdout, stderr = sdk_cmd.run_raw_cli("marathon app add {}".format(app_def_path))
 
     if rc or stderr:
         log.error("returncode=%s stdout=%s stderr=%s", rc, stdout, stderr)
@@ -167,17 +162,11 @@ def install_app(app_definition: dict) -> (bool, str):
     """
     app_name = app_definition["id"]
 
-    with tempfile.TemporaryDirectory() as d:
-        app_def_file = "{}.json".format(app_name.replace('/', '__'))
-        log.info("Launching {} marathon app".format(app_name))
+    with tempfile.NamedTemporaryFile('w') as app_file:
+        json.dump(app_definition, app_file)
+        app_file.flush()  # ensure content is available for the CLI to read below
 
-        app_def_path = os.path.join(d, app_def_file)
-
-        log.info("Writing app definition to %s", app_def_path)
-        with open(app_def_path, "w") as f:
-            json.dump(app_definition, f)
-
-        return install_app_from_file(app_name, app_def_path)
+        return install_app_from_file(app_name, app_file.name)
 
 
 def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True):
@@ -186,18 +175,19 @@ def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_dep
         for k in sorted(config["env"]):
             log.info("  {}={}".format(k, config["env"][k]))
 
-    query_string = "?force=true" if force else ""
+    force_params = {'force': 'true'} if force else {}
 
     # throws on failure:
-    sdk_cmd.cluster_request('PUT', _api_url('apps/{}{}'.format(app_name, query_string)), log_args=False, json=config)
+    sdk_cmd.cluster_request('PUT', _api_url('apps/{}'.format(app_name)), log_args=False, params=force_params, json=config)
 
     if wait_for_completed_deployment:
         log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
-        shakedown.deployment_wait(app_id=app_name, timeout=timeout)
+        wait_for_deployment(app_name, timeout)
 
 
-def destroy_app(app_name):
-    shakedown.delete_app_wait(app_name)
+def destroy_app(app_name, timeout=TIMEOUT_SECONDS):
+    sdk_cmd.cluster_request('DELETE', _api_url('apps/{}'.format(app_name)), params={'force': 'true'})
+    wait_for_deployment(app_name, timeout)
 
 
 def restart_app(app_name):
@@ -205,6 +195,10 @@ def restart_app(app_name):
     # throws on failure:
     sdk_cmd.cluster_request('POST', _api_url('apps/{}/restart'.format(app_name)))
     log.info("Restarted {}.".format(app_name))
+
+
+def _get_config(app_name):
+    return sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name))).json()['app']
 
 
 def _api_url(path):
@@ -216,10 +210,10 @@ def get_scheduler_host(service_name):
     task_name_elems = service_name.lstrip('/').split('/')
     task_name_elems.reverse()
     app_name = '.'.join(task_name_elems)
-    ips = shakedown.get_service_ips('marathon', app_name)
+    ips = [t.host for t in sdk_tasks.get_service_tasks('marathon', app_name)]
     if len(ips) == 0:
         raise Exception('No IPs found for marathon task "{}". Available tasks are: {}'.format(
-            app_name, [task['name'] for task in shakedown.get_service_tasks('marathon')]))
+            app_name, [task['name'] for task in sdk_tasks.get_service_tasks('marathon')]))
     return ips.pop()
 
 
@@ -236,16 +230,3 @@ def bump_task_count_config(service_name, key_name, delta=1):
     updated_node_count = int(config['env'][key_name]) + delta
     config['env'][key_name] = str(updated_node_count)
     update_app(service_name, config)
-
-
-def get_mesos_api_version(service_name):
-    return get_config(service_name)['env']['MESOS_API_VERSION']
-
-
-def set_mesos_api_version(service_name, api_version, timeout=600):
-    '''Sets the mesos API version to the provided value, and then verifies that the scheduler comes back successfully'''
-    config = get_config(service_name)
-    config['env']['MESOS_API_VERSION'] = api_version
-    update_app(service_name, config, timeout=timeout)
-    # wait for scheduler to come back and successfully receive/process offers:
-    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 1, timeout_seconds=timeout)

@@ -383,10 +383,7 @@ class KerberosEnvironment:
 
         create_secret_cmd = " ".join(cmd_list)
         log.info("Creating secret %s: %s", self.get_keytab_path(), create_secret_cmd)
-        rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
-        if rc != 0:
-            raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(rc, create_secret_cmd, stdout, stderr))
-
+        sdk_cmd.run_cli(create_secret_cmd, check=True)
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
     def finalize(self):
