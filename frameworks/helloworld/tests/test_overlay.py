@@ -177,15 +177,18 @@ def test_srv_records():
         assert is_ok, "Failed to get srv records from master SSH: {}".format(cmd)
         try:
             srvs = json.loads(out)
-        except Exception as e:
-            log.error("Error converting out=%s to json", out)
-            log.error(e)
-            raise e
+        except Exception:
+            log.exception("Error converting out=%s to json", out)
+            raise
 
         return srvs
 
     srvs = get_srv_records()
-    framework_srvs = [f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME]
+    # find the framework matching our expected name which has one or more tasks.
+    # we can end up with "duplicate" frameworks left over from previous tests where the framework didn't successfully unregister.
+    # in practice these "duplicate"s will appear as a framework entry with an empty list of tasks.
+    framework_srvs = [f for f in srvs["frameworks"]
+                      if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0]
     assert len(framework_srvs) == 1, "Got too many srv records matching service {}, got {}"\
         .format(config.SERVICE_NAME, framework_srvs)
     framework_srv = framework_srvs[0]

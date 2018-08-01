@@ -82,7 +82,7 @@ def zookeeper_server(kerberos):
     zk_secret = "kakfa-zookeeper-secret"
 
     if sdk_utils.is_strict_mode():
-        service_options = sdk_install.merge_dictionaries({
+        service_options = sdk_utils.merge_dictionaries({
             'service': {
                 'service_account': zk_account,
                 'service_account_secret': zk_secret,

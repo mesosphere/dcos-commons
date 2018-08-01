@@ -5,7 +5,6 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
-import collections
 import logging
 import time
 
@@ -30,6 +29,10 @@ TIMEOUT_SECONDS = 15 * 60
 '''List of services which are currently installed via install().
 Used by post-test diagnostics to retrieve stuff from currently running services.'''
 _installed_service_names = set([])
+
+'''List of dead agents which should be ignored when checking for orphaned resources.
+Used by uninstall when validating that an uninstall completed successfully.'''
+_dead_agent_hosts = set([])
 
 
 def get_installed_service_names() -> set:
@@ -90,12 +93,12 @@ def install(
 
     # If the package is already installed at this point, fail immediately.
     if sdk_marathon.app_exists(service_name):
-        raise dcos.errors.DCOSException('Service is already installed: {}'.format(service_name))
+        raise Exception('Service is already installed: {}'.format(service_name))
 
     if insert_strict_options and sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
         # see also: sdk_security.py
-        options = merge_dictionaries({
+        options = sdk_utils.merge_dictionaries({
             'service': {
                 'service_account': 'service-acct',
                 'principal': 'service-acct',
@@ -132,28 +135,25 @@ def install(
     _installed_service_names.add(service_name)
 
 
-def run_janitor(service_name, role, service_account, znode):
-    if role is None:
-        role = sdk_utils.get_deslashed_service_name(service_name) + '-role'
-    if service_account is None:
-        service_account = service_name + '-principal'
-    if znode is None:
-        znode = sdk_utils.get_zk_path(service_name)
+@retrying.retry(stop_max_attempt_number=5,
+                wait_fixed=5000,
+                retry_on_exception=lambda e: isinstance(e, Exception))
+def _retried_run_janitor(service_name):
+    auth_token = sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()
 
     cmd_list = ["docker", "run", "mesosphere/janitor", "/janitor.py",
-                "-r", role,
-                "-p", service_account,
-                "-z", znode,
-                "--auth_token={}".format(sdk_utils.dcos_acs_token())]
-    cmd = " ".join(cmd_list)
+                "-r", sdk_utils.get_role(service_name),
+                "-p", service_name + '-principal',
+                "-z", sdk_utils.get_zk_path(service_name),
+                "--auth_token={}".format(auth_token)]
 
-    sdk_cmd.master_ssh(cmd)
+    sdk_cmd.master_ssh(" ".join(cmd_list))
 
 
 @retrying.retry(stop_max_attempt_number=5,
                 wait_fixed=5000,
                 retry_on_exception=lambda e: isinstance(e, Exception))
-def retried_uninstall_package_and_wait(package_name, service_name):
+def _retried_uninstall_package_and_wait(package_name, service_name):
     package_manager = dcos.packagemanager.PackageManager(dcos.cosmos.get_cosmos_url())
     pkg = package_manager.get_package_version(package_name, None)
 
@@ -168,55 +168,90 @@ def retried_uninstall_package_and_wait(package_name, service_name):
         subcommand.uninstall(package_name)
 
 
-def uninstall(
-        package_name,
-        service_name,
-        role=None,
-        service_account=None,
-        zk=None):
-    start = time.time()
+def _verify_completed_uninstall(service_name):
+    state_summary = sdk_cmd.cluster_request('GET', '/mesos/state-summary').json()
 
-    global _installed_service_names
-    try:
-        _installed_service_names.remove(service_name)
-    except KeyError:
-        pass  # allow tests to 'uninstall' up-front
+    # There should be no orphaned resources in the state summary (DCOS-30314)
+    orphaned_resources = 0
+    ignored_orphaned_resources = 0
+    service_role = sdk_utils.get_role(service_name)
+    for agent in state_summary['slaves']:
+        # resources should be grouped by role. check for any resources in our expected role:
+        matching_reserved_resources = agent['reserved_resources'].get(service_role)
+        if matching_reserved_resources:
+            if agent['hostname'] in _dead_agent_hosts:
+                # The test told us ahead of time to expect orphaned resources on this host.
+                log.info('Ignoring orphaned resources on agent {}/{}: {}'.format(
+                    agent['id'], agent['hostname'], matching_reserved_resources))
+                ignored_orphaned_resources += len(matching_reserved_resources)
+            else:
+                log.error('Orphaned resources on agent {}/{}: {}'.format(
+                    agent['id'], agent['hostname'], matching_reserved_resources))
+                orphaned_resources += len(matching_reserved_resources)
+    if orphaned_resources:
+        log.error('{} orphaned resources (plus {} ignored) after uninstall of {}'.format(
+            orphaned_resources, ignored_orphaned_resources, service_name))
+        log.error(state_summary)
+        raise Exception('Found {} orphaned resources (plus {} ignored) after uninstall of {}'.format(
+            orphaned_resources, ignored_orphaned_resources, service_name))
+    elif ignored_orphaned_resources:
+        log.info('Ignoring {} orphaned resources after uninstall of {}'.format(
+            ignored_orphaned_resources, service_name))
+        log.info(state_summary)
+    else:
+        log.info('No orphaned resources for role {} were found'.format(service_role))
+
+    # There should be no framework entry for this service in the state summary (DCOS-29474)
+    orphaned_frameworks = [fwk for fwk in state_summary['frameworks'] if fwk['name'] == service_name]
+    if orphaned_frameworks:
+        log.error('{} orphaned frameworks named {} after uninstall of {}: {}'.format(
+            len(orphaned_frameworks), service_name, service_name, orphaned_frameworks))
+        log.error(state_summary)
+        raise Exception('Found {} orphaned frameworks named {} after uninstall of {}: {}'.format(
+            len(orphaned_frameworks), service_name, service_name, orphaned_frameworks))
+    log.info('No orphaned frameworks for service {} were found'.format(service_name))
+
+
+def ignore_dead_agent(agent_host):
+    '''Marks the specified agent as destroyed. When uninstall() is next called, any orphaned
+    resources against this agent will be logged but will not result in a thrown exception.
+    '''
+    _dead_agent_hosts.add(agent_host)
+    log.info('Added {} to expected dead agents for resource validation purposes: {}'.format(
+        agent_host, _dead_agent_hosts))
+
+
+def uninstall(package_name, service_name):
+    '''Uninstalls the specified service from the cluster, and verifies that its resources and
+    framework were correctly cleaned up after the uninstall has completed. Any agents which are
+    expected to have orphaned resources (e.g. due to being shut down) should be passed to
+    ignore_dead_agent() before triggering the uninstall.
+    '''
+    start = time.time()
 
     log.info('Uninstalling {}'.format(service_name))
 
     try:
-        retried_uninstall_package_and_wait(package_name, service_name)
+        _retried_uninstall_package_and_wait(package_name, service_name)
     except Exception:
-        log.info('Got exception when uninstalling {}'.format(service_name))
-        log.info(traceback.format_exc())
+        log.exception('Got exception when uninstalling {}'.format(service_name))
         raise
-    finally:
-        log.info('Reserved resources post uninstall:')
-        sdk_utils.list_reserved_resources()
 
     cleanup_start = time.time()
 
     try:
         if sdk_utils.dcos_version_less_than('1.10'):
-            @retrying.retry(stop_max_attempt_number=5,
-                            wait_fixed=5000,
-                            retry_on_exception=lambda e: isinstance(e, Exception))
-            def retried_run_janitor(*args, **kwargs):
-                run_janitor(*args, **kwargs)
-
+            # 1.9 and earlier: Run janitor to unreserve resources
             log.info('Janitoring {}'.format(service_name))
-            retried_run_janitor(service_name, role, service_account, zk)
+            _retried_run_janitor(service_name)
         else:
+            # 1.10 and later: Wait for uninstall scheduler to finish and be removed by Cosmos
             log.info('Waiting for Marathon app to be removed {}'.format(service_name))
             sdk_marathon.retried_wait_for_deployment_and_app_removal(
                 sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS)
     except Exception:
-        log.info('Got exception when cleaning up {}'.format(service_name))
-        log.info(traceback.format_exc())
+        log.exception('Got exception when cleaning up {}'.format(service_name))
         raise
-    finally:
-        log.info('Reserved resources post cleanup:')
-        sdk_utils.list_reserved_resources()
 
     finish = time.time()
 
@@ -227,16 +262,13 @@ def uninstall(
             sdk_utils.pretty_duration(finish - cleanup_start),
             sdk_utils.pretty_duration(finish - start)))
 
+    # Sanity check: Verify that all resources and the framework have been successfully cleaned up,
+    # and throw an exception if anything is left over (uninstall bug?)
+    _verify_completed_uninstall(service_name)
 
-def merge_dictionaries(dict1, dict2):
-    if (not isinstance(dict2, dict)):
-        return dict1
-    ret = {}
-    for k, v in dict1.items():
-        ret[k] = v
-    for k, v in dict2.items():
-        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
-            ret[k] = merge_dictionaries(dict1[k], dict2[k])
-        else:
-            ret[k] = dict2[k]
-    return ret
+    # Finally, remove the service from the installed list (used by sdk_diag)
+    global _installed_service_names
+    try:
+        _installed_service_names.remove(service_name)
+    except KeyError:
+        pass  # Expected when tests preemptively uninstall at start of test

@@ -131,11 +131,11 @@ def test_tls_ciphers(kafka_service):
 
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
     log.warning("\n%s OpenSSL ciphers missing from the cipher_suites module:", len(missing_openssl_ciphers))
-    log.warning("\n".join(sdk_utils.sort(list(missing_openssl_ciphers))))
+    log.warning("\n".join(to_sorted(list(missing_openssl_ciphers))))
     log.info("\n%s expected ciphers:", len(expected_ciphers))
-    log.info("\n".join(sdk_utils.sort(list(expected_ciphers))))
+    log.info("\n".join(to_sorted(list(expected_ciphers))))
     log.info("\n%s ciphers will be checked:", len(possible_openssl_ciphers))
-    for openssl_cipher in sdk_utils.sort(list(possible_openssl_ciphers)):
+    for openssl_cipher in to_sorted(list(possible_openssl_ciphers)):
         log.info("%s (%s)", cipher_suites.rfc_name(openssl_cipher), openssl_cipher)
 
     for openssl_cipher in possible_openssl_ciphers:
@@ -143,9 +143,15 @@ def test_tls_ciphers(kafka_service):
             enabled_ciphers.add(cipher_suites.rfc_name(openssl_cipher))
 
     log.info('%s ciphers enabled out of %s:', len(enabled_ciphers), len(possible_openssl_ciphers))
-    log.info("\n".join(sdk_utils.sort(list(enabled_ciphers))))
+    log.info("\n".join(to_sorted(list(enabled_ciphers))))
 
     assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
+
+
+def to_sorted(coll):
+    """ Sorts a collection and returns it. """
+    coll.sort()
+    return coll
 
 
 @pytest.mark.tls

@@ -1,5 +1,3 @@
-import sdk_utils
-
 OPENSSL_TO_RFC_NAMES = {
     'ADH-AES128-GCM-SHA256': 'TLS_DH_anon_WITH_AES_128_GCM_SHA256',
     'ADH-AES128-SHA': 'TLS_DH_anon_WITH_AES_128_CBC_SHA',
@@ -256,7 +254,8 @@ OPENSSL_TO_RFC_NAMES = {
     'TLS_FALLBACK_SCSV': 'TLS_FALLBACK_SCSV'
 }
 
-RFC_TO_OPENSSL_NAMES = sdk_utils.invert_dict(OPENSSL_TO_RFC_NAMES)
+# Inverted:
+RFC_TO_OPENSSL_NAMES = dict((v, k) for k, v in OPENSSL_TO_RFC_NAMES.items())
 
 
 def missing_openssl_ciphers(openssl_ciphers: set) -> set:
