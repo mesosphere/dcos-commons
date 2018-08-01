@@ -37,6 +37,12 @@ def test_old_tasks_not_relaunched():
         config.SERVICE_NAME,
         additional_options={"service": {"yaml": "", "yamls": "svc,foobar_service_name"}},
     )
+    sdk_upgrade.update_service(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        4,
+        additional_options={"service": {"yaml": "", "yamls": "svc,foobar_service_name"}},
+    )
     # Ensure new tasks are launched but the old task does not relaunch
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name="foobar")
     sdk_tasks.check_task_not_relaunched(
@@ -57,6 +63,7 @@ def test_old_tasks_get_relaunched_with_new_config():
     sdk_upgrade.update_service(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
+        4,
         additional_options={
             "service": {"yaml": "", "yamls": "svc,foobar_service_name"},
             "hello": {"cpus": 0.2},
