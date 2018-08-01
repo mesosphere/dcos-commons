@@ -331,6 +331,9 @@ def test_shutdown_host():
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
     sdk_cmd.shutdown_agent(replace_hostname)
+    # Reserved resources on this agent are expected to appear as orphaned in Mesos state.
+    # Tell our uninstall validation to ignore orphaned resources coming from this agent.
+    sdk_install.ignore_dead_agent(replace_hostname)
 
     # Get pod name from task name: "hello-0-server" => "hello-0"
     replace_pods = set([task.name[:-len('-server')] for task in replace_tasks])
@@ -358,6 +361,7 @@ def test_shutdown_host():
                  'old={}\nnew={}'.format(replaced_task, new_task))
         assert replaced_task.agent != new_task.agent
 
+
 def install_options_helper(kill_grace_period=0):
     options = {
         "world": {
@@ -368,4 +372,3 @@ def install_options_helper(kill_grace_period=0):
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT + 1, additional_options=options)
-
