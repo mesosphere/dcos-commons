@@ -4,23 +4,24 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import collections
 import functools
 import logging
 import operator
+import os
+import os.path
+import pytest
 import random
 import string
 
-import dcos
 import shakedown
-import pytest
-import os
-import os.path
 
 log = logging.getLogger(__name__)
 
 
-def is_env_var_set(key: str, default: str) -> bool:
-    return str(os.environ.get(key, default)).lower() in ["true", "1"]
+###
+# Service/task names
+###
 
 
 def get_package_name(default: str) -> str:
@@ -29,20 +30,6 @@ def get_package_name(default: str) -> str:
 
 def get_service_name(default: str) -> str:
     return os.environ.get("INTEGRATION_TEST__SERVICE_NAME") or default
-
-
-def list_reserved_resources():
-    '''Displays the currently reserved resources on all agents via state.json;
-       Currently for INFINITY-1881 where we believe uninstall may not be
-       always doing its job correctly.'''
-    state_json_slaveinfo = dcos.mesos.DCOSClient().get_state_summary()['slaves']
-
-    for slave in state_json_slaveinfo:
-        reserved_resources = slave['reserved_resources']
-        if reserved_resources == {}:
-            continue
-        msg = 'on slaveid=%s hostname=%s reserved resources: %s'
-        log.info(msg % (slave['id'], slave['hostname'], reserved_resources))
 
 
 def get_foldered_name(service_name):
@@ -73,8 +60,17 @@ def get_deslashed_service_name(service_name):
     return service_name.lstrip('/').replace('/', '__')
 
 
+def get_role(service_name):
+    return '{}-role'.format(get_deslashed_service_name(service_name))
+
+
 def get_zk_path(service_name):
     return 'dcos-service-{}'.format(get_deslashed_service_name(service_name))
+
+
+###
+# DCOS version checks
+###
 
 
 @functools.lru_cache()
@@ -120,18 +116,18 @@ def is_strict_mode():
     return os.environ.get('SECURITY', '') == 'strict'
 
 
-def random_string(length=8):
-    return ''.join(
-        random.choice(
-            string.ascii_lowercase +
-            string.digits
-        ) for _ in range(length)
-    )
-
-
 dcos_ee_only = pytest.mark.skipif(
     is_open_dcos(),
     reason="Feature only supported in DC/OS EE.")
+
+
+###
+# Misc data manipulation
+###
+
+
+def random_string(length=8):
+    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 
 # Pretty much https://github.com/pytoolz/toolz/blob/a8cd0adb5f12ec5b9541d6c2ef5a23072e1b11a3/toolz/dicttoolz.py#L279
@@ -160,12 +156,15 @@ def get_in(keys, coll, default=None):
         return default
 
 
-def sort(coll):
-    """ Sorts a collection and returns it. """
-    coll.sort()
-    return coll
-
-
-def invert_dict(d: dict) -> dict:
-    """ Returns a dictionary with its values being its keys and vice-versa. """
-    return dict((v, k) for k, v in d.items())
+def merge_dictionaries(dict1, dict2):
+    if (not isinstance(dict2, dict)):
+        return dict1
+    ret = {}
+    for k, v in dict1.items():
+        ret[k] = v
+    for k, v in dict2.items():
+        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
+            ret[k] = merge_dictionaries(dict1[k], dict2[k])
+        else:
+            ret[k] = dict2[k]
+    return ret

@@ -2,11 +2,12 @@ package com.mesosphere.sdk.scheduler.multi;
 
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
-import com.mesosphere.sdk.scheduler.MesosEventClient;
-import com.mesosphere.sdk.scheduler.Metrics;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
+import com.mesosphere.sdk.scheduler.MesosEventClient;
+import com.mesosphere.sdk.metrics.Metrics;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.storage.Persister;
 
 /**
@@ -50,16 +51,11 @@ public class MultiServiceRunner implements Runnable {
          */
         public MultiServiceRunner build() {
             // Check and/or initialize schema version before doing any other storage access:
-            new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE);
+            new SchemaVersionStore(persister).check(SchemaVersion.MULTI_SERVICE);
 
             return new MultiServiceRunner(schedulerConfig, frameworkConfig, persister, client, usingGpus);
         }
     }
-
-    /**
-     * Schema version used by single-service schedulers, which is what {@link MultiServiceRunner} runs.
-     */
-    private static final int SUPPORTED_SCHEMA_VERSION_MULTI_SERVICE = 2;
 
     private final SchedulerConfig schedulerConfig;
     private final FrameworkConfig frameworkConfig;
@@ -101,7 +97,7 @@ public class MultiServiceRunner implements Runnable {
     }
 
     /**
-     * Runs the queue. Don't forget to call this!
+     * Runs the Scheduler. Don't forget to call this!
      * This should never exit, instead the entire process will be terminated internally.
      */
     @Override

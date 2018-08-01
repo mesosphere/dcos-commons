@@ -10,11 +10,11 @@
 # Exit immediately on errors
 set -e
 
-timestamp="$(date +%d%m%y%H%M%s)"
+timestamp="$(date +%y%m%d-%H%M%S)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}.tmp)"
-envfile="$(mktemp /tmp/sdk-test-env-${timestamp}.tmp)"
+credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXX.tmp)"
+envfile="$(mktemp /tmp/sdk-test-env-${timestamp}-XXXX.tmp)"
 function cleanup {
     rm -f ${credsfile}
     rm -f ${envfile}
@@ -309,7 +309,7 @@ if [ x"$package_registry" == x"true" ]; then
 fi
 
 if [ -n "$dcos_files_path" ]; then
-    volume_args="$volume_args -v \"${dcos_files_path}\":\"${dcos_files_path}\""
+    volume_args="$volume_args -v ${dcos_files_path}:${dcos_files_path}"
 fi
 
 if [ -n "$TEAMCITY_VERSION" ]; then

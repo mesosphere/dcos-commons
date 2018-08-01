@@ -22,8 +22,15 @@ assert log_level in log_levels, \
 # write everything to stdout due to the following circumstances:
 # - shakedown uses print() aka stdout
 # - teamcity splits out stdout vs stderr into separate outputs, we'd want them combined
+# Erase all existing root handlers to ensure that the following basicConfig call isn't ignored as a default handler
+#  may have been configured automatically via ANY interaction with the logging lib
+# TODO(takirala): Replace this with `force=True` once we bump to python 3.7+
+rootlog = logging.getLogger()
+for h in rootlog.handlers[:]:
+    rootlog.removeHandler(h)
+    h.close()
 logging.basicConfig(
-    format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
+    format='[%(asctime)s|%(name)s-%(funcName)s(%(lineno)d)|%(levelname)s]: %(message)s',
     level=log_level,
     stream=sys.stdout)
 
@@ -38,16 +45,19 @@ for noise_source in [
 
 log = logging.getLogger(__name__)
 
+
+def is_env_var_set(key: str, default: str) -> bool:
+    return str(os.environ.get(key, default)).lower() in ["true", "1"]
+
+
 # The following environment variable allows for log collection to be turned off.
 # This is useful, for example in testing.
-INTEGRATION_TEST_LOG_COLLECTION = sdk_utils.is_env_var_set(
-    'INTEGRATION_TEST_LOG_COLLECTION', default=str(True)
-)
+INTEGRATION_TEST_LOG_COLLECTION = is_env_var_set('INTEGRATION_TEST_LOG_COLLECTION', default=str(True))
 
 
 @pytest.fixture(scope='session', autouse=True)
 def configure_universe(tmpdir_factory):
-    if sdk_utils.is_env_var_set('PACKAGE_REGISTRY_ENABLED', default=''):
+    if is_env_var_set('PACKAGE_REGISTRY_ENABLED', default=''):
         yield from sdk_package_registry.package_registry_session(tmpdir_factory)
     else:
         yield from sdk_repository.universe_session()
