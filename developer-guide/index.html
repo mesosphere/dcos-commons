@@ -85,8 +85,6 @@
 <li class="toc-entry toc-h2"><a href="#zookeeper">ZooKeeper</a></li>
 </ul>
 </li>
-<li class="toc-entry toc-h1"><a href="#pre-requisites">Pre-requisites</a></li>
-<li class="toc-entry toc-h1"><a href="#getting-started">Getting Started</a></li>
 <li class="toc-entry toc-h1"><a href="#introduction-to-dcos-service-definitions">Introduction to DC/OS Service Definitions</a>
 <ul>
 <li class="toc-entry toc-h2"><a href="#servicespec">ServiceSpec</a>
@@ -274,97 +272,6 @@
 <p>Although all SDK services written today store metadata in ZooKeeper, this is an implementation detail. The <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/ConfigStore.java">ConfigStore</a> and <a href="https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/state/StateStore.java">StateStore</a> interfaces are generic and unopinionated about the backing persistent metadata store.</p>
 
 <p>They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.</p>
-
-<h1 id="pre-requisites">
-<a id="pre-requisites" class="anchor" href="#pre-requisites" aria-hidden="true"><span class="octicon octicon-link"></span></a>Pre-requisites</h1>
-
-<ol>
-  <li>
-<code class="highlighter-rouge">dcos-commmons</code> checked out locally on your machine.</li>
-</ol>
-
-<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nv">$ </span>git clone git@github.com:mesosphere/dcos-commons.git
-  <span class="nv">$ </span><span class="nb">cd </span>dcos-commons
-</code></pre></div></div>
-
-<ol>
-  <li>
-    <p>Access to a DC/OS 1.8 (or newer) cluster.</p>
-  </li>
-  <li>
-    <p>The DC/OS CLI <a href="https://docs.mesosphere.com/latest/cli/install/">installed</a> and <a href="https://docs.mesosphere.com/latest/cli/configure/">configured</a> to point to your cluster.</p>
-  </li>
-  <li>
-    <p><a href="https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables">Required AWS credentials set in your environment</a>.</p>
-  </li>
-  <li>
-    <p>The <a href="https://aws.amazon.com/cli/">AWS CLI</a> and <a href="https://golang.org/dl/">Go (1.8 or newer)</a> installed.</p>
-  </li>
-</ol>
-
-<h1 id="getting-started">
-<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h1>
-
-<ol>
-  <li>
-    <p>Create your framework.</p>
-
-    <div class="language-bash highlighter-rouge">
-<div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>./new-framework.sh frameworks/myframework
-<span class="nv">$ </span><span class="nb">cd </span>frameworks/myframework
-</code></pre></div>    </div>
-
-    <p><code class="highlighter-rouge">new-framework.sh</code> creates a skeleton framework.  You will extend
-this skeleton.</p>
-  </li>
-  <li>
-    <p>View <code class="highlighter-rouge">svc.yml</code>.</p>
-
-    <p>Take a look at <code class="highlighter-rouge">src/main/dist/svc.yml</code>.  This is the YAML file that defines your framework.  You will be editing this file.</p>
-  </li>
-  <li>
-    <p>View <code class="highlighter-rouge">Main.java</code>.</p>
-
-    <p>Take a look at <code class="highlighter-rouge">src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java</code>.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads <code class="highlighter-rouge">svc.yml</code>, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.</p>
-  </li>
-  <li>
-    <p>Build a <a href="#packaging">package</a>. You must run the build.sh that is within <code class="highlighter-rouge">frameworks/myframework</code> directory that was just generated.</p>
-
-    <div class="language-bash highlighter-rouge">
-<div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>./build.sh aws
-</code></pre></div>    </div>
-
-    <p>You will deploy your framework to DC/OS as a
-<a href="#packaging">package</a>.  <code class="highlighter-rouge">build.sh</code> creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.</p>
-  </li>
-  <li>
-    <p>Install your package.</p>
-
-    <p><code class="highlighter-rouge">build.sh</code> prints instructions for installing the package that look something like this:</p>
-
-    <div class="language-bash highlighter-rouge">
-<div class="highlight"><pre class="highlight"><code><span class="nv">$ </span>dcos package repo remove myframework-aws
-<span class="nv">$ </span>dcos package repo add <span class="nt">--index</span><span class="o">=</span>0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
-<span class="nv">$ </span>dcos package <span class="nb">install</span> <span class="nt">--yes</span> myframework
-</code></pre></div>    </div>
-
-    <p>Navigate to the <a href="https://docs.mesosphere.com/latest/gui/#services">DC/OS Services UI</a> to view the deployment.</p>
-  </li>
-  <li>
-    <p>Uninstall your package.</p>
-
-    <div class="highlighter-rouge">
-<div class="highlight"><pre class="highlight"><code>$ dcos package uninstall myframework
-$ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework"
-</code></pre></div>    </div>
-
-    <p>The second command above runs the <strong>janitor</strong> script.  The janitor
-script runs inside the DC/OS cluster, cleaning up ZooKeeper state
-and resource reservations made by a framework.  DC/OS will soon
-support uninstall hooks so this can happen automatically, but for
-now, you must manually run the janitor script as shown above.</p>
-  </li>
-</ol>
 
 <h1 id="introduction-to-dcos-service-definitions">
 <a id="introduction-to-dcos-service-definitions" class="anchor" href="#introduction-to-dcos-service-definitions" aria-hidden="true"><span class="octicon octicon-link"></span></a>Introduction to DC/OS Service Definitions</h1>
