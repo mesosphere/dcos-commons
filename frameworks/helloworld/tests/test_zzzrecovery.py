@@ -289,8 +289,7 @@ def test_pod_replace():
 
 
 @pytest.mark.recovery
-@pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                    reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
+@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_config_update_while_partitioned():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
