@@ -630,17 +630,17 @@ public class SchedulerBuilder {
 
     @SuppressWarnings("deprecation") // mute warning for FrameworkInfo.setRole()
     private static void setRoles(Protos.FrameworkInfo.Builder fwkInfoBuilder, ServiceSpec serviceSpec) {
-        List<String> preReservedRoles =
+        Set<String> preReservedRoles =
                 serviceSpec.getPods().stream()
                         .filter(podSpec -> !podSpec.getPreReservedRole().equals(Constants.ANY_ROLE))
                         .map(podSpec -> podSpec.getPreReservedRole() + "/" + serviceSpec.getRole())
-                        .collect(Collectors.toList());
+                        .collect(Collectors.toSet());
         if (preReservedRoles.isEmpty()) {
             fwkInfoBuilder.setRole(serviceSpec.getRole());
         } else {
             fwkInfoBuilder.addCapabilities(Protos.FrameworkInfo.Capability.newBuilder()
                     .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE));
-            fwkInfoBuilder.addRoles(serviceSpec.getRole());
+            preReservedRoles.add(serviceSpec.getRole());
             fwkInfoBuilder.addAllRoles(preReservedRoles);
         }
     }
