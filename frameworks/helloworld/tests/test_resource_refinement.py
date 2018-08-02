@@ -82,15 +82,15 @@ def test_marathon_volume_collision():
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
         # Should get e.g.: "/var/lib/mesos/slave/volumes/roles/slave_public/persistent-test#persistent-volume#76e7bb6d-64fa-11e8-abc5-8e679b292d5e"
-        ok, pv_path = sdk_cmd.agent_ssh(host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
-        assert ok
+        rc, pv_path, _ = sdk_cmd.agent_ssh(host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
+        assert rc == 0
 
         pv_path = pv_path.strip()
 
         @retrying.retry(wait_fixed=1000, stop_max_delay=60 * 1000)
         def check_content():
-            ok, pv_content = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
-            assert pv_content.strip() == "this is a test"
+            rc, pv_content, _ = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
+            assert rc == 0 and pv_content.strip() == "this is a test"
 
         check_content()
 

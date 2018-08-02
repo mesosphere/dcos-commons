@@ -43,9 +43,9 @@ def shutdown_agent(agent_ip):
         stop_max_delay=30 * 60 * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        ok, stdout = sdk_cmd.agent_ssh(agent_ip, 'sudo shutdown -h +1')
-        log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(agent_ip, ok, stdout))
-        return ok
+        rc, stdout, _ = sdk_cmd.agent_ssh(agent_ip, 'sudo shutdown -h +1')
+        log.info('Shutdown agent {}: rc={}, stdout="{}"'.format(agent_ip, rc, stdout))
+        return rc == 0
     # Might not be able to connect to the agent on first try so we repeat until we can
     fn()
 
@@ -84,22 +84,27 @@ def shutdown_agent(agent_ip):
 
 def partition_agent(agent_host: str):
     # copy current rules
-    sdk_cmd.agent_ssh(agent_host, 'if [ ! -e iptables.rules ] ; then sudo iptables -L > /dev/null && sudo iptables-save > iptables.rules ; fi')
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, 'if [ ! -e iptables.rules ] ; then sudo iptables -L > /dev/null && sudo iptables-save > iptables.rules ; fi')
+    assert rc == 0, 'Failed to copy current iptables rules'
     # flush all rules
-    sdk_cmd.agent_ssh(agent_host, 'sudo iptables -F INPUT')
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, 'sudo iptables -F INPUT')
+    assert rc == 0, 'Failed to flush current iptables rules'
     # allow all traffic
-    sdk_cmd.agent_ssh(agent_host, ' && '.join(
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, ' && '.join(
         'sudo iptables --policy INPUT ACCEPT',
         'sudo iptables --policy OUTPUT ACCEPT',
         'sudo iptables --policy FORWARD ACCEPT'))
+    assert rc == 0, 'Failed to configure iptables rules allowing traffic'
     # configure rules to cut off mesos but allow reconnect later:
-    sdk_cmd.agent_ssh(agent_host, ' && '.join(
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, ' && '.join(
         'sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT',  # allow SSH
         'sudo iptables -I INPUT -p icmp -j ACCEPT',  # allow ping
         'sudo iptables -I OUTPUT -p tcp --sport 5051 -j REJECT',  # disallow mesos
         'sudo iptables -A INPUT -j REJECT'))  # disallow all other input
+    assert rc == 0, 'Failed to configure iptables rules rejecting traffic'
 
 
 def reconnect_agent(agent_host: str):
     # restore prior rules:
-    sdk_cmd.agent_ssh(agent_host, 'if [ -e iptables.rules ]; then sudo iptables-restore < iptables.rules && rm iptables.rules ; fi')
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, 'if [ -e iptables.rules ]; then sudo iptables-restore < iptables.rules && rm iptables.rules ; fi')
+    assert rc == 0, 'Failed to reconnect agent'

@@ -140,7 +140,8 @@ def _retried_run_janitor(service_name):
                 "-p", service_name + '-principal',
                 "-z", sdk_utils.get_zk_path(service_name),
                 "--auth_token={}".format(sdk_utils.dcos_token())]
-    sdk_cmd.master_ssh(" ".join(cmd_list))
+    rc, _, _ = sdk_cmd.master_ssh(" ".join(cmd_list))
+    assert rc == 0, 'Janitor command failed'
 
 
 @retrying.retry(stop_max_attempt_number=5,

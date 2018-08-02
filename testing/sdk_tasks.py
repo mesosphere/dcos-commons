@@ -43,7 +43,7 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
                 running_task_names.append(t.name)
             else:
                 other_tasks.append('{}={}'.format(t.name, t.state))
-        log.info('Waiting for {} tasks in {}, got {} running/{} total:\n- running: {}\n- other: {}'.format(
+        log.info('Waiting for {} tasks in {}, got {} running/{} total:\n- running: [{}]\n- other: [{}]'.format(
             expected_task_count,
             service_name,
             len(running_task_names), len(tasks),

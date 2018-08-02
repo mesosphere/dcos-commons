@@ -100,9 +100,9 @@ def get_crypto_id_domain():
     These addresses are routable within the cluster but can be used to test setting a custom
     service domain.
     """
-    ok, lashup_response = sdk_cmd.master_ssh("curl localhost:62080/lashup/key/")
-    assert ok
+    rc, stdout, _ = sdk_cmd.master_ssh("curl localhost:62080/lashup/key/")
+    assert rc == 0
 
-    crypto_id = json.loads(lashup_response.strip())["zbase32_public_key"]
+    crypto_id = json.loads(stdout.strip())["zbase32_public_key"]
 
     return "autoip.dcos.{}.dcos.directory".format(crypto_id)

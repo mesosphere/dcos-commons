@@ -5,6 +5,7 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 ************************************************************************
 '''
+import functools
 import json as jsonlib
 import os
 import logging
@@ -14,7 +15,6 @@ import subprocess
 import time
 import urllib.parse
 
-import sdk_ssh
 import sdk_utils
 
 
@@ -156,15 +156,27 @@ def run_raw_cli(cmd, print_output=True, check=False):
     """
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
-    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
-    stdout = ""
-    stderr = ""
+    return _run_cmd(dcos_cmd, print_output, check)
+
+
+def _run_cmd(cmd, print_output=True, check=False, timeout_seconds=None):
+    result = subprocess.run(
+        [cmd],
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=check,
+        timeout=timeout_seconds)
 
     if result.stdout:
         stdout = result.stdout.decode('utf-8').strip()
+    else:
+        stdout = ""
 
     if result.stderr:
         stderr = result.stderr.decode('utf-8').strip()
+    else:
+        stderr = ""
 
     if print_output:
         if stdout:
@@ -176,7 +188,6 @@ def run_raw_cli(cmd, print_output=True, check=False):
 
 
 def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
-
     _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
 
     if return_stderr_in_stdout:
@@ -196,11 +207,10 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
             "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
             "cut -d ' ' -f 1)".format(pattern))
         if agent_host is None:
-            exit_status, _ = master_ssh(command)
+            rc, _, _ = master_ssh(command)
         else:
-            exit_status, _ = agent_ssh(agent_host, command)
-
-        return exit_status
+            rc, _, _ = agent_ssh(agent_host, command)
+        return rc == 0
 
     # might not be able to connect to the agent on first try so we repeat until we can
     fn()
@@ -241,26 +251,56 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
     return True
 
 
-def master_ssh(cmd: str) -> tuple:
+def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
     '''
     Runs the provided command on the cluster master, using ssh.
-    Returns a boolean (==success) and a string (output)
+    Returns the exit code, stdout, and stderr as three separate values.
     '''
     log.info('(SSH:master) {}'.format(cmd))
-    success, output = sdk_ssh._run_command(sdk_utils.dcos_ip(), cmd)
-    log.info('Output (success={}):\n{}'.format(success, output))
-    return success, output
+    return _ssh(cmd, _internal_leader_host(), timeout_seconds, print_output)
 
 
-def agent_ssh(agent_host: str, cmd: str) -> tuple:
+def agent_ssh(agent_host: str, cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
     '''
     Runs the provided command on the specified agent host, using ssh.
-    Returns a boolean (==success) and a string (output)
+    Returns the exit code, stdout, and stderr as three separate values.
     '''
     log.info('(SSH:agent={}) {}'.format(agent_host, cmd))
-    success, output = sdk_ssh._run_command(agent_host, cmd)
-    log.info('Output (success={}):\n{}'.format(success, output))
-    return success, output
+    return _ssh(cmd, agent_host, timeout_seconds, print_output)
+
+
+def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool):
+    ssh_user = os.environ.get('DCOS_SSH_USER', 'core')  # default to CoreOS setting
+    # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
+    # -oConnectTimeout=#: Limit the duration for the connection to be created.
+    #                     We also configure a timeout for the command itself to run once connected, see below.
+    # -A: Forward the pubkey agent connection (required for nested access)
+    # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
+    #     In particular, avoid messages that may mess up stdout/stderr output.
+    # -l <user>: Username to log in as (depends on cluster OS)
+    common_args = '-oStrictHostKeyChecking=no -oConnectTimeout={} -A -q -l {}'.format(timeout_seconds, ssh_user)
+
+    ssh_cmd = 'ssh {} {} -- {}'.format(common_args, host, cmd)
+    if not os.environ.get('DCOS_SSH_DIRECT', ''):
+        # Nested SSH access via the external cluster IP:
+        ssh_cmd = 'ssh {} {} -- {}'.format(common_args, _external_cluster_host(), ssh_cmd)
+    return _run_cmd(ssh_cmd, print_output=print_output, check=check, timeout_seconds=timeout_seconds)
+
+
+@functools.lru_cache()
+def _external_cluster_host():
+    '''Returns the internet-facing IP of the cluster frontend.'''
+    return cluster_request('GET', '/metadata').json()['PUBLIC_IPV4']
+
+
+@functools.lru_cache()
+def _internal_leader_host():
+    '''Returns the cluster-internal IP of the current mesos leader.'''
+    leader_hosts = cluster_request('GET', '/mesos_dns/v1/hosts/leader.mesos').json()
+    if len(leader_hosts) == 0:
+        # Just in case. Shouldn't happen in practice.
+        raise Exception('Missing mesos-dns entry for leader.mesos: {}'.format(leader_hosts))
+    return leader_hosts[0]['ip']
 
 
 def marathon_task_exec(task_name: str, cmd: str) -> tuple:

@@ -86,11 +86,6 @@ def dcos_token():
 
 
 @functools.lru_cache()
-def dcos_ip():
-    return sdk_cmd.cluster_request('GET', '/metadata').json()['PUBLIC_IPV4']
-
-
-@functools.lru_cache()
 def dcos_version():
     return sdk_cmd.cluster_request('GET', '/dcos-metadata/dcos-version.json').json()['version']
 

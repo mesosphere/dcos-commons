@@ -173,12 +173,12 @@ def test_srv_records():
                     wait_exponential_max=120 * 1000)
     def get_srv_records():
         cmd = "curl localhost:8123/v1/enumerate"
-        is_ok, out = sdk_cmd.master_ssh(cmd)
-        assert is_ok, "Failed to get srv records from master SSH: {}".format(cmd)
+        rc, stdout, _ = sdk_cmd.master_ssh(cmd)
+        assert rc == 0, "Failed to get srv records from master SSH: {}".format(cmd)
         try:
-            srvs = json.loads(out)
+            srvs = json.loads(stdout)
         except Exception:
-            log.exception("Error converting out=%s to json", out)
+            log.exception("Error converting out=%s to json", stdout)
             raise
 
         return srvs

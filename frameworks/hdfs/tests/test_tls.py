@@ -108,8 +108,8 @@ def test_verify_https_ports(node_type, port, hdfs_service):
         stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        exit_status, output = sdk_cmd.master_ssh(_curl_https_get_code(host))
-        return exit_status and output == '200'
+        rc, stdout, _ = sdk_cmd.master_ssh(_curl_https_get_code(host))
+        return rc == 0 and stdout == '200'
 
     assert fn()
 
