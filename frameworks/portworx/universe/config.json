@@ -22,6 +22,12 @@
             "type": "string",
             "default": ""
           },
+          "pre_reserved_role": {
+            "title": "Pre-reserved role (optional)",
+            "description": "The pre-reserved role to use for the tasks",
+            "type": "string",
+            "default": ""
+          },
           "secret_name": {
             "title": "Credential secret name (optional)",
             "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
