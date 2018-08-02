@@ -13,30 +13,15 @@ BASE_BRANCH=${BASE_BRANCH:-$( ${TOOL_DIR}/get_base_branch.sh )}
 # Get the list of changed .py files relative to the base branch
 CHANGESET="$( ${TOOL_DIR}/get_applicable_changes.py --extensions ".py" --from-git "${BASE_BRANCH}" )"
 
+FAILURES=
 if [[ -n ${CHANGESET} ]]; then
+
     echo "Changeset:"
     echo "${CHANGESET}"
 
-    echo
-    echo "Running flake8 on $( echo \"${CHANGESET}\" | wc -w ) files:"
-    ${TOOL_DIR}/run_flake8_checks.sh ${CHANGESET}
-    rc=$?
-    if [ ${rc} -eq 0 ]; then
-        echo "Success!"
-    else
-        exit ${rc}
-    fi
+    ${TOOL_DIR}/run_pre_commit.sh --files ${CHANGESET}
 
-    echo "Running pylint on $( echo \"${CHANGESET}\" | wc -w ) files:"
-    ${TOOL_DIR}/run_pylint_checks.sh ${CHANGESET}
-    rc=$?
-    if [ ${rc} -eq 0 ]; then
-        echo "Success!"
-    else
-        exit ${rc}
-    fi
-
-    exit 0
+    exit $?
+else
+    echo "No Python files in changeset."
 fi
-
-echo "No Python files in changeset."
