@@ -8,7 +8,9 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.regex.Pattern;
 
-
+/**
+ * Default implementation of {@link HostVolumeSpec}.
+ */
 public class DefaultHostVolumeSpec implements HostVolumeSpec {
     private final String hostPath;
     private final String containerPath;
@@ -19,9 +21,10 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
      */
     private static final Pattern VALID_CONTAINER_PATH_PATTERN =
             Pattern.compile("([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)");
+
     /**
      * Regexp for valid hostPath:
-     *      Require a leading slash character
+     *      Require a leading slash character.
      */
     private static final Pattern VALID_HOST_PATH_PATTERN =
             Pattern.compile("(/[.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)");

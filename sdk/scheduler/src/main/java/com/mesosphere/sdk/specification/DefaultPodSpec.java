@@ -202,7 +202,9 @@ public class DefaultPodSpec implements PodSpec {
     }
 
     @Override
-    public Collection<HostVolumeSpec> getHostVolumes() { return hostVolumes; }
+    public Collection<HostVolumeSpec> getHostVolumes() {
+        return hostVolumes;
+    }
 
     @Override
     public boolean equals(Object o) {
