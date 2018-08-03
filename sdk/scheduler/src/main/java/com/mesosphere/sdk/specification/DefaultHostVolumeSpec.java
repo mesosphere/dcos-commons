@@ -6,10 +6,25 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
+import java.util.regex.Pattern;
+
 
 public class DefaultHostVolumeSpec implements HostVolumeSpec {
     private final String hostPath;
     private final String containerPath;
+
+    /**
+     * Regexp for valid containerPath:
+     *      No leading slash character is allowed, but we allow more slashes.
+     */
+    private static final Pattern VALID_CONTAINER_PATH_PATTERN =
+            Pattern.compile("([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)");
+    /**
+     * Regexp for valid hostPath:
+     *      Require a leading slash character
+     */
+    private static final Pattern VALID_HOST_PATH_PATTERN =
+            Pattern.compile("(/[.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)");
 
     @JsonCreator
     private DefaultHostVolumeSpec(
@@ -21,8 +36,9 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
     private DefaultHostVolumeSpec(Builder builder) {
         this(builder.hostPath, builder.containerPath);
 
-        //ValidationUtils.nonEmpty(this, "secretPath", secretPath);
-        //ValidationUtils.matchesRegexAllowNull(this, "filePath", filePath, VALID_FILE_PATH_PATTERN);
+        ValidationUtils.matchesRegex(this, "host-path", hostPath, VALID_HOST_PATH_PATTERN);
+        ValidationUtils.matchesRegex(this, "container-path", containerPath, VALID_CONTAINER_PATH_PATTERN);
+
     }
 
     public static Builder newBuilder() {

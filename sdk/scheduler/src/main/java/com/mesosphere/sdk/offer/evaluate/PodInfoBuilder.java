@@ -575,7 +575,7 @@ public class PodInfoBuilder {
             for (Protos.Volume secretVolume : secretVolumes) {
                 containerInfo.addVolumes(secretVolume);
             }
-            for(Protos.Volume hostVolume: hostVolumes) {
+            for (Protos.Volume hostVolume: hostVolumes) {
                 containerInfo.addVolumes(hostVolume);
             }
         }
