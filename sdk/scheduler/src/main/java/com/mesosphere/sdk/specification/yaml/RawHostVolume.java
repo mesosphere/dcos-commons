@@ -5,15 +5,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class RawHostVolume {
     private final String hostPath;
     private final String containerPath;
-    private final String mode;
 
     private RawHostVolume(
             @JsonProperty("host-path") String hostPath,
-            @JsonProperty("container-path") String containerPath,
-            @JsonProperty("mode") String mode) {
+            @JsonProperty("container-path") String containerPath) {
         this.hostPath = hostPath;
         this.containerPath = containerPath;
-        this.mode = mode;
     }
 
     public String getHostPath() {
@@ -24,7 +21,4 @@ public class RawHostVolume {
         return containerPath;
     }
 
-    public String getMode() {
-        return mode;
-    }
 }

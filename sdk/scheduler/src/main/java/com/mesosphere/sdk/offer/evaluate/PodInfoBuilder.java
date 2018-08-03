@@ -700,11 +700,12 @@ public class PodInfoBuilder {
         Collection<Protos.Volume> volumes = new ArrayList<>();
 
         for (HostVolumeSpec hostVolumeSpec: hostVolumeSpecs)
-                volumes.add(Protos.Volume.newBuilder()
-                        .setHostPath(hostVolumeSpec.getHostPath())
-                        .setContainerPath(hostVolumeSpec.getContainerPath())
-                        .setMode(Protos.Volume.Mode.RO)
-                        .build());
+            volumes.add(Protos.Volume.newBuilder()
+                    .setHostPath(hostVolumeSpec.getHostPath())
+                    .setContainerPath(hostVolumeSpec.getContainerPath())
+                    .setMode(Protos.Volume.Mode.RW)
+                    .build());
+
         return volumes;
     }
 

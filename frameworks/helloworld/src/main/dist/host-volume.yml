@@ -9,9 +9,8 @@ pods:
     placement: '{{{HELLO_PLACEMENT}}}'
     host-volumes:
       opt-mesosphere:
-        host-path: /opt/mesosphere/etc
+        host-path: /etc
         container-path: etc
-        mode: ro
     tasks:
       server:
         goal: RUNNING

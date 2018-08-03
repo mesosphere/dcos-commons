@@ -6,24 +6,20 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
-import java.util.Optional;
 
 public class DefaultHostVolumeSpec implements HostVolumeSpec {
     private final String hostPath;
     private final String containerPath;
-    private final String mode;
 
     @JsonCreator
     private DefaultHostVolumeSpec(
             @JsonProperty("host-path") String hostPath,
-            @JsonProperty("container-path") String containerPath,
-            @JsonProperty("mode") String mode) {
+            @JsonProperty("container-path") String containerPath) {
         this.hostPath = hostPath;
         this.containerPath = containerPath;
-        this.mode = mode;
     }
     private DefaultHostVolumeSpec(Builder builder) {
-        this(builder.hostPath, builder.containerPath, builder.mode);
+        this(builder.hostPath, builder.containerPath);
 
         //ValidationUtils.nonEmpty(this, "secretPath", secretPath);
         //ValidationUtils.matchesRegexAllowNull(this, "filePath", filePath, VALID_FILE_PATH_PATTERN);
@@ -43,12 +39,6 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
     @Override
     public String getContainerPath() {
         return containerPath;
-    }
-
-    @JsonProperty("mode")
-    @Override
-    public Optional<String> getMode() {
-        return Optional.ofNullable(mode);
     }
 
     @Override
@@ -72,7 +62,6 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
 
         private String hostPath;
         private String containerPath;
-        private String mode;
 
         private Builder() {
         }
@@ -84,11 +73,6 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
 
         public Builder containerPath(String containerPath) {
             this.containerPath = containerPath;
-            return this;
-        }
-
-        public Builder mode(String mode) {
-            this.mode = mode;
             return this;
         }
 
