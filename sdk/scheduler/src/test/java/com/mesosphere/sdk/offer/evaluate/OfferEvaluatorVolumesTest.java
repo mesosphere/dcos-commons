@@ -295,14 +295,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(
-                        VolumeSpec.Type.ROOT.name(),
-                        1.0,
-                        TestConstants.CONTAINER_PATH + "-a")
-                .addVolume(
-                        VolumeSpec.Type.ROOT.name(),
-                        2.0,
-                        TestConstants.CONTAINER_PATH + "-b")
+                .addVolume(VolumeSpec.Type.ROOT.name(), 1.0, TestConstants.CONTAINER_PATH + "-a", null)
+                .addVolume(VolumeSpec.Type.ROOT.name(), 2.0, TestConstants.CONTAINER_PATH + "-b", null)
                 .build();
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
@@ -350,8 +344,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A", null)
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B", null)
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
@@ -397,6 +391,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 1000,
                                 VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
+                                null,
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL)),
@@ -456,6 +451,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
                                 1000,
                                 VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
+                                null,
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL)),

@@ -222,6 +222,7 @@ class OfferEvaluationUtils {
                 diskSize,
                 original.getType(),
                 original.getContainerPath(),
+                original.getProfiles(),
                 original.getRole(),
                 original.getPreReservedRole(),
                 original.getPrincipal());

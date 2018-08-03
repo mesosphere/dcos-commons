@@ -2,12 +2,15 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -164,7 +167,8 @@ public class DefaultResourceSet implements ResourceSet {
 
         public Builder addVolume(String volumeType,
                                  Double size,
-                                 String containerPath) {
+                                 String containerPath,
+                                 List<String> profiles) {
             VolumeSpec.Type volumeTypeEnum;
             try {
                 volumeTypeEnum = VolumeSpec.Type.valueOf(volumeType);
@@ -173,8 +177,8 @@ public class DefaultResourceSet implements ResourceSet {
                         "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
                         volumeType, containerPath, Arrays.asList(VolumeSpec.Type.values())));
             }
-            DefaultVolumeSpec volume =
-                    new DefaultVolumeSpec(size, volumeTypeEnum, containerPath, role, preReservedRole, principal);
+            DefaultVolumeSpec volume = new DefaultVolumeSpec(
+                    size, volumeTypeEnum, containerPath, profiles, role, preReservedRole, principal);
             if (volumes.stream()
                     .anyMatch(volumeSpecification ->
                             Objects.equals(volumeSpecification.getContainerPath(), containerPath))) {

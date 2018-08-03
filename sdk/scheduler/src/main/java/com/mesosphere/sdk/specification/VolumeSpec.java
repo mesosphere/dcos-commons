@@ -3,6 +3,8 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
+import java.util.List;
+
 /**
  * A VolumeSpec defines the features of a Volume.
  */
@@ -23,4 +25,7 @@ public interface VolumeSpec extends ResourceSpec {
 
     @JsonProperty("container-path")
     String getContainerPath();
+
+    @JsonProperty("profiles")
+    List<String> getProfiles();
 }

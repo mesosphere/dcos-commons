@@ -55,6 +55,7 @@ public class ResourceTestUtils {
                 diskSize,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);

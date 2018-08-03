@@ -58,6 +58,7 @@ public class DefaultPodSpecTest {
                         100,
                         VolumeSpec.Type.ROOT,
                         TestConstants.CONTAINER_PATH,
+                        null,
                         TestConstants.ROLE,
                         TestConstants.PRE_RESERVED_ROLE,
                         TestConstants.PRINCIPAL)))

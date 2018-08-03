@@ -232,7 +232,7 @@ public class Main {
                                         .id("hello-resources")
                                         .cpus(Double.valueOf(envStore.getRequired(HELLO_CPUS_ENV_KEY)))
                                         .memory(256.0)
-                                        .addVolume("ROOT", 5000.0, "hello-container-path")
+                                        .addVolume("ROOT", 5000.0, "hello-container-path", null)
                                         .build())
                                 .build()))
                         .build())

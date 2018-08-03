@@ -25,6 +25,7 @@ public class TaskVolumesCannotChangeTest {
             DISK_SIZE_MB,
             VolumeSpec.Type.MOUNT,
             "some_path",
+            null,
             "role",
             "*",
             "principal");
@@ -32,6 +33,7 @@ public class TaskVolumesCannotChangeTest {
             DISK_SIZE_MB + 3,
             VolumeSpec.Type.MOUNT,
             "some_path",
+            null,
             "role",
             "*",
             "principal");
@@ -39,6 +41,7 @@ public class TaskVolumesCannotChangeTest {
             DISK_SIZE_MB,
             VolumeSpec.Type.ROOT,
             "some_path",
+            null,
             "role",
             "*",
             "principal");

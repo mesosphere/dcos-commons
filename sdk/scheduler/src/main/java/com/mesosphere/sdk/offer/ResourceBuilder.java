@@ -9,6 +9,8 @@ import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -97,10 +99,17 @@ public class ResourceBuilder {
     @SuppressWarnings("deprecation")
     private static VolumeSpec getVolumeSpec(Protos.Resource resource) {
         VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
+
+        // Profiles are only supported on MOUNT volumes. For ROOT volumes, we make it null.
+        List<String> profiles = resource.getDisk().getSource().hasProfile()
+                ? Arrays.asList(resource.getDisk().getSource().getProfile())
+                : null;
+
         return new DefaultVolumeSpec(
                 resource.getScalar().getValue(),
                 type,
                 resource.getDisk().getVolume().getContainerPath(),
+                profiles,
                 ResourceUtils.getRole(resource),
                 resource.getRole(),
                 resource.getDisk().getPersistence().getPrincipal());

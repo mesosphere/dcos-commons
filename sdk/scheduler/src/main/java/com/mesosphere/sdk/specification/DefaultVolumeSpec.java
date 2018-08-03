@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
 /**
@@ -27,17 +29,20 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     private final Type type;
     private final String containerPath;
+    private final List<String> profiles;
 
     public DefaultVolumeSpec(
             double diskSize,
             Type type,
             String containerPath,
+            List<String> profiles,
             String role,
             String preReservedRole,
             String principal) {
         this(
                 type,
                 containerPath,
+                profiles,
                 Constants.DISK_RESOURCE_TYPE,
                 scalarValue(diskSize),
                 role,
@@ -52,6 +57,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     private DefaultVolumeSpec(
             @JsonProperty("type") Type type,
             @JsonProperty("container-path") String containerPath,
+            @JsonProperty("profiles") List<String> profiles,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
@@ -60,6 +66,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         super(name, value, role, preReservedRole, principal);
         this.type = type;
         this.containerPath = containerPath;
+        this.profiles = profiles;
     }
 
     @Override
@@ -75,6 +82,12 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     }
 
     @Override
+    @JsonProperty("profiles")
+    public List<String> getProfiles() {
+        return profiles;
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -86,10 +99,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     @Override
     public String toString() {
-        return String.format("%s, type: '%s', container-path: '%s'",
-                super.toString(),
-                getType(),
-                getContainerPath());
+        return ToStringBuilder.reflectionToString(this);
     }
 
     private static Protos.Value scalarValue(double value) {

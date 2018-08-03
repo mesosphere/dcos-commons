@@ -217,6 +217,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -250,6 +251,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -320,6 +322,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -360,6 +363,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -433,6 +437,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -469,6 +474,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
+                null,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
