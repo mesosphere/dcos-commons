@@ -92,7 +92,10 @@ def wait_for_deployment(app_name: str, timeout: int) -> None:
     def _wait_for_deployment(app_name):
         deployments = sdk_cmd.cluster_request('GET', _api_url('deployments')).json()
         filtered_deployments = [d for d in deployments if app_name in d['affectedApps']]
-        log.info('Found {} deployments for {}'.format(len(filtered_deployments), app_name))
+        log.info('Found {} deployment{} for {}'.format(
+            len(filtered_deployments),
+            '' if len(filtered_deployments) == 1 else 's',
+            app_name))
         return len(filtered_deployments) == 0
 
     log.info('Waiting for {} to have no pending deployments'.format(app_name))
@@ -102,21 +105,6 @@ def wait_for_deployment(app_name: str, timeout: int) -> None:
 def wait_for_deployment_and_app_running(app_name: str, timeout: int) -> None:
     wait_for_deployment(app_name, timeout)
     wait_for_app_running(app_name, timeout)
-
-
-def wait_for_deployment_and_app_removal(app_name: str, timeout: int) -> None:
-    """
-    Waits for application to be gone, according to Marathon.
-    """
-    wait_for_deployment(app_name, timeout)
-
-    @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=5000,
-                    retry_on_result=lambda result: not result)
-    def wait_for_removal():
-        return not app_exists(app_name)
-    log.info('Waiting for {} to be removed'.format(app_name))
-    wait_for_removal()
 
 
 def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):

@@ -151,7 +151,26 @@ def _retried_uninstall_package_and_wait(package_name, service_name):
     if sdk_marathon.app_exists(service_name):
         log.info('Uninstalling package {} with service name {}'.format(package_name, service_name))
         sdk_cmd.run_cli('package uninstall {} --app-id={} --yes'.format(package_name, service_name), check=True)
-        sdk_marathon.wait_for_deployment_and_app_removal(service_name, timeout=TIMEOUT_SECONDS)
+
+        # Wait on the app no longer being listed in Marathon, at which point it is uninstalled.
+        # At the same time, log the deploy plan state as we wait for the app to finish uninstalling.
+        @retrying.retry(stop_max_delay=TIMEOUT_SECONDS * 1000,
+                        wait_fixed=5000,
+                        retry_on_result=lambda result: not result)
+        def wait_for_removal_log_deploy_plan():
+            if not sdk_marathon.app_exists(service_name):
+                return True
+
+            # App still exists, print the deploy plan. Best effort: It is expected for the scheduler
+            # to become unavailable once uninstall completes.
+            try:
+                log.info(sdk_plan.plan_string('deploy', sdk_plan.get_plan_once(service_name, 'deploy')))
+            except Exception:
+                pass  # best effort attempt at logging plan content
+            return False
+
+        log.info('Waiting for {} to be removed'.format(service_name))
+        wait_for_removal_log_deploy_plan()
     else:
         log.info('Skipping uninstall of package {}/service {}: App named "{}" doesn\'t exist'.format(package_name, service_name, service_name))
 

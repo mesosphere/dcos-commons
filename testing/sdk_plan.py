@@ -37,24 +37,27 @@ def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=
     return sdk_cmd.service_request('GET', service_name, path, timeout_seconds=timeout_seconds).json()
 
 
-def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+def get_plan_once(service_name, plan, multiservice_name=None):
     if multiservice_name is None:
         path = '/v1/plans/{}'.format(plan)
     else:
         path = '/v1/service/{}/plans/{}'.format(multiservice_name, plan)
 
-    # We need to DIY error handling/retry because the query will return 417 if the plan has errors.
+    response = sdk_cmd.service_request('GET', service_name, path, retry=False, raise_on_error=False)
+    if response.status_code == 417:
+        return response  # Plan has errors: Avoid throwing an exception, return plan as-is.
+    response.raise_for_status()
+    return response.json()
+
+
+def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan():
-        response = sdk_cmd.service_request('GET', service_name, path, retry=False, raise_on_error=False)
-        if response.status_code == 417:
-            return response  # avoid throwing, return plan with errors
-        response.raise_for_status()
-        return response
+        return get_plan_once(service_name, plan, multiservice_name)
 
-    return wait_for_plan().json()
+    return wait_for_plan()
 
 
 def start_plan(service_name, plan, parameters=None):
@@ -207,12 +210,12 @@ def plan_string(plan_name, plan):
         - node-other PENDING: somestep=PENDING
         - errors: foo, bar
         '''
-        return '\n- {} {}: {}'.format(
+        return '\n- {} ({}): {}'.format(
             phase['name'],
             phase['status'],
             ', '.join('{}={}'.format(step['name'], step['status']) for step in phase['steps']))
 
-    plan_str = '{} {}:{}'.format(
+    plan_str = '{} ({}):{}'.format(
         plan_name,
         plan['status'],
         ''.join(phase_string(phase) for phase in plan['phases']))

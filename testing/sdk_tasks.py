@@ -113,9 +113,9 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
             # Skip task: task instance is completed and we don't want completed tasks
             continue
         statuses += cluster_task['statuses']
-    history = [entry['state'] for entry in sorted(statuses, key=lambda x: x['timestamp'])]
+    history = [s for s in sorted(statuses, key=lambda x: x['timestamp'])]
     log.info('Status history for task {} (with_completed={}): {}'.format(
-        task_name, with_completed_tasks, ', '.join(history)))
+        task_name, with_completed_tasks, ', '.join([s['state'] for s in history])))
     return history
 
 
@@ -240,6 +240,24 @@ def check_task_relaunched(task_name,
         ), tasks))) > 0, 'Unable to find any new tasks with name {} with (ensure_new_task_not_completed:{})'.format(
             task_name, ensure_new_task_not_completed)
     _check_task_relaunched()
+
+
+def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
+                               timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    """
+    This function checks for the relaunch of a task using the same matching as is
+    used in sdk_task.get_task_id()
+    """
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res)
+    def fn():
+        task_ids = set([t.id for t in get_service_tasks('marathon', task_prefix=service_name)])
+        log.info('Found {} scheduler task ids {}'.format(service_name, task_ids))
+        return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
+
+    fn()
 
 
 def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice_name=None, with_completed=False):

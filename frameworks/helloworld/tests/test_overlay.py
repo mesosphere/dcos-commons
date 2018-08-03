@@ -51,28 +51,7 @@ def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
     deployment_plan = sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-    log.info("deployment_plan: " + str(deployment_plan))
-
-    # test that the deployment plan is correct
-    assert(len(deployment_plan['phases']) == 5)
-    assert(deployment_plan['phases'][0]['name'] == 'hello-overlay-deploy')
-    assert(deployment_plan['phases'][1]['name'] == 'hello-overlay-vip-deploy')
-    assert(deployment_plan['phases'][2]['name'] == 'hello-host-vip-deploy')
-    assert(deployment_plan['phases'][3]['name'] == 'hello-host-deploy')
-    assert(deployment_plan["phases"][4]["name"] == "getter-deploy")
-    assert(len(deployment_plan['phases'][0]['steps']) == 1)
-    assert(len(deployment_plan["phases"][1]["steps"]) == 1)
-    assert(len(deployment_plan["phases"][2]["steps"]) == 1)
-    assert(len(deployment_plan["phases"][3]["steps"]) == 1)
-    assert(len(deployment_plan["phases"][4]["steps"]) == 1)
-
-    # Due to DNS resolution flakiness, some of the deployed tasks can fail. If so,
-    # we wait for them to redeploy, but if they don't fail we still want to proceed.
-    try:
-        sdk_plan.wait_for_in_progress_recovery(config.SERVICE_NAME, timeout_seconds=60)
-        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=60)
-    except retrying.RetryError:
-        pass
+    log.info(sdk_plan.plan_string('deploy', deployment_plan))
 
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
@@ -96,11 +75,10 @@ def test_overlay_network():
     sdk_networks.check_task_network("hello-host-vip-0-server", expected_network_name=None)
 
     endpoints_result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints', json=True)
-    assert len(endpoints_result) == 2, "Wrong number of endpoints got {} should be 2".format(len(endpoints_result))
+    assert len(endpoints_result) == 2, "Expected 2 endpoints, got: {}".format(endpoints_result)
 
     overlay_endpoints_result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints overlay-vip', json=True)
-    assert "address" in overlay_endpoints_result.keys(), "overlay endpoints missing 'address'"\
-           "{}".format(overlay_endpoints_result)
+    assert "address" in overlay_endpoints_result.keys(), "overlay endpoints missing 'address': {}".format(overlay_endpoints_result)
     assert len(overlay_endpoints_result["address"]) == 1
     assert overlay_endpoints_result["address"][0].startswith("9")
     overlay_port = overlay_endpoints_result["address"][0].split(":")[-1]
@@ -110,8 +88,7 @@ def test_overlay_network():
     assert overlay_endpoints_result["dns"][0] == sdk_hosts.autoip_host(config.SERVICE_NAME, "hello-overlay-vip-0-server", 4044)
 
     host_endpoints_result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints host-vip', json=True)
-    assert "address" in host_endpoints_result.keys(), "overlay endpoints missing 'address'"\
-           "{}".format(host_endpoints_result)
+    assert "address" in host_endpoints_result.keys(), "overlay endpoints missing 'address': {}".format(host_endpoints_result)
     assert len(host_endpoints_result["address"]) == 1
     assert host_endpoints_result["address"][0].startswith("10")
     host_port = host_endpoints_result["address"][0].split(":")[-1]

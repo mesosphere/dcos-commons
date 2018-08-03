@@ -234,15 +234,17 @@ def _get_pkg_version(package_name):
         return None
 
 
-def _remove_package_repo(repo_name):
-    sdk_cmd.run_cli('package repo remove {}'.format(repo_name))
+def _remove_package_repo(repo_name) -> bool:
+    rc, _, _ = sdk_cmd.run_raw_cli('package repo remove {}'.format(repo_name))
+    return rc == 0
 
 
-def _add_package_repo(repo_name, repo_url, index=None):
+def _add_package_repo(repo_name, repo_url, index=None) -> bool:
     if index is None:
-        sdk_cmd.run_cli('package repo add {} {}'.format(repo_name, repo_url))
+        rc, _, _ = sdk_cmd.run_raw_cli('package repo add {} {}'.format(repo_name, repo_url))
     else:
-        sdk_cmd.run_cli('package repo add --index={} {} {}'.format(index, repo_name, repo_url))
+        rc, _, _ = sdk_cmd.run_raw_cli('package repo add --index={} {} {}'.format(index, repo_name, repo_url))
+    return rc == 0
 
 
 @retrying.retry(

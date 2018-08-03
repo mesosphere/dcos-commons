@@ -37,25 +37,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-# TODO: Move this to sdk_tasks
-def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
-                               timeout_seconds=sdk_tasks.DEFAULT_TIMEOUT_SECONDS):
-    """
-    This function checks for the relaunch of a task using the same matching as is
-    used in sdk_task.get_task_id()
-    """
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res)
-    def fn():
-        task_ids = set([t.id for t in sdk_tasks.get_service_tasks('marathon', task_prefix=service_name)])
-        log.info('Found {} scheduler task ids {}'.format(service_name, task_ids))
-        return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
-
-    fn()
-
-
 @pytest.mark.sanity
 def test_add_deploy_restart_remove():
     svc1 = 'test1'
@@ -79,7 +60,7 @@ def test_add_deploy_restart_remove():
     sdk_marathon.wait_for_app_running(config.SERVICE_NAME, sdk_marathon.TIMEOUT_SECONDS)
 
     # check that scheduler task was relaunched
-    check_scheduler_relaunched(config.SERVICE_NAME, old_task_id)
+    sdk_tasks.check_scheduler_relaunched(config.SERVICE_NAME, old_task_id)
 
     service = wait_for_service_count(1)[0]
     assert service['service'] == svc1

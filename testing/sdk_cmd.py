@@ -91,16 +91,15 @@ def cluster_request(
             verify=verify,
             timeout=timeout_seconds,
             **kwargs)
-        log_msg = '(HTTP {}) {} => {} ({})'.format(
-            method.upper(),
-            cluster_path,
-            response.status_code,
-            sdk_utils.pretty_duration(time.time() - start)
-        )
+        end = time.time()
+
+        log_msg = '(HTTP {}) {}'.format(method.upper(), cluster_path)
         if kwargs:
             # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
             log_msg += ' (args: {})'.format(kwargs if log_args else [e for e in kwargs.keys()])
+        log_msg += ' => {} ({})'.format(response.status_code, sdk_utils.pretty_duration(end - start))
         log.info(log_msg)
+
         if not response.ok:
             # Query failed (>= 400). Before (potentially) throwing, print response payload which may
             # include additional error details.
@@ -197,15 +196,17 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
 
 
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    '''SSHes into the leader node (or the provided agent node) and kills any tasks matching the
+    provided regex pattern in their command.
+    '''
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
+        stop_max_delay=1 * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        command = (
-            "sudo kill -9 "
-            "$(ps ax | grep {} | grep -v grep | tr -s ' ' | sed 's/^ *//g' | "
-            "cut -d ' ' -f 1)".format(pattern))
+        # -f: Patterns may be against arguments in the command itself
+        # -o: Kill the oldest command: avoid killing ourself, assuming there's another command that matches the pattern..
+        command = "sudo pkill -9 -f -o {}".format(pattern)
         if agent_host is None:
             rc, _, _ = master_ssh(command)
         else:
@@ -256,8 +257,8 @@ def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> 
     Runs the provided command on the cluster master, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
     '''
-    log.info('(SSH:master) {}'.format(cmd))
-    return _ssh(cmd, _internal_leader_host(), timeout_seconds, print_output)
+    log.info('(SSH:leader) {}'.format(cmd))
+    return _ssh(cmd, _internal_leader_host(), timeout_seconds, print_output, check)
 
 
 def agent_ssh(agent_host: str, cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
@@ -266,7 +267,7 @@ def agent_ssh(agent_host: str, cmd: str, timeout_seconds=60, print_output=True, 
     Returns the exit code, stdout, and stderr as three separate values.
     '''
     log.info('(SSH:agent={}) {}'.format(agent_host, cmd))
-    return _ssh(cmd, agent_host, timeout_seconds, print_output)
+    return _ssh(cmd, agent_host, timeout_seconds, print_output, check)
 
 
 def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool):

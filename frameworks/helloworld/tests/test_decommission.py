@@ -42,7 +42,7 @@ def test_custom_decommission():
 
     sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
     decommission_plan = sdk_plan.get_decommission_plan(foldered_name)
-    log.info("decommission plan: {}".format(decommission_plan))
+    log.info(sdk_plan.plan_string('decommission', decommission_plan))
 
     custom_step_name = decommission_plan['phases'][0]['steps'][0]['name']
     assert "custom_decommission_step" == custom_step_name
@@ -61,7 +61,7 @@ def test_custom_decommission():
 
     sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
     decommission_plan = sdk_plan.get_decommission_plan(foldered_name)
-    log.info("decommission plan: {}".format(decommission_plan))
+    log.info(sdk_plan.plan_string('decommission', decommission_plan))
 
     custom_step_name = decommission_plan['phases'][0]['steps'][0]['name']
     assert "custom_decommission_step" == custom_step_name

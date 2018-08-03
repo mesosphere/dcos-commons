@@ -1339,7 +1339,7 @@ name: secret-svc/instance2
 pods:
   pod-with-image:
     count: {{COUNT}}
-    image: ubuntu:14.04
+    image: ubuntu:18.04
     user: nobody
     secrets:
       secret_name4:

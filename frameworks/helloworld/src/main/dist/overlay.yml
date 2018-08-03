@@ -5,17 +5,14 @@ scheduler:
 pods:
   hello-overlay-vip:
     count: 1
-    uris:
-      # this python script starts a basic HTTP server, it responds on a specific port with a given message
-      # USAGE: python3 http_py3responder.py <port> <message>
-      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
     # join the 'dcos' overlay network
     networks:
       dcos:
        labels: "key0:val0,key1:val1"
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
+    image: python:3.7
+    tasks:
+      server:
+        goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
@@ -25,21 +22,23 @@ pods:
             vip:
               prefix: overlay-vip
               port: 80
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "python3 http_py3responder.py server 4044 hello from the overlay network with a VIP!"
-        resource-set: hello-resource
+        cmd: |
+          echo "hello from the overlay network with a VIP" > content &&
+          python3 -m http.server 4044
+        readiness-check:
+          cmd: "curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
+          interval: 10
+          delay: 15
+          timeout: 120
   hello-overlay:
     count: 1
-    uris:
-      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
     networks:
       dcos:
         labels:
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
+    image: python:3.7
+    tasks:
+      server:
+        goal: RUNNING
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
@@ -48,23 +47,20 @@ pods:
           overlay-dynport:
             port: 0
             env-key: PORT_OVERLAY_DYNPORT
+        cmd: |
+          echo "hello from the overlay network" > content &&
+          python3 -m http.server $PORT_OVERLAY_DYNPORT
+        readiness-check:
+          cmd: "curl -f -X GET hello-overlay-0-server.$FRAMEWORK_HOST:1026/content >> output"
+          interval: 10
+          delay: 15
+          timeout: 120
+  hello-host-vip:
+    count: 1
+    image: python:3.7
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py server $PORT_OVERLAY_DYNPORT hello from the overlay network!"
-        resource-set: hello-resource
-        readiness-check:
-          cmd: "python3 http_py3responder.py GET http://hello-overlay-0-server.$FRAMEWORK_HOST:1026"
-          interval: 10
-          delay: 15
-          timeout: 10
-  hello-host-vip:
-    count: 1
-    uris:
-      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
@@ -74,32 +70,35 @@ pods:
             vip:
               prefix: host-vip
               port: 80
+        cmd: |
+          echo "hello from the host network with a VIP" > content &&
+          python3 -m http.server 4044
+        readiness-check:
+          cmd: "curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
+          interval: 10
+          delay: 15
+          timeout: 120
+  hello-host:
+    count: 1
+    image: python:3.7
     tasks:
       server:
         goal: RUNNING
-        cmd: "python3 http_py3responder.py server 4044 hello from the host network with a VIP!"
-        resource-set: hello-resource
-  hello-host:
-    count: 1
-    uris:
-      - "https://s3-us-west-2.amazonaws.com/arand-sandbox-mesosphere/http_py3responder.py"
-    image: ubuntu:14.04
-    resource-sets:
-      hello-resource:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         ports:
           host-port:
             port: 4044
-    tasks:
-      server:
-        goal: RUNNING
-        cmd: "python3 http_py3responder.py server 4044 hello from the host network!"
-        resource-set: hello-resource
+        cmd: |
+          echo "hello from the host network" > content &&
+          python3 -m http.server 4044
+        readiness-check:
+          cmd: "curl -f -X GET hello-host-0-server.$FRAMEWORK_HOST:4044/content >> output"
+          interval: 10
+          delay: 15
+          timeout: 120
   getter:
     count: {{HELLO_COUNT}}
-    uris:
-      - {{BOOTSTRAP_URI}}
     networks:
       dcos:
     tasks:
@@ -108,40 +107,15 @@ pods:
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         cmd: |
-          sleep 40 &&
-          curl -f -X GET hello-overlay-0-server.$FRAMEWORK_HOST:1026 >> output &&
-          curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80 >> output &&
-          curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80 >> output &&
-          curl -f -X GET hello-host-0-server.$FRAMEWORK_HOST:4044 >> output
-
-plans:
-  deploy:
-    strategy: serial
-    phases:
-      hello-overlay-deploy:
-        strategy: serial
-        pod: hello-overlay
-        steps:
-          - default: [[server]]
-      hello-overlay-vip-deploy:
-        strategy: serial
-        pod: hello-overlay-vip
-        steps:
-          - default: [[server]]
-      hello-host-vip-deploy:
-        strategy: serial
-        pod: hello-host-vip
-        steps:
-          - default: [[server]]
-      hello-host-deploy:
-        strategy: serial
-        pod: hello-host
-        steps:
-          - default: [[server]]
-      getter-deploy:
-        strategy: serial
-        pod: getter
-        steps:
-          - default: [[check-comm]]
+          curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
+          curl -f -X GET hello-overlay-0-server.$FRAMEWORK_HOST:1026/content >> output &&
+          curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
+          curl -f -X GET hello-host-0-server.$FRAMEWORK_HOST:4044/content >> output &&
+          date >> success
+        readiness-check:
+          cmd: "if [ ! -f success ]; then echo 'no success file' && exit 1; fi"
+          interval: 10
+          delay: 15
+          timeout: 120
 
 

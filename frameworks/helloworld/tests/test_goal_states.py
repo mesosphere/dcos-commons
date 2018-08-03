@@ -64,6 +64,6 @@ def test_finish_task_restarts_on_config_update():
 
 
 def get_completed_task_id(task_name):
-    tasks = [t['id'] for t in sdk_tasks.get_summary(task_name, with_completed=True)]
+    task_ids = [t.id for t in sdk_tasks.get_summary(with_completed=True, task_name=task_name)]
     # Mesos returns newest task first:
-    return tasks[0] if tasks else None
+    return task_ids[0] if task_ids else None
