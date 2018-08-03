@@ -12,9 +12,16 @@ import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.mesos.Protos;
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.Attribute;
+import org.apache.mesos.Protos.ExecutorID;
+import org.apache.mesos.Protos.ExecutorInfo;
+import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
+import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.TaskInfo;
+import org.apache.mesos.Protos.TaskState;
+import org.apache.mesos.Protos.TaskStatus;
+import org.apache.mesos.Protos.Value;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -58,7 +65,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(getResourceId(reserveResource), getResourceId(launchResource));
 
-        Protos.ExecutorID executorId = launchOperation.getLaunchGroup().getExecutor().getExecutorId();
+        ExecutorID executorId = launchOperation.getLaunchGroup().getExecutor().getExecutorId();
         Assert.assertEquals(TestConstants.POD_TYPE, CommonIdUtils.toExecutorName(executorId));
     }
 
@@ -390,9 +397,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOp0.getType());
         Operation launchOp1 = recommendations.get(6).getOperation();
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOp1.getType());
-        Protos.ExecutorID launch0ExecutorId = launchOp0.getLaunchGroup().getTaskGroup()
+        ExecutorID launch0ExecutorId = launchOp0.getLaunchGroup().getTaskGroup()
                 .getTasks(0).getExecutor().getExecutorId();
-        Protos.ExecutorID launch1ExecutorId = launchOp1.getLaunchGroup().getTaskGroup()
+        ExecutorID launch1ExecutorId = launchOp1.getLaunchGroup().getTaskGroup()
                 .getTasks(0).getExecutor().getExecutorId();
         Assert.assertEquals(launch0ExecutorId, launch1ExecutorId);
     }
@@ -583,9 +590,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         // Fail the task due to a lost Agent
         TaskInfo taskInfo = stateStore.fetchTask(TaskUtils.getTaskNames(podInstance).get(0)).get();
-        final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
+        final TaskStatus failedStatus = TaskTestUtils.generateStatus(
                 taskInfo.getTaskId(),
-                Protos.TaskState.TASK_LOST);
+                TaskState.TASK_LOST);
         stateStore.storeStatus(taskInfo.getName(), failedStatus);
 
         // Mark the pod instance as permanently failed.
