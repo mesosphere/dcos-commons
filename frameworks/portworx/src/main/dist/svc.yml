@@ -241,7 +241,7 @@ pods:
           type: ROOT
           size: 100
         cmd: |
-            clusteruuid=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s http://portworx-0-install.$FRAMEWORK_HOST:9001/config | jq -r '.clusteruuid')
+            clusteruuid=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s http://portworx-0-install.$FRAMEWORK_HOST:{{PORTWORX_START_PORT}}/config | jq -r '.clusteruuid')
 
             if [ ! -f $MESOS_SANDBOX/lh-data/lh/config.yaml ]; then
               mkdir -p $MESOS_SANDBOX/lh-data/lh
@@ -257,7 +257,7 @@ pods:
               clusterid: {{PORTWORX_CLUSTER_NAME}}
               origendpoint: portworx-0-install.$FRAMEWORK_HOST
               endpoint: portworx-0-install.$FRAMEWORK_HOST
-              port: '9001'
+              port: '{{PORTWORX_START_PORT}}'
               scheme: http
               clientcertificates:
                 key: ''
