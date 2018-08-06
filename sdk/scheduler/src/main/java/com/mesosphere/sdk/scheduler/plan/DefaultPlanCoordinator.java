@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.metrics.PlanReporter;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 
@@ -15,6 +16,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
 
     private final Logger logger;
     private final List<PlanManager> planManagers = new LinkedList<>();
+    private final PlanReporter planReporter;
 
     public DefaultPlanCoordinator(Optional<String> namespace, Collection<PlanManager> planManagers) {
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
@@ -22,6 +24,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
             throw new IllegalArgumentException("At least one plan manager is required");
         }
         this.planManagers.addAll(planManagers);
+        this.planReporter = new PlanReporter(namespace, this.planManagers);
     }
 
     /**

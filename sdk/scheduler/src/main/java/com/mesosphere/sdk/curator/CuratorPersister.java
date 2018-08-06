@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * The Curator implementation of the {@link Persister} interface provides for persistence and retrieval of data from
@@ -199,6 +200,98 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
+    public void set(String unprefixedPath, byte[] bytes) throws PersisterException {
+        final String path = withFrameworkPrefix(unprefixedPath);
+        LOGGER.debug("Setting {} => {}", path, getInfo(bytes));
+        try {
+            try {
+                client.create().creatingParentsIfNeeded().forPath(path, bytes);
+            } catch (KeeperException.NodeExistsException e) {
+                client.setData().forPath(path, bytes);
+            }
+        } catch (Exception e) {
+            throw new PersisterException(Reason.STORAGE_ERROR,
+                    String.format("Unable to set %d bytes in %s", bytes.length, path), e);
+        }
+    }
+
+    @Override
+    public Map<String, byte[]> getMany(Collection<String> unprefixedPaths) throws PersisterException {
+        if (unprefixedPaths.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        LOGGER.debug("Getting {} entries: {}", unprefixedPaths.size(), unprefixedPaths);
+
+        Map<String, byte[]> result = new TreeMap<>();
+        // Unlike with writes, there is not an atomic read operation. Therefore we wing it with a series of plain reads.
+        // We could conceivably add some form of locking here to avoid e.g. a race with another thread doing writes at
+        // the same time, but assuming the PersisterCache is enabled, this function wouldn't be getting called anyway,
+        // as the PersisterCache would have fetched all the data up-front to be served from memory. If this assumption
+        // changes, then it may make sense to look into some form of proper read locking here.
+        for (String unprefixedPath : unprefixedPaths) {
+            String path = withFrameworkPrefix(unprefixedPath);
+            try {
+                result.put(unprefixedPath, client.getData().forPath(path));
+            } catch (KeeperException.NoNodeException e) {
+                result.put(unprefixedPath, null);
+            } catch (Exception e) {
+                throw new PersisterException(Reason.STORAGE_ERROR,
+                        String.format("Unable to retrieve data from %s", path), e);
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public void setMany(Map<String, byte[]> unprefixedPathBytesMap) throws PersisterException {
+        if (unprefixedPathBytesMap.isEmpty()) {
+            return;
+        }
+        // Convert map to translated prefixed paths. Manually construct TreeMap for consistent ordering (for tests):
+        Map<String, byte[]> pathBytesMap = new TreeMap<>();
+        for (Map.Entry<String, byte[]> entry : unprefixedPathBytesMap.entrySet()) {
+            pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
+        }
+        LOGGER.debug("Updating {} entries: {}", pathBytesMap.size(), pathBytesMap.keySet());
+        runTransactionWithRetries(new SetTransactionFactory(pathBytesMap));
+    }
+
+    @Override
+    public void recursiveCopy(String unprefixedSrc, String unprefixedDest) throws PersisterException {
+        if (Stream
+                .of(serviceRootPath, CuratorLocker.LOCK_PATH_NAME)
+                .anyMatch(x -> x.equals(unprefixedSrc) || x.equals(unprefixedDest))) {
+            throw new IllegalArgumentException(String.format("Cannot copy from %s to %s",
+                    unprefixedSrc, unprefixedDest));
+        }
+        try {
+            LOGGER.debug("Copying {} (and any children) to {}", unprefixedSrc, unprefixedDest);
+            if (client.checkExists().forPath(withFrameworkPrefix(unprefixedSrc)) == null) {
+                throw new PersisterException(Reason.NOT_FOUND,
+                        String.format("Source node does not exist: %s", unprefixedSrc));
+            }
+            if (client.checkExists().forPath(withFrameworkPrefix(unprefixedDest)) != null) {
+                throw new PersisterException(Reason.LOGIC_ERROR,
+                        String.format("Destination exists: %s", unprefixedDest));
+            }
+        } catch (Exception e) {
+            throw new PersisterException(Reason.STORAGE_ERROR,
+                    String.format("Failed to copy %s to %s", unprefixedDest, unprefixedSrc), e);
+        }
+        LinkedList<String> toBeWalked = new LinkedList<>(Collections.singleton(unprefixedSrc));
+        Map<String, byte[]> toBeAdded = new HashMap<>();
+        while (!toBeWalked.isEmpty()) {
+            String curNode = toBeWalked.poll();
+            // This assertion should never fail acc. to the logic around it.
+            assert (curNode.startsWith(unprefixedSrc)) : String.format("Failed to match prefix." +
+                    " Src [%s] Dest [%s] Child [%s]", unprefixedSrc, unprefixedDest, curNode);
+            toBeAdded.put(withFrameworkPrefix(curNode.replace(unprefixedSrc, unprefixedDest)), get(curNode));
+            getChildren(curNode).forEach(child -> toBeWalked.add(PersisterUtils.joinPaths(curNode, child)));
+        }
+        runTransactionWithRetries(new SetTransactionFactory(toBeAdded));
+    }
+
+    @Override
     public void recursiveDelete(String unprefixedPath) throws PersisterException {
         final String path = withFrameworkPrefix(unprefixedPath);
         if (path.equals(serviceRootPath)) {
@@ -232,7 +325,7 @@ public class CuratorPersister implements Persister {
                     if (child.equals(CuratorLocker.LOCK_PATH_NAME)) {
                         continue;
                     }
-                    String childPath = PersisterUtils.join(serviceRootPath, child);
+                    String childPath = PersisterUtils.joinPaths(serviceRootPath, child);
                     transaction = deleteChildrenOf(client, childPath, transaction, pendingDeletePaths)
                             .delete().forPath(childPath).and();
                 }
@@ -258,36 +351,6 @@ public class CuratorPersister implements Persister {
     }
 
     @Override
-    public void set(String unprefixedPath, byte[] bytes) throws PersisterException {
-        final String path = withFrameworkPrefix(unprefixedPath);
-        LOGGER.debug("Setting {} => {}", path, getInfo(bytes));
-        try {
-            try {
-                client.create().creatingParentsIfNeeded().forPath(path, bytes);
-            } catch (KeeperException.NodeExistsException e) {
-                client.setData().forPath(path, bytes);
-            }
-        } catch (Exception e) {
-            throw new PersisterException(Reason.STORAGE_ERROR,
-                    String.format("Unable to set %d bytes in %s", bytes.length, path), e);
-        }
-    }
-
-    @Override
-    public void setMany(Map<String, byte[]> unprefixedPathBytesMap) throws PersisterException {
-        if (unprefixedPathBytesMap.isEmpty()) {
-            return;
-        }
-        // Convert map to translated prefixed paths. Manually construct TreeMap for consistent ordering (for tests):
-        Map<String, byte[]> pathBytesMap = new TreeMap<>();
-        for (Map.Entry<String, byte[]> entry : unprefixedPathBytesMap.entrySet()) {
-            pathBytesMap.put(withFrameworkPrefix(entry.getKey()), entry.getValue());
-        }
-        LOGGER.debug("Updating {} entries: {}", pathBytesMap.size(), pathBytesMap.keySet());
-        runTransactionWithRetries(new SetTransactionFactory(pathBytesMap));
-    }
-
-    @Override
     public void recursiveDeleteMany(Collection<String> unprefixedPaths) throws PersisterException {
         if (unprefixedPaths.isEmpty()) {
             return;
@@ -297,6 +360,11 @@ public class CuratorPersister implements Persister {
                 .collect(Collectors.toList());
         LOGGER.debug("Deleting {} entries: {}", paths.size(), paths);
         runTransactionWithRetries(new ClearTransactionFactory(paths));
+    }
+
+    @Override
+    public void close() {
+        client.close();
     }
 
     private void runTransactionWithRetries(TransactionFactory factory) throws PersisterException {
@@ -323,38 +391,6 @@ public class CuratorPersister implements Persister {
         } catch (Exception e) {
             throw new PersisterException(Reason.STORAGE_ERROR, e);
         }
-    }
-
-    @Override
-    public Map<String, byte[]> getMany(Collection<String> unprefixedPaths) throws PersisterException {
-        if (unprefixedPaths.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        LOGGER.debug("Getting {} entries: {}", unprefixedPaths.size(), unprefixedPaths);
-
-        Map<String, byte[]> result = new TreeMap<>();
-        // Unlike with writes, there is not an atomic read operation. Therefore we wing it with a series of plain reads.
-        // We could conceivably add some form of locking here to avoid e.g. a race with another thread doing writes at
-        // the same time, but assuming the PersisterCache is enabled, this function wouldn't be getting called anyway,
-        // as the PersisterCache would have fetched all the data up-front to be served from memory. If this assumption
-        // changes, then it may make sense to look into some form of proper read locking here.
-        for (String unprefixedPath : unprefixedPaths) {
-            String path = withFrameworkPrefix(unprefixedPath);
-            try {
-                result.put(unprefixedPath, client.getData().forPath(path));
-            } catch (KeeperException.NoNodeException e) {
-                result.put(unprefixedPath, null);
-            } catch (Exception e) {
-                throw new PersisterException(Reason.STORAGE_ERROR,
-                        String.format("Unable to retrieve data from %s", path), e);
-            }
-        }
-        return result;
-    }
-
-    @Override
-    public void close() {
-        client.close();
     }
 
     private interface TransactionFactory {
@@ -455,7 +491,7 @@ public class CuratorPersister implements Persister {
         }
         // For each child: recurse into child (to delete any grandchildren, etc..), THEN delete child itself
         for (String child : client.getChildren().forPath(path)) {
-            String childPath = PersisterUtils.join(path, child);
+            String childPath = PersisterUtils.joinPaths(path, child);
             curatorTransactionFinal =
                     deleteChildrenOf(client, childPath, curatorTransactionFinal, pendingDeletePaths); // RECURSE
             if (!pendingDeletePaths.contains(childPath)) {
@@ -478,7 +514,7 @@ public class CuratorPersister implements Persister {
      * <li>"" => "/dcos-service-svcname"</li></ul>
      */
     private String withFrameworkPrefix(String path) {
-        path = PersisterUtils.join(serviceRootPath, path);
+        path = PersisterUtils.joinPaths(serviceRootPath, path);
         // Avoid any trailing slashes, which lead to STORAGE_ERRORs:
         while (path.endsWith(PersisterUtils.PATH_DELIM_STR)) {
             path = path.substring(0, path.length() - 1);

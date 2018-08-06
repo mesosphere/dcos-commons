@@ -93,7 +93,7 @@ class Task(object):
 
     def __repr__(self):
         return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent={}]'.format(
-            self.name, self.state.split('_')[-1], self.id, self.host, self.framework_id, self.agent)
+            self.name, self.state, self.id, self.host, self.framework_id, self.agent)
 
 
 def get_status_history(task_name: str) -> list:
@@ -111,7 +111,7 @@ def get_status_history(task_name: str) -> list:
     return history
 
 
-def get_summary(with_completed=False):
+def get_summary(with_completed=False, task_name=None):
     '''Returns a summary of task information as returned by the DC/OS CLI.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
@@ -124,8 +124,10 @@ def get_summary(with_completed=False):
         output = all_tasks
     else:
         output = list(filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks))
-    log.info('Task summary (with_completed={}):\n- {}'.format(
-        with_completed, '\n- '.join([str(e) for e in output])))
+    if task_name:
+        output = list(filter(lambda t: t.name == task_name, all_tasks))
+    log.info('Task summary (with_completed={}) (task_name=[{}]):\n- {}'.format(
+        with_completed, task_name, '\n- '.join([str(e) for e in output])))
     return output
 
 
@@ -174,34 +176,37 @@ def get_completed_task_id(task_name):
     return tasks[0] if tasks else None
 
 
-def check_task_relaunched(task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+def check_task_relaunched(task_name,
+                          old_task_id,
+                          ensure_new_task_not_completed=True,
+                          timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    log.info('Checking (task_name:{}) (old_task_id:{}) with (ensure_new_task_not_completed:{}) is relaunched'.format(
+        task_name, old_task_id, ensure_new_task_not_completed))
+
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res)
+        retry_on_exception=lambda e: isinstance(e, Exception))
     def fn():
-        try:
-            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=True) if t['name'] == task_name])
-        except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids. task_name=%s', task_name)
-            task_ids = set([])
-
-        return len(task_ids) > 0 and (old_task_id not in task_ids or len(task_ids) > 1)
-
+        tasks = get_summary(with_completed=True, task_name=task_name)
+        assert len(tasks) > 0, 'No tasks were found with the given task name {}'.format(task_name)
+        assert len(list(filter(lambda t: t.state in COMPLETED_TASK_STATES and t.id == old_task_id, tasks))) > 0,\
+            'Unable to find any completed tasks with id {}'.format(old_task_id)
+        assert len(list(filter(lambda t: t.id != old_task_id and (
+            t.state not in COMPLETED_TASK_STATES if ensure_new_task_not_completed else True
+        ), tasks))) > 0, 'Unable to find any new tasks with name {} with (ensure_new_task_not_completed:{})'.format(
+            task_name, ensure_new_task_not_completed)
     fn()
 
 
-def check_task_not_relaunched(service_name, task_name, old_task_id, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    sdk_plan.wait_for_completed_deployment(service_name)
-    sdk_plan.wait_for_completed_recovery(service_name)
+def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice_name=None, with_completed=False):
+    log.debug('Checking that old task id {} is not relaunched'.format(old_task_id))
+    sdk_plan.wait_for_completed_deployment(service_name, multiservice_name=multiservice_name)
+    sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 
-    try:
-        task_ids = set([t['id'] for t in shakedown.get_tasks() if t['name'] == task_name])
-    except dcos.errors.DCOSHTTPException:
-        log.info('Failed to get task ids for service {}'.format(service_name))
-        task_ids = set([])
-
-    assert len(task_ids) == 1 and old_task_id in task_ids
+    task_ids = set([t.id for t in get_summary(with_completed) if t.name == task_name])
+    assert old_task_id in task_ids, 'Old task id {} was not found in task_ids {}'.format(old_task_id, task_ids)
+    assert len(task_ids) == 1, 'Length != 1. Expected task id {} Task ids: {}'.format(old_task_id, task_ids)
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):

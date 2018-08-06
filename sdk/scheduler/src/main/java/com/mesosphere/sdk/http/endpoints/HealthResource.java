@@ -8,6 +8,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 
 import com.mesosphere.sdk.http.ResponseUtils;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 
@@ -20,20 +21,22 @@ public class HealthResource {
      * We store the PlanManagers, not the underlying Plans, because PlanManagers can change their plans at any time.
      */
     private final Collection<PlanManager> planManagers;
+    private final SchedulerConfig schedulerConfig;
 
     /**
      * Creates a new instance which determines health based on the deploy and recovery plans in the provided plan
      * coordinator.
      */
-    public HealthResource(PlanCoordinator planCoordinator) {
-        this(getDeploymentAndRecoveryManagers(planCoordinator));
+    public HealthResource(PlanCoordinator planCoordinator, SchedulerConfig schedulerConfig) {
+        this(getDeploymentAndRecoveryManagers(planCoordinator), schedulerConfig);
     }
 
     /**
      * Creates a new instance which determines health based on the provided plans.
      */
-    public HealthResource(Collection<PlanManager> planManagers) {
+    public HealthResource(Collection<PlanManager> planManagers, SchedulerConfig schedulerConfig) {
         this.planManagers = planManagers;
+        this.schedulerConfig = schedulerConfig;
     }
 
     /**
@@ -57,9 +60,7 @@ public class HealthResource {
         } else {
             status = Response.Status.OK;
         }
-        // In the future, we could return a json object providing details. For now, though, let's just go with something
-        // opaque, as there's no guarantee that we wouldn't end up changing this later.
-        return ResponseUtils.plainResponse(status.toString(), status);
+        return ResponseUtils.jsonResponse(schedulerConfig.getBuildInfo(), status);
     }
 
     /**

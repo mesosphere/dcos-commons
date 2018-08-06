@@ -149,7 +149,7 @@ fi
 # First in the root.
 if [ -d ${REPO_ROOT_DIR}/tests ]; then
     FRAMEWORK_TESTS_DIR=${REPO_ROOT_DIR}/tests
-    echo "Starting test for $FRAMEWORK_TESTS_DIR at "`date`
+    echo "Starting test for $FRAMEWORK_TESTS_DIR with pytest args [${pytest_args[@]}] at "`date`
     py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_TESTS_DIR}
     exit_code=$?
     echo "Finished test for $FRAMEWORK_TESTS_DIR at "`date`
@@ -162,7 +162,7 @@ for framework in $FRAMEWORK_LIST; do
     if [ ! -d ${FRAMEWORK_TESTS_DIR} ]; then
         echo "No tests found for ${framework} at ${FRAMEWORK_TESTS_DIR}"
     else
-        echo "Starting test for $FRAMEWORK_TESTS_DIR at "`date`
+        echo "Starting test for $FRAMEWORK_TESTS_DIR with pytest args [${pytest_args[@]}] at "`date`
         py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_TESTS_DIR}
         exit_code=$?
         echo "Finished test for $FRAMEWORK_TESTS_DIR at "`date`

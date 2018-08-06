@@ -6,5 +6,7 @@ dcos-shakedown==1.4.12
 git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7
 git+https://github.com/dcos/dcos-launch.git@471799cf615fdda160f2115de14fc2b6ea269dcb
 teamcity-messages
+pre-commit
 flake8
 pylint
+black

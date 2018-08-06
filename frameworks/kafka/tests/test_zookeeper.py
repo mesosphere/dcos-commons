@@ -28,7 +28,7 @@ def zookeeper_server(configure_security):
     try:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
         if sdk_utils.is_strict_mode():
-            service_options = sdk_install.merge_dictionaries({
+            service_options = sdk_utils.merge_dictionaries({
                 'service': {
                     'service_account': zk_account,
                     'service_account_secret': zk_secret,

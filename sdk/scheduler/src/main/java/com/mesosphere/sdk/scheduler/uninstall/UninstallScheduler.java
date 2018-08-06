@@ -44,6 +44,7 @@ public class UninstallScheduler extends AbstractScheduler {
     private final TimeFetcher timeFetcher;
     private final Optional<Long> uninstallDeadlineMillis;
     private final long uninstallTimeoutSecs;
+    private final SchedulerConfig schedulerConfig;
 
     /**
      * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
@@ -81,6 +82,7 @@ public class UninstallScheduler extends AbstractScheduler {
         super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer, namespace);
         this.logger = LoggingUtils.getLogger(getClass(), namespace);
         this.configStore = configStore;
+        this.schedulerConfig = schedulerConfig;
 
         if (!StateStoreUtils.isUninstalling(stateStore)) {
             logger.info("Service has been told to uninstall. Marking this in the persistent state store. " +
@@ -124,7 +126,7 @@ public class UninstallScheduler extends AbstractScheduler {
         return Arrays.asList(
                 plansResource,
                 new DeprecatedPlanResource(plansResource),
-                new HealthResource(Collections.singletonList(uninstallPlanManager)));
+                new HealthResource(Collections.singletonList(uninstallPlanManager), schedulerConfig));
     }
 
     @Override

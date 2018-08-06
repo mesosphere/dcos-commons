@@ -1,8 +1,6 @@
 import logging
 
 import pytest
-import shakedown
-import time
 
 import sdk_hosts
 import sdk_install
@@ -19,7 +17,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
