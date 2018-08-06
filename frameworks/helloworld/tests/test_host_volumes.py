@@ -25,6 +25,7 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
+
 @pytest.mark.hostvolume
 @pytest.mark.sanity
 @pytest.mark.smoke
@@ -35,9 +36,7 @@ def test_check_host_volume_mounts():
     assert "host-volume-var" in search_for_host_volume("world-0-server", "bash -c 'mount'", "host-volume-var")
 
 
-
-
-@retrying.retry(wait_fixed=2000, stop_max_delay=5*60*1000)
+@retrying.retry(wait_fixed=2000, stop_max_delay = 5 * 60 * 1000)
 def search_for_host_volume(task_name, command, mount_name):
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split('\n')]
