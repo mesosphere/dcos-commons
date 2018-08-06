@@ -539,6 +539,10 @@ public class PodInfoBuilder {
                 .setHostPath("tmp")
                 .setMode(Protos.Volume.Mode.RW));
 
+        for (Protos.Volume hostVolume: hostVolumes) {
+            containerInfo.addVolumes(hostVolume);
+        }
+
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
                 && podSpec.getRLimits().isEmpty()
@@ -574,9 +578,6 @@ public class PodInfoBuilder {
         if (addExtraParameters) {
             for (Protos.Volume secretVolume : secretVolumes) {
                 containerInfo.addVolumes(secretVolume);
-            }
-            for (Protos.Volume hostVolume: hostVolumes) {
-                containerInfo.addVolumes(hostVolume);
             }
         }
 

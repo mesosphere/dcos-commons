@@ -10,7 +10,7 @@ pods:
     host-volumes:
       opt-mesosphere:
         host-path: /etc
-        container-path: etc
+        container-path: host-volume-etc
     tasks:
       server:
         goal: RUNNING
@@ -21,12 +21,23 @@ pods:
           path: hello-container-path
           type: ROOT
           size: {{HELLO_DISK}}
-        env:
-          SLEEP_DURATION: {{SLEEP_DURATION}}
-        health-check:
-          cmd: stat hello-container-path/output
-          interval: 5
-          grace-period: 30
-          delay: 0
-          timeout: 10
-          max-consecutive-failures: 3
+  world:
+      count: {{HELLO_COUNT}}
+      placement: '{{{HELLO_PLACEMENT}}}'
+      host-volumes:
+        opt-mesosphere:
+          host-path: /etc
+          container-path: host-volume-etc
+        var-test:
+          host-path: /var
+          container-path: host-volume-var
+      tasks:
+        server:
+          goal: RUNNING
+          cmd: "mount >> world-container-path/output && sleep 1000000"
+          cpus: {{HELLO_CPUS}}
+          memory: {{HELLO_MEM}}
+          volume:
+            path: world-container-path
+            type: ROOT
+            size: {{HELLO_DISK}}
