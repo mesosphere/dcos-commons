@@ -172,11 +172,6 @@
           "description": "any arbitrary port can be used",
           "type": "integer",
           "default": 1729
-        },
-        "port_two": {
-          "description": "any arbitrary port can be used",
-          "type": "integer",
-          "default": 4242
         }
       },
       "required": [

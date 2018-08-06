@@ -11,7 +11,8 @@ pods:
           port_one:
             port: {{HELLO_PORT_ONE}}
           port_two:
-            port: {{HELLO_PORT_TWO}}
+            port: 0
+            env-key: HELLO_PORT_TWO
     tasks:
       server:
         goal: ONCE
@@ -46,4 +47,3 @@ pods:
         memory: {{HELLO_MEM}}
         env:
           HELLO_PORT_ONE: {{HELLO_PORT_ONE}}
-          HELLO_PORT_TWO: {{HELLO_PORT_TWO}}
