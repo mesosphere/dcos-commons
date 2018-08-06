@@ -33,11 +33,11 @@ pods:
           echo "Using networking tool : ${nc_alias}"
 
           ${nc_alias} -l {{HELLO_PORT_ONE}} &
-          ${nc_alias} -l {{HELLO_PORT_TWO}} &
+          ${nc_alias} -l $HELLO_PORT_TWO &
 
           $(${nc_alias} -v $TASK_NAME.$FRAMEWORK_HOST {{HELLO_PORT_ONE}})
           exit_1=$?
-          $(${nc_alias} -v $TASK_NAME.$FRAMEWORK_HOST {{HELLO_PORT_TWO}})
+          $(${nc_alias} -v $TASK_NAME.$FRAMEWORK_HOST $HELLO_PORT_TWO)
           exit_2=$?
 
           sum=$(($exit_1+$exit_2))
