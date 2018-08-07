@@ -3,11 +3,9 @@ repos:
     rev: stable
     hooks:
     - id: black
-      always_run: true
       args: [--check]
       language_version: python3
     - id: black
-      always_run: true
       name: black-format
       language_version: python3
       stages: [manual]
@@ -15,7 +13,6 @@ repos:
     rev: v1.3.0
     hooks:
     - id: flake8
-      always_run: true
 -   repo: local
     hooks:
     - id: pylint
@@ -24,4 +21,3 @@ repos:
       args: [-E, -j4]
       language: system
       types: [python]
-      always_run: true

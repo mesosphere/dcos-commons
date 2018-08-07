@@ -27,14 +27,14 @@ class KafkaService:
         self._service_name = service_options["service"]["name"]
 
     def get_zookeeper_connect(self) -> str:
-        return str(sdk_cmd.svc_cli(self._package_name, self._service_name,
-                                   "endpoint zookeeper")).strip()
+        return str(
+            sdk_cmd.svc_cli(self._package_name, self._service_name, "endpoint zookeeper")
+        ).strip()
 
     def get_brokers_endpoints(self, endpoint_name: str) -> list:
         brokers = sdk_cmd.svc_cli(
-            self._package_name,
-            self._service_name,
-            "endpoint {}".format(endpoint_name), json=True)["dns"]
+            self._package_name, self._service_name, "endpoint {}".format(endpoint_name), json=True
+        )["dns"]
 
         return brokers
 
@@ -48,7 +48,6 @@ class KafkaService:
 
 
 class KafkaClient:
-
     def __init__(self, id: str):
 
         self.id = id
@@ -73,41 +72,29 @@ class KafkaClient:
                 "volumes": [
                     {
                         "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
-                        "secret": "kafka_keytab"
+                        "secret": "kafka_keytab",
                     }
                 ]
             },
-            "secrets": {
-                "kafka_keytab": {
-                    "source": kerberos.get_keytab_path(),
-
-                }
-            }
+            "secrets": {"kafka_keytab": {"source": kerberos.get_keytab_path()}},
         }
 
         return options
 
-    def install(self, kerberos: sdk_auth.KerberosEnvironment=None) -> dict:
+    def install(self, kerberos: sdk_auth.KerberosEnvironment = None) -> dict:
         options = {
             "id": self.id,
             "mem": 512,
             "container": {
                 "type": "MESOS",
-                "docker": {
-                    "image": "elezar/kafka-client:deca3d0",
-                    "forcePullImage": True
-                }
+                "docker": {"image": "elezar/kafka-client:deca3d0", "forcePullImage": True},
             },
-            "networks": [
-                {
-                    "mode": "host"
-                }
-            ],
+            "networks": [{"mode": "host"}],
             "env": {
                 "JVM_MaxHeapSize": "512",
                 "KAFKA_CLIENT_MODE": "test",
-                "KAFKA_TOPIC": "securetest"
-            }
+                "KAFKA_TOPIC": "securetest",
+            },
         }
 
         if kerberos is not None:
@@ -130,8 +117,7 @@ class KafkaClient:
             environment = auth.setup_krb5_env(user, self.id, kerberos)
 
         if self._is_tls:
-            properties.extend(auth.get_ssl_client_properties(user,
-                                                             has_kerberos=self._is_kerberos))
+            properties.extend(auth.get_ssl_client_properties(user, has_kerberos=self._is_kerberos))
 
         return properties, environment
 
@@ -152,7 +138,7 @@ class KafkaClient:
             broker_hosts = map(lambda b: b.split(":")[0], brokers_list)
             brokers = ",".join(brokers_list)
 
-            if not sdk_cmd.resolve_hosts(self.id, broker_hosts, bootstrap_cmd='/opt/bootstrap'):
+            if not sdk_cmd.resolve_hosts(self.id, broker_hosts, bootstrap_cmd="/opt/bootstrap"):
                 log.error("Failed to resolve brokers: %s", broker_hosts)
                 return False
             self.brokers = brokers
@@ -169,8 +155,9 @@ class KafkaClient:
         self.reset()
         return self.wait_for(kafka_server, topic_name=None)
 
-    def can_write_and_read(self, user: str, kafka_server: dict,
-                           topic_name: str, krb5: sdk_auth.KerberosEnvironment) -> tuple:
+    def can_write_and_read(
+        self, user: str, kafka_server: dict, topic_name: str, krb5: sdk_auth.KerberosEnvironment
+    ) -> tuple:
 
         if not self.wait_for(kafka_server, topic_name):
             return False, [], []
@@ -180,26 +167,30 @@ class KafkaClient:
 
         return write_success, read_sucesses, read_messages
 
-    def read_from_topic(self, user: str, topic_name: str, brokers: str,
-                        krb5: sdk_auth.KerberosEnvironment) -> list:
+    def read_from_topic(
+        self, user: str, topic_name: str, brokers: str, krb5: sdk_auth.KerberosEnvironment
+    ) -> list:
 
         properties, environment = self._get_cli_settings(user, krb5)
-        read_messages = auth.read_from_topic(user, self.id, topic_name, len(self.MESSAGES),
-                                             properties, environment, brokers)
+        read_messages = auth.read_from_topic(
+            user, self.id, topic_name, len(self.MESSAGES), properties, environment, brokers
+        )
 
         read_success = map(lambda m: m in read_messages, self.MESSAGES)
 
         return read_success, read_messages
 
-    def write_to_topic(self, user: str, topic_name: str, brokers: str,
-                       krb5: sdk_auth.KerberosEnvironment) -> bool:
+    def write_to_topic(
+        self, user: str, topic_name: str, brokers: str, krb5: sdk_auth.KerberosEnvironment
+    ) -> bool:
 
         # Generate a unique message:
         message = str(uuid.uuid4())
 
         properties, environment = self._get_cli_settings(user, krb5)
-        write_success = auth.write_to_topic(user, self.id, topic_name, message,
-                                            properties, environment, brokers)
+        write_success = auth.write_to_topic(
+            user, self.id, topic_name, message, properties, environment, brokers
+        )
 
         if write_success:
             self.MESSAGES.append(message)

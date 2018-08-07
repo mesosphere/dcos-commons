@@ -13,7 +13,7 @@ import shakedown
 from tests import config, test_utils
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
@@ -23,11 +23,11 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_BROKER_COUNT,
-            additional_options={"service": {"name": foldered_name}, "brokers": {"cpus": 0.5}})
+            additional_options={"service": {"name": foldered_name}, "brokers": {"cpus": 0.5}},
+        )
 
         # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-                                      service_name=foldered_name)
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
         yield  # let the test session execute
     finally:
@@ -48,66 +48,68 @@ def test_service_health():
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=120 * 1000,
-        retry_on_result=lambda res: not res)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def wait():
         ret = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name,
-            'endpoints {}'.format(config.DEFAULT_TASK_NAME), json=True)
-        if len(ret['address']) == config.DEFAULT_BROKER_COUNT:
+            config.PACKAGE_NAME,
+            foldered_name,
+            "endpoints {}".format(config.DEFAULT_TASK_NAME),
+            json=True,
+        )
+        if len(ret["address"]) == config.DEFAULT_BROKER_COUNT:
             return ret
         return False
 
     endpoints = wait()
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
-    assert len(endpoints['address']) == config.DEFAULT_BROKER_COUNT
-    assert len(endpoints['dns']) == config.DEFAULT_BROKER_COUNT
-    for i in range(len(endpoints['dns'])):
-        assert sdk_hosts.autoip_host(
-            foldered_name, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
-    assert endpoints['vip'] == sdk_hosts.vip_host(foldered_name, 'broker', 9092)
+    assert len(endpoints["address"]) == config.DEFAULT_BROKER_COUNT
+    assert len(endpoints["dns"]) == config.DEFAULT_BROKER_COUNT
+    for i in range(len(endpoints["dns"])):
+        assert (
+            sdk_hosts.autoip_host(foldered_name, "kafka-{}-broker".format(i)) in endpoints["dns"][i]
+        )
+    assert endpoints["vip"] == sdk_hosts.vip_host(foldered_name, "broker", 9092)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints zookeeper')
-    assert zookeeper.rstrip(
-        '\n') == 'master.mesos:2181/{}'.format(sdk_utils.get_zk_path(foldered_name))
+    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints zookeeper")
+    assert zookeeper.rstrip("\n") == "master.mesos:2181/{}".format(
+        sdk_utils.get_zk_path(foldered_name)
+    )
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_custom_zookeeper():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    broker_ids = sdk_tasks.get_task_ids(foldered_name, '{}-'.format(config.DEFAULT_POD_TYPE))
+    broker_ids = sdk_tasks.get_task_ids(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE))
 
     # create a topic against the default zk:
     test_utils.create_topic(config.DEFAULT_TOPIC_NAME, service_name=foldered_name)
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     # should be using default path when this envvar is empty/unset:
-    assert marathon_config['env']['KAFKA_ZOOKEEPER_URI'] == ''
+    assert marathon_config["env"]["KAFKA_ZOOKEEPER_URI"] == ""
 
     # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
-    zk_path = 'master.mesos:2181/{}/CUSTOMPATH'.format(sdk_utils.get_zk_path(foldered_name))
-    marathon_config['env']['KAFKA_ZOOKEEPER_URI'] = zk_path
+    zk_path = "master.mesos:2181/{}/CUSTOMPATH".format(sdk_utils.get_zk_path(foldered_name))
+    marathon_config["env"]["KAFKA_ZOOKEEPER_URI"] = zk_path
     sdk_marathon.update_app(foldered_name, marathon_config)
 
-    sdk_tasks.check_tasks_updated(foldered_name, '{}-'.format(config.DEFAULT_POD_TYPE), broker_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE), broker_ids)
     sdk_plan.wait_for_completed_deployment(foldered_name)
 
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints zookeeper')
-    assert zookeeper.rstrip('\n') == zk_path
+    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints zookeeper")
+    assert zookeeper.rstrip("\n") == zk_path
 
     # topic created earlier against default zk should no longer be present:
-    topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'topic list', json=True)
+    topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list", json=True)
 
     test_utils.assert_topic_lists_are_equal_without_automatic_topics([], topic_list_info)
 
@@ -120,8 +122,12 @@ def test_custom_zookeeper():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_list():
-    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'broker list', json=True)
+    brokers = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "broker list",
+        json=True,
+    )
     assert set(brokers) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
 
 
@@ -130,8 +136,11 @@ def test_broker_list():
 def test_broker_invalid():
     try:
         sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME),
-            'broker get {}'.format(config.DEFAULT_BROKER_COUNT + 1), json=True)
+            config.PACKAGE_NAME,
+            sdk_utils.get_foldered_name(config.SERVICE_NAME),
+            "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
+            json=True,
+        )
         assert False, "Should have failed"
     except AssertionError as arg:
         raise arg
@@ -159,12 +168,12 @@ def test_pod_replace():
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_metrics():
     expected_metrics = [
         "kafka.network.RequestMetrics.ResponseQueueTimeMs.max",
         "kafka.socket-server-metrics.io-ratio",
-        "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95"
+        "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95",
     ]
 
     def expected_metrics_exist(emitted_metrics):
@@ -175,5 +184,5 @@ def test_metrics():
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,
-        expected_metrics_exist
+        expected_metrics_exist,
     )

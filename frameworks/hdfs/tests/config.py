@@ -28,8 +28,7 @@ HADOOP_VERSION = "hadoop-2.6.0-cdh5.9.1"
 
 def get_kerberized_hdfs_client_app():
     app_def_path = "{current_dir}/../tools/docker-client/{client_id}".format(
-        current_dir=os.path.dirname(os.path.realpath(__file__)),
-        client_id="hdfsclient.json"
+        current_dir=os.path.dirname(os.path.realpath(__file__)), client_id="hdfsclient.json"
     )
     with open(app_def_path) as f:
         app_def = json.load(f)
@@ -70,8 +69,9 @@ def delete_data_from_hdfs(service_name, filename):
 
 
 def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | /{}/bin/hdfs dfs -put /{}"\
-        .format(TEST_CONTENT_LARGE_SOURCE, HADOOP_VERSION, filename)
+    write_command = "wget {} -qO- | /{}/bin/hdfs dfs -put /{}".format(
+        TEST_CONTENT_LARGE_SOURCE, HADOOP_VERSION, filename
+    )
     rc, _ = run_hdfs_command(service_name, write_command)
     return rc
 
@@ -89,12 +89,12 @@ def get_active_name_node(service_name):
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res)
+    wait_fixed=1000, stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000, retry_on_result=lambda res: not res
+)
 def get_name_node_status(service_name, name_node):
-    rc, output = run_hdfs_command(service_name, "/{}/bin/hdfs haadmin -getServiceState {}"
-                                  .format(HADOOP_VERSION, name_node))
+    rc, output = run_hdfs_command(
+        service_name, "/{}/bin/hdfs haadmin -getServiceState {}".format(HADOOP_VERSION, name_node)
+    )
     if not rc:
         return rc
 
@@ -105,6 +105,7 @@ def run_hdfs_command(service_name, command):
     """
     Execute the command using the Docker client
     """
+
     def get_bash_command(cmd: str, environment: str) -> str:
         """
         TODO: This has been copied from the Kafka auth tests and should be made
@@ -112,20 +113,28 @@ def run_hdfs_command(service_name, command):
         """
         env_str = "{} && ".format(environment) if environment else ""
 
-        return "bash -c \"{}{}\"".format(env_str, cmd)
+        return 'bash -c "{}{}"'.format(env_str, cmd)
 
-    cmd = ["docker", "run",
-           "-e", "HDFS_SERVICE_NAME={}".format(service_name),
-           DOCKER_IMAGE_NAME,
-           get_bash_command("/{}/configure-hdfs.sh && /bin/bash -c '{}'".format(HADOOP_VERSION, command), ""), ]
+    cmd = [
+        "docker",
+        "run",
+        "-e",
+        "HDFS_SERVICE_NAME={}".format(service_name),
+        DOCKER_IMAGE_NAME,
+        get_bash_command(
+            "/{}/configure-hdfs.sh && /bin/bash -c '{}'".format(HADOOP_VERSION, command), ""
+        ),
+    ]
     full_command = " ".join(cmd)
 
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
-        retry_on_result=lambda res: not res[0])
+        retry_on_result=lambda res: not res[0],
+    )
     def fn():
         return sdk_cmd.master_ssh(full_command)
+
     return fn()
 
 
@@ -145,5 +154,5 @@ def expect_recovery(service_name):
 
 
 def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
-    pod_types = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'pod list', json=True)
+    pod_types = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", json=True)
     return [pod_type for pod_type in pod_types if pod_type.startswith(pod_type_prefix)]
