@@ -172,7 +172,8 @@ def _upgrade_or_downgrade(
     task_ids = sdk_tasks.get_task_ids(service_name, '')
 
     if sdk_utils.dcos_version_less_than("1.10") or shakedown.ee_version() is None:
-        log.info('Using marathon upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
+        log.info('Using marathon upgrade flow to upgrade {} {}'.format(
+            package_name, to_package_version))
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(
             package_name,
@@ -228,7 +229,8 @@ def _get_pkg_version(package_name):
             version = describe['version']
         return version
     except Exception:
-        log.warning('Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
+        log.warning('Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(
+            cmd, stdout, stderr))
         log.warning(traceback.format_exc())
         return None
 

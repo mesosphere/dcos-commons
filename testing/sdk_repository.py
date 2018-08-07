@@ -64,7 +64,8 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     # add the needed universe repositories
     for name, url in stub_urls.items():
         log.info('Adding stub repo {} URL: {}'.format(name, url))
-        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo add --index=0 {} {}'.format(name, url))
+        rc, stdout, stderr = sdk_cmd.run_raw_cli(
+            'package repo add --index=0 {} {}'.format(name, url))
         if rc != 0 or stderr:
             raise Exception(
                 'Failed to add stub repo {} ({}): stdout=[{}], stderr=[{}]'.format(
@@ -87,7 +88,8 @@ def remove_universe_repos(stub_urls):
                 # tried to remove something that wasn't there, move on.
                 pass
             else:
-                raise Exception('Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(stdout, stderr))
+                raise Exception(
+                    'Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(stdout, stderr))
 
     log.info('Finished removing universe repos')
 

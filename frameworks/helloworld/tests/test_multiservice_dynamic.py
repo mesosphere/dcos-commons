@@ -29,7 +29,8 @@ def configure_package(configure_security):
         }
 
         # do not poll scheduler-level deploy plan, there is none:
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options, wait_for_deployment=False)
+        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
+                            additional_options=options, wait_for_deployment=False)
 
         # use yaml list as a proxy for checking that the scheduler is up:
         yamls = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/multi/yaml').json()
@@ -53,7 +54,8 @@ def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
         retry_on_result=lambda res: not res)
     def fn():
         try:
-            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=False) if t['name'] == service_name])
+            task_ids = set([t['id'] for t in shakedown.get_tasks(
+                completed=False) if t['name'] == service_name])
             log.info('found the following task ids {}'.format(task_ids))
         except dcos.errors.DCOSHTTPException:
             log.info('Failed to get task ids. service_name=%s', service_name)
@@ -69,7 +71,8 @@ def test_add_deploy_restart_remove():
     svc1 = 'test1'
 
     # add svc as test1:
-    sdk_cmd.service_request('POST', config.SERVICE_NAME, '/v1/multi/{}?yaml=svc'.format(svc1), json=service_params(svc1))
+    sdk_cmd.service_request('POST', config.SERVICE_NAME,
+                            '/v1/multi/{}?yaml=svc'.format(svc1), json=service_params(svc1))
     # get list, should immediately have new entry:
     service = get_service_list()[0]
     assert service['service'] == svc1
@@ -94,9 +97,11 @@ def test_add_deploy_restart_remove():
     assert service['yaml'] == 'svc'
     assert not service['uninstall']
 
-    plan = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
+    plan = sdk_plan.wait_for_plan_status(
+        config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
     # verify that svc.yml was deployed as svc1:
-    assert sdk_plan.get_all_step_names(plan) == ['hello-0:[server]', 'world-0:[server]', 'world-1:[server]']
+    assert sdk_plan.get_all_step_names(
+        plan) == ['hello-0:[server]', 'world-0:[server]', 'world-1:[server]']
 
     # trigger service removal, wait for removal:
     sdk_cmd.service_request('DELETE', config.SERVICE_NAME, '/v1/multi/{}'.format(svc1))
@@ -114,9 +119,11 @@ def test_add_deploy_restart_remove():
 def test_add_multiple_uninstall():
     # add two services:
     svc1 = 'test1'
-    sdk_cmd.service_request('POST', config.SERVICE_NAME, '/v1/multi/{}?yaml=svc'.format(svc1), json=service_params(svc1))
+    sdk_cmd.service_request('POST', config.SERVICE_NAME,
+                            '/v1/multi/{}?yaml=svc'.format(svc1), json=service_params(svc1))
     svc2 = 'test2'
-    sdk_cmd.service_request('POST', config.SERVICE_NAME, '/v1/multi/{}?yaml=simple'.format(svc2), json=service_params(svc2))
+    sdk_cmd.service_request('POST', config.SERVICE_NAME,
+                            '/v1/multi/{}?yaml=simple'.format(svc2), json=service_params(svc2))
 
     # get list, should immediately have new entries:
     services = get_service_list()
@@ -130,11 +137,14 @@ def test_add_multiple_uninstall():
             assert service['yaml'] == 'simple'
         assert not service['uninstall']
 
-    plan = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
+    plan = sdk_plan.wait_for_plan_status(
+        config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
     # verify that svc.yml was deployed as svc1:
-    assert sdk_plan.get_all_step_names(plan) == ['hello-0:[server]', 'world-0:[server]', 'world-1:[server]']
+    assert sdk_plan.get_all_step_names(
+        plan) == ['hello-0:[server]', 'world-0:[server]', 'world-1:[server]']
 
-    plan = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc2)
+    plan = sdk_plan.wait_for_plan_status(
+        config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc2)
     # verify that simple.yml was deployed as svc2:
     assert sdk_plan.get_all_step_names(plan) == ['hello-0:[server]']
 
@@ -158,9 +168,11 @@ def test_add_multiple_uninstall():
     sdk_marathon.wait_for_app_running(config.SERVICE_NAME, sdk_marathon.TIMEOUT_SECONDS)
     wait_for_service_count(1)
 
-    plan = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
+    plan = sdk_plan.wait_for_plan_status(
+        config.SERVICE_NAME, 'deploy', 'COMPLETE', multiservice_name=svc1)
     # verify that svc.yml is still deployed as svc1:
-    assert sdk_plan.get_all_step_names(plan) == ['hello-0:[server]', 'world-0:[server]', 'world-1:[server]']
+    assert sdk_plan.get_all_step_names(
+        plan) == ['hello-0:[server]', 'world-0:[server]', 'world-1:[server]']
 
     # leave suite teardown to do the uninstall, verifying successful winding down of svc1
 

@@ -58,7 +58,8 @@ def test_service_startup_rapid():
     retries = 15
     while retries > 0:
         retries -= 1
-        stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic producer_test test 100')
+        stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                                 'topic producer_test test 100')
         if 'records sent' in stdout:
             break
 
@@ -70,7 +71,8 @@ def test_service_startup_rapid():
 
     starting_fallback_time = datetime.datetime.now()
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, '{}-'.format(config.DEFAULT_POD_TYPE), [broker_task_id_0, ])
+    sdk_tasks.check_tasks_updated(
+        config.SERVICE_NAME, '{}-'.format(config.DEFAULT_POD_TYPE), [broker_task_id_0, ])
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
 
     broker_task_id_1 = sdk_tasks.get_task_ids(config.SERVICE_NAME, task_short_name)[0]

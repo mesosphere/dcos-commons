@@ -45,7 +45,8 @@ def test_once_task_does_not_restart_on_config_update():
     log.info('hello_once_id: ' + str(hello_once_id))
     config.bump_hello_cpus(foldered_name)
 
-    sdk_tasks.check_task_not_relaunched(foldered_name, task_name, hello_once_id, with_completed=True)
+    sdk_tasks.check_task_not_relaunched(
+        foldered_name, task_name, hello_once_id, with_completed=True)
     config.check_running(foldered_name)
 
 

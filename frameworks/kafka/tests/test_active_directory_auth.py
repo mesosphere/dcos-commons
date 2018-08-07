@@ -133,7 +133,8 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
                     "topic create {}".format(topic_name),
                     json=True)
 
-    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
+    test_utils.wait_for_topic(kafka_server["package_name"],
+                              kafka_server["service"]["name"], topic_name)
 
     message = str(uuid.uuid4())
 

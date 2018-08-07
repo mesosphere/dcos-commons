@@ -1,6 +1,5 @@
 import pytest
 import retrying
-import shakedown
 
 import sdk_install
 import sdk_utils
@@ -15,10 +14,11 @@ pytestmark = pytest.mark.skipif(
     reason="secure hierarchical roles are only supported on 1.11+")
 
 pre_reserved_options = {
-                "service": {
-                    "yaml": "pre-reserved"
-                }
-            }
+    "service": {
+        "yaml": "pre-reserved"
+    }
+}
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -66,9 +66,9 @@ def test_marathon_volume_collision():
             "volumes": [
                 {
                     "persistent": {
-                    "type": "root",
-                    "size": 500,
-                    "constraints": []
+                        "type": "root",
+                        "size": 500,
+                        "constraints": []
                     },
                     "mode": "RW",
                     "containerPath": volume_name
@@ -82,12 +82,13 @@ def test_marathon_volume_collision():
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
         # Should get e.g.: "/var/lib/mesos/slave/volumes/roles/slave_public/persistent-test#persistent-volume#76e7bb6d-64fa-11e8-abc5-8e679b292d5e"
-        ok, pv_path = sdk_cmd.agent_ssh(host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
+        ok, pv_path = sdk_cmd.agent_ssh(
+            host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
         assert ok
 
         pv_path = pv_path.strip()
 
-        @retrying.retry(wait_fixed=1000, stop_max_delay=60*1000)
+        @retrying.retry(wait_fixed=1000, stop_max_delay=60 * 1000)
         def check_content():
             ok, pv_content = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
             assert pv_content.strip() == "this is a test"

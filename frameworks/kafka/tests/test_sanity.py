@@ -50,7 +50,7 @@ def test_endpoints_address():
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def wait():
         ret = sdk_cmd.svc_cli(
@@ -65,7 +65,8 @@ def test_endpoints_address():
     assert len(endpoints['address']) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints['dns']) == config.DEFAULT_BROKER_COUNT
     for i in range(len(endpoints['dns'])):
-        assert sdk_hosts.autoip_host(foldered_name, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
+        assert sdk_hosts.autoip_host(
+            foldered_name, 'kafka-{}-broker'.format(i)) in endpoints['dns'][i]
     assert endpoints['vip'] == sdk_hosts.vip_host(foldered_name, 'broker', 9092)
 
 
@@ -74,7 +75,8 @@ def test_endpoints_address():
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints zookeeper')
-    assert zookeeper.rstrip('\n') == 'master.mesos:2181/{}'.format(sdk_utils.get_zk_path(foldered_name))
+    assert zookeeper.rstrip(
+        '\n') == 'master.mesos:2181/{}'.format(sdk_utils.get_zk_path(foldered_name))
 
 
 @pytest.mark.smoke

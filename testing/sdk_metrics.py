@@ -87,7 +87,8 @@ def get_metrics(package_name, service_name, task_name):
     executor_id = task_to_check['executor_id']
 
     pod_name = '-'.join(task_name.split("-")[:2])
-    pod_info = sdk_cmd.svc_cli(package_name, service_name, "pod info {}".format(pod_name), json=True)
+    pod_info = sdk_cmd.svc_cli(package_name, service_name,
+                               "pod info {}".format(pod_name), json=True)
     task_info = None
     for task in pod_info:
         if task["info"]["name"] == task_name:
@@ -132,7 +133,8 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
             # don't short-circuit to log if multiple metrics are missing
 
     if not metrics_exist:
-        log.info("Metrics emitted: {},\nMetrics expected: {}".format(emitted_metrics, expected_metrics))
+        log.info("Metrics emitted: {},\nMetrics expected: {}".format(
+            emitted_metrics, expected_metrics))
 
     log.info("Expected metrics exist: {}".format(metrics_exist))
     return metrics_exist

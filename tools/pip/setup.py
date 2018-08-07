@@ -9,7 +9,8 @@ import sys
 
 
 def syntax():
-    print('Syntax: OUTPUT_NAME=foo INPUT_DIR=path/to/foo VERSION=0.123.0 {} -q bdist_wheel'.format(sys.argv[0]))
+    print(
+        'Syntax: OUTPUT_NAME=foo INPUT_DIR=path/to/foo VERSION=0.123.0 {} -q bdist_wheel'.format(sys.argv[0]))
 
 
 def main():
@@ -27,7 +28,8 @@ def main():
         return 1
 
     # only include files that are tracked by git
-    input_relative_file_paths = subprocess.check_output(['git', 'ls-files'], cwd=input_dir_path).decode('utf-8').split()
+    input_relative_file_paths = subprocess.check_output(
+        ['git', 'ls-files'], cwd=input_dir_path).decode('utf-8').split()
     print('Packing {} files from {} into {}-{}:\n  {}'.format(
         len(input_relative_file_paths), input_dir_path, output_name, version, '\n  '.join(input_relative_file_paths)))
 

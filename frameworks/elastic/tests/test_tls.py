@@ -67,7 +67,8 @@ def elastic_service(service_account):
 @pytest.fixture(scope='module')
 def kibana_application(elastic_service):
     try:
-        elasticsearch_url = "https://" + sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
+        elasticsearch_url = "https://" + \
+            sdk_hosts.vip_host(config.SERVICE_NAME, "coordinator", 9200)
 
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_SERVICE_NAME)
         sdk_install.install(
@@ -125,7 +126,8 @@ def test_crud_over_tls(elastic_service):
 @pytest.mark.skipif(sdk_utils.dcos_version_at_least('1.12'),
                     reason='MESOS-9008: Mesos Fetcher fails to extract Kibana archive')
 def test_kibana_tls(kibana_application):
-    config.check_kibana_adminrouter_integration("service/{}/login".format(config.KIBANA_SERVICE_NAME))
+    config.check_kibana_adminrouter_integration(
+        "service/{}/login".format(config.KIBANA_SERVICE_NAME))
 
 
 @pytest.mark.tls

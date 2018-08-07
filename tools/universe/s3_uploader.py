@@ -81,12 +81,15 @@ class S3Uploader(object):
         try:
             config.read(creds_path)
         except Exception:
-            raise Exception('Unable to renew credentials: No AWS_PROFILE and credentials file is unparseable: {}'.format(creds_path))
+            raise Exception(
+                'Unable to renew credentials: No AWS_PROFILE and credentials file is unparseable: {}'.format(creds_path))
 
         profile_names = config.sections()
         if len(profile_names) == 0:
-            raise Exception('Unable to renew credentials: No AWS_PROFILE and no profiles found in credentials file: {}'.format(creds_path))
+            raise Exception(
+                'Unable to renew credentials: No AWS_PROFILE and no profiles found in credentials file: {}'.format(creds_path))
         elif len(profile_names) == 1:
             return profile_names[0]
         else:
-            raise Exception('Unable to renew credentials: No AWS_PROFILE and multiple profiles found in credentials file: {}'.format(creds_path))
+            raise Exception(
+                'Unable to renew credentials: No AWS_PROFILE and multiple profiles found in credentials file: {}'.format(creds_path))

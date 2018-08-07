@@ -24,7 +24,8 @@ class UniversePackagePublisher(object):
     def __init__(self, package_name, package_version, commit_desc, beta_release, dry_run=False):
         self._pkg_name = package_name
         self._pkg_version = package_version
-        self._pr_title = 'Release {} {} (automated commit)\n\n'.format(self._pkg_name, self._pkg_version)
+        self._pr_title = 'Release {} {} (automated commit)\n\n'.format(
+            self._pkg_name, self._pkg_version)
         self._commit_desc = commit_desc
         self._beta_release = beta_release
         self._dry_run = dry_run
@@ -38,8 +39,10 @@ class UniversePackagePublisher(object):
             if self._dry_run:
                 self._github_token = 'DRY_RUN'
             else:
-                raise Exception('GITHUB_TOKEN is required: Credential to create a PR against Universe')
-        self._enc_github_token = base64.encodestring(self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
+                raise Exception(
+                    'GITHUB_TOKEN is required: Credential to create a PR against Universe')
+        self._enc_github_token = base64.encodestring(
+            self._github_token.encode('utf-8')).decode('utf-8').rstrip('\n')
         self._release_universe_repo = os.environ.get('RELEASE_UNIVERSE_REPO', 'mesosphere/universe')
 
     def _find_release_index(self, repo_pkg_base):
@@ -56,7 +59,8 @@ class UniversePackagePublisher(object):
             this_index = self._release_index
 
             # Search backwards from this_index to find a prior release to diff against:
-            for num in reversed(range(0, this_index)):  # reversed([0, ..., this-1]) => [this-1, ..., 0]
+            # reversed([0, ..., this-1]) => [this-1, ..., 0]
+            for num in reversed(range(0, this_index)):
                 if os.path.isdir(os.path.join(repo_pkg_base, str(num))):
                     last_index = num
                     break

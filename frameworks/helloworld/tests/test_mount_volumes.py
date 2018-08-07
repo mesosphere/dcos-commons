@@ -78,7 +78,8 @@ def verify_shared_executor(pod_name):
     - matching ExecutorInfo
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks
     '''
-    tasks = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info {}'.format(pod_name), json=True)
+    tasks = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                            'pod info {}'.format(pod_name), json=True)
     assert len(tasks) == 2
 
     # check that the task executors all match

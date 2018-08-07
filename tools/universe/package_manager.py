@@ -18,6 +18,7 @@ LOGGER = logging.getLogger(__name__)
 
 class PackageManager:
     """A simple package manager for retrieving universe packages"""
+
     def __init__(self,
                  universe_package_prefix="https://universe.mesosphere.com/package/",
                  dcos_version="1.11",
@@ -47,7 +48,8 @@ class PackageManager:
                 with urllib.request.urlopen(req, timeout=60) as f:
                     # Returned data: {"packages": [releases for the specified package]}
                     package_releases = json.loads(f.read().decode())['packages']
-                    self.__package_cache[package_name] = [package.Package.from_json(p) for p in package_releases]
+                    self.__package_cache[package_name] = [
+                        package.Package.from_json(p) for p in package_releases]
             except Exception as e:
                 LOGGER.error("Failed to fetch package information at %s: %s", url, e)
 

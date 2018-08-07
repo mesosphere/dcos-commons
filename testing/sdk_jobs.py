@@ -67,7 +67,8 @@ def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
     job_name = job_dict['id']
 
     # Start job run, get run ID to poll against:
-    run_id = sdk_cmd.service_request('POST', 'metronome', '/v1/jobs/{}/runs'.format(job_name), log_args=False).json()['id']
+    run_id = sdk_cmd.service_request(
+        'POST', 'metronome', '/v1/jobs/{}/runs'.format(job_name), log_args=False).json()['id']
     log.info('Started job {}: run id {}'.format(job_name, run_id))
 
     # Wait for run to succeed, throw if run fails:

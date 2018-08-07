@@ -11,10 +11,10 @@ LOG = logging.getLogger(__name__)
 
 
 USERS = [
-        "client",
-        "authorized",
-        "unauthorized",
-        "super"
+    "client",
+    "authorized",
+    "unauthorized",
+    "super"
 ]
 
 
@@ -32,7 +32,8 @@ def get_service_principals(service_name: str, realm: str, custom_domain: str = N
     ]
 
     if custom_domain:
-        instances = map(lambda task: sdk_hosts.custom_host(service_name, task, custom_domain), tasks)
+        instances = map(lambda task: sdk_hosts.custom_host(
+            service_name, task, custom_domain), tasks)
     else:
         instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
 
@@ -92,7 +93,8 @@ def write_jaas_config_file(primary: str, marathon_task: str, krb5: object) -> st
                           '    com.sun.security.auth.module.Krb5LoginModule required',
                           '    doNotPrompt=true',
                           '    useTicketCache=true',
-                          '    principal=\\"{primary}@{realm}\\"'.format(primary=primary, realm=krb5.get_realm()),
+                          '    principal=\\"{primary}@{realm}\\"'.format(
+                              primary=primary, realm=krb5.get_realm()),
                           '    useKeyTab=true',
                           '    serviceName=\\"kafka\\"',
                           '    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"',
@@ -158,7 +160,7 @@ def write_to_topic(cn: str, marathon_task: str, topic: str, message: str,
         LOG.info("Write appears to have succeeded")
         return False
 
-    @retrying.retry(stop_max_delay=5*60*1000,
+    @retrying.retry(stop_max_delay=5 * 60 * 1000,
                     wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=write_failed)
@@ -206,7 +208,7 @@ def read_from_topic(cn: str, marathon_task: str, topic: str, messages: int,
         LOG.info("Read appears to have succeeded")
         return False
 
-    @retrying.retry(stop_max_delay=3*60*1000,
+    @retrying.retry(stop_max_delay=3 * 60 * 1000,
                     wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=read_failed)

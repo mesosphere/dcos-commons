@@ -26,7 +26,7 @@ def configure_package(configure_security):
         # this yml has 2 hello's + 0 world's:
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 2, additional_options=options)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -56,7 +56,7 @@ def test_sidecar_parameterized():
 
 @retrying.retry(
     wait_fixed=2000,
-    stop_max_delay=5*60*1000,
+    stop_max_delay=5 * 60 * 1000,
     retry_on_result=lambda res: not res)
 def wait_for_toxic_sidecar():
     """

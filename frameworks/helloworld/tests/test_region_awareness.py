@@ -93,7 +93,8 @@ def change_region_config(region_name):
     else:
         service_config['env']['SERVICE_REGION'] = region_name
 
-    sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
+    sdk_marathon.update_app(config.SERVICE_NAME, service_config,
+                            wait_for_completed_deployment=False)
 
 
 def get_pod_region(service_name, pod_name):

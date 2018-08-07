@@ -21,13 +21,14 @@ class KafkaService:
     """
     A light wrapper around a Kafka service installed as part of the integration tests.
     """
+
     def __init__(self, service_options: dict):
         self._package_name = service_options["package_name"]
         self._service_name = service_options["service"]["name"]
 
     def get_zookeeper_connect(self) -> str:
         return str(sdk_cmd.svc_cli(self._package_name, self._service_name,
-                   "endpoint zookeeper")).strip()
+                                   "endpoint zookeeper")).strip()
 
     def get_brokers_endpoints(self, endpoint_name: str) -> list:
         brokers = sdk_cmd.svc_cli(

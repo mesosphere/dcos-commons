@@ -40,7 +40,8 @@ def service_request(
     """
     # Sanitize leading slash on service_path before calling urljoin() to avoid this:
     # 'http://example.com/service/myservice/' + '/v1/rpc' = 'http://example.com/v1/rpc'
-    cluster_path = urllib.parse.urljoin('/service/{}/'.format(service_name), service_path.lstrip('/'))
+    cluster_path = urllib.parse.urljoin(
+        '/service/{}/'.format(service_name), service_path.lstrip('/'))
     return cluster_request(method, cluster_path, retry, raise_on_error, log_args, verify, timeout_seconds, **kwargs)
 
 
@@ -71,7 +72,8 @@ def cluster_request(
     """
 
     url = shakedown.dcos_url_path(cluster_path)
-    cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
+    # consistently include slash prefix for clearer logging below
+    cluster_path = '/' + cluster_path.lstrip('/')
     log.info('(HTTP {}) {}'.format(method.upper(), cluster_path))
 
     def fn():
@@ -95,7 +97,8 @@ def cluster_request(
             # include additional error details.
             response_text = response.text
             if response_text:
-                log.info('Response content ({} bytes):\n{}'.format(len(response_text), response_text))
+                log.info('Response content ({} bytes):\n{}'.format(
+                    len(response_text), response_text))
             else:
                 log.info('No response content')
         if raise_on_error:
@@ -145,7 +148,8 @@ def run_raw_cli(cmd, print_output=True, check=False):
     """
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
-    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check)
+    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, check=check)
     stdout = ""
     stderr = ""
 
@@ -205,14 +209,16 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, output_cmd)
 
     if rc or stderr:
-        log.warning("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        log.warning("Error creating file %s. rc=%s stdout=%s stderr=%s",
+                    filename, rc, stdout, stderr)
         return False
 
     linecount_cmd = "wc -l {output_file}".format(output_file=filename)
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, linecount_cmd)
 
     if rc or stderr:
-        log.warning("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        log.warning("Error checking file %s. rc=%s stdout=%s stderr=%s",
+                    filename, rc, stdout, stderr)
         return False
 
     written_lines = 0
@@ -358,7 +364,8 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = './
         '-self-resolve=false',
         '-resolve-hosts', ','.join(hosts)]
     log.info("Running bootstrap to wait for DNS resolution of: %s", ', '.join(hosts))
-    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(marathon_task_name, ' '.join(bootstrap_cmd_list))
+    _, bootstrap_stdout, bootstrap_stderr = marathon_task_exec(
+        marathon_task_name, ' '.join(bootstrap_cmd_list))
 
     # Note that bootstrap returns its output in STDERR
     resolved = 'SDK Bootstrap successful.' in bootstrap_stderr

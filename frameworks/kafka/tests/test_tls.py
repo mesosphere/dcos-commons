@@ -84,7 +84,8 @@ def test_tls_endpoints(kafka_service):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_producer_over_tls(kafka_service):
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'topic create {}'.format(config.DEFAULT_TOPIC_NAME))
 
     topic_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
                                  'topic describe {}'.format(config.DEFAULT_TOPIC_NAME),
@@ -94,11 +95,13 @@ def test_producer_over_tls(kafka_service):
     # Write twice: Warm up TLS connections
     num_messages = 10
     write_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                                 'topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages),
+                                 'topic producer_test_tls {} {}'.format(
+                                     config.DEFAULT_TOPIC_NAME, num_messages),
                                  json=True)
 
     write_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
-                                 'topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages),
+                                 'topic producer_test_tls {} {}'.format(
+                                     config.DEFAULT_TOPIC_NAME, num_messages),
                                  json=True)
     assert len(write_info) == 1
     assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
@@ -130,8 +133,10 @@ def test_tls_ciphers(kafka_service):
     assert expected_ciphers, 'Expected ciphers should be non-empty'
     assert possible_openssl_ciphers, 'Possible OpenSSL ciphers should be non-empty'
 
-    sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')  # Output OpenSSL version.
-    log.warning("\n%s OpenSSL ciphers missing from the cipher_suites module:", len(missing_openssl_ciphers))
+    # Output OpenSSL version.
+    sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, 'openssl version')
+    log.warning("\n%s OpenSSL ciphers missing from the cipher_suites module:",
+                len(missing_openssl_ciphers))
     log.warning("\n".join(to_sorted(list(missing_openssl_ciphers))))
     log.info("\n%s expected ciphers:", len(expected_ciphers))
     log.info("\n".join(to_sorted(list(expected_ciphers))))

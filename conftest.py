@@ -52,7 +52,8 @@ def is_env_var_set(key: str, default: str) -> bool:
 
 # The following environment variable allows for log collection to be turned off.
 # This is useful, for example in testing.
-INTEGRATION_TEST_LOG_COLLECTION = is_env_var_set('INTEGRATION_TEST_LOG_COLLECTION', default=str(True))
+INTEGRATION_TEST_LOG_COLLECTION = is_env_var_set(
+    'INTEGRATION_TEST_LOG_COLLECTION', default=str(True))
 
 
 @pytest.fixture(scope='session', autouse=True)

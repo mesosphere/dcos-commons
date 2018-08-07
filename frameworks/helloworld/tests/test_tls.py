@@ -123,10 +123,12 @@ def test_java_truststore():
 def test_tls_basic_artifacts():
 
     # Load end-entity certificate from keystore and root CA cert from truststore
-    stdout = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'artifacts-0-node', 'cat secure-tls-pod.crt')[1].encode('ascii')
+    stdout = sdk_cmd.service_task_exec(
+        config.SERVICE_NAME, 'artifacts-0-node', 'cat secure-tls-pod.crt')[1].encode('ascii')
     end_entity_cert = x509.load_pem_x509_certificate(stdout, DEFAULT_BACKEND)
 
-    root_ca_cert_in_truststore = _export_cert_from_task_keystore('artifacts-0-node', 'keystore.truststore', 'dcos-root')
+    root_ca_cert_in_truststore = _export_cert_from_task_keystore(
+        'artifacts-0-node', 'keystore.truststore', 'dcos-root')
 
     # Check that certificate subject maches the service name
     common_name = end_entity_cert.subject.get_attributes_for_oid(
@@ -215,7 +217,8 @@ def test_changing_discovery_replaces_certificate_sans():
     """
 
     # Load end-entity certificate from PEM encoded file
-    _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'discovery-0-node', 'cat server.crt')
+    _, stdout, _ = sdk_cmd.service_task_exec(
+        config.SERVICE_NAME, 'discovery-0-node', 'cat server.crt')
     log.info('first server.crt: {}'.format(stdout))
 
     ascii_cert = stdout.encode('ascii')
@@ -241,7 +244,8 @@ def test_changing_discovery_replaces_certificate_sans():
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, 'discovery-0-node', 'cat server.crt')
+    _, stdout, _ = sdk_cmd.service_task_exec(
+        config.SERVICE_NAME, 'discovery-0-node', 'cat server.crt')
     log.info('second server.crt: {}'.format(stdout))
 
     ascii_cert = stdout.encode('ascii')

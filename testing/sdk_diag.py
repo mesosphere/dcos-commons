@@ -164,7 +164,8 @@ def _dump_plans(item: pytest.Item, service_name: str):
     for plan_name in plan_names:
         plan = sdk_plan.get_plan(service_name, plan_name, 5)
         # Include service name in plan filename, but be careful about folders...
-        out_path = _setup_artifact_path(item, 'plan_{}_{}.json'.format(service_name.replace('/', '_'), plan_name))
+        out_path = _setup_artifact_path(item, 'plan_{}_{}.json'.format(
+            service_name.replace('/', '_'), plan_name))
         out_content = json.dumps(plan, indent=2)
         log.info('=> Writing {} ({} bytes)'.format(out_path, len(out_content)))
         with open(out_path, 'w') as f:
@@ -216,7 +217,8 @@ def _dump_diagnostics_bundle(item: pytest.Item):
 def _dump_mesos_state(item: pytest.Item):
     '''Downloads state from the Mesos master and saves it to the artifact path for this test.'''
     for name in ['state.json', 'slaves']:
-        r = sdk_cmd.cluster_request('GET', '/mesos/{}'.format(name), verify=False, raise_on_error=False)
+        r = sdk_cmd.cluster_request('GET', '/mesos/{}'.format(name),
+                                    verify=False, raise_on_error=False)
         if r.ok:
             if name.endswith('.json'):
                 name = name[:-len('.json')]  # avoid duplicate '.json'
@@ -257,11 +259,13 @@ class _TaskEntry(object):
 
 
 def _dump_task_logs_for_agent(item: pytest.Item, agent_id: str, agent_tasks: list):
-    agent_executor_paths = sdk_cmd.cluster_request('GET', '/slave/{}/files/debug'.format(agent_id)).json()
+    agent_executor_paths = sdk_cmd.cluster_request(
+        'GET', '/slave/{}/files/debug'.format(agent_id)).json()
     task_byte_count = 0
     for task_entry in agent_tasks:
         try:
-            task_byte_count += _dump_task_logs_for_task(item, agent_id, agent_executor_paths, task_entry)
+            task_byte_count += _dump_task_logs_for_task(item,
+                                                        agent_id, agent_executor_paths, task_entry)
         except Exception:
             log.exception('Failed to get logs for task {}'.format(task_entry))
     log.info('Downloaded {} bytes of logs from {} tasks on agent {}'.format(
@@ -300,7 +304,8 @@ def _dump_task_logs_for_task(
     if task_entry.executor_id and task_entry.task_id:
         for file_info in executor_file_infos:
             if file_info['mode'].startswith('d') and file_info['path'].endswith('/tasks'):
-                task_browse_path = os.path.join(executor_browse_path, 'tasks/{}/'.format(task_entry.task_id))
+                task_browse_path = os.path.join(
+                    executor_browse_path, 'tasks/{}/'.format(task_entry.task_id))
                 try:
                     task_file_infos = sdk_cmd.cluster_request(
                         'GET', '/slave/{}/files/browse?path={}'.format(agent_id, task_browse_path)).json()
@@ -311,7 +316,8 @@ def _dump_task_logs_for_task(
     selected_file_infos = collections.OrderedDict()
     if task_file_infos:
         # Include 'task' and 'executor' annotations in filenames to differentiate between them:
-        _select_log_files(item, task_entry.task_id, executor_file_infos, 'executor.', selected_file_infos)
+        _select_log_files(item, task_entry.task_id, executor_file_infos,
+                          'executor.', selected_file_infos)
         _select_log_files(item, task_entry.task_id, task_file_infos, 'task.', selected_file_infos)
     else:
         # No annotation needed:
@@ -369,7 +375,8 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
     # Marathon: /frameworks/a31a2d3d-76a2-4d4b-82a3-a7e70e02c69c-0001/executors/test_integration_cassandra.57705baf-0176-11e8-94e4-ee0228673934/runs/latest
     # Default Executor: /frameworks/a31a2d3d-76a2-4d4b-82a3-a7e70e02c69c-0002/executors/node__bfa9751b-b7c4-45ae-b6d3-efdb9f851ca7/runs/latest
     #                   (executor logs here. tasks are then under .../tasks/<task_id>/)
-    frameworks_latest_pattern = re.compile('^/frameworks/.*/executors/{}/runs/latest$'.format(path_id))
+    frameworks_latest_pattern = re.compile(
+        '^/frameworks/.*/executors/{}/runs/latest$'.format(path_id))
     for browse_path in agent_executor_paths.keys():
         if frameworks_latest_pattern.match(browse_path):
             return browse_path
@@ -377,7 +384,8 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
     # Marathon: /var/lib/mesos/slave/slaves/6354b62c-7200-4458-8d7d-0dd11b281743-S1/frameworks/6354b62c-7200-4458-8d7d-0dd11b281743-0001/executors/hello-world.a80b075e-02d3-11e8-aceb-e2e215e145ce/runs/latest
     # Default Executor: /var/lib/mesos/slave/slaves/6354b62c-7200-4458-8d7d-0dd11b281743-S1/frameworks/6354b62c-7200-4458-8d7d-0dd11b281743-0002/executors/hello__090b3ef4-27c3-44c7-a39a-bad65620b982/runs/latest
     #                   (executor logs here. tasks are then under .../tasks/<task_id>/)
-    varlib_latest_pattern = re.compile('^/var/lib/mesos/.*/executors/{}/runs/latest$'.format(path_id))
+    varlib_latest_pattern = re.compile(
+        '^/var/lib/mesos/.*/executors/{}/runs/latest$'.format(path_id))
     for browse_path in agent_executor_paths.keys():
         if varlib_latest_pattern.match(browse_path):
             return browse_path
@@ -385,7 +393,8 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
     # Marathon: /var/lib/mesos/slave/slaves/b9bbd073-4f4f-4a4d-bdee-68021b7a4c1e-S2/frameworks/b9bbd073-4f4f-4a4d-bdee-68021b7a4c1e-0000/executors/hello-world.bb47e080-02c6-11e8-88f6-760584c8e399/runs/f8de4bc4-620b-4687-a032-3e34c378708f
     # Custom Executor: /var/lib/mesos/slave/slaves/b9bbd073-4f4f-4a4d-bdee-68021b7a4c1e-S2/frameworks/b9bbd073-4f4f-4a4d-bdee-68021b7a4c1e-0002/executors/hello__22a1ee97-23cf-407f-a1d1-7d6a0e325774/runs/5b6831b0-a9b1-482e-8595-8f800c32bdf6
     #                  (tasks share stdout/stderr with the executor)
-    varlib_uuid_pattern = re.compile('^/var/lib/mesos/.*/executors/{}/runs/[a-f0-9-]+$'.format(path_id))
+    varlib_uuid_pattern = re.compile(
+        '^/var/lib/mesos/.*/executors/{}/runs/[a-f0-9-]+$'.format(path_id))
     for browse_path in agent_executor_paths.keys():
         if varlib_uuid_pattern.match(browse_path):
             return browse_path

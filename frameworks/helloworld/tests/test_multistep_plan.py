@@ -21,7 +21,7 @@ def configure_package(configure_security):
 
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -45,6 +45,7 @@ def test_bump_hello_cpus():
     config.check_running(config.SERVICE_NAME)
 
     all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
+    running_tasks = [t for t in all_tasks if t['name'].startswith(
+        'hello') and t['state'] == "TASK_RUNNING"]
     for t in running_tasks:
         assert close_enough(t['resources']['cpus'], updated_cpus)

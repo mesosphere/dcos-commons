@@ -168,12 +168,15 @@ def test_initial_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     """
     Check the default no-security state is sane.
     """
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
     assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
-    write_success, read_successes = client_can_read_and_write("default", kafka_client, kafka_server, "broker")
+    write_success, read_successes = client_can_read_and_write(
+        "default", kafka_client, kafka_server, "broker")
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -198,7 +201,8 @@ def test_forward_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, k
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
     assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
@@ -207,7 +211,8 @@ def test_forward_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, k
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", kerberos)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -227,8 +232,10 @@ def test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
-    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls",
+                               config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -241,12 +248,14 @@ def test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", kerberos)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker-tls", kerberos)
     assert write_success, "Write failed (TLS)"
-    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -267,7 +276,8 @@ def test_forward_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert not service_has_brokers(kafka_server, "broker"), "non-TLS enpoints not expected"
-    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls",
+                               config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker-tls")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -275,7 +285,8 @@ def test_forward_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker-tls", kerberos)
     assert write_success, "Write failed (TLS)"
-    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -295,7 +306,8 @@ def test_forward_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server):
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert not service_has_brokers(kafka_server, "broker"), "non-TLS enpoints not expected"
-    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls",
+                               config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker-tls")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -303,7 +315,8 @@ def test_forward_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server):
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker-tls", None)
     assert write_success, "Write failed (TLS)"
-    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -323,8 +336,10 @@ def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server):
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
-    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls",
+                               config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker-tls")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -337,12 +352,14 @@ def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server):
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", None)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker-tls", None)
     assert write_success, "Write failed (TLS)"
-    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -362,8 +379,10 @@ def test_forward_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
-    assert not service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert not service_has_brokers(kafka_server, "broker-tls",
+                                   config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -371,7 +390,8 @@ def test_forward_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", None)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 # We now run the tests in the oposite direction
@@ -408,7 +428,8 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert not service_has_brokers(kafka_server, "broker"), "non-TLS enpoints not expected"
-    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls",
+                               config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker-tls")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -416,7 +437,8 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker-tls", kerberos)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -436,8 +458,10 @@ def test_reverse_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
-    assert service_has_brokers(kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker-tls",
+                               config.DEFAULT_BROKER_COUNT), "TLS enpoints expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker-tls")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -450,12 +474,14 @@ def test_reverse_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", kerberos)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker-tls", kerberos)
     assert write_success, "Write failed (TLS)"
-    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -475,7 +501,8 @@ def test_reverse_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, k
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
     assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
@@ -484,7 +511,8 @@ def test_reverse_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, k
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", kerberos)
     assert write_success, "Write failed"
-    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed: MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 @pytest.mark.incremental
@@ -503,7 +531,8 @@ def test_reverse_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
 
     update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert service_has_brokers(kafka_server, "broker", config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
+    assert service_has_brokers(kafka_server, "broker",
+                               config.DEFAULT_BROKER_COUNT), "non-TLS enpoints expected"
     assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
@@ -512,7 +541,8 @@ def test_reverse_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     write_success, read_successes = client_can_read_and_write("client", kafka_client, kafka_server,
                                                               "broker", None)
     assert write_success, "Write failed (TLS)"
-    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(MESSAGES, read_successes)
+    assert read_successes, "Read failed (TLS): MESSAGES={} read_successes={}".format(
+        MESSAGES, read_successes)
 
 
 def _get_hostnames(broker_list: list) -> list:
@@ -576,18 +606,21 @@ def client_can_read_and_write(test_id: str,
                     "topic create {}".format(topic_name),
                     json=True)
 
-    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
+    test_utils.wait_for_topic(kafka_server["package_name"],
+                              kafka_server["service"]["name"], topic_name)
 
     message = str(uuid.uuid4())
 
     security_options = {"is-tls": endpoint_name == "broker-tls",
                         "kerberos": krb5}
 
-    write_success = write_to_topic(test_id, client_id, topic_name, message, brokers, security_options)
+    write_success = write_to_topic(test_id, client_id, topic_name,
+                                   message, brokers, security_options)
     if write_success:
         MESSAGES.append(message)
 
-    read_messages = read_from_topic(test_id, client_id, topic_name, len(MESSAGES), brokers, security_options)
+    read_messages = read_from_topic(test_id, client_id, topic_name,
+                                    len(MESSAGES), brokers, security_options)
 
     read_success = map(lambda m: m in read_messages, MESSAGES)
 

@@ -32,10 +32,12 @@ def service_account(configure_security):
     Sets up a service account for use with TLS.
     """
     try:
-        service_account_info = transport_encryption.setup_service_account(config.FOLDERED_SERVICE_NAME)
+        service_account_info = transport_encryption.setup_service_account(
+            config.FOLDERED_SERVICE_NAME)
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(config.FOLDERED_SERVICE_NAME, service_account_info)
+        transport_encryption.cleanup_service_account(
+            config.FOLDERED_SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -151,10 +153,12 @@ def hdfs_client(kerberos, hdfs_server):
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
+    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB,
+                   principal=kerberos.get_principal("hdfs"))
 
     test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4()))
-    write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
+    write_cmd = "/bin/bash -c '{}'".format(
+        config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.marathon_task_exec(hdfs_client["id"], write_cmd)
 
     read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(test_filename))
@@ -167,7 +171,8 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
 def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     # "hdfs" is a superuser
 
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
+    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB,
+                   principal=kerberos.get_principal("hdfs"))
 
     log.info("Creating directory for alice")
     make_user_directory_cmd = config.hdfs_command("mkdir -p /users/alice")
@@ -183,7 +188,8 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice"))
+    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB,
+                   principal=kerberos.get_principal("alice"))
     write_access_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(
         config.TEST_CONTENT_SMALL,
         "/users/alice/{}".format(test_filename)))
@@ -191,7 +197,8 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     rc, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], write_access_cmd)
     assert stdout == '' and rc == 0
 
-    read_access_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command("/users/alice/{}".format(test_filename)))
+    read_access_cmd = "/bin/bash -c '{}'".format(
+        config.hdfs_read_command("/users/alice/{}".format(test_filename)))
     log.info("Alice can read: %s", read_access_cmd)
     _, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], read_access_cmd)
     assert stdout == config.TEST_CONTENT_SMALL

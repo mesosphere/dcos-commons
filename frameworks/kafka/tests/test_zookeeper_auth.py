@@ -179,7 +179,8 @@ def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_serve
     kafka_client.connect(kafka_server)
 
     user = "client"
-    write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, kerberos)
+    write_success, read_successes, _ = kafka_client.can_write_and_read(
+        user, kafka_server, topic_name, kerberos)
     assert write_success, "Write failed (user={})".format(user)
     assert read_successes, "Read failed (user={}): " \
                            "MESSAGES={} " \

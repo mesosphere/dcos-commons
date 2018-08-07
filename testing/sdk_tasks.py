@@ -70,7 +70,8 @@ class Task(object):
     @staticmethod
     def parse(task_entry, agents):
         agent_id = task_entry['slave_id']
-        matching_agent_hosts = [agent['hostname'] for agent in agents['slaves'] if agent['id'] == agent_id]
+        matching_agent_hosts = [agent['hostname']
+                                for agent in agents['slaves'] if agent['id'] == agent_id]
         if len(matching_agent_hosts) != 1:
             host = "UNKNOWN:" + agent_id
         else:
@@ -205,8 +206,10 @@ def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice
     sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 
     task_ids = set([t.id for t in get_summary(with_completed) if t.name == task_name])
-    assert old_task_id in task_ids, 'Old task id {} was not found in task_ids {}'.format(old_task_id, task_ids)
-    assert len(task_ids) == 1, 'Length != 1. Expected task id {} Task ids: {}'.format(old_task_id, task_ids)
+    assert old_task_id in task_ids, 'Old task id {} was not found in task_ids {}'.format(
+        old_task_id, task_ids)
+    assert len(task_ids) == 1, 'Length != 1. Expected task id {} Task ids: {}'.format(
+        old_task_id, task_ids)
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
@@ -263,7 +266,8 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
     task_ids = get_task_ids(service_name, prefix)
-    task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(sorted(old_task_ids), sorted(task_ids))
+    task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(
+        sorted(old_task_ids), sorted(task_ids))
     log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
     assert set(old_task_ids).issubset(set(task_ids)), 'Tasks starting with "{}" were updated:{}'.format(prefix,
                                                                                                         task_sets)

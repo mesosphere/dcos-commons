@@ -61,7 +61,8 @@ def test_cassandra_migration():
     backup_write_data_job = config.get_write_data_job(backup_node_address, backup_node_port)
     backup_verify_data_job = config.get_verify_data_job(backup_node_address, backup_node_port)
     backup_delete_data_job = config.get_delete_data_job(backup_node_address, backup_node_port)
-    backup_verify_deletion_job = config.get_verify_deletion_job(backup_node_address, backup_node_port)
+    backup_verify_deletion_job = config.get_verify_deletion_job(
+        backup_node_address, backup_node_port)
 
     plan_parameters = {
         'S3_BUCKET_NAME': os.getenv(
@@ -90,7 +91,8 @@ def test_cassandra_migration():
             's3_secret_key': plan_parameters['AWS_SECRET_ACCESS_KEY'],
             'external_location': 's3://{}'.format(plan_parameters['S3_BUCKET_NAME']),
         }
-        sdk_cmd.service_request('PUT', backup_service_name, '/v1/backup/start', json=backup_parameters)
+        sdk_cmd.service_request('PUT', backup_service_name,
+                                '/v1/backup/start', json=backup_parameters)
         sdk_plan.wait_for_completed_deployment(backup_service_name)
 
     # Restore data to second instance:
@@ -101,7 +103,8 @@ def test_cassandra_migration():
     restore_write_data_job = config.get_write_data_job(restore_node_address, restore_node_port)
     restore_verify_data_job = config.get_verify_data_job(restore_node_address, restore_node_port)
     restore_delete_data_job = config.get_delete_data_job(restore_node_address, restore_node_port)
-    restore_verify_deletion_job = config.get_verify_deletion_job(restore_node_address, restore_node_port)
+    restore_verify_deletion_job = config.get_verify_deletion_job(
+        restore_node_address, restore_node_port)
 
     restore_install_job_context = sdk_jobs.InstallJobContext(
         [restore_write_data_job, restore_verify_data_job,

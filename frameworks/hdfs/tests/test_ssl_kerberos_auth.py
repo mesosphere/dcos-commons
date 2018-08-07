@@ -193,10 +193,12 @@ def test_verify_https_ports(hdfs_client, node_type, port):
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
+    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB,
+                   principal=kerberos.get_principal("hdfs"))
 
     test_filename = "test_auth_write_read-{}".format(str(uuid.uuid4()))
-    write_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
+    write_cmd = "/bin/bash -c \"{}\"".format(
+        config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
     sdk_cmd.marathon_task_exec(hdfs_client["id"], write_cmd)
 
     read_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_read_command(test_filename))
@@ -211,7 +213,8 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
 def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     # "hdfs" is a superuser
 
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
+    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB,
+                   principal=kerberos.get_principal("hdfs"))
 
     log.info("Creating directory for alice")
     make_user_directory_cmd = config.hdfs_command("mkdir -p /users/alice")
@@ -227,7 +230,8 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice"))
+    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB,
+                   principal=kerberos.get_principal("alice"))
     write_access_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(
         config.TEST_CONTENT_SMALL,
         "/users/alice/{}".format(test_filename)))
