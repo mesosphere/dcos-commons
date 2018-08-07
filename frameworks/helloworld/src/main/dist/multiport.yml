@@ -1,0 +1,49 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  multiport:
+    count: {{HELLO_COUNT}}
+    resource-sets:
+      multi-port-resources:
+        ports:
+          port_one:
+            port: {{HELLO_PORT_ONE}}
+          port_two:
+            port: 0
+            env-key: HELLO_PORT_TWO
+    tasks:
+      server:
+        goal: ONCE
+        resource-set: multi-port-resources
+        cmd: |
+          nc_alias=""
+          if which ncat 2>/dev/null; then
+              nc_alias=ncat
+          elif which nc 2>/dev/null; then
+              nc_alias=nc
+          elif which netcat 2>/dev/null; then
+              nc_alias=netcat
+          else
+              echo "Networking tools are not installed. Exiting.."
+              exit 0
+          fi
+
+          echo "Using networking tool : ${nc_alias}"
+
+          ${nc_alias} -l {{HELLO_PORT_ONE}} &
+          ${nc_alias} -l $HELLO_PORT_TWO &
+
+          $(${nc_alias} -v $TASK_NAME.$FRAMEWORK_HOST {{HELLO_PORT_ONE}})
+          exit_1=$?
+          $(${nc_alias} -v $TASK_NAME.$FRAMEWORK_HOST $HELLO_PORT_TWO)
+          exit_2=$?
+
+          sum=$(($exit_1+$exit_2))
+          echo "exit codes : ${exit_1} ${exit_2} and sum : ${sum}"
+          exit $sum
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          HELLO_PORT_ONE: {{HELLO_PORT_ONE}}
