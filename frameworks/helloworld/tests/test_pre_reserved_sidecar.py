@@ -1,11 +1,8 @@
 import logging
 
 import pytest
-import retrying
 
-import sdk_cmd
 import sdk_install
-import sdk_marathon
 import sdk_plan
 import sdk_utils
 from tests import config
@@ -31,7 +28,7 @@ def configure_package(configure_security):
         # this yml has 1 hello's + 0 world's:
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -52,7 +49,7 @@ def run_plan(plan_name, params=None):
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)
-    log.info("sidecar plan: " + str(started_plan))
+    log.info(sdk_plan.plan_string(plan_name, started_plan))
     assert(len(started_plan['phases']) == 1)
     assert(started_plan['phases'][0]['name'] == plan_name + '-deploy')
     assert(len(started_plan['phases'][0]['steps']) == 1)

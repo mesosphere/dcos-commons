@@ -27,16 +27,6 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_kill_hello_node():
-    config.check_running()
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
-    sdk_cmd.kill_task_with_pattern('hello', 'hello-0-server.hello-world.mesos')
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-
-    config.check_running()
-
-
-@pytest.mark.sanity
 def test_pod_restart():
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
 
@@ -52,13 +42,27 @@ def test_pod_restart():
     assert jsonobj['tasks'][0] == 'hello-0-server'
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    check_healthy()
 
     # check agent didn't move:
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
                               'pod info hello-0', json=True, print_output=False)
     new_agent = jsonobj[0]['info']['slaveId']['value']
     assert old_agent == new_agent
+
+
+@pytest.mark.sanity
+def test_pod_replace():
+    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
+
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
+    assert len(jsonobj) == 2
+    assert jsonobj['pod'] == 'world-0'
+    assert len(jsonobj['tasks']) == 1
+    assert jsonobj['tasks'][0] == 'world-0-server'
+
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
+    check_healthy()
 
 
 @pytest.mark.sanity
@@ -91,8 +95,11 @@ def test_pod_pause_resume():
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
+
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    # recovery will not be completed due to 'exit 1' readiness check on paused pod.
+    # it will be IN_PROGRESS if there are other completed recovery operations (prior test cases), or STARTED if there aren't.
+    check_healthy(expected_recovery_state=['STARTED', 'IN_PROGRESS'])
 
     # check agent didn't move, and that the command has changed:
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -125,8 +132,9 @@ def test_pod_pause_resume():
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0] == 'hello-0-server'
+
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', hello_ids)
-    config.check_running()
+    check_healthy()
 
     # check again that the agent didn't move:
     taskinfo = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -161,7 +169,7 @@ def test_pods_restart_graceful_shutdown():
     assert jsonobj['tasks'][0] == 'world-0-server'
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
-    config.check_running()
+    check_healthy()
 
     # ensure the SIGTERM was sent via the "all clean" message in the world
     # service's signal trap/handler, BUT not the shell command, indicated
@@ -176,123 +184,67 @@ def test_pods_restart_graceful_shutdown():
     assert clean_msg is not None
 
 
-@pytest.mark.recovery
-def test_scheduler_died():
-    sdk_cmd.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.SERVICE_NAME))
-    config.check_running()
+@pytest.mark.sanity
+def test_kill_scheduler():
+    scheduler_ids = sdk_tasks.get_task_ids('marathon', config.SERVICE_NAME)
 
+    sdk_cmd.kill_task_with_pattern('./hello-world-scheduler/bin/helloworld', sdk_marathon.get_scheduler_host(config.SERVICE_NAME))
 
-@pytest.mark.recovery
-def test_all_executors_killed():
-    for task in sdk_tasks.get_service_tasks(config.SERVICE_NAME):
-        sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', task.host)
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_master_killed():
-    sdk_cmd.kill_task_with_pattern('mesos-master')
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_zk_killed():
-    sdk_cmd.kill_task_with_pattern('zookeeper')
-    config.check_running()
-
-
-@pytest.mark.recovery
-@pytest.mark.skip(reason="disabled due to DCOS-39848")
-def test_config_update_then_kill_task_in_node():
-    # kill 1 of 2 world tasks
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    config.bump_world_cpus()
-    sdk_cmd.kill_task_with_pattern('world', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
-
-
-@pytest.mark.recovery
-@pytest.mark.skip(reason="disabled due to DCOS-39848")
-def test_config_update_then_kill_all_task_in_node():
-    #  kill both world tasks
-    world_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix='world')
-    config.bump_world_cpus()
-    [sdk_cmd.kill_task_with_pattern('world', task.host) for task in world_tasks]
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', [task.id for task in world_tasks])
-    config.check_running()
-
-
-@pytest.mark.recovery
-@pytest.mark.skip(reason="disabled due to DCOS-39848")
-def test_config_update_then_scheduler_died():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    host = sdk_marathon.get_scheduler_host(config.SERVICE_NAME)
-    config.bump_world_cpus()
-    sdk_cmd.kill_task_with_pattern('helloworld.scheduler.Main', host)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
-
-
-@pytest.mark.recovery
-@pytest.mark.skip(reason="disabled due to DCOS-39848")
-def test_config_update_then_executor_killed():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    config.bump_world_cpus()
-    sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
-
-
-@pytest.mark.recovery
-@pytest.mark.skip(reason="disabled due to DCOS-39848")
-def test_config_updates_then_all_executors_killed():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    hosts = [t.host for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
-    config.bump_world_cpus()
-    [sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', h) for h in hosts]
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_config_update_then_master_killed():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    config.bump_world_cpus()
-    sdk_cmd.kill_task_with_pattern('mesos-master')
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
-
-
-@pytest.mark.recovery
-def test_config_update_then_zk_killed():
-    hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
-    config.bump_hello_cpus()
-    sdk_cmd.kill_task_with_pattern('zookeeper')
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', hello_ids)
-    config.check_running()
+    sdk_tasks.check_tasks_updated('marathon', config.SERVICE_NAME, scheduler_ids)
+    check_healthy()
 
 
 @pytest.mark.sanity
-def test_pod_replace():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
+def test_kill_hello_task():
+    hello_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix='hello-0')[0]
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
-    assert len(jsonobj) == 2
-    assert jsonobj['pod'] == 'world-0'
-    assert len(jsonobj['tasks']) == 1
-    assert jsonobj['tasks'][0] == 'world-0-server'
+    sdk_cmd.kill_task_with_pattern('hello-container-path/output', hello_task.host)
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', world_ids)
-    config.check_running()
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', [hello_task.id])
+    check_healthy()
 
 
-@pytest.mark.recovery
+@pytest.mark.sanity
+def test_kill_world_executor():
+    world_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix='world-0')[0]
+
+    sdk_cmd.kill_task_with_pattern('mesos-default-executor', world_task.host)
+
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0', [world_task.id])
+    check_healthy()
+
+
+@pytest.mark.sanity
+def test_kill_all_executors():
+    tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
+
+    for task in tasks:
+        sdk_cmd.kill_task_with_pattern('mesos-default-executor', task.host)
+
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, '', [task.id for task in tasks])
+    check_healthy()
+
+
+@pytest.mark.sanity
+def test_kill_master():
+    sdk_cmd.kill_task_with_pattern('mesos-master')
+
+    check_healthy()
+
+
+@pytest.mark.sanity
+def test_kill_zk():
+    sdk_cmd.kill_task_with_pattern('zookeeper')
+
+    check_healthy()
+
+
+@pytest.mark.sanity
 @pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
                     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9")
 def test_config_update_while_partitioned():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
-    host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
+    host = sdk_hosts.system_host(config.SERVICE_NAME, 'world-0-server')
     sdk_agents.partition_agent(host)
 
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
@@ -302,19 +254,18 @@ def test_config_update_while_partitioned():
 
     sdk_agents.reconnect_agent(host)
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
-    config.check_running()
+    check_healthy()
     all_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
-    running_tasks = [t for t in all_tasks if t.name.startswith('world') and t.state == "TASK_RUNNING"]
+    running_tasks = [t for t in all_tasks if t.name.startswith('world') and t.state == 'TASK_RUNNING']
     assert len(running_tasks) == config.world_task_count(config.SERVICE_NAME)
     for t in running_tasks:
-        assert config.close_enough(t['resources']['cpus'], updated_cpus)
+        assert config.close_enough(t.resources['cpus'], updated_cpus)
 
 
 # @@@@@@@
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
 @pytest.mark.sanity
-@pytest.mark.skip(reason="disabled due to DCOS-39848")
 def test_shutdown_host():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile('^(hello|world)-[0-9]+-server$'))
@@ -371,3 +322,9 @@ def install_options_helper(kill_grace_period=0):
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT + 1, additional_options=options)
+
+
+def check_healthy(expected_recovery_state='COMPLETE'):
+    config.check_running()
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'recovery', expected_recovery_state)

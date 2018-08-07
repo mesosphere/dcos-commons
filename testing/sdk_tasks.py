@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import retrying
-import traceback
 
 import sdk_agents
 import sdk_cmd
@@ -271,19 +270,16 @@ def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    # TODO: strongly consider merging the use of checking that tasks have been replaced (this method)
-    # and checking that the deploy/upgrade/repair plan has completed. Each serves a part in the bigger
-    # atomic test, that the plan completed properly where properly includes that no old tasks remain.
+    prefix_clause = ''
+    if prefix:
+        prefix_clause = ' starting with "{}"'.format(prefix)
+
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def _check_tasks_updated():
         task_ids = get_task_ids(service_name, prefix)
-
-        prefix_clause = ''
-        if prefix:
-            prefix_clause = ' starting with "{}"'.format(prefix)
 
         old_set = set(old_task_ids)
         new_set = set(task_ids)
@@ -313,6 +309,10 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
                  old_remaining_set,
                  newly_launched_set)
 
+    log.info('Waiting for tasks%s to have updated ids:\n'
+             '- Old tasks: %s',
+             prefix_clause,
+             old_task_ids)
     _check_tasks_updated()
 
 

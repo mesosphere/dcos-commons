@@ -1,15 +1,11 @@
 import logging
 import os
-import time
 
 import pytest
 import retrying
 
 import sdk_cmd
-import sdk_plan
 import sdk_tasks
-import sdk_upgrade
-import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -52,21 +48,21 @@ def wait_for_state(state, pod_name, task_names):
 def test_pause_single_task():
     # get current agent id:
     task_info = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
-	)[0]['info']
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod info hello-0', json=True
+    )[0]['info']
     old_agent = task_info['slaveId']['value']
     old_cmd = task_info['command']['value']
 
     # sanity check of pod status/plan status before we pause/resume:
     pod_status = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
-	)
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'pod status hello-0 --json', json=True
+    )
     assert len(pod_status['tasks']) == 2
     wait_for_state('RUNNING', 'hello-0', ['server'])
 
     phases = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
-	)['phases']
+        config.PACKAGE_NAME, FRAMEWORK_NAME, 'plan status deploy --json', json=True
+    )['phases']
     phase = phases[0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -360,7 +356,6 @@ def test_multiple_pod_pause():
     assert phase['steps'][20]['status'] == 'COMPLETE'
     assert phase['steps'][21]['name'] == 'hello-10:[companion]'
     assert phase['steps'][21]['status'] == 'COMPLETE'
-
 
     # get paused task ids
     paused_pod_task_ids = []

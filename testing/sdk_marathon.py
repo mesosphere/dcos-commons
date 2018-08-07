@@ -53,7 +53,7 @@ def _is_app_running(app: dict, add_log: str) -> bool:
     staged = app.get('tasksStaged', 0)
     unhealthy = app.get('tasksUnhealthy', 0)
     running = app.get('tasksRunning', 0)
-    log.info('{}: staged={}, unhealthy={}, running={}{}'.format(
+    log.info('{}: staged={}, running={}, unhealthy={}{}'.format(
         app.get('id', '???'), staged, unhealthy, running, add_log))
     return staged == 0 and unhealthy == 0 and running > 0
 
@@ -65,7 +65,7 @@ def _is_app_healthy(app: dict) -> bool:
 
 def wait_for_app_running(app_name: str, timeout: int) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=5000,
+                    wait_fixed=2000,
                     retry_on_result=lambda result: not result)
     def _wait_for_app_running(app_name: str) -> bool:
         return _is_app_running(_get_config(app_name), "")
@@ -76,7 +76,7 @@ def wait_for_app_running(app_name: str, timeout: int) -> None:
 
 def wait_for_app_healthy(app_name: str, timeout: int) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=5000,
+                    wait_fixed=2000,
                     retry_on_result=lambda result: not result)
     def _wait_for_app_healthy(app_name: str) -> bool:
         return _is_app_healthy(_get_config(app_name))
@@ -87,7 +87,7 @@ def wait_for_app_healthy(app_name: str, timeout: int) -> None:
 
 def wait_for_deployment(app_name: str, timeout: int) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=5000,
+                    wait_fixed=2000,
                     retry_on_result=lambda result: not result)
     def _wait_for_deployment(app_name):
         deployments = sdk_cmd.cluster_request('GET', _api_url('deployments')).json()

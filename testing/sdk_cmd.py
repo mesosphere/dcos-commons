@@ -146,6 +146,15 @@ def svc_cli(
         return get_json_output(full_cmd, print_output=print_output, check=False)
 
 
+def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
+    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
+
+    if return_stderr_in_stdout:
+        return stdout + "\n" + stderr
+
+    return stdout
+
+
 def run_raw_cli(cmd, print_output=True, check=False):
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing return code, stdout, and stderr.
@@ -158,14 +167,17 @@ def run_raw_cli(cmd, print_output=True, check=False):
     return _run_cmd(dcos_cmd, print_output, check)
 
 
-def _run_cmd(cmd, print_output=True, check=False, timeout_seconds=None):
+def _run_cmd(cmd, print_output, check, timeout_seconds=None):
     result = subprocess.run(
         [cmd],
-        shell=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
+        shell=True,
         check=check,
         timeout=timeout_seconds)
+
+    if result.returncode != 0:
+        log.info("Got return code {} to command: {}".format(result.returncode, cmd))
 
     if result.stdout:
         stdout = result.stdout.decode('utf-8').strip()
@@ -184,37 +196,6 @@ def _run_cmd(cmd, print_output=True, check=False, timeout_seconds=None):
             log.info("STDERR:\n{}".format(stderr))
 
     return result.returncode, stdout, stderr
-
-
-def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
-    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
-
-    if return_stderr_in_stdout:
-        return stdout + "\n" + stderr
-
-    return stdout
-
-
-def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    '''SSHes into the leader node (or the provided agent node) and kills any tasks matching the
-    provided regex pattern in their command.
-    '''
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=1 * 1000,
-        retry_on_result=lambda res: not res)
-    def fn():
-        # -f: Patterns may be against arguments in the command itself
-        # -o: Kill the oldest command: avoid killing ourself, assuming there's another command that matches the pattern..
-        command = "sudo pkill -9 -f -o {}".format(pattern)
-        if agent_host is None:
-            rc, _, _ = master_ssh(command)
-        else:
-            rc, _, _ = agent_ssh(agent_host, command)
-        return rc == 0
-
-    # might not be able to connect to the agent on first try so we repeat until we can
-    fn()
 
 
 @retrying.retry(stop_max_attempt_number=3,
@@ -252,6 +233,23 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
     return True
 
 
+@retrying.retry(stop_max_attempt_number=3,
+                wait_fixed=1000,
+                retry_on_result=lambda result: not result)
+def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    '''SSHes into the leader node (or the provided agent node) and kills any tasks matching the
+    provided regex pattern in their command.
+    '''
+    # -f: Patterns may be against arguments in the command itself
+    # -o: Kill the oldest command: avoid killing ourself, assuming there's another command that matches the pattern..
+    command = "sudo pkill -9 -f -o {}".format(pattern)
+    if agent_host is None:
+        rc, _, _ = master_ssh(command)
+    else:
+        rc, _, _ = agent_ssh(agent_host, command)
+    return rc == 0
+
+
 def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
     '''
     Runs the provided command on the cluster master, using ssh.
@@ -271,21 +269,32 @@ def agent_ssh(agent_host: str, cmd: str, timeout_seconds=60, print_output=True, 
 
 
 def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool):
-    ssh_user = os.environ.get('DCOS_SSH_USER', 'core')  # default to CoreOS setting
-    # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
-    # -oConnectTimeout=#: Limit the duration for the connection to be created.
-    #                     We also configure a timeout for the command itself to run once connected, see below.
-    # -A: Forward the pubkey agent connection (required for nested access)
-    # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
-    #     In particular, avoid messages that may mess up stdout/stderr output.
-    # -l <user>: Username to log in as (depends on cluster OS)
-    common_args = '-oStrictHostKeyChecking=no -oConnectTimeout={} -A -q -l {}'.format(timeout_seconds, ssh_user)
+    common_args = ' '.join([
+        # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
+        '-oStrictHostKeyChecking=no',
 
-    ssh_cmd = 'ssh {} {} -- {}'.format(common_args, host, cmd)
-    if not os.environ.get('DCOS_SSH_DIRECT', ''):
-        # Nested SSH access via the external cluster IP:
-        ssh_cmd = 'ssh {} {} -- {}'.format(common_args, _external_cluster_host(), ssh_cmd)
-    return _run_cmd(ssh_cmd, print_output=print_output, check=check, timeout_seconds=timeout_seconds)
+        # -oConnectTimeout=#: Limit the duration for the connection to be created.
+        #                     We also configure a timeout for the command itself to run once connected, see below.
+        '-oConnectTimeout={}'.format(timeout_seconds),
+
+        # -A: Forward the pubkey agent connection (required for nested access)
+        '-A',
+
+        # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
+        #     In particular, avoid messages that may mess up stdout/stderr output.
+        '-q',
+
+        # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
+        '-l {}'.format(os.environ.get('DCOS_SSH_USER', 'core'))
+    ])
+
+    if os.environ.get('DCOS_SSH_DIRECT', ''):
+        # Direct SSH access to the node:
+        ssh_cmd = 'ssh {} {} -- "{}"'.format(common_args, host, cmd)
+    else:
+        # Nested SSH call via the proxy node. Be careful to nest quotes to match:
+        ssh_cmd = 'ssh {} {} -- "ssh {} {} -- \\"{}\\""'.format(common_args, _external_cluster_host(), common_args, host, cmd)
+    return _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
 
 
 @functools.lru_cache()

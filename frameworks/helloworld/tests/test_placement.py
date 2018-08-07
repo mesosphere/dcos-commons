@@ -278,9 +278,9 @@ def test_hostname_unique():
 
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
-    old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
+    old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', old_ids)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     sdk_tasks.check_running(config.SERVICE_NAME, get_num_private_agents() * 2 - 1, timeout_seconds=10)
@@ -359,9 +359,9 @@ def get_hello_world_agent_sets():
     world_agents = []
     for task in sdk_tasks.get_service_tasks(config.SERVICE_NAME):
         if task.name.startswith('hello-'):
-            hello_agents.append(task.agent)
+            hello_agents.append(task.agent_id)
         elif task.name.startswith('world-'):
-            world_agents.append(task.agent)
+            world_agents.append(task.agent_id)
         else:
             assert False, "Unknown task: " + task.name
     return hello_agents, world_agents

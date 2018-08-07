@@ -118,9 +118,11 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
             len(service_names), ', '.join(service_names)))
         for service_name in service_names:
             try:
-                _dump_scheduler(item, service_name)
+                # Skip thread retrieval if plan retrieval fails:
+                _dump_plans(item, service_name)
+                _dump_threads(item, service_name)
             except Exception:
-                log.exception('Plan collection from service {} failed!'.format(service_name))
+                log.exception('Plan/thread collection from service {} failed!'.format(service_name))
 
     # Fetch all logs from tasks created since the last failure, or since the start of the suite.
     global _testlogs_ignored_task_ids
@@ -151,11 +153,6 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     log.info('Post-failure collection complete')
 
 
-def _dump_scheduler(item: pytest.Item, service_name: str):
-    _dump_plans(item, service_name)
-    _dump_threads(item, service_name)
-
-
 def _dump_plans(item: pytest.Item, service_name: str):
     '''If the test had failed, writes the plan state(s) to log file(s).'''
 
@@ -173,8 +170,8 @@ def _dump_plans(item: pytest.Item, service_name: str):
 
 
 def _dump_threads(item: pytest.Item, service_name: str):
-    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads', timeout_seconds=5).json()
-    out_path = _setup_artifact_path(item, 'threads_{}.out'.format(service_name.replace('/', '_')))
+    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads', timeout_seconds=5).text
+    out_path = _setup_artifact_path(item, 'threads_{}.txt'.format(service_name.replace('/', '_')))
     log.info('=> Writing {} ({} bytes)'.format(out_path, len(threads)))
     with open(out_path, 'w') as f:
         f.write(threads)

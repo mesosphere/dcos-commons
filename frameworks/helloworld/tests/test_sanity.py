@@ -32,6 +32,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
+@pytest.mark.sanity
 @pytest.mark.smoke
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
@@ -320,7 +321,7 @@ def test_lock():
         return sdk_cmd.cluster_request("GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)).json()
 
     # Get ZK state from running framework
-    zk_path = "dcos-service-{}/ConfigTarget".format(foldered_name)
+    zk_path = "{}/ConfigTarget".format(sdk_utils.get_zk_path(foldered_name))
     zk_config_old = get_zk_node_data(zk_path)
 
     # Get marathon app
@@ -333,7 +334,7 @@ def test_lock():
     labels.pop("MARATHON_SINGLE_INSTANCE_APP")
     sdk_marathon.update_app(foldered_name, marathon_config)
     marathon_config["instances"] = 2
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(foldered_name, marathon_config, wait_for_completed_deployment=False)
 
     @retrying.retry(
         wait_fixed=1000,
@@ -357,5 +358,5 @@ def test_lock():
 
 @pytest.mark.sanity
 def test_tmp_directory_created():
-    code, stdout, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar |  grep bar")
+    code, stdout, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar | grep bar")
     assert code > 0

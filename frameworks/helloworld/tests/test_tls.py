@@ -88,7 +88,6 @@ def configure_package(configure_security):
             assert suffix not in output
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
@@ -113,7 +112,6 @@ def test_java_truststore():
     assert 'status=200' in output
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
@@ -142,7 +140,6 @@ def test_tls_basic_artifacts():
     assert root_ca_cert_in_truststore.signature == cluster_root_ca_cert.signature
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
@@ -176,7 +173,6 @@ def test_java_keystore():
     assert tls_verification_msg in stderr
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
@@ -201,7 +197,6 @@ def test_tls_nginx():
     assert 'status=200' in output
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')

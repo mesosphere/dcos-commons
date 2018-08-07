@@ -19,21 +19,21 @@ secret_content_default = "hello-world-secret-data"
 secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
-        "service": {
-            "yaml": "secrets"
-        },
-        "hello": {
-            "count": NUM_HELLO,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2"
-        },
-        "world": {
-            "count": NUM_WORLD,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2",
-            "secret3": "hello-world/secret3"
-        }
+    "service": {
+        "yaml": "secrets"
+    },
+    "hello": {
+        "count": NUM_HELLO,
+        "secret1": "hello-world/secret1",
+        "secret2": "hello-world/secret2"
+    },
+    "world": {
+        "count": NUM_WORLD,
+        "secret1": "hello-world/secret1",
+        "secret2": "hello-world/secret2",
+        "secret3": "hello-world/secret3"
     }
+}
 
 options_dcos_space_test = {
     "service": {
@@ -62,7 +62,7 @@ def configure_package(configure_security):
         try_delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
         try_delete_secrets()
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         try_delete_secrets("{}/".format(config.SERVICE_NAME))
@@ -72,7 +72,6 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
 def test_secrets_basic():
@@ -109,7 +108,6 @@ def test_secrets_basic():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
 def test_secrets_verify():
@@ -139,7 +137,6 @@ def test_secrets_verify():
     #            default file path is equal to secret path
     assert secret_content_default == read_secret("world-0-server", "cat hello-world/secret3")
 
-
     # hello tasks has container image, world tasks do not
 
     # first secret : environment variable name is given in yaml
@@ -157,7 +154,6 @@ def test_secrets_verify():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
 def test_secrets_update():
@@ -176,7 +172,6 @@ def test_secrets_update():
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
-
 
     sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, config.SERVICE_NAME))
     sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, config.SERVICE_NAME))
@@ -213,7 +208,6 @@ def test_secrets_update():
 
 
 @pytest.mark.sanity
-@pytest.mark.secrets
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
@@ -282,7 +276,6 @@ def test_secrets_config_update():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version('1.10')
 def test_secrets_dcos_space():
@@ -297,21 +290,25 @@ def test_secrets_dcos_space():
     # cannot access these secrets because of DCOS_SPACE authorization
     create_secrets("{}/somePath/".format(config.SERVICE_NAME))
 
+    # Disable any wait operations within the install call.
+    # - Don't wait for tasks to deploy (they won't)
+    # - Don't wait for deploy plan to complete (it won't)
+    # Instead, we manually verify that the service is stuck below.
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        0,
+        additional_options=options_dcos_space_test,
+        wait_for_deployment=False)
+
     try:
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            NUM_HELLO + NUM_WORLD,
-            additional_options=options_dcos_space_test,
-            timeout_seconds=5 * 60) # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
-
+        # Now, manually check that the deploy plan is stuck. Just wait for 5 minutes.
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, timeout_seconds=5 * 60)
         assert False, "Should have failed to install"
-
     except AssertionError as arg:
         raise arg
-
-    except:
-        pass  # expected to fail
+    except Exception:
+        pass  # Plan is expected to not complete
 
     # clean up and delete secrets
     delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
@@ -334,19 +331,19 @@ def try_delete_secrets(path_prefix=""):
     # use in teardown_module
     try:
         sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    except:
+    except Exception:
         pass
     try:
         sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    except:
+    except Exception:
         pass
     try:
         sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
-    except:
+    except Exception:
         pass
 
 
-@retrying.retry(wait_fixed=2000, stop_max_delay=5*60*1000)
+@retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
 def read_secret(task_name, command):
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split('\n')]

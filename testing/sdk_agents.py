@@ -37,14 +37,14 @@ def get_agents():
     return sdk_cmd.cluster_request('GET', '/mesos/slaves').json()['slaves']
 
 
-def shutdown_agent(agent_ip):
+def shutdown_agent(agent_host):
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=30 * 60 * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        rc, stdout, _ = sdk_cmd.agent_ssh(agent_ip, 'sudo shutdown -h +1')
-        log.info('Shutdown agent {}: rc={}, stdout="{}"'.format(agent_ip, rc, stdout))
+        rc, stdout, _ = sdk_cmd.agent_ssh(agent_host, 'sudo shutdown -h +1')
+        log.info('Shutdown agent {}: rc={}, stdout="{}"'.format(agent_host, rc, stdout))
         return rc == 0
     # Might not be able to connect to the agent on first try so we repeat until we can
     fn()
@@ -52,7 +52,7 @@ def shutdown_agent(agent_ip):
     # We use a manual check to detect that the host is down. Mesos takes ~5-20 minutes to detect a
     # dead agent, so relying on Mesos to tell us this isn't really feasible for a test.
 
-    log.info('Waiting for agent {} to appear inactive in /mesos/slaves'.format(agent_ip))
+    log.info('Waiting for agent {} to appear inactive in /mesos/slaves'.format(agent_host))
 
     @retrying.retry(
         wait_fixed=1000,
@@ -64,13 +64,13 @@ def shutdown_agent(agent_ip):
             agent_statuses = {}
             for agent in response['slaves']:
                 agent_statuses[agent['hostname']] = agent['active']
-            log.info('Wait for {}=False: {}'.format(agent_ip, agent_statuses))
+            log.info('Wait for {}=False: {}'.format(agent_host, agent_statuses))
             # If no agents were found, try again
             if len(agent_statuses) == 0:
                 return True
             # If other agents are listed, but not OUR agent, assume that OUR agent is now inactive.
             # (Shouldn't happen, but just in case...)
-            return agent_statuses.get(agent_ip, False)
+            return agent_statuses.get(agent_host, False)
         except Exception as e:
             log.info(e)
             log.info(traceback.format_exc())
@@ -79,32 +79,44 @@ def shutdown_agent(agent_ip):
 
     wait_for_unresponsive_agent()
 
-    log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
+    log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_host))
 
 
 def partition_agent(agent_host: str):
-    # copy current rules
-    rc, _, _ = sdk_cmd.agent_ssh(agent_host, 'if [ ! -e iptables.rules ] ; then sudo iptables -L > /dev/null && sudo iptables-save > iptables.rules ; fi')
-    assert rc == 0, 'Failed to copy current iptables rules'
-    # flush all rules
-    rc, _, _ = sdk_cmd.agent_ssh(agent_host, 'sudo iptables -F INPUT')
-    assert rc == 0, 'Failed to flush current iptables rules'
-    # allow all traffic
-    rc, _, _ = sdk_cmd.agent_ssh(agent_host, ' && '.join(
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, ' && '.join([
+        # Nice to have for any debugging.
+        'hostname',
+
+        'echo Saving current rules...',
+        'sudo iptables -L > /dev/null',
+        'sudo iptables-save > iptables.backup',
+
+        'echo Flushing rules...',
+        'sudo iptables -F INPUT',
+
+        'echo Allowing all traffic...',
         'sudo iptables --policy INPUT ACCEPT',
         'sudo iptables --policy OUTPUT ACCEPT',
-        'sudo iptables --policy FORWARD ACCEPT'))
-    assert rc == 0, 'Failed to configure iptables rules allowing traffic'
-    # configure rules to cut off mesos but allow reconnect later:
-    rc, _, _ = sdk_cmd.agent_ssh(agent_host, ' && '.join(
+        'sudo iptables --policy FORWARD ACCEPT',
+
+        'echo Cutting off mesos...',
         'sudo iptables -I INPUT -p tcp --dport 22 -j ACCEPT',  # allow SSH
         'sudo iptables -I INPUT -p icmp -j ACCEPT',  # allow ping
         'sudo iptables -I OUTPUT -p tcp --sport 5051 -j REJECT',  # disallow mesos
-        'sudo iptables -A INPUT -j REJECT'))  # disallow all other input
-    assert rc == 0, 'Failed to configure iptables rules rejecting traffic'
+        'sudo iptables -A INPUT -j REJECT'  # disallow all other input
+    ]))
+    assert rc == 0, 'Failed to partition agent'
 
 
 def reconnect_agent(agent_host: str):
     # restore prior rules:
-    rc, _, _ = sdk_cmd.agent_ssh(agent_host, 'if [ -e iptables.rules ]; then sudo iptables-restore < iptables.rules && rm iptables.rules ; fi')
+    rc, _, _ = sdk_cmd.agent_ssh(agent_host, ' && '.join([
+        # Nice to have for any debugging.
+        'hostname',
+
+        'echo Restoring previous rules...',
+        'sudo iptables-restore < iptables.backup',
+
+        'sudo rm -f iptables.backup'
+    ]))
     assert rc == 0, 'Failed to reconnect agent'
