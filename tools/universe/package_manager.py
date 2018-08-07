@@ -19,18 +19,20 @@ LOGGER = logging.getLogger(__name__)
 class PackageManager:
     """A simple package manager for retrieving universe packages"""
 
-    def __init__(self,
-                 universe_package_prefix="https://universe.mesosphere.com/package/",
-                 dcos_version="1.11",
-                 package_version="4",
-                 dry_run=False):
+    def __init__(
+        self,
+        universe_package_prefix="https://universe.mesosphere.com/package/",
+        dcos_version="1.11",
+        package_version="4",
+        dry_run=False,
+    ):
 
         self._dry_run = dry_run
         self._universe_package_prefix = universe_package_prefix
         self._headers = {
             "User-Agent": "dcos/{}".format(dcos_version),
             "Accept": "application/vnd.dcos.universe.repo+json;"
-                      "charset=utf-8;version=v{}".format(package_version),
+            "charset=utf-8;version=v{}".format(package_version),
         }
 
         self.__package_cache = {}
@@ -47,9 +49,10 @@ class PackageManager:
                 req = urllib.request.Request(url, headers=self._headers)
                 with urllib.request.urlopen(req, timeout=60) as f:
                     # Returned data: {"packages": [releases for the specified package]}
-                    package_releases = json.loads(f.read().decode())['packages']
+                    package_releases = json.loads(f.read().decode())["packages"]
                     self.__package_cache[package_name] = [
-                        package.Package.from_json(p) for p in package_releases]
+                        package.Package.from_json(p) for p in package_releases
+                    ]
             except Exception as e:
                 LOGGER.error("Failed to fetch package information at %s: %s", url, e)
 
@@ -68,7 +71,6 @@ class PackageManager:
 
 
 class DryRunPackages:
-
     def __init__(self, package_name: str):
         self._package = package.Package(package_name, package.Version(0, "DRY_RUN_VERSION"))
 

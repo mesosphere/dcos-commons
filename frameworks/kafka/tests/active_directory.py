@@ -3,11 +3,10 @@ import os
 import sdk_auth
 
 
-ACTIVE_DIRECTORY_ENVVAR = 'TESTING_ACTIVE_DIRECTORY_SERVER'
+ACTIVE_DIRECTORY_ENVVAR = "TESTING_ACTIVE_DIRECTORY_SERVER"
 
 
 class ActiveDirectoryKerberos(sdk_auth.KerberosEnvironment):
-
     def __init__(self):
         self.ad_server = os.environ.get(ACTIVE_DIRECTORY_ENVVAR)
 

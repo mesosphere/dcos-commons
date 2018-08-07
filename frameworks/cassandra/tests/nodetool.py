@@ -2,8 +2,11 @@ import sdk_cmd
 
 
 def cmd(service_name, task_name, command):
-    return sdk_cmd.service_task_exec(service_name, task_name,
-                                     "bash -c 'JAVA_HOME=$(ls -d jdk*/jre/) apache-cassandra-*/bin/nodetool {}'".format(command))
+    return sdk_cmd.service_task_exec(
+        service_name,
+        task_name,
+        "bash -c 'JAVA_HOME=$(ls -d jdk*/jre/) apache-cassandra-*/bin/nodetool {}'".format(command),
+    )
 
 
 def parse_status(output):
@@ -57,7 +60,9 @@ class Node(object):
         self.rack = rack
 
     def __str__(self):
-        return 'status: {}, address: {}, load: {}, tokens: {}, owns: {}, host_id: {}, rack: {}'.format(self.status, self.address, self.load, self.tokens, self.owns, self.host_id, self.rack)
+        return "status: {}, address: {}, load: {}, tokens: {}, owns: {}, host_id: {}, rack: {}".format(
+            self.status, self.address, self.load, self.tokens, self.owns, self.host_id, self.rack
+        )
 
     def get_status(self):
         return self.status

@@ -14,18 +14,14 @@ from tests import topics
 LOG = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kafka_server(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        config.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_BROKER_COUNT)
+        config.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
 
         # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT,
-                                      service_name=config.SERVICE_NAME)
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=config.SERVICE_NAME)
 
         # Since the tests below interact with the brokers, ensure that the DNS resolves
         test_utils.wait_for_broker_dns(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -53,12 +49,12 @@ def test_topic_partition_count(kafka_server: dict):
     service_name = kafka_server["service"]["name"]
 
     sdk_cmd.svc_cli(
-        package_name, service_name,
-        'topic create {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
+        package_name, service_name, "topic create {}".format(config.DEFAULT_TOPIC_NAME), json=True
+    )
     topic_info = sdk_cmd.svc_cli(
-        package_name, service_name,
-        'topic describe {}'.format(config.DEFAULT_TOPIC_NAME), json=True)
-    assert len(topic_info['partitions']) == config.DEFAULT_PARTITION_COUNT
+        package_name, service_name, "topic describe {}".format(config.DEFAULT_TOPIC_NAME), json=True
+    )
+    assert len(topic_info["partitions"]) == config.DEFAULT_PARTITION_COUNT
 
 
 @pytest.mark.sanity
@@ -75,10 +71,12 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         # The return of this function triggers the restart.
         return not has_elements
 
-    @retrying.retry(stop_max_delay=5 * 60 * 1000,
-                    wait_exponential_multiplier=1000,
-                    wait_exponential_max=60 * 1000,
-                    retry_on_result=offset_is_valid)
+    @retrying.retry(
+        stop_max_delay=5 * 60 * 1000,
+        wait_exponential_multiplier=1000,
+        wait_exponential_max=60 * 1000,
+        retry_on_result=offset_is_valid,
+    )
     def get_offset_change(topic_name, initial_offsets=[]):
         """
         Run:
@@ -86,8 +84,9 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         until the output is not the initial output specified
         """
         LOG.info("Getting offsets for %s", topic_name)
-        offsets = sdk_cmd.svc_cli(package_name, service_name,
-                                  'topic offsets --time="-1" {}'.format(topic_name), json=True)
+        offsets = sdk_cmd.svc_cli(
+            package_name, service_name, 'topic offsets --time="-1" {}'.format(topic_name), json=True
+        )
         LOG.info("offsets=%s", offsets)
         return initial_offsets, offsets
 
@@ -105,15 +104,19 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
     num_messages = 10
     LOG.info("Sending %s messages", num_messages)
     write_info = sdk_cmd.svc_cli(
-        package_name, service_name,
-        'topic producer_test {} {}'.format(topic_name, num_messages), json=True)
+        package_name,
+        service_name,
+        "topic producer_test {} {}".format(topic_name, num_messages),
+        json=True,
+    )
     assert len(write_info) == 1
-    assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
+    assert write_info["message"].startswith("Output: {} records sent".format(num_messages))
 
     _, post_write_offset_info = get_offset_change(topic_name, offset_info)
 
-    post_write_offset = sum(map(lambda partition: sum(
-        map(int, partition.values())), post_write_offset_info))
+    post_write_offset = sum(
+        map(lambda partition: sum(map(int, partition.values())), post_write_offset_info)
+    )
     LOG.info("Post-write offset=%s", post_write_offset)
 
     assert post_write_offset > initial_offset
@@ -122,44 +125,60 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 @pytest.mark.sanity
 def test_decreasing_topic_partitions_fails(kafka_server: dict):
     partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"],
-        'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1), json=True)
+        config.PACKAGE_NAME,
+        kafka_server["service"]["name"],
+        "topic partitions {} {}".format(
+            config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1
+        ),
+        json=True,
+    )
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
+    assert "The number of partitions for a topic can only be increased" in partition_info["message"]
 
 
 @pytest.mark.sanity
 def test_setting_topic_partitions_to_same_value_fails(kafka_server: dict):
     partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"],
-        'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT), json=True)
+        config.PACKAGE_NAME,
+        kafka_server["service"]["name"],
+        "topic partitions {} {}".format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT),
+        json=True,
+    )
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert (
-        'The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
+    assert "The number of partitions for a topic can only be increased" in partition_info["message"]
 
 
 @pytest.mark.sanity
 def test_increasing_topic_partitions_succeeds(kafka_server: dict):
     partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"],
-        'topic partitions {} {}'.format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1), json=True)
+        config.PACKAGE_NAME,
+        kafka_server["service"]["name"],
+        "topic partitions {} {}".format(
+            config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1
+        ),
+        json=True,
+    )
 
     assert len(partition_info) == 1
-    assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
+    assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
     assert (
-        'The number of partitions for a topic can only be increased' not in partition_info['message'])
+        "The number of partitions for a topic can only be increased"
+        not in partition_info["message"]
+    )
 
 
 @pytest.mark.sanity
 def test_no_under_replicated_topics_exist(kafka_server: dict):
     partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"],
-        'topic under_replicated_partitions', json=True)
+        config.PACKAGE_NAME,
+        kafka_server["service"]["name"],
+        "topic under_replicated_partitions",
+        json=True,
+    )
 
     assert partition_info == {"message": ""}
 
@@ -167,7 +186,10 @@ def test_no_under_replicated_topics_exist(kafka_server: dict):
 @pytest.mark.sanity
 def test_no_unavailable_partitions_exist(kafka_server: dict):
     partition_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"],
-        'topic unavailable_partitions', json=True)
+        config.PACKAGE_NAME,
+        kafka_server["service"]["name"],
+        "topic unavailable_partitions",
+        json=True,
+    )
 
     assert partition_info == {"message": ""}
