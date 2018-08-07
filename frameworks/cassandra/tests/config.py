@@ -20,7 +20,8 @@ DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
 # Soak artifact scripts may override the service name to test
 
-DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS', sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
+DEFAULT_NODE_ADDRESS = os.getenv('CASSANDRA_NODE_ADDRESS',
+                                 sdk_hosts.autoip_host(SERVICE_NAME, 'node-0-server'))
 DEFAULT_NODE_PORT = os.getenv('CASSANDRA_NODE_PORT', '9042')
 
 
@@ -84,7 +85,8 @@ def _get_test_job(name, commands, node_address, node_port, restart_policy='ON_FA
             'CA_BUNDLE': dcos_ca_bundle,
         }
         # insert --cqlshrc and --ssl args into any cqlsh commands:
-        job['run']['cmd'] = job['run']['cmd'].replace('cqlsh -e', 'cqlsh --cqlshrc="$MESOS_SANDBOX/cqlshrc" --ssl -e')
+        job['run']['cmd'] = job['run']['cmd'].replace(
+            'cqlsh -e', 'cqlsh --cqlshrc="$MESOS_SANDBOX/cqlshrc" --ssl -e')
     return job
 
 
@@ -108,7 +110,8 @@ def get_delete_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NOD
 
 def get_verify_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
     cmds = [
-        '{} | grep testkey1'.format(_cqlsh('SELECT * FROM testspace1.testtable1;', node_address, node_port)),
+        '{} | grep testkey1'.format(
+            _cqlsh('SELECT * FROM testspace1.testtable1;', node_address, node_port)),
         '{} | grep testkey2'.format(_cqlsh('SELECT * FROM testspace2.testtable2;', node_address, node_port))]
     return _get_test_job(
         'verify-data',
@@ -120,7 +123,8 @@ def get_verify_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NOD
 
 def get_verify_deletion_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
     cmds = [
-        '{} | grep "0 rows"'.format(_cqlsh('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';', node_address, node_port)),
+        '{} | grep "0 rows"'.format(_cqlsh(
+            'SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace1\';', node_address, node_port)),
         '{} | grep "0 rows"'.format(_cqlsh('SELECT * FROM system_schema.tables WHERE keyspace_name=\'testspace2\';', node_address, node_port))]
     return _get_test_job(
         'verify-deletion',
@@ -173,7 +177,7 @@ def run_backup_and_restore(
     # the run_job() call will throw.
     try:
         sdk_jobs.run_job(delete_data_job)
-    except:
+    except Exception:
         log.info("Error during delete (normal if no stale data)")
         log.info(traceback.format_exc())
 

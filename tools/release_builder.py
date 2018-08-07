@@ -80,7 +80,8 @@ class UniverseReleaseBuilder(object):
             self,
             package_version,
             stub_universe_url,
-            http_release_server=os.environ.get('HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
+            http_release_server=os.environ.get(
+                'HTTP_RELEASE_SERVER', 'https://downloads.mesosphere.com'),
             s3_release_bucket=os.environ.get('S3_RELEASE_BUCKET', 'downloads.mesosphere.io'),
             release_docker_image=os.environ.get('RELEASE_DOCKER_IMAGE'),
             release_dir_path=os.environ.get('RELEASE_DIR_PATH', ''),
@@ -272,9 +273,11 @@ Upgrades from:   {}
         # find all URLs in resource.json which match the directory of the stub universe file.
         # update those URLs to point to the new artifact path.
         orig_content = json.dumps(package_json['resource'], indent=2)
-        original_artifact_urls = re.findall('({}/.+)\"'.format(original_artifact_prefix), orig_content)
+        original_artifact_urls = re.findall(
+            '({}/.+)\"'.format(original_artifact_prefix), orig_content)
         new_content = orig_content.replace(original_artifact_prefix, self._http_directory_url)
-        package_json['resource'] = json.loads(new_content, object_pairs_hook=collections.OrderedDict)
+        package_json['resource'] = json.loads(
+            new_content, object_pairs_hook=collections.OrderedDict)
 
         if self._release_docker_image:
             # Find the current docker image name in resource.json, update it to the new name:
@@ -284,7 +287,8 @@ Upgrades from:   {}
                 orig_docker_image = list(docker_dict.values())[0]
                 docker_dict[list(docker_dict.keys())[0]] = self._release_docker_image
             except KeyError:
-                raise Exception('Release to docker specified, but no docker image found in resource.json')
+                raise Exception(
+                    'Release to docker specified, but no docker image found in resource.json')
 
             # Download/reupload docker image to target name:
             log.info('Downloading docker image {}'.format(orig_docker_image))
@@ -332,7 +336,8 @@ Upgrades from:   {}
             raise Exception('Failed to check artifact destination presence (code {}). '
                             'Bad AWS credentials? Exiting early.'.format(ret))
         else:
-            log.info('Destination {} doesnt exist, proceeding...'.format(self._uploader.get_s3_directory()))
+            log.info('Destination {} doesnt exist, proceeding...'.format(
+                self._uploader.get_s3_directory()))
 
         for i in range(len(original_artifact_urls)):
             progress = '[{}/{}] '.format(i + 1, len(original_artifact_urls))
@@ -388,7 +393,8 @@ Upgrades from:   {}
 
         # automatically include source universe URL in commit description:
         if commit_desc:
-            commit_desc = '{}\n\nSource URL: {}'.format(commit_desc.rstrip('\n'), self._stub_universe_url)
+            commit_desc = '{}\n\nSource URL: {}'.format(
+                commit_desc.rstrip('\n'), self._stub_universe_url)
         else:
             commit_desc = 'Source URL: {}'.format(self._stub_universe_url)
 
@@ -441,8 +447,10 @@ def right_trim(string: str, suffix: str) -> str:
 
 
 def print_help(argv):
-    log.info('Syntax: {} move|release <package-version> <stub-universe-url> [commit message]'.format(argv[0]))
-    log.info('  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.json'.format(argv[0]))
+    log.info(
+        'Syntax: {} move|release <package-version> <stub-universe-url> [commit message]'.format(argv[0]))
+    log.info(
+        '  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.json'.format(argv[0]))
     log.info('Required credentials in env:')
     log.info('- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY')
     log.info('- Github (Personal Access Token): GITHUB_TOKEN (only required for release)')

@@ -181,7 +181,8 @@ def main(stack_id='', stdout=sys.stdout):
 
     # Read inputs from environment
     if aws_profile_key not in os.environ or aws_region_key not in os.environ or stack_id_key not in os.environ:
-        logger.error('{}, {} and {} envvars are required.'.format(aws_profile_key, aws_region_key, stack_id_key))
+        logger.error('{}, {} and {} envvars are required.'.format(
+            aws_profile_key, aws_region_key, stack_id_key))
         return 1
 
     aws_profile = str(os.environ.get(aws_profile_key))
@@ -204,7 +205,8 @@ def main(stack_id='', stdout=sys.stdout):
     if not reservations:
         logger.error('Unable to find any reservations with {} = {}.'.format(stack_id_key, stack_id))
         return 1
-    logger.info('Found {} reservations with {} = {}'.format(len(reservations), stack_id_key, stack_id))
+    logger.info('Found {} reservations with {} = {}'.format(
+        len(reservations), stack_id_key, stack_id))
 
     # Extract all the instance objects
     instances = enumerate_instances(reservations)
@@ -274,7 +276,8 @@ def main(stack_id='', stdout=sys.stdout):
             attempts += 1
             try:
                 volume_attach.wait(VolumeIds=[volume_id])
-                logger.info('Volume: {} is now attached to instance: {}'.format(volume_id, instance_id))
+                logger.info('Volume: {} is now attached to instance: {}'.format(
+                    volume_id, instance_id))
                 break
             except botocore.exceptions.WaiterError as e:
                 logger.error('Error occured: {}'.format(e))
@@ -288,7 +291,8 @@ def main(stack_id='', stdout=sys.stdout):
                 else:
                     raise e
 
-        conf_res = configure_delete_on_termination(ec2, volume_id=volume_id, instance_id=instance_id)
+        conf_res = configure_delete_on_termination(
+            ec2, volume_id=volume_id, instance_id=instance_id)
         logger.info('Delete on termination: {}'.format(conf_res))
 
         tag_res = tag_volume(ec2, volume_id=volume_id)

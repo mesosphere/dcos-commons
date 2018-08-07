@@ -13,7 +13,8 @@ def add_acls(user: str, marathon_task: str, topic: str, zookeeper_endpoint: str,
     """
 
     _add_role_acls(["--producer", ], user, marathon_task, topic, zookeeper_endpoint, env_str)
-    _add_role_acls(["--consumer", "--group=*"], user, marathon_task, topic, zookeeper_endpoint, env_str)
+    _add_role_acls(["--consumer", "--group=*"], user, marathon_task,
+                   topic, zookeeper_endpoint, env_str)
 
 
 def remove_acls(user: str, marathon_task: str, topic: str, zookeeper_endpoint: str, env_str=None):
@@ -21,7 +22,8 @@ def remove_acls(user: str, marathon_task: str, topic: str, zookeeper_endpoint: s
     Remove Producer and Consumer ACLs for the specifed user and topic
     """
     _remove_role_acls(["--producer", ], user, marathon_task, topic, zookeeper_endpoint, env_str)
-    _remove_role_acls(["--consumer", "--group=*"], user, marathon_task, topic, zookeeper_endpoint, env_str)
+    _remove_role_acls(["--consumer", "--group=*"], user, marathon_task,
+                      topic, zookeeper_endpoint, env_str)
 
 
 def _modify_role_acls(action: str, roles: list, user: str, marathon_task: str, topic: str,

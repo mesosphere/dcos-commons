@@ -105,12 +105,14 @@ class UniversePackageBuilder(object):
         for manifest_row in manifest_content.split('\n'):
             cols = manifest_row.split()
             if len(cols) != 2:
-                logger.warning('Expected manifest entry to have 2 columns: {} => {}'.format(manifest_row, cols))
+                logger.warning(
+                    'Expected manifest entry to have 2 columns: {} => {}'.format(manifest_row, cols))
                 continue
             # filenames may have a '*' prefix to indicate a binary:
             if cols[1] == filename or cols[1] == '*{}'.format(filename):
                 return cols[0]
-        raise Exception('No entry found for {} in manifest at {}:\n{}'.format(filename, manifest_url, manifest_content))
+        raise Exception('No entry found for {} in manifest at {}:\n{}'.format(
+            filename, manifest_url, manifest_content))
 
     def _calculate_sha256(self, filepath):
         BLOCKSIZE = 65536

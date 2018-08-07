@@ -45,7 +45,8 @@ class HTTPPublisher(object):
         self._artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
-                err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
+                err = 'Provided package path is not a file: {} (full list: {})'.format(
+                    artifact_path, artifact_paths)
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
@@ -60,7 +61,8 @@ class HTTPPublisher(object):
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get('WORKSPACE', '')
         if jenkins_workspace_path:
-            properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
+            properties_file = open(os.path.join(jenkins_workspace_path,
+                                                '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
             properties_file.flush()
             properties_file.close()
@@ -90,7 +92,8 @@ class HTTPPublisher(object):
         logger.info('Built and copied stub universe:')
         logger.info(universe_url)
         logger.info('---')
-        logger.info('Copying {} artifacts into {}:'.format(len(self._artifact_paths), self._http_dir))
+        logger.info('Copying {} artifacts into {}:'.format(
+            len(self._artifact_paths), self._http_dir))
 
         for path in self._artifact_paths:
             self._copy_artifact(http_url_root, path)
@@ -175,21 +178,27 @@ httpd.serve_forever()
         repo_name = self._pkg_name + '-local'
         # check for any preexisting universes and remove them -- the cluster requires no duplicate uris
         logger.info('Checking for duplicate repositories: name={}, url={}'.format(repo_name, repo_url))
-        cur_universes = subprocess.check_output('dcos package repo list --json'.split()).decode('utf-8')
+        cur_universes = subprocess.check_output(
+            'dcos package repo list --json'.split()).decode('utf-8')
         for repo in json.loads(cur_universes)['repositories']:
             # {u'name': u'Universe', u'uri': u'https://universe.mesosphere.com/repo'}
             if repo['name'] == repo_name or repo['uri'] == repo_url:
-                logger.info('Removing duplicate repository: {} {}'.format(repo['name'], repo['uri']))
+                logger.info('Removing duplicate repository: {} {}'.format(
+                    repo['name'], repo['uri']))
                 subprocess.check_call('dcos package repo remove {}'.format(repo['name']).split())
         logger.info('Adding repository: {} {}'.format(repo_name, repo_url))
-        subprocess.check_call('dcos package repo add --index=0 {} {}'.format(repo_name, repo_url).split(' '))
+        subprocess.check_call(
+            'dcos package repo add --index=0 {} {}'.format(repo_name, repo_url).split(' '))
         return True
 
 
 def print_help(argv):
-    logger.info('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
-    logger.info('  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
-    logger.info('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
+    logger.info(
+        'Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
+    logger.info(
+        '  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    logger.info(
+        'In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
 def main(argv):

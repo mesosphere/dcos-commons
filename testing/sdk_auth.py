@@ -142,7 +142,8 @@ def kdestroy(marathon_task_id: str):
     log.info("Erasing auth session:")
     rc, stdout, stderr = sdk_cmd.marathon_task_exec(marathon_task_id, "kdestroy")
     if rc != 0:
-        raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
+        raise RuntimeError(
+            "Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
 
 class KerberosEnvironment:
@@ -224,7 +225,8 @@ class KerberosEnvironment:
         log.info("Running kadmin: {}".format(kadmin_cmd))
         rc, stdout, stderr = sdk_cmd.marathon_task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
-            raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
+            raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(
+                rc, kadmin_cmd, stdout, stderr))
 
     def add_principals(self, principals: list):
         """
@@ -250,7 +252,8 @@ class KerberosEnvironment:
         # exception when the format of a principal is invalid.
         self.principals = list(map(lambda x: x.strip(), principals))
 
-        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=self.principals))
+        log.info("Adding the following list of principals to the KDC: {principals}".format(
+            principals=self.principals))
         kadmin_options = ["-l"]
         kadmin_cmd = "add"
         kadmin_args = ["--use-defaults", "--random-password"]
@@ -351,7 +354,8 @@ class KerberosEnvironment:
                 with open(base64_encoded_keytab_path, "w") as f:
                     f.write(base64_encoding)
 
-                log.info("Finished base64-encoding secret content (%d bytes): %s", len(base64_encoding), base64_encoding)
+                log.info("Finished base64-encoding secret content (%d bytes): %s",
+                         len(base64_encoding), base64_encoding)
 
                 return ["--value-file", base64_encoded_keytab_path, ]
             except Exception as e:
@@ -385,7 +389,8 @@ class KerberosEnvironment:
         log.info("Creating secret %s: %s", self.get_keytab_path(), create_secret_cmd)
         rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
         if rc != 0:
-            raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(rc, create_secret_cmd, stdout, stderr))
+            raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(
+                rc, create_secret_cmd, stdout, stderr))
 
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 

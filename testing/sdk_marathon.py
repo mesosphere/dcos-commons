@@ -169,14 +169,16 @@ def install_app(app_definition: dict) -> (bool, str):
 
 def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True):
     if "env" in config:
-        log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
+        log.info("Environment for marathon app {} ({} values):".format(
+            app_name, len(config["env"])))
         for k in sorted(config["env"]):
             log.info("  {}={}".format(k, config["env"][k]))
 
     query_string = "?force=true" if force else ""
 
     # throws on failure:
-    sdk_cmd.cluster_request('PUT', _api_url('apps/{}{}'.format(app_name, query_string)), log_args=False, json=config)
+    sdk_cmd.cluster_request('PUT', _api_url(
+        'apps/{}{}'.format(app_name, query_string)), log_args=False, json=config)
 
     if wait_for_completed_deployment:
         log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
@@ -235,4 +237,5 @@ def set_mesos_api_version(service_name, api_version, timeout=600):
     config['env']['MESOS_API_VERSION'] = api_version
     update_app(service_name, config, timeout=timeout)
     # wait for scheduler to come back and successfully receive/process offers:
-    sdk_metrics.wait_for_scheduler_counter_value(service_name, 'offers.processed', 1, timeout_seconds=timeout)
+    sdk_metrics.wait_for_scheduler_counter_value(
+        service_name, 'offers.processed', 1, timeout_seconds=timeout)

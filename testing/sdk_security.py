@@ -65,7 +65,8 @@ def _grant(user: str, acl: str, description: str, action: str) -> None:
 
     # Assign the user to the ACL
     r = sdk_cmd.cluster_request(
-        'PUT', '/acs/api/v1/acls/{acl}/users/{user}/{action}'.format(acl=acl, user=user, action=action),
+        'PUT', '/acs/api/v1/acls/{acl}/users/{user}/{action}'.format(
+            acl=acl, user=user, action=action),
         raise_on_error=False)
     # 204=success, 409=already exists
     assert r.status_code in [204, 409, ], '{} failed {}: {}'.format(r.url, r.status_code, r.text)
@@ -147,7 +148,8 @@ def grant_permissions(linux_user: str, role_name: str, service_account_name: str
         permissions = get_default_permissions(service_account_name, role_name, linux_user)
 
     for permission in permissions:
-        _grant(permission["user"], permission["acl"], permission["description"], permission["action"])
+        _grant(permission["user"], permission["acl"],
+               permission["description"], permission["action"])
     log.info("Permission setup completed for {account}".format(account=service_account_name))
 
     return permissions
@@ -157,7 +159,8 @@ def revoke_permissions(service_account_name: str, role_name: str, permissions: L
     log.info("Revoking permissions from %s (role: %s)", service_account_name, role_name)
 
     for permission in permissions:
-        _revoke(permission["user"], permission["acl"], permission["description"], permission["action"])
+        _revoke(permission["user"], permission["acl"],
+                permission["description"], permission["action"])
     log.info("Permission cleanup completed for %s (role: %s)", service_account_name, role_name)
 
 
@@ -314,7 +317,8 @@ def security_session(framework_name: str,
     try:
         is_strict = sdk_utils.is_strict_mode()
         if is_strict:
-            roles = _get_service_role(framework_name) + _get_integration_test_foldered_role(framework_name)
+            roles = _get_service_role(framework_name) + \
+                _get_integration_test_foldered_role(framework_name)
             security_info = setup_security(framework_name,
                                            roles=roles,
                                            permissions=permissions,

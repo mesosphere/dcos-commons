@@ -46,7 +46,8 @@ def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_
     or
     $ dcos <service> endpoints <endpoint_to_get>
     Checks that there is the correct number of endpoints"""
-    endpoints = sdk_cmd.svc_cli(package_name, service_name, "endpoints {}".format(endpoint_to_get), json=True)
+    endpoints = sdk_cmd.svc_cli(package_name, service_name,
+                                "endpoints {}".format(endpoint_to_get), json=True)
     assert len(endpoints) == correct_count, "Wrong number of endpoints, got {} should be {}" \
         .format(len(endpoints), correct_count)
     return endpoints
@@ -63,7 +64,8 @@ def check_endpoints_on_overlay(endpoints):
     # endpoints should have the format <ip_address>:port
     ip_addresses = [e.split(":")[0] for e in endpoints["address"]]
     assert check_ip_addresses_on_overlay(), \
-        "IP addresses for this service should not contain agent IPs, IPs were {}".format(ip_addresses)
+        "IP addresses for this service should not contain agent IPs, IPs were {}".format(
+            ip_addresses)
 
     for dns in endpoints["dns"]:
         assert "autoip.dcos.thisdcos.directory" in dns, \

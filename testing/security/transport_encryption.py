@@ -38,7 +38,8 @@ def setup_service_account(service_name: str,
     else:
         acls = [
             {"rid": "dcos:secrets:default:/{}/*".format(service_name.strip("/")), "action": "full"},
-            {"rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")), "action": "read"},
+            {"rid": "dcos:secrets:list:default:/{}".format(
+                service_name.strip("/")), "action": "read"},
             {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
             {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
         ]
@@ -118,7 +119,8 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_cmd.marathon_task_exec(marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
     assert output[0] is 0
 
     _create_keystore_truststore(cn, marathon_task)

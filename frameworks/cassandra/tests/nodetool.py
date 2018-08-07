@@ -1,8 +1,10 @@
 import sdk_cmd
 
+
 def cmd(service_name, task_name, command):
     return sdk_cmd.service_task_exec(service_name, task_name,
-        "bash -c 'JAVA_HOME=$(ls -d jdk*/jre/) apache-cassandra-*/bin/nodetool {}'".format(command))
+                                     "bash -c 'JAVA_HOME=$(ls -d jdk*/jre/) apache-cassandra-*/bin/nodetool {}'".format(command))
+
 
 def parse_status(output):
     nodes = []
@@ -12,12 +14,13 @@ def parse_status(output):
 
     return nodes
 
+
 def _get_status_lines(output):
     raw_lines = output.splitlines()[5:]
     lines = []
     for raw_line in raw_lines:
-       if raw_line.strip() != "":
-           lines.append(raw_line)
+        if raw_line.strip() != "":
+            lines.append(raw_line)
 
     return lines
 

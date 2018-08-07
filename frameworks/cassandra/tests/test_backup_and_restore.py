@@ -8,7 +8,8 @@ from tests import config
 
 
 no_strict_for_azure = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-        reason="backup/restore doesn't work in strict as user needs to be root")
+                                         reason="backup/restore doesn't work in strict as user needs to be root")
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -23,9 +24,10 @@ def configure_package(configure_security):
         # user=root because Azure CLI needs to run in root...
         # We don't run the Azure tests in strict however, so don't set it then.
         if os.environ.get("SECURITY") == "strict":
-            additional_options={"service": { "name": config.get_foldered_service_name() } }
+            additional_options = {"service": {"name": config.get_foldered_service_name()}}
         else:
-            additional_options={"service": { "name": config.get_foldered_service_name(), "user": "root" } }
+            additional_options = {"service": {
+                "name": config.get_foldered_service_name(), "user": "root"}}
 
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -33,7 +35,7 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=additional_options)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
@@ -43,6 +45,7 @@ def configure_package(configure_security):
 
 # To disable these tests in local runs where you may lack the necessary credentials,
 # use e.g. "TEST_TYPES=sanity and not aws and not azure":
+
 
 @pytest.mark.azure
 @no_strict_for_azure

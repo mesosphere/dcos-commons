@@ -7,8 +7,6 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -16,6 +14,7 @@ log = logging.getLogger(__name__)
 
 # global pytest variable applicable to whole module
 pytestmark = pytest.mark.dcos_min_version('1.9')
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -33,7 +32,7 @@ def configure_package(configure_security):
             },
             wait_for_deployment=False)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -42,7 +41,7 @@ def configure_package(configure_security):
 def test_canary_init():
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=600*1000,
+        stop_max_delay=600 * 1000,
         retry_on_result=lambda res: not res)
     def wait_for_empty():
         # check for empty list internally rather than returning empty list.
@@ -82,11 +81,13 @@ def test_canary_first():
 
     expected_tasks = ['hello-0']
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
     # do not use service_plan always
     # when here, plan should always return properly
-    pl = sdk_plan.wait_for_completed_step(config.SERVICE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]')
+    pl = sdk_plan.wait_for_completed_step(
+        config.SERVICE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'
@@ -124,17 +125,19 @@ def test_canary_plan_continue_noop():
         assert False, "Shouldn't have deployed a second task"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected
+    except Exception:
+        pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
 
 @pytest.mark.sanity
 def test_canary_second():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy world-deploy')
-    sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'world-deploy', 'world-0:[server]', 'PENDING')
+    sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy',
+                                  'world-deploy', 'world-0:[server]', 'PENDING')
 
     # because the plan strategy is serial, the second phase just clears a wait bit without
     # proceeding to launch anything:
@@ -144,11 +147,12 @@ def test_canary_second():
         assert False, "Shouldn't have deployed a second task"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected
+    except Exception:
+        pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(pl)
@@ -184,7 +188,8 @@ def test_canary_third():
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0']
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_phase(config.SERVICE_NAME, 'deploy', 'hello-deploy')
     log.info(pl)
@@ -220,7 +225,8 @@ def test_canary_fourth():
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0', 'world-1', 'world-2', 'world-3']
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'deploy')
     log.info(pl)
@@ -260,10 +266,11 @@ def test_increase_count():
         assert False, "Should not start task now"
     except AssertionError as arg:
         raise arg
-    except:
-        pass # expected to fail
+    except Exception:
+        pass  # expected to fail
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'WAITING')
     log.info(pl)
@@ -297,7 +304,8 @@ def test_increase_count():
         'hello-0', 'hello-1', 'hello-2', 'hello-3', 'hello-4',
         'world-0', 'world-1', 'world-2', 'world-3']
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, 'deploy', 'COMPLETE')
     log.info(pl)
@@ -362,7 +370,8 @@ def test_increase_cpu():
         'hello-0', 'hello-1', 'hello-2', 'hello-3', 'hello-4',
         'world-0', 'world-1', 'world-2', 'world-3']
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod list', json=True) == expected_tasks
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                           'pod list', json=True) == expected_tasks
     assert hello_0_ids == sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0-server')
 
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'plan continue deploy hello-deploy')
@@ -370,7 +379,8 @@ def test_increase_cpu():
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0-server', hello_0_ids)
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    pl = sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]', 'COMPLETE')
+    pl = sdk_plan.wait_for_step_status(
+        config.SERVICE_NAME, 'deploy', 'hello-deploy', 'hello-0:[server]', 'COMPLETE')
     log.info(pl)
 
     assert pl['status'] == 'WAITING'

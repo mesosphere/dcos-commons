@@ -117,13 +117,15 @@ def test_zookeeper_reresolution(kafka_server):
         wait_fixed=1000,
         stop_max_attempt_number=3)
     def check_broker(id: int):
-        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 1000".format(id), print_output=False)
+        rc, stdout, _ = sdk_cmd.run_raw_cli(
+            "task log kafka-{}-broker --lines 1000".format(id), print_output=False)
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
 
         last_log_index = stdout.rfind(broker_log_line[id])
-        success_index = stdout.rfind("zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)")
+        success_index = stdout.rfind(
+            "zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)")
 
         assert last_log_index > -1 and last_log_index < success_index, "{}:{} STDOUT: {}".format(last_log_index,
                                                                                                  success_index,

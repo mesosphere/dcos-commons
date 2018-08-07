@@ -19,21 +19,21 @@ secret_content_default = "hello-world-secret-data"
 secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
-        "service": {
-            "yaml": "secrets"
-        },
-        "hello": {
-            "count": NUM_HELLO,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2"
-        },
-        "world": {
-            "count": NUM_WORLD,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2",
-            "secret3": "hello-world/secret3"
-        }
+    "service": {
+        "yaml": "secrets"
+    },
+    "hello": {
+        "count": NUM_HELLO,
+        "secret1": "hello-world/secret1",
+        "secret2": "hello-world/secret2"
+    },
+    "world": {
+        "count": NUM_WORLD,
+        "secret1": "hello-world/secret1",
+        "secret2": "hello-world/secret2",
+        "secret3": "hello-world/secret3"
     }
+}
 
 options_dcos_space_test = {
     "service": {
@@ -62,7 +62,7 @@ def configure_package(configure_security):
         try_delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
         try_delete_secrets()
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         try_delete_secrets("{}/".format(config.SERVICE_NAME))
@@ -88,7 +88,8 @@ def test_secrets_basic():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO +
+                        NUM_WORLD, additional_options=secret_options)
 
     hello_tasks_0 = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-server")
     world_tasks_0 = sdk_tasks.get_task_ids(config.SERVICE_NAME, "word-0-server")
@@ -122,7 +123,8 @@ def test_secrets_verify():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO +
+                        NUM_WORLD, additional_options=secret_options)
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
@@ -130,7 +132,8 @@ def test_secrets_verify():
     # Verify secret content, one from each pod type
 
     # first secret: environment variable name is given in yaml
-    assert secret_content_default == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
 
     # second secret: file path is given in yaml
     assert secret_content_default == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
@@ -139,11 +142,11 @@ def test_secrets_verify():
     #            default file path is equal to secret path
     assert secret_content_default == read_secret("world-0-server", "cat hello-world/secret3")
 
-
     # hello tasks has container image, world tasks do not
 
     # first secret : environment variable name is given in yaml
-    assert secret_content_default == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
 
     # first secret : both environment variable name and file path are given in yaml
     assert secret_content_default == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
@@ -172,15 +175,18 @@ def test_secrets_update():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO +
+                        NUM_WORLD, additional_options=secret_options)
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
-
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, config.SERVICE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, config.SERVICE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, config.SERVICE_NAME))
+    sdk_cmd.run_cli(
+        "security secrets update --value={} {}/secret1".format(secret_content_alternative, config.SERVICE_NAME))
+    sdk_cmd.run_cli(
+        "security secrets update --value={} {}/secret2".format(secret_content_alternative, config.SERVICE_NAME))
+    sdk_cmd.run_cli(
+        "security secrets update --value={} {}/secret3".format(secret_content_alternative, config.SERVICE_NAME))
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
@@ -199,12 +205,15 @@ def test_secrets_update():
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
     # make sure content is changed
-    assert secret_content_alternative == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == read_secret("world-0-server", "cat {}/secret3".format(config.SERVICE_NAME))
+    assert secret_content_alternative == read_secret(
+        "world-0-server", "cat {}/secret3".format(config.SERVICE_NAME))
 
     # make sure content is changed
-    assert secret_content_alternative == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET2_FILE")
 
@@ -227,7 +236,8 @@ def test_secrets_config_update():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO +
+                        NUM_WORLD, additional_options=secret_options)
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
@@ -235,12 +245,15 @@ def test_secrets_config_update():
     # Verify secret content, one from each pod type
 
     # make sure it has the default value
-    assert secret_content_default == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_default == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
-    assert secret_content_default == read_secret("world-0-server", "cat {}/secret3".format(config.SERVICE_NAME))
+    assert secret_content_default == read_secret(
+        "world-0-server", "cat {}/secret3".format(config.SERVICE_NAME))
 
     # hello tasks has container image
-    assert secret_content_default == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
     assert secret_content_default == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
     assert secret_content_default == read_secret("hello-0-server", "cat HELLO_SECRET2_FILE")
 
@@ -268,11 +281,13 @@ def test_secrets_config_update():
 
     # Verify secret content is changed
 
-    assert secret_content_alternative == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
     assert secret_content_alternative == read_secret("world-0-server", "cat secret3")
 
-    assert secret_content_alternative == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET2_FILE")
 
@@ -303,14 +318,14 @@ def test_secrets_dcos_space():
             config.SERVICE_NAME,
             NUM_HELLO + NUM_WORLD,
             additional_options=options_dcos_space_test,
-            timeout_seconds=5 * 60) # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
+            timeout_seconds=5 * 60)  # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
 
         assert False, "Should have failed to install"
 
     except AssertionError as arg:
         raise arg
 
-    except:
+    except Exception:
         pass  # expected to fail
 
     # clean up and delete secrets
@@ -318,9 +333,12 @@ def test_secrets_dcos_space():
 
 
 def create_secrets(path_prefix="", secret_content_arg=secret_content_default):
-    sdk_cmd.run_cli("security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix))
-    sdk_cmd.run_cli("security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix))
-    sdk_cmd.run_cli("security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix))
+    sdk_cmd.run_cli(
+        "security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix))
+    sdk_cmd.run_cli(
+        "security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix))
+    sdk_cmd.run_cli(
+        "security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix))
 
 
 def delete_secrets(path_prefix=""):
@@ -334,19 +352,19 @@ def try_delete_secrets(path_prefix=""):
     # use in teardown_module
     try:
         sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    except:
+    except Exception:
         pass
     try:
         sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    except:
+    except Exception:
         pass
     try:
         sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
-    except:
+    except Exception:
         pass
 
 
-@retrying.retry(wait_fixed=2000, stop_max_delay=5*60*1000)
+@retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
 def read_secret(task_name, command):
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split('\n')]

@@ -48,7 +48,8 @@ def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_n
         wait_fixed=1000,
         stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan():
-        response = sdk_cmd.service_request('GET', service_name, path, retry=False, raise_on_error=False)
+        response = sdk_cmd.service_request(
+            'GET', service_name, path, retry=False, raise_on_error=False)
         if response.status_code == 417:
             return response  # avoid throwing, return plan with errors
         response.raise_for_status()
@@ -119,7 +120,8 @@ def wait_for_plan_status(service_name, plan_name, status, timeout_seconds=TIMEOU
         stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        plan = get_plan(service_name, plan_name, timeout_seconds=SHORT_TIMEOUT_SECONDS, multiservice_name=multiservice_name)
+        plan = get_plan(service_name, plan_name, timeout_seconds=SHORT_TIMEOUT_SECONDS,
+                        multiservice_name=multiservice_name)
         log.info('Waiting for {} plan to have {} status:\n{}'.format(
             plan_name, status, plan_string(plan_name, plan)))
         if plan and plan['status'] in statuses:

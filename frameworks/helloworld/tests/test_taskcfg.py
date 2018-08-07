@@ -19,10 +19,10 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             0,
-            { "service": { "yaml": "taskcfg" } },
+            {"service": {"yaml": "taskcfg"}},
             wait_for_deployment=False)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -40,7 +40,7 @@ def test_deploy():
     # wait for new TASK_FAILEDs to appear:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=1000*wait_time,
+        stop_max_delay=1000 * wait_time,
         retry_on_result=lambda res: not res)
     def wait_for_new_failures():
         new_statuses = sdk_tasks.get_status_history(task_name)

@@ -2,7 +2,6 @@ import json
 import logging
 import os
 import retrying
-import shakedown
 
 import sdk_cmd
 import sdk_plan
@@ -91,7 +90,7 @@ def get_active_name_node(service_name):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
     rc, output = run_hdfs_command(service_name, "/{}/bin/hdfs haadmin -getServiceState {}"
@@ -123,7 +122,7 @@ def run_hdfs_command(service_name, command):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+        stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res[0])
     def fn():
         return sdk_cmd.master_ssh(full_command)

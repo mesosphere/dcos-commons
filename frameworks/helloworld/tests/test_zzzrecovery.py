@@ -45,7 +45,8 @@ def test_pod_restart():
                               'pod info hello-0', json=True, print_output=False)
     old_agent = jsonobj[0]['info']['slaveId']['value']
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart hello-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'pod restart hello-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
@@ -73,7 +74,8 @@ def test_pod_pause_resume():
     old_cmd = taskinfo['command']['value']
 
     # sanity check of pod status/plan status before we pause/resume:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
     assert jsonobj['tasks'][0]['status'] == 'RUNNING'
@@ -86,7 +88,8 @@ def test_pod_pause_resume():
 
     # pause the pod, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod pause hello-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'debug pod pause hello-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
@@ -107,7 +110,8 @@ def test_pod_pause_resume():
         assert 'exit 1' == readiness_check
 
     # check PAUSED state in plan and in pod status:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
     assert jsonobj['tasks'][0]['status'] == 'PAUSED'
@@ -120,7 +124,8 @@ def test_pod_pause_resume():
 
     # resume the pod again, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'debug pod resume hello-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'debug pod resume hello-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
@@ -135,7 +140,8 @@ def test_pod_pause_resume():
     assert old_cmd == taskinfo['command']['value']
 
     # check that the pod/plan status is back to normal:
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'pod status hello-0 --json', json=True)
     assert len(jsonobj['tasks']) == 1
     assert jsonobj['tasks'][0]['name'] == 'hello-0-server'
     assert jsonobj['tasks'][0]['status'] == 'RUNNING'
@@ -154,7 +160,8 @@ def test_pods_restart_graceful_shutdown():
 
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart world-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'pod restart world-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
     assert len(jsonobj['tasks']) == 1
@@ -178,7 +185,8 @@ def test_pods_restart_graceful_shutdown():
 
 @pytest.mark.recovery
 def test_scheduler_died():
-    sdk_cmd.kill_task_with_pattern('helloworld.scheduler.Main', sdk_marathon.get_scheduler_host(config.SERVICE_NAME))
+    sdk_cmd.kill_task_with_pattern('helloworld.scheduler.Main',
+                                   sdk_marathon.get_scheduler_host(config.SERVICE_NAME))
     config.check_running()
 
 
@@ -240,7 +248,8 @@ def test_config_update_then_scheduler_died():
 def test_config_update_then_executor_killed():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world')
     config.bump_world_cpus()
-    sdk_cmd.kill_task_with_pattern('helloworld.executor.Main', 'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
+    sdk_cmd.kill_task_with_pattern('helloworld.executor.Main',
+                                   'world-0-server.{}.mesos'.format(config.SERVICE_NAME))
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
 
@@ -278,7 +287,8 @@ def test_config_update_then_zk_killed():
 def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'world-0')
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0', json=True)
+    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                              'pod replace world-0', json=True)
     assert len(jsonobj) == 2
     assert jsonobj['pod'] == 'world-0'
     assert len(jsonobj['tasks']) == 1
@@ -298,13 +308,15 @@ def test_config_update_while_partitioned():
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
     updated_cpus = float(service_config['env']['WORLD_CPUS']) + 0.1
     service_config['env']['WORLD_CPUS'] = str(updated_cpus)
-    sdk_marathon.update_app(config.SERVICE_NAME, service_config, wait_for_completed_deployment=False)
+    sdk_marathon.update_app(config.SERVICE_NAME, service_config,
+                            wait_for_completed_deployment=False)
 
     shakedown.reconnect_agent(host)
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world', world_ids)
     config.check_running()
     all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    running_tasks = [t for t in all_tasks if t['name'].startswith(
+        'world') and t['state'] == "TASK_RUNNING"]
     assert len(running_tasks) == config.world_task_count(config.SERVICE_NAME)
     for t in running_tasks:
         assert config.close_enough(t['resources']['cpus'], updated_cpus)
@@ -326,7 +338,8 @@ def test_shutdown_host():
     replace_tasks = [
         task for task in candidate_tasks
         if task.host == replace_hostname]
-    log.info('Tasks on host {} to be replaced after shutdown: {}'.format(replace_hostname, replace_tasks))
+    log.info('Tasks on host {} to be replaced after shutdown: {}'.format(
+        replace_hostname, replace_tasks))
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
     sdk_cmd.shutdown_agent(replace_hostname)
@@ -370,4 +383,5 @@ def install_options_helper(kill_grace_period=0):
     }
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT + 1, additional_options=options)
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
+                        config.DEFAULT_TASK_COUNT + 1, additional_options=options)

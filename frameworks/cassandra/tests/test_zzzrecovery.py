@@ -33,9 +33,11 @@ def test_node_replace_replaces_seed_node():
     pod_to_replace = 'node-0'
 
     # start replace and wait for it to finish
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(pod_to_replace))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'pod replace {}'.format(pod_to_replace))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
-    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
+    sdk_plan.wait_for_completed_recovery(
+        config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
 
 @pytest.mark.sanity
@@ -52,15 +54,18 @@ def test_node_replace_replaces_node():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     original_constraint = marathon_config['env']['PLACEMENT_CONSTRAINT']
     try:
-        marathon_config['env']['PLACEMENT_CONSTRAINT'] = '[["hostname", "UNLIKE", "{}"]]'.format(replace_task.host)
+        marathon_config['env']['PLACEMENT_CONSTRAINT'] = '[["hostname", "UNLIKE", "{}"]]'.format(
+            replace_task.host)
         sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
         # start replace and wait for it to finish
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod_name))
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                        'pod replace {}'.format(replace_pod_name))
         sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
-        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
+        sdk_plan.wait_for_completed_recovery(
+            config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
     finally:
         # revert to prior placement setting before proceeding with tests: avoid getting stuck.
@@ -89,7 +94,8 @@ def test_shutdown_host():
     # Instead of partitioning or reconnecting, we shut down the host permanently
     sdk_cmd.shutdown_agent(replace_task.host)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace {}'.format(replace_pod_name))
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'pod replace {}'.format(replace_pod_name))
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
 
     # Print another dump of current cluster tasks, now that repair has started.

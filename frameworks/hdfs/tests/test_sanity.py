@@ -50,17 +50,20 @@ def configure_package(configure_security):
 def pre_test_setup():
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
+
 @pytest.mark.sanity
 def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    core_site = etree.fromstring(sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints core-site.xml'))
+    core_site = etree.fromstring(sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, 'endpoints core-site.xml'))
     check_properties(core_site, {
         'ha.zookeeper.parent-znode': '/{}/hadoop-ha'.format(sdk_utils.get_zk_path(
             foldered_name))
     })
 
-    hdfs_site = etree.fromstring(sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints hdfs-site.xml'))
+    hdfs_site = etree.fromstring(sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, 'endpoints hdfs-site.xml'))
     expect = {
         'dfs.namenode.shared.edits.dir': 'qjournal://{}/hdfs'.format(';'.join([
             sdk_hosts.autoip_host(
@@ -95,7 +98,8 @@ def test_kill_journal_node():
     name_ids = sdk_tasks.get_task_ids(foldered_name, 'name')
     data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
 
-    sdk_cmd.kill_task_with_pattern('journalnode', sdk_hosts.system_host(foldered_name, 'journal-0-node'))
+    sdk_cmd.kill_task_with_pattern(
+        'journalnode', sdk_hosts.system_host(foldered_name, 'journal-0-node'))
     config.expect_recovery(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
@@ -135,7 +139,8 @@ def test_kill_data_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
-    sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
+    sdk_cmd.kill_task_with_pattern(
+        'hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
@@ -350,7 +355,8 @@ def test_metrics():
         # HDFS metric names need sanitation as they're dynamic.
         # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
         # This is consistent across all HDFS metric names.
-        metric_names = set(['.'.join(metric_name.split(".")[1:]) for metric_name in emitted_metrics])
+        metric_names = set(['.'.join(metric_name.split(".")[1:])
+                            for metric_name in emitted_metrics])
         return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(

@@ -46,7 +46,8 @@ class AWSPublisher(object):
         self._artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
-                err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
+                err = 'Provided package path is not a file: {} (full list: {})'.format(
+                    artifact_path, artifact_paths)
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
@@ -57,9 +58,11 @@ class AWSPublisher(object):
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get('WORKSPACE', '')
         if jenkins_workspace_path:
-            properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
+            properties_file = open(os.path.join(jenkins_workspace_path,
+                                                '{}.properties'.format(self._pkg_version)), 'w')
             properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
-            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._uploader.get_s3_directory()))
+            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(
+                self._uploader.get_s3_directory()))
             properties_file.flush()
             properties_file.close()
         # write URL to provided text file path:
@@ -84,7 +87,8 @@ class AWSPublisher(object):
         self._uploader.upload(
             universe_path,
             content_type='application/vnd.dcos.universe.repo+json;charset=utf-8')
-        universe_url = self._universe_url_prefix + self._http_directory_url + '/' + os.path.basename(universe_path)
+        universe_url = self._universe_url_prefix + \
+            self._http_directory_url + '/' + os.path.basename(universe_path)
         logger.info('---')
         logger.info('STUB UNIVERSE: {}'.format(universe_url))
         logger.info('---')
@@ -144,9 +148,12 @@ def s3_urls_from_env(package_name):
 
 
 def print_help(argv):
-    logger.info('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
-    logger.info('  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
-    logger.info('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
+    logger.info(
+        'Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
+    logger.info(
+        '  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    logger.info(
+        'In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
 def main(argv):

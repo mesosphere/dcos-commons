@@ -192,7 +192,8 @@ def _verify_completed_uninstall(service_name):
         log.info('No orphaned resources for role {} were found'.format(service_role))
 
     # There should be no framework entry for this service in the state summary (DCOS-29474)
-    orphaned_frameworks = [fwk for fwk in state_summary['frameworks'] if fwk['name'] == service_name]
+    orphaned_frameworks = [fwk for fwk in state_summary['frameworks']
+                           if fwk['name'] == service_name]
     if orphaned_frameworks:
         log.error('{} orphaned frameworks named {} after uninstall of {}: {}'.format(
             len(orphaned_frameworks), service_name, service_name, orphaned_frameworks))

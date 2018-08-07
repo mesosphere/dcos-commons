@@ -27,7 +27,8 @@ class PackageVersion(object):
         try:
             return json.loads(response_raw)['version']
         except Exception:
-            logger.error('Failed to parse version from output of command "{}": {}'.format(cmd, response_raw))
+            logger.error(
+                'Failed to parse version from output of command "{}": {}'.format(cmd, response_raw))
             raise
 
     def get_version_sha_for_path(self, repo_path):
@@ -46,10 +47,12 @@ class PackageVersion(object):
         version_tag = self.get_version()
         try:
             # get the rev for the remote tag. use % instead of .format() to preserve a literal '{}':
-            rev = self._get_cmd_stdout('git ls-remote --tags %s refs/tags/%s^{}' % (repo_url, version_tag))
+            rev = self._get_cmd_stdout(
+                'git ls-remote --tags %s refs/tags/%s^{}' % (repo_url, version_tag))
             if len(rev) == 0:
                 # no tag with '^{}' suffix was found. retry without the suffix:
-                rev = self._get_cmd_stdout('git ls-remote --tags {} refs/tags/{}'.format(repo_url, version_tag))
+                rev = self._get_cmd_stdout(
+                    'git ls-remote --tags {} refs/tags/{}'.format(repo_url, version_tag))
             # output format: '<tag>           <refname>'
             return rev.split()[0]
         except Exception:
@@ -69,7 +72,8 @@ class PackageVersion(object):
 
 def main(argv):
     if len(argv) != 2 and len(argv) != 3:
-        logger.error('Syntax: {} <package> [/local/repo/path or git@host.com:remote/repo]'.format(argv[0]))
+        logger.error(
+            'Syntax: {} <package> [/local/repo/path or git@host.com:remote/repo]'.format(argv[0]))
         logger.error('Received arguments {}'.format(str(argv)))
         return 1
     if len(argv) == 2:

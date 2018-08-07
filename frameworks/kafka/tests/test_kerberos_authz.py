@@ -105,7 +105,8 @@ def test_authz_acls_required(kafka_client: client.KafkaClient,
     # Since no ACLs are specified, only the super user can read and write
     for user in ["super", ]:
         log.info("Checking write / read permissions for user=%s", user)
-        write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, kerberos)
+        write_success, read_successes, _ = kafka_client.can_write_and_read(
+            user, kafka_server, topic_name, kerberos)
         assert write_success, "Write failed (user={})".format(user)
         assert read_successes, "Read failed (user={}): " \
                                "MESSAGES={} " \
@@ -115,7 +116,8 @@ def test_authz_acls_required(kafka_client: client.KafkaClient,
 
     for user in ["authorized", "unauthorized", ]:
         log.info("Checking lack of write / read permissions for user=%s", user)
-        write_success, _, read_messages = kafka_client.can_write_and_read(user, kafka_server, topic_name, kerberos)
+        write_success, _, read_messages = kafka_client.can_write_and_read(
+            user, kafka_server, topic_name, kerberos)
         assert not write_success, "Write not expected to succeed (user={})".format(user)
         assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
 
@@ -125,7 +127,8 @@ def test_authz_acls_required(kafka_client: client.KafkaClient,
     # After adding ACLs the authorized user and super user should still have access to the topic.
     for user in ["authorized", "super"]:
         log.info("Checking write / read permissions for user=%s", user)
-        write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, kerberos)
+        write_success, read_successes, _ = kafka_client.can_write_and_read(
+            user, kafka_server, topic_name, kerberos)
         assert write_success, "Write failed (user={})".format(user)
         assert read_successes, "Read failed (user={}): " \
                                "MESSAGES={} " \
@@ -135,6 +138,7 @@ def test_authz_acls_required(kafka_client: client.KafkaClient,
 
     for user in ["unauthorized", ]:
         log.info("Checking lack of write / read permissions for user=%s", user)
-        write_success, _, read_messages = kafka_client.can_write_and_read(user, kafka_server, topic_name, kerberos)
+        write_success, _, read_messages = kafka_client.can_write_and_read(
+            user, kafka_server, topic_name, kerberos)
         assert not write_success, "Write not expected to succeed (user={})".format(user)
         assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)

@@ -75,7 +75,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         # The return of this function triggers the restart.
         return not has_elements
 
-    @retrying.retry(stop_max_delay=5*60*1000,
+    @retrying.retry(stop_max_delay=5 * 60 * 1000,
                     wait_exponential_multiplier=1000,
                     wait_exponential_max=60 * 1000,
                     retry_on_result=offset_is_valid)
@@ -112,7 +112,8 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     _, post_write_offset_info = get_offset_change(topic_name, offset_info)
 
-    post_write_offset = sum(map(lambda partition: sum(map(int, partition.values())), post_write_offset_info))
+    post_write_offset = sum(map(lambda partition: sum(
+        map(int, partition.values())), post_write_offset_info))
     LOG.info("Post-write offset=%s", post_write_offset)
 
     assert post_write_offset > initial_offset
@@ -126,7 +127,8 @@ def test_decreasing_topic_partitions_fails(kafka_server: dict):
 
     assert len(partition_info) == 1
     assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert (
+        'The number of partitions for a topic can only be increased' in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -137,7 +139,8 @@ def test_setting_topic_partitions_to_same_value_fails(kafka_server: dict):
 
     assert len(partition_info) == 1
     assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert ('The number of partitions for a topic can only be increased' in partition_info['message'])
+    assert (
+        'The number of partitions for a topic can only be increased' in partition_info['message'])
 
 
 @pytest.mark.sanity
@@ -148,7 +151,8 @@ def test_increasing_topic_partitions_succeeds(kafka_server: dict):
 
     assert len(partition_info) == 1
     assert partition_info['message'].startswith('Output: WARNING: If partitions are increased')
-    assert ('The number of partitions for a topic can only be increased' not in partition_info['message'])
+    assert (
+        'The number of partitions for a topic can only be increased' not in partition_info['message'])
 
 
 @pytest.mark.sanity

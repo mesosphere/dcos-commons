@@ -1,11 +1,8 @@
 import logging
 
 import pytest
-import retrying
 
-import sdk_cmd
 import sdk_install
-import sdk_marathon
 import sdk_plan
 import sdk_utils
 from tests import config
@@ -31,7 +28,7 @@ def configure_package(configure_security):
         # this yml has 1 hello's + 0 world's:
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
