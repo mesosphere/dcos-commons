@@ -10,6 +10,9 @@ import sdk_upgrade
 
 log = logging.getLogger(__name__)
 
+# global pytest variable applicable to whole module
+pytestmark = pytest.mark.dcos_min_version("1.10")
+
 
 @pytest.fixture(scope="function", autouse=True)
 def before_each_test(configure_security):
@@ -32,16 +35,12 @@ def test_old_tasks_not_relaunched():
     hello_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello")
     assert len(hello_task_id) > 0, "Got an empty list of task_ids"
     # Start update plan with options that have list of yaml files to make it launch in multi service mode
-    sdk_upgrade.update_service(
+    sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
+        to_package_version=None,
         additional_options={"service": {"yaml": "", "yamls": "svc,foobar_service_name"}},
-    )
-    sdk_upgrade.update_service(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        4,
-        additional_options={"service": {"yaml": "", "yamls": "svc,foobar_service_name"}},
+        expected_running_tasks=4,
     )
     # Ensure new tasks are launched but the old task does not relaunch
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name="foobar")
@@ -60,14 +59,15 @@ def test_old_tasks_get_relaunched_with_new_config():
     assert len(hello_task_id) > 0, "Got an empty list of task_ids"
     # Start update plan with options that have list of yaml files to make it
     # launch in multi service mode with updated config
-    sdk_upgrade.update_service(
+    sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
-        4,
+        to_package_version=None,
         additional_options={
             "service": {"yaml": "", "yamls": "svc,foobar_service_name"},
             "hello": {"cpus": 0.2},
         },
+        expected_running_tasks=4,
     )
     # Ensure the old task DOES relaunch
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, multiservice_name="foobar")
