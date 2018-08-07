@@ -57,7 +57,7 @@ def check_running(service_name, expected_task_count, timeout_seconds=DEFAULT_TIM
 
 
 class Task(object):
-    '''Entry value returned by get_summary()'''
+    '''Entry value returned by get_summary() and get_service_tasks()'''
 
     @staticmethod
     def parse(task_entry, agentid_to_hostname):
@@ -322,5 +322,4 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     task_ids = get_task_ids(service_name, prefix)
     task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(sorted(old_task_ids), sorted(task_ids))
     log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
-    assert set(old_task_ids).issubset(set(task_ids)), 'Tasks starting with "{}" were updated:{}'.format(prefix,
-                                                                                                        task_sets)
+    assert set(old_task_ids).issubset(set(task_ids)), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)

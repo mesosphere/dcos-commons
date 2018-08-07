@@ -16,7 +16,7 @@ pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is b
 
 @pytest.fixture(scope='module', autouse=True)
 def zookeeper_server(configure_security):
-    service_options = sdk_install.merge_dictionaries(
+    service_options = sdk_utils.merge_dictionaries(
         sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
         {'service': {'name': config.ZOOKEEPER_SERVICE_NAME}}
     )

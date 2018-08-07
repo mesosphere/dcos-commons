@@ -49,6 +49,7 @@ def configure_package(configure_security):
 def pre_test_setup():
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
+
 @pytest.mark.sanity
 def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)

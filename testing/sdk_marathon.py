@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 '''
 import logging
 import json
-import os
 import retrying
 import tempfile
 
