@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":9,"i9":9,"i10":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":9,"i10":9,"i11":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -172,29 +172,35 @@ implements <a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getInterval--">getInterval</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getGracePeriodForDowngradeCompatibility--">getGracePeriodForDowngradeCompatibility</a></span>()</code>
+<div class="block">Produce a "gracePeriod" value in addition to "grace-period".</div>
+</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getMaxConsecutiveFailures--">getMaxConsecutiveFailures</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getInterval--">getInterval</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getTimeout--">getTimeout</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getMaxConsecutiveFailures--">getMaxConsecutiveFailures</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i7" class="rowColor">
+<td class="colFirst"><code>java.lang.Integer</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getTimeout--">getTimeout</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#newBuilder-com.mesosphere.sdk.specification.DefaultHealthCheckSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -314,6 +320,19 @@ implements <a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec.html#getGracePeriod--">getGracePeriod</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification">HealthCheckSpec</a></code></dd>
 </dl>
+</li>
+</ul>
+<a name="getGracePeriodForDowngradeCompatibility--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getGracePeriodForDowngradeCompatibility</h4>
+<pre>public&nbsp;java.lang.Integer&nbsp;getGracePeriodForDowngradeCompatibility()</pre>
+<div class="block">Produce a "gracePeriod" value in addition to "grace-period". This ensures downgrade compatibility to SDK 0.51.0
+ (and earlier).
+
+ TODO(nickbp): Remove this function on or after Jan 2019.</div>
 </li>
 </ul>
 <a name="toString--">
