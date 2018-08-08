@@ -93,18 +93,18 @@ echo "\tDCOS_ENTERPRISE=$DCOS_ENTERPRISE"
 ${REPO_ROOT_DIR}/tools/dcos_login.py
 
 # Ensure that the ssh-agent is running:
-eval "$(ssh-agent -s)"
-if [ -f /ssh/key ]; then
-    ssh-add /ssh/key
-fi
-
-if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
-    if [ `cat ${REPO_ROOT_DIR}/cluster_info.json | jq .key_helper` == 'true' ]; then
-        cat ${REPO_ROOT_DIR}/cluster_info.json | jq -r .ssh_private_key > /root/.ssh/id_rsa
-        chmod 600 /root/.ssh/id_rsa
-        ssh-add /root/.ssh/id_rsa
-    fi
-fi
+#eval "$(ssh-agent -s)"
+#if [ -f /ssh/key ]; then
+#    ssh-add /ssh/key
+#fi
+#
+#if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
+#    if [ `cat ${REPO_ROOT_DIR}/cluster_info.json | jq .key_helper` == 'true' ]; then
+#        cat ${REPO_ROOT_DIR}/cluster_info.json | jq -r .ssh_private_key > /root/.ssh/id_rsa
+#        chmod 600 /root/.ssh/id_rsa
+#        ssh-add /root/.ssh/id_rsa
+#    fi
+#fi
 
 
 # Determine the pytest args
