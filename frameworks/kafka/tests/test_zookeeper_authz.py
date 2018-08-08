@@ -21,9 +21,13 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-pytestmark = [sdk_utils.dcos_ee_only,
-              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                                 reason="Kerberos tests require DC/OS 1.10 or higher")]
+pytestmark = [
+    sdk_utils.dcos_ee_only,
+    pytest.mark.skipif(
+        sdk_utils.dcos_version_less_than("1.10"),
+        reason="Kerberos tests require DC/OS 1.10 or higher",
+    ),
+]
 
 
 def get_zookeeper_principals(service_name: str, realm: str) -> list:

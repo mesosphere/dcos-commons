@@ -48,10 +48,13 @@ def test_upgrade(
     universe_version = None
     try:
         # Move the Universe repo to the top of the repo list so that we can first install the release version.
-        _remove_package_repo('Universe')
-        assert _add_package_repo('Universe', universe_url, 0)
-        log.info('Waiting for Universe release version of {} to appear: version != {}'.format(
-            package_name, test_version))
+        _remove_package_repo("Universe")
+        assert _add_package_repo("Universe", universe_url, 0)
+        log.info(
+            "Waiting for Universe release version of {} to appear: version != {}".format(
+                package_name, test_version
+            )
+        )
         universe_version = _wait_for_new_package_version(package_name, test_version)
 
         log.info("Installing Universe version: {}={}".format(package_name, universe_version))
@@ -66,10 +69,13 @@ def test_upgrade(
     finally:
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
-            _remove_package_repo('Universe')
-            assert _add_package_repo('Universe', universe_url)
-            log.info('Waiting for test build version of {} to appear: version != {}'.format(
-                package_name, universe_version))
+            _remove_package_repo("Universe")
+            assert _add_package_repo("Universe", universe_url)
+            log.info(
+                "Waiting for test build version of {} to appear: version != {}".format(
+                    package_name, universe_version
+                )
+            )
             _wait_for_new_package_version(package_name, universe_version)
 
     log.info("Upgrading {}: {} => {}".format(package_name, universe_version, test_version))
@@ -158,13 +164,13 @@ def update_service(package_name, service_name, additional_options=None, to_packa
     if to_package_version:
         update_cmd.append("--package-version={}".format(to_package_version))
     if additional_options:
-        with tempfile.NamedTemporaryFile('w') as options_file:
+        with tempfile.NamedTemporaryFile("w") as options_file:
             json.dump(additional_options, options_file)
             options_file.flush()  # ensure json content is available for the CLI to read below
-            update_cmd.append('--options={}'.format(options_file.name))
-            sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+            update_cmd.append("--options={}".format(options_file.name))
+            sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
     else:
-        sdk_cmd.svc_cli(package_name, service_name, ' '.join(update_cmd), check=True)
+        sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
 
 
 def _upgrade_or_downgrade(
@@ -181,7 +187,9 @@ def _upgrade_or_downgrade(
     task_ids = sdk_tasks.get_task_ids(service_name, "")
 
     if sdk_utils.dcos_version_less_than("1.10") or sdk_utils.is_open_dcos():
-        log.info('Using marathon upgrade flow to upgrade {} {}'.format(package_name, to_package_version))
+        log.info(
+            "Using marathon upgrade flow to upgrade {} {}".format(package_name, to_package_version)
+        )
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(
             package_name,
@@ -253,15 +261,17 @@ def _get_pkg_version(package_name):
 
 
 def _remove_package_repo(repo_name) -> bool:
-    rc, _, _ = sdk_cmd.run_raw_cli('package repo remove {}'.format(repo_name))
+    rc, _, _ = sdk_cmd.run_raw_cli("package repo remove {}".format(repo_name))
     return rc == 0
 
 
 def _add_package_repo(repo_name, repo_url, index=None) -> bool:
     if index is None:
-        rc, _, _ = sdk_cmd.run_raw_cli('package repo add {} {}'.format(repo_name, repo_url))
+        rc, _, _ = sdk_cmd.run_raw_cli("package repo add {} {}".format(repo_name, repo_url))
     else:
-        rc, _, _ = sdk_cmd.run_raw_cli('package repo add --index={} {} {}'.format(index, repo_name, repo_url))
+        rc, _, _ = sdk_cmd.run_raw_cli(
+            "package repo add --index={} {} {}".format(index, repo_name, repo_url)
+        )
     return rc == 0
 
 

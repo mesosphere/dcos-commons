@@ -77,17 +77,17 @@ def get_zk_path(service_name):
 
 @functools.lru_cache()
 def dcos_url():
-    return sdk_cmd.run_cli('config show core.dcos_url').strip()
+    return sdk_cmd.run_cli("config show core.dcos_url").strip()
 
 
 @functools.lru_cache()
 def dcos_token():
-    return sdk_cmd.run_cli('config show core.dcos_acs_token', print_output=False).strip()
+    return sdk_cmd.run_cli("config show core.dcos_acs_token", print_output=False).strip()
 
 
 @functools.lru_cache()
 def dcos_version():
-    return sdk_cmd.cluster_request('GET', '/dcos-metadata/dcos-version.json').json()['version']
+    return sdk_cmd.cluster_request("GET", "/dcos-metadata/dcos-version.json").json()["version"]
 
 
 @functools.lru_cache()
@@ -132,7 +132,7 @@ def is_strict_mode():
     return os.environ.get("SECURITY", "") == "strict"
 
 
-'''Annotation which may be used to mark test suites or test cases as EE-only.
+"""Annotation which may be used to mark test suites or test cases as EE-only.
 
 Suite:
 > pytestmark = sdk_utils.dcos_ee_only
@@ -141,10 +141,8 @@ or
 
 Test:
 > @sdk_utils.dcos_ee_only  # at top of test
-'''
-dcos_ee_only = pytest.mark.skipif(
-    is_open_dcos(),
-    reason="Feature only supported in DC/OS EE.")
+"""
+dcos_ee_only = pytest.mark.skipif(is_open_dcos(), reason="Feature only supported in DC/OS EE.")
 
 
 ###
@@ -157,23 +155,23 @@ def pretty_duration(seconds):
     For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
     """
     if seconds is None:
-        return ''
-    ret = ''
+        return ""
+    ret = ""
     if seconds >= 86400:
-        ret += '{:.0f}d'.format(int(seconds / 86400))
+        ret += "{:.0f}d".format(int(seconds / 86400))
         seconds = seconds % 86400
     if seconds >= 3600:
-        ret += '{:.0f}h'.format(int(seconds / 3600))
+        ret += "{:.0f}h".format(int(seconds / 3600))
         seconds = seconds % 3600
     if seconds >= 60:
-        ret += '{:.0f}m'.format(int(seconds / 60))
+        ret += "{:.0f}m".format(int(seconds / 60))
         seconds = seconds % 60
     if seconds > 0:
         if len(ret) == 0:
             # nothing in duration string yet: be more accurate
-            ret += '{:.3f}s'.format(seconds)
+            ret += "{:.3f}s".format(seconds)
         else:
-            ret += '{:.1f}s'.format(seconds)
+            ret += "{:.1f}s".format(seconds)
     return ret
 
 

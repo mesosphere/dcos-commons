@@ -45,7 +45,7 @@ def get_plan_once(service_name, plan, multiservice_name=None):
     else:
         path = "/v1/service/{}/plans/{}".format(multiservice_name, plan)
 
-    response = sdk_cmd.service_request('GET', service_name, path, retry=False, raise_on_error=False)
+    response = sdk_cmd.service_request("GET", service_name, path, retry=False, raise_on_error=False)
     if response.status_code == 417:
         return response  # Plan has errors: Avoid throwing an exception, return plan as-is.
     response.raise_for_status()
@@ -53,9 +53,7 @@ def get_plan_once(service_name, plan, multiservice_name=None):
 
 
 def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan():
         return get_plan_once(service_name, plan, multiservice_name)
 
@@ -245,16 +243,16 @@ def plan_string(plan_name, plan):
         - node-deploy STARTING: node-0:[server]=STARTING, node-1:[server]=PENDING, node-2:[server]=PENDING
         - node-other PENDING: somestep=PENDING
         - errors: foo, bar
-        '''
-        return '\n- {} ({}): {}'.format(
-            phase['name'],
-            phase['status'],
-            ', '.join('{}={}'.format(step['name'], step['status']) for step in phase['steps']))
+        """
+        return "\n- {} ({}): {}".format(
+            phase["name"],
+            phase["status"],
+            ", ".join("{}={}".format(step["name"], step["status"]) for step in phase["steps"]),
+        )
 
-    plan_str = '{} ({}):{}'.format(
-        plan_name,
-        plan['status'],
-        ''.join(phase_string(phase) for phase in plan['phases']))
-    if plan.get('errors', []):
-        plan_str += '\n- errors: {}'.format(', '.join(plan['errors']))
+    plan_str = "{} ({}):{}".format(
+        plan_name, plan["status"], "".join(phase_string(phase) for phase in plan["phases"])
+    )
+    if plan.get("errors", []):
+        plan_str += "\n- errors: {}".format(", ".join(plan["errors"]))
     return plan_str

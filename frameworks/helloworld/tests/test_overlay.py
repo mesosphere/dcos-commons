@@ -50,7 +50,7 @@ def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
     deployment_plan = sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-    log.info(sdk_plan.plan_string('deploy', deployment_plan))
+    log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
@@ -66,30 +66,52 @@ def test_overlay_network():
         if "getter" in name:  # don't check the "getter" tasks because they don't use ports
             continue
         if "host" in name:
-            assert "ports" in task.resources.keys(), "Task {} should have port resources".format(name)
+            assert "ports" in task.resources.keys(), "Task {} should have port resources".format(
+                name
+            )
         if "overlay" in name:
-            assert "ports" not in task.resources.keys(), "Task {} should NOT have port resources".format(name)
+            assert (
+                "ports" not in task.resources.keys()
+            ), "Task {} should NOT have port resources".format(
+                name
+            )
 
     sdk_networks.check_task_network("hello-overlay-0-server")
     sdk_networks.check_task_network("hello-overlay-vip-0-server")
     sdk_networks.check_task_network("hello-host-0-server", expected_network_name=None)
     sdk_networks.check_task_network("hello-host-vip-0-server", expected_network_name=None)
 
-    endpoints_result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints', json=True)
+    endpoints_result = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints", json=True
+    )
     assert len(endpoints_result) == 2, "Expected 2 endpoints, got: {}".format(endpoints_result)
 
-    overlay_endpoints_result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints overlay-vip', json=True)
-    assert "address" in overlay_endpoints_result.keys(), "overlay endpoints missing 'address': {}".format(overlay_endpoints_result)
+    overlay_endpoints_result = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints overlay-vip", json=True
+    )
+    assert (
+        "address" in overlay_endpoints_result.keys()
+    ), "overlay endpoints missing 'address': {}".format(
+        overlay_endpoints_result
+    )
     assert len(overlay_endpoints_result["address"]) == 1
     assert overlay_endpoints_result["address"][0].startswith("9")
     overlay_port = overlay_endpoints_result["address"][0].split(":")[-1]
     assert overlay_port == "4044"
     assert "dns" in overlay_endpoints_result.keys()
     assert len(overlay_endpoints_result["dns"]) == 1
-    assert overlay_endpoints_result["dns"][0] == sdk_hosts.autoip_host(config.SERVICE_NAME, "hello-overlay-vip-0-server", 4044)
+    assert overlay_endpoints_result["dns"][0] == sdk_hosts.autoip_host(
+        config.SERVICE_NAME, "hello-overlay-vip-0-server", 4044
+    )
 
-    host_endpoints_result = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints host-vip', json=True)
-    assert "address" in host_endpoints_result.keys(), "overlay endpoints missing 'address': {}".format(host_endpoints_result)
+    host_endpoints_result = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints host-vip", json=True
+    )
+    assert (
+        "address" in host_endpoints_result.keys()
+    ), "overlay endpoints missing 'address': {}".format(
+        host_endpoints_result
+    )
     assert len(host_endpoints_result["address"]) == 1
     assert host_endpoints_result["address"][0].startswith("10")
     host_port = host_endpoints_result["address"][0].split(":")[-1]
@@ -156,9 +178,11 @@ def test_srv_records():
 
     log.info("Getting framework srv records for %s", config.SERVICE_NAME)
 
-    @retrying.retry(stop_max_delay=5 * 60 * 1000,
-                    wait_exponential_multiplier=1000,
-                    wait_exponential_max=120 * 1000)
+    @retrying.retry(
+        stop_max_delay=5 * 60 * 1000,
+        wait_exponential_multiplier=1000,
+        wait_exponential_max=120 * 1000,
+    )
     def get_srv_records():
         cmd = "curl localhost:8123/v1/enumerate"
         rc, stdout, _ = sdk_cmd.master_ssh(cmd)

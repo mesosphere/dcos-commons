@@ -41,10 +41,7 @@ def configure_package(configure_security):
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=120 * 1000,
-        retry_on_result=lambda res: not res)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def wait():
         ret = sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
@@ -172,7 +169,7 @@ def test_metrics():
         "kafka.controller.ControllerStats.LeaderElectionRateAndTimeMs.p95",
     ]
 
-    def expected_metrics_callback(emitted_metrics):
+    def expected_metrics_exist(emitted_metrics):
         return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
@@ -181,5 +178,5 @@ def test_metrics():
         "kafka-0",
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,
-        expected_metrics_callback
+        expected_metrics_exist,
     )

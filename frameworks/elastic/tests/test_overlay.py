@@ -46,7 +46,8 @@ def default_populated_index():
 @retrying.retry(
     wait_fixed=1000,
     stop_max_delay=config.DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res)
+    retry_on_result=lambda res: not res,
+)
 def test_indexing(default_populated_index):
     indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
     observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
@@ -63,8 +64,11 @@ def test_indexing(default_populated_index):
 @pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
     elastic_tasks = [t.id for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
-    assert len(elastic_tasks) == config.DEFAULT_TASK_COUNT, \
-        "Incorrect number of tasks should be {} got {}".format(config.DEFAULT_TASK_COUNT, len(elastic_tasks))
+    assert (
+        len(elastic_tasks) == config.DEFAULT_TASK_COUNT
+    ), "Incorrect number of tasks should be {} got {}".format(
+        config.DEFAULT_TASK_COUNT, len(elastic_tasks)
+    )
     for task in elastic_tasks:
         sdk_networks.check_task_network(task)
 

@@ -32,9 +32,11 @@ def install_enterprise_cli(force=False):
             log.info("DC/OS enterprise version %s CLI already installed", stdout.strip())
             return
 
-    @retrying.retry(stop_max_attempt_number=3,
-                    wait_fixed=2000,
-                    retry_on_exception=lambda e: isinstance(e, Exception))
+    @retrying.retry(
+        stop_max_attempt_number=3,
+        wait_fixed=2000,
+        retry_on_exception=lambda e: isinstance(e, Exception),
+    )
     def _install_impl():
         sdk_cmd.run_cli("package install --yes --cli dcos-enterprise-cli", check=True)
 

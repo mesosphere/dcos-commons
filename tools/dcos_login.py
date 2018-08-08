@@ -16,32 +16,38 @@ __CLI_LOGIN_EE_PASSWORD = "deleteme"
 __REQUEST_ATTEMPTS = 5
 __REQUEST_ATTEMPT_SLEEP_SECONDS = 2
 
-__CLUSTERS_PATH = os.path.expanduser(os.path.join('~', '.dcos', 'clusters'))
-__TOML_TEMPLATE = '''[cluster]
+__CLUSTERS_PATH = os.path.expanduser(os.path.join("~", ".dcos", "clusters"))
+__TOML_TEMPLATE = """[cluster]
 name = "{name}"
 
 [core]
 dcos_acs_token = "{token}"
 dcos_url = "{url}"
 ssl_verify = "false"
-'''
+"""
 
-logging.basicConfig(
-    format='[%(asctime)s|%(levelname)s]: %(message)s',
-    level='INFO')
+logging.basicConfig(format="[%(asctime)s|%(levelname)s]: %(message)s", level="INFO")
 log = logging.getLogger(__name__)
 
 
-def http_request(method: str, cluster_url: str, cluster_path: str, token: str, headers={}, log_args=True, data=None):
-    '''Performs an http request, returning the text content on success, or throwing an exception on
+def http_request(
+    method: str,
+    cluster_url: str,
+    cluster_path: str,
+    token: str,
+    headers={},
+    log_args=True,
+    data=None,
+):
+    """Performs an http request, returning the text content on success, or throwing an exception on
     consistent failure.
 
     To simplify portability, this internally sticks to only using python3 stdlib.
-    '''
+    """
 
     query_url = urllib.parse.urljoin(cluster_url, cluster_path)
     if token:
-        headers['Authorization'] = 'token={}'.format(token)
+        headers["Authorization"] = "token={}".format(token)
     request = urllib.request.Request(query_url, method=method, headers=headers, unverifiable=True)
 
     # Disable SSL cert: test clusters are usually self-signed
@@ -52,56 +58,58 @@ def http_request(method: str, cluster_url: str, cluster_path: str, token: str, h
     for i in range(__REQUEST_ATTEMPTS):
         start = time.time()
         try:
-            response = urllib.request.urlopen(request, data=data, timeout=10, context=ignore_ssl_cert)
+            response = urllib.request.urlopen(
+                request, data=data, timeout=10, context=ignore_ssl_cert
+            )
         except Exception:
-            log.error('Query failed: {} {}'.format(method, query_url))
+            log.error("Query failed: {} {}".format(method, query_url))
             raise
         end = time.time()
 
         response_status = response.getcode()
-        log_msg = '(HTTP {}) {} => {} ({:.3f}s)'.format(
-            method.upper(),
-            cluster_path,
-            response_status,
-            end - start
+        log_msg = "(HTTP {}) {} => {} ({:.3f}s)".format(
+            method.upper(), cluster_path, response_status, end - start
         )
-        encoding = response.info().get_content_charset('utf-8')
+        encoding = response.info().get_content_charset("utf-8")
         response_data = response.read().decode(encoding)
         if response_status == 200:
             log.info(log_msg)
             return response_data
         else:
-            log.error('{}\n{}'.format(log_msg, response_data))
+            log.error("{}\n{}".format(log_msg, response_data))
             time.sleep(__REQUEST_ATTEMPT_SLEEP_SECONDS)
 
-    raise Exception('Failed to complete {} {} request after {} attempts'.format(
-        method,
-        query_url,
-        __REQUEST_ATTEMPTS
-    ))
+    raise Exception(
+        "Failed to complete {} {} request after {} attempts".format(
+            method, query_url, __REQUEST_ATTEMPTS
+        )
+    )
 
 
 def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> str:
-    '''Logs into the cluster, or throws an exception if login fails.
+    """Logs into the cluster, or throws an exception if login fails.
 
     This internally implements a retry loop. We could use 'retrying', but this utility sticks to
     the python stdlib to allow easy portability.
-    '''
+    """
     if is_enterprise:
-        log.info('Logging into {} as {}'.format(dcosurl, username))
-        payload = {'uid': username, 'password': password}
+        log.info("Logging into {} as {}".format(dcosurl, username))
+        payload = {"uid": username, "password": password}
     else:
-        log.info('Logging into {} with default open token'.format(dcosurl))
-        payload = {'token': __CLI_LOGIN_OPEN_TOKEN}
+        log.info("Logging into {} with default open token".format(dcosurl))
+        payload = {"token": __CLI_LOGIN_OPEN_TOKEN}
 
-    return json.loads(http_request(
-        'POST',
-        dcosurl,
-        '/acs/api/v1/auth/login',
-        token=None,
-        headers={'Content-Type': 'application/json'},
-        log_args=False,
-        data=json.dumps(payload).encode('utf-8')))['token']
+    return json.loads(
+        http_request(
+            "POST",
+            dcosurl,
+            "/acs/api/v1/auth/login",
+            token=None,
+            headers={"Content-Type": "application/json"},
+            log_args=False,
+            data=json.dumps(payload).encode("utf-8"),
+        )
+    )["token"]
 
 
 def _netloc(url: str):
@@ -109,63 +117,61 @@ def _netloc(url: str):
 
 
 def attach_cluster(cluster_id: str) -> None:
-    '''Adds an 'attached' file to the desired cluster_id, and removes any attached files from any
+    """Adds an 'attached' file to the desired cluster_id, and removes any attached files from any
     other clusters.
-    '''
+    """
     if not os.path.isdir(__CLUSTERS_PATH):
-        raise Exception('INTERNAL ERROR: Missing clusters directory: {}'.format(__CLUSTERS_PATH))
+        raise Exception("INTERNAL ERROR: Missing clusters directory: {}".format(__CLUSTERS_PATH))
     for name in os.listdir(__CLUSTERS_PATH):
         cluster_path = os.path.join(__CLUSTERS_PATH, name)
         if not os.path.isdir(cluster_path):
             continue
-        attached_file_path = os.path.join(cluster_path, 'attached')
+        attached_file_path = os.path.join(cluster_path, "attached")
         if name == cluster_id:
             if not os.path.isfile(attached_file_path):
-                log.info('Attaching cluster: {}'.format(cluster_id))
-                f = open(attached_file_path, 'w')
+                log.info("Attaching cluster: {}".format(cluster_id))
+                f = open(attached_file_path, "w")
                 f.close()
                 os.chmod(attached_file_path, 0o600)
         elif os.path.isfile(attached_file_path):
-            log.info('Detaching cluster: {}'.format(name))
+            log.info("Detaching cluster: {}".format(name))
             os.unlink(attached_file_path)
 
 
 def configure_cli(dcosurl: str, token: str) -> None:
-    '''Sets up a dcos cluster config for the specified cluster using the specified auth token.'''
-    cluster_id = json.loads(http_request('GET', dcosurl, '/metadata', token))['CLUSTER_ID']
-    state_summary = json.loads(http_request('GET', dcosurl, '/mesos/state-summary', token))
+    """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
+    cluster_id = json.loads(http_request("GET", dcosurl, "/metadata", token))["CLUSTER_ID"]
+    state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
 
     # Since we've got the state summary, print out some cluster stats:
     agents = []
     public_count = 0
-    for agent in state_summary.get('slaves', []):
+    for agent in state_summary.get("slaves", []):
         # TODO log mount volumes. how do they look?
-        is_public = 'public_ip' in agent.get('attributes', {})
+        is_public = "public_ip" in agent.get("attributes", {})
         if is_public:
             public_count += 1
-        agents.append('- {} ({}): {} cpu, {} mem, {} disk'.format(
-            agent.get('hostname', '???'),
-            'public' if is_public else 'private',
-            agent.get('resources', {}).get('cpus', 0),
-            agent.get('resources', {}).get('mem', 0),
-            agent.get('resources', {}).get('disk', 0)
-        ))
-    log.info('Configured cluster with {} public/{} private agents:\n{}'.format(
-        public_count,
-        len(agents) - public_count,
-        '\n'.join(agents)
-    ))
+        agents.append(
+            "- {} ({}): {} cpu, {} mem, {} disk".format(
+                agent.get("hostname", "???"),
+                "public" if is_public else "private",
+                agent.get("resources", {}).get("cpus", 0),
+                agent.get("resources", {}).get("mem", 0),
+                agent.get("resources", {}).get("disk", 0),
+            )
+        )
+    log.info(
+        "Configured cluster with {} public/{} private agents:\n{}".format(
+            public_count, len(agents) - public_count, "\n".join(agents)
+        )
+    )
 
     # Write the cluster config file:
     cluster_dir_path = os.path.join(__CLUSTERS_PATH, cluster_id)
     os.makedirs(cluster_dir_path, exist_ok=True)
-    cluster_config_path = os.path.join(cluster_dir_path, 'dcos.toml')
-    with open(cluster_config_path, 'w') as f:
-        f.write(__TOML_TEMPLATE.format(
-            name=state_summary['cluster'],
-            token=token,
-            url=dcosurl
-        ))
+    cluster_config_path = os.path.join(cluster_dir_path, "dcos.toml")
+    with open(cluster_config_path, "w") as f:
+        f.write(__TOML_TEMPLATE.format(name=state_summary["cluster"], token=token, url=dcosurl))
     os.chmod(cluster_config_path, 0o600)
 
     # Write the 'attach' file:
@@ -208,5 +214,5 @@ def login_session() -> None:
     configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     login_session()

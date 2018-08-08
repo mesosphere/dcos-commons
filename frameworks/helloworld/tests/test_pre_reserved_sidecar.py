@@ -47,8 +47,8 @@ def run_plan(plan_name, params=None):
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)
     log.info(sdk_plan.plan_string(plan_name, started_plan))
-    assert(len(started_plan['phases']) == 1)
-    assert(started_plan['phases'][0]['name'] == plan_name + '-deploy')
-    assert(len(started_plan['phases'][0]['steps']) == 1)
+    assert len(started_plan["phases"]) == 1
+    assert started_plan["phases"][0]["name"] == plan_name + "-deploy"
+    assert len(started_plan["phases"][0]["steps"]) == 1
 
     sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, plan_name)

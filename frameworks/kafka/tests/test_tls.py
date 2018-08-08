@@ -12,9 +12,12 @@ from security import transport_encryption, cipher_suites
 
 from tests import config
 
-pytestmark = [sdk_utils.dcos_ee_only,
-              pytest.mark.skipif(sdk_utils.dcos_version_less_than("1.10"),
-                                 reason="TLS tests require DC/OS 1.10+")]
+pytestmark = [
+    sdk_utils.dcos_ee_only,
+    pytest.mark.skipif(
+        sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
+    ),
+]
 
 log = logging.getLogger(__name__)
 

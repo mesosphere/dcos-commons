@@ -4,7 +4,7 @@
 FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
 ************************************************************************
-'''
+"""
 import json
 import logging
 import time
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 TIMEOUT_SECONDS = 15 * 60
 
 """List of services which are currently installed via install().
-Used by post-test diagnostics to retrieve stuff from currently running services."""
+Used by post - test diagnostics to retrieve stuff from currently running services."""
 _installed_service_names = set([])
 
 """List of dead agents which should be ignored when checking for orphaned resources.
@@ -35,38 +35,45 @@ def get_installed_service_names() -> set:
     return _installed_service_names
 
 
-@retrying.retry(stop_max_attempt_number=3,
-                retry_on_exception=lambda e: isinstance(e, Exception))
+@retrying.retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, Exception))
 def _retried_install_impl(
-        package_name,
-        service_name,
-        expected_running_tasks,
-        options={},
-        package_version=None,
-        timeout_seconds=TIMEOUT_SECONDS):
-    log.info('Installing package={} service={} with options={} version={}'.format(
-        package_name, service_name, options, package_version))
+    package_name,
+    service_name,
+    expected_running_tasks,
+    options={},
+    package_version=None,
+    timeout_seconds=TIMEOUT_SECONDS,
+):
+    log.info(
+        "Installing package={} service={} with options={} version={}".format(
+            package_name, service_name, options, package_version
+        )
+    )
 
     # Trigger package install, but only if it's not already installed.
     # We expect upstream to have confirmed that it wasn't already installed beforehand.
-    install_cmd = ['package', 'install', package_name, '--yes']
+    install_cmd = ["package", "install", package_name, "--yes"]
 
     if package_version:
-        install_cmd.append('--package-version={}'.format(package_version))
+        install_cmd.append("--package-version={}".format(package_version))
 
     if sdk_marathon.app_exists(service_name):
-        log.info('Marathon app={} exists, ensuring CLI for package={} is installed'.format(service_name, package_name))
-        install_cmd.append('--cli')
-        sdk_cmd.run_raw_cli(' '.join(install_cmd), check=True)
+        log.info(
+            "Marathon app={} exists, ensuring CLI for package={} is installed".format(
+                service_name, package_name
+            )
+        )
+        install_cmd.append("--cli")
+        sdk_cmd.run_raw_cli(" ".join(install_cmd), check=True)
     elif options:
         # Write options to a temporary json file to be accessed by the CLI:
-        with tempfile.NamedTemporaryFile('w') as options_file:
+        with tempfile.NamedTemporaryFile("w") as options_file:
             json.dump(options, options_file)
             options_file.flush()  # ensure content is available for the CLI to read below
-            install_cmd.append('--options={}'.format(options_file.name))
-            sdk_cmd.run_cli(' '.join(install_cmd), check=True)
+            install_cmd.append("--options={}".format(options_file.name))
+            sdk_cmd.run_cli(" ".join(install_cmd), check=True)
     else:
-        sdk_cmd.run_cli(' '.join(install_cmd), check=True)
+        sdk_cmd.run_cli(" ".join(install_cmd), check=True)
 
     # Wait for expected tasks to come up
     if expected_running_tasks > 0:
@@ -132,8 +139,11 @@ def install(
         )
         sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
-    log.info('Installed package={} service={} after {}'.format(
-        package_name, service_name, sdk_utils.pretty_duration(time.time() - start)))
+    log.info(
+        "Installed package={} service={} after {}".format(
+            package_name, service_name, sdk_utils.pretty_duration(time.time() - start)
+        )
+    )
 
     global _installed_service_names
     _installed_service_names.add(service_name)
@@ -145,28 +155,42 @@ def install(
     retry_on_exception=lambda e: isinstance(e, Exception),
 )
 def _retried_run_janitor(service_name):
-    cmd_list = ["docker", "run", "mesosphere/janitor", "/janitor.py",
-                "-r", sdk_utils.get_role(service_name),
-                "-p", service_name + '-principal',
-                "-z", sdk_utils.get_zk_path(service_name),
-                "--auth_token={}".format(sdk_utils.dcos_token())]
+    cmd_list = [
+        "docker",
+        "run",
+        "mesosphere/janitor",
+        "/janitor.py",
+        "-r",
+        sdk_utils.get_role(service_name),
+        "-p",
+        service_name + "-principal",
+        "-z",
+        sdk_utils.get_zk_path(service_name),
+        "--auth_token={}".format(sdk_utils.dcos_token()),
+    ]
     rc, _, _ = sdk_cmd.master_ssh(" ".join(cmd_list))
-    assert rc == 0, 'Janitor command failed'
+    assert rc == 0, "Janitor command failed"
 
 
-@retrying.retry(stop_max_attempt_number=5,
-                wait_fixed=5000,
-                retry_on_exception=lambda e: isinstance(e, Exception))
+@retrying.retry(
+    stop_max_attempt_number=5,
+    wait_fixed=5000,
+    retry_on_exception=lambda e: isinstance(e, Exception),
+)
 def _retried_uninstall_package_and_wait(package_name, service_name):
     if sdk_marathon.app_exists(service_name):
-        log.info('Uninstalling package {} with service name {}'.format(package_name, service_name))
-        sdk_cmd.run_cli('package uninstall {} --app-id={} --yes'.format(package_name, service_name), check=True)
+        log.info("Uninstalling package {} with service name {}".format(package_name, service_name))
+        sdk_cmd.run_cli(
+            "package uninstall {} --app-id={} --yes".format(package_name, service_name), check=True
+        )
 
         # Wait on the app no longer being listed in Marathon, at which point it is uninstalled.
         # At the same time, log the deploy plan state as we wait for the app to finish uninstalling.
-        @retrying.retry(stop_max_delay=TIMEOUT_SECONDS * 1000,
-                        wait_fixed=5000,
-                        retry_on_result=lambda result: not result)
+        @retrying.retry(
+            stop_max_delay=TIMEOUT_SECONDS * 1000,
+            wait_fixed=5000,
+            retry_on_result=lambda result: not result,
+        )
         def wait_for_removal_log_deploy_plan():
             if not sdk_marathon.app_exists(service_name):
                 return True
@@ -174,15 +198,21 @@ def _retried_uninstall_package_and_wait(package_name, service_name):
             # App still exists, print the deploy plan. Best effort: It is expected for the scheduler
             # to become unavailable once uninstall completes.
             try:
-                log.info(sdk_plan.plan_string('deploy', sdk_plan.get_plan_once(service_name, 'deploy')))
+                log.info(
+                    sdk_plan.plan_string("deploy", sdk_plan.get_plan_once(service_name, "deploy"))
+                )
             except Exception:
                 pass  # best effort attempt at logging plan content
             return False
 
-        log.info('Waiting for {} to be removed'.format(service_name))
+        log.info("Waiting for {} to be removed".format(service_name))
         wait_for_removal_log_deploy_plan()
     else:
-        log.info('Skipping uninstall of package {}/service {}: App named "{}" doesn\'t exist'.format(package_name, service_name, service_name))
+        log.info(
+            'Skipping uninstall of package {}/service {}: App named "{}" doesn\'t exist'.format(
+                package_name, service_name, service_name
+            )
+        )
 
 
 def _verify_completed_uninstall(service_name):
@@ -197,7 +227,7 @@ def _verify_completed_uninstall(service_name):
         matching_reserved_resources = agent["reserved_resources"].get(service_role)
         if matching_reserved_resources:
             global _dead_agent_hosts
-            if agent['hostname'] in _dead_agent_hosts:
+            if agent["hostname"] in _dead_agent_hosts:
                 # The test told us ahead of time to expect orphaned resources on this host.
                 log.info(
                     "Ignoring orphaned resources on agent {}/{}: {}".format(
@@ -256,7 +286,7 @@ def _verify_completed_uninstall(service_name):
 def ignore_dead_agent(agent_host):
     """Marks the specified agent as destroyed. When uninstall() is next called, any orphaned
     resources against this agent will be logged but will not result in a thrown exception.
-    '''
+    """
     global _dead_agent_hosts
     _dead_agent_hosts.add(agent_host)
     log.info(
@@ -300,7 +330,9 @@ def uninstall(package_name, service_name):
             service_name,
             sdk_utils.pretty_duration(cleanup_start - start),
             sdk_utils.pretty_duration(finish - cleanup_start),
-            sdk_utils.pretty_duration(finish - start)))
+            sdk_utils.pretty_duration(finish - start),
+        )
+    )
 
     # Sanity check: Verify that all resources and the framework have been successfully cleaned up,
     # and throw an exception if anything is left over (uninstall bug?)

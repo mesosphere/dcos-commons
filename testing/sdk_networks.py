@@ -26,16 +26,21 @@ def check_task_network(task_name, expected_network_name="dcos"):
             continue
         for network_info in status["container_status"]["network_infos"]:
             if expected_network_name is not None:
-                assert "name" in network_info, \
-                    "Didn't find network name in NetworkInfo for task {task} with " \
+                assert "name" in network_info, (
+                    "Didn't find network name in NetworkInfo for task {task} with "
                     "status:{status}".format(task=task_name, status=status)
-                assert network_info["name"] == expected_network_name, \
-                    "Expected network name:{expected} found:{observed}" \
-                    .format(expected=expected_network_name, observed=network_info["name"])
+                )
+                assert (
+                    network_info["name"] == expected_network_name
+                ), "Expected network name:{expected} found:{observed}".format(
+                    expected=expected_network_name, observed=network_info["name"]
+                )
             else:
-                assert "name" not in network_info, \
-                    "Task {task} has network name when it shouldn't, status:{status}" \
-                    .format(task=task_name, status=status)
+                assert (
+                    "name" not in network_info
+                ), "Task {task} has network name when it shouldn't, status:{status}".format(
+                    task=task_name, status=status
+                )
 
 
 def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_count):
@@ -56,7 +61,7 @@ def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_
 def check_endpoints_on_overlay(endpoints):
     def check_ip_addresses_on_overlay():
         # the overlay IP address should not contain any agent IPs
-        all_agent_ips = set([agent['hostname'] for agent in sdk_agents.get_agents()])
+        all_agent_ips = set([agent["hostname"] for agent in sdk_agents.get_agents()])
         return len(set(ip_addresses).intersection(all_agent_ips)) == 0
 
     assert "address" in endpoints, "endpoints: {} missing 'address' key".format(endpoints)

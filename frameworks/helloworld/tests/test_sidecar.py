@@ -31,7 +31,7 @@ def configure_package(configure_security):
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
-    log.info(sdk_plan.plan_string('deploy', deployment_plan))
+    log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
     assert len(deployment_plan["phases"]) == 2
     assert deployment_plan["phases"][0]["name"] == "server-deploy"
@@ -50,10 +50,7 @@ def test_sidecar_parameterized():
     run_plan("sidecar-parameterized", {"PLAN_PARAMETER": "parameterized"})
 
 
-@retrying.retry(
-    wait_fixed=2000,
-    stop_max_delay=5 * 60 * 1000,
-    retry_on_result=lambda res: not res)
+@retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000, retry_on_result=lambda res: not res)
 def wait_for_toxic_sidecar():
     """
     Since the sidecar task fails too quickly, we check for the contents of
@@ -103,8 +100,8 @@ def run_plan(plan_name, params=None):
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)
     log.info(sdk_plan.plan_string(plan_name, started_plan))
-    assert(len(started_plan['phases']) == 1)
-    assert(started_plan['phases'][0]['name'] == plan_name + '-deploy')
-    assert(len(started_plan['phases'][0]['steps']) == 2)
+    assert len(started_plan["phases"]) == 1
+    assert started_plan["phases"][0]["name"] == plan_name + "-deploy"
+    assert len(started_plan["phases"][0]["steps"]) == 2
 
     sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, plan_name)

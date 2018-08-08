@@ -29,8 +29,8 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             current_expected_task_count,
-            additional_options={
-                "service": {"name": foldered_name}})
+            additional_options={"service": {"name": foldered_name}},
+        )
 
         yield  # let the test session execute
     finally:
@@ -86,10 +86,14 @@ def test_pod_replace_then_immediate_config_update():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
-        endpoints = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'endpoints {}'.format(endpoint), json=True)
-        host = endpoint.split('-')[0]  # 'coordinator-http' => 'coordinator'
-        assert endpoints['dns'][0].startswith(sdk_hosts.autoip_host(foldered_name, host + '-0-node'))
-        assert endpoints['vip'].startswith(sdk_hosts.vip_host(foldered_name, host))
+        endpoints = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "endpoints {}".format(endpoint), json=True
+        )
+        host = endpoint.split("-")[0]  # 'coordinator-http' => 'coordinator'
+        assert endpoints["dns"][0].startswith(
+            sdk_hosts.autoip_host(foldered_name, host + "-0-node")
+        )
+        assert endpoints["vip"].startswith(sdk_hosts.vip_host(foldered_name, host))
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -120,7 +124,7 @@ def test_metrics():
         "node.data-0-node.jvm.threads.count",
     ]
 
-    def expected_metrics_callback(emitted_metrics):
+    def expected_metrics_exist(emitted_metrics):
         # Elastic metrics are also dynamic and based on the service name# For eg:
         # elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
         # To prevent this from breaking we drop the service name from the metric name
@@ -134,7 +138,8 @@ def test_metrics():
         "data-0",
         "data-0-node",
         config.DEFAULT_TIMEOUT,
-        expected_metrics_callback)
+        expected_metrics_exist,
+    )
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -175,9 +180,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
         0,
-        {"kibana": {
-            "elasticsearch_url": elasticsearch_url
-        }},
+        {"kibana": {"elasticsearch_url": elasticsearch_url}},
         timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
         wait_for_deployment=False,
         insert_strict_options=False,
@@ -216,10 +219,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
         0,
-        {"kibana": {
-            "elasticsearch_url": elasticsearch_url,
-            "xpack_enabled": True
-        }},
+        {"kibana": {"elasticsearch_url": elasticsearch_url, "xpack_enabled": True}},
         timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
         wait_for_deployment=False,
         insert_strict_options=False,
@@ -252,10 +252,18 @@ def test_xpack_toggle_with_kibana(default_populated_index):
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_losing_and_regaining_index_health(default_populated_index):
-    config.check_elasticsearch_index_health(config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name)
-    sdk_cmd.kill_task_with_pattern("data__.*Elasticsearch", sdk_hosts.system_host(foldered_name, "data-0-node"))
-    config.check_elasticsearch_index_health(config.DEFAULT_INDEX_NAME, "yellow", service_name=foldered_name)
-    config.check_elasticsearch_index_health(config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name)
+    config.check_elasticsearch_index_health(
+        config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name
+    )
+    sdk_cmd.kill_task_with_pattern(
+        "data__.*Elasticsearch", sdk_hosts.system_host(foldered_name, "data-0-node")
+    )
+    config.check_elasticsearch_index_health(
+        config.DEFAULT_INDEX_NAME, "yellow", service_name=foldered_name
+    )
+    config.check_elasticsearch_index_health(
+        config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name
+    )
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -265,7 +273,9 @@ def test_losing_and_regaining_index_health(default_populated_index):
 @pytest.mark.sanity
 def test_master_reelection():
     initial_master = config.get_elasticsearch_master(service_name=foldered_name)
-    sdk_cmd.kill_task_with_pattern("master__.*Elasticsearch", sdk_hosts.system_host(foldered_name, initial_master))
+    sdk_cmd.kill_task_with_pattern(
+        "master__.*Elasticsearch", sdk_hosts.system_host(foldered_name, initial_master)
+    )
     sdk_plan.wait_for_in_progress_recovery(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
     config.wait_for_expected_nodes_to_exist(service_name=foldered_name)

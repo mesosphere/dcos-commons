@@ -40,10 +40,10 @@ def test_once_task_does_not_restart_on_config_update():
     config.check_running(foldered_name)
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
-    task_name = 'hello-0-once'
+    task_name = "hello-0-once"
     hello_once_id = get_completed_task_id(task_name)
     assert hello_once_id is not None
-    log.info('hello-0-once ID: {}'.format(hello_once_id))
+    log.info("hello-0-once ID: {}".format(hello_once_id))
     config.bump_hello_cpus(foldered_name)
 
     sdk_tasks.check_task_not_relaunched(
@@ -56,10 +56,10 @@ def test_once_task_does_not_restart_on_config_update():
 def test_finish_task_restarts_on_config_update():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
-    task_name = 'world-0-finish'
+    task_name = "world-0-finish"
     world_finish_id = get_completed_task_id(task_name)
     assert world_finish_id is not None
-    log.info('world-0-finish ID: {}'.format(world_finish_id))
+    log.info("world-0-finish ID: {}".format(world_finish_id))
     config.bump_world_cpus(foldered_name)
 
     sdk_tasks.check_task_relaunched(task_name, world_finish_id, ensure_new_task_not_completed=False)

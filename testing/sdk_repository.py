@@ -63,8 +63,8 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
 
     # add the needed universe repositories
     for name, url in stub_urls.items():
-        log.info('Adding stub repo {} URL: {}'.format(name, url))
-        sdk_cmd.run_cli('package repo add --index=0 {} {}'.format(name, url), check=True)
+        log.info("Adding stub repo {} URL: {}".format(name, url))
+        sdk_cmd.run_cli("package repo add --index=0 {} {}".format(name, url), check=True)
 
     log.info("Finished adding universe repos")
 

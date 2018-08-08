@@ -131,7 +131,7 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
                 _dump_plans(item, service_name)
                 _dump_threads(item, service_name)
             except Exception:
-                log.exception('Plan/thread collection from service {} failed!'.format(service_name))
+                log.exception("Plan/thread collection from service {} failed!".format(service_name))
 
     # Fetch all logs from tasks created since the last failure, or since the start of the suite.
     global _testlogs_ignored_task_ids
@@ -190,10 +190,12 @@ def _dump_plans(item: pytest.Item, service_name: str):
 
 
 def _dump_threads(item: pytest.Item, service_name: str):
-    threads = sdk_cmd.service_request('GET', service_name, 'v1/debug/threads', timeout_seconds=5).text
-    out_path = _setup_artifact_path(item, 'threads_{}.txt'.format(service_name.replace('/', '_')))
-    log.info('=> Writing {} ({} bytes)'.format(out_path, len(threads)))
-    with open(out_path, 'w') as f:
+    threads = sdk_cmd.service_request(
+        "GET", service_name, "v1/debug/threads", timeout_seconds=5
+    ).text
+    out_path = _setup_artifact_path(item, "threads_{}.txt".format(service_name.replace("/", "_")))
+    log.info("=> Writing {} ({} bytes)".format(out_path, len(threads)))
+    with open(out_path, "w") as f:
         f.write(threads)
         f.write("\n")  # ... and a trailing newline
 

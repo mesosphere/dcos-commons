@@ -80,8 +80,13 @@ def test_rack_not_found():
     )
 
     # scheduler should fail to deploy, don't wait for it to complete:
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
-                        additional_options=options, wait_for_deployment=False)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        0,
+        additional_options=options,
+        wait_for_deployment=False,
+    )
     try:
         sdk_tasks.check_running(config.SERVICE_NAME, 1, timeout_seconds=60)
         assert False, "Should have failed to deploy anything"
@@ -101,7 +106,7 @@ def test_rack_not_found():
     assert phase1["status"] == "IN_PROGRESS"
     steps1 = phase1["steps"]
     assert len(steps1) == 1
-    assert steps1[0]['status'] in ('PREPARED', 'PENDING')  # first step may be PREPARED
+    assert steps1[0]["status"] in ("PREPARED", "PENDING")  # first step may be PREPARED
 
     phase2 = pl["phases"][1]
     assert phase2["status"] == "PENDING"
@@ -244,31 +249,31 @@ def fail_placement(options):
 @pytest.mark.sanity
 def test_hostname_unique():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "count": get_num_private_agents(),
-            "placement": "[[\"hostname\", \"UNIQUE\"]]"
-        },
-        "world": {
-            "count": get_num_private_agents(),
-            "placement": "[[\"hostname\", \"UNIQUE\"]]"
+    options = _escape_placement_for_1_9(
+        {
+            "service": {"yaml": "marathon_constraint"},
+            "hello": {"count": get_num_private_agents(), "placement": '[["hostname", "UNIQUE"]]'},
+            "world": {"count": get_num_private_agents(), "placement": '[["hostname", "UNIQUE"]]'},
         }
     )
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-                        get_num_private_agents() * 2, additional_options=options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        get_num_private_agents() * 2,
+        additional_options=options,
+    )
 
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
-    old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-0')
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', old_ids)
+    old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace hello-0")
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0", old_ids)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
-    sdk_tasks.check_running(config.SERVICE_NAME, get_num_private_agents() * 2 - 1, timeout_seconds=10)
+    sdk_tasks.check_running(
+        config.SERVICE_NAME, get_num_private_agents() * 2 - 1, timeout_seconds=10
+    )
     sdk_tasks.check_running(config.SERVICE_NAME, get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
@@ -276,66 +281,76 @@ def test_hostname_unique():
 @pytest.mark.sanity
 def test_max_per_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "count": get_num_private_agents() * 2,
-            "placement": "[[\"hostname\", \"MAX_PER\", \"2\"]]"
-        },
-        "world": {
-            "count": get_num_private_agents() * 3,
-            "placement": "[[\"hostname\", \"MAX_PER\", \"3\"]]"
+    options = _escape_placement_for_1_9(
+        {
+            "service": {"yaml": "marathon_constraint"},
+            "hello": {
+                "count": get_num_private_agents() * 2,
+                "placement": '[["hostname", "MAX_PER", "2"]]',
+            },
+            "world": {
+                "count": get_num_private_agents() * 3,
+                "placement": '[["hostname", "MAX_PER", "3"]]',
+            },
         }
-    })
+    )
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-                        get_num_private_agents() * 5, additional_options=options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        get_num_private_agents() * 5,
+        additional_options=options,
+    )
     ensure_max_count_per_agent(hello_count=2, world_count=3)
 
 
 @pytest.mark.sanity
 def test_rr_by_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "count": get_num_private_agents() * 2,
-            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(get_num_private_agents())
-        },
-        "world": {
-            "count": get_num_private_agents() * 2,
-            "placement": "[[\"hostname\", \"GROUP_BY\", \"{}\"]]".format(get_num_private_agents())
+    options = _escape_placement_for_1_9(
+        {
+            "service": {"yaml": "marathon_constraint"},
+            "hello": {
+                "count": get_num_private_agents() * 2,
+                "placement": '[["hostname", "GROUP_BY", "{}"]]'.format(get_num_private_agents()),
+            },
+            "world": {
+                "count": get_num_private_agents() * 2,
+                "placement": '[["hostname", "GROUP_BY", "{}"]]'.format(get_num_private_agents()),
+            },
         }
-    })
+    )
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-                        get_num_private_agents() * 4, additional_options=options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        get_num_private_agents() * 4,
+        additional_options=options,
+    )
     ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
 @pytest.mark.sanity
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    some_agent = sdk_agents.get_private_agents().pop()['hostname']
-    options = _escape_placement_for_1_9({
-        "service": {
-            "yaml": "marathon_constraint"
-        },
-        "hello": {
-            "count": get_num_private_agents(),
-            "placement": "[[\"hostname\", \"CLUSTER\", \"{}\"]]".format(some_agent)
-        },
-        "world": {
-            "count": 0
+    some_agent = sdk_agents.get_private_agents().pop()["hostname"]
+    options = _escape_placement_for_1_9(
+        {
+            "service": {"yaml": "marathon_constraint"},
+            "hello": {
+                "count": get_num_private_agents(),
+                "placement": '[["hostname", "CLUSTER", "{}"]]'.format(some_agent),
+            },
+            "world": {"count": 0},
         }
-    })
+    )
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-                        get_num_private_agents(), additional_options=options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        get_num_private_agents(),
+        additional_options=options,
+    )
     ensure_count_per_agent(hello_count=get_num_private_agents(), world_count=0)
 
 
@@ -343,9 +358,9 @@ def get_hello_world_agent_sets():
     hello_agents = []
     world_agents = []
     for task in sdk_tasks.get_service_tasks(config.SERVICE_NAME):
-        if task.name.startswith('hello-'):
+        if task.name.startswith("hello-"):
             hello_agents.append(task.agent_id)
-        elif task.name.startswith('world-'):
+        elif task.name.startswith("world-"):
             world_agents.append(task.agent_id)
         else:
             assert False, "Unknown task: " + task.name
@@ -435,9 +450,9 @@ def setup_constraint_switch():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
     agents = sdk_agents.get_private_agents()
-    some_agent = agents[0]['hostname']
-    other_agent = agents[1]['hostname']
-    log.info('Agents: %s %s', some_agent, other_agent)
+    some_agent = agents[0]["hostname"]
+    other_agent = agents[1]["hostname"]
+    log.info("Agents: %s %s", some_agent, other_agent)
     assert some_agent != other_agent
     options = _escape_placement_for_1_9(
         {

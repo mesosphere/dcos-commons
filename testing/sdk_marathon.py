@@ -23,13 +23,17 @@ def app_exists(app_name, timeout=TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout * 1000,
-        retry_on_exception=lambda e: isinstance(e, Exception))
+        retry_on_exception=lambda e: isinstance(e, Exception),
+    )
     def _app_exists():
-        response = sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name)), raise_on_error=False)
+        response = sdk_cmd.cluster_request(
+            "GET", _api_url("apps/{}".format(app_name)), raise_on_error=False
+        )
         if response.status_code == 404:
             return False  # app doesn't exist
         response.raise_for_status()  # throw exception for (non-404) errors
         return True  # didn't get 404, and no other error code was returned, so app must exist.
+
     return _app_exists()
 
 
@@ -49,55 +53,59 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
 
 
 def _is_app_running(app: dict, add_log: str) -> bool:
-    staged = app.get('tasksStaged', 0)
-    unhealthy = app.get('tasksUnhealthy', 0)
-    running = app.get('tasksRunning', 0)
-    log.info('{}: staged={}, running={}, unhealthy={}{}'.format(
-        app.get('id', '???'), staged, unhealthy, running, add_log))
+    staged = app.get("tasksStaged", 0)
+    unhealthy = app.get("tasksUnhealthy", 0)
+    running = app.get("tasksRunning", 0)
+    log.info(
+        "{}: staged={}, running={}, unhealthy={}{}".format(
+            app.get("id", "???"), staged, unhealthy, running, add_log
+        )
+    )
     return staged == 0 and unhealthy == 0 and running > 0
 
 
 def _is_app_healthy(app: dict) -> bool:
-    healthy = app.get('tasksHealthy', 0)
-    return _is_app_running(app, ', healthy={}'.format(healthy)) and healthy > 0
+    healthy = app.get("tasksHealthy", 0)
+    return _is_app_running(app, ", healthy={}".format(healthy)) and healthy > 0
 
 
 def wait_for_app_running(app_name: str, timeout: int) -> None:
-    @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=2000,
-                    retry_on_result=lambda result: not result)
+    @retrying.retry(
+        stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
+    )
     def _wait_for_app_running(app_name: str) -> bool:
         return _is_app_running(_get_config(app_name), "")
 
-    log.info('Waiting for {} to be running'.format(app_name))
+    log.info("Waiting for {} to be running".format(app_name))
     _wait_for_app_running(app_name)
 
 
 def wait_for_app_healthy(app_name: str, timeout: int) -> None:
-    @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=2000,
-                    retry_on_result=lambda result: not result)
+    @retrying.retry(
+        stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
+    )
     def _wait_for_app_healthy(app_name: str) -> bool:
         return _is_app_healthy(_get_config(app_name))
 
-    log.info('Waiting for {} to be healthy'.format(app_name))
+    log.info("Waiting for {} to be healthy".format(app_name))
     _wait_for_app_healthy(app_name)
 
 
 def wait_for_deployment(app_name: str, timeout: int) -> None:
-    @retrying.retry(stop_max_delay=timeout * 1000,
-                    wait_fixed=2000,
-                    retry_on_result=lambda result: not result)
+    @retrying.retry(
+        stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
+    )
     def _wait_for_deployment(app_name):
-        deployments = sdk_cmd.cluster_request('GET', _api_url('deployments')).json()
-        filtered_deployments = [d for d in deployments if app_name in d['affectedApps']]
-        log.info('Found {} deployment{} for {}'.format(
-            len(filtered_deployments),
-            '' if len(filtered_deployments) == 1 else 's',
-            app_name))
+        deployments = sdk_cmd.cluster_request("GET", _api_url("deployments")).json()
+        filtered_deployments = [d for d in deployments if app_name in d["affectedApps"]]
+        log.info(
+            "Found {} deployment{} for {}".format(
+                len(filtered_deployments), "" if len(filtered_deployments) == 1 else "s", app_name
+            )
+        )
         return len(filtered_deployments) == 0
 
-    log.info('Waiting for {} to have no pending deployments'.format(app_name))
+    log.info("Waiting for {} to have no pending deployments".format(app_name))
     _wait_for_deployment(app_name)
 
 
@@ -149,7 +157,7 @@ def install_app(app_definition: dict) -> (bool, str):
     """
     app_name = app_definition["id"]
 
-    with tempfile.NamedTemporaryFile('w') as app_file:
+    with tempfile.NamedTemporaryFile("w") as app_file:
         json.dump(app_definition, app_file)
         app_file.flush()  # ensure content is available for the CLI to read below
 
@@ -166,10 +174,16 @@ def update_app(
         for k in sorted(config["env"]):
             log.info("  {}={}".format(k, config["env"][k]))
 
-    force_params = {'force': 'true'} if force else {}
+    force_params = {"force": "true"} if force else {}
 
     # throws on failure:
-    sdk_cmd.cluster_request('PUT', _api_url('apps/{}'.format(app_name)), log_args=False, params=force_params, json=config)
+    sdk_cmd.cluster_request(
+        "PUT",
+        _api_url("apps/{}".format(app_name)),
+        log_args=False,
+        params=force_params,
+        json=config,
+    )
 
     if wait_for_completed_deployment:
         log.info("Waiting for Marathon deployment of {} to complete...".format(app_name))
@@ -177,7 +191,9 @@ def update_app(
 
 
 def destroy_app(app_name, timeout=TIMEOUT_SECONDS):
-    sdk_cmd.cluster_request('DELETE', _api_url('apps/{}'.format(app_name)), params={'force': 'true'})
+    sdk_cmd.cluster_request(
+        "DELETE", _api_url("apps/{}".format(app_name)), params={"force": "true"}
+    )
     wait_for_deployment(app_name, timeout)
 
 
@@ -189,7 +205,7 @@ def restart_app(app_name):
 
 
 def _get_config(app_name):
-    return sdk_cmd.cluster_request('GET', _api_url('apps/{}'.format(app_name))).json()['app']
+    return sdk_cmd.cluster_request("GET", _api_url("apps/{}".format(app_name))).json()["app"]
 
 
 def _api_url(path):
@@ -200,11 +216,14 @@ def get_scheduler_host(service_name):
     # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
     task_name_elems = service_name.lstrip("/").split("/")
     task_name_elems.reverse()
-    app_name = '.'.join(task_name_elems)
-    ips = [t.host for t in sdk_tasks.get_service_tasks('marathon', app_name)]
+    app_name = ".".join(task_name_elems)
+    ips = [t.host for t in sdk_tasks.get_service_tasks("marathon", app_name)]
     if len(ips) == 0:
-        raise Exception('No IPs found for marathon task "{}". Available tasks are: {}'.format(
-            app_name, [task['name'] for task in sdk_tasks.get_service_tasks('marathon')]))
+        raise Exception(
+            'No IPs found for marathon task "{}". Available tasks are: {}'.format(
+                app_name, [task["name"] for task in sdk_tasks.get_service_tasks("marathon")]
+            )
+        )
     return ips.pop()
 
 

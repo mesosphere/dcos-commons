@@ -16,11 +16,7 @@ pytestmark = pytest.mark.skipif(
 
 pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
 
-pre_reserved_options = {
-    "service": {
-        "yaml": "pre-reserved"
-    }
-}
+pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -70,11 +66,7 @@ def test_marathon_volume_collision():
             "type": "MESOS",
             "volumes": [
                 {
-                    "persistent": {
-                        "type": "root",
-                        "size": 500,
-                        "constraints": []
-                    },
+                    "persistent": {"type": "root", "size": 500, "constraints": []},
                     "mode": "RW",
                     "containerPath": volume_name,
                 }
@@ -87,7 +79,12 @@ def test_marathon_volume_collision():
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
         # Should get e.g.: "/var/lib/mesos/slave/volumes/roles/slave_public/persistent-test#persistent-volume#76e7bb6d-64fa-11e8-abc5-8e679b292d5e"
-        rc, pv_path, _ = sdk_cmd.agent_ssh(host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
+        rc, pv_path, _ = sdk_cmd.agent_ssh(
+            host,
+            "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(
+                marathon_app_name, volume_name
+            ),
+        )
         assert rc == 0
 
         pv_path = pv_path.strip()

@@ -9,7 +9,7 @@ import sdk_upgrade
 from tests import config
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     test_jobs = []
     try:
@@ -23,7 +23,8 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name()}})
+            additional_options={"service": {"name": config.get_foldered_service_name()}},
+        )
 
         yield  # let the test session execute
     finally:
@@ -37,11 +38,15 @@ def configure_package(configure_security):
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.get_foldered_service_name(),
-        'endpoints native-client', json=True)
-    assert endpoints['dns'][0] == sdk_hosts.autoip_host(
-        config.get_foldered_service_name(), 'node-0-server', 9042)
-    assert 'vip' not in endpoints
+        config.PACKAGE_NAME,
+        config.get_foldered_service_name(),
+        "endpoints native-client",
+        json=True,
+    )
+    assert endpoints["dns"][0] == sdk_hosts.autoip_host(
+        config.get_foldered_service_name(), "node-0-server", 9042
+    )
+    assert "vip" not in endpoints
 
 
 @pytest.mark.sanity
@@ -78,7 +83,7 @@ def test_metrics():
         "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory",
     ]
 
-    def expected_metrics_callback(emitted_metrics):
+    def expected_metrics_exist(emitted_metrics):
         return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
@@ -87,5 +92,5 @@ def test_metrics():
         "node-0",
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT,
-        expected_metrics_callback
+        expected_metrics_exist,
     )

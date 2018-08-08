@@ -25,7 +25,7 @@ def configure_package(configure_security):
 @pytest.mark.executor_volumes
 def test_deploy():
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
-    log.info(sdk_plan.plan_string('deploy', deployment_plan))
+    log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
     assert len(deployment_plan["phases"]) == 3
     assert deployment_plan["phases"][0]["name"] == "hello-deploy"
@@ -41,10 +41,10 @@ def test_deploy():
 def test_sidecar():
     sdk_plan.start_plan(config.SERVICE_NAME, "sidecar")
 
-    started_plan = sdk_plan.get_plan(config.SERVICE_NAME, 'sidecar')
-    log.info(sdk_plan.plan_string('sidecar', started_plan))
-    assert(len(started_plan['phases']) == 1)
-    assert(started_plan['phases'][0]['name'] == 'sidecar-deploy')
-    assert(len(started_plan['phases'][0]['steps']) == 2)
+    started_plan = sdk_plan.get_plan(config.SERVICE_NAME, "sidecar")
+    log.info(sdk_plan.plan_string("sidecar", started_plan))
+    assert len(started_plan["phases"]) == 1
+    assert started_plan["phases"][0]["name"] == "sidecar-deploy"
+    assert len(started_plan["phases"][0]["steps"]) == 2
 
     sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, "sidecar")

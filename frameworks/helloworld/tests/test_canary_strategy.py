@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 pytestmark = pytest.mark.dcos_min_version("1.9")
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -40,10 +40,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_canary_init():
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=600 * 1000,
-        retry_on_result=lambda res: not res)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=600 * 1000, retry_on_result=lambda res: not res)
     def wait_for_empty():
         # check for empty list internally rather than returning empty list.
         return (

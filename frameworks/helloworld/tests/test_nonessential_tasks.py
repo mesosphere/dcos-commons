@@ -36,14 +36,17 @@ def test_kill_essential():
     assert len(old_ids) == 2
 
     sdk_cmd.kill_task_with_pattern(
-        'shared-volume/essential',  # hardcoded in cmd, see yml
-        sdk_hosts.system_host(config.SERVICE_NAME, 'hello-0-essential'))
+        "shared-volume/essential",  # hardcoded in cmd, see yml
+        sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-essential"),
+    )
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello-0', old_ids)  # wait for ids to change...
-    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)  # ...and for tasks to be up and running
+    # wait for ids to change...
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0", old_ids)
+    # ...and for tasks to be up and running
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
     # the first verify_shared_executor call deleted the files. both should have come back via the relaunch.
-    verify_shared_executor('hello-0', delete_files=False)  # leave files as-is for the next test
+    verify_shared_executor("hello-0", delete_files=False)  # leave files as-is for the next test
 
 
 @pytest.mark.sanity
@@ -57,8 +60,9 @@ def test_kill_nonessential():
     assert len(old_nonessential_ids) == 1
 
     sdk_cmd.kill_task_with_pattern(
-        'shared-volume/nonessential',  # hardcoded in cmd, see yml
-        sdk_hosts.system_host(config.SERVICE_NAME, 'hello-0-nonessential'))
+        "shared-volume/nonessential",  # hardcoded in cmd, see yml
+        sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-nonessential"),
+    )
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-nonessential", old_nonessential_ids)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)

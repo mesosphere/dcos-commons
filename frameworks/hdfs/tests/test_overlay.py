@@ -22,7 +22,8 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+        )
 
         yield  # let the test session execute
     finally:
@@ -39,7 +40,8 @@ def pre_test_setup():
 @pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
     hdfs_tasks = [t.id for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
-    assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, "Not enough tasks got launched,"\
+    assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, (
+        "Not enough tasks got launched,"
         "should be {} got {}".format(len(hdfs_tasks), config.DEFAULT_TASK_COUNT)
     )
     for task in hdfs_tasks:
@@ -125,7 +127,8 @@ def test_integrity_on_name_node_failure():
 @retrying.retry(
     wait_fixed=1000,
     stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res)
+    retry_on_result=lambda res: not res,
+)
 def wait_for_failover_to_complete(namenode):
     """
     Inspects the name node logs to make sure ZK signals a complete failover.

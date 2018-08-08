@@ -52,11 +52,11 @@ def test_bump_hello_cpus():
     sdk_tasks.check_tasks_updated(foldered_name, "hello", hello_ids)
     config.check_running(foldered_name)
 
-    all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix='hello')
+    all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix="hello")
     running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
     assert len(running_tasks) == config.hello_task_count(foldered_name)
     for t in running_tasks:
-        assert config.close_enough(t.resources['cpus'], updated_cpus)
+        assert config.close_enough(t.resources["cpus"], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -73,11 +73,11 @@ def test_bump_world_cpus():
     sdk_tasks.check_tasks_updated(foldered_name, "world", original_world_ids)
     config.check_running(foldered_name)
 
-    all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix='world')
+    all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix="world")
     running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
     assert len(running_tasks) == config.world_task_count(foldered_name)
     for t in running_tasks:
-        assert config.close_enough(t.resources['cpus'], updated_cpus)
+        assert config.close_enough(t.resources["cpus"], updated_cpus)
 
 
 @pytest.mark.sanity
@@ -175,8 +175,12 @@ def test_pod_status_one():
 
 @pytest.mark.sanity
 def test_pod_info():
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
+    jsonobj = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "pod info world-1",
+        json=True,
+    )
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
@@ -202,7 +206,7 @@ def test_state_properties_get():
         "hello-0-server:task-status",
         "last-completed-update-type",
         "world-0-server:task-status",
-        "world-1-server:task-status"
+        "world-1-server:task-status",
     ]:
         assert required in jsonobj
     # also check that the returned list was in alphabetical order:
@@ -222,10 +226,14 @@ def test_config_cli():
     configs = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config list", json=True)
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-                           'debug config show {}'.format(configs[0]), print_output=False)  # noisy output
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config target', json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'debug config target_id', json=True)
+    assert sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        foldered_name,
+        "debug config show {}".format(configs[0]),
+        print_output=False,
+    )  # noisy output
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config target", json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config target_id", json=True)
 
 
 @pytest.mark.sanity
@@ -234,12 +242,14 @@ def test_plan_cli():
     plan_name = "deploy"
     phase_name = "world"
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan list', json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'plan show {}'.format(plan_name))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-                           'plan show --json {}'.format(plan_name), json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-                           'plan show {} --json'.format(plan_name), json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan list", json=True)
+    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))
+    assert sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan show --json {}".format(plan_name), json=True
+    )
+    assert sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan show {} --json".format(plan_name), json=True
+    )
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
@@ -247,10 +257,12 @@ def test_plan_cli():
         config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name)
     )
 
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-                           'plan interrupt {} {}'.format(plan_name, phase_name))
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name,
-                           'plan continue {} {}'.format(plan_name, phase_name))
+    assert sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
+    )
+    assert sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
+    )
 
     # now wait for plan to finish before continuing to other tests:
     assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
@@ -284,10 +296,7 @@ def test_state_refresh_disable_cache():
     config.check_running(foldered_name)
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=120 * 1000,
-        retry_on_result=lambda res: not res)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
         output = sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
@@ -307,10 +316,7 @@ def test_state_refresh_disable_cache():
     config.check_running(foldered_name)
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=120 * 1000,
-        retry_on_result=lambda res: not res)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
 
@@ -329,7 +335,9 @@ def test_lock():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     def get_zk_node_data(node_name):
-        return sdk_cmd.cluster_request("GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)).json()
+        return sdk_cmd.cluster_request(
+            "GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)
+        ).json()
 
     # Get ZK state from running framework
     zk_path = "{}/ConfigTarget".format(sdk_utils.get_zk_path(foldered_name))
@@ -347,12 +355,11 @@ def test_lock():
     marathon_config["instances"] = 2
     sdk_marathon.update_app(foldered_name, marathon_config, wait_for_completed_deployment=False)
 
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=120 * 1000,
-        retry_on_result=lambda res: not res)
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def wait_for_second_scheduler_to_fail():
-        timestamp = sdk_marathon.get_config(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
+        timestamp = (
+            sdk_marathon.get_config(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
+        )
         return timestamp != old_timestamp
 
     wait_for_second_scheduler_to_fail()
@@ -369,5 +376,7 @@ def test_lock():
 
 @pytest.mark.sanity
 def test_tmp_directory_created():
-    code, stdout, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar | grep bar")
+    code, stdout, stderr = sdk_cmd.service_task_exec(
+        config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar | grep bar"
+    )
     assert code > 0

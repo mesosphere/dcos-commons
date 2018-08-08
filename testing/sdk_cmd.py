@@ -4,7 +4,7 @@
 FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 ************************************************************************
-'''
+"""
 import functools
 import json as jsonlib
 import os
@@ -35,8 +35,8 @@ def service_request(
     **kwargs,
 ):
     """Used to query a service running on the cluster. See `cluster_request()` for arg meanings.
-    :param service_name: The name of the service, e.g. 'marathon' or 'hello-world'
-    :param service_path: HTTP path to be queried against the service, e.g. '/v2/apps'. Leading slash is optional.
+    : param service_name: The name of the service, e.g. 'marathon' or 'hello-world'
+    : param service_path: HTTP path to be queried against the service, e.g. '/v2/apps'. Leading slash is optional.
     """
     # Sanitize leading slash on service_path before calling urljoin() to avoid this:
     # 'http://example.com/service/myservice/' + '/v1/rpc' = 'http://example.com/v1/rpc'
@@ -61,22 +61,23 @@ def cluster_request(
     """Queries the provided cluster HTTP path using the provided method, with the following handy features:
     - The DCOS cluster's URL is automatically applied to the provided path.
     - Auth headers are automatically added.
-    - If the response code is >=400, optionally retries and/or raises a `requests.exceptions.HTTPError`.
+    - If the response code is >= 400, optionally retries and / or raises a `requests.exceptions.HTTPError`.
 
-    :param method: Method to use for the query, such as `GET`, `POST`, `DELETE`, or `PUT`.
-    :param cluster_path: HTTP path to be queried on the cluster, e.g. `/marathon/v2/apps`. Leading slash is optional.
-    :param retry: Whether to retry the request automatically if an HTTP error (>=400) is returned.
-    :param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >=400.
-                           Disabling this effectively implies `retry=False` where HTTP status is concerned.
-    :param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
-    :param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
-    :param kwargs: Additional arguments to requests.request(), such as `json={"example": "content"}`
-                   or `params={"example": "param"}`.
-    :rtype: requests.Response
+    : param method: Method to use for the query, such as `GET`, `POST`, `DELETE`, or `PUT`.
+    : param cluster_path: HTTP path to be queried on the cluster, e.g. `/ marathon / v2 / apps`. Leading slash is optional.
+    : param retry: Whether to retry the request automatically if an HTTP error (>= 400) is returned.
+    : param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >= 400.
+                           Disabling this effectively implies `retry = False` where HTTP status is concerned.
+    : param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
+    : param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
+    : param kwargs: Additional arguments to requests.request(), such as `json = {"example": "content"}`
+                   or `params = {"example": "param"}`.
+    : rtype: requests.Response
     """
 
     url = urllib.parse.urljoin(sdk_utils.dcos_url(), cluster_path)
-    cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
+    # consistently include slash prefix for clearer logging below
+    cluster_path = "/" + cluster_path.lstrip("/")
 
     # Wrap token in callback for requests library to invoke:
     class AuthHeader(requests.auth.AuthBase):
@@ -84,26 +85,25 @@ def cluster_request(
             self._token = token
 
         def __call__(self, r):
-            r.headers['Authorization'] = 'token={}'.format(self._token)
+            r.headers["Authorization"] = "token={}".format(self._token)
             return r
+
     auth = AuthHeader(sdk_utils.dcos_token())
 
     def _cluster_request():
         start = time.time()
         response = requests.request(
-            method,
-            url,
-            auth=auth,
-            verify=verify,
-            timeout=timeout_seconds,
-            **kwargs)
+            method, url, auth=auth, verify=verify, timeout=timeout_seconds, **kwargs
+        )
         end = time.time()
 
-        log_msg = '(HTTP {}) {}'.format(method.upper(), cluster_path)
+        log_msg = "(HTTP {}) {}".format(method.upper(), cluster_path)
         if kwargs:
             # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
-            log_msg += ' (args: {})'.format(kwargs if log_args else [e for e in kwargs.keys()])
-        log_msg += ' => {} ({})'.format(response.status_code, sdk_utils.pretty_duration(end - start))
+            log_msg += " (args: {})".format(kwargs if log_args else [e for e in kwargs.keys()])
+        log_msg += " => {} ({})".format(
+            response.status_code, sdk_utils.pretty_duration(end - start)
+        )
         log.info(log_msg)
 
         if not response.ok:
@@ -125,6 +125,7 @@ def cluster_request(
         @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
         def retry_fn():
             return _cluster_request()
+
         return retry_fn()
     else:
         # No retry, invoke directly:
@@ -169,7 +170,7 @@ def run_raw_cli(cmd, print_output=True, check=False):
     and returns a tuple containing return code, stdout, and stderr.
 
     eg. `cmd`= "package install <package-name>" results in:
-    $ dcos package install <package-name>
+    $ dcos package install < package - name >
     """
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
@@ -183,18 +184,19 @@ def _run_cmd(cmd, print_output, check, timeout_seconds=None):
         stderr=subprocess.PIPE,
         shell=True,
         check=check,
-        timeout=timeout_seconds)
+        timeout=timeout_seconds,
+    )
 
     if result.returncode != 0:
         log.info("Got return code {} to command: {}".format(result.returncode, cmd))
 
     if result.stdout:
-        stdout = result.stdout.decode('utf-8').strip()
+        stdout = result.stdout.decode("utf-8").strip()
     else:
         stdout = ""
 
     if result.stderr:
-        stderr = result.stderr.decode('utf-8').strip()
+        stderr = result.stderr.decode("utf-8").strip()
     else:
         stderr = ""
 
@@ -207,11 +209,11 @@ def _run_cmd(cmd, print_output, check, timeout_seconds=None):
     return result.returncode, stdout, stderr
 
 
-@retrying.retry(stop_max_attempt_number=3,
-                wait_fixed=1000,
-                retry_on_result=lambda result: not result)
+@retrying.retry(
+    stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
+)
 def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -> bool:
-    output_cmd = """bash -c \"cat >{output_file} << EOL
+    output_cmd = """bash - c \"cat > {output_file} << EOL
 {content}
 EOL\"""".format(
         output_file=filename, content="\n".join(lines)
@@ -252,13 +254,13 @@ EOL\"""".format(
     return True
 
 
-@retrying.retry(stop_max_attempt_number=3,
-                wait_fixed=1000,
-                retry_on_result=lambda result: not result)
+@retrying.retry(
+    stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
+)
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    '''SSHes into the leader node (or the provided agent node) and kills any tasks matching the
+    """SSHes into the leader node (or the provided agent node) and kills any tasks matching the
     provided regex pattern in their command.
-    '''
+    """
     # -f: Patterns may be against arguments in the command itself
     # -o: Kill the oldest command: avoid killing ourself, assuming there's another command that matches the pattern..
     command = "sudo pkill -9 -f -o {}".format(pattern)
@@ -270,74 +272,76 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
 
 
 def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
-    '''
+    """
     Runs the provided command on the cluster master, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
-    '''
-    log.info('(SSH:leader) {}'.format(cmd))
+    """
+    log.info("(SSH:leader) {}".format(cmd))
     return _ssh(cmd, _internal_leader_host(), timeout_seconds, print_output, check)
 
 
-def agent_ssh(agent_host: str, cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
-    '''
+def agent_ssh(
+    agent_host: str, cmd: str, timeout_seconds=60, print_output=True, check=False
+) -> tuple:
+    """
     Runs the provided command on the specified agent host, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
-    '''
-    log.info('(SSH:agent={}) {}'.format(agent_host, cmd))
+    """
+    log.info("(SSH:agent={}) {}".format(agent_host, cmd))
     return _ssh(cmd, agent_host, timeout_seconds, print_output, check)
 
 
 def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool):
-    common_args = ' '.join([
-        # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
-        '-oStrictHostKeyChecking=no',
+    common_args = " ".join(
+        [
+            # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
+            "-oStrictHostKeyChecking=no",
+            # -oConnectTimeout=#: Limit the duration for the connection to be created.
+            #                     We also configure a timeout for the command itself to run once connected, see below.
+            "-oConnectTimeout={}".format(timeout_seconds),
+            # -A: Forward the pubkey agent connection (required for nested access)
+            "-A",
+            # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
+            #     In particular, avoid messages that may mess up stdout/stderr output.
+            "-q",
+            # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
+            "-l {}".format(os.environ.get("DCOS_SSH_USER", "core")),
+        ]
+    )
 
-        # -oConnectTimeout=#: Limit the duration for the connection to be created.
-        #                     We also configure a timeout for the command itself to run once connected, see below.
-        '-oConnectTimeout={}'.format(timeout_seconds),
-
-        # -A: Forward the pubkey agent connection (required for nested access)
-        '-A',
-
-        # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
-        #     In particular, avoid messages that may mess up stdout/stderr output.
-        '-q',
-
-        # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
-        '-l {}'.format(os.environ.get('DCOS_SSH_USER', 'core'))
-    ])
-
-    if os.environ.get('DCOS_SSH_DIRECT', ''):
+    if os.environ.get("DCOS_SSH_DIRECT", ""):
         # Direct SSH access to the node:
         ssh_cmd = 'ssh {} {} -- "{}"'.format(common_args, host, cmd)
     else:
         # Nested SSH call via the proxy node. Be careful to nest quotes to match:
-        ssh_cmd = 'ssh {} {} -- "ssh {} {} -- \\"{}\\""'.format(common_args, _external_cluster_host(), common_args, host, cmd)
+        ssh_cmd = 'ssh {} {} -- "ssh {} {} -- \\"{}\\""'.format(
+            common_args, _external_cluster_host(), common_args, host, cmd
+        )
     return _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
 
 
 @functools.lru_cache()
 def _external_cluster_host():
-    '''Returns the internet-facing IP of the cluster frontend.'''
-    return cluster_request('GET', '/metadata').json()['PUBLIC_IPV4']
+    """Returns the internet-facing IP of the cluster frontend."""
+    return cluster_request("GET", "/metadata").json()["PUBLIC_IPV4"]
 
 
 @functools.lru_cache()
 def _internal_leader_host():
-    '''Returns the cluster-internal IP of the current mesos leader.'''
-    leader_hosts = cluster_request('GET', '/mesos_dns/v1/hosts/leader.mesos').json()
+    """Returns the cluster-internal IP of the current mesos leader."""
+    leader_hosts = cluster_request("GET", "/mesos_dns/v1/hosts/leader.mesos").json()
     if len(leader_hosts) == 0:
         # Just in case. Shouldn't happen in practice.
-        raise Exception('Missing mesos-dns entry for leader.mesos: {}'.format(leader_hosts))
-    return leader_hosts[0]['ip']
+        raise Exception("Missing mesos-dns entry for leader.mesos: {}".format(leader_hosts))
+    return leader_hosts[0]["ip"]
 
 
 def marathon_task_exec(task_name: str, cmd: str) -> tuple:
     """
     Invokes the given command on the named Marathon task via `dcos task exec`.
-    :param task_name: Name of task to run 'cmd' on.
-    :param cmd: The command to execute.
-    :return: a tuple consisting of the task exec's return code, stdout, and stderr
+    : param task_name: Name of task to run 'cmd' on.
+    : param cmd: The command to execute.
+    : return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
     # Marathon TaskIDs are of the form "<name>.<uuid>"
     return _task_exec(task_name, cmd)
@@ -346,10 +350,10 @@ def marathon_task_exec(task_name: str, cmd: str) -> tuple:
 def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     """
     Invokes the given command on the named SDK service task via `dcos task exec`.
-    :param service_name: Name of the service running the task.
-    :param task_name: Name of task to run 'cmd' on.
-    :param cmd: The command to execute.
-    :return: a tuple consisting of the task exec's return code, stdout, and stderr
+    : param service_name: Name of the service running the task.
+    : param task_name: Name of task to run 'cmd' on.
+    : param cmd: The command to execute.
+    : return: a tuple consisting of the task exec's return code, stdout, and stderr
     """
 
     # Contrary to CLI's help text for 'dcos task exec':
@@ -451,7 +455,7 @@ def get_task_sandbox_path(task_id_prefix: str) -> str:
 @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
 def _get_task_info(task_id_prefix: str) -> dict:
     """
-    :return (dict): Get the task information for the specified task
+    : return (dict): Get the task information for the specified task
     """
     raw_tasks = run_cli("task {task_id_prefix} --json".format(task_id_prefix=task_id_prefix))
     if not raw_tasks:

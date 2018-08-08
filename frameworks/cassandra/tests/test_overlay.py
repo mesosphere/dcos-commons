@@ -36,11 +36,7 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_service_overlay_health():
-    node_tasks = (
-        "node-0-server",
-        "node-1-server",
-        "node-2-server",
-    )
+    node_tasks = ("node-0-server", "node-1-server", "node-2-server")
     for task in node_tasks:
         sdk_networks.check_task_network(task)
 

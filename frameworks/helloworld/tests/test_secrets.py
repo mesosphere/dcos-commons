@@ -19,20 +19,18 @@ secret_content_default = "hello-world-secret-data"
 secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
-    "service": {
-        "yaml": "secrets"
-    },
+    "service": {"yaml": "secrets"},
     "hello": {
         "count": NUM_HELLO,
         "secret1": "hello-world/secret1",
-        "secret2": "hello-world/secret2"
+        "secret2": "hello-world/secret2",
     },
     "world": {
         "count": NUM_WORLD,
         "secret1": "hello-world/secret1",
         "secret2": "hello-world/secret2",
-        "secret3": "hello-world/secret3"
-    }
+        "secret3": "hello-world/secret3",
+    },
 }
 
 options_dcos_space_test = {
@@ -190,9 +188,21 @@ def test_secrets_update():
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, config.SERVICE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, config.SERVICE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, config.SERVICE_NAME))
+    sdk_cmd.run_cli(
+        "security secrets update --value={} {}/secret1".format(
+            secret_content_alternative, config.SERVICE_NAME
+        )
+    )
+    sdk_cmd.run_cli(
+        "security secrets update --value={} {}/secret2".format(
+            secret_content_alternative, config.SERVICE_NAME
+        )
+    )
+    sdk_cmd.run_cli(
+        "security secrets update --value={} {}/secret3".format(
+            secret_content_alternative, config.SERVICE_NAME
+        )
+    )
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
@@ -337,7 +347,8 @@ def test_secrets_dcos_space():
         config.SERVICE_NAME,
         0,
         additional_options=options_dcos_space_test,
-        wait_for_deployment=False)
+        wait_for_deployment=False,
+    )
 
     try:
         # Now, manually check that the deploy plan is stuck. Just wait for 5 minutes.

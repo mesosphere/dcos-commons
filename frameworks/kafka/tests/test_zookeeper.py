@@ -18,7 +18,7 @@ pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is b
 def zookeeper_server(configure_security):
     service_options = sdk_utils.merge_dictionaries(
         sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
-        {'service': {'name': config.ZOOKEEPER_SERVICE_NAME}}
+        {"service": {"name": config.ZOOKEEPER_SERVICE_NAME}},
     )
 
     zk_account = "test-zookeeper-service-account"
