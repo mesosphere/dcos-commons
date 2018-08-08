@@ -27,6 +27,13 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
      */
     private static final Pattern VALID_CONTAINER_PATH_PATTERN = Pattern.compile("[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*");
 
+    /**
+     * Limit the length and characters in a profile name. A profile name should consist of alphanumeric
+     * characters ([a-zA-Z0-9]), dashes (-), underscores (_) or dots(.), and should be non-empty and at most 128
+     * characters. See: https://jira.mesosphere.com/browse/DCOS-40365
+     */
+    private static final Pattern VALID_PROFILE_PATTERN = Pattern.compile("[a-zA-Z0-9_.-]{1,128}");
+
     private final Type type;
     private final String containerPath;
     private final List<String> profiles;
@@ -49,8 +56,7 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 preReservedRole,
                 principal);
 
-        validateResource();
-        ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
+        validateVolume();
     }
 
     @JsonCreator
@@ -106,5 +112,26 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
         builder.getScalarBuilder().setValue(value);
         return builder.build();
+    }
+
+    private void validateVolume() {
+        validateResource();
+        ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
+
+        if (type == Type.MOUNT) {
+            ValidationUtils.nonEmptyAllowNull(this, "profiles", profiles);
+        } else {
+            ValidationUtils.isNull(this, "profiles", profiles);
+        }
+
+        if (profiles != null) {
+            int index = 0;
+            for (String profile : profiles) {
+                ValidationUtils.matchesRegex(this, "profiles[" + index + "]", profile, VALID_PROFILE_PATTERN);
+                index++;
+            }
+
+            ValidationUtils.isUnique(this, "profiles", profiles.stream());
+        }
     }
 }

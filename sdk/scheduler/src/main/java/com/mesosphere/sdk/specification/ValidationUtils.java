@@ -180,4 +180,13 @@ public class ValidationUtils {
             throw new IllegalArgumentException(String.format("%s cannot be null: %s", fieldName, parent));
         }
     }
+
+    /**
+     * Throws an exception if {@code field} is not {@code null}.
+     */
+    public static void isNull(Object parent, String fieldName, Object field) {
+        if (field != null) {
+            throw new IllegalArgumentException(String.format("%s must be null: %s", fieldName, parent));
+        }
+    }
 }
